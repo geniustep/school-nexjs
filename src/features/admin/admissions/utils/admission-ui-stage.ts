@@ -74,12 +74,22 @@ const RAW_STATE_TO_UI_STAGE: Partial<Record<AdmissionState, AdmissionUiStage>> =
 
 export type AdmissionUiStageSource = Pick<
   AdmissionListItem,
-  'state' | 'student_id' | 'registration_flow_state'
+  | 'state'
+  | 'student_id'
+  | 'registration_flow_state'
+  | 'registration_readiness'
+  | 'registration_status'
+  | 'offer_required'
+  | 'offer_state'
+  | 'offer_summary'
 >;
 
 /** Maps a list item to its display stage. Registered overrides any raw state. */
 export function resolveAdmissionUiStage(item: AdmissionUiStageSource): AdmissionUiStage {
   if (isAdmissionConvertedToStudent(item)) return 'registered';
+
+  // جاهز للتسجيل = staff-confirmed only. School acceptance stays in `accepted`.
+  if (String(item.state ?? '') === 'confirmed') return 'ready_for_registration';
 
   const mapped = RAW_STATE_TO_UI_STAGE[item.state as AdmissionState];
   return mapped ?? 'new';

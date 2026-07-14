@@ -9,7 +9,18 @@ const root = path.resolve(__dirname, '../../../../../messages');
 
 function loadMessages(lang: string) {
   return require(path.join(root, `${lang}.json`)) as {
-    admin: { admissions: Record<string, Record<string, string>> };
+    admin: {
+      admissions: {
+        states: Record<string, string>;
+        processingStages: Record<string, string>;
+        decisions: Record<string, string>;
+        schoolDecision: Record<string, string>;
+        actions: Record<string, string>;
+        decision: Record<string, string>;
+        uiStages: Record<string, string>;
+        primaryAction: Record<string, string>;
+      };
+    };
   };
 }
 
@@ -18,7 +29,7 @@ describe('stage/decision translations', () => {
     it(`provides labels for manual stages and decisions in ${lang}`, () => {
       const adm = loadMessages(lang).admin.admissions;
       for (const stage of getAdmissionManualStageOptions()) {
-        expect(adm.states[stage]).toBeTruthy();
+        expect(adm.processingStages[stage]).toBeTruthy();
       }
       for (const decision of getAdmissionDecisionOptions()) {
         if (decision === 'rejected') {
@@ -31,6 +42,9 @@ describe('stage/decision translations', () => {
       expect(adm.actions.changeFollowUp).toBeTruthy();
       expect(adm.actions.makeDecision).toBeTruthy();
       expect(adm.decision.conditions).toBeTruthy();
+      expect(adm.primaryAction.markReady).toBeTruthy();
+      expect(adm.uiStages.ready_for_registration).toBeTruthy();
+      expect(adm.uiStages.accepted).toBeTruthy();
     });
   }
 
@@ -38,5 +52,11 @@ describe('stage/decision translations', () => {
     const ar = loadMessages('ar').admin.admissions;
     expect(ar.states.under_review).toBe('قيد الدراسة');
     expect(ar.uiStages.in_evaluation).toBe('قيد الدراسة');
+  });
+
+  it('Arabic accepted decision is plain مقبول (not auto-ready)', () => {
+    const ar = loadMessages('ar').admin.admissions;
+    expect(ar.decisions.accepted).toBe('مقبول');
+    expect(ar.primaryAction.markReady).toBe('جاهز للتسجيل');
   });
 });

@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useId, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { reopenAdmission } from '../api/admissions-api';
+import { executeAdmissionAction } from '../api/admissions-api';
+import { mapAdmissionActionError } from '../utils/admission-action-errors';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
-
-const DEFAULT_TARGET_STATE = 'contacted';
 
 export function AdmissionReopenDialog({
   admissionId,
@@ -27,6 +27,11 @@ export function AdmissionReopenDialog({
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -44,17 +49,17 @@ export function AdmissionReopenDialog({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null || submitting) return;
     setSubmitting(true);
     setError(null);
-    const res = await reopenAdmission(
+    const res = await executeAdmissionAction(
       admissionId,
       {
-        target_state: DEFAULT_TARGET_STATE,
+        action: 'reopen',
         note: note.trim() || undefined,
       },
       { active_school_id: activeSchoolId },
@@ -66,10 +71,11 @@ export function AdmissionReopenDialog({
       onClose();
       return;
     }
-    setError(admissionApiErrorMessage(res.error, t));
+    const mapped = mapAdmissionActionError(res.error);
+    setError(mapped.startsWith('admin.') ? t(mapped) : mapped || admissionApiErrorMessage(res.error, t));
   }
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
         className="card modal-panel confirmation-dialog"
@@ -77,20 +83,11 @@ export function AdmissionReopenDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
+        data-testid="admission-reopen-dialog"
       >
-        <h2 id={titleId}>{t('admin.admissions.rejection.reopenButton')}</h2>
+        <h2 id={titleId}>{t('admin.admissions.actions.reopen')}</h2>
         <p className="muted">{t('admin.admissions.rejection.reopenDialogHint')}</p>
         <form className="form-stack" onSubmit={submit}>
-          <div className="field">
-            <label htmlFor="admission-reopen-target">{t('admin.admissions.rejection.reopenTargetState')}</label>
-            <input
-              id="admission-reopen-target"
-              className="input"
-              value={t(`admin.admissions.states.${DEFAULT_TARGET_STATE}`)}
-              readOnly
-              disabled
-            />
-          </div>
           <div className="field">
             <label htmlFor="admission-reopen-note">{t('common.note')}</label>
             <textarea
@@ -109,11 +106,12 @@ export function AdmissionReopenDialog({
               {t('common.cancel')}
             </button>
             <button type="submit" className="btn btn--primary" disabled={submitting}>
-              {submitting ? t('common.submitting') : t('admin.admissions.rejection.reopenButton')}
+              {submitting ? t('common.submitting') : t('admin.admissions.actions.reopen')}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

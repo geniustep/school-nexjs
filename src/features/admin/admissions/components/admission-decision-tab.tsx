@@ -121,7 +121,7 @@ export function AdmissionDecisionTab({
                 <dd>{decision.decision_notes || t('common.dash')}</dd>
               </>
             ) : null}
-            {decision.decision === 'accepted_with_condition' || decision.conditions ? (
+            {decision.conditions ? (
               <>
                 <dt>{t('admin.admissions.decision.conditions')}</dt>
                 <dd data-testid="admission-decision-current-conditions">
@@ -144,6 +144,7 @@ export function AdmissionDecisionTab({
           data-testid="admission-decision-form"
         >
           <h3 className="admissions-section__title">{t('admin.admissions.decision.formTitle')}</h3>
+          <p className="admission-decision-dialog__hint">{t('admin.admissions.decision.readyHint')}</p>
           {error ? <div className="alert alert--error">{error}</div> : null}
           <div className="field">
             <label htmlFor="decision-value">{t('admin.admissions.actions.makeDecision')}</label>

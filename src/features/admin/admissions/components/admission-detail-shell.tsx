@@ -38,9 +38,10 @@ import { AdmissionOfferRegistrationTab } from './admission-offer-registration-ta
 import { FamilyAdmissionFamilyPanel } from './family-admission-family-panel';
 import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
-import { AdmissionJourneyStrip } from './admission-journey-strip';
 import { AdmissionPrimaryActionPanel } from './admission-primary-action-panel';
 import { AdmissionStudentConversionAction } from './admission-student-conversion-action';
+import { AdmissionModernStatusBadge } from './admission-modern-status-badge';
+import { AdmissionLastActionSummary } from './admission-last-action-summary';
 import { OverviewEmptyValue } from './admission-overview-primitives';
 import {
   AdmissionGuardiansDetails,
@@ -50,6 +51,8 @@ import {
   normalizeStatusWarnings,
   statusWarningLabelKey,
 } from '../utils/admission-status-display';
+import { hasModernContract } from '../utils/admission-modern-actions';
+import { resolveApplicationStatus } from '../utils/admission-modern-status';
 import '../admissions.css';
 
 function isAuthError(code: string): boolean {
@@ -326,7 +329,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <Link href="/admin/admissions" className="btn btn--ghost btn--sm admissions-detail-header-card__back">
             {t('admin.admissions.backToList')}
           </Link>
-          <AdmissionStudentConversionAction detail={detail} />
+          <AdmissionStudentConversionAction detail={detail} onUpdated={reload} />
           {convertedToStudent ? (
             <div className="admissions-detail-header-card__converted">
               <Badge tone="green">{t('admin.admissions.registration.convertedStatus')}</Badge>
@@ -393,12 +396,34 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
         <AdmissionRejectionBanner detail={detail} onUpdated={reload} />
 
-        <AdmissionJourneyStrip record={detail} />
+        {hasModernContract(detail) ? (
+          <div
+            className="admission-detail-modern-summary"
+            data-testid="admission-detail-modern-summary"
+          >
+            <div className="admission-detail-modern-summary__status">
+              <span className="muted tiny">{t('admin.admissions.table.state')}</span>
+              <AdmissionModernStatusBadge record={detail} />
+              {resolveApplicationStatus(detail) === 'accepted' ? (
+                <p className="muted tiny">{t('admin.admissions.applicationStatus.accepted')}</p>
+              ) : null}
+              {resolveApplicationStatus(detail) === 'ready_for_registration' ? (
+                <p className="muted tiny">
+                  {t('admin.admissions.applicationStatus.ready_for_registration')}
+                </p>
+              ) : null}
+            </div>
+            <div className="admission-detail-modern-summary__last">
+              <span className="muted tiny">{t('admin.admissions.lastAction.label')}</span>
+              <AdmissionLastActionSummary action={detail.last_action} showDetails />
+            </div>
+          </div>
+        ) : null}
 
         <AdmissionPrimaryActionPanel
           detail={detail}
           admissionId={admissionId}
-          onUpdated={reload}
+          onUpdated={() => reload()}
           onRequestEdit={canEdit ? requestLimitedEdit : undefined}
         />
 

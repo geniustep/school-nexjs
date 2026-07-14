@@ -22,7 +22,6 @@ import type { ListParams } from '@/types/api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
 import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
 import { useAdmissionsSelection } from '../hooks/use-admissions-selection';
-import { AdmissionsBulkActionBar } from './admissions-bulk-action-bar';
 import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
 import { AdmissionsRawStateKanban } from './admissions-raw-state-kanban';
 import { AdmissionsTable } from './admissions-table';
@@ -243,14 +242,6 @@ export function AdmissionsListPage() {
         : normalizeAdmissionListItems(tableState.data ?? []);
     return countHiddenConvertedAdmissionListItems(source, effectiveHideConverted);
   }, [view, kanbanBoard.allItems, tableState.data, effectiveHideConverted]);
-
-  const selectedItems = useMemo(() => {
-    const source =
-      view === 'table'
-        ? tableRows
-        : kanbanColumns.flatMap((col) => col.items);
-    return source.filter((item) => selectedIds.has(item.id));
-  }, [view, tableRows, kanbanColumns, selectedIds]);
 
   const hasManualFilters = hasManualContextOrAdvancedFilters(listState);
 
@@ -952,12 +943,12 @@ export function AdmissionsListPage() {
       ) : null}
 
       {selectedCount > 0 && listState.workspace === 'follow_up' ? (
-        <AdmissionsBulkActionBar
-          selectedItems={selectedItems}
-          onClearSelection={clearSelection}
-          onUpdated={reloadCurrentView}
-          onPartialFailure={(failedIds) => setSelectedIds(new Set(failedIds))}
-        />
+        <div className="admissions-bulk-bar muted" data-testid="admissions-bulk-disabled">
+          <button type="button" className="btn btn--ghost btn--sm" onClick={clearSelection}>
+            {t('admin.admissions.bulk.clearSelection')}
+          </button>
+          <span>{t('admin.admissions.bulk.manualStageDisabled')}</span>
+        </div>
       ) : null}
 
       {view === 'kanban' && kanbanEnabled ? (
@@ -980,7 +971,7 @@ export function AdmissionsListPage() {
         ) : (
           <AdmissionsRawStateKanban
             columns={kanbanColumns}
-            allowDrag={listState.workspace === 'follow_up'}
+            allowDrag={false}
             onUpdated={reloadCurrentView}
             onLoadMore={(state) => kanbanBoard.loadMore(state)}
             selectionMode={selectionMode}

@@ -460,10 +460,21 @@ describe('primary action', () => {
     expect(
       resolveAdmissionPrimaryAction({
         id: 1,
+        state: 'confirmed',
         registration_readiness: 'ready',
         allowed_actions: ALL_ACTIONS,
       }).key,
     ).toBe('continue_registration');
+
+    expect(
+      resolveAdmissionPrimaryAction({
+        id: 1,
+        state: 'accepted',
+        decision: 'accepted',
+        offer_required: false,
+        allowed_actions: ALL_ACTIONS,
+      }).key,
+    ).toBe('mark_ready_for_registration');
 
     expect(
       resolveAdmissionPrimaryAction({

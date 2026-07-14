@@ -4522,6 +4522,22 @@
       }
     },
     "admissions": {
+      "applicationStatus": {
+        "new": "New", "follow_up": "Follow-up", "in_assessment": "In assessment",
+        "decision_pending": "Decision pending", "accepted": "Accepted", "ready_for_registration": "Ready for registration",
+        "registered": "Registered", "waitlisted": "Waitlisted", "rejected": "Rejected", "closed": "Closed"
+      },
+      "lastAction": {
+        "none": "Aucun suivi enregistré",
+        "by": "par {name}",
+        "label": "Dernière action",
+        "result": "Résultat",
+        "actor": "Personnel",
+        "at": "Date"
+      },
+      "contactResults": { "reached": "Reached", "no_answer": "No answer", "wrong_number": "Wrong number", "call_later": "Call later", "family_interested": "Family interested", "family_not_interested": "Family not interested", "appointment_scheduled": "Appointment scheduled", "information_sent": "Information sent", "other": "Other" },
+      "actionErrors": { "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.", "not_ready_for_registration": "The application is not ready for registration.", "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere." },
+      "actionValidation": { "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.", "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required." },
       "title": "Admissions",
       "subtitle": "Gestion des demandes d'inscription",
       "createButton": "Nouvelle demande",
@@ -5101,7 +5117,8 @@
         "none": "Pas encore de décision",
         "formTitle": "Décision de l’établissement",
         "submit": "Enregistrer",
-        "conditionsRequired": "Saisissez les conditions d’admission"
+        "conditionsRequired": "Saisissez les conditions d’admission",
+        "readyHint": "Choisissez « Accepté » pour valider le dossier. Il reste en Accepté jusqu’à ce que le personnel marque « Prêt pour l’inscription » après confirmation familiale."
       },
       "decisions": {
         "accepted": "Accepté",
@@ -5259,12 +5276,17 @@
         "changeFollowUp": "Modifier l’étape de suivi",
         "acceptFamilyOffer": "Confirmer l’acceptation de la famille",
         "acceptOfferSuccess": "Acceptation de la famille confirmée ; la demande est prête pour l’inscription.",
+        "acceptOfferRecorded": "Réponse de la famille à l’offre enregistrée.",
+        "markReadySuccess": "Demande marquée prête pour l’inscription.",
         "continueRegistration": "Finaliser l’inscription de l’élève",
         "openPrefill": "Ouvrir le préremplissage",
         "linkExistingStudent": "Lier un élève existant",
         "reopen": "Rouvrir la demande",
         "noSentOffer": "Aucune offre envoyée n’est disponible.",
-        "makeDecision": "Prendre la décision de l’établissement"
+        "makeDecision": "Prendre la décision de l’établissement",
+        "logContact": "Log contact", "accept": "Accept", "reject": "Reject",
+        "recordFamilyApproval": "Record family approval", "convertToStudent": "Convert to student",
+        "close": "Close application"
       },
       "workspace": {
         "navLabel": "Espaces de travail admissions",
@@ -5349,6 +5371,8 @@
         "continueRegistration": "Poursuivre l’inscription",
         "continueRegistrationDesc": "La demande est prête pour créer ou lier le dossier élève.",
         "readyNoPermissionDesc": "Prête pour l’inscription, mais sans permission.",
+        "markReady": "Prêt pour l’inscription",
+        "markReadyDesc": "Après confirmation du souhait d’inscription de la famille, marquez la demande prête pour l’inscription.",
         "linkStudent": "Lier un élève existant",
         "acceptOffer": "Confirmer l’acceptation familiale",
         "acceptOfferDesc": "L’offre a été envoyée et attend la réponse de la famille.",
@@ -5432,6 +5456,7 @@
         "blocked": "Bloqué",
         "awaiting_offer_creation": "En attente de création de l'offre",
         "awaiting_offer_response": "En attente de réponse de la famille",
+        "awaiting_staff_ready": "En attente du marquage prêt pour l’inscription",
         "ready": "Prêt pour l'inscription",
         "registered": "Inscrit"
       },
@@ -5445,17 +5470,17 @@
         "rejectedTitle": "Demande refusée par l'école",
         "rejectedBody": "La demande a été refusée par l'école.",
         "reopenHint": "La demande peut être rouverte si autorisé.",
-        "acceptedDirectTitle": "Acceptée — l'inscription peut se poursuivre directement",
-        "acceptedDirectBody": "La demande a été acceptée et l'inscription peut se poursuivre directement.",
-        "directRegistrationHint": "La politique de cette demande ne requiert pas d'offre d'admission séparée.",
+        "acceptedDirectTitle": "Acceptée — en attente de prêt pour l’inscription",
+        "acceptedDirectBody": "L’école a accepté la demande. Quand la famille confirme son souhait d’inscription, marquez « Prêt pour l’inscription ».",
+        "directRegistrationHint": "Cette politique ne requiert pas d’offre séparée. Le passage à prêt pour l’inscription reste manuel.",
         "offerRequiredTitle": "Offre d'admission requise",
         "offerRequiredBody": "Une offre d'admission est requise avant de poursuivre l'inscription.",
         "offerDraftTitle": "Offre d'admission en brouillon",
         "awaitingFamilyTitle": "En attente de réponse de la famille",
         "awaitingFamilyBody": "L'offre d'admission a été envoyée et attend la réponse de la famille.",
         "familyAcceptedTitle": "La famille a accepté l'offre",
-        "familyAcceptedBody": "La famille a accepté l'offre d'admission.",
-        "offerAcceptDoesNotRegister": "L'acceptation de l'offre ne crée pas automatiquement le dossier élève ; l'inscription se fait via le processus dédié."
+        "familyAcceptedBody": "La famille a accepté l'offre. Marquez « Prêt pour l’inscription » pour continuer.",
+        "offerAcceptDoesNotRegister": "L’acceptation de l’offre ne marque pas automatiquement prêt pour l’inscription ; utilisez l’action dédiée puis finalisez l’inscription."
       },
       "kanbanColumns": {
         "new": "Nouveau",

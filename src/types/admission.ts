@@ -19,11 +19,102 @@ export type AdmissionState =
   | 'cancelled'
   | 'duplicate';
 
+export type AdmissionApplicationStatus =
+  | 'new'
+  | 'follow_up'
+  | 'in_assessment'
+  | 'decision_pending'
+  | 'accepted'
+  | 'ready_for_registration'
+  | 'registered'
+  | 'waitlisted'
+  | 'rejected'
+  | 'closed'
+  | string;
+
+export type AdmissionContactResult =
+  | 'reached'
+  | 'no_answer'
+  | 'wrong_number'
+  | 'call_later'
+  | 'family_interested'
+  | 'family_not_interested'
+  | 'appointment_scheduled'
+  | 'information_sent'
+  | 'other';
+
+export type AdmissionModernActionCode =
+  | 'log_contact'
+  | 'add_note'
+  | 'record_assessment'
+  | 'complete_assessment'
+  | 'accept'
+  | 'reject'
+  | 'waitlist'
+  | 'request_reassessment'
+  | 'record_family_approval'
+  | 'accept_and_record_family_approval'
+  | 'close'
+  | 'reopen'
+  | 'convert_to_student'
+  | 'link_existing_student'
+  | string;
+
+export interface AdmissionLastAction {
+  code?: string | null;
+  label?: string | null;
+  result?: string | null;
+  result_label?: string | null;
+  actor?: Ref | string | null;
+  actor_name?: string | null;
+  user?: Ref | string | null;
+  occurred_at?: string | null;
+  at?: string | null;
+  note?: string | null;
+  next_action?: string | null;
+  next_action_date?: string | null;
+}
+
+export interface AdmissionTimelineItem extends AdmissionLastAction {
+  id?: number | string | null;
+  is_system?: boolean | null;
+}
+
+export interface AdmissionModernAllowedAction {
+  code: string;
+  allowed: boolean;
+  label?: string | null;
+  description?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AdmissionNavigation {
+  student?: { available?: boolean; id?: number | null; href?: string | null; url?: string | null } | null;
+}
+
+export interface AdmissionBlockingReason {
+  code?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
+export interface ExecuteAdmissionActionPayload {
+  action: string;
+  result?: string;
+  note?: string;
+  reason?: string;
+  next_action?: string;
+  next_action_date?: string;
+  scheduled_at?: string;
+  appointment_at?: string;
+  [key: string]: unknown;
+}
+
 export type ActivityType = 'note' | 'call' | 'whatsapp' | 'follow_up' | 'visit_note';
 
 export type DecisionType =
   | 'accepted'
-  | 'accepted_with_condition'
+  | 'accepted_with_condition' // legacy read-only; not creatable in UI
   | 'waitlisted'
   | 'rejected'
   | 'needs_reassessment';
@@ -223,6 +314,15 @@ export interface AdmissionListItem {
   offer_state: AdmissionOfferState | false | null;
   assigned_user: Ref | string | null;
   priority: string | null;
+  application_status?: AdmissionApplicationStatus | null;
+  last_action?: AdmissionLastAction | null;
+  timeline?: AdmissionTimelineItem[] | null;
+  primary_next_action?: AdmissionNextAction;
+  modern_allowed_actions?: AdmissionModernAllowedAction[] | string[] | null;
+  exception_actions?: AdmissionModernAllowedAction[] | string[] | null;
+  navigation?: AdmissionNavigation | null;
+  warnings?: Array<string | Record<string, unknown>> | null;
+  blocking_reasons?: AdmissionBlockingReason[] | null;
 }
 
 export interface AdmissionAllowedActions {
@@ -406,6 +506,15 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   can_reopen?: boolean;
   can_link_student?: boolean;
   rejection?: AdmissionRejection | null;
+  application_status?: AdmissionApplicationStatus | null;
+  last_action?: AdmissionLastAction | null;
+  timeline?: AdmissionTimelineItem[] | null;
+  primary_next_action?: AdmissionNextAction;
+  modern_allowed_actions?: AdmissionModernAllowedAction[] | string[] | null;
+  exception_actions?: AdmissionModernAllowedAction[] | string[] | null;
+  navigation?: AdmissionNavigation | null;
+  warnings?: Array<string | Record<string, unknown>> | null;
+  blocking_reasons?: AdmissionBlockingReason[] | null;
 }
 
 export interface AdmissionPrefill {

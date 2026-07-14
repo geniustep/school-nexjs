@@ -4522,6 +4522,22 @@
       }
     },
     "admissions": {
+      "applicationStatus": {
+        "new": "New", "follow_up": "Follow-up", "in_assessment": "In assessment",
+        "decision_pending": "Decision pending", "accepted": "Accepted", "ready_for_registration": "Ready for registration",
+        "registered": "Registered", "waitlisted": "Waitlisted", "rejected": "Rejected", "closed": "Closed"
+      },
+      "lastAction": {
+        "none": "No hay seguimiento registrado",
+        "by": "por {name}",
+        "label": "Última acción",
+        "result": "Resultado",
+        "actor": "Personal",
+        "at": "Fecha"
+      },
+      "contactResults": { "reached": "Reached", "no_answer": "No answer", "wrong_number": "Wrong number", "call_later": "Call later", "family_interested": "Family interested", "family_not_interested": "Family not interested", "appointment_scheduled": "Appointment scheduled", "information_sent": "Information sent", "other": "Other" },
+      "actionErrors": { "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.", "not_ready_for_registration": "The application is not ready for registration.", "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere." },
+      "actionValidation": { "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.", "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required." },
       "title": "Admisiones",
       "subtitle": "Gestión de solicitudes de ingreso",
       "createButton": "Nueva solicitud",
@@ -5101,7 +5117,8 @@
         "none": "Sin decisión aún",
         "formTitle": "Decisión del centro",
         "submit": "Registrar",
-        "conditionsRequired": "Introduzca las condiciones de admisión"
+        "conditionsRequired": "Introduzca las condiciones de admisión",
+        "readyHint": "Elija « Aceptado » para aceptar la solicitud. Permanece en Aceptado hasta que el personal marque Listo para inscripción tras la confirmación familiar."
       },
       "decisions": {
         "accepted": "Aceptado",
@@ -5259,12 +5276,17 @@
         "changeFollowUp": "Cambiar etapa de seguimiento",
         "acceptFamilyOffer": "Confirmar aceptación de la familia",
         "acceptOfferSuccess": "Aceptación familiar confirmada; la solicitud está lista para inscripción.",
+        "acceptOfferRecorded": "Respuesta familiar a la oferta registrada.",
+        "markReadySuccess": "Solicitud marcada como lista para inscripción.",
         "continueRegistration": "Completar inscripción del alumno",
         "openPrefill": "Abrir datos precargados",
         "linkExistingStudent": "Vincular alumno existente",
         "reopen": "Reabrir solicitud",
         "noSentOffer": "No hay una oferta enviada para aceptar.",
-        "makeDecision": "Tomar decisión del centro"
+        "makeDecision": "Tomar decisión del centro",
+        "logContact": "Log contact", "accept": "Accept", "reject": "Reject",
+        "recordFamilyApproval": "Record family approval", "convertToStudent": "Convert to student",
+        "close": "Close application"
       },
       "workspace": {
         "navLabel": "Espacios de admisiones",
@@ -5384,6 +5406,7 @@
         "blocked": "Bloqueado",
         "awaiting_offer_creation": "En espera de creación de oferta",
         "awaiting_offer_response": "En espera de respuesta familiar",
+        "awaiting_staff_ready": "En espera de marcar listo para inscripción",
         "ready": "Listo para inscripción",
         "registered": "Inscrito"
       },
@@ -5397,9 +5420,9 @@
         "rejectedTitle": "Solicitud rechazada por la escuela",
         "rejectedBody": "La solicitud fue rechazada por la escuela.",
         "reopenHint": "La solicitud puede reabrirse si está permitido.",
-        "acceptedDirectTitle": "Aceptada — la inscripción puede continuar directamente",
-        "acceptedDirectBody": "La solicitud fue aceptada y la inscripción puede continuar directamente.",
-        "directRegistrationHint": "La política de esta solicitud no requiere una oferta de admisión separada.",
+        "acceptedDirectTitle": "Aceptada — en espera de listo para inscripción",
+        "acceptedDirectBody": "El centro aceptó la solicitud. Cuando la familia confirme que desea matricularse, marque Listo para inscripción.",
+        "directRegistrationHint": "Esta política no requiere oferta separada. El paso a listo para inscripción sigue siendo manual.",
         "offerRequiredTitle": "Oferta de admisión requerida",
         "offerRequiredBody": "Se requiere una oferta de admisión antes de continuar la inscripción.",
         "offerDraftTitle": "Oferta de admisión en borrador",
@@ -5419,6 +5442,8 @@
         "continueRegistration": "Continuar inscripción",
         "continueRegistrationDesc": "La solicitud está lista para crear o vincular la ficha del alumno.",
         "readyNoPermissionDesc": "Lista para inscripción, pero sin permiso.",
+        "markReady": "Listo para inscripción",
+        "markReadyDesc": "Tras la confirmación familiar de matricularse, marque la solicitud lista para inscripción.",
         "linkStudent": "Vincular alumno existente",
         "acceptOffer": "Confirmar aceptación familiar",
         "acceptOfferDesc": "La oferta fue enviada y espera la respuesta familiar.",

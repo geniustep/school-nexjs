@@ -14,10 +14,12 @@ import type {
   CreateAssessmentPayload,
   CreateDecisionPayload,
   CreateOfferPayload,
+  ExecuteAdmissionActionPayload,
   PatchAdmissionPayload,
   ReopenAdmissionPayload,
   AdmissionPrefillApiEnvelope,
 } from '@/types/admission';
+export type { ExecuteAdmissionActionPayload } from '@/types/admission';
 import {
   normalizeAdmissionDetail,
   normalizeAdmissionListItems,
@@ -64,6 +66,18 @@ export async function patchAdmission(
   query?: ListParams,
 ): Promise<ApiResponse<AdmissionDetail>> {
   return api.patch<AdmissionDetail>(endpoints.admin.admission(id), payload, query);
+}
+
+export async function executeAdmissionAction(
+  id: number | string,
+  payload: ExecuteAdmissionActionPayload,
+  query?: ListParams,
+): Promise<ApiResponse<AdmissionDetail>> {
+  const res = await api.post<AdmissionDetail>(endpoints.admin.admissionActions(id), payload, query);
+  if (res.success && res.data) {
+    return { ...res, data: normalizeAdmissionDetail(res.data) };
+  }
+  return res;
 }
 
 export async function fetchAdmissionPrefill(

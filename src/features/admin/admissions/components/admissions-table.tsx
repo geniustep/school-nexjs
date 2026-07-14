@@ -19,6 +19,8 @@ import {
   shouldShowFamilyBadge,
 } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
+import { AdmissionLastActionSummary } from './admission-last-action-summary';
+import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
 import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
@@ -160,9 +162,36 @@ export function AdmissionsTable({
         render: (row) => <AdmissionStatusBadges record={row} />,
       },
       {
+        key: 'last_action',
+        header: t('admin.admissions.lastAction.label'),
+        render: (row) => <AdmissionLastActionSummary action={row.last_action} />,
+      },
+      {
         key: 'next_action',
         header: t('admin.admissions.table.nextAction'),
         render: (row) => {
+          const primary = resolvePrimaryNextActionCode(row.primary_next_action);
+          if (primary) {
+            const labelKey = `admin.admissions.actions.${
+              primary === 'log_contact'
+                ? 'logContact'
+                : primary === 'record_family_approval'
+                  ? 'recordFamilyApproval'
+                  : primary === 'convert_to_student'
+                    ? 'convertToStudent'
+                    : primary === 'accept_and_record_family_approval'
+                      ? 'acceptAndRecordFamilyApproval'
+                      : primary
+            }`;
+            const translated = t(labelKey);
+            const date = row.next_action_date ? formatDate(row.next_action_date) : '';
+            return (
+              <span>
+                {translated !== labelKey ? translated : primary}
+                {date ? ` · ${date}` : ''}
+              </span>
+            );
+          }
           const action = cleanDisplayValue(row.next_action);
           const date = row.next_action_date ? formatDate(row.next_action_date) : '';
           const line = [action, date].filter(Boolean).join(' · ');
@@ -172,16 +201,15 @@ export function AdmissionsTable({
         },
       },
       {
-        key: 'assigned_user',
-        header: t('admin.admissions.table.assigned'),
-        render: (row) => refName(row.assigned_user) || t('common.dash'),
-      },
-      {
         key: 'actions',
         header: t('admin.admissions.table.actions'),
         className: 'admissions-table__actions-cell',
         render: (row) => (
-          <AdmissionListActionsMenu admissionId={row.id} onUpdated={onUpdated} />
+          <AdmissionListActionsMenu
+            admissionId={row.id}
+            listItem={row}
+            onUpdated={onUpdated}
+          />
         ),
       },
     ],

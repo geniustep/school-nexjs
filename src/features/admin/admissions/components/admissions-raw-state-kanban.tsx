@@ -47,7 +47,7 @@ export function AdmissionsRawStateKanban({
   selectionMode = false,
   isSelected,
   onToggleSelect,
-  allowDrag = true,
+  allowDrag = false,
 }: {
   columns: AdmissionsKanbanColumn[];
   onUpdated?: () => void;

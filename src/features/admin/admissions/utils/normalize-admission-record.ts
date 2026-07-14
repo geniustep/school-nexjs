@@ -29,6 +29,7 @@ import {
 } from './admission-status-display';
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
 import { resolveAdmissionStudentId } from './admission-registration';
+import { normalizeModernAllowedActions } from './admission-modern-actions';
 
 function cleanOptionalText(value: unknown): string | null {
   if (value === false || value == null) return null;
@@ -58,6 +59,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   registration_readiness: string | null;
   registration_requirements: AdmissionRegistrationRequirement[];
   next_action: AdmissionNextAction;
+  modern_allowed_actions: ReturnType<typeof normalizeModernAllowedActions>;
+  exception_actions: ReturnType<typeof normalizeModernAllowedActions>;
 } {
   const decision = normalizeAdmissionDecision(raw);
   const status_warnings = normalizeStatusWarnings(raw.status_warnings);
@@ -82,6 +85,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
     raw.registration_requirements,
   );
   const next_action = normalizeAdmissionNextAction(raw.next_action);
+  const modern_allowed_actions = normalizeModernAllowedActions(raw.modern_allowed_actions);
+  const exception_actions = normalizeModernAllowedActions(raw.exception_actions);
 
   const workflowSource = asAdmissionWorkflowFields({
     ...raw,
@@ -126,6 +131,15 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
     registration_readiness,
     registration_requirements,
     next_action,
+    application_status: cleanOptionalText(raw.application_status),
+    last_action: raw.last_action && typeof raw.last_action === 'object' ? raw.last_action : null,
+    timeline: Array.isArray(raw.timeline) ? raw.timeline : [],
+    primary_next_action: raw.primary_next_action ?? null,
+    modern_allowed_actions,
+    exception_actions,
+    navigation: raw.navigation && typeof raw.navigation === 'object' ? raw.navigation : null,
+    warnings: Array.isArray(raw.warnings) ? raw.warnings : [],
+    blocking_reasons: Array.isArray(raw.blocking_reasons) ? raw.blocking_reasons : [],
   };
 }
 
@@ -154,6 +168,15 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
     registration_readiness: normalized.registration_readiness,
     registration_requirements: normalized.registration_requirements,
     next_action: normalized.next_action,
+    application_status: normalized.application_status,
+    last_action: normalized.last_action as AdmissionListItem['last_action'],
+    timeline: normalized.timeline as AdmissionListItem['timeline'],
+    primary_next_action: normalized.primary_next_action as AdmissionListItem['primary_next_action'],
+    modern_allowed_actions: normalized.modern_allowed_actions,
+    exception_actions: normalized.exception_actions,
+    navigation: normalized.navigation as AdmissionListItem['navigation'],
+    warnings: normalized.warnings as AdmissionListItem['warnings'],
+    blocking_reasons: normalized.blocking_reasons as AdmissionListItem['blocking_reasons'],
   };
 }
 
@@ -183,6 +206,15 @@ export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDeta
     registration_readiness: normalized.registration_readiness,
     registration_requirements: normalized.registration_requirements,
     next_action: normalized.next_action,
+    application_status: normalized.application_status,
+    last_action: normalized.last_action as AdmissionDetail['last_action'],
+    timeline: normalized.timeline as AdmissionDetail['timeline'],
+    primary_next_action: normalized.primary_next_action as AdmissionDetail['primary_next_action'],
+    modern_allowed_actions: normalized.modern_allowed_actions,
+    exception_actions: normalized.exception_actions,
+    navigation: normalized.navigation as AdmissionDetail['navigation'],
+    warnings: normalized.warnings as AdmissionDetail['warnings'],
+    blocking_reasons: normalized.blocking_reasons as AdmissionDetail['blocking_reasons'],
     allowed_actions: normalizeAdmissionAllowedActions(
       detail.allowed_actions as Parameters<typeof normalizeAdmissionAllowedActions>[0],
     ),

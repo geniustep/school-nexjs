@@ -3,67 +3,107 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import {
-  acceptAdmissionOffer,
+  executeAdmissionAction,
   fetchAdmission,
-  patchAdmission,
 } from '../api/admissions-api';
-import { hasAdmissionAllowedAction } from '../utils/admission-allowed-actions';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
+import { mapAdmissionActionError } from '../utils/admission-action-errors';
 import {
-  buildContinueRegistrationHref,
-  canContinueStudentRegistration,
-} from '../utils/admission-registration';
-import { canReopenAdmission } from '../utils/admission-rejection';
-import { resolveRegistrationStatus } from '../utils/admission-status-display';
-import {
-  admissionManualStageLabelKey,
-  evaluateManualStageChange,
-  getAdmissionManualStageOptions,
-  isAdmissionManualStage,
-  type AdmissionManualStage,
-} from '../utils/admission-stage-options';
-import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
+  filterDailyModernActions,
+  hasModernContract,
+  isModernActionAllowed,
+  resolvePrimaryNextActionCode,
+  resolveStudentNavigation,
+} from '../utils/admission-modern-actions';
+import { resolveApplicationStatus } from '../utils/admission-modern-status';
+import { buildContinueRegistrationHref } from '../utils/admission-registration';
 import type { AdmissionDetail } from '@/types/admission';
 import { cn } from '@/lib/utils/cn';
-import { AdmissionDecisionDialog } from './admission-decision-dialog';
+import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog';
+import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 
 type MenuCoords = { top: number; left: number };
+type DecisionAction = 'accept' | 'reject' | 'record_family_approval';
 
-function computeMenuCoords(trigger: HTMLElement): MenuCoords {
+function computeMenuCoords(trigger: HTMLElement, menuEl?: HTMLElement | null): MenuCoords {
   const rect = trigger.getBoundingClientRect();
-  const menuWidth = 224;
+  const menuWidth = Math.max(224, menuEl?.offsetWidth ?? 224);
+  const menuHeight = Math.max(160, menuEl?.offsetHeight ?? 240);
   const gap = 6;
+  const margin = 8;
   const dir = getComputedStyle(trigger).direction;
   const left =
     dir === 'rtl'
-      ? Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8))
+      ? Math.max(margin, Math.min(rect.left, window.innerWidth - menuWidth - margin))
       : Math.max(
-          8,
-          Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8),
+          margin,
+          Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - margin),
         );
-  const top = Math.min(rect.bottom + gap, window.innerHeight - 24);
+  const spaceBelow = window.innerHeight - rect.bottom - gap - margin;
+  const spaceAbove = rect.top - gap - margin;
+  const openUpward = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+  const top = openUpward
+    ? Math.max(margin, rect.top - gap - Math.min(menuHeight, spaceAbove))
+    : Math.min(rect.bottom + gap, window.innerHeight - margin);
   return { top, left };
+}
+
+function modernActionLabelKey(code: string): string {
+  switch (code) {
+    case 'log_contact':
+      return 'admin.admissions.actions.logContact';
+    case 'accept':
+      return 'admin.admissions.actions.accept';
+    case 'reject':
+      return 'admin.admissions.actions.reject';
+    case 'record_family_approval':
+      return 'admin.admissions.actions.recordFamilyApproval';
+    case 'accept_and_record_family_approval':
+      return 'admin.admissions.actions.acceptAndRecordFamilyApproval';
+    case 'convert_to_student':
+      return 'admin.admissions.actions.convertToStudent';
+    case 'reopen':
+      return 'admin.admissions.actions.reopen';
+    case 'close':
+      return 'admin.admissions.actions.close';
+    case 'waitlist':
+      return 'admin.admissions.actions.waitlist';
+    default:
+      return `admin.admissions.actions.${code}`;
+  }
 }
 
 export function AdmissionListActionsMenu({
   admissionId,
+  listItem,
   onUpdated,
   className,
   compact = false,
 }: {
   admissionId: number;
-  onUpdated?: () => void;
+  /** Optional list row seed so modern actions can open without waiting for detail fetch. */
+  listItem?: {
+    application_status?: string | null;
+    primary_next_action?: AdmissionDetail['primary_next_action'];
+    modern_allowed_actions?: AdmissionDetail['modern_allowed_actions'];
+    exception_actions?: AdmissionDetail['exception_actions'];
+    navigation?: AdmissionDetail['navigation'];
+    student_id?: number | false | null;
+    last_action?: AdmissionDetail['last_action'];
+  } | null;
+  onUpdated?: (detail?: AdmissionDetail) => void;
   className?: string;
-  /** Icon-only trigger for dense Kanban cards. */
   compact?: boolean;
 }) {
   const t = useT();
   const toast = useToast();
+  const router = useRouter();
   const menuId = useId();
   const { activeSchoolId } = useAdminSession();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -73,7 +113,8 @@ export function AdmissionListActionsMenu({
   const [menuCoords, setMenuCoords] = useState<MenuCoords | null>(null);
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<AdmissionDetail | null>(null);
-  const [decisionOpen, setDecisionOpen] = useState(false);
+  const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -100,21 +141,25 @@ export function AdmissionListActionsMenu({
   }
 
   useLayoutEffect(() => {
-    if (!open || !compact || !triggerRef.current) {
+    if (!open || !triggerRef.current) {
       setMenuCoords(null);
       return;
     }
     const update = () => {
-      if (triggerRef.current) setMenuCoords(computeMenuCoords(triggerRef.current));
+      if (triggerRef.current) {
+        setMenuCoords(computeMenuCoords(triggerRef.current, menuRef.current));
+      }
     };
     update();
+    const raf = window.requestAnimationFrame(update);
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, true);
     return () => {
+      window.cancelAnimationFrame(raf);
       window.removeEventListener('resize', update);
       window.removeEventListener('scroll', update, true);
     };
-  }, [open, compact]);
+  }, [open, detail, loading]);
 
   useEffect(() => {
     if (!open) return;
@@ -128,89 +173,85 @@ export function AdmissionListActionsMenu({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
-  function afterSuccess() {
+  function afterSuccess(next?: AdmissionDetail) {
     setOpen(false);
-    setDetail(null);
-    onUpdated?.();
+    if (next) setDetail(next);
+    onUpdated?.(next);
   }
 
-  async function handleAcceptOffer() {
-    if (!detail || activeSchoolId == null || busy) return;
-    const offer = (detail.offers ?? []).find(
-      (o) => o.state === 'sent' || o.state === 'pending',
-    );
-    if (!offer) {
-      toast.error(t('admin.admissions.actions.noSentOffer'));
-      return;
-    }
+  async function runSimpleAction(action: string) {
+    if (activeSchoolId == null || busy) return;
     setBusy(true);
-    const res = await acceptAdmissionOffer(detail.id, offer.id, {
-      active_school_id: activeSchoolId,
-    });
-    setBusy(false);
-    if (res.success) {
-      toast.success(t('admin.admissions.actions.acceptOfferSuccess'));
-      afterSuccess();
-      return;
-    }
-    toast.error(admissionApiErrorMessage(res.error, t));
-  }
-
-  async function handleFollowUpState(state: AdmissionManualStage) {
-    if (!detail || activeSchoolId == null || busy) return;
-    const decision = evaluateManualStageChange(detail, state);
-    if (!decision.apply || !decision.targetState) {
-      setOpen(false);
-      return;
-    }
-    setBusy(true);
-    const res = await patchAdmission(
-      detail.id,
-      { state: decision.targetState },
+    const res = await executeAdmissionAction(
+      admissionId,
+      { action },
       { active_school_id: activeSchoolId },
     );
     setBusy(false);
-    if (res.success) {
-      toast.success(t('admin.admissions.stateChange.success'));
-      afterSuccess();
+    if (!res.success) {
+      const mapped = mapAdmissionActionError(res.error);
+      toast.error(mapped.startsWith('admin.') ? t(mapped) : mapped);
       return;
     }
-    toast.error(admissionApiErrorMessage(res.error, t));
+    toast.success(t('common.saved'));
+    afterSuccess(res.data);
+    if (action === 'convert_to_student') {
+      router.push(buildContinueRegistrationHref(admissionId));
+    }
   }
 
-  const actions = detail?.allowed_actions;
-  const canDecide = hasAdmissionAllowedAction(actions, 'decide');
-  const canAcceptOffer = hasAdmissionAllowedAction(actions, 'accept_offer');
-  const canChangeState =
-    (hasAdmissionAllowedAction(actions, 'change_state') ||
-      hasAdmissionAllowedAction(actions, 'edit')) &&
-    detail != null &&
-    isAdmissionManualStage(String(detail.state));
-  const stageOptions = getAdmissionManualStageOptions();
-  const currentDecision = detail ? normalizeAdmissionDecision(detail) : null;
-  const registration = detail ? resolveRegistrationStatus(detail) : null;
-  const showContinue =
-    detail != null &&
-    (registration?.status === 'awaiting_registration' ||
-      String(detail.state) === 'confirmed') &&
-    canContinueStudentRegistration(detail);
-  const showReopen = detail != null && canReopenAdmission(detail);
-  const studentId =
-    detail && typeof detail.student_id === 'number' ? detail.student_id : null;
+  const seed = (detail ?? listItem) as
+    | (Pick<
+        AdmissionDetail,
+        | 'application_status'
+        | 'primary_next_action'
+        | 'modern_allowed_actions'
+        | 'exception_actions'
+        | 'navigation'
+        | 'student_id'
+        | 'last_action'
+      > &
+        Partial<AdmissionDetail>)
+    | null;
+  const modern = seed ? hasModernContract(seed) : false;
+  const status = seed ? resolveApplicationStatus(seed) : null;
+  const registered = status === 'registered';
+  const primaryCode = seed ? resolvePrimaryNextActionCode(seed.primary_next_action) : null;
+  const dailyActions = seed ? filterDailyModernActions(seed.modern_allowed_actions) : [];
+  const studentNav = seed
+    ? resolveStudentNavigation(seed.navigation, seed.student_id)
+    : null;
+
+  const canLogContact =
+    modern &&
+    (primaryCode === 'log_contact' || isModernActionAllowed(seed?.modern_allowed_actions, 'log_contact'));
+  const canAccept = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'accept');
+  const canReject = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'reject');
+  const canFamily =
+    modern && isModernActionAllowed(seed?.modern_allowed_actions, 'record_family_approval');
+  const canCombined =
+    modern &&
+    isModernActionAllowed(seed?.modern_allowed_actions, 'accept_and_record_family_approval');
+  const canConvert =
+    modern && isModernActionAllowed(seed?.modern_allowed_actions, 'convert_to_student');
+  const canReopen = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'reopen');
+  const canClose = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'close');
+
+  const showPrimaryOnly =
+    primaryCode &&
+    dailyActions.some((a) => a.code === primaryCode) &&
+    !registered;
 
   const menuContent = open ? (
     <div
       id={menuId}
       ref={menuRef}
       role="menu"
-      className={cn(
-        'admissions-row-actions__menu',
-        compact && 'admissions-row-actions__menu--portal',
-      )}
+      className="admissions-row-actions__menu admissions-row-actions__menu--portal"
       style={
-        compact && menuCoords
+        menuCoords
           ? { top: menuCoords.top, left: menuCoords.left }
-          : undefined
+          : { top: -9999, left: -9999, visibility: 'hidden' as const }
       }
       onClick={(e) => e.stopPropagation()}
     >
@@ -218,120 +259,156 @@ export function AdmissionListActionsMenu({
         <div className="admissions-row-actions__item muted">{t('common.loading')}</div>
       ) : null}
 
-      {canDecide ? (
-        <div className="admissions-row-actions__submenu" role="group">
-          <span className="admissions-row-actions__label">
-            {t('admin.admissions.actions.makeDecision')}
-          </span>
-          <button
-            type="button"
+      {registered || studentNav?.href ? (
+        studentNav?.href ? (
+          <Link
+            href={studentNav.href}
             role="menuitem"
             className="admissions-row-actions__item"
-            data-testid="admission-actions-open-decision"
-            onClick={() => {
-              setOpen(false);
-              setDecisionOpen(true);
-            }}
+            data-testid="admission-actions-open-student"
+            onClick={() => setOpen(false)}
           >
-            {t('admin.admissions.actions.recordDecision')}
-          </button>
-        </div>
+            {t('admin.admissions.registration.openStudentProfile')}
+          </Link>
+        ) : null
       ) : null}
 
-      {canChangeState ? (
-        <div className="admissions-row-actions__submenu" role="group">
-          <span className="admissions-row-actions__label">
-            {t('admin.admissions.actions.changeFollowUp')}
-          </span>
-          {stageOptions.map((state) => (
+      {!registered && modern ? (
+        <>
+          {showPrimaryOnly && primaryCode === 'log_contact' ? (
             <button
-              key={state}
               type="button"
               role="menuitem"
               className="admissions-row-actions__item"
-              disabled={busy || String(detail?.state) === state}
-              onClick={() => void handleFollowUpState(state)}
+              data-testid="admission-actions-log-contact"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setFollowUpOpen(true), 0);
+              }}
             >
-              {t(admissionManualStageLabelKey(state))}
+              {t(modernActionLabelKey('log_contact'))}
             </button>
-          ))}
-        </div>
-      ) : null}
-
-      {canAcceptOffer ? (
-        <button
-          type="button"
-          role="menuitem"
-          className="admissions-row-actions__item"
-          disabled={busy}
-          onClick={() => void handleAcceptOffer()}
-        >
-          {t('admin.admissions.actions.acceptFamilyOffer')}
-        </button>
-      ) : null}
-
-      {showContinue ? (
-        <>
-          <Link
-            role="menuitem"
-            className="admissions-row-actions__item"
-            href={buildContinueRegistrationHref(admissionId)}
-            onClick={() => setOpen(false)}
-          >
-            {t('admin.admissions.actions.continueRegistration')}
-          </Link>
-          {hasAdmissionAllowedAction(actions, 'get_prefill') ? (
-            <Link
-              role="menuitem"
-              className="admissions-row-actions__item"
-              href={buildContinueRegistrationHref(admissionId)}
-              onClick={() => setOpen(false)}
-            >
-              {t('admin.admissions.actions.openPrefill')}
-            </Link>
           ) : null}
-          {hasAdmissionAllowedAction(actions, 'link_student') ? (
-            <Link
+
+          {canLogContact && primaryCode !== 'log_contact' ? (
+            <button
+              type="button"
               role="menuitem"
               className="admissions-row-actions__item"
-              href={`/admin/admissions/${admissionId}?tab=offer_registration`}
-              onClick={() => setOpen(false)}
+              data-testid="admission-actions-log-contact"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setFollowUpOpen(true), 0);
+              }}
             >
-              {t('admin.admissions.actions.linkExistingStudent')}
-            </Link>
+              {t(modernActionLabelKey('log_contact'))}
+            </button>
+          ) : null}
+
+          {canAccept ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              data-testid="admission-actions-accept"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setDecisionAction('accept'), 0);
+              }}
+            >
+              {t(modernActionLabelKey('accept'))}
+            </button>
+          ) : null}
+
+          {canReject ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              data-testid="admission-actions-reject"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setDecisionAction('reject'), 0);
+              }}
+            >
+              {t(modernActionLabelKey('reject'))}
+            </button>
+          ) : null}
+
+          {canFamily ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              data-testid="admission-actions-family-approval"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setDecisionAction('record_family_approval'), 0);
+              }}
+            >
+              {t(modernActionLabelKey('record_family_approval'))}
+            </button>
+          ) : null}
+
+          {canCombined ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              data-testid="admission-actions-accept-and-family"
+              disabled={busy}
+              onClick={() => void runSimpleAction('accept_and_record_family_approval')}
+            >
+              {t(modernActionLabelKey('accept_and_record_family_approval'))}
+            </button>
+          ) : null}
+
+          {canConvert || primaryCode === 'convert_to_student' ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              data-testid="admission-actions-convert"
+              disabled={busy}
+              onClick={() => void runSimpleAction('convert_to_student')}
+            >
+              {t(modernActionLabelKey('convert_to_student'))}
+            </button>
+          ) : null}
+
+          {canClose ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              disabled={busy}
+              onClick={() => void runSimpleAction('close')}
+            >
+              {t(modernActionLabelKey('close'))}
+            </button>
+          ) : null}
+
+          {canReopen ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              data-testid="admission-actions-reopen"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setReopenOpen(true), 0);
+              }}
+            >
+              {t(modernActionLabelKey('reopen'))}
+            </button>
           ) : null}
         </>
       ) : null}
 
-      {studentId != null ? (
-        <Link
-          role="menuitem"
-          className="admissions-row-actions__item"
-          href={`/admin/students/${studentId}`}
-          onClick={() => setOpen(false)}
-        >
-          {t('admin.admissions.registration.openStudentProfile')}
-        </Link>
-      ) : null}
-
-      {showReopen ? (
-        <button
-          type="button"
-          role="menuitem"
-          className="admissions-row-actions__item"
-          onClick={() => {
-            setOpen(false);
-            setReopenOpen(true);
-          }}
-        >
-          {t('admin.admissions.actions.reopen')}
-        </button>
-      ) : null}
-
       <Link
+        href={`/admin/admissions/${admissionId}`}
         role="menuitem"
         className="admissions-row-actions__item"
-        href={`/admin/admissions/${admissionId}`}
         onClick={() => setOpen(false)}
       >
         {t('admin.admissions.selection.openDetail')}
@@ -341,52 +418,63 @@ export function AdmissionListActionsMenu({
 
   return (
     <div
-      className={cn(className, open && 'admissions-row-actions--open')}
       ref={rootRef}
-      data-testid="admission-list-actions"
+      className={cn('admissions-row-actions', compact && 'admissions-row-actions--compact', className)}
+      onClick={(e) => e.stopPropagation()}
     >
       <button
         ref={triggerRef}
         type="button"
-        className={
-          compact
-            ? 'btn btn--ghost btn--sm admissions-row-actions__trigger admissions-row-actions__trigger--compact'
-            : 'btn btn--ghost btn--sm admissions-row-actions__trigger'
-        }
+        className={cn('btn btn--ghost btn--sm', compact && 'admissions-row-actions__trigger--icon')}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={menuId}
-        aria-label={t('admin.admissions.actions.menu')}
-        title={t('admin.admissions.actions.menu')}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void handleToggle();
-        }}
+        aria-controls={open ? menuId : undefined}
+        aria-label={t('admin.admissions.table.actions')}
+        data-testid="admission-row-actions-trigger"
+        onClick={() => void handleToggle()}
       >
-        {compact ? '⋮' : t('admin.admissions.actions.menu')}
+        {compact ? '⋮' : t('admin.admissions.table.actions')}
       </button>
+      {open && menuCoords && typeof document !== 'undefined'
+        ? createPortal(menuContent, document.body)
+        : null}
 
-      {compact
-        ? open && menuCoords && typeof document !== 'undefined'
-          ? createPortal(menuContent, document.body)
-          : null
-        : menuContent}
-
-      <AdmissionDecisionDialog
+      <AdmissionQuickFollowUpDialog
         admissionId={admissionId}
-        open={decisionOpen}
-        onClose={() => setDecisionOpen(false)}
-        onSuccess={afterSuccess}
-        initialDecision={currentDecision?.decision}
-        initialNotes={currentDecision?.decision_notes}
-        initialConditions={currentDecision?.conditions}
+        open={followUpOpen}
+        onClose={() => {
+          setFollowUpOpen(false);
+          triggerRef.current?.focus();
+        }}
+        onSuccess={() => {
+          afterSuccess();
+          void loadDetail();
+        }}
+      />
+      <AdmissionModernDecisionDialog
+        admissionId={admissionId}
+        action={decisionAction ?? 'accept'}
+        open={decisionAction != null}
+        onClose={() => {
+          setDecisionAction(null);
+          triggerRef.current?.focus();
+        }}
+        onSuccess={() => {
+          afterSuccess();
+          void loadDetail();
+        }}
       />
       <AdmissionReopenDialog
         admissionId={admissionId}
         open={reopenOpen}
-        onClose={() => setReopenOpen(false)}
-        onSuccess={afterSuccess}
+        onClose={() => {
+          setReopenOpen(false);
+          triggerRef.current?.focus();
+        }}
+        onSuccess={() => {
+          afterSuccess();
+          void loadDetail();
+        }}
       />
     </div>
   );

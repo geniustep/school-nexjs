@@ -17,6 +17,10 @@ import {
   resolveRegistrationReadiness,
 } from './admission-assessment-workflow-contract';
 import { hasAdmissionAllowedAction } from './admission-allowed-actions';
+import {
+  canMarkReadyForRegistration,
+  isAcceptedSchoolDecision,
+} from './admission-decision-options';
 import { isAdmissionManualStage } from './admission-stage-options';
 import {
   resolveIsSchoolRejected,
@@ -32,6 +36,7 @@ import {
 export type AdmissionPrimaryActionKey =
   | 'open_student'
   | 'continue_registration'
+  | 'mark_ready_for_registration'
   | 'accept_offer'
   | 'create_offer'
   | 'send_offer'
@@ -57,7 +62,10 @@ export type AdmissionPrimaryActionIntent =
 
 export type AdmissionPrimaryActionTarget =
   | { kind: 'href'; href: string }
-  | { kind: 'dialog'; dialog: 'decision' | 'reopen' | 'accept_offer' | 'change_stage' }
+  | {
+      kind: 'dialog';
+      dialog: 'decision' | 'reopen' | 'accept_offer' | 'change_stage' | 'mark_ready';
+    }
   | { kind: 'tab'; tab: string }
   | { kind: 'none' };
 
@@ -78,6 +86,7 @@ export type AdmissionSecondaryActionKey =
   | 'change_stage'
   | 'edit'
   | 'decide'
+  | 'mark_ready_for_registration'
   | 'schedule_appointment'
   | 'add_assessment'
   | 'create_offer'
@@ -200,8 +209,8 @@ export function resolveAdmissionPrimaryAction(
     return readonlyAction('admin.admissions.primaryAction.registeredNoLinkDesc');
   }
 
-  // 2. Ready for registration (Backend readiness wins; confirmed is legacy alias)
-  if (readiness === 'ready' || (state === 'confirmed' && readiness == null)) {
+  // 2. Ready for registration — only after staff mark (state=confirmed)
+  if (state === 'confirmed') {
     if (can(input, 'get_prefill')) {
       return {
         key: 'continue_registration',
@@ -266,12 +275,12 @@ export function resolveAdmissionPrimaryAction(
     };
   }
 
-  // 4. Awaiting offer creation / draft send
+  // 4. Awaiting offer creation / draft send — only when offer is explicitly required
   if (
     readiness === 'awaiting_offer_creation' ||
-    ((offerRequired === true || offerRequired == null) &&
+    (offerRequired === true &&
       (offerState === 'not_created' || !offerState) &&
-      (decision === 'accepted' || decision === 'accepted_with_condition'))
+      isAcceptedSchoolDecision(decision))
   ) {
     if (offerState === 'draft' || findOffer(input, ['draft'])) {
       if (can(input, 'send_offer')) {
@@ -311,19 +320,37 @@ export function resolveAdmissionPrimaryAction(
     }
   }
 
-  // Accepted + offer not required → registration path already handled above via readiness.
-  const acceptedDecision =
-    decision === 'accepted' || decision === 'accepted_with_condition';
-  if (acceptedDecision && offerRequired === false && can(input, 'get_prefill')) {
+  // 5b. School accepted → staff marks جاهز للتسجيل after family confirms (offer path clear)
+  if (
+    canMarkReadyForRegistration({
+      state,
+      decision,
+      student_id: studentId,
+      registration_readiness: readiness,
+      registration_status: input.registration_status,
+      registration_flow_state: input.registration_flow_state,
+      offer_required: offerRequired,
+      offer_state: offerState,
+      offer_summary: input.offer_summary as {
+        offer_required?: boolean | null;
+        required?: boolean | null;
+        offer_state?: string | null;
+        state?: string | null;
+      } | null,
+    }) &&
+    (can(input, 'change_state') || can(input, 'decide') || can(input, 'accept_offer'))
+  ) {
     return {
-      key: 'continue_registration',
-      labelKey: 'admin.admissions.primaryAction.continueRegistration',
-      descriptionKey: 'admin.admissions.primaryAction.continueRegistrationDesc',
-      intent: 'success',
-      requiredAction: 'get_prefill',
-      target: { kind: 'href', href: hrefContinue(input) },
+      key: 'mark_ready_for_registration',
+      labelKey: 'admin.admissions.primaryAction.markReady',
+      descriptionKey: 'admin.admissions.primaryAction.markReadyDesc',
+      intent: 'primary',
+      requiredAction: 'change_state',
+      target: { kind: 'dialog', dialog: 'mark_ready' },
     };
   }
+
+  // Accepted alone never jumps to registration — staff must mark ready first.
 
   // 6. Decision ready
   if (
@@ -512,6 +539,32 @@ export function resolveAdmissionSecondaryActions(
     target: { kind: 'dialog', dialog: 'decision' },
   });
 
+  if (
+    canMarkReadyForRegistration({
+      state,
+      decision: decisionValue(input),
+      student_id: studentId,
+      registration_readiness: readiness,
+      registration_status: input.registration_status,
+      registration_flow_state: input.registration_flow_state,
+      offer_required: resolveOfferRequired(input),
+      offer_state: resolveOfferStateV185(input),
+      offer_summary: input.offer_summary as {
+        offer_required?: boolean | null;
+        required?: boolean | null;
+        offer_state?: string | null;
+        state?: string | null;
+      } | null,
+    }) &&
+    (can(input, 'change_state') || can(input, 'decide') || can(input, 'accept_offer'))
+  ) {
+    push({
+      key: 'mark_ready_for_registration',
+      labelKey: 'admin.admissions.primaryAction.markReady',
+      target: { kind: 'dialog', dialog: 'mark_ready' },
+    });
+  }
+
   push({
     key: 'schedule_appointment',
     labelKey: 'admin.admissions.primaryAction.scheduleAppointment',
@@ -567,7 +620,7 @@ export function resolveAdmissionSecondaryActions(
       labelKey: 'admin.admissions.primaryAction.openStudent',
       target: { kind: 'href', href: `/admin/students/${studentId}` },
     });
-  } else if (readiness === 'ready' || state === 'confirmed') {
+  } else if (state === 'confirmed') {
     push({
       key: 'continue_registration',
       labelKey: 'admin.admissions.primaryAction.continueRegistration',

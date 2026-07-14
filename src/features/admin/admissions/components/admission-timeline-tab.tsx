@@ -1,49 +1,20 @@
 'use client';
 
-import { useState } from 'react';
 import { EmptyState } from '@/components/states/states';
-import { cn } from '@/lib/utils/cn';
-import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useLocale, useT } from '@/features/i18n/locale-context';
+import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
-import { createAdmissionActivity } from '../api/admissions-api';
-import { admissionApiErrorMessage } from '../utils/admission-errors';
-import {
-  formatAdmissionActivityNote,
-  resolveActivityTypeLabel,
-} from '../utils/admission-activity-display';
 import { refName } from '../utils/admission-labels';
 import { OverviewEmptyValue } from './admission-overview-primitives';
-import type { AdmissionDetail, ActivityType } from '@/types/admission';
+import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog';
+import { useState } from 'react';
+import type { AdmissionDetail, AdmissionTimelineItem } from '@/types/admission';
+import { hasModernContract, isModernActionAllowed } from '../utils/admission-modern-actions';
 
-const ACTIVITY_TYPES: ActivityType[] = ['note', 'call', 'whatsapp', 'follow_up', 'visit_note'];
-
-function DateField({
-  id,
-  label,
-  value,
-  placeholder,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="field admissions-date-field">
-      <label htmlFor={id}>{label}</label>
-      <input
-        id={id}
-        type="date"
-        className={cn('input input--date', !value && 'input--date-empty')}
-        data-placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
+function actorLabel(item: AdmissionTimelineItem): string | null {
+  if (item.actor_name) return item.actor_name;
+  if (typeof item.actor === 'string') return item.actor;
+  if (item.actor && typeof item.actor === 'object') return refName(item.actor);
+  return null;
 }
 
 export function AdmissionTimelineTab({
@@ -54,129 +25,71 @@ export function AdmissionTimelineTab({
   onUpdated: () => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
-  const { formatDate } = useFormat();
-  const { activeSchoolId } = useAdminSession();
-  const activities = detail.activities ?? [];
-  const [activityType, setActivityType] = useState<ActivityType>('note');
-  const [note, setNote] = useState('');
-  const [nextAction, setNextAction] = useState('');
-  const [nextActionDate, setNextActionDate] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const datePlaceholder = t('admin.admissions.create.datePlaceholder');
-
-  async function submitActivity(e: React.FormEvent) {
-    e.preventDefault();
-    if (activeSchoolId == null) return;
-    setSubmitting(true);
-    setError(null);
-    const res = await createAdmissionActivity(
-      detail.id,
-      {
-        activity_type: activityType,
-        note: note || undefined,
-        next_action: nextAction || undefined,
-        next_action_date: nextActionDate || undefined,
-      },
-      { active_school_id: activeSchoolId },
-    );
-    setSubmitting(false);
-    if (res.success) {
-      setNote('');
-      setNextAction('');
-      setNextActionDate('');
-      onUpdated();
-      return;
-    }
-    setError(admissionApiErrorMessage(res.error, t));
-  }
+  const { formatDateTime, formatDate } = useFormat();
+  const [followUpOpen, setFollowUpOpen] = useState(false);
+  const modern = hasModernContract(detail);
+  const timeline = Array.isArray(detail.timeline) ? detail.timeline : [];
+  const canLogContact = isModernActionAllowed(detail.modern_allowed_actions, 'log_contact');
 
   return (
-    <div className="admissions-timeline-tab">
-      <form className="card admissions-timeline-form" onSubmit={submitActivity}>
-        <h3 className="admissions-timeline-form__title">{t('admin.admissions.timeline.addActivity')}</h3>
-        {error && <div className="alert alert--error">{error}</div>}
-        <div className="admissions-timeline-form__grid">
-          <div className="field">
-            <label htmlFor="activity-type">{t('admin.admissions.timeline.activityType')}</label>
-            <select
-              id="activity-type"
-              className="input"
-              value={activityType}
-              onChange={(e) => setActivityType(e.target.value as ActivityType)}
-            >
-              {ACTIVITY_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {resolveActivityTypeLabel(type, t)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="activity-note">{t('common.note')}</label>
-            <input
-              id="activity-note"
-              className="input"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="activity-next-action">{t('admin.admissions.fields.nextAction')}</label>
-            <input
-              id="activity-next-action"
-              className="input"
-              value={nextAction}
-              onChange={(e) => setNextAction(e.target.value)}
-            />
-          </div>
-          <DateField
-            id="activity-next-action-date"
-            label={t('admin.admissions.fields.nextActionDate')}
-            placeholder={datePlaceholder}
-            value={nextActionDate}
-            onChange={setNextActionDate}
-          />
-        </div>
-        <div className="admissions-timeline-form__actions">
-          <button type="submit" className="btn btn--primary btn--sm" disabled={submitting}>
-            {submitting ? t('common.submitting') : t('admin.admissions.timeline.submit')}
+    <div className="admissions-timeline-tab" data-testid="admission-timeline-tab">
+      {modern && canLogContact ? (
+        <div className="admissions-timeline-form__actions" style={{ marginBottom: '0.75rem' }}>
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            data-testid="admission-timeline-log-contact"
+            onClick={() => setFollowUpOpen(true)}
+          >
+            {t('admin.admissions.actions.logContact')}
           </button>
         </div>
-      </form>
+      ) : null}
 
-      {activities.length === 0 ? (
+      {timeline.length === 0 ? (
         <EmptyState compact title={t('admin.admissions.timeline.empty')} />
       ) : (
-        <ol className="admissions-timeline" aria-label={t('admin.admissions.tabs.timeline')}>
-          {activities.map((activity) => {
-            const noteText = formatAdmissionActivityNote(activity.note, locale, t);
-            const nextDate = activity.next_action_date
-              ? formatDate(activity.next_action_date)
+        <ol className="admissions-timeline" aria-label={t('admin.admissions.tabs.history')}>
+          {timeline.map((item, index) => {
+            const key = String(item.id ?? `${item.code ?? 'item'}-${item.occurred_at ?? index}`);
+            const when = item.occurred_at
+              ? formatDateTime(item.occurred_at) || formatDate(item.occurred_at) || item.occurred_at
               : '';
-            const userName = refName(activity.user);
+            const actor = actorLabel(item);
+            const result = item.result_label ?? item.result;
             return (
-              <li key={activity.id} className="admissions-timeline__item">
+              <li
+                key={key}
+                className={`admissions-timeline__item${item.is_system ? ' admissions-timeline__item--system' : ''}`}
+                data-system={item.is_system ? 'true' : 'false'}
+              >
                 <div className="admissions-timeline__item-marker" aria-hidden="true" />
                 <div className="admissions-timeline__item-card">
                   <header className="admissions-timeline__item-head">
                     <span className="admissions-timeline__item-type">
-                      {resolveActivityTypeLabel(activity.activity_type, t)}
+                      {item.label || item.code || t('admin.admissions.timeline.addActivity')}
+                      {item.is_system ? (
+                        <span className="muted tiny"> · {t('admin.admissions.timeline.system')}</span>
+                      ) : null}
                     </span>
-                    <time className="admissions-timeline__item-date" dateTime={activity.date}>
-                      {formatDate(activity.date) || activity.date}
-                    </time>
+                    {when ? (
+                      <time className="admissions-timeline__item-date" dateTime={item.occurred_at ?? undefined} dir="ltr">
+                        {when}
+                      </time>
+                    ) : null}
                   </header>
-                  {noteText ? <p className="admissions-timeline__item-note">{noteText}</p> : null}
+                  {result ? <p className="admissions-timeline__item-note">{result}</p> : null}
+                  {item.note ? <p className="admissions-timeline__item-note">{item.note}</p> : null}
                   <footer className="admissions-timeline__item-meta">
                     <span className="admissions-timeline__item-user">
-                      {userName || <OverviewEmptyValue />}
+                      {actor || <OverviewEmptyValue />}
                     </span>
-                    {activity.next_action ? (
+                    {item.next_action ? (
                       <span className="admissions-timeline__item-next">
-                        {t('admin.admissions.nextAction')}: {activity.next_action}
-                        {nextDate ? ` — ${nextDate}` : ''}
+                        {t('admin.admissions.nextAction')}: {item.next_action}
+                        {item.next_action_date
+                          ? ` — ${formatDate(item.next_action_date) || item.next_action_date}`
+                          : ''}
                       </span>
                     ) : null}
                   </footer>
@@ -186,6 +99,13 @@ export function AdmissionTimelineTab({
           })}
         </ol>
       )}
+
+      <AdmissionQuickFollowUpDialog
+        admissionId={detail.id}
+        open={followUpOpen}
+        onClose={() => setFollowUpOpen(false)}
+        onSuccess={onUpdated}
+      />
     </div>
   );
 }

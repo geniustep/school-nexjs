@@ -94,16 +94,17 @@ describe('resolveAdmissionPrimaryAction', () => {
     expect(action.key).toBe('accept_offer');
   });
 
-  it('6. accepted without offer → create offer', () => {
+  it('6. accepted without offer → mark ready for registration', () => {
     const action = resolveAdmissionPrimaryAction({
       id: 10,
       state: 'accepted',
       decision: 'accepted',
       offer_state: false,
+      offer_required: false,
       registration_status: 'awaiting_registration',
       allowed_actions: ALL_ACTIONS,
     });
-    expect(action.key).toBe('create_offer');
+    expect(action.key).toBe('mark_ready_for_registration');
   });
 
   it('7. draft offer → send offer when allowed', () => {
@@ -373,7 +374,7 @@ describe('family independence', () => {
       allowed_actions: ALL_ACTIONS,
     });
     expect(registered.key).toBe('open_student');
-    expect(awaiting.key).toBe('create_offer');
+    expect(awaiting.key).toBe('mark_ready_for_registration');
     expect(rejected.key).toBe('view_rejection');
     expect(registered.key).not.toBe(awaiting.key);
     expect(rejected.key).not.toBe(awaiting.key);
@@ -408,6 +409,9 @@ describe('i18n Phase B keys', () => {
       expect(adm.journey.followUp).toBeTruthy();
       expect(adm.primaryAction.title).toBeTruthy();
       expect(adm.primaryAction.createOffer).toBeTruthy();
+      expect(adm.primaryAction.markReady).toBeTruthy();
+      expect(adm.actions.markReadySuccess).toBeTruthy();
+      expect(adm.decisions.accepted).toBeTruthy();
       expect(adm.tabs.summary).toBeTruthy();
       expect(adm.tabs.family_data).toBeTruthy();
       expect(adm.tabs.offer_registration).toBeTruthy();

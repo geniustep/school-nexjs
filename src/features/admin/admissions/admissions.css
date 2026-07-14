@@ -5847,3 +5847,105 @@
     padding: 0.8rem 0.75rem;
   }
 }
+
+/* Modals portaled to document.body — required on admissions pages (not finance CSS). */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal-panel {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-panel--wide {
+  width: min(640px, 100%);
+}
+
+.modal-panel--form {
+  width: min(720px, 100%);
+}
+
+.confirmation-dialog {
+  padding: 20px;
+}
+
+.confirmation-dialog h2,
+.confirmation-dialog h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.confirmation-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+[dir='rtl'] .confirmation-dialog__actions {
+  flex-direction: row-reverse;
+}
+
+.admission-decision-dialog__hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--c-muted, #64748b);
+}
+
+.admission-detail-modern-summary {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+}
+
+@media (min-width: 720px) {
+  .admission-detail-modern-summary {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    align-items: start;
+  }
+}
+
+.admission-detail-modern-summary__status,
+.admission-detail-modern-summary__last {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admission-last-action-summary__details {
+  margin: 0.25rem 0 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.admission-card__last-action {
+  margin-top: 0.5rem;
+}
+
+.admissions-timeline__item--system .admissions-timeline__item-card {
+  opacity: 0.85;
+}
+
+.admissions-bulk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}

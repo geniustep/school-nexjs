@@ -11,6 +11,7 @@ import {
   resolveRegistrationReadiness,
   type AdmissionRegistrationRequirement,
 } from './admission-assessment-workflow-contract';
+import { isAcceptedSchoolDecision } from './admission-decision-options';
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
 import { resolveIsSchoolRejected } from './admission-status-display';
 import { resolveAdmissionStudentId } from './admission-registration';
@@ -33,9 +34,7 @@ export function resolveAcceptanceRegistrationMode(
 ): AcceptanceRegistrationMode {
   const decision = normalizeAdmissionDecision(detail)?.decision ?? null;
   const rejected = resolveIsSchoolRejected(detail);
-  const accepted =
-    decision === 'accepted' || decision === 'accepted_with_condition';
-  const fields = asAdmissionWorkflowFields(detail);
+  const accepted = isAcceptedSchoolDecision(decision);  const fields = asAdmissionWorkflowFields(detail);
   const offerRequired = resolveOfferRequired(fields);
   const offer = resolveOfferStateV185(fields);
 

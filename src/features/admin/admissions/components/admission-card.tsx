@@ -12,6 +12,8 @@ import {
 } from '../utils/admission-labels';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
+import { AdmissionLastActionSummary } from './admission-last-action-summary';
+import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -149,6 +151,7 @@ export function AdmissionCard({
           >
             <AdmissionListActionsMenu
               admissionId={item.id}
+              listItem={item}
               onUpdated={onUpdated}
               compact
             />
@@ -218,6 +221,16 @@ export function AdmissionCard({
           </span>
         ) : null}
       </div>
+
+      <div className="admission-card__last-action" data-testid="admission-card-last-action">
+        <AdmissionLastActionSummary action={item.last_action} />
+      </div>
+
+      {resolvePrimaryNextActionCode(item.primary_next_action) ? (
+        <p className="admission-card__primary-next muted tiny" data-testid="admission-card-primary-next">
+          {t('admin.admissions.nextAction')}: {resolvePrimaryNextActionCode(item.primary_next_action)}
+        </p>
+      ) : null}
 
       {/* Visually hidden reference for a11y / tests — not shown as #id clutter */}
       <span className="admission-card__sr-ref">{reference}</span>

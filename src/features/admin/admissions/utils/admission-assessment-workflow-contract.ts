@@ -444,23 +444,21 @@ export function resolveRegistrationReadiness(
   }
   if (fields.registration_status === 'awaiting_registration') {
     const state = String(fields.state ?? '');
-    // Legacy confirmed = registration-ready after offer acceptance.
+    // Only confirmed (staff marked جاهز للتسجيل) means ready — not mere acceptance.
     if (state === 'confirmed') return 'ready';
-    const offerRequired = parseOfferRequired(fields.offer_required, fields.offer_state);
     const offer = resolveOfferStateV185(fields);
-    if (offerRequired === false || offer === 'not_applicable' || offer === 'accepted') {
-      return 'ready';
-    }
+    const offerRequired = parseOfferRequired(fields.offer_required, fields.offer_state);
     if (offer === 'sent' || offer === 'pending') {
       return 'awaiting_offer_response';
     }
     if (offer === 'draft') {
       return 'awaiting_offer_creation';
     }
-    if (offerRequired === true || offer === 'not_created' || !offer) {
+    if (offerRequired === true || offer === 'not_created') {
       return 'awaiting_offer_creation';
     }
-    return 'ready';
+    // Accepted without staff mark-ready: not ready yet (stay on accepted column).
+    return null;
   }
   if (fields.registration_status === 'not_applicable') {
     return 'not_applicable';

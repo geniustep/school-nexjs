@@ -263,16 +263,11 @@ export function buildAdmissionWorkspaceQuery(
         ...pickOfferAdvanced(advanced),
       };
       if (postSub === 'ready') {
-        // Align with dashboard confirmed_count + outcome filter + UI label.
-        // Also keep registration_status=awaiting so already-registered
-        // (confirmed + linked) stay out of this queue.
-        query.state = 'confirmed';
-        query.registration_status = 'awaiting_registration';
+        query.application_status = 'ready_for_registration';
       } else if (postSub === 'registered') {
-        query.registration_readiness = 'registered';
-        query.registration_status = 'registered';
+        query.application_status = 'registered';
       } else {
-        query.registration_status = 'awaiting_registration';
+        query.application_status = 'accepted';
       }
       return {
         workspace: 'post_acceptance',
@@ -289,8 +284,13 @@ export function buildAdmissionWorkspaceQuery(
         workspace: 'closed',
         ...pickOfferAdvanced(advanced),
       };
-      if (closedSub === 'rejected') query.decision = 'rejected';
-      else query.state = closedSub;
+      if (closedSub === 'rejected') query.application_status = 'rejected';
+      else if (closedSub === 'lost' || closedSub === 'cancelled' || closedSub === 'duplicate') {
+        query.application_status = 'closed';
+        query.state = closedSub;
+      } else {
+        query.application_status = 'closed';
+      }
       return {
         workspace: 'closed',
         query,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { createAdmissionDecision } from '../api/admissions-api';
@@ -40,6 +41,11 @@ export function AdmissionDecisionDialog({
   const [conditions, setConditions] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -65,7 +71,7 @@ export function AdmissionDecisionDialog({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,7 +109,7 @@ export function AdmissionDecisionDialog({
   const needsReason = decisionRequiresRejectionReason(decisionValue);
   const needsConditions = decisionRequiresConditions(decisionValue);
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
         className="card modal-panel confirmation-dialog"
@@ -114,6 +120,7 @@ export function AdmissionDecisionDialog({
         data-testid="admission-decision-dialog"
       >
         <h2 id={titleId}>{t('admin.admissions.actions.makeDecision')}</h2>
+        <p className="admission-decision-dialog__hint">{t('admin.admissions.decision.readyHint')}</p>
         <form className="admissions-inline-form" onSubmit={submit}>
           {error ? <div className="alert alert--error">{error}</div> : null}
           <div className="field">
@@ -176,6 +183,7 @@ export function AdmissionDecisionDialog({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

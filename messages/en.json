@@ -4524,6 +4524,35 @@
     "admissions": {
       "title": "Admissions",
       "subtitle": "Manage intake and enrollment requests",
+      "applicationStatus": {
+        "new": "New", "follow_up": "Follow-up", "in_assessment": "In assessment",
+        "decision_pending": "Decision pending", "accepted": "Accepted",
+        "ready_for_registration": "Ready for registration", "registered": "Converted to student",
+        "waitlisted": "Waitlisted", "rejected": "Rejected", "closed": "Closed"
+      },
+      "lastAction": {
+        "none": "No follow-up recorded",
+        "by": "by {name}",
+        "label": "Last action",
+        "result": "Result",
+        "actor": "Staff",
+        "at": "Date"
+      },
+      "contactResults": {
+        "reached": "Reached", "no_answer": "No answer", "wrong_number": "Wrong number",
+        "call_later": "Call later", "family_interested": "Family interested",
+        "family_not_interested": "Family not interested", "appointment_scheduled": "Appointment scheduled",
+        "information_sent": "Information sent", "other": "Other"
+      },
+      "actionErrors": {
+        "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.",
+        "not_ready_for_registration": "The application is not ready for registration.",
+        "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere. Refresh and try again."
+      },
+      "actionValidation": {
+        "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.",
+        "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required."
+      },
       "createButton": "New request",
       "backToList": "Back to list",
       "breadcrumb": {
@@ -4653,7 +4682,8 @@
         "stageChangeSkipped": "No selected requests needed a stage change.",
         "stageChangeFailed": "Could not update selected requests.",
         "stageChangeIneligible": "{count} applications cannot use a manual stage change",
-        "stageChangeIneligibleNote": "{count} ineligible application(s) were left unchanged."
+        "stageChangeIneligibleNote": "{count} ineligible application(s) were left unchanged.",
+        "manualStageDisabled": "Manual stage changes are no longer available — use follow-up actions."
       },
       "states": {
         "new": "New",
@@ -4993,6 +5023,7 @@
         "activityType": "Activity type",
         "submit": "Add",
         "empty": "No activities yet",
+        "system": "System",
         "systemMessages": {
           "statusChanged": "Status changed from {from} to {to}.",
           "linkedToStudent": "Admission converted to official student: {student}.",
@@ -5101,7 +5132,8 @@
         "none": "No decision yet",
         "formTitle": "Record school decision",
         "submit": "Record decision",
-        "conditionsRequired": "Enter admission conditions"
+        "conditionsRequired": "Enter admission conditions",
+        "readyHint": "Choose « Accepted » to accept the application. It stays in Accepted until staff marks Ready for registration after the family confirms they want to enroll."
       },
       "decisions": {
         "accepted": "Accepted",
@@ -5259,12 +5291,23 @@
         "changeFollowUp": "Change follow-up stage",
         "acceptFamilyOffer": "Confirm family acceptance",
         "acceptOfferSuccess": "Family acceptance confirmed; the application is ready for registration.",
+        "acceptOfferRecorded": "Family offer response recorded.",
+        "markReadySuccess": "Application marked ready for registration.",
         "continueRegistration": "Continue student registration",
         "openPrefill": "Open registration prefill",
         "linkExistingStudent": "Link existing student",
         "reopen": "Reopen application",
         "noSentOffer": "No sent offer is available to accept.",
-        "makeDecision": "Record school decision"
+        "makeDecision": "Record school decision",
+        "logContact": "Log follow-up",
+        "accept": "Accept",
+        "reject": "Reject",
+        "recordFamilyApproval": "Record family approval",
+        "acceptAndRecordFamilyApproval": "Accept and record family approval",
+        "convertToStudent": "Convert to student",
+        "reopen": "Reopen",
+        "waitlist": "Waitlist",
+        "close": "Close application"
       },
       "workspace": {
         "navLabel": "Admissions workspaces",
@@ -5384,6 +5427,7 @@
         "blocked": "Blocked",
         "awaiting_offer_creation": "Awaiting offer creation",
         "awaiting_offer_response": "Awaiting family response",
+        "awaiting_staff_ready": "Awaiting ready-for-registration mark",
         "ready": "Ready for registration",
         "registered": "Registered"
       },
@@ -5397,17 +5441,17 @@
         "rejectedTitle": "Application rejected by the school",
         "rejectedBody": "The application was rejected by the school.",
         "reopenHint": "The application can be reopened if allowed.",
-        "acceptedDirectTitle": "Accepted — registration can proceed directly",
-        "acceptedDirectBody": "The application was accepted and registration can proceed directly.",
-        "directRegistrationHint": "This application's policy does not require a separate acceptance offer.",
+        "acceptedDirectTitle": "Accepted — awaiting ready for registration",
+        "acceptedDirectBody": "The school accepted the application. When the family confirms they want to enroll, mark Ready for registration.",
+        "directRegistrationHint": "This policy does not require a separate offer. Moving to Ready for registration is still a manual staff step.",
         "offerRequiredTitle": "Acceptance offer required",
         "offerRequiredBody": "An acceptance offer is required before registration can proceed.",
         "offerDraftTitle": "Acceptance offer in draft",
         "awaitingFamilyTitle": "Awaiting family response",
         "awaitingFamilyBody": "The acceptance offer was sent and is awaiting the family's response.",
         "familyAcceptedTitle": "Family accepted the offer",
-        "familyAcceptedBody": "The family accepted the acceptance offer.",
-        "offerAcceptDoesNotRegister": "Accepting the offer does not automatically create the student record; registration is completed separately."
+        "familyAcceptedBody": "The family accepted the acceptance offer. Mark Ready for registration to continue.",
+        "offerAcceptDoesNotRegister": "Accepting the offer does not auto-mark Ready for registration; use Ready for registration, then continue enrollment."
       },
       "primaryAction": {
         "title": "Next action",
@@ -5419,6 +5463,8 @@
         "continueRegistration": "Continue student registration",
         "continueRegistrationDesc": "The application is ready to create or link the student record.",
         "readyNoPermissionDesc": "Ready for registration, but you do not have permission to continue.",
+        "markReady": "Ready for registration",
+        "markReadyDesc": "After the family confirms they want to enroll, mark the application ready for registration.",
         "linkStudent": "Link existing student",
         "acceptOffer": "Confirm family acceptance",
         "acceptOfferDesc": "The offer was sent and is waiting for the family response.",

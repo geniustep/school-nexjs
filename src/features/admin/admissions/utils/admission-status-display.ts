@@ -7,6 +7,7 @@ import type {
   AdmissionState,
 } from '@/types/admission';
 import { resolveAdmissionStudentId } from './admission-registration';
+import { isAcceptedSchoolDecision } from './admission-decision-options';
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
 import {
   resolveAdmissionUiStage,
@@ -104,7 +105,7 @@ export function resolveRegistrationStatus(
   }
 
   const decision = normalizeAdmissionDecision(record)?.decision;
-  if (decision === 'accepted' || decision === 'accepted_with_condition') {
+  if (decision === 'accepted' || isAcceptedSchoolDecision(decision)) {
     return { status: 'awaiting_registration', usedLegacyFallback: true };
   }
 

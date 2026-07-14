@@ -1,9 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   admissionDecisionLabelKey,
+  canMarkReadyForRegistration,
   decisionRequiresConditions,
   decisionRequiresRejectionReason,
   getAdmissionDecisionOptions,
+  isAcceptedSchoolDecision,
   isAdmissionDecisionOption,
 } from './admission-decision-options';
 import {
@@ -15,35 +17,79 @@ import {
 } from './admission-stage-options';
 import { runBulkStageChange } from './admission-bulk-stage-change';
 import { resolveAdmissionPrimaryDisplay } from './admission-status-display';
+import { resolveAdmissionUiStage } from './admission-ui-stage';
+import { vi } from 'vitest';
 
 describe('getAdmissionDecisionOptions', () => {
-  it('returns the five school decisions in fixed order', () => {
+  it('returns creatable decisions without accepted_with_condition', () => {
     expect([...getAdmissionDecisionOptions()]).toEqual([
       'accepted',
-      'accepted_with_condition',
       'waitlisted',
       'needs_reassessment',
       'rejected',
     ]);
+    expect(isAdmissionDecisionOption('accepted_with_condition')).toBe(false);
   });
 
-  it('marks conditions and rejection requirements correctly', () => {
-    expect(decisionRequiresConditions('accepted_with_condition')).toBe(true);
+  it('never requires conditions for creatable decisions', () => {
+    expect(decisionRequiresConditions('accepted_with_condition')).toBe(false);
     expect(decisionRequiresConditions('accepted')).toBe(false);
     expect(decisionRequiresRejectionReason('rejected')).toBe(true);
-    expect(decisionRequiresRejectionReason('waitlisted')).toBe(false);
   });
 
-  it('maps rejected label to schoolDecision.rejected', () => {
+  it('maps rejected and legacy accepted_with_condition labels', () => {
     expect(admissionDecisionLabelKey('rejected')).toBe(
       'admin.admissions.schoolDecision.rejected',
     );
     expect(admissionDecisionLabelKey('accepted')).toBe('admin.admissions.decisions.accepted');
+    expect(admissionDecisionLabelKey('accepted_with_condition')).toBe(
+      'admin.admissions.decisions.accepted',
+    );
   });
 
-  it('validates decision option membership', () => {
-    expect(isAdmissionDecisionOption('needs_reassessment')).toBe(true);
-    expect(isAdmissionDecisionOption('confirmed')).toBe(false);
+  it('treats legacy accepted_with_condition as accepted for read paths', () => {
+    expect(isAcceptedSchoolDecision('accepted')).toBe(true);
+    expect(isAcceptedSchoolDecision('accepted_with_condition')).toBe(true);
+    expect(isAcceptedSchoolDecision('rejected')).toBe(false);
+  });
+});
+
+describe('canMarkReadyForRegistration', () => {
+  it('allows accepted applications that are not yet confirmed', () => {
+    expect(
+      canMarkReadyForRegistration({
+        state: 'accepted',
+        decision: 'accepted',
+      }),
+    ).toBe(true);
+  });
+
+  it('blocks confirmed / registered / closed', () => {
+    expect(canMarkReadyForRegistration({ state: 'confirmed', decision: 'accepted' })).toBe(
+      false,
+    );
+    expect(
+      canMarkReadyForRegistration({
+        state: 'accepted',
+        decision: 'accepted',
+        student_id: 9,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('acceptance vs ready ui stage', () => {
+  it('keeps accepted off ready_for_registration until confirmed', () => {
+    expect(
+      resolveAdmissionUiStage({
+        state: 'accepted',
+        registration_readiness: 'ready',
+        offer_required: false,
+      } as never),
+    ).toBe('accepted');
+    expect(resolveAdmissionUiStage({ state: 'confirmed' } as never)).toBe(
+      'ready_for_registration',
+    );
   });
 });
 
@@ -165,6 +211,7 @@ describe('decision payload contracts', () => {
       expect(decision).not.toBe('lost');
       expect(decision).not.toBe('confirmed');
       expect(decision).not.toBe('registered');
+      expect(decision).not.toBe('accepted_with_condition');
     }
   });
 });

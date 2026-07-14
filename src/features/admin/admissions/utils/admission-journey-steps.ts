@@ -17,6 +17,7 @@ import {
   type AdmissionStatusFields,
 } from './admission-status-display';
 import { resolveAdmissionStudentId } from './admission-registration';
+import { isAcceptedSchoolDecision } from './admission-decision-options';
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
 
 export type AdmissionJourneyStepId =
@@ -76,9 +77,7 @@ export function resolveAdmissionJourneySteps(
     studentId != null ||
     readiness === 'registered' ||
     input.registration_status === 'registered';
-  const accepted =
-    decision === 'accepted' || decision === 'accepted_with_condition';
-
+  const accepted = isAcceptedSchoolDecision(decision);
   // --- 1. Follow-up (processing_stage) ---
   let followStatus: AdmissionJourneyStepStatus;
   let followValue: string;
@@ -150,10 +149,7 @@ export function resolveAdmissionJourneySteps(
     decisionValue = 'admin.admissions.schoolDecision.rejected';
   } else if (accepted) {
     decisionStatus = 'complete';
-    decisionValue =
-      decision === 'accepted_with_condition'
-        ? 'admin.admissions.decisions.accepted_with_condition'
-        : 'admin.admissions.decisions.accepted';
+    decisionValue = 'admin.admissions.decisions.accepted';
   } else if (decision === 'waitlisted' || decision === 'needs_reassessment') {
     decisionStatus = 'current';
     decisionValue = `admin.admissions.decisions.${decision}`;
@@ -221,19 +217,19 @@ export function resolveAdmissionJourneySteps(
   } else if (readiness === 'blocked') {
     regStatus = 'blocked';
     regValue = 'admin.admissions.registrationReadiness.blocked';
-  } else if (readiness === 'ready') {
+  } else if (readiness === 'ready' || state === 'confirmed') {
     regStatus = 'current';
     regValue = 'admin.admissions.registrationReadiness.ready';
   } else if (
     readiness === 'awaiting_offer_creation' ||
     readiness === 'awaiting_offer_response'
   ) {
-    // Offer accepted alone is NOT registered.
     regStatus = 'pending';
     regValue = `admin.admissions.registrationReadiness.${readiness}`;
-  } else if (accepted && offerRequired === false) {
-    regStatus = 'current';
-    regValue = 'admin.admissions.registrationReadiness.ready';
+  } else if (accepted) {
+    // School accepted — awaiting staff mark جاهز للتسجيل (not auto-ready).
+    regStatus = 'pending';
+    regValue = 'admin.admissions.registrationReadiness.awaiting_staff_ready';
   } else if (closed) {
     regStatus = 'not_applicable';
     regValue = 'admin.admissions.journey.notApplicable';

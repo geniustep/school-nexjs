@@ -532,6 +532,7 @@ export const endpoints = {
     admissionsDashboard: '/admin/admissions/dashboard',
     admissionsOptions: '/admin/admissions/options',
     admission: (id: number | string) => `/admin/admissions/${id}`,
+    admissionActions: (id: number | string) => `/admin/admissions/${id}/actions`,
     admissionPrefill: (id: number | string) => `/admin/admissions/${id}/prefill`,
     admissionLinkStudent: (id: number | string) => `/admin/admissions/${id}/link-student`,
     admissionActivities: (id: number | string) => `/admin/admissions/${id}/activities`,

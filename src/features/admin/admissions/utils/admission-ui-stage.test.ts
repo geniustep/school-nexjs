@@ -54,6 +54,32 @@ describe('resolveAdmissionUiStage', () => {
       'ready_for_registration',
     );
   });
+
+  it('maps registration_readiness=ready to ready_for_registration even when state is accepted', () => {
+    expect(
+      resolveAdmissionUiStage(
+        makeItem({
+          id: 10,
+          state: 'accepted',
+          registration_readiness: 'ready',
+          offer_required: false,
+        }),
+      ),
+    ).toBe('accepted');
+  });
+
+  it('keeps accepted+offer-required in accepted when not yet ready', () => {
+    expect(
+      resolveAdmissionUiStage(
+        makeItem({
+          id: 11,
+          state: 'accepted',
+          registration_readiness: 'awaiting_offer_creation',
+          offer_required: true,
+        }),
+      ),
+    ).toBe('accepted');
+  });
 });
 
 describe('rawStatesForUiStageFetch', () => {

@@ -4657,6 +4657,41 @@
     "admissions": {
       "title": "طلبات التسجيل",
       "subtitle": "إدارة طلبات التسجيل والقبول",
+      "applicationStatus": {
+        "new": "جديد",
+        "follow_up": "قيد المتابعة",
+        "in_assessment": "في التقييم",
+        "decision_pending": "بانتظار قرار الإدارة",
+        "accepted": "مقبول",
+        "ready_for_registration": "جاهز للتسجيل",
+        "registered": "محول إلى تلميذ",
+        "waitlisted": "قائمة الانتظار",
+        "rejected": "مرفوض",
+        "closed": "مغلق"
+      },
+      "lastAction": {
+        "none": "لا توجد متابعة مسجلة",
+        "by": "بواسطة {name}",
+        "label": "آخر إجراء",
+        "result": "النتيجة",
+        "actor": "الموظف",
+        "at": "التاريخ"
+      },
+      "contactResults": {
+        "reached": "تم التواصل", "no_answer": "لا جواب", "wrong_number": "رقم خاطئ",
+        "call_later": "الاتصال لاحقًا", "family_interested": "الأسرة مهتمة",
+        "family_not_interested": "الأسرة غير مهتمة", "appointment_scheduled": "تم تحديد موعد",
+        "information_sent": "تم إرسال المعلومات", "other": "أخرى"
+      },
+      "actionErrors": {
+        "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "يجب قبول الطلب قبل تسجيل موافقة الأسرة.",
+        "not_ready_for_registration": "الطلب غير جاهز للتسجيل.",
+        "invalid_action": "هذا الإجراء غير متاح حاليًا.", "conflict": "تم تحديث الطلب في مكان آخر. حدّث الصفحة وحاول مجددًا."
+      },
+      "actionValidation": {
+        "nextActionDateRequired": "تاريخ المتابعة مطلوب.", "appointmentDateRequired": "تاريخ ووقت الموعد مطلوب.",
+        "noteRequired": "الملاحظة مطلوبة.", "rejectionReasonRequired": "سبب الرفض مطلوب."
+      },
       "createButton": "طلب تسجيل جديد",
       "backToList": "العودة إلى القائمة",
       "breadcrumb": {
@@ -4834,7 +4869,8 @@
         "stageChangeSkipped": "لا توجد طلبات محدّدة تحتاج تغيير مرحلة.",
         "stageChangeFailed": "تعذر تحديث الطلبات المحدّدة.",
         "stageChangeIneligible": "{count} طلب غير قابل لتغيير المرحلة اليدوية",
-        "stageChangeIneligibleNote": "وتُرك {count} طلبًا غير مؤهل."
+        "stageChangeIneligibleNote": "وتُرك {count} طلبًا غير مؤهل.",
+        "manualStageDisabled": "تغيير المرحلة اليدوي لم يعد متاحًا — استخدم إجراءات المتابعة."
       },
       "states": {
         "new": "جديد",
@@ -5174,6 +5210,7 @@
         "activityType": "نوع النشاط",
         "submit": "إضافة",
         "empty": "لا توجد أنشطة بعد",
+        "system": "آلي",
         "systemMessages": {
           "statusChanged": "تم تغيير الحالة من {from} إلى {to}.",
           "linkedToStudent": "تم تحويل الطلب إلى تلميذ رسمي: {student}.",
@@ -5282,7 +5319,8 @@
         "none": "لم يُتخذ قرار بعد",
         "formTitle": "اتخاذ قرار المدرسة",
         "submit": "تسجيل القرار",
-        "conditionsRequired": "أدخل شروط القبول"
+        "conditionsRequired": "أدخل شروط القبول",
+        "readyHint": "اختر «مقبول» لقبول الطلب. يبقى في عمود مقبول حتى يؤكد الموظف «جاهز للتسجيل» بعد تأكيد رغبة الأسرة."
       },
       "decisions": {
         "accepted": "مقبول",
@@ -5440,12 +5478,23 @@
         "changeFollowUp": "تغيير مرحلة المتابعة",
         "acceptFamilyOffer": "تأكيد قبول الأسرة",
         "acceptOfferSuccess": "تم تأكيد قبول الأسرة وأصبح الطلب جاهزًا للتسجيل.",
+        "acceptOfferRecorded": "تم تسجيل رد الأسرة على العرض.",
+        "markReadySuccess": "تم تعليم الطلب كجاهز للتسجيل.",
         "continueRegistration": "استكمال تسجيل التلميذ",
         "openPrefill": "فتح بيانات التسجيل المسبق",
         "linkExistingStudent": "ربط التلميذ الموجود",
         "reopen": "إعادة فتح الطلب",
         "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله.",
-        "makeDecision": "اتخاذ قرار المدرسة"
+        "makeDecision": "اتخاذ قرار المدرسة",
+        "logContact": "تسجيل متابعة",
+        "accept": "قبول",
+        "reject": "رفض",
+        "recordFamilyApproval": "تسجيل موافقة الأسرة",
+        "acceptAndRecordFamilyApproval": "قبول مع موافقة الأسرة",
+        "convertToStudent": "تحويل إلى تلميذ",
+        "reopen": "إعادة فتح",
+        "waitlist": "قائمة الانتظار",
+        "close": "إغلاق الطلب"
       },
       "journey": {
         "title": "مسار الطلب",
@@ -5517,6 +5566,7 @@
         "blocked": "متوقف",
         "awaiting_offer_creation": "بانتظار إنشاء العرض",
         "awaiting_offer_response": "بانتظار رد الأسرة",
+        "awaiting_staff_ready": "بانتظار تعليم جاهز للتسجيل",
         "ready": "جاهز للتسجيل",
         "registered": "مسجل"
       },
@@ -5530,17 +5580,17 @@
         "rejectedTitle": "تم رفض الطلب من المدرسة",
         "rejectedBody": "تم رفض الطلب من المدرسة.",
         "reopenHint": "يمكن إعادة فتح الطلب عند السماح.",
-        "acceptedDirectTitle": "قُبل الطلب ويمكن استكمال التسجيل مباشرة",
-        "acceptedDirectBody": "قُبل الطلب ويمكن استكمال التسجيل مباشرة.",
-        "directRegistrationHint": "لا تتطلب سياسة هذا الطلب عرض قبول منفصلًا.",
+        "acceptedDirectTitle": "قُبل الطلب — بانتظار جاهز للتسجيل",
+        "acceptedDirectBody": "قُبل الطلب من المدرسة. عندما تؤكد الأسرة رغبتها في التسجيل، علّم الطلب «جاهز للتسجيل».",
+        "directRegistrationHint": "لا تتطلب سياسة هذا الطلب عرض قبول منفصلًا. يبقى الانتقال إلى جاهز للتسجيل يدويًا.",
         "offerRequiredTitle": "عرض القبول مطلوب",
         "offerRequiredBody": "عرض القبول مطلوب قبل استكمال التسجيل.",
         "offerDraftTitle": "عرض القبول في المسودة",
         "awaitingFamilyTitle": "بانتظار رد الأسرة",
         "awaitingFamilyBody": "تم إرسال عرض القبول وينتظر جواب الأسرة.",
         "familyAcceptedTitle": "قبلت الأسرة عرض القبول",
-        "familyAcceptedBody": "قبلت الأسرة عرض القبول.",
-        "offerAcceptDoesNotRegister": "قبول العرض لا ينشئ سجل التلميذ تلقائيًا؛ يتم ذلك عبر استكمال التسجيل."
+        "familyAcceptedBody": "قبلت الأسرة عرض القبول. علّم الطلب «جاهز للتسجيل» للمتابعة.",
+        "offerAcceptDoesNotRegister": "قبول العرض لا يعلّم الطلب جاهزًا للتسجيل تلقائيًا؛ استخدم إجراء جاهز للتسجيل ثم استكمال التسجيل."
       },
       "primaryAction": {
         "title": "الإجراء التالي",
@@ -5552,6 +5602,8 @@
         "continueRegistration": "استكمال تسجيل التلميذ",
         "continueRegistrationDesc": "الطلب جاهز لإنشاء أو ربط سجل التلميذ.",
         "readyNoPermissionDesc": "الملف جاهز للتسجيل لكن لا تتوفر صلاحية الاستكمال.",
+        "markReady": "جاهز للتسجيل",
+        "markReadyDesc": "بعد تأكيد رغبة الأسرة في التسجيل، انقل الطلب إلى جاهز للتسجيل.",
         "linkStudent": "ربط تلميذ موجود",
         "acceptOffer": "تأكيد قبول الأسرة",
         "acceptOfferDesc": "العرض مرسل وينتظر جواب الأسرة.",
