@@ -7,6 +7,7 @@ import {
   filterKanbanItemsByApplicationStatus,
   partitionKanbanItemsByApplicationStatus,
 } from '../utils/admission-kanban-status-partition';
+import { withKanbanListProjection } from '../utils/admission-kanban-projection';
 import type { AdmissionListItem } from '@/types/admission';
 import type { ApiErrorBody, ApiResponse, Pagination } from '@/types/api';
 
@@ -228,13 +229,16 @@ export function useAdmissionsKanbanBoard({
 
     void (async () => {
       if (partitionByApplicationStatus) {
-        const res = await fetchAdmissions({
-          active_school_id: activeSchoolId,
-          search: searchKey || undefined,
-          page: 1,
-          page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
-          ...resolvedExtraQuery,
-        });
+        // No silent fallback to full payload — Backend must support projection=kanban.
+        const res = await fetchAdmissions(
+          withKanbanListProjection({
+            active_school_id: activeSchoolId,
+            search: searchKey || undefined,
+            page: 1,
+            page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
+            ...resolvedExtraQuery,
+          }),
+        );
         if (cancelled) return;
         if (!res.success) {
           setBoardItems([]);
@@ -264,14 +268,17 @@ export function useAdmissionsKanbanBoard({
       let settledCount = 0;
       await Promise.all(
         activeColumns.map(async (state) => {
-          const res = await fetchAdmissions({
-            active_school_id: activeSchoolId,
-            application_status: state,
-            search: searchKey || undefined,
-            page: 1,
-            page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
-            ...resolvedExtraQuery,
-          });
+          // No silent fallback to full payload — Backend must support projection=kanban.
+          const res = await fetchAdmissions(
+            withKanbanListProjection({
+              active_school_id: activeSchoolId,
+              application_status: state,
+              search: searchKey || undefined,
+              page: 1,
+              page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
+              ...resolvedExtraQuery,
+            }),
+          );
           if (cancelled) return;
           settledCount += 1;
           setColumnStates((prev) => ({
@@ -317,13 +324,15 @@ export function useAdmissionsKanbanBoard({
         });
 
         const nextPage = boardPage + 1;
-        const res = await fetchAdmissions({
-          active_school_id: activeSchoolId,
-          search: searchKey || undefined,
-          page: nextPage,
-          page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
-          ...resolvedExtraQuery,
-        });
+        const res = await fetchAdmissions(
+          withKanbanListProjection({
+            active_school_id: activeSchoolId,
+            search: searchKey || undefined,
+            page: nextPage,
+            page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
+            ...resolvedExtraQuery,
+          }),
+        );
 
         if (!res.success) {
           setColumnStates((prev) =>
@@ -364,14 +373,16 @@ export function useAdmissionsKanbanBoard({
       }));
 
       const nextPage = current.page + 1;
-      const res = await fetchAdmissions({
-        active_school_id: activeSchoolId,
-        application_status: state,
-        search: searchKey || undefined,
-        page: nextPage,
-        page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
-        ...resolvedExtraQuery,
-      });
+      const res = await fetchAdmissions(
+        withKanbanListProjection({
+          active_school_id: activeSchoolId,
+          application_status: state,
+          search: searchKey || undefined,
+          page: nextPage,
+          page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
+          ...resolvedExtraQuery,
+        }),
+      );
 
       setColumnStates((prev) => ({
         ...prev,

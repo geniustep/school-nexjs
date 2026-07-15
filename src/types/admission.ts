@@ -331,7 +331,10 @@ export interface AdmissionsDashboard {
 
 export interface AdmissionListItem {
   id: number;
+  /** Application reference (ADM-…); Kanban projection may send this as `name`. */
   reference?: string | null;
+  /** Backend display name / reference alias — prefer `reference` after normalize. */
+  name?: string | null;
   external_reference?: string | null;
   /** Family batch linkage — present when the request belongs to a multi-child family submission. */
   family_batch_id?: number | null;
@@ -404,7 +407,33 @@ export interface AdmissionListItem {
   requested_services?: AdmissionRequestedService[] | null;
   requested_service_ids?: number[] | null;
   has_requested_services?: boolean | null;
+  /** Optional terminal reason fields — present on rejected/closed rows (incl. kanban projection). */
+  rejection?: AdmissionRejection | null;
+  lost_reason?: string | null;
 }
+
+/**
+ * Lightweight Kanban list row — subset of list fields under `projection=kanban`.
+ * Kept for documentation/boundaries; runtime still normalizes into AdmissionListItem.
+ */
+export type AdmissionKanbanItem = Pick<
+  AdmissionListItem,
+  | 'id'
+  | 'name'
+  | 'reference'
+  | 'student_name'
+  | 'guardian_name'
+  | 'guardian_phone'
+  | 'requested_level'
+  | 'application_status'
+  | 'allowed_status_targets'
+  | 'primary_next_action'
+  | 'next_action_date'
+  | 'last_action'
+  | 'requested_services'
+  | 'rejection'
+  | 'lost_reason'
+>;
 
 export interface AdmissionAllowedActions {
   edit?: boolean;

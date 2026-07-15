@@ -180,9 +180,38 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
   const raw = item as AdmissionListItem & Record<string, unknown>;
   const normalized = normalizeAdmissionOutcomeFields(raw);
   const requested = normalizeRequestedServicesFields(raw);
+  // Kanban projection may send application reference as `name` only.
+  const reference =
+    cleanOptionalText(raw.reference) ??
+    cleanOptionalText(raw.name) ??
+    (typeof item.reference === 'string' ? cleanOptionalText(item.reference) : null);
+  const lost_reason = cleanOptionalText(raw.lost_reason);
+  const rejection =
+    raw.rejection && typeof raw.rejection === 'object'
+      ? (raw.rejection as AdmissionListItem['rejection'])
+      : raw.rejection === false
+        ? null
+        : ((item as { rejection?: AdmissionListItem['rejection'] }).rejection ?? null);
+  const requested_level =
+    raw.requested_level === false || raw.requested_level == null
+      ? null
+      : (raw.requested_level as AdmissionListItem['requested_level']);
   return {
     ...item,
     ...normalized,
+    reference,
+    name: cleanOptionalText(raw.name) ?? reference,
+    lost_reason,
+    rejection,
+    requested_level,
+    guardian_name:
+      raw.guardian_name === false || raw.guardian_name == null
+        ? null
+        : cleanOptionalText(raw.guardian_name) ?? item.guardian_name ?? null,
+    guardian_phone:
+      raw.guardian_phone === false || raw.guardian_phone == null
+        ? null
+        : cleanOptionalText(raw.guardian_phone) ?? item.guardian_phone ?? null,
     admission_workspace:
       typeof (item as { admission_workspace?: unknown }).admission_workspace === 'string'
         ? (item as { admission_workspace: string }).admission_workspace
