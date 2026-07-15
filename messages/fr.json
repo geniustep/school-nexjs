@@ -7394,7 +7394,6 @@
           "service": "Service",
           "category": "Catégorie",
           "commitment": "Engagement",
-          "operationalState": "État opérationnel",
           "pricingUnit": "Unité",
           "period": "Période",
           "quantity": "Qté",
@@ -7402,20 +7401,6 @@
           "gross": "Brut",
           "discount": "Remise",
           "net": "Net"
-        },
-        "lineOperationalState": {
-          "active_current": "Actif",
-          "cancelled_historical_only": "Annulé",
-          "completed_historical_only": "Terminé",
-          "historical_only": "Historique uniquement",
-          "unscheduled": "Non planifié",
-          "unavailable": "État opérationnel indisponible",
-          "unavailableDescription": "Le contrat d'état opérationnel n'est pas encore fourni par le serveur.",
-          "includedInCurrentSchedule": "Inclus dans l’échéancier actuel",
-          "notIncludedInCurrentSchedule": "Hors échéancier actuel",
-          "cancelledHistoricalDescription": "Historique uniquement — hors échéancier actuel",
-          "historicalOnlyDescription": "Historique uniquement",
-          "unscheduledDescription": "Aucun échéancier associé à cette ligne"
         },
         "scheduleColumns": {
           "period": "Période",
@@ -8244,8 +8229,6 @@
             "invalid_adjusted_amount": "Le nouveau montant est invalide.",
             "adjusted_amount_must_be_non_negative": "Le nouveau montant doit être supérieur ou égal à zéro.",
             "no_open_installments_to_adjust": "Aucune échéance ouverte à ajuster pour cette ligne.",
-            "no_open_installments_to_amend": "Aucune échéance ouverte ne peut être modifiée à partir de la période sélectionnée.",
-            "agreement_line_lifecycle_unavailable": "L'état opérationnel de cette ligne n'est pas disponible côté serveur. La prévisualisation est bloquée jusqu'à réception du contrat d'état.",
             "monthly_unit_price_seems_high": "Avertissement : vous avez saisi {newUnitPrice} comme nouveau prix mensuel. Il s'appliquera à {affectedPeriodCount} mois, pour un total de {newTotalForAffectedPeriods}. Si vous visiez un total annuel de 18 000, le prix mensuel est {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {

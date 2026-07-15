@@ -292,14 +292,6 @@ describe('canSubmitAgreementAmendmentForm', () => {
       supportedAmendmentOperations: ['modify_line', 'cancel_line'],
       duplicateServiceWarning: false,
       isMonthly: true,
-      operationalState: 'active_current',
-      isInCurrentSchedule: true,
-      openInstallmentCount: 10,
-      cancelledInstallmentCount: 0,
-      historicalInstallmentCount: 0,
-      canModify: true,
-      canCancelLine: true,
-      statusReasonCode: null,
     } as import('./resolve-amendment-form-options').AgreementAmendmentLineOption;
 
     expect(canSubmitAgreementAmendmentForm(baseForm, selectedLine)).toBe(true);

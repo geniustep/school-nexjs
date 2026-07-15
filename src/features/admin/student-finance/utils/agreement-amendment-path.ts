@@ -5,11 +5,9 @@ import type {
 import type { AgreementAmendmentLineOption } from './resolve-amendment-form-options';
 import {
   isLineSelectableForAmountAmendment,
-  isLineSelectableForCancelLine,
-  isLineSelectableForModifyLine,
+  isLineSelectableForPeriodAmendment,
   lineSupportsAdjustLineAmount,
-  lineSupportsCancelLine,
-  lineSupportsModifyLine,
+  lineSupportsPeriodAmendment,
 } from './agreement-amendment-line-eligibility';
 
 export function resolveAvailableAmendmentPaths(
@@ -22,10 +20,10 @@ export function resolveAvailableAmendmentPaths(
   if (operationType === 'modify_line' && lineSupportsAdjustLineAmount(line)) {
     paths.push('adjust_amount');
   }
-  if (operationType === 'modify_line' && lineSupportsModifyLine(line)) {
-    paths.push('period_range');
-  }
-  if (operationType === 'cancel_line' && lineSupportsCancelLine(line)) {
+  if (
+    (operationType === 'modify_line' || operationType === 'cancel_line') &&
+    lineSupportsPeriodAmendment(line)
+  ) {
     paths.push('period_range');
   }
 
@@ -46,9 +44,9 @@ export function isLineSelectableForAmendmentOperation(
   operationType: AgreementAmendmentOperationType,
 ): boolean {
   if (operationType === 'add_line') return true;
-  if (operationType === 'cancel_line') return isLineSelectableForCancelLine(line);
+  if (operationType === 'cancel_line') return isLineSelectableForPeriodAmendment(line);
   if (operationType === 'modify_line') {
-    return isLineSelectableForModifyLine(line) || isLineSelectableForAmountAmendment(line);
+    return isLineSelectableForPeriodAmendment(line) || isLineSelectableForAmountAmendment(line);
   }
   if (operationType === 'adjust_line_amount') {
     return isLineSelectableForAmountAmendment(line);

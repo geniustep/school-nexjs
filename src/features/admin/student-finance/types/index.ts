@@ -91,14 +91,6 @@ export interface BillingProfile {
 
 export type AgreementLineQuantitySemantics = 'period_count' | 'fixed_one_time' | 'item_count';
 
-/** Backend agreement-line operational lifecycle contract (Odoo optional, release-ordered). */
-export type AgreementLineOperationalState =
-  | 'active_current'
-  | 'cancelled_historical_only'
-  | 'completed_historical_only'
-  | 'historical_only'
-  | 'unscheduled';
-
 export interface AgreementLineQuantityEditContract {
   quantity_semantics?: AgreementLineQuantitySemantics;
   current_quantity?: number;
@@ -119,15 +111,6 @@ export interface FinancialAgreementLine {
   amount_amendable?: boolean;
   amount_amendment_block_reason?: string | null;
   supported_amendment_operations?: string[];
-  /** Optional Odoo lifecycle — never inferred from amounts. */
-  operational_state?: AgreementLineOperationalState | string | null;
-  is_in_current_schedule?: boolean | null;
-  open_installment_count?: number | null;
-  cancelled_installment_count?: number | null;
-  historical_installment_count?: number | null;
-  can_modify?: boolean | null;
-  can_cancel_line?: boolean | null;
-  status_reason_code?: string | null;
   duplicate_service_warning?: boolean;
   tariff_id?: number | null;
   tariff?: Ref | null;
@@ -149,7 +132,6 @@ export interface FinancialAgreementLine {
   discount_type?: string | null;
   discount_value?: number | null;
   discount_amount?: number;
-  adjustment_amount?: number;
   net_amount?: number;
   internal_note?: string | null;
   is_mandatory?: boolean;

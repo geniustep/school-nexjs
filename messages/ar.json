@@ -7527,7 +7527,6 @@
           "service": "الخدمة",
           "category": "الفئة",
           "commitment": "طبيعة الالتزام",
-          "operationalState": "الحالة التشغيلية",
           "pricingUnit": "وحدة التسعير",
           "period": "الفترة",
           "quantity": "الكمية",
@@ -7535,20 +7534,6 @@
           "gross": "الإجمالي",
           "discount": "التخفيض",
           "net": "الصافي"
-        },
-        "lineOperationalState": {
-          "active_current": "نشط",
-          "cancelled_historical_only": "ملغى",
-          "completed_historical_only": "مكتمل",
-          "historical_only": "تاريخي فقط",
-          "unscheduled": "غير مجدول",
-          "unavailable": "الحالة التشغيلية غير متوفرة",
-          "unavailableDescription": "عقد الحالة التشغيلية غير متاح من الخادم بعد.",
-          "includedInCurrentSchedule": "ضمن الجدول الحالي",
-          "notIncludedInCurrentSchedule": "غير داخل في الجدول الحالي",
-          "cancelledHistoricalDescription": "تاريخي فقط — غير داخل في الجدول الحالي",
-          "historicalOnlyDescription": "تاريخي فقط",
-          "unscheduledDescription": "لا يوجد جدول أقساط مرتبط بهذا البند"
         },
         "scheduleColumns": {
           "period": "الفترة",
@@ -8386,8 +8371,6 @@
             "invalid_adjusted_amount": "المبلغ الجديد غير صالح.",
             "adjusted_amount_must_be_non_negative": "يجب أن يكون المبلغ الجديد صفرًا أو أكثر.",
             "no_open_installments_to_adjust": "لا توجد أقساط مفتوحة يمكن تعديلها لهذا البند.",
-            "no_open_installments_to_amend": "لا توجد أقساط مفتوحة قابلة للتعديل ابتداءً من الفترة المختارة.",
-            "agreement_line_lifecycle_unavailable": "الحالة التشغيلية لهذا البند غير متوفرة من الخادم. لا يمكن معاينة التعديل حتى يتوفر عقد الحالة.",
             "monthly_unit_price_seems_high": "تنبيه: أدخلت {newUnitPrice} كسعر شهري جديد. سيتم تطبيقه على {affectedPeriodCount} أشهر، ليصبح مجموع البند {newTotalForAffectedPeriods} درهم. إذا كنت تقصد مجموعًا سنويًا 18,000 درهم، فالسعر الشهري هو {suggestedMonthlyUnitPrice} درهم."
           },
           "applyConfirm": {

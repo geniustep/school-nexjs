@@ -7394,7 +7394,6 @@
           "service": "Servicio",
           "category": "Categoría",
           "commitment": "Compromiso",
-          "operationalState": "Estado operativo",
           "pricingUnit": "Unidad",
           "period": "Periodo",
           "quantity": "Cant.",
@@ -7402,20 +7401,6 @@
           "gross": "Bruto",
           "discount": "Descuento",
           "net": "Neto"
-        },
-        "lineOperationalState": {
-          "active_current": "Activo",
-          "cancelled_historical_only": "Anulado",
-          "completed_historical_only": "Completado",
-          "historical_only": "Solo histórico",
-          "unscheduled": "Sin planificar",
-          "unavailable": "Estado operativo no disponible",
-          "unavailableDescription": "El contrato de ciclo de vida operativo aún no está disponible en el servidor.",
-          "includedInCurrentSchedule": "Incluido en el calendario actual",
-          "notIncludedInCurrentSchedule": "Fuera del calendario actual",
-          "cancelledHistoricalDescription": "Solo histórico — fuera del calendario actual",
-          "historicalOnlyDescription": "Solo histórico",
-          "unscheduledDescription": "No hay calendario de cuotas vinculado a esta línea"
         },
         "scheduleColumns": {
           "period": "Periodo",
@@ -8244,8 +8229,6 @@
             "invalid_adjusted_amount": "El nuevo importe no es válido.",
             "adjusted_amount_must_be_non_negative": "El nuevo importe debe ser cero o mayor.",
             "no_open_installments_to_adjust": "No hay cuotas abiertas que ajustar para esta línea.",
-            "no_open_installments_to_amend": "No hay cuotas abiertas que puedan modificarse a partir del período seleccionado.",
-            "agreement_line_lifecycle_unavailable": "El ciclo de vida operativo de esta línea no está disponible en el servidor. La vista previa queda bloqueada hasta recibir el contrato.",
             "monthly_unit_price_seems_high": "Aviso: introdujo {newUnitPrice} como nuevo precio mensual. Se aplicará a {affectedPeriodCount} meses, con un total de {newTotalForAffectedPeriods}. Si quería un total anual de 18.000, el precio mensual es {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {

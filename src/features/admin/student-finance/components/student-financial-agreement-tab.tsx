@@ -43,7 +43,6 @@ import { CancelFutureInstallmentsDrawer } from './cancel-future-installments-dra
 import { ServiceCategoryDetailsList } from './service-category-details-list';
 import { AgreementStateBadge } from './agreement-state-badge';
 import { ScheduleItemStateBadge } from './cheque-dual-badges';
-import { AgreementLineOperationalStateBadge } from './agreement-line-operational-state-badge';
 import { useFinancialAgreement } from '../hooks/use-financial-agreement';
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import type { AgreementScheduleItem, FinancialAgreementLine } from '../types';
@@ -670,11 +669,6 @@ export function StudentFinancialAgreementTab({
         header: t('admin.student360.financialAgreement.columns.commitment'),
         render: (row) =>
           resolveReferenceLabel(t, 'commitment_type', row.commitment_type ?? '', refState.data?.commitment_types),
-      },
-      {
-        key: 'operational_state',
-        header: t('admin.student360.financialAgreement.columns.operationalState'),
-        render: (row) => <AgreementLineOperationalStateBadge source={row} showDescription />,
       },
       {
         key: 'pricing_unit',

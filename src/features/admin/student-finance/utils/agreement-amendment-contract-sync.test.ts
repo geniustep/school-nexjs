@@ -88,19 +88,7 @@ describe('agreement amendment contract sync', () => {
   it('preview payload sends source_line_id and agreement_line_id', () => {
     const lines = resolveAmendmentAgreementLineOptions({
       id: 123,
-      lines: [{
-        agreement_line_id: 900,
-        source_line_id: 901,
-        service_name: 'رسوم التمدرس',
-        period_amendable: true,
-        net_amount: 100,
-        operational_state: 'active_current',
-        is_in_current_schedule: true,
-        open_installment_count: 10,
-        can_modify: true,
-        can_cancel_line: true,
-        supported_amendment_operations: ['modify_line', 'cancel_line'],
-      }],
+      lines: [{ agreement_line_id: 900, source_line_id: 901, service_name: 'رسوم التمدرس', period_amendable: true, net_amount: 100 }],
     } as FinancialAgreement);
     const form: AgreementAmendmentFormState = {
       operationType: 'modify_line',

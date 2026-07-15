@@ -26,18 +26,6 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-/** Non-negative integer counts; invalid / negative → undefined (never coerced to 0 as “truth”). */
-function readNonNegativeInt(value: unknown): number | undefined {
-  const n = readFiniteNumber(value);
-  if (n == null || !Number.isInteger(n) || n < 0) return undefined;
-  return n;
-}
-
-function readNullableBoolean(value: unknown): boolean | null | undefined {
-  if (value === null) return null;
-  return readBoolean(value);
-}
-
 const QUANTITY_SEMANTICS: AgreementLineQuantitySemantics[] = [
   'period_count',
   'fixed_one_time',
@@ -91,10 +79,6 @@ export function normalizeFinancialAgreementLine(raw: unknown): FinancialAgreemen
 
   const quantity_edit_contract = normalizeAgreementLineQuantityEditContract(o.quantity_edit_contract);
 
-  const can_modify = readNullableBoolean(o.can_modify);
-  const can_cancel_line = readNullableBoolean(o.can_cancel_line);
-  const is_in_current_schedule = readNullableBoolean(o.is_in_current_schedule);
-
   const line: FinancialAgreementLine = {
     ...(raw as FinancialAgreementLine),
     id,
@@ -105,33 +89,6 @@ export function normalizeFinancialAgreementLine(raw: unknown): FinancialAgreemen
     period_amendable: readBoolean(o.period_amendable) ?? (raw as FinancialAgreementLine).period_amendable,
     amendment_block_reason:
       readString(o.amendment_block_reason) ?? (raw as FinancialAgreementLine).amendment_block_reason,
-    operational_state:
-      readString(o.operational_state) ?? (raw as FinancialAgreementLine).operational_state ?? null,
-    is_in_current_schedule:
-      is_in_current_schedule !== undefined
-        ? is_in_current_schedule
-        : (raw as FinancialAgreementLine).is_in_current_schedule,
-    open_installment_count:
-      'open_installment_count' in o
-        ? readNonNegativeInt(o.open_installment_count)
-        : (raw as FinancialAgreementLine).open_installment_count,
-    cancelled_installment_count:
-      'cancelled_installment_count' in o
-        ? readNonNegativeInt(o.cancelled_installment_count)
-        : (raw as FinancialAgreementLine).cancelled_installment_count,
-    historical_installment_count:
-      'historical_installment_count' in o
-        ? readNonNegativeInt(o.historical_installment_count)
-        : (raw as FinancialAgreementLine).historical_installment_count,
-    // Never coerce missing can_* to true — absence stays undefined/null for legacy payloads.
-    can_modify:
-      can_modify !== undefined ? can_modify : (raw as FinancialAgreementLine).can_modify,
-    can_cancel_line:
-      can_cancel_line !== undefined
-        ? can_cancel_line
-        : (raw as FinancialAgreementLine).can_cancel_line,
-    status_reason_code:
-      readString(o.status_reason_code) ?? (raw as FinancialAgreementLine).status_reason_code ?? null,
     duplicate_service_warning:
       o.duplicate_service_warning === true ||
       (raw as FinancialAgreementLine).duplicate_service_warning === true,
@@ -143,8 +100,6 @@ export function normalizeFinancialAgreementLine(raw: unknown): FinancialAgreemen
     gross_amount: normalizeMoneyValue(o.gross_amount) ?? (raw as FinancialAgreementLine).gross_amount,
     discount_amount:
       normalizeMoneyValue(o.discount_amount) ?? (raw as FinancialAgreementLine).discount_amount,
-    adjustment_amount:
-      normalizeMoneyValue(o.adjustment_amount) ?? (raw as FinancialAgreementLine).adjustment_amount,
     net_amount: normalizeMoneyValue(o.net_amount) ?? (raw as FinancialAgreementLine).net_amount,
     discount_value: readFiniteNumber(o.discount_value) ?? (raw as FinancialAgreementLine).discount_value,
     quantity_edit_contract,
