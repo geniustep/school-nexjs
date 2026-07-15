@@ -69,6 +69,11 @@ export function FamilyAdmissionCreatePage() {
     trackFamilyAdmissionStarted(analyticsGuards.current);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
+
   const studentOptionsState = useStudentOptions();
   const admissionOptionsState = useAdmissionOptions();
   const admissionOptions = admissionOptionsState.options;
