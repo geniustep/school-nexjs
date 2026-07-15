@@ -26,6 +26,18 @@ function readBoolean(value: unknown): boolean {
   return value === true;
 }
 
+function readNullableBoolean(value: unknown): boolean | null {
+  if (typeof value === 'boolean') return value;
+  return null;
+}
+
+function readNonNegativeInt(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value) || value < 0) {
+    return null;
+  }
+  return value;
+}
+
 export function resolveAmendmentEffectivePeriodOptions(input: {
   fetchedPeriods?: AgreementAmendmentPeriodOption[] | null;
   previewOpenPeriods?: AgreementAmendmentPeriodOption[];
@@ -54,6 +66,14 @@ export interface AgreementAmendmentLineOption {
   duplicateServiceWarning: boolean;
   isOneTime?: boolean;
   isMonthly?: boolean;
+  operationalState: string | null;
+  isInCurrentSchedule: boolean | null;
+  openInstallmentCount: number | null;
+  cancelledInstallmentCount: number | null;
+  historicalInstallmentCount: number | null;
+  canModify: boolean | null;
+  canCancelLine: boolean | null;
+  statusReasonCode: string | null;
 }
 
 export function resolveAmendmentAgreementLineOptions(
@@ -102,6 +122,14 @@ export function resolveAmendmentAgreementLineOptions(
       duplicateServiceWarning: readBoolean(raw.duplicate_service_warning),
       isOneTime,
       isMonthly,
+      operationalState: readString(raw.operational_state),
+      isInCurrentSchedule: readNullableBoolean(raw.is_in_current_schedule),
+      openInstallmentCount: readNonNegativeInt(raw.open_installment_count),
+      cancelledInstallmentCount: readNonNegativeInt(raw.cancelled_installment_count),
+      historicalInstallmentCount: readNonNegativeInt(raw.historical_installment_count),
+      canModify: readNullableBoolean(raw.can_modify),
+      canCancelLine: readNullableBoolean(raw.can_cancel_line),
+      statusReasonCode: readString(raw.status_reason_code),
     });
   }
   return options;

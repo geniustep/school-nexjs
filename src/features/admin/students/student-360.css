@@ -13036,6 +13036,19 @@
   margin-bottom: 0.5rem;
 }
 
+.student-finance-line-lifecycle {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  min-width: 0;
+  max-width: 14rem;
+}
+
+.student-finance-line-lifecycle__desc {
+  line-height: 1.25;
+}
+
 .student-finance-amendment-line-picker__name {
   font-weight: 600;
   font-size: 0.9375rem;

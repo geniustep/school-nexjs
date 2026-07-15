@@ -21,12 +21,13 @@ import type {
   AgreementAmendmentPath,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
-import { resolveAgreementAmendmentErrorMessage } from '../utils/agreement-amendment-errors';
+import { resolveAgreementAmendmentErrorMessage, agreementAmendmentReasonMessageKey } from '../utils/agreement-amendment-errors';
 import {
   isLineSelectableForAmendmentOperation,
   resolveAvailableAmendmentPaths,
   resolveDefaultAmendmentPath,
 } from '../utils/agreement-amendment-path';
+import { resolveAgreementLineOperationBlockReasonCode } from '../utils/agreement-amendment-line-eligibility';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import {
   hasAgreementAmendmentPricingContract,
@@ -371,6 +372,14 @@ export function StudentFinanceAgreementAmendmentDialog({
         amountAmendmentBlockReason: candidate.amountAmendmentBlockReason,
         supportedAmendmentOperations: candidate.supportedAmendmentOperations,
         duplicateServiceWarning: candidate.duplicateServiceWarning,
+        operationalState: null,
+        isInCurrentSchedule: null,
+        openInstallmentCount: null,
+        cancelledInstallmentCount: null,
+        historicalInstallmentCount: null,
+        canModify: null,
+        canCancelLine: null,
+        statusReasonCode: null,
       } satisfies AgreementAmendmentLineOption);
     setAmbiguousCandidates([]);
     setForm((prev) => ({
@@ -395,6 +404,30 @@ export function StudentFinanceAgreementAmendmentDialog({
       setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.reasonRequired'));
       return;
     }
+
+    if (
+      form.operationType !== 'add_line' &&
+      selectedLine &&
+      !isLineSelectableForAmendmentOperation(selectedLine, form.operationType)
+    ) {
+      const blockCode = resolveAgreementLineOperationBlockReasonCode(selectedLine, form.operationType);
+      const blockKey = blockCode ? agreementAmendmentReasonMessageKey(blockCode) : null;
+      const blockLabel = blockKey ? t(blockKey) : null;
+      setFormError(
+        blockLabel && blockKey && blockLabel !== blockKey
+          ? blockLabel
+          : t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'),
+      );
+      setForm((prev) => ({
+        ...prev,
+        sourceLineId: '',
+        amendmentPath: prev.operationType === 'cancel_line' ? 'period_range' : '',
+      }));
+      setPreview(null);
+      setPreviewReady(false);
+      return;
+    }
+
     if (!canSubmitAgreementAmendmentForm(form, selectedLine)) {
       setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'));
       return;
