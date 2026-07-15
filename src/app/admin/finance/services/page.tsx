@@ -6,6 +6,7 @@ import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { ServicesPanel } from '@/features/admin/finance/services-tariffs-panel';
+import type { FinanceServiceCatalogItem } from '@/features/admin/student-finance/types';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW, canManageFeeCatalog, canViewFinanceServices } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
@@ -15,7 +16,18 @@ export default function AdminFinanceServicesPage() {
   const t = useT();
   const user = useSession();
   const [showForm, setShowForm] = useState(false);
+  const [editingService, setEditingService] = useState<FinanceServiceCatalogItem | null>(null);
   const canManage = canManageFeeCatalog(user);
+
+  function closeForm() {
+    setEditingService(null);
+    setShowForm(false);
+  }
+
+  function openCreateForm() {
+    setEditingService(null);
+    setShowForm(true);
+  }
 
   if (!canViewFinanceServices(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -34,14 +46,27 @@ export default function AdminFinanceServicesPage() {
             <button
               type="button"
               className="btn btn--primary btn--sm"
-              onClick={() => setShowForm((value) => !value)}
+              onClick={() => {
+                if (showForm) {
+                  closeForm();
+                } else {
+                  openCreateForm();
+                }
+              }}
             >
               {showForm ? t('common.cancel') : t('admin.finance.services.addService')}
             </button>
           ) : undefined
         }
       />
-      <ServicesPanel showForm={showForm} onShowFormChange={setShowForm} canManage={canManage} />
+      <ServicesPanel
+        showForm={showForm}
+        editingService={editingService}
+        onEditingServiceChange={setEditingService}
+        onShowFormChange={setShowForm}
+        onCloseForm={closeForm}
+        canManage={canManage}
+      />
     </RequireAdminPermission>
   );
 }

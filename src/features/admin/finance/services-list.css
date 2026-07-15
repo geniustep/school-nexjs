@@ -12,6 +12,10 @@
   gap: 12px;
 }
 
+.finance-services-list__form-anchor {
+  scroll-margin-top: 1rem;
+}
+
 .finance-services-list__toolbar {
   display: flex;
   flex-wrap: wrap;

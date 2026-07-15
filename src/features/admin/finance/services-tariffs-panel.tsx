@@ -8,7 +8,7 @@
  * Deprecated ServicesTariffsPanel below remains a compatibility shim only.
  */
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -33,19 +33,25 @@ import '@/features/admin/finance/services-list.css';
 
 export function ServicesPanel({
   showForm,
+  editingService,
+  onEditingServiceChange,
   onShowFormChange,
+  onCloseForm,
   canManage,
 }: {
   showForm: boolean;
+  editingService: FinanceServiceCatalogItem | null;
+  onEditingServiceChange: (service: FinanceServiceCatalogItem | null) => void;
   onShowFormChange: (show: boolean) => void;
+  onCloseForm: () => void;
   canManage: boolean;
 }) {
   const t = useT();
   const refState = useFinanceReferenceData();
+  const formAnchorRef = useRef<HTMLDivElement | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
-  const [editingService, setEditingService] = useState<FinanceServiceCatalogItem | null>(null);
 
   const serviceParams = { page, page_size: SERVICES_PAGE_SIZE, search: query || undefined };
   const servicesState = useAdminResource<FinanceServiceCatalogItem[]>(
@@ -58,6 +64,24 @@ export function ServicesPanel({
   const isRefetching = servicesState.fetching && !servicesState.initialLoading;
   const hasActiveQuery = servicesListHasActiveQuery({ search: query });
   const emptyVariant = resolveServicesListEmptyVariant({ hasActiveQuery });
+
+  useEffect(() => {
+    if (!showForm) return;
+    formAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [showForm, editingService?.id]);
+
+  const openEdit = useCallback(
+    (row: FinanceServiceCatalogItem) => {
+      onEditingServiceChange(row);
+      onShowFormChange(true);
+    },
+    [onEditingServiceChange, onShowFormChange],
+  );
+
+  const openCreate = useCallback(() => {
+    onEditingServiceChange(null);
+    onShowFormChange(true);
+  }, [onEditingServiceChange, onShowFormChange]);
 
   const serviceColumns: Column<FinanceServiceCatalogItem>[] = useMemo(
     () => [
@@ -139,9 +163,11 @@ export function ServicesPanel({
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm"
-                  onClick={() => {
-                    setEditingService(row);
-                    onShowFormChange(true);
+                  data-testid="finance-service-edit"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openEdit(row);
                   }}
                 >
                   {t('common.edit')}
@@ -151,16 +177,11 @@ export function ServicesPanel({
           ]
         : []),
     ],
-    [t, refState.data?.service_categories, canManage, onShowFormChange],
+    [t, refState.data?.service_categories, canManage, openEdit],
   );
 
-  function closeForm() {
-    setEditingService(null);
-    onShowFormChange(false);
-  }
-
   function onFormDone() {
-    closeForm();
+    onCloseForm();
     servicesState.reload();
   }
 
@@ -190,10 +211,7 @@ export function ServicesPanel({
             <button
               type="button"
               className="btn btn--primary btn--sm"
-              onClick={() => {
-                setEditingService(null);
-                onShowFormChange(true);
-              }}
+              onClick={openCreate}
             >
               {t('admin.finance.services.addService')}
             </button>
@@ -205,11 +223,14 @@ export function ServicesPanel({
   return (
     <div className="finance-services-list form-stack">
       {showForm && canManage ? (
-        <FinanceServiceForm
-          service={editingService}
-          onDone={onFormDone}
-          onCancel={closeForm}
-        />
+        <div ref={formAnchorRef} className="finance-services-list__form-anchor">
+          <FinanceServiceForm
+            key={editingService ? `edit-${editingService.id}` : 'create'}
+            service={editingService}
+            onDone={onFormDone}
+            onCancel={onCloseForm}
+          />
+        </div>
       ) : null}
 
       <form
@@ -320,10 +341,26 @@ export function ServicesTariffsPanel({
   onShowFormChange: (show: boolean) => void;
   canManage: boolean;
 }) {
+  const [editingService, setEditingService] = useState<FinanceServiceCatalogItem | null>(null);
+
+  useEffect(() => {
+    if (!showForm) {
+      setEditingService(null);
+    }
+  }, [showForm]);
+
+  function closeForm() {
+    setEditingService(null);
+    onShowFormChange(false);
+  }
+
   return (
     <ServicesPanel
       showForm={showForm}
+      editingService={editingService}
+      onEditingServiceChange={setEditingService}
       onShowFormChange={onShowFormChange}
+      onCloseForm={closeForm}
       canManage={canManage}
     />
   );
