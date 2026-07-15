@@ -49,6 +49,11 @@ import {
 } from '@/features/admin/dashboard/dashboard-interventions';
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AdmissionsDashboard } from '@/types/admission';
+import {
+  resolveApplicationStatusCount,
+  resolveNewAdmissionsCount,
+  resolveOpenAdmissionsCount,
+} from '@/features/admin/admissions/utils/admissions-dashboard-cards';
 import type { AdminFinanceOverview } from '@/types/finance';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { CurrentUser } from '@/types/user';
@@ -209,8 +214,11 @@ function ExecutiveDirectorView({
   const financeState = useAdminResource<AdminFinanceOverview>(
     widgets.financeSummary && executiveFailed ? endpoints.admin.financeOverview : null,
   );
+  /** Prefer Admissions dashboard with hide_registered so open/new match Admissions page. */
+  const admissionsOpenScopeQuery = useMemo(() => ({ hide_registered: 1 }), []);
   const admissionsState = useAdminResource<AdmissionsDashboard>(
-    widgets.admissionsSummary && executiveFailed ? endpoints.admin.admissionsDashboard : null,
+    widgets.admissionsSummary ? endpoints.admin.admissionsDashboard : null,
+    admissionsOpenScopeQuery,
   );
   const financeRef = useFinanceReferenceData();
 
@@ -227,6 +235,9 @@ function ExecutiveDirectorView({
   }, [executiveAvailable, executive?.active_academic_year?.name, financeRef.academicYears]);
 
   const executiveFinance = executiveAvailable ? executive?.finance_summary ?? null : null;
+  const admissionsDashboardCounts = admissionsState.data;
+  const openAdmissionsCount = resolveOpenAdmissionsCount(admissionsDashboardCounts);
+  const newAdmissionsCount = resolveNewAdmissionsCount(admissionsDashboardCounts);
   const executiveAdmissions = executiveAvailable ? executive?.admissions_summary ?? null : null;
   const attendanceGaps = executiveAvailable ? executive?.attendance_gaps ?? null : null;
 
@@ -299,10 +310,7 @@ function ExecutiveDirectorView({
   const financeTotals = executiveFinance
     ? null
     : pickFinanceTotals(financeState.data);
-  const admissions = executiveAdmissions
-    ? null
-    : admissionsState.data;
-  const legacyAdmissions = admissions as AdmissionsDashboard | null;
+  const legacyAdmissions = admissionsDashboardCounts;
 
   const useLegacyAttendance = !executiveAvailable || attendanceGaps == null;
   const attendanceKpi = useLegacyAttendance
@@ -420,37 +428,39 @@ function ExecutiveDirectorView({
 
     if (widgets.admissionsSummary) {
       const admissionsLoading =
+        admissionsState.loading ||
         executivePending ||
         (executiveAvailable
-          ? executiveState.loading && !executiveAdmissions
-          : admissionsState.loading);
-      const admissionsData = executiveAdmissions;
-      const legacyData = legacyAdmissions;
+          ? executiveState.loading && !admissionsDashboardCounts && !executiveAdmissions
+          : false);
+      const openCount = openAdmissionsCount;
+      const newCount = newAdmissionsCount;
 
-      if (admissionsLoading && !admissionsData && !legacyData) {
+      if (admissionsLoading && openCount == null && !executiveAdmissions) {
         cards.push({
           id: 'admissions',
           label: t('admin.executive.kpiAdmissions'),
           value: '…',
           hint: t('common.loading'),
         });
-      } else if (admissionsData) {
+      } else if (openCount != null) {
         cards.push({
           id: 'admissions',
           label: t('admin.executive.kpiAdmissions'),
-          value: admissionsData.open,
-          hint: t('admin.executive.kpiAdmissionsHint', { new: admissionsData.new }),
+          value: openCount,
+          hint: t('admin.executive.kpiAdmissionsHint', {
+            new: newCount ?? 0,
+          }),
           tone: 'indigo',
           href: '/admin/admissions',
         });
-      } else if (legacyData) {
+      } else if (executiveAdmissions) {
+        // Last-resort fallback only when admissions dashboard is unavailable.
         cards.push({
           id: 'admissions',
           label: t('admin.executive.kpiAdmissions'),
-          value: legacyData.total_open ?? 0,
-          hint: t('admin.executive.kpiAdmissionsHint', {
-            new: legacyData.new_count ?? 0,
-          }),
+          value: executiveAdmissions.open,
+          hint: t('admin.executive.kpiAdmissionsHint', { new: executiveAdmissions.new }),
           tone: 'indigo',
           href: '/admin/admissions',
         });
@@ -655,6 +665,9 @@ function ExecutiveDirectorView({
     executiveFinance,
     executiveFailed,
     admissionsState.loading,
+    admissionsDashboardCounts,
+    openAdmissionsCount,
+    newAdmissionsCount,
     legacyAdmissions,
     financeState.loading,
     financeTotals,
@@ -930,8 +943,35 @@ function ExecutiveDirectorView({
                   </Link>
                 }
               >
-                {executiveState.loading && !executiveAdmissions && !legacyAdmissions ? (
+                {admissionsState.loading && !legacyAdmissions && !executiveAdmissions ? (
                   <ExecutiveEmpty icon="…" title={t('common.loading')} />
+                ) : legacyAdmissions ? (
+                  <div className="exec-adm-grid">
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.new_count')}
+                      value={resolveNewAdmissionsCount(legacyAdmissions) ?? 0}
+                      tone="blue"
+                    />
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.under_review_count')}
+                      value={legacyAdmissions.under_review_count ?? 0}
+                      tone="amber"
+                    />
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.accepted_count')}
+                      value={
+                        resolveApplicationStatusCount(legacyAdmissions, 'accepted') ??
+                        legacyAdmissions.accepted_count ??
+                        0
+                      }
+                      tone="green"
+                    />
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.overdue_next_actions')}
+                      value={legacyAdmissions.overdue_next_actions ?? 0}
+                      tone="red"
+                    />
+                  </div>
                 ) : executiveAdmissions ? (
                   <div className="exec-adm-grid">
                     <ExecutiveAdmissionStat
@@ -955,36 +995,11 @@ function ExecutiveDirectorView({
                       tone="red"
                     />
                   </div>
-                ) : admissionsState.loading ? (
-                  <ExecutiveEmpty icon="…" title={t('common.loading')} />
                 ) : admissionsState.error ? (
                   <ExecutiveEmpty
                     icon="◌"
                     title={t('admin.executive.admissionsUnavailable')}
                   />
-                ) : legacyAdmissions ? (
-                  <div className="exec-adm-grid">
-                    <ExecutiveAdmissionStat
-                      label={t('admin.admissions.dashboard.new_count')}
-                      value={legacyAdmissions.new_count ?? 0}
-                      tone="blue"
-                    />
-                    <ExecutiveAdmissionStat
-                      label={t('admin.admissions.dashboard.under_review_count')}
-                      value={legacyAdmissions.under_review_count ?? 0}
-                      tone="amber"
-                    />
-                    <ExecutiveAdmissionStat
-                      label={t('admin.admissions.dashboard.accepted_count')}
-                      value={legacyAdmissions.accepted_count ?? 0}
-                      tone="green"
-                    />
-                    <ExecutiveAdmissionStat
-                      label={t('admin.admissions.dashboard.overdue_next_actions')}
-                      value={legacyAdmissions.overdue_next_actions ?? 0}
-                      tone="red"
-                    />
-                  </div>
                 ) : executiveAvailable ? (
                   <ExecutiveEmpty
                     icon="◌"

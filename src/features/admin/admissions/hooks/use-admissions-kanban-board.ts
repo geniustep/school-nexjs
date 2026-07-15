@@ -96,11 +96,14 @@ function columnFromResponse(
   const merged = enforceApplicationStatus
     ? filterKanbanItemsByApplicationStatus(rawMerged, state)
     : rawMerged;
-  // When Backend ignores application_status, server total is misleading —
-  // prefer filtered length until a later page can add more matching rows.
-  const total = enforceApplicationStatus
-    ? merged.length
-    : (pagination?.total ?? merged.length);
+  // Prefer Backend pagination.total. Fall back to loaded length only when the
+  // server ignored application_status and we filtered rows client-side.
+  const backendHonorsStatus =
+    !enforceApplicationStatus || merged.length === rawMerged.length;
+  const total =
+    backendHonorsStatus && typeof pagination?.total === 'number'
+      ? pagination.total
+      : merged.length;
   const hasMore = pagination
     ? pagination.page < pagination.total_pages
     : res.data.length >= ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE;

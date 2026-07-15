@@ -4539,12 +4539,13 @@
       "statusNav": {
         "navLabel": "Application status",
         "allApplications": "All applications",
-        "more": "More"
+        "more": "More",
+        "moreCurrent": "More — {status}"
       },
       "lastAction": {
-        "none": "No follow-up recorded",
+        "none": "No activity recorded",
         "by": "by {name}",
-        "label": "Last action",
+        "label": "Last activity",
         "result": "Result",
         "actor": "Staff",
         "at": "Date"
@@ -4634,6 +4635,8 @@
         "reset": "Reset filters",
         "clearSearch": "Clear search",
         "resultsCount": "{count} requests shown",
+        "resultsCountMatching": "{count} matching requests",
+        "resultsCountNone": "No matching applications",
         "hiddenConvertedCount": "{count} converted hidden",
         "chipSearch": "Search: {query}",
         "chipState": "Stage: {state}",
@@ -4706,7 +4709,13 @@
       },
       "card": {
         "guardian": "Guardian",
-        "phone": "Phone"
+        "phone": "Phone",
+        "guardianEmpty": "No guardian details",
+        "noNextAction": "No next action",
+        "administrativeRole": "Admin staff",
+        "unknownActivity": "Administrative activity",
+        "moreServicesAria": "Additional services: {names}",
+        "showAllServices": "Show all services"
       },
       "badges": {
         "possibleDuplicate": "Possible duplicate",
@@ -5367,7 +5376,7 @@
         "reopen": "Reopen",
         "noSentOffer": "No sent offer is available to accept.",
         "makeDecision": "Record school decision",
-        "logContact": "Log follow-up",
+        "logContact": "Log contact",
         "accept": "Accept",
         "reject": "Reject",
         "recordFamilyApproval": "Record family approval",

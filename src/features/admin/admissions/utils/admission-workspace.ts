@@ -764,12 +764,9 @@ export function applyApplicationStatusFilter(
     awaitingSub: '',
     postSub: 'awaiting',
     closedSub: 'rejected',
-    hideConverted:
-      statusFilter === 'registered'
-        ? false
-        : prev.statusFilter === 'registered'
-          ? true
-          : prev.hideConverted,
+    // Selecting registered forces visibility. Leaving it keeps the user's
+    // last show/hide choice (do not silently re-enable hide_registered).
+    hideConverted: statusFilter === 'registered' ? false : prev.hideConverted,
   };
 }
 
@@ -810,7 +807,7 @@ export function clearRequestedServicesFilters(
 export function buildRegisteredVisibilityQuery(
   state: Pick<
     AdmissionWorkspaceListState,
-    'hideConverted' | 'workspace' | 'postSub' | 'closedSub'
+    'hideConverted' | 'workspace' | 'postSub' | 'closedSub' | 'statusFilter'
   >,
 ): AdmissionWorkspaceQuery {
   if (
@@ -819,6 +816,7 @@ export function buildRegisteredVisibilityQuery(
       workspace: state.workspace,
       postSub: state.postSub,
       closedSub: state.closedSub,
+      statusFilter: state.statusFilter,
     })
   ) {
     return {};

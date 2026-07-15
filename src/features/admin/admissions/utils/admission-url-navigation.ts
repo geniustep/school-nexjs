@@ -10,6 +10,7 @@ export type AdmissionsListUrlNavTrigger =
   | 'user_status_filter'
   | 'user_academic_filter'
   | 'user_view_switch'
+  | 'user_hide_registered_toggle'
   | 'search_debounce'
   | 'url_hydration'
   | 'other';
@@ -30,6 +31,7 @@ export function resolveAdmissionsListUrlNavigationMode(input: {
     case 'user_status_filter':
     case 'user_academic_filter':
     case 'user_view_switch':
+    case 'user_hide_registered_toggle':
       return 'push';
     case 'search_debounce':
     case 'url_hydration':

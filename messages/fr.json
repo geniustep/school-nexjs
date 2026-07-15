@@ -4537,12 +4537,13 @@
       "statusNav": {
         "navLabel": "Statut de la demande",
         "allApplications": "Toutes les demandes",
-        "more": "Plus"
+        "more": "Plus",
+        "moreCurrent": "Plus — {status}"
       },
       "lastAction": {
-        "none": "Aucun suivi enregistré",
+        "none": "Aucune activité enregistrée",
         "by": "par {name}",
-        "label": "Dernière action",
+        "label": "Dernière activité",
         "result": "Résultat",
         "actor": "Personnel",
         "at": "Date"
@@ -4634,6 +4635,8 @@
         "reset": "Réinitialiser les filtres",
         "clearSearch": "Effacer la recherche",
         "resultsCount": "{count} demandes affichées",
+        "resultsCountMatching": "{count} demandes correspondantes",
+        "resultsCountNone": "Aucune demande correspondante",
         "hiddenConvertedCount": "{count} converties masquées",
         "chipSearch": "Recherche : {query}",
         "chipState": "Étape : {state}",
@@ -4706,7 +4709,13 @@
       },
       "card": {
         "guardian": "Responsable",
-        "phone": "Téléphone"
+        "phone": "Téléphone",
+        "guardianEmpty": "Aucune information sur le responsable",
+        "noNextAction": "Aucune action suivante",
+        "administrativeRole": "Responsable administratif",
+        "unknownActivity": "Activité administrative",
+        "moreServicesAria": "Services supplémentaires : {names}",
+        "showAllServices": "Afficher tous les services"
       },
       "badges": {
         "possibleDuplicate": "Doublon possible",
@@ -5367,7 +5376,7 @@
         "reopen": "Rouvrir la demande",
         "noSentOffer": "Aucune offre envoyée n’est disponible.",
         "makeDecision": "Prendre la décision de l’établissement",
-        "logContact": "Enregistrer un suivi",
+        "logContact": "Enregistrer un contact",
         "accept": "Accepter",
         "reject": "Refuser",
         "recordFamilyApproval": "Enregistrer l’accord de la famille",

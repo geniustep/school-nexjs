@@ -4537,12 +4537,13 @@
       "statusNav": {
         "navLabel": "Estado de la solicitud",
         "allApplications": "Todas las solicitudes",
-        "more": "Más"
+        "more": "Más",
+        "moreCurrent": "Más — {status}"
       },
       "lastAction": {
-        "none": "No hay seguimiento registrado",
+        "none": "No hay actividad registrada",
         "by": "por {name}",
-        "label": "Última acción",
+        "label": "Última actividad",
         "result": "Resultado",
         "actor": "Personal",
         "at": "Fecha"
@@ -4634,6 +4635,8 @@
         "reset": "Restablecer filtros",
         "clearSearch": "Borrar búsqueda",
         "resultsCount": "{count} solicitudes visibles",
+        "resultsCountMatching": "{count} solicitudes coincidentes",
+        "resultsCountNone": "No hay solicitudes coincidentes",
         "hiddenConvertedCount": "{count} convertidas ocultas",
         "chipSearch": "Búsqueda: {query}",
         "chipState": "Etapa: {state}",
@@ -4706,7 +4709,13 @@
       },
       "card": {
         "guardian": "Tutor",
-        "phone": "Teléfono"
+        "phone": "Teléfono",
+        "guardianEmpty": "No hay datos del tutor",
+        "noNextAction": "No hay próxima acción",
+        "administrativeRole": "Administrador",
+        "unknownActivity": "Actividad administrativa",
+        "moreServicesAria": "Servicios adicionales: {names}",
+        "showAllServices": "Mostrar todos los servicios"
       },
       "badges": {
         "possibleDuplicate": "Posible duplicado",
@@ -5367,7 +5376,7 @@
         "reopen": "Reabrir solicitud",
         "noSentOffer": "No hay una oferta enviada para aceptar.",
         "makeDecision": "Tomar decisión del centro",
-        "logContact": "Registrar seguimiento",
+        "logContact": "Registrar contacto",
         "accept": "Aceptar",
         "reject": "Rechazar",
         "recordFamilyApproval": "Registrar aprobación familiar",

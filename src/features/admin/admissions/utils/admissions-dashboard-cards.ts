@@ -76,6 +76,32 @@ export function resolveApplicationStatusCount(
 }
 
 /**
+ * Open applications = Backend `total_open` under the current hide_registered scope.
+ * Never sum application_status_counts client-side (that can include registered).
+ */
+export function resolveOpenAdmissionsCount(
+  data: AdmissionsDashboard | null | undefined,
+): number | null {
+  if (!data) return null;
+  if (typeof data.total_open === 'number') return data.total_open;
+  return null;
+}
+
+/**
+ * New applications must match application_status=new.
+ * Prefer status map over legacy `new_count` (can disagree with list pagination).
+ */
+export function resolveNewAdmissionsCount(
+  data: AdmissionsDashboard | null | undefined,
+): number | null {
+  if (!data) return null;
+  const fromStatus = resolveApplicationStatusCount(data, 'new');
+  if (fromStatus != null) return fromStatus;
+  if (typeof data.new_count === 'number') return data.new_count;
+  return null;
+}
+
+/**
  * KPI card count must match the application_status filter the card applies.
  * Modern application_status_* only — never confirmed_count / awaiting_registration_count.
  */

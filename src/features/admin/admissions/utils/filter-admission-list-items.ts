@@ -85,7 +85,12 @@ export function resolveEffectiveHideConverted(options: {
   workspace?: string;
   postSub?: string;
   closedSub?: string;
+  /** Exact application_status when status-nav filters a single status. */
+  statusFilter?: string;
 }): boolean {
+  if (options.statusFilter?.trim() === 'registered') {
+    return false;
+  }
   if (options.workspace === 'post_acceptance' && options.postSub === 'registered') {
     return false;
   }

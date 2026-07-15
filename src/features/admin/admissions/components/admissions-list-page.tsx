@@ -274,6 +274,7 @@ export function AdmissionsListPage() {
     workspace: listState.workspace,
     postSub: listState.postSub,
     closedSub: listState.closedSub,
+    statusFilter: listState.statusFilter,
   });
 
   const tableRows = useMemo(() => {
@@ -413,26 +414,54 @@ export function AdmissionsListPage() {
 
   const listSettled = tableEnabled && !tableState.loading;
   const kanbanTotalSettled = kanbanEnabled && !kanbanBoard.initialLoading;
+  const statusFilter = listState.statusFilter ?? '';
+  const kanbanColumnsTotal = kanbanBoard.grouped.reduce(
+    (sum, col) => sum + (col.total ?? 0),
+    0,
+  );
+  // "All applications" header must use Backend dashboard total_open (same hide scope)
+  // — Kanban primary columns omit registered even when shown.
   const headerTotal =
     view === 'table' && listSettled && typeof tablePagination?.total === 'number'
       ? tablePagination.total
       : view === 'kanban' && kanbanTotalSettled
-        ? kanbanBoard.grouped.reduce((sum, col) => sum + (col.total ?? col.items.length), 0)
+        ? !statusFilter &&
+            !dashboardState.loading &&
+            typeof dashboardData?.total_open === 'number'
+          ? dashboardData.total_open
+          : statusFilter
+            ? kanbanColumnsTotal
+            : null
         : null;
-
-  const statusFilter = listState.statusFilter ?? '';
+  const hasNarrowingFilters = Boolean(
+    statusFilter ||
+      listState.search?.trim() ||
+      listState.cycleCode ||
+      listState.levelId ||
+      (listState.requestedServiceIds && listState.requestedServiceIds.length > 0) ||
+      listState.hasRequestedServices === 'true' ||
+      listState.hasRequestedServices === 'false',
+  );
+  const headerTotalLabel =
+    headerTotal == null
+      ? null
+      : headerTotal === 0
+        ? t('admin.admissions.filters.resultsCountNone')
+        : hasNarrowingFilters
+          ? t('admin.admissions.filters.resultsCountMatching', { count: headerTotal })
+          : t('admin.admissions.filters.resultsCount', { count: headerTotal });
 
   return (
     <div className="admissions-page admissions-list-page" data-testid="admissions-list-page">
       <header className="admissions-list-header admissions-list-header--compact">
         <div className="admissions-list-header__main">
           <h1 className="admissions-list-header__title">{t('admin.admissions.title')}</h1>
-          {headerTotal != null ? (
+          {headerTotalLabel != null ? (
             <p
               className="admissions-list-header__count"
               data-testid="admissions-list-total"
             >
-              {t('admin.admissions.filters.resultsCount', { count: headerTotal })}
+              {headerTotalLabel}
             </p>
           ) : null}
         </div>
@@ -578,7 +607,7 @@ export function AdmissionsListPage() {
               </button>
             ) : null}
 
-            {statusFilter === 'registered' ? null : (
+            {statusFilter === '' ? (
               <label
                 className={cn(
                   'admissions-toolbar-option admissions-list-toolbar__option',
@@ -590,16 +619,18 @@ export function AdmissionsListPage() {
                   type="checkbox"
                   className="admissions-toolbar-option__input"
                   checked={listState.hideConverted}
-                  onChange={(e) =>
+                  aria-checked={listState.hideConverted}
+                  onChange={(e) => {
+                    urlNavTriggerRef.current = 'user_hide_registered_toggle';
                     patchListState({
                       hideConverted: e.target.checked,
                       page: 1,
-                    })
-                  }
+                    });
+                  }}
                 />
                 <span>{t('admin.admissions.filters.hideConverted')}</span>
               </label>
-            )}
+            ) : null}
 
             <div
               className="admissions-view-toggle"

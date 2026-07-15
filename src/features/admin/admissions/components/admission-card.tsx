@@ -10,11 +10,13 @@ import {
   isOverdueNextAction,
   refName,
 } from '../utils/admission-labels';
-import { AdmissionStatusBadges } from './admission-status-badges';
+import { applicationStatusLabelKey } from '../utils/admission-modern-status';
+import { resolveOperationalActionLabel } from '../utils/admission-operational-labels';
+import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
 import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
-import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
+import { AdmissionStatusBadges } from './admission-status-badges';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -72,6 +74,14 @@ export function AdmissionCard({
   const guardianPhone = cleanDisplayValue(item.guardian_phone);
   const dragEnabled = draggable && !selectionMode && !isSaving;
   const displayName = studentName || t('common.dash');
+  const status =
+    typeof item.application_status === 'string' && item.application_status.trim()
+      ? item.application_status.trim()
+      : null;
+  const primaryCode = resolvePrimaryNextActionCode(item.primary_next_action);
+  const primaryLabel = resolveOperationalActionLabel(primaryCode, t);
+  const servicesCount = item.requested_services?.length ?? 0;
+  const serviceMaxVisible = servicesCount <= 3 ? 3 : 2;
 
   function isInteractiveDragSource(target: EventTarget | null): boolean {
     if (!(target instanceof Element)) return false;
@@ -102,9 +112,51 @@ export function AdmissionCard({
     onDragStart?.(event);
   }
 
-  const toolbar = (
-    <div className="admission-card__toolbar">
-      <div className="admission-card__toolbar-start">
+  const tools = (
+    <div className="admission-card__tools">
+      {selectable ? (
+        <label
+          className={cn(
+            'admission-card__select',
+            selected && 'admission-card__select--checked',
+            selectionMode && 'admission-card__select--forced',
+          )}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            className="admission-card__select-input"
+            checked={selected}
+            aria-label={t(
+              selected
+                ? 'admin.admissions.selection.deselectItem'
+                : 'admin.admissions.selection.selectItem',
+              { name: displayName },
+            )}
+            onChange={handleCheckboxChange}
+          />
+        </label>
+      ) : null}
+      {!selectionMode ? (
+        <div
+          className="admission-card__actions"
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <AdmissionListActionsMenu
+            admissionId={item.id}
+            listItem={item}
+            onUpdated={onUpdated}
+            compact
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const header = (
+    <div className="admission-card__header">
+      <div className="admission-card__identity">
         {draggable && !selectionMode ? (
           <span
             className="admission-card__drag-handle"
@@ -115,70 +167,50 @@ export function AdmissionCard({
           </span>
         ) : null}
         {selectionMode ? (
-          <Link
-            href={href}
-            className="admission-card__open-detail"
-            onClick={(event) => event.stopPropagation()}
-          >
-            {t('admin.admissions.selection.openDetail')}
-          </Link>
-        ) : null}
-      </div>
-      <div className="admission-card__toolbar-end">
-        {selectable ? (
-          <label
-            className="admission-card__select"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <input
-              type="checkbox"
-              className="admission-card__select-input"
-              checked={selected}
-              aria-label={t(
-                selected
-                  ? 'admin.admissions.selection.deselectItem'
-                  : 'admin.admissions.selection.selectItem',
-                { name: displayName },
-              )}
-              onChange={handleCheckboxChange}
-            />
-          </label>
-        ) : null}
-        {!selectionMode ? (
-          <div
-            className="admission-card__actions"
-            onClick={(event) => event.stopPropagation()}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <AdmissionListActionsMenu
-              admissionId={item.id}
-              listItem={item}
-              onUpdated={onUpdated}
-              compact
-            />
+          <div className="admission-card__identity-text">
+            <h3 className="admission-card__title" dir="auto" title={displayName}>
+              {displayName}
+            </h3>
+            {levelName ? (
+              <p className="admission-card__level" dir="auto" title={levelName}>
+                {levelName}
+              </p>
+            ) : null}
           </div>
-        ) : null}
+        ) : (
+          <Link href={href} className="admission-card__identity-link">
+            <h3 className="admission-card__title" dir="auto" title={displayName}>
+              {displayName}
+            </h3>
+            {levelName ? (
+              <p className="admission-card__level" dir="auto" title={levelName}>
+                {levelName}
+              </p>
+            ) : null}
+          </Link>
+        )}
       </div>
+      {tools}
     </div>
   );
 
-  const body = (
-    <div className="admission-card__body">
-      <h3 className="admission-card__title" dir="auto">
-        {displayName}
-      </h3>
-
-      {levelName ? (
-        <p className="admission-card__level" dir="auto">
-          {levelName}
-        </p>
+  const content = (
+    <div className="admission-card__content">
+      {selectionMode ? (
+        <Link
+          href={href}
+          className="admission-card__open-detail"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {t('admin.admissions.selection.openDetail')}
+        </Link>
       ) : null}
 
       {(item.requested_services?.length ?? 0) > 0 ? (
         <div className="admission-card__requested-services">
           <AdmissionRequestedServicesChips
             services={item.requested_services}
-            maxVisible={2}
+            maxVisible={serviceMaxVisible}
             compact
           />
         </div>
@@ -194,62 +226,82 @@ export function AdmissionCard({
         </p>
       ) : null}
 
-      {guardianName || guardianPhone ? (
-        <dl className="admission-card__details">
-          {guardianName ? (
-            <div className="admission-card__detail">
-              <dt>{t('admin.admissions.card.guardian')}</dt>
-              <dd>
-                <span className="admission-card__detail-value" dir="auto">
-                  {guardianName}
-                </span>
-              </dd>
-            </div>
-          ) : null}
-          {guardianPhone ? (
-            <div className="admission-card__detail">
-              <dt>{t('admin.admissions.card.phone')}</dt>
-              <dd>
-                <span className="admission-card__detail-value admission-card__phone">
-                  <PhoneText>{guardianPhone}</PhoneText>
-                </span>
-              </dd>
-            </div>
-          ) : null}
-        </dl>
-      ) : null}
+      <div className="admission-card__guardian" data-testid="admission-card-guardian">
+        <span className="admission-card__section-label">{t('admin.admissions.card.guardian')}</span>
+        {guardianName || guardianPhone ? (
+          <div className="admission-card__guardian-rows">
+            {guardianName ? (
+              <p className="admission-card__guardian-name" dir="auto" title={guardianName}>
+                {guardianName}
+              </p>
+            ) : (
+              <p className="admission-card__guardian-name muted">
+                {t('admin.admissions.card.guardianEmpty')}
+              </p>
+            )}
+            {guardianPhone ? (
+              <p className="admission-card__phone">
+                <span className="admission-card__section-label admission-card__section-label--inline">
+                  {t('admin.admissions.card.phone')}
+                </span>{' '}
+                <PhoneText>{guardianPhone}</PhoneText>
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <p className="muted tiny">{t('admin.admissions.card.guardianEmpty')}</p>
+        )}
+      </div>
 
-      <div className="admission-card__status-row">
-        {showStateBadge ? (
+      {showStateBadge ? (
+        <div className="admission-card__status-row">
           <AdmissionStatusBadges
             record={item}
             hideUiStagePrimary={hideUiStagePrimary}
           />
-        ) : null}
-        {overdue && selectionMode ? (
-          <span className="admission-card__overdue-tag">
-            {t('admin.admissions.badges.overdue')}
-          </span>
-        ) : null}
-      </div>
-
-      <div className="admission-card__last-action" data-testid="admission-card-last-action">
-        <AdmissionLastActionSummary action={item.last_action} />
-      </div>
-
-      {resolvePrimaryNextActionCode(item.primary_next_action) ? (
-        <p className="admission-card__primary-next muted tiny" data-testid="admission-card-primary-next">
-          {t('admin.admissions.nextAction')}: {resolvePrimaryNextActionCode(item.primary_next_action)}
-        </p>
+          {overdue && selectionMode ? (
+            <span className="admission-card__overdue-tag">
+              {t('admin.admissions.badges.overdue')}
+            </span>
+          ) : null}
+        </div>
+      ) : status ? (
+        <span className="admission-card__sr-ref" data-testid="admission-card-status-sr">
+          {t(applicationStatusLabelKey(status))}
+        </span>
       ) : null}
 
-      {/* Visually hidden reference for a11y / tests — not shown as #id clutter */}
+      <div className="admission-card__last-action" data-testid="admission-card-last-action">
+        <AdmissionLastActionSummary action={item.last_action} layout="card" />
+      </div>
+
+      <div
+        className="admission-card__primary-next"
+        data-testid="admission-card-primary-next"
+      >
+        <span className="admission-card__section-label">{t('admin.admissions.nextAction')}</span>
+        {primaryLabel ? (
+          <p
+            className="admission-card__primary-next-value"
+            dir="auto"
+            data-action-code={primaryCode ?? undefined}
+          >
+            {primaryLabel}
+          </p>
+        ) : (
+          <p className="admission-card__primary-next-value muted">
+            {t('admin.admissions.card.noNextAction')}
+          </p>
+        )}
+      </div>
+
       <span className="admission-card__sr-ref">{reference}</span>
     </div>
   );
 
   const cardClassName = cn(
     'admission-card',
+    'admission-card--operational',
     overdue && 'admission-card--overdue',
     isDragging && 'admission-card--dragging',
     isSaving && 'admission-card--saving',
@@ -264,8 +316,8 @@ export function AdmissionCard({
         data-testid={`admission-card-${item.id}`}
         onClick={handleCardClick}
       >
-        {toolbar}
-        {body}
+        {header}
+        {content}
       </div>
     );
   }
@@ -278,9 +330,9 @@ export function AdmissionCard({
       onDragStart={dragEnabled ? handleDragStart : undefined}
       onDragEnd={dragEnabled ? onDragEnd : undefined}
     >
-      {toolbar}
+      {header}
       <Link href={href} className="admission-card__link">
-        {body}
+        {content}
       </Link>
     </div>
   );

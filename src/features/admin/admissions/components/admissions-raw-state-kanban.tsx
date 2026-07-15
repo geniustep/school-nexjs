@@ -354,6 +354,7 @@ export function AdmissionsRawStateKanban({
                             <AdmissionCard
                               key={item.id}
                               item={item}
+                              showStateBadge={false}
                               hideUiStagePrimary
                               processingStageHintKey={subStageKey}
                               draggable={draggable}

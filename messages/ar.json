@@ -4672,12 +4672,13 @@
       "statusNav": {
         "navLabel": "حالة الطلب",
         "allApplications": "جميع الطلبات",
-        "more": "المزيد"
+        "more": "المزيد",
+        "moreCurrent": "المزيد — {status}"
       },
       "lastAction": {
-        "none": "لا توجد متابعة مسجلة",
+        "none": "لا يوجد نشاط مسجل",
         "by": "بواسطة {name}",
-        "label": "آخر إجراء",
+        "label": "آخر نشاط",
         "result": "النتيجة",
         "actor": "الموظف",
         "at": "التاريخ"
@@ -4767,6 +4768,8 @@
         "reset": "إعادة ضبط الفلاتر",
         "clearSearch": "مسح البحث",
         "resultsCount": "{count} طلب ظاهر",
+        "resultsCountMatching": "{count} طلب مطابق",
+        "resultsCountNone": "لا توجد طلبات مطابقة",
         "hiddenConvertedCount": "{count} محوّل مخفي",
         "chipSearch": "بحث: {query}",
         "chipState": "المرحلة: {state}",
@@ -4887,7 +4890,13 @@
       },
       "card": {
         "guardian": "ولي الأمر",
-        "phone": "الهاتف"
+        "phone": "الهاتف",
+        "guardianEmpty": "لا توجد بيانات لولي الأمر",
+        "noNextAction": "لا يوجد إجراء قادم",
+        "administrativeRole": "المسؤول الإداري",
+        "unknownActivity": "نشاط إداري",
+        "moreServicesAria": "خدمات إضافية: {names}",
+        "showAllServices": "عرض جميع الخدمات"
       },
       "badges": {
         "possibleDuplicate": "تكرار محتمل",
@@ -5548,7 +5557,7 @@
         "reopen": "إعادة فتح",
         "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله.",
         "makeDecision": "اتخاذ قرار المدرسة",
-        "logContact": "تسجيل متابعة",
+        "logContact": "تسجيل تواصل",
         "accept": "قبول",
         "reject": "رفض",
         "recordFamilyApproval": "تسجيل موافقة الأسرة",
