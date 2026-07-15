@@ -5579,7 +5579,11 @@
         "acceptAndRecordFamilyApproval": "قبول مع موافقة الأسرة",
         "convertToStudent": "تحويل إلى تلميذ",
         "waitlist": "قائمة الانتظار",
-        "close": "إغلاق الطلب"
+        "close": "إغلاق الطلب",
+        "addNote": "إضافة ملاحظة",
+        "recordAssessment": "تسجيل تقييم",
+        "completeAssessment": "إكمال التقييم",
+        "requestReassessment": "طلب إعادة تقييم"
       },
       "journey": {
         "title": "مسار الطلب",

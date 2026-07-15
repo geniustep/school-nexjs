@@ -21,6 +21,7 @@ import {
   resolveStudentNavigation,
   shouldShowConvertToStudentAction,
 } from '../utils/admission-modern-actions';
+import { modernActionLabelKey } from '../utils/admission-operational-labels';
 import { resolveApplicationStatus } from '../utils/admission-modern-status';
 import { buildContinueRegistrationHref } from '../utils/admission-registration';
 import type { AdmissionDetail } from '@/types/admission';
@@ -58,31 +59,6 @@ function computeMenuCoords(trigger: HTMLElement, menuEl?: HTMLElement | null): M
     ? Math.max(margin, rect.top - gap - Math.min(menuHeight, spaceAbove))
     : Math.min(rect.bottom + gap, window.innerHeight - margin);
   return { top, left };
-}
-
-function modernActionLabelKey(code: string): string {
-  switch (code) {
-    case 'log_contact':
-      return 'admin.admissions.actions.logContact';
-    case 'accept':
-      return 'admin.admissions.actions.accept';
-    case 'reject':
-      return 'admin.admissions.actions.reject';
-    case 'record_family_approval':
-      return 'admin.admissions.actions.recordFamilyApproval';
-    case 'accept_and_record_family_approval':
-      return 'admin.admissions.actions.acceptAndRecordFamilyApproval';
-    case 'convert_to_student':
-      return 'admin.admissions.actions.convertToStudent';
-    case 'reopen':
-      return 'admin.admissions.actions.reopen';
-    case 'close':
-      return 'admin.admissions.actions.close';
-    case 'waitlist':
-      return 'admin.admissions.actions.waitlist';
-    default:
-      return `admin.admissions.actions.${code}`;
-  }
 }
 
 export function AdmissionListActionsMenu({

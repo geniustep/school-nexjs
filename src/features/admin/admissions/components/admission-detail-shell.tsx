@@ -39,6 +39,7 @@ import { FamilyAdmissionFamilyPanel } from './family-admission-family-panel';
 import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
 import { AdmissionPrimaryActionPanel } from './admission-primary-action-panel';
+import { AdmissionRequestedServicesSection } from './admission-requested-services-section';
 import { AdmissionStudentConversionAction } from './admission-student-conversion-action';
 import { AdmissionModernStatusBadge } from './admission-modern-status-badge';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
@@ -324,17 +325,17 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
   return (
     <div className="admissions-detail-shell">
-      <header className="card admissions-detail-header-card">
+      <header className="admissions-detail-header-card">
         <div className="admissions-detail-header-card__top">
           <Link href="/admin/admissions" className="btn btn--ghost btn--sm admissions-detail-header-card__back">
             {t('admin.admissions.backToList')}
           </Link>
-          <AdmissionStudentConversionAction detail={detail} onUpdated={reload} />
-          {convertedToStudent ? (
-            <div className="admissions-detail-header-card__converted">
+          <div className="admissions-detail-header-card__top-tools">
+            <AdmissionStudentConversionAction detail={detail} onUpdated={reload} />
+            {convertedToStudent ? (
               <Badge tone="green">{t('admin.admissions.registration.convertedStatus')}</Badge>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
 
         <div className="admissions-detail-header-card__main">
@@ -357,6 +358,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
                   ? t('admin.admissions.family.badgeShort')
                   : t('admin.admissions.detail.individualType')}
               </Badge>
+              {hasModernContract(detail) ? <AdmissionModernStatusBadge record={detail} /> : null}
             </div>
           </div>
         </div>
@@ -395,57 +397,103 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         </div>
 
         <AdmissionRejectionBanner detail={detail} onUpdated={reload} />
-
-        {hasModernContract(detail) ? (
-          <div
-            className="admission-detail-modern-summary"
-            data-testid="admission-detail-modern-summary"
-          >
-            <div className="admission-detail-modern-summary__status">
-              <span className="muted tiny">{t('admin.admissions.table.state')}</span>
-              <AdmissionModernStatusBadge record={detail} />
-              {resolveApplicationStatus(detail) === 'accepted' ? (
-                <p className="muted tiny">{t('admin.admissions.applicationStatus.accepted')}</p>
-              ) : null}
-              {resolveApplicationStatus(detail) === 'ready_for_registration' ? (
-                <p className="muted tiny">
-                  {t('admin.admissions.applicationStatus.ready_for_registration')}
-                </p>
-              ) : null}
-            </div>
-            <div className="admission-detail-modern-summary__last">
-              <span className="muted tiny">{t('admin.admissions.lastAction.label')}</span>
-              <AdmissionLastActionSummary action={detail.last_action} showDetails />
-            </div>
-          </div>
-        ) : null}
-
-        <AdmissionPrimaryActionPanel
-          detail={detail}
-          admissionId={admissionId}
-          onUpdated={() => reload()}
-          onRequestEdit={canEdit ? requestLimitedEdit : undefined}
-        />
-
-        <AdmissionWarningsCompact warnings={warnings} admissionId={admissionId} />
       </header>
 
-      <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
-        <div className="admissions-tabs__track">
-          {ADMISSION_TABS.map((tabId) => (
-            <Link
-              key={tabId}
-              href={buildAdmissionTabHref(admissionId, tabId)}
-              aria-current={tab === tabId ? 'page' : undefined}
-              className="admissions-tabs__tab"
-            >
-              {t(`admin.admissions.tabs.${tabId}`)}
-            </Link>
-          ))}
+      <section className="admissions-detail-ops" aria-label={t('admin.admissions.table.actions')}>
+        <div className="admissions-detail-ops__cell admissions-detail-ops__cell--actions">
+          <div className="admissions-detail-ops__label">{t('admin.admissions.nextAction')}</div>
+          <AdmissionPrimaryActionPanel
+            detail={detail}
+            admissionId={admissionId}
+            onUpdated={() => reload()}
+            onRequestEdit={canEdit ? requestLimitedEdit : undefined}
+            className="admission-primary-action-panel--ops"
+          />
         </div>
-      </nav>
+        <div className="admissions-detail-ops__cell admissions-detail-ops__cell--services">
+          <AdmissionRequestedServicesSection
+            detail={detail}
+            canEdit={canEdit}
+            onUpdated={reload}
+            variant="rail"
+          />
+        </div>
+      </section>
 
-      <div className="admissions-detail-panel card">{renderTab(tab)}</div>
+      <div className="admissions-detail-body">
+        <div className="admissions-detail-body__main">
+          <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
+            <div className="admissions-tabs__track">
+              {ADMISSION_TABS.map((tabId) => (
+                <Link
+                  key={tabId}
+                  href={buildAdmissionTabHref(admissionId, tabId)}
+                  aria-current={tab === tabId ? 'page' : undefined}
+                  className="admissions-tabs__tab"
+                >
+                  {t(`admin.admissions.tabs.${tabId}`)}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          <div className="admissions-detail-panel">{renderTab(tab)}</div>
+        </div>
+
+        <aside className="admissions-detail-body__aside" aria-label={t('admin.admissions.detail.summary')}>
+          {hasModernContract(detail) ? (
+            <div
+              className="admission-detail-aside-card admission-detail-aside-card--status"
+              data-testid="admission-detail-modern-summary"
+            >
+              <div className="admission-detail-aside-card__block">
+                <span className="admission-detail-aside-card__label">{t('admin.admissions.table.state')}</span>
+                <AdmissionModernStatusBadge record={detail} />
+                {resolveApplicationStatus(detail) === 'accepted' ? (
+                  <p className="muted tiny">{t('admin.admissions.applicationStatus.accepted')}</p>
+                ) : null}
+                {resolveApplicationStatus(detail) === 'ready_for_registration' ? (
+                  <p className="muted tiny">
+                    {t('admin.admissions.applicationStatus.ready_for_registration')}
+                  </p>
+                ) : null}
+              </div>
+              <div className="admission-detail-aside-card__block">
+                <span className="admission-detail-aside-card__label">
+                  {t('admin.admissions.lastAction.label')}
+                </span>
+                <AdmissionLastActionSummary action={detail.last_action} showDetails />
+              </div>
+            </div>
+          ) : null}
+
+          <AdmissionWarningsCompact warnings={warnings} admissionId={admissionId} />
+
+          <div className="admission-detail-aside-card admission-detail-aside-card--facts">
+            <span className="admission-detail-aside-card__label">{t('admin.admissions.detail.summary')}</span>
+            <dl className="admission-detail-aside-facts">
+              <div>
+                <dt>{t('admin.admissions.fields.academicYear')}</dt>
+                <dd>{refName(detail.academic_year) || '—'}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.admissions.table.source')}</dt>
+                <dd>{refName(detail.source) || '—'}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.admissions.table.assigned')}</dt>
+                <dd>{refName(detail.assigned_user) || '—'}</dd>
+              </div>
+              {detail.priority ? (
+                <div>
+                  <dt>{t('admin.admissions.fields.priority')}</dt>
+                  <dd>{detail.priority}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

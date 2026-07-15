@@ -23,16 +23,20 @@ export function AdmissionRequestedServicesSection({
   detail,
   canEdit,
   onUpdated,
+  variant = 'card',
 }: {
   detail: AdmissionDetail;
   canEdit: boolean;
   onUpdated: () => void;
+  /** `rail` = compact header/ops placement; `card` = full overview card */
+  variant?: 'card' | 'rail';
 }) {
   const t = useT();
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const locked = isAdmissionRequestedServicesLocked(detail);
   const editable = canEdit && !locked;
+  const isRail = variant === 'rail';
 
   const currentIds = dedupeRequestedServiceIds(
     detail.requested_service_ids ?? detail.requested_services?.map((s) => s.id) ?? [],
@@ -122,11 +126,15 @@ export function AdmissionRequestedServicesSection({
 
   return (
     <section
-      className="card admissions-overview-card admissions-overview-card--full admission-requested-services-section"
+      className={
+        isRail
+          ? 'admission-requested-services-section admission-requested-services-section--rail'
+          : 'card admissions-overview-card admissions-overview-card--full admission-requested-services-section'
+      }
       data-testid="admission-requested-services-section"
     >
       <div className="admission-requested-services-section__head">
-        <h2 className="admissions-overview-card__title">
+        <h2 className={isRail ? 'admission-requested-services-section__title' : 'admissions-overview-card__title'}>
           {t('admin.admissions.requestedServices.title')}
         </h2>
         {editable && !editing ? (
@@ -141,9 +149,11 @@ export function AdmissionRequestedServicesSection({
         ) : null}
       </div>
 
-      <p className="muted tiny admission-requested-services-section__hint">
-        {t('admin.admissions.requestedServices.hintNoFinance')}
-      </p>
+      {!isRail ? (
+        <p className="muted tiny admission-requested-services-section__hint">
+          {t('admin.admissions.requestedServices.hintNoFinance')}
+        </p>
+      ) : null}
 
       {locked ? (
         <p className="muted tiny" data-testid="admission-requested-services-locked-note">
@@ -221,7 +231,11 @@ export function AdmissionRequestedServicesSection({
           </div>
         </div>
       ) : (
-        <AdmissionRequestedServicesChips services={detail.requested_services} maxVisible={6} />
+        <AdmissionRequestedServicesChips
+          services={detail.requested_services}
+          maxVisible={isRail ? 4 : 6}
+          compact={isRail}
+        />
       )}
     </section>
   );

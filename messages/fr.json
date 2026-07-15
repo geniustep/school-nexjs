@@ -5398,7 +5398,11 @@
         "acceptAndRecordFamilyApproval": "Accepter et enregistrer l’accord familial",
         "convertToStudent": "Convertir en élève",
         "waitlist": "Liste d’attente",
-        "close": "Fermer la demande"
+        "close": "Fermer la demande",
+        "addNote": "Ajouter une note",
+        "recordAssessment": "Enregistrer une évaluation",
+        "completeAssessment": "Terminer l’évaluation",
+        "requestReassessment": "Demander une réévaluation"
       },
       "workspace": {
         "navLabel": "Espaces de travail admissions",

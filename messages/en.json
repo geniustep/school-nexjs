@@ -5398,7 +5398,11 @@
         "acceptAndRecordFamilyApproval": "Accept and record family approval",
         "convertToStudent": "Convert to student",
         "waitlist": "Waitlist",
-        "close": "Close application"
+        "close": "Close application",
+        "addNote": "Add note",
+        "recordAssessment": "Record assessment",
+        "completeAssessment": "Complete assessment",
+        "requestReassessment": "Request reassessment"
       },
       "workspace": {
         "navLabel": "Admissions workspaces",

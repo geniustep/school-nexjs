@@ -22,6 +22,7 @@ import { AdmissionStatusBadges } from './admission-status-badges';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
 import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
 import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
+import { modernActionLabelKey } from '../utils/admission-operational-labels';
 import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
@@ -185,17 +186,7 @@ export function AdmissionsTable({
         render: (row) => {
           const primary = resolvePrimaryNextActionCode(row.primary_next_action);
           if (primary) {
-            const labelKey = `admin.admissions.actions.${
-              primary === 'log_contact'
-                ? 'logContact'
-                : primary === 'record_family_approval'
-                  ? 'recordFamilyApproval'
-                  : primary === 'convert_to_student'
-                    ? 'convertToStudent'
-                    : primary === 'accept_and_record_family_approval'
-                      ? 'acceptAndRecordFamilyApproval'
-                      : primary
-            }`;
+            const labelKey = modernActionLabelKey(primary);
             const translated = t(labelKey);
             const date = row.next_action_date ? formatDate(row.next_action_date) : '';
             return (

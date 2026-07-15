@@ -5398,7 +5398,11 @@
         "acceptAndRecordFamilyApproval": "Aceptar y registrar aprobación familiar",
         "convertToStudent": "Convertir en alumno",
         "waitlist": "Lista de espera",
-        "close": "Cerrar solicitud"
+        "close": "Cerrar solicitud",
+        "addNote": "Añadir nota",
+        "recordAssessment": "Registrar evaluación",
+        "completeAssessment": "Completar evaluación",
+        "requestReassessment": "Solicitar reevaluación"
       },
       "workspace": {
         "navLabel": "Espacios de admisiones",

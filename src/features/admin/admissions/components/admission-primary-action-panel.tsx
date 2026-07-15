@@ -18,6 +18,7 @@ import {
   resolveStudentNavigation,
   shouldShowConvertToStudentAction,
 } from '../utils/admission-modern-actions';
+import { modernActionLabelKey } from '../utils/admission-operational-labels';
 import { resolveApplicationStatus } from '../utils/admission-modern-status';
 import { buildContinueRegistrationHref } from '../utils/admission-registration';
 import type { AdmissionDetail } from '@/types/admission';
@@ -31,31 +32,6 @@ type DecisionAction =
   | 'reject'
   | 'record_family_approval'
   | 'accept_and_record_family_approval';
-
-function actionLabelKey(code: string): string {
-  switch (code) {
-    case 'log_contact':
-      return 'admin.admissions.actions.logContact';
-    case 'accept':
-      return 'admin.admissions.actions.accept';
-    case 'reject':
-      return 'admin.admissions.actions.reject';
-    case 'record_family_approval':
-      return 'admin.admissions.actions.recordFamilyApproval';
-    case 'accept_and_record_family_approval':
-      return 'admin.admissions.actions.acceptAndRecordFamilyApproval';
-    case 'convert_to_student':
-      return 'admin.admissions.actions.convertToStudent';
-    case 'reopen':
-      return 'admin.admissions.actions.reopen';
-    case 'close':
-      return 'admin.admissions.actions.close';
-    case 'waitlist':
-      return 'admin.admissions.actions.waitlist';
-    default:
-      return `admin.admissions.actions.${code}`;
-  }
-}
 
 export function AdmissionPrimaryActionPanel({
   detail,
@@ -179,13 +155,15 @@ export function AdmissionPrimaryActionPanel({
 
   if (!modern) {
     return (
-      <div className={cn('admission-primary-action-panel muted', className)} data-testid="admission-primary-action-panel">
-        <p>{t('admin.admissions.primaryAction.noActionDesc')}</p>
-        {onRequestEdit ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onRequestEdit}>
-            {t('admin.admissions.editRequest')}
-          </button>
-        ) : null}
+      <div className={cn('admission-primary-action-panel', className)} data-testid="admission-primary-action-panel">
+        <div className="admission-primary-action-panel__toolbar">
+          <p className="muted tiny">{t('admin.admissions.primaryAction.noActionDesc')}</p>
+          {onRequestEdit ? (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={onRequestEdit}>
+              {t('admin.admissions.editRequest')}
+            </button>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -193,12 +171,14 @@ export function AdmissionPrimaryActionPanel({
   if (registered) {
     return (
       <div className={cn('admission-primary-action-panel', className)} data-testid="admission-primary-action-panel">
-        <p className="muted">{t('admin.admissions.applicationStatus.registered')}</p>
-        {studentNav?.href ? (
-          <Link href={studentNav.href} className="btn btn--primary btn--sm" data-testid="admission-open-student-nav">
-            {t('admin.admissions.registration.openStudentProfile')}
-          </Link>
-        ) : null}
+        <div className="admission-primary-action-panel__toolbar">
+          <p className="muted tiny">{t('admin.admissions.applicationStatus.registered')}</p>
+          {studentNav?.href ? (
+            <Link href={studentNav.href} className="btn btn--primary btn--sm" data-testid="admission-open-student-nav">
+              {t('admin.admissions.registration.openStudentProfile')}
+            </Link>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -213,85 +193,86 @@ export function AdmissionPrimaryActionPanel({
       className={cn('admission-primary-action-panel', className)}
       data-testid="admission-primary-action-panel"
     >
-      {primaryCode && primaryAllowed ? (
-        <div className="admission-primary-action-panel__main">
+      <div className="admission-primary-action-panel__toolbar">
+        {primaryCode && primaryAllowed ? (
+          <div className="admission-primary-action-panel__main">
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={busy}
+              data-testid={
+                primaryCode === 'convert_to_student'
+                  ? 'admission-convert-to-student-primary'
+                  : 'admission-primary-action-button'
+              }
+              onClick={openPrimary}
+            >
+              {t(modernActionLabelKey(primaryCode))}
+            </button>
+          </div>
+        ) : (
+          <p className="muted tiny" data-testid="admission-primary-action-empty">
+            {t('admin.admissions.primaryAction.noActionDesc')}
+          </p>
+        )}
+
+        {showConvertFallback ? (
           <button
             type="button"
-            className="btn btn--primary"
+            className="btn btn--secondary btn--sm"
             disabled={busy}
-            data-testid={
-              primaryCode === 'convert_to_student'
-                ? 'admission-convert-to-student-primary'
-                : 'admission-primary-action-button'
-            }
-            onClick={openPrimary}
+            data-testid="admission-convert-to-student-secondary"
+            onClick={() => void runAction('convert_to_student')}
           >
-            {t(actionLabelKey(primaryCode))}
+            {t(modernActionLabelKey('convert_to_student'))}
           </button>
-          <p className="muted tiny">{t('admin.admissions.nextAction')}</p>
-        </div>
-      ) : (
-        <p className="muted" data-testid="admission-primary-action-empty">
-          {t('admin.admissions.primaryAction.noActionDesc')}
-        </p>
-      )}
+        ) : null}
 
-      {showConvertFallback ? (
-        <button
-          type="button"
-          className="btn btn--secondary btn--sm"
-          disabled={busy}
-          data-testid="admission-convert-to-student-secondary"
-          onClick={() => void runAction('convert_to_student')}
-        >
-          {t(actionLabelKey('convert_to_student'))}
-        </button>
-      ) : null}
-
-      {secondary.length > 0 ? (
-        <div className="admission-primary-action-panel__more">
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            aria-controls={menuOpen ? menuId : undefined}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            {t('admin.admissions.table.actions')}
-          </button>
-          {menuOpen ? (
-            <div id={menuId} role="menu" className="admissions-row-actions__menu">
-              {secondary.map((action) => (
-                <button
-                  key={action.code}
-                  type="button"
-                  role="menuitem"
-                  className="admissions-row-actions__item"
-                  disabled={busy}
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (action.code === 'log_contact') setFollowUpOpen(true);
-                    else if (
-                      action.code === 'accept' ||
-                      action.code === 'reject' ||
-                      action.code === 'record_family_approval' ||
-                      action.code === 'accept_and_record_family_approval'
-                    ) {
-                      setDecisionAction(action.code);
-                    } else if (action.code === 'reopen') setReopenOpen(true);
-                    else if (action.code === 'close') setCloseOpen(true);
-                    else if (action.code === 'convert_to_student') void runAction('convert_to_student');
-                    else void runAction(action.code);
-                  }}
-                >
-                  {t(actionLabelKey(action.code))}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        {secondary.length > 0 ? (
+          <div className="admission-primary-action-panel__more">
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-controls={menuOpen ? menuId : undefined}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              {t('admin.admissions.table.actions')}
+            </button>
+            {menuOpen ? (
+              <div id={menuId} role="menu" className="admissions-row-actions__menu">
+                {secondary.map((action) => (
+                  <button
+                    key={action.code}
+                    type="button"
+                    role="menuitem"
+                    className="admissions-row-actions__item"
+                    disabled={busy}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      if (action.code === 'log_contact') setFollowUpOpen(true);
+                      else if (
+                        action.code === 'accept' ||
+                        action.code === 'reject' ||
+                        action.code === 'record_family_approval' ||
+                        action.code === 'accept_and_record_family_approval'
+                      ) {
+                        setDecisionAction(action.code);
+                      } else if (action.code === 'reopen') setReopenOpen(true);
+                      else if (action.code === 'close') setCloseOpen(true);
+                      else if (action.code === 'convert_to_student') void runAction('convert_to_student');
+                      else void runAction(action.code);
+                    }}
+                  >
+                    {t(modernActionLabelKey(action.code))}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
       <AdmissionQuickFollowUpDialog
         admissionId={Number(admissionId)}

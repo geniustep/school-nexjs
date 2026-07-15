@@ -54,15 +54,18 @@ function AssessmentCard({
   const t = useT();
 
   const typeLabel =
-    assessment.assessment_type_label?.trim() ||
-    resolveAdmissionValueLabel(assessmentTypes, assessment.assessment_type);
+    (typeof assessment.assessment_type_label === 'string'
+      ? assessment.assessment_type_label.trim()
+      : '') || resolveAdmissionValueLabel(assessmentTypes, assessment.assessment_type);
   const subjectLabel = resolveAssessmentSubjectLabel(assessment, subjects, unspecifiedSubjectLabel);
   const evaluatorName = resolveEvaluatorName(assessment.evaluator ?? null);
   const resultLabel =
-    assessment.result_label?.trim() ||
+    (typeof assessment.result_label === 'string' ? assessment.result_label.trim() : '') ||
     resolveAdmissionValueLabel(assessmentResults, assessment.result ?? undefined);
   const recommendationLabel =
-    assessment.recommendation_label?.trim() ||
+    (typeof assessment.recommendation_label === 'string'
+      ? assessment.recommendation_label.trim()
+      : '') ||
     resolveAdmissionValueLabel(assessmentRecommendations, assessment.recommendation ?? undefined);
 
   return (

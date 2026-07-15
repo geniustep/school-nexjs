@@ -244,9 +244,9 @@ export function filterAdmissionCyclesByLevels(
 
 export function resolveAdmissionValueLabel(
   options: AdmissionValueLabelOption[],
-  value: string | null | undefined,
+  value: string | null | undefined | false,
 ): string {
-  const normalized = value?.trim();
+  const normalized = typeof value === 'string' ? value.trim() : '';
   if (!normalized) return '';
   return options.find((item) => item.value === normalized)?.label ?? normalized;
 }
@@ -255,7 +255,7 @@ export function resolveEvaluatorName(
   evaluator: AdmissionEvaluatorOption | { id: number; name: string } | null | undefined,
 ): string {
   if (!evaluator) return '';
-  return evaluator.name?.trim() ?? '';
+  return typeof evaluator.name === 'string' ? evaluator.name.trim() : '';
 }
 
 const ASSESSMENT_SUBJECT_REQUIRED_TYPES = new Set(['written', 'oral', 'level_check']);
@@ -288,12 +288,14 @@ export function resolveAssessmentSubjectLabel(
   subjects: AdmissionSubjectOption[],
   unspecifiedLabel: string,
 ): string {
-  const directLabel = assessment.subject_label?.trim();
+  const directLabel =
+    typeof assessment.subject_label === 'string' ? assessment.subject_label.trim() : '';
   if (directLabel && directLabel !== 'غير محددة' && directLabel.toLowerCase() !== 'unspecified') {
     return directLabel;
   }
 
-  const subjectName = assessment.subject?.name?.trim();
+  const subjectName =
+    typeof assessment.subject?.name === 'string' ? assessment.subject.name.trim() : '';
   if (subjectName) return subjectName;
 
   const subjectId =
