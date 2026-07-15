@@ -7123,6 +7123,13 @@
         "noLines": "Sin servicios añadidos.",
         "noLinesDesc": "Añada servicios del catálogo para construir el acuerdo.",
         "scheduleTitle": "Calendario del acuerdo",
+        "currentScheduleTitle": "Cuotas actuales",
+        "historicalScheduleTitle": "Historial de cuotas",
+        "historicalScheduleDescription": "Estas cuotas se conservan para seguimiento y auditoría; no entran en el importe actual adeudado.",
+        "historicalScheduleMeta": "{count} cuotas históricas",
+        "historicalScheduleCount": "Número de cuotas históricas",
+        "historicalScheduleTotal": "Total del calendario histórico",
+        "historicalScheduleEmpty": "No hay filas históricas detalladas para este acuerdo.",
         "noSchedule": "Sin calendario generado.",
         "noScheduleDesc": "Las cuotas aparecerán tras añadir servicios y generar el calendario.",
         "noBillingParty": "Sin pagador asignado",
@@ -7488,6 +7495,17 @@
         "currentStudent": "Alumno actual",
         "openBillingAccount": "Abrir cuenta de facturación",
         "openInstallments": "Cuotas abiertas",
+        "nextDue": {
+          "title": "Próximo vencimiento a nivel familiar",
+          "familyScopeNote": "Estos importes y fechas son familiares y no necesariamente del alumno abierto.",
+          "date": "Fecha de vencimiento",
+          "amount": "Importe vencido",
+          "attribution": "Titular del vencimiento",
+          "belongsToCurrent": "Corresponde a este alumno",
+          "belongsToOther": "Corresponde a otro alumno de la familia",
+          "belongsToNamed": "Corresponde a {name}",
+          "familyLevel": "Vencimiento a nivel familiar"
+        },
         "metrics": {
           "totalNetDue": "Total adeudado",
           "totalPaid": "Total pagado",
@@ -7975,6 +7993,7 @@
               "agreement_submitted": "Acuerdo enviado a revisión",
               "agreement_approved": "Acuerdo financiero aprobado",
               "agreement_activated": "Acuerdo financiero activado",
+              "agreement_amended": "Acuerdo financiero modificado",
               "agreement_cancelled": "Acuerdo financiero cancelado",
               "agreement_reset": "Acuerdo financiero restablecido",
               "fees_generated": "Cuotas generadas",
@@ -7983,7 +8002,10 @@
               "receipt_issued": "Recibo emitido",
               "collection_reversed": "Cobro revertido",
               "unknown": "Operación financiera"
-            }
+            },
+            "auditOnly": "Registro de auditoría interna",
+            "agreementReference": "Referencia del acuerdo",
+            "auditAmountExcluded": "No contabilizado como efecto financiero"
           },
           "actions": {
             "createFinancialAgreement": "Crear acuerdo financiero",
@@ -8184,6 +8206,8 @@
           "paid": "Cobrado",
           "remaining": "Restante",
           "installments": "Cuotas",
+          "currentInstallments": "Número de cuotas actuales",
+          "currentScheduleTotal": "Total del calendario actual",
           "openInFinanceHub": "Abrir en el hub Finanzas"
         },
         "inactiveAgreementReference": {

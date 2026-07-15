@@ -41,7 +41,38 @@ describe('resolveAgreementsExecutiveSummary', () => {
     expect(result.paidAmount).toBe(4500);
     expect(result.remainingAmount).toBe(18000);
     expect(result.installmentCount).toBe(11);
+    expect(result.scheduleTotalAmount).toBe(22500);
     expect(result.currentAgreementId).toBe(248);
+  });
+
+  it('keeps current schedule totals separate from historical projection', () => {
+    const agreement = {
+      id: 700,
+      student_id: 900,
+      state: 'active',
+      financial_summary: {
+        final_total: 7300,
+        schedule_total: 7300,
+        paid_amount: 0,
+        remaining_amount: 7300,
+      },
+      schedule_summary: { installment_count: 11, total_amount: 7300 },
+      historical_schedule_summary: { installment_count: 21, total_amount: 23200 },
+    } as FinancialAgreement;
+
+    const result = resolveAgreementsExecutiveSummary({
+      workspace: {
+        summary: {},
+        billing_context: { has_active_agreement: true },
+        current_agreement: agreement,
+      } as unknown as StudentFinanceWorkspace,
+      agreement,
+      studentId: 900,
+    });
+
+    expect(result.totalAmount).toBe(7300);
+    expect(result.installmentCount).toBe(11);
+    expect(result.scheduleTotalAmount).toBe(7300);
   });
 
   it('counts active / draft / historical from agreements_summary', () => {

@@ -7256,6 +7256,13 @@
         "noLines": "لم تُضف أي خدمة بعد.",
         "noLinesDesc": "أضف خدمات من الكتالوج لبناء الاتفاق.",
         "scheduleTitle": "جدول الأقساط",
+        "currentScheduleTitle": "الدفعات الحالية",
+        "historicalScheduleTitle": "السجل التاريخي للدفعات",
+        "historicalScheduleDescription": "هذه الدفعات محفوظة لأغراض التتبع والتدقيق ولا تدخل في المبلغ الحالي المستحق.",
+        "historicalScheduleMeta": "{count} قسطًا تاريخيًا",
+        "historicalScheduleCount": "عدد الأقساط التاريخية",
+        "historicalScheduleTotal": "إجمالي الجدول التاريخي",
+        "historicalScheduleEmpty": "لا تتوفر صفوف تاريخية مفصّلة لهذا الاتفاق.",
         "noSchedule": "لم يُنشأ جدول أداء بعد.",
         "noScheduleDesc": "سيظهر جدول الأقساط بعد إضافة الخدمات وتوليد الجدول.",
         "noBillingParty": "لم يُحدَّد مسؤول عن الأداء",
@@ -7621,6 +7628,17 @@
         "currentStudent": "التلميذ الحالي",
         "openBillingAccount": "فتح حساب الفوترة",
         "openInstallments": "الأقساط المفتوحة",
+        "nextDue": {
+          "title": "الاستحقاق القادم على مستوى الأسرة",
+          "familyScopeNote": "هذه الأرقام والاستحقاقات عائلية وليست بالضرورة خاصة بالتلميذ المفتوح ملفه.",
+          "date": "تاريخ الاستحقاق",
+          "amount": "مبلغ الاستحقاق",
+          "attribution": "صاحب الاستحقاق",
+          "belongsToCurrent": "يخص هذا التلميذ",
+          "belongsToOther": "يخص تلميذًا آخر داخل الأسرة",
+          "belongsToNamed": "يخص {name}",
+          "familyLevel": "استحقاق على مستوى الأسرة"
+        },
         "metrics": {
           "totalNetDue": "إجمالي المستحق",
           "totalPaid": "إجمالي المؤدى",
@@ -8117,6 +8135,7 @@
               "agreement_submitted": "إرسال اتفاق للمراجعة",
               "agreement_approved": "اعتماد اتفاق مالي",
               "agreement_activated": "تفعيل اتفاق مالي",
+              "agreement_amended": "تعديل اتفاق مالي",
               "agreement_cancelled": "إلغاء اتفاق مالي",
               "agreement_reset": "إعادة ضبط اتفاق مالي",
               "fees_generated": "توليد رسوم",
@@ -8125,7 +8144,10 @@
               "receipt_issued": "إصدار إيصال",
               "collection_reversed": "عكس تحصيل",
               "unknown": "عملية مالية"
-            }
+            },
+            "auditOnly": "سجل تدقيق داخلي",
+            "agreementReference": "مرجع الاتفاق",
+            "auditAmountExcluded": "غير محتسب كأثر مالي"
           },
           "actions": {
             "createFinancialAgreement": "إنشاء اتفاق مالي",
@@ -8326,6 +8348,8 @@
           "paid": "المحصّل",
           "remaining": "المتبقي",
           "installments": "عدد الأقساط",
+          "currentInstallments": "عدد الدفعات الحالية",
+          "currentScheduleTotal": "إجمالي الجدول الحالي",
           "openInFinanceHub": "فتح في مركز المالية"
         },
         "inactiveAgreementReference": {

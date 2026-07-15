@@ -247,6 +247,9 @@ export interface FinancialAgreement {
   source_fees?: FinancialAgreementLine[];
   installments?: AgreementScheduleItem[];
   schedule_summary?: { installment_count?: number; total_amount?: number };
+  /** Historical agreement projection — audit/trace only; never operational totals. */
+  historical_installments?: AgreementScheduleItem[];
+  historical_schedule_summary?: { installment_count?: number; total_amount?: number };
   allowed_actions?: AllowedActionsMap;
   discount_type?: string | null;
   discount_reason?: string | null;
@@ -372,6 +375,10 @@ export interface FinanceOperationHistoryRecord {
   reference?: string;
   receipt_number?: string;
   agreement_number?: string;
+  agreement_reference?: string;
+  audit_id?: number | string;
+  audit_only?: boolean;
+  operation_group_key?: string;
   number?: string;
   name?: string;
   amount?: number;

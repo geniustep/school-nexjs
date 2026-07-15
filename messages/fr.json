@@ -7123,6 +7123,13 @@
         "noLines": "Aucun service ajouté.",
         "noLinesDesc": "Ajoutez des services du catalogue pour construire l'accord.",
         "scheduleTitle": "Calendrier de l'accord",
+        "currentScheduleTitle": "Échéances actuelles",
+        "historicalScheduleTitle": "Historique des échéances",
+        "historicalScheduleDescription": "Ces échéances sont conservées pour le suivi et l'audit ; elles n'entrent pas dans le montant actuel dû.",
+        "historicalScheduleMeta": "{count} échéances historiques",
+        "historicalScheduleCount": "Nombre d'échéances historiques",
+        "historicalScheduleTotal": "Total du calendrier historique",
+        "historicalScheduleEmpty": "Aucune ligne historique détaillée n'est disponible pour cet accord.",
         "noSchedule": "Aucun calendrier généré.",
         "noScheduleDesc": "Les échéances apparaîtront après l'ajout des services et la génération du calendrier.",
         "noBillingParty": "Aucun payeur assigné",
@@ -7488,6 +7495,17 @@
         "currentStudent": "Élève actuel",
         "openBillingAccount": "Ouvrir le compte de facturation",
         "openInstallments": "Échéances ouvertes",
+        "nextDue": {
+          "title": "Prochaine échéance au niveau familial",
+          "familyScopeNote": "Ces montants et échéances sont familiaux et ne concernent pas nécessairement l'élève ouvert.",
+          "date": "Date d'échéance",
+          "amount": "Montant dû",
+          "attribution": "Titulaire de l'échéance",
+          "belongsToCurrent": "Concerne cet élève",
+          "belongsToOther": "Concerne un autre élève de la famille",
+          "belongsToNamed": "Concerne {name}",
+          "familyLevel": "Échéance au niveau familial"
+        },
         "metrics": {
           "totalNetDue": "Total dû",
           "totalPaid": "Total payé",
@@ -7975,6 +7993,7 @@
               "agreement_submitted": "Accord envoyé pour revue",
               "agreement_approved": "Accord financier approuvé",
               "agreement_activated": "Accord financier activé",
+              "agreement_amended": "Accord financier amendé",
               "agreement_cancelled": "Accord financier annulé",
               "agreement_reset": "Accord financier réinitialisé",
               "fees_generated": "Frais générés",
@@ -7983,7 +8002,10 @@
               "receipt_issued": "Reçu émis",
               "collection_reversed": "Recouvrement annulé",
               "unknown": "Opération financière"
-            }
+            },
+            "auditOnly": "Journal d'audit interne",
+            "agreementReference": "Référence de l'accord",
+            "auditAmountExcluded": "Non compté comme effet financier"
           },
           "actions": {
             "createFinancialAgreement": "Créer un accord financier",
@@ -8184,6 +8206,8 @@
           "paid": "Encaissé",
           "remaining": "Restant",
           "installments": "Échéances",
+          "currentInstallments": "Nombre d'échéances actuelles",
+          "currentScheduleTotal": "Total du calendrier actuel",
           "openInFinanceHub": "Ouvrir dans le hub Finance"
         },
         "inactiveAgreementReference": {

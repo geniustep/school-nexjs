@@ -7123,6 +7123,13 @@
         "noLines": "No services added yet.",
         "noLinesDesc": "Add services from the catalog to build the agreement.",
         "scheduleTitle": "Installment schedule",
+        "currentScheduleTitle": "Current installments",
+        "historicalScheduleTitle": "Historical installment record",
+        "historicalScheduleDescription": "These installments are kept for traceability and audit; they do not enter the current amount due.",
+        "historicalScheduleMeta": "{count} historical installments",
+        "historicalScheduleCount": "Historical installment count",
+        "historicalScheduleTotal": "Historical schedule total",
+        "historicalScheduleEmpty": "No detailed historical rows are available for this agreement.",
         "noSchedule": "No schedule generated yet.",
         "noScheduleDesc": "Installments will appear after services are added and the schedule is generated.",
         "noBillingParty": "No billing party assigned",
@@ -7488,6 +7495,17 @@
         "currentStudent": "Current student",
         "openBillingAccount": "Open billing account",
         "openInstallments": "Open installments",
+        "nextDue": {
+          "title": "Next due at family level",
+          "familyScopeNote": "These amounts and due dates are family-scoped and not necessarily specific to the open student.",
+          "date": "Due date",
+          "amount": "Due amount",
+          "attribution": "Due attributed to",
+          "belongsToCurrent": "Belongs to this student",
+          "belongsToOther": "Belongs to another student in the family",
+          "belongsToNamed": "Belongs to {name}",
+          "familyLevel": "Family-level due"
+        },
         "metrics": {
           "totalNetDue": "Total due",
           "totalPaid": "Total paid",
@@ -7975,6 +7993,7 @@
               "agreement_submitted": "Agreement submitted for review",
               "agreement_approved": "Financial agreement approved",
               "agreement_activated": "Financial agreement activated",
+              "agreement_amended": "Financial agreement amended",
               "agreement_cancelled": "Financial agreement cancelled",
               "agreement_reset": "Financial agreement reset",
               "fees_generated": "Fees generated",
@@ -7983,7 +8002,10 @@
               "receipt_issued": "Receipt issued",
               "collection_reversed": "Collection reversed",
               "unknown": "Financial operation"
-            }
+            },
+            "auditOnly": "Internal audit record",
+            "agreementReference": "Agreement reference",
+            "auditAmountExcluded": "Not counted as a financial effect"
           },
           "actions": {
             "createFinancialAgreement": "Create financial agreement",
@@ -8184,6 +8206,8 @@
           "paid": "Collected",
           "remaining": "Remaining",
           "installments": "Installments",
+          "currentInstallments": "Current installment count",
+          "currentScheduleTotal": "Current schedule total",
           "openInFinanceHub": "Open in Finance Hub"
         },
         "inactiveAgreementReference": {

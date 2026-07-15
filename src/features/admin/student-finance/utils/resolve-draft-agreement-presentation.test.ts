@@ -127,6 +127,39 @@ describe('resolveDraftAgreementPresentation', () => {
     expect(merged).toHaveLength(2);
   });
 
+  it('does not flag mismatch when only historical schedule differs from current', () => {
+    const presentation = resolveDraftAgreementPresentation({
+      agreementDetail: {
+        id: 501,
+        student_id: 900,
+        state: 'active',
+        financial_summary: {
+          final_total: 7300,
+          schedule_total: 7300,
+        },
+        schedule_summary: { installment_count: 11, total_amount: 7300 },
+        historical_schedule_summary: { installment_count: 21, total_amount: 23200 },
+      } as import('../types').FinancialAgreement,
+    });
+    expect(presentation.totalsMismatch).toBe(false);
+  });
+
+  it('flags mismatch when current final differs from current schedule_summary total', () => {
+    const presentation = resolveDraftAgreementPresentation({
+      agreementDetail: {
+        id: 502,
+        student_id: 900,
+        state: 'active',
+        financial_summary: {
+          final_total: 7300,
+          schedule_total: 8000,
+        },
+        schedule_summary: { installment_count: 11, total_amount: 8000 },
+      } as import('../types').FinancialAgreement,
+    });
+    expect(presentation.totalsMismatch).toBe(true);
+  });
+
   it('formats enrollment customization labels in Arabic', () => {
     const t = (key: string, values?: Record<string, string | number>) => {
       if (key === 'admin.student360.financeWorkspace.draftAgreement.customizationLinePercent') {

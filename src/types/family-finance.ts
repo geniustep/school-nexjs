@@ -44,6 +44,10 @@ export interface FamilyFinanceSummary {
   total_overdue?: number | null;
   credit_balance?: number | null;
   unallocated_amount?: number | null;
+  next_due_date?: string | null;
+  next_due_amount?: number | null;
+  next_due_student_id?: number | null;
+  next_due_scope?: string | null;
   children: FamilyFinanceChild[];
   currency?: string | null;
 }
@@ -90,6 +94,10 @@ export interface FamilyCollectionContext {
   total_remaining?: number | null;
   total_overdue?: number | null;
   credit_balance?: number | null;
+  next_due_date?: string | null;
+  next_due_amount?: number | null;
+  next_due_student_id?: number | null;
+  next_due_scope?: string | null;
   open_installments: FamilyOpenInstallment[];
   currency?: string | null;
 }

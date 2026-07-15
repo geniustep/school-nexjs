@@ -64,7 +64,12 @@ import {
 } from '../utils/resolve-draft-agreement-presentation';
 import { buildAgreementSummaryCards } from '../utils/build-agreement-summary-cards';
 import { AgreementEnrollmentCustomizationsSection } from './agreement-enrollment-customizations-section';
+import { AgreementHistoricalScheduleSection } from './agreement-historical-schedule-section';
 import { hasFinanceSummaryMetrics } from '../utils/normalize-student-finance-workspace';
+import {
+  filterOperationalInstallments,
+  warnCancelledInOperationalInstallments,
+} from '../utils/resolve-operational-schedule';
 import {
   resolveFinanceTabLoadPhase,
   shouldShowAgreementEmptyState,
@@ -1318,6 +1323,9 @@ export function StudentFinancialAgreementTab({
     studentId,
   });
 
+  const operationalInstallments = filterOperationalInstallments(activeAgreement.installments);
+  warnCancelledInOperationalInstallments(activeAgreement.installments);
+
   return (
     <div className={`student-finance-agreement-panel ${embedded ? 'student-finance-agreement-embedded' : 'student-finance-tab student-360-tab-panel'}${isBackgroundRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
       {!embedded ? (
@@ -1588,8 +1596,8 @@ export function StudentFinancialAgreementTab({
       ) : null}
 
       <Card className="student-finance-section">
-        <Student360SectionHeader title={t('admin.student360.financialAgreement.scheduleTitle')} />
-        {(activeAgreement.installments?.length ?? 0) === 0 ? (
+        <Student360SectionHeader title={t('admin.student360.financialAgreement.currentScheduleTitle')} />
+        {operationalInstallments.length === 0 ? (
           policies ? (
             <div className="student-finance-schedule-policy student-finance-schedule-policy--compact">
               <p className="student-finance-schedule-policy__title">
@@ -1640,7 +1648,7 @@ export function StudentFinancialAgreementTab({
           <div className="student-finance-table-wrap">
             <DataTable
               columns={scheduleColumns}
-              rows={activeAgreement.installments ?? []}
+              rows={operationalInstallments}
               rowKey={(row) => row.id ?? `${row.period_start ?? 'p'}-${row.due_date ?? 'd'}`}
             />
           </div>
@@ -1686,6 +1694,8 @@ export function StudentFinancialAgreementTab({
           </>
         )}
       </Card>
+
+      <AgreementHistoricalScheduleSection agreement={activeAgreement} currency={currency?.name} />
 
       <div className="student-finance-agreement-actions-bar">
       <div className="student-finance-agreement-actions row">

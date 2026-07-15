@@ -157,6 +157,11 @@ export function normalizeFamilyFinanceSummary(raw: unknown): FamilyFinanceSummar
     unallocated_amount: normalizeMoneyValue(
       metrics.unallocated_amount ?? metrics.unallocated ?? row.unallocated_amount,
     ),
+    next_due_date: readString(metrics.next_due_date) ?? readString(row.next_due_date),
+    next_due_amount: normalizeMoneyValue(metrics.next_due_amount ?? row.next_due_amount),
+    next_due_student_id:
+      readNumber(metrics.next_due_student_id) ?? readNumber(row.next_due_student_id),
+    next_due_scope: readString(metrics.next_due_scope) ?? readString(row.next_due_scope),
     children,
     currency: readString(metrics.currency) ?? readString(row.currency),
   };
@@ -246,6 +251,11 @@ export function normalizeFamilyCollectionContext(raw: unknown): FamilyCollection
       familySummary.total_overdue ?? row.total_overdue ?? row.overdue,
     ),
     credit_balance: normalizeMoneyValue(familySummary.credit_balance ?? row.credit_balance),
+    next_due_date: readString(familySummary.next_due_date) ?? readString(row.next_due_date),
+    next_due_amount: normalizeMoneyValue(familySummary.next_due_amount ?? row.next_due_amount),
+    next_due_student_id:
+      readNumber(familySummary.next_due_student_id) ?? readNumber(row.next_due_student_id),
+    next_due_scope: readString(familySummary.next_due_scope) ?? readString(row.next_due_scope),
     open_installments: openInstallments,
     currency: readString(familySummary.currency) ?? readString(row.currency),
   };

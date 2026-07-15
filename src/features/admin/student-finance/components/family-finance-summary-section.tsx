@@ -8,6 +8,7 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
+import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
   familyFinanceErrorMessageKey,
@@ -17,7 +18,74 @@ import {
 import type { ApiErrorBody } from '@/types/api';
 import type { FamilyFinanceChild, FamilyFinanceSummary } from '@/types/family-finance';
 import { resolveFamilyChildrenView } from '../utils/family-children-view';
+import { resolveFamilyNextDuePresentation } from '../utils/resolve-family-next-due-presentation';
 import { useStudentFamilyFinanceSummary } from '../hooks/use-student-family-finance';
+
+function FamilyNextDueBlock({
+  presentation,
+  currency,
+}: {
+  presentation: ReturnType<typeof resolveFamilyNextDuePresentation>;
+  currency?: string | null;
+}) {
+  const t = useT();
+  const { formatDate } = useFormat();
+  if (!presentation.show) return null;
+
+  let attributionLabel: string;
+  if (presentation.attribution === 'current_student') {
+    attributionLabel = presentation.attributedStudentName
+      ? t('admin.student360.familyFinance.nextDue.belongsToNamed', {
+          name: presentation.attributedStudentName,
+        })
+      : t('admin.student360.familyFinance.nextDue.belongsToCurrent');
+  } else if (presentation.attribution === 'other_family_student') {
+    attributionLabel = presentation.attributedStudentName
+      ? t('admin.student360.familyFinance.nextDue.belongsToNamed', {
+          name: presentation.attributedStudentName,
+        })
+      : t('admin.student360.familyFinance.nextDue.belongsToOther');
+  } else {
+    attributionLabel = t('admin.student360.familyFinance.nextDue.familyLevel');
+  }
+
+  return (
+    <div
+      className="student-finance-family-next-due"
+      role="region"
+      aria-label={t('admin.student360.familyFinance.nextDue.title')}
+    >
+      <h4 className="student-finance-family-next-due__title">
+        {t('admin.student360.familyFinance.nextDue.title')}
+      </h4>
+      <p className="muted tiny student-finance-family-next-due__scope">
+        {t('admin.student360.familyFinance.nextDue.familyScopeNote')}
+      </p>
+      <dl className="detail-list student-finance-family-next-due__meta">
+        <div>
+          <dt>{t('admin.student360.familyFinance.nextDue.date')}</dt>
+          <dd>
+            {presentation.nextDueDate ? formatDate(presentation.nextDueDate) : t('common.dash')}
+          </dd>
+        </div>
+        <div>
+          <dt>{t('admin.student360.familyFinance.nextDue.amount')}</dt>
+          <dd>
+            {presentation.nextDueAmount != null ? (
+              <FinanceMoney amount={presentation.nextDueAmount} currency={currency} />
+            ) : (
+              t('common.dash')
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>{t('admin.student360.familyFinance.nextDue.attribution')}</dt>
+          <dd dir="auto">{attributionLabel}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
 
 function FamilyFinanceSummaryMetrics({
   summary,
@@ -244,6 +312,17 @@ export function FamilyFinanceSummarySection({
         </div>
       </dl>
       <FamilyFinanceSummaryMetrics summary={data} currency={data.currency} />
+      <FamilyNextDueBlock
+        presentation={resolveFamilyNextDuePresentation({
+          currentStudentId: studentId,
+          next_due_scope: data.next_due_scope,
+          next_due_student_id: data.next_due_student_id,
+          next_due_date: data.next_due_date,
+          next_due_amount: data.next_due_amount,
+          children: data.children,
+        })}
+        currency={data.currency}
+      />
       <h4 className="student-finance-family-children-title">
         {childrenView.hasOtherSiblings
           ? t('admin.student360.familyFinance.linkedChildrenTitle')

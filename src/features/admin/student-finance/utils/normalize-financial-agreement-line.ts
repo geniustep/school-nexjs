@@ -2,6 +2,7 @@ import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import type {
   AgreementLineQuantityEditContract,
   AgreementLineQuantitySemantics,
+  AgreementScheduleItem,
   FinancialAgreement,
   FinancialAgreementLine,
 } from '../types';
@@ -122,29 +123,76 @@ export function normalizeFinancialAgreementLines(raw: unknown): FinancialAgreeme
   return lines;
 }
 
+function normalizeScheduleSummary(
+  raw: unknown,
+): { installment_count?: number; total_amount?: number } | undefined {
+  const rec = asRecord(raw);
+  if (!rec) return undefined;
+  const installment_count = readFiniteNumber(rec.installment_count);
+  const total_amount = normalizeMoneyValue(rec.total_amount) ?? undefined;
+  if (installment_count == null && total_amount == null) {
+    return { ...(raw as { installment_count?: number; total_amount?: number }) };
+  }
+  return {
+    ...(raw as { installment_count?: number; total_amount?: number }),
+    installment_count,
+    total_amount,
+  };
+}
+
+export function normalizeAgreementScheduleItem(raw: unknown): AgreementScheduleItem | null {
+  const rec = asRecord(raw);
+  if (!rec) return null;
+  const id = readFiniteNumber(rec.id);
+  const amount = normalizeMoneyValue(rec.amount) ?? undefined;
+  const state = readString(rec.state) ?? undefined;
+  return {
+    ...(raw as AgreementScheduleItem),
+    id,
+    sequence: readFiniteNumber(rec.sequence),
+    period_start: readString(rec.period_start),
+    period_end: readString(rec.period_end),
+    display_from: readString(rec.display_from),
+    due_date: readString(rec.due_date),
+    amount,
+    state,
+  };
+}
+
+export function normalizeAgreementScheduleItems(raw: unknown): AgreementScheduleItem[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const items: AgreementScheduleItem[] = [];
+  for (const entry of raw) {
+    const item = normalizeAgreementScheduleItem(entry);
+    if (item) items.push(item);
+  }
+  return items;
+}
+
 export function normalizeFinancialAgreement(raw: unknown): FinancialAgreement | null {
   if (!raw || typeof raw !== 'object') return null;
   const source = raw as FinancialAgreement;
-  const id = readFiniteNumber((raw as Record<string, unknown>).id);
+  const row = raw as Record<string, unknown>;
+  const id = readFiniteNumber(row.id);
   if (id == null) return source;
 
   const lines = normalizeFinancialAgreementLines(source.lines);
   const source_fees = normalizeFinancialAgreementLines(source.source_fees);
+  const installments = normalizeAgreementScheduleItems(row.installments);
+  const historical_installments = normalizeAgreementScheduleItems(row.historical_installments);
+  const schedule_summary = normalizeScheduleSummary(row.schedule_summary) ?? source.schedule_summary;
+  const historical_schedule_summary =
+    normalizeScheduleSummary(row.historical_schedule_summary) ?? source.historical_schedule_summary;
 
   return {
     ...source,
     id,
     lines: lines.length > 0 ? lines : source.lines,
     source_fees: source_fees.length > 0 ? source_fees : source.source_fees,
-    net_total: normalizeMoneyValue((raw as Record<string, unknown>).net_total) ?? source.net_total,
-    schedule_summary: source.schedule_summary
-      ? {
-          ...source.schedule_summary,
-          total_amount:
-            normalizeMoneyValue(
-              (source.schedule_summary as Record<string, unknown>).total_amount,
-            ) ?? source.schedule_summary.total_amount,
-        }
-      : source.schedule_summary,
+    net_total: normalizeMoneyValue(row.net_total) ?? source.net_total,
+    installments: installments ?? source.installments,
+    schedule_summary,
+    historical_installments: historical_installments ?? source.historical_installments,
+    historical_schedule_summary,
   };
 }

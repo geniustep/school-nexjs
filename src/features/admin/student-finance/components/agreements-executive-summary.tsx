@@ -90,13 +90,24 @@ export function AgreementsExecutiveSummary({
         <div className="student-finance-exec-summary__kpi">
           <span className="student-finance-exec-summary__kpi-value">
             {presentation.installmentCount != null ? (
-              <span className="mono">{presentation.installmentCount}</span>
+              <span className="mono" dir="ltr">
+                {presentation.installmentCount}
+              </span>
             ) : (
               <span className="muted">{dash}</span>
             )}
           </span>
           <span className="student-finance-exec-summary__kpi-label">
-            {t('admin.student360.financeWorkspace.executiveSummary.installments')}
+            {t('admin.student360.financeWorkspace.executiveSummary.currentInstallments')}
+          </span>
+        </div>
+
+        <div className="student-finance-exec-summary__kpi">
+          <span className="student-finance-exec-summary__kpi-value">
+            {renderMoney(presentation.scheduleTotalAmount)}
+          </span>
+          <span className="student-finance-exec-summary__kpi-label">
+            {t('admin.student360.financeWorkspace.executiveSummary.currentScheduleTotal')}
           </span>
         </div>
       </div>

@@ -47,6 +47,7 @@ export type FinanceOperationKind =
   | 'agreement_submitted'
   | 'agreement_approved'
   | 'agreement_activated'
+  | 'agreement_amended'
   | 'agreement_cancelled'
   | 'agreement_reset'
   | 'fees_generated'
@@ -66,6 +67,10 @@ export interface FinanceOperationHistoryEntry {
   performedByKey: string;
   state: string | null;
   reference: string | null;
+  agreementReference: string | null;
+  auditId: string | null;
+  auditOnly: boolean;
+  operationGroupKey: string | null;
   amount: number | null;
   currency: FinanceCurrency | null;
 }

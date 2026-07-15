@@ -8,6 +8,7 @@ export function resolveFinanceOperationTone(kind: FinanceOperationKind): Finance
     case 'agreement_submitted':
     case 'agreement_approved':
     case 'agreement_activated':
+    case 'agreement_amended':
       return 'agreement';
     case 'agreement_cancelled':
     case 'agreement_reset':

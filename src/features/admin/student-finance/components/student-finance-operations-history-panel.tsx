@@ -7,6 +7,7 @@ import { useT } from '@/features/i18n/locale-context';
 import type { StudentFinanceWorkspace } from '../types';
 import type { FinanceOperationHistoryEntry } from '../types/agreement-context';
 import {
+  countFinancialOperations,
   hasFinanceOperationsHistoryApi,
   resolveFinanceOperationsHistory,
 } from '../utils/resolve-finance-operations-history';
@@ -86,17 +87,32 @@ function HistoryRow({
   const stateTone = resolveFinanceOperationStateTone(entry.state);
 
   return (
-    <tr className="student-finance-operations-history__row">
+    <tr
+      className={`student-finance-operations-history__row${entry.auditOnly ? ' student-finance-operations-history__row--audit' : ''}`}
+    >
       <td data-label={labels.date}>
         <time className="student-finance-operations-history__date" dateTime={entry.date ?? undefined}>
           {entry.date ? formatDate(entry.date) : t('common.dash')}
         </time>
       </td>
       <td data-label={labels.type}>
-        <OperationTypeBadge label={t(entry.operationLabelKey)} tone={typeTone} />
+        <OperationTypeBadge
+          label={
+            entry.auditOnly
+              ? t('admin.student360.financeWorkspace.agreementContext.operations.auditOnly')
+              : t(entry.operationLabelKey)
+          }
+          tone={entry.auditOnly ? 'neutral' : typeTone}
+        />
       </td>
       <td data-label={labels.description} className="student-finance-operations-history__cell-desc">
         <span dir="auto">{entry.description ?? t('common.dash')}</span>
+        {entry.agreementReference ? (
+          <div className="student-finance-operations-history__agreement-ref muted tiny">
+            {t('admin.student360.financeWorkspace.agreementContext.operations.agreementReference')}:{' '}
+            <code dir="ltr">{entry.agreementReference}</code>
+          </div>
+        ) : null}
       </td>
       <td data-label={labels.performedBy} className="student-finance-operations-history__cell-user">
         <span dir="auto">{renderPerformedByLabel(t, entry.performedByKey, entry.performedByLabel)}</span>
@@ -109,11 +125,15 @@ function HistoryRow({
         )}
       </td>
       <td data-label={labels.reference} className="student-finance-operations-history__cell-ref">
-        <code dir="auto">{entry.reference ?? t('common.dash')}</code>
+        <code dir="ltr">{entry.reference ?? t('common.dash')}</code>
       </td>
       <td data-label={labels.amount} className="student-finance-operations-history__cell-amount">
-        {entry.amount != null ? (
+        {entry.amount != null && !entry.auditOnly ? (
           <FinanceMoney amount={entry.amount} currency={entry.currency ?? undefined} />
+        ) : entry.auditOnly ? (
+          <span className="student-finance-operations-history__muted">
+            {t('admin.student360.financeWorkspace.agreementContext.operations.auditAmountExcluded')}
+          </span>
         ) : (
           <span className="student-finance-operations-history__muted">{t('common.dash')}</span>
         )}
@@ -130,8 +150,16 @@ export function StudentFinanceOperationsHistoryPanel({
   const t = useT();
   const { formatDate } = useFormat();
 
-  const operations = useMemo(() => resolveFinanceOperationsHistory(workspace), [workspace]);
+  const allOperations = useMemo(() => resolveFinanceOperationsHistory(workspace), [workspace]);
+  const financialCount = countFinancialOperations(allOperations);
   const operationsApiAvailable = hasFinanceOperationsHistoryApi(workspace);
+
+  // Default operational timeline excludes audit_only; keep them visible but marked when present.
+  const displayOperations = useMemo(() => {
+    const financial = allOperations.filter((entry) => !entry.auditOnly);
+    const audit = allOperations.filter((entry) => entry.auditOnly);
+    return [...financial, ...audit];
+  }, [allOperations]);
 
   const columnLabels = {
     date: t('admin.student360.financeWorkspace.agreementContext.operations.columns.date'),
@@ -158,9 +186,9 @@ export function StudentFinanceOperationsHistoryPanel({
             {t('admin.student360.financeWorkspace.historical.description')}
           </p>
         </div>
-        {operations.length ? (
+        {financialCount ? (
           <div className="student-finance-operations-history__summary" aria-live="polite">
-            <span className="student-finance-operations-history__summary-value">{operations.length}</span>
+            <span className="student-finance-operations-history__summary-value">{financialCount}</span>
             <span className="student-finance-operations-history__summary-label">
               {t('admin.student360.financeWorkspace.historical.countLabel')}
             </span>
@@ -168,7 +196,7 @@ export function StudentFinanceOperationsHistoryPanel({
         ) : null}
       </header>
 
-      {operations.length ? (
+      {displayOperations.length ? (
         <div className="student-finance-operations-history__table-shell">
           <div className="student-finance-operations-history__table-wrap">
             <table className="student-finance-operations-history__table">
@@ -184,7 +212,7 @@ export function StudentFinanceOperationsHistoryPanel({
                 </tr>
               </thead>
               <tbody>
-                {operations.map((entry) => (
+                {displayOperations.map((entry) => (
                   <HistoryRow
                     key={entry.id}
                     entry={entry}

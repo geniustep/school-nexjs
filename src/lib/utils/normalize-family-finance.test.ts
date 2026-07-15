@@ -118,6 +118,26 @@ describe('normalizeFamilyFinanceSummary', () => {
     expect(summary?.credit_balance).toBe(50);
     expect(summary?.children[0]?.total_overdue).toBe(2500);
   });
+  it('reads next_due family fields from summary payload', () => {
+    const summary = normalizeFamilyFinanceSummary({
+      family_id: 8801,
+      total_remaining: 28600,
+      total_overdue: 1800,
+      next_due_date: '2026-07-14',
+      next_due_amount: 1800,
+      next_due_student_id: 202,
+      next_due_scope: 'family',
+      children: [
+        { student_id: 101, student_name: 'A', services_summary: [] },
+        { student_id: 202, student_name: 'B', services_summary: [] },
+      ],
+    });
+
+    expect(summary?.next_due_scope).toBe('family');
+    expect(summary?.next_due_student_id).toBe(202);
+    expect(summary?.next_due_amount).toBe(1800);
+    expect(summary?.total_remaining).toBe(28600);
+  });
 });
 
 describe('normalizeFamilyPlanContext', () => {

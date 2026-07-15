@@ -4,8 +4,10 @@ import type { StudentFinanceWorkspace } from '../types';
 import { resolveFeePlanPresentation } from './resolve-fee-plan-presentation';
 import { resolveAgreementStatusPresentation } from './resolve-agreement-status-presentation';
 import {
+  countFinancialOperations,
   hasFinanceOperationsHistoryApi,
   resolveFinanceOperationsHistory,
+  resolveFinancialOperationsHistory,
   resolvePerformedByLabel,
 } from './resolve-finance-operations-history';
 import { resolveFinanceAgreementActions } from './resolve-finance-agreement-actions';
@@ -310,6 +312,54 @@ describe('resolveFinanceOperationsHistory', () => {
     expect(row.operationKind).toBe('unknown');
     expect(row.amount).toBeNull();
     expect(Number.isNaN(row.amount as never)).toBe(false);
+  });
+
+  it('normalizes a single Amendment financial event with agreement_reference', () => {
+    const entries = resolveFinanceOperationsHistory({
+      summary: {},
+      finance_operations_history: [
+        {
+          id: 'amm-1',
+          date: '2026-07-01',
+          operation_type: 'agreement_amended',
+          reference: 'AMM-2026-00012',
+          agreement_reference: 'FA/2026/00100',
+          amount: 7300,
+          currency: { id: 1, name: 'MAD' },
+        },
+        {
+          id: 'audit-9',
+          date: '2026-07-01',
+          operation_type: 'agreement_amended',
+          reference: 'AUD-9',
+          audit_only: true,
+          amount: 7300,
+        },
+      ],
+    } as StudentFinanceWorkspace);
+
+    expect(entries).toHaveLength(2);
+    expect(entries[0]?.operationKind).toBe('agreement_amended');
+    expect(entries[0]?.reference).toBe('AMM-2026-00012');
+    expect(entries[0]?.agreementReference).toBe('FA/2026/00100');
+    expect(entries[0]?.auditOnly).toBe(false);
+    expect(entries[1]?.auditOnly).toBe(true);
+    expect(countFinancialOperations(entries)).toBe(1);
+    expect(resolveFinancialOperationsHistory({
+      summary: {},
+      finance_operations_history: [
+        {
+          id: 'amm-1',
+          operation_type: 'agreement_amended',
+          reference: 'AMM-2026-00012',
+        },
+        {
+          id: 'audit-9',
+          operation_type: 'agreement_amended',
+          audit_only: true,
+        },
+      ],
+    } as StudentFinanceWorkspace)).toHaveLength(1);
   });
 });
 

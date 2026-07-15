@@ -22,6 +22,12 @@ const OPERATION_ALIASES: Record<string, FinanceOperationKind> = {
   agreement_activated: 'agreement_activated',
   activate_agreement: 'agreement_activated',
   agreement_activate: 'agreement_activated',
+  agreement_amended: 'agreement_amended',
+  agreement_amendment: 'agreement_amended',
+  amend_agreement: 'agreement_amended',
+  amend_financial_agreement: 'agreement_amended',
+  financial_agreement_amended: 'agreement_amended',
+  amendment: 'agreement_amended',
   agreement_cancelled: 'agreement_cancelled',
   cancel_agreement: 'agreement_cancelled',
   agreement_cancel: 'agreement_cancelled',
@@ -162,6 +168,13 @@ function readReference(raw: Record<string, unknown>): string | null {
   );
 }
 
+function readAuditId(raw: Record<string, unknown>): string | null {
+  if (typeof raw.audit_id === 'number' && Number.isFinite(raw.audit_id)) {
+    return String(raw.audit_id);
+  }
+  return readString(raw.audit_id);
+}
+
 function normalizeOperationEntry(raw: unknown, index: number): FinanceOperationHistoryEntry | null {
   const obj = readRecord(raw);
   const date =
@@ -175,6 +188,7 @@ function normalizeOperationEntry(raw: unknown, index: number): FinanceOperationH
     readString(obj.id) ??
     readString(obj.uuid) ??
     `${kind}-${date ?? 'undated'}-${index}`;
+  const auditOnly = obj.audit_only === true;
 
   return {
     id,
@@ -186,6 +200,10 @@ function normalizeOperationEntry(raw: unknown, index: number): FinanceOperationH
     performedByKey: performedBy.performedByKey,
     state: readString(obj.state) ?? readString(obj.status),
     reference: readReference(obj),
+    agreementReference: readString(obj.agreement_reference),
+    auditId: readAuditId(obj),
+    auditOnly,
+    operationGroupKey: readString(obj.operation_group_key),
     amount: readAmount(obj),
     currency: readCurrency(obj),
   };
@@ -209,6 +227,7 @@ function readOperationsArray(workspace?: StudentFinanceWorkspace | null): unknow
   return null;
 }
 
+/** Full normalized history including audit_only rows (preserved for Audit context). */
 export function resolveFinanceOperationsHistory(
   workspace?: StudentFinanceWorkspace | null,
 ): FinanceOperationHistoryEntry[] {
@@ -217,6 +236,17 @@ export function resolveFinanceOperationsHistory(
   return rawEntries
     .map(normalizeOperationEntry)
     .filter((entry): entry is FinanceOperationHistoryEntry => entry != null);
+}
+
+/** Default financial timeline — excludes audit_only rows from operational history. */
+export function resolveFinancialOperationsHistory(
+  workspace?: StudentFinanceWorkspace | null,
+): FinanceOperationHistoryEntry[] {
+  return resolveFinanceOperationsHistory(workspace).filter((entry) => !entry.auditOnly);
+}
+
+export function countFinancialOperations(entries: FinanceOperationHistoryEntry[]): number {
+  return entries.filter((entry) => !entry.auditOnly).length;
 }
 
 export function hasFinanceOperationsHistoryApi(workspace?: StudentFinanceWorkspace | null): boolean {

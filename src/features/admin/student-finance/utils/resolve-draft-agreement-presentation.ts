@@ -227,9 +227,19 @@ export function resolveDraftAgreementPresentation(input: {
   const { enrollmentCustomizations } = splitEnrollmentCustomizations(customizations);
 
   const finalTotal = summary?.final_total ?? summary?.net_total;
-  const scheduleTotal = summary?.schedule_total;
+  // Compare current operational totals only — never historical_schedule_summary.
+  const currentScheduleTotal =
+    (typeof agreementDetail?.schedule_summary?.total_amount === 'number'
+      ? agreementDetail.schedule_summary.total_amount
+      : undefined) ??
+    (typeof workspaceAgreement?.schedule_summary?.total_amount === 'number'
+      ? workspaceAgreement.schedule_summary.total_amount
+      : undefined) ??
+    summary?.schedule_total;
   const totalsMismatch =
-    finalTotal != null && scheduleTotal != null && Math.abs(finalTotal - scheduleTotal) > 0.009;
+    finalTotal != null &&
+    currentScheduleTotal != null &&
+    Math.abs(finalTotal - currentScheduleTotal) > 0.009;
 
   return {
     hasDraftAgreement,

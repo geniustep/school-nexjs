@@ -16,6 +16,8 @@ export interface AgreementsExecutiveSummaryPresentation {
   paidAmount: number | null;
   remainingAmount: number | null;
   installmentCount: number | null;
+  /** Current operational schedule total — never historical_schedule_summary. */
+  scheduleTotalAmount: number | null;
   counts: AgreementsExecutiveSummaryCounts;
   currentAgreementId: number | null;
   financeHubHref: string | null;
@@ -67,6 +69,7 @@ export function resolveAgreementsExecutiveSummary(input: {
     paidAmount: null,
     remainingAmount: null,
     installmentCount: null,
+    scheduleTotalAmount: null,
     counts,
     currentAgreementId: null,
     financeHubHref: null,
@@ -101,6 +104,10 @@ export function resolveAgreementsExecutiveSummary(input: {
       ? agreement.installments.length
       : null);
 
+  const scheduleTotalAmount =
+    readNumber(agreement.schedule_summary?.total_amount) ??
+    readNumber(financeSummary?.schedule_total);
+
   return {
     show: true,
     state: agreement.state ?? null,
@@ -108,6 +115,7 @@ export function resolveAgreementsExecutiveSummary(input: {
     paidAmount,
     remainingAmount,
     installmentCount,
+    scheduleTotalAmount,
     counts,
     currentAgreementId: agreement.id,
     financeHubHref: `/admin/finance/agreements/${agreement.id}`,

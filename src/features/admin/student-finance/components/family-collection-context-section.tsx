@@ -14,6 +14,7 @@ import {
   familyFinanceServiceTypeLabelKey,
 } from '@/lib/utils/normalize-family-finance';
 import type { FamilyOpenInstallment } from '@/types/family-finance';
+import { resolveFamilyNextDuePresentation } from '../utils/resolve-family-next-due-presentation';
 import { useStudentFamilyCollectionContext } from '../hooks/use-student-family-finance';
 import { FamilyCollectionPreviewForm } from './family-collection-preview-form';
 
@@ -99,6 +100,36 @@ export function FamilyCollectionContextSection({
   if (!data) return null;
 
   const resolvedFamilyId = familyId ?? data.family_id ?? null;
+  const nextDue = resolveFamilyNextDuePresentation({
+    currentStudentId: studentId,
+    next_due_scope: data.next_due_scope,
+    next_due_student_id: data.next_due_student_id,
+    next_due_date: data.next_due_date,
+    next_due_amount: data.next_due_amount,
+    children: data.open_installments.map((row) => ({
+      student_id: row.student_id,
+      student_name: row.student_name,
+    })),
+  });
+
+  let nextDueAttribution: string | null = null;
+  if (nextDue.show) {
+    if (nextDue.attribution === 'current_student') {
+      nextDueAttribution = nextDue.attributedStudentName
+        ? t('admin.student360.familyFinance.nextDue.belongsToNamed', {
+            name: nextDue.attributedStudentName,
+          })
+        : t('admin.student360.familyFinance.nextDue.belongsToCurrent');
+    } else if (nextDue.attribution === 'other_family_student') {
+      nextDueAttribution = nextDue.attributedStudentName
+        ? t('admin.student360.familyFinance.nextDue.belongsToNamed', {
+            name: nextDue.attributedStudentName,
+          })
+        : t('admin.student360.familyFinance.nextDue.belongsToOther');
+    } else {
+      nextDueAttribution = t('admin.student360.familyFinance.nextDue.familyLevel');
+    }
+  }
 
   return (
     <>
@@ -128,6 +159,38 @@ export function FamilyCollectionContextSection({
             },
           ]}
         />
+        {nextDue.show ? (
+          <div
+            className="student-finance-family-next-due student-finance-family-next-due--collection"
+            role="region"
+            aria-label={t('admin.student360.familyFinance.nextDue.title')}
+          >
+            <h4 className="student-finance-family-next-due__title">
+              {t('admin.student360.familyFinance.nextDue.title')}
+            </h4>
+            <p className="muted tiny">{t('admin.student360.familyFinance.nextDue.familyScopeNote')}</p>
+            <dl className="detail-list student-finance-family-next-due__meta">
+              <div>
+                <dt>{t('admin.student360.familyFinance.nextDue.date')}</dt>
+                <dd>{nextDue.nextDueDate ? formatDate(nextDue.nextDueDate) : t('common.dash')}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.student360.familyFinance.nextDue.amount')}</dt>
+                <dd>
+                  {nextDue.nextDueAmount != null ? (
+                    <FinanceMoney amount={nextDue.nextDueAmount} currency={data.currency} />
+                  ) : (
+                    t('common.dash')
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.student360.familyFinance.nextDue.attribution')}</dt>
+                <dd dir="auto">{nextDueAttribution}</dd>
+              </div>
+            </dl>
+          </div>
+        ) : null}
         <h4 className="student-finance-family-open-installments-title">
           {t('admin.student360.familyFinance.openInstallments')}
         </h4>
