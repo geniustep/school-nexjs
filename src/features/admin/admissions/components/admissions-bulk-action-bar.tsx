@@ -1,182 +1,103 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { useToast } from '@/components/ui/toast';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { patchAdmission } from '../api/admissions-api';
-import {
-  runBulkStageChange,
-  type BulkStageChangeItem,
-} from '../utils/admission-bulk-stage-change';
-import {
-  admissionManualStageLabelKey,
-  getAdmissionManualStageOptions,
-  isAdmissionManualStage,
-  type AdmissionManualStage,
-} from '../utils/admission-stage-options';
+import { intersectAllowedStatusTargets } from '../utils/admission-modern-actions';
 import type { AdmissionListItem } from '@/types/admission';
+import { AdmissionChangeStatusDialog } from './admission-change-status-dialog';
 
 export function AdmissionsBulkActionBar({
   selectedItems,
   onClearSelection,
   onUpdated,
-  onPartialFailure,
+  onSelectVisible,
+  visibleCount,
   className,
 }: {
   selectedItems: AdmissionListItem[];
   onClearSelection: () => void;
   onUpdated?: () => void;
-  onPartialFailure?: (failedIds: number[]) => void;
+  /** Select all items currently visible on the page (not full server result set). */
+  onSelectVisible?: () => void;
+  visibleCount?: number;
   className?: string;
 }) {
   const t = useT();
-  const toast = useToast();
-  const { activeSchoolId } = useAdminSession();
-  const stageOptions = getAdmissionManualStageOptions();
-  const [targetStage, setTargetStage] = useState<AdmissionManualStage>('initial_follow_up');
-  const [applying, setApplying] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const eligibleCount = useMemo(
-    () => selectedItems.filter((item) => isAdmissionManualStage(String(item.state))).length,
+  const sharedTargets = useMemo(
+    () => intersectAllowedStatusTargets(selectedItems),
     [selectedItems],
   );
-  const ineligibleCount = selectedItems.length - eligibleCount;
-
-  const bulkItems: BulkStageChangeItem[] = useMemo(
-    () =>
-      selectedItems.map((item) => ({
-        id: item.id,
-        record: {
-          state: item.state,
-          student_id: item.student_id,
-          registration_flow_state: item.registration_flow_state,
-        },
-      })),
-    [selectedItems],
-  );
-
-  const changeStateSilent = useCallback(
-    async (admissionId: number, state: string): Promise<boolean> => {
-      if (activeSchoolId == null) return false;
-      const res = await patchAdmission(
-        admissionId,
-        { state },
-        { active_school_id: activeSchoolId },
-      );
-      return res.success;
-    },
-    [activeSchoolId],
-  );
-
-  async function handleApplyStageChange() {
-    if (applying || bulkItems.length === 0 || activeSchoolId == null) return;
-    if (eligibleCount === 0) {
-      toast.error(
-        t('admin.admissions.bulk.stageChangeIneligible', { count: ineligibleCount }),
-      );
-      return;
-    }
-
-    setApplying(true);
-    const result = await runBulkStageChange(bulkItems, targetStage, changeStateSilent);
-    setApplying(false);
-
-    const { succeeded, failed, skipped, ineligible } = result;
-
-    if (ineligible.length > 0 && succeeded.length === 0 && failed.length === 0) {
-      toast.error(
-        t('admin.admissions.bulk.stageChangeIneligible', { count: ineligible.length }),
-      );
-      return;
-    }
-
-    if (failed.length === 0 && succeeded.length > 0) {
-      const extra =
-        ineligible.length > 0
-          ? ` ${t('admin.admissions.bulk.stageChangeIneligibleNote', {
-              count: ineligible.length,
-            })}`
-          : '';
-      toast.success(
-        `${t('admin.admissions.bulk.stageChangeSuccess', { count: succeeded.length })}${extra}`,
-      );
-      onClearSelection();
-      onUpdated?.();
-      return;
-    }
-
-    if (failed.length > 0) {
-      toast.error(
-        t('admin.admissions.bulk.stageChangePartial', {
-          success: succeeded.length,
-          failed: failed.length,
-        }),
-      );
-      onPartialFailure?.(failed);
-      if (succeeded.length > 0) onUpdated?.();
-      return;
-    }
-
-    if (skipped.length > 0 && succeeded.length === 0 && failed.length === 0) {
-      toast.show(t('admin.admissions.bulk.stageChangeSkipped'), 'info');
-      return;
-    }
-
-    toast.error(t('admin.admissions.bulk.stageChangeFailed'));
-  }
+  const canBulkChange = selectedItems.length > 0 && sharedTargets.length > 0;
 
   return (
-    <div className={cn('admissions-bulk-bar', className)} role="region" aria-live="polite">
+    <div
+      className={cn('admissions-bulk-bar', className)}
+      role="region"
+      aria-live="polite"
+      data-testid="admissions-bulk-action-bar"
+    >
       <div className="admissions-bulk-bar__summary">
-        <span className="admissions-bulk-bar__count">
+        <span className="admissions-bulk-bar__count" data-testid="admissions-bulk-selected-count">
           {t('admin.admissions.bulk.selectedCount', { count: selectedItems.length })}
         </span>
-        {ineligibleCount > 0 ? (
-          <span className="tiny muted">
-            {t('admin.admissions.bulk.stageChangeIneligible', { count: ineligibleCount })}
+        {visibleCount != null ? (
+          <span className="tiny muted" data-testid="admissions-bulk-page-scope-hint">
+            {t('admin.admissions.bulk.pageScopeHint', { count: visibleCount })}
+          </span>
+        ) : null}
+        {!canBulkChange && selectedItems.length > 0 ? (
+          <span className="tiny muted" data-testid="admissions-bulk-no-shared-targets">
+            {t('admin.admissions.bulk.noSharedTargets')}
           </span>
         ) : null}
       </div>
 
       <div className="admissions-bulk-bar__actions">
-        <label className="admissions-bulk-bar__field">
-          <span className="tiny muted">{t('admin.admissions.actions.changeFollowUp')}</span>
-          <select
-            className="input admissions-bulk-bar__select"
-            value={targetStage}
-            disabled={applying}
-            aria-label={t('admin.admissions.actions.changeFollowUp')}
-            data-testid="admissions-bulk-stage-select"
-            onChange={(e) => setTargetStage(e.target.value as AdmissionManualStage)}
+        {onSelectVisible ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            data-testid="admissions-bulk-select-visible"
+            onClick={onSelectVisible}
           >
-            {stageOptions.map((stage) => (
-              <option key={stage} value={stage}>
-                {t(admissionManualStageLabelKey(stage))}
-              </option>
-            ))}
-          </select>
-        </label>
-
+            {t('admin.admissions.bulk.selectVisible')}
+          </button>
+        ) : null}
         <button
           type="button"
           className="btn btn--primary btn--sm"
-          disabled={applying || selectedItems.length === 0 || eligibleCount === 0}
-          onClick={() => void handleApplyStageChange()}
+          disabled={!canBulkChange}
+          data-testid="admissions-bulk-change-status"
+          onClick={() => setDialogOpen(true)}
         >
-          {applying ? t('common.loading') : t('admin.admissions.bulk.applyStageChange')}
+          {t('admin.admissions.bulk.changeStatus')}
+        </button>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm admissions-bulk-bar__clear"
+          data-testid="admissions-bulk-clear"
+          onClick={onClearSelection}
+        >
+          {t('admin.admissions.bulk.clearSelection')}
         </button>
       </div>
 
-      <button
-        type="button"
-        className="btn btn--ghost btn--sm admissions-bulk-bar__clear"
-        disabled={applying}
-        onClick={onClearSelection}
-      >
-        {t('admin.admissions.bulk.clearSelection')}
-      </button>
+      <AdmissionChangeStatusDialog
+        admissionIds={selectedItems.map((item) => item.id)}
+        allowedStatusTargets={sharedTargets}
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onBulkSuccess={() => {
+          onClearSelection();
+          onUpdated?.();
+        }}
+        onBulkFailure={() => {
+          /* keep selection */
+        }}
+      />
     </div>
   );
 }

@@ -9,17 +9,23 @@ import type { AdmissionOptions, AdmissionOptionsPayload } from '@/types/admissio
 import type { ApiErrorBody } from '@/types/api';
 import { normalizeAdmissionOptions } from '../utils/admission-options';
 
-export function useAdmissionOptions() {
+export function useAdmissionOptions(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled !== false;
   const { locale } = useLocale();
   const { activeSchoolId } = useAdminSession();
-  const [loading, setLoading] = useState(true);
-  const [options, setOptions] = useState<AdmissionOptions | null>(null);
+  const [loading, setLoading] = useState(enabled);
+  const [optionsState, setOptionsState] = useState<AdmissionOptions | null>(null);
   const [error, setError] = useState<ApiErrorBody | null>(null);
   const [nonce, setNonce] = useState(0);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+
     let active = true;
     setLoading(true);
     setError(null);
@@ -30,10 +36,10 @@ export function useAdmissionOptions() {
     api.get<AdmissionOptionsPayload>(endpoints.admin.admissionsOptions, query).then((res) => {
       if (!active) return;
       if (res.success) {
-        setOptions(normalizeAdmissionOptions(res.data));
+        setOptionsState(normalizeAdmissionOptions(res.data));
         setError(null);
       } else {
-        setOptions(null);
+        setOptionsState(null);
         setError(res.error);
       }
       setLoading(false);
@@ -42,7 +48,7 @@ export function useAdmissionOptions() {
     return () => {
       active = false;
     };
-  }, [activeSchoolId, locale, nonce]);
+  }, [activeSchoolId, enabled, locale, nonce]);
 
-  return { loading, options, error, reload };
+  return { loading, options: optionsState, error, reload };
 }

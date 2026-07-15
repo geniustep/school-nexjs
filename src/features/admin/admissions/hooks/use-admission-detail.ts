@@ -15,6 +15,13 @@ export function useAdmissionDetail(admissionId: string | null) {
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
+  /** Apply action response immediately (no empty flash), optionally soft-refresh. */
+  const replaceData = useCallback((next: AdmissionDetail) => {
+    setData(next);
+    setError(null);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     if (!admissionId || activeSchoolId == null) {
       setLoading(false);
@@ -39,5 +46,5 @@ export function useAdmissionDetail(admissionId: string | null) {
     };
   }, [admissionId, activeSchoolId, nonce]);
 
-  return { loading, data, error, reload };
+  return { loading, data, error, reload, replaceData };
 }

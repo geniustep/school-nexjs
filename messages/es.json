@@ -4523,16 +4523,16 @@
     },
     "admissions": {
       "applicationStatus": {
-        "new": "New",
-        "follow_up": "Follow-up",
-        "in_assessment": "In assessment",
-        "decision_pending": "Decision pending",
-        "accepted": "Accepted",
-        "ready_for_registration": "Ready for registration",
-        "registered": "Registered",
-        "waitlisted": "Waitlisted",
-        "rejected": "Rejected",
-        "closed": "Closed"
+        "new": "Nuevo",
+        "follow_up": "En seguimiento",
+        "in_assessment": "En evaluación",
+        "decision_pending": "En espera de decisión de la administración",
+        "accepted": "Aceptado",
+        "ready_for_registration": "Listo para registro",
+        "registered": "Registrado",
+        "waitlisted": "Lista de espera",
+        "rejected": "Rechazado",
+        "closed": "Cerrado"
       },
       "statusNav": {
         "navLabel": "Estado de la solicitud",
@@ -4580,6 +4580,29 @@
         "notFound": "No se encontró la solicitud de admisión.",
         "networkError": "No se pudo cerrar la solicitud. Compruebe la conexión e inténtelo de nuevo.",
         "unknownError": "No se pudo cerrar la solicitud en este momento."
+      },
+      "returnToStatusDialog": {
+        "title": "Volver a un estado anterior",
+        "description": "Elija el estado anterior e indique el motivo del retorno.",
+        "warning": "La solicitud volverá a una etapa anterior conservando el historial del proceso.",
+        "currentStatus": "Estado actual",
+        "targetLabel": "Estado de destino",
+        "targetRequired": "Elija un estado de destino.",
+        "targetNotAllowed": "Ese estado de destino no está permitido para esta solicitud.",
+        "noTargets": "No hay estados de retorno disponibles.",
+        "noteLabel": "Motivo del retorno",
+        "notePlaceholder": "Escriba el motivo para devolver la solicitud…",
+        "noteRequired": "El motivo del retorno es obligatorio.",
+        "confirm": "Confirmar retorno",
+        "submitting": "Devolviendo la solicitud…",
+        "success": "Estado de la solicitud devuelto.",
+        "permissionDenied": "No tiene permiso para devolver esta solicitud.",
+        "invalidState": "No se puede devolver la solicitud desde su estado actual.",
+        "registeredBlocked": "Las solicitudes registradas no se pueden devolver a un estado anterior.",
+        "conflict": "La solicitud se actualizó en otro lugar. Actualice e inténtelo de nuevo.",
+        "notFound": "No se encontró la solicitud de admisión.",
+        "networkError": "No se pudo devolver la solicitud. Compruebe la conexión e inténtelo de nuevo.",
+        "unknownError": "No se pudo devolver la solicitud en este momento."
       },
       "requestedServices": {
         "title": "Servicios escolares solicitados",
@@ -4708,7 +4731,7 @@
       },
       "kanban": {
         "emptyColumn": "No hay solicitudes en esta etapa",
-        "dragHint": "Arrastra una tarjeta a otra columna para cambiar la etapa operativa.",
+        "dragHint": "Arrastre el asa de la tarjeta a otra columna y confirme con un motivo.",
         "uiStageHint": "Las etapas del pipeline están unificadas entre tablero, tabla y ficha.",
         "dropBlockedRegistered": "Las solicitudes registradas están vinculadas a un alumno; usa el flujo de matriculación en lugar del arrastre.",
         "dropBlockedClosed": "Cerrar una solicitud requiere un motivo concreto; usa la ficha o el flujo de decisión.",
@@ -4720,7 +4743,8 @@
         "loadingMore": "Cargando…",
         "horizontalScroll": "Desplazar el tablero de solicitudes horizontalmente",
         "columnCount": "{count} solicitudes",
-        "noDragHint": "Arrastrar y soltar no está disponible en este espacio — use la tabla o el detalle para decidir."
+        "noDragHint": "",
+        "dropTargetNotAllowed": "Esta columna no está permitida para esta solicitud."
       },
       "card": {
         "guardian": "Tutor",
@@ -4759,7 +4783,7 @@
         "selectItem": "Seleccionar {name}",
         "selectVisible": "Seleccionar solicitudes visibles",
         "openDetail": "Abrir",
-        "modeHint": "Modo selección — haz clic en una tarjeta para seleccionar o deseleccionar. El arrastre está desactivado.",
+        "modeHint": "",
         "selectColumnVisible": "Seleccionar todas las solicitudes visibles de esta columna",
         "deselectItem": "Anular selección de la solicitud"
       },
@@ -4774,7 +4798,11 @@
         "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas.",
         "stageChangeIneligible": "{count} solicitudes no admiten cambio manual de etapa",
         "stageChangeIneligibleNote": "Se dejaron sin cambios {count} solicitud(es) no elegibles.",
-        "manualStageDisabled": "El cambio manual de etapa ya no está disponible — use acciones de seguimiento."
+        "manualStageDisabled": "",
+        "changeStatus": "Cambiar estado de seleccionados",
+        "noSharedTargets": "Las solicitudes seleccionadas no comparten ningún estado de destino permitido.",
+        "selectVisible": "Seleccionar elementos visibles de la página",
+        "pageScopeHint": "Selección limitada a la página mostrada ({count}) — no a todo el servidor."
       },
       "states": {
         "new": "Nueva",
@@ -5405,10 +5433,12 @@
         "convertToStudent": "Convertir en alumno",
         "waitlist": "Lista de espera",
         "close": "Cerrar solicitud",
+        "returnToStatus": "Devolver estado",
         "addNote": "Añadir nota",
         "recordAssessment": "Registrar evaluación",
         "completeAssessment": "Completar evaluación",
-        "requestReassessment": "Solicitar reevaluación"
+        "requestReassessment": "Solicitar reevaluación",
+        "changeStatus": "Cambiar estado"
       },
       "workspace": {
         "navLabel": "Espacios de admisiones",
@@ -5609,6 +5639,38 @@
         "initial_follow_up": "Seguimiento inicial",
         "assessment": "Evaluación",
         "decision": "En espera de decisión de la administración"
+      },
+      "changeStatusDialog": {
+        "title": "Cambiar estado",
+        "description": "Elija el nuevo estado e indique el motivo del cambio.",
+        "warning": "Este cambio de estado se registrará en el historial de la solicitud.",
+        "currentStatus": "Estado actual",
+        "targetLabel": "Estado de destino",
+        "targetRequired": "Elija un estado de destino.",
+        "targetNotAllowed": "Ese estado de destino no está permitido para esta solicitud.",
+        "noTargets": "No hay estados de destino disponibles.",
+        "noteLabel": "Motivo del cambio de estado",
+        "noteLabelRejected": "Motivo del rechazo",
+        "noteLabelClosed": "Motivo del cierre",
+        "notePlaceholder": "Escriba el motivo del cambio de estado…",
+        "noteRequired": "El motivo del cambio de estado es obligatorio.",
+        "familyApprovalConfirm": "Confirmo que la familia aprobó el registro.",
+        "familyApprovalRequired": "Confirme la aprobación de la familia antes de pasar a listo para registro.",
+        "confirm": "Confirmar cambio de estado",
+        "submitting": "Cambiando estado…",
+        "success": "Estado de la solicitud actualizado.",
+        "bulkTitle": "Cambiar estado de las solicitudes seleccionadas",
+        "bulkDescription": "Se actualizarán {count} solicitudes en una sola operación.",
+        "bulkAtomicWarning": "Operación atómica: o cambian todas las solicitudes seleccionadas, o ninguna.",
+        "bulkSuccess": "Se actualizaron {count} solicitudes.",
+        "blockerFallback": "No se pudo cambiar la solicitud {id}.",
+        "permissionDenied": "No tiene permiso para cambiar este estado.",
+        "invalidState": "Esta solicitud no puede cambiar de estado desde su estado actual.",
+        "registeredBlocked": "Las solicitudes registradas no pueden cambiar de estado.",
+        "conflict": "La solicitud se actualizó en otro lugar. Actualice e inténtelo de nuevo.",
+        "notFound": "No se encontró la solicitud de admisión.",
+        "networkError": "No se pudo cambiar el estado. Compruebe la conexión e inténtelo de nuevo.",
+        "unknownError": "No se pudo cambiar el estado en este momento."
       }
     },
     "enrollmentIntake": {

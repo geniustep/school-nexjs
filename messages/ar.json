@@ -4660,12 +4660,12 @@
       "applicationStatus": {
         "new": "جديد",
         "follow_up": "قيد المتابعة",
-        "in_assessment": "في التقييم",
+        "in_assessment": "قيد التقييم",
         "decision_pending": "بانتظار قرار الإدارة",
         "accepted": "مقبول",
         "ready_for_registration": "جاهز للتسجيل",
-        "registered": "محول إلى تلميذ",
-        "waitlisted": "قائمة الانتظار",
+        "registered": "مسجل",
+        "waitlisted": "لائحة الانتظار",
         "rejected": "مرفوض",
         "closed": "مغلق"
       },
@@ -4715,6 +4715,61 @@
         "notFound": "تعذر العثور على طلب التسجيل.",
         "networkError": "تعذر إغلاق الطلب. تحقق من الاتصال ثم أعد المحاولة.",
         "unknownError": "تعذر إغلاق الطلب حاليًا."
+      },
+      "returnToStatusDialog": {
+        "title": "إرجاع الحالة",
+        "description": "اختر الحالة السابقة واذكر سبب إرجاع الطلب.",
+        "warning": "سيتم إرجاع الطلب إلى مرحلة سابقة مع الاحتفاظ بسجل العملية.",
+        "currentStatus": "الحالة الحالية",
+        "targetLabel": "الحالة المستهدفة",
+        "targetRequired": "اختر الحالة المستهدفة.",
+        "targetNotAllowed": "هذه الحالة المستهدفة غير مسموحة لهذا الطلب.",
+        "noTargets": "لا توجد حالات يمكن الإرجاع إليها.",
+        "noteLabel": "سبب الإرجاع",
+        "notePlaceholder": "اكتب سبب إرجاع الطلب…",
+        "noteRequired": "سبب الإرجاع مطلوب.",
+        "confirm": "تأكيد الإرجاع",
+        "submitting": "جارٍ إرجاع الحالة…",
+        "success": "تم إرجاع حالة الطلب.",
+        "permissionDenied": "ليست لديك صلاحية لإرجاع حالة هذا الطلب.",
+        "invalidState": "لا يمكن إرجاع الطلب من حالته الحالية.",
+        "registeredBlocked": "لا يمكن إرجاع الطلب بعد تحويله إلى تلميذ.",
+        "conflict": "تم تحديث الطلب من جهة أخرى. حدّث الصفحة ثم أعد المحاولة.",
+        "notFound": "تعذر العثور على طلب التسجيل.",
+        "networkError": "تعذر إرجاع الطلب. تحقق من الاتصال ثم أعد المحاولة.",
+        "unknownError": "تعذر إرجاع الطلب حاليًا."
+      },
+      "changeStatusDialog": {
+        "title": "تغيير الحالة",
+        "description": "اختر الحالة الجديدة واذكر سبب التغيير.",
+        "warning": "سيتم تسجيل عملية تغيير الحالة في سجل الطلب.",
+        "currentStatus": "الحالة الحالية",
+        "targetLabel": "الحالة المستهدفة",
+        "targetRequired": "اختر الحالة المستهدفة.",
+        "targetNotAllowed": "هذه الحالة المستهدفة غير مسموحة لهذا الطلب.",
+        "noTargets": "لا توجد حالات يمكن الانتقال إليها.",
+        "noteLabel": "سبب تغيير الحالة",
+        "noteLabelRejected": "سبب الرفض",
+        "noteLabelClosed": "سبب الإغلاق",
+        "notePlaceholder": "اكتب سبب تغيير الحالة…",
+        "noteRequired": "سبب تغيير الحالة مطلوب.",
+        "familyApprovalConfirm": "أؤكد أن الأسرة وافقت على التسجيل.",
+        "familyApprovalRequired": "يجب تأكيد موافقة الأسرة قبل النقل إلى جاهز للتسجيل.",
+        "confirm": "تأكيد تغيير الحالة",
+        "submitting": "جارٍ تغيير الحالة…",
+        "success": "تم تغيير حالة الطلب.",
+        "bulkTitle": "تغيير حالة الطلبات المحددة",
+        "bulkDescription": "سيتم تغيير حالة {count} طلبًا دفعة واحدة.",
+        "bulkAtomicWarning": "العملية ذرية: إما أن تتغير كل الطلبات المحددة أو لا يتغير أي طلب.",
+        "bulkSuccess": "تم تغيير حالة {count} طلبًا.",
+        "blockerFallback": "تعذر تغيير الطلب {id}.",
+        "permissionDenied": "ليست لديك صلاحية لتغيير حالة هذا الطلب.",
+        "invalidState": "لا يمكن تغيير الطلب من حالته الحالية.",
+        "registeredBlocked": "لا يمكن تغيير حالة الطلب المسجّل.",
+        "conflict": "تم تحديث الطلب من جهة أخرى. حدّث الصفحة ثم أعد المحاولة.",
+        "notFound": "تعذر العثور على طلب التسجيل.",
+        "networkError": "تعذر تغيير الحالة. تحقق من الاتصال ثم أعد المحاولة.",
+        "unknownError": "تعذر تغيير الحالة حاليًا."
       },
       "requestedServices": {
         "title": "الخدمات المطلوبة",
@@ -4889,7 +4944,7 @@
       },
       "kanban": {
         "emptyColumn": "لا توجد طلبات في هذه المرحلة",
-        "dragHint": "اسحب البطاقة إلى عمود آخر لتغيير المرحلة التشغيلية.",
+        "dragHint": "اسحب مقبض البطاقة إلى عمود آخر، ثم أكّد مع ذكر السبب.",
         "uiStageHint": "مراحل المسار موحّدة بين اللوحة والجدول وصفحة التفاصيل.",
         "dropBlockedRegistered": "الطلبات المسجّلة مرتبطة بتلميذ — استخدم مسار التسجيل بدل السحب والإفلات.",
         "dropBlockedClosed": "إغلاق الطلب يتطلب سببًا محددًا — استخدم صفحة التفاصيل أو مسار القرار.",
@@ -4901,7 +4956,8 @@
         "loadingMore": "جاري التحميل…",
         "horizontalScroll": "تمرير لوحة الطلبات أفقيًا",
         "columnCount": "{count} طلب",
-        "noDragHint": "السحب والإفلات غير متاح في هذه المساحة — استخدم الجدول أو التفاصيل لاتخاذ القرار."
+        "noDragHint": "",
+        "dropTargetNotAllowed": "هذا العمود غير مسموح لهذا الطلب."
       },
       "card": {
         "guardian": "ولي الأمر",
@@ -4940,7 +4996,7 @@
         "selectItem": "تحديد {name}",
         "selectVisible": "تحديد الطلبات الظاهرة",
         "openDetail": "فتح",
-        "modeHint": "وضع التحديد — انقر على البطاقة للتحديد أو إلغائه. السحب معطّل.",
+        "modeHint": "",
         "selectColumnVisible": "تحديد جميع الطلبات الظاهرة في هذا العمود",
         "deselectItem": "إلغاء تحديد الطلب"
       },
@@ -4955,7 +5011,11 @@
         "stageChangeFailed": "تعذر تحديث الطلبات المحدّدة.",
         "stageChangeIneligible": "{count} طلب غير قابل لتغيير المرحلة اليدوية",
         "stageChangeIneligibleNote": "وتُرك {count} طلبًا غير مؤهل.",
-        "manualStageDisabled": "تغيير المرحلة اليدوي لم يعد متاحًا — استخدم إجراءات المتابعة."
+        "manualStageDisabled": "",
+        "changeStatus": "تغيير حالة المحدد",
+        "noSharedTargets": "الطلبات المحددة لا تشترك في حالة مستهدفة مسموحة.",
+        "selectVisible": "تحديد العناصر الظاهرة في الصفحة",
+        "pageScopeHint": "التحديد يقتصر على الصفحة الظاهرة ({count}) — وليس كل نتائج السيرفر."
       },
       "states": {
         "new": "جديد",
@@ -5410,7 +5470,7 @@
       },
       "decisions": {
         "accepted": "مقبول",
-        "accepted_with_condition": "مقبول بشروط",
+        "accepted_with_condition": "مقبول",
         "waitlisted": "قائمة انتظار",
         "rejected": "مرفوض من المدرسة",
         "needs_reassessment": "يحتاج إعادة تقييم"
@@ -5544,7 +5604,7 @@
       "schoolDecision": {
         "pending": "قيد القرار",
         "accepted": "قرار المدرسة: مقبول",
-        "accepted_with_condition": "مقبول بشروط",
+        "accepted_with_condition": "مقبول",
         "rejected": "مرفوض من المدرسة"
       },
       "outcomeSummary": {
@@ -5586,6 +5646,8 @@
         "convertToStudent": "تحويل إلى تلميذ",
         "waitlist": "قائمة الانتظار",
         "close": "إغلاق الطلب",
+        "returnToStatus": "إرجاع الحالة",
+        "changeStatus": "تغيير الحالة",
         "addNote": "إضافة ملاحظة",
         "recordAssessment": "تسجيل تقييم",
         "completeAssessment": "إكمال التقييم",

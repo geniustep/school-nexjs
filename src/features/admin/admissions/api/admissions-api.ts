@@ -15,7 +15,9 @@ import type {
   CreateAssessmentPayload,
   CreateDecisionPayload,
   CreateOfferPayload,
+  AdmissionsBulkActionResult,
   ExecuteAdmissionActionPayload,
+  ExecuteAdmissionsBulkActionPayload,
   PatchAdmissionPayload,
   ReopenAdmissionPayload,
   AdmissionPrefillApiEnvelope,
@@ -122,6 +124,23 @@ export async function executeAdmissionAction(
       admissionId: id,
     });
     return { ...res, data: normalizeAdmissionDetail(res.data) };
+  }
+  return res;
+}
+
+export async function executeAdmissionsBulkAction(
+  payload: ExecuteAdmissionsBulkActionPayload,
+  query?: ListParams,
+): Promise<ApiResponse<AdmissionsBulkActionResult>> {
+  const res = await api.post<AdmissionsBulkActionResult>(
+    endpoints.admin.admissionsBulkActions,
+    payload,
+    query,
+  );
+  if (res.success) {
+    notifyAdmissionsQueriesInvalidated({
+      reason: `bulk:${String(payload.action ?? '')}`,
+    });
   }
   return res;
 }

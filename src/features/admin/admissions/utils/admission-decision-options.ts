@@ -1,13 +1,12 @@
 import type { DecisionType } from '@/types/admission';
 
 /**
- * Creatable school decisions — positive path is `accepted` only.
- * Legacy `accepted_with_condition` remains readable but is not offered.
+ * Creatable school decisions — accept or reject only.
+ * Waitlist is a status change (allowed_status_targets), not a school decision type.
+ * Legacy `accepted_with_condition` remains readable but is never offered.
  */
 export const ADMISSION_DECISION_OPTIONS = [
   'accepted',
-  'waitlisted',
-  'needs_reassessment',
   'rejected',
 ] as const satisfies readonly DecisionType[];
 

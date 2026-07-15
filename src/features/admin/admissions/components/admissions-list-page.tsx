@@ -59,6 +59,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { AdmissionsStatusNav } from './admissions-status-nav';
 import { AdmissionsServicesFilterPopover } from './admissions-services-filter-popover';
 import { AdmissionsRawStateKanban } from './admissions-raw-state-kanban';
+import { AdmissionsBulkActionBar } from './admissions-bulk-action-bar';
 import { AdmissionsTable } from './admissions-table';
 import type { AdmissionListItem, AdmissionRequestedService, AdmissionsDashboard } from '@/types/admission';
 import type { ListParams } from '@/types/api';
@@ -74,7 +75,9 @@ export function AdmissionsListPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { options: admissionOptions } = useAdmissionOptions();
+  // Defer options/services until Kanban paints first column — reduces HTTP contention
+  // with the 6 parallel column list calls (measured bottleneck on school).
+  const [kanbanShellReady, setKanbanShellReady] = useState(false);
   const {
     activeSchoolId,
     requiresActiveSchool,
@@ -218,6 +221,22 @@ export function AdmissionsListPage() {
     enabled: kanbanEnabled,
   });
 
+  useEffect(() => {
+    if (view !== 'kanban' || !kanbanEnabled) {
+      setKanbanShellReady(true);
+      return;
+    }
+    // Wait for first column paint; stay ready across soft refreshes that keep cards.
+    setKanbanShellReady(!kanbanBoard.initialLoading);
+  }, [view, kanbanEnabled, kanbanBoard.initialLoading]);
+
+  const secondaryFiltersEnabled =
+    filtersReady && (view !== 'kanban' || !kanbanEnabled || kanbanShellReady);
+
+  const { options: admissionOptions } = useAdmissionOptions({
+    enabled: secondaryFiltersEnabled,
+  });
+
   const dashboardQuery = useMemo(
     () => buildAdmissionsDashboardQuery(listState),
     [listState],
@@ -254,7 +273,7 @@ export function AdmissionsListPage() {
   ]);
 
   const servicesCatalogState = useAdminResource<{ items?: AdmissionRequestedService[] } | AdmissionRequestedService[]>(
-    filtersReady ? endpoints.admin.admissionsRequestedServices : null,
+    secondaryFiltersEnabled ? endpoints.admin.admissionsRequestedServices : null,
     {},
     { keepPreviousData: false },
   );
@@ -363,23 +382,31 @@ export function AdmissionsListPage() {
     setListState((prev) => applyApplicationStatusFilter(prev, status));
   }
 
-  function reloadCurrentView() {
+  function reloadCurrentView(options?: { reloadServicesCatalog?: boolean }) {
     if (view === 'kanban') {
       kanbanBoard.reload();
     } else {
       tableState.reload();
     }
     dashboardState.reload();
-    servicesCatalogState.reload();
+    // Status mutations do not change the services catalog — skip that round-trip.
+    if (options?.reloadServicesCatalog) {
+      servicesCatalogState.reload();
+    }
   }
 
   const reloadCurrentViewRef = useRef(reloadCurrentView);
   reloadCurrentViewRef.current = reloadCurrentView;
 
-  // After family approval / status actions / finance selectable flag, refresh list + catalog.
+  // After family approval / status actions, refresh list + dashboard.
+  // Reload services catalog only when requested-services payloads change.
   useEffect(() => {
-    const onInvalidate = () => {
-      reloadCurrentViewRef.current();
+    const onInvalidate = (event: Event) => {
+      const detail = (event as CustomEvent<{ reason?: string }>).detail;
+      const reason = String(detail?.reason ?? '');
+      const reloadServicesCatalog =
+        reason === 'requested_services' || reason.includes('requested_service');
+      reloadCurrentViewRef.current({ reloadServicesCatalog });
     };
     window.addEventListener(ADMISSIONS_QUERIES_INVALIDATED_EVENT, onInvalidate);
     return () => {
@@ -673,12 +700,24 @@ export function AdmissionsListPage() {
       ) : null}
 
       {selectedCount > 0 ? (
-        <div className="admissions-bulk-bar muted" data-testid="admissions-bulk-disabled">
-          <button type="button" className="btn btn--ghost btn--sm" onClick={clearSelection}>
-            {t('admin.admissions.bulk.clearSelection')}
-          </button>
-          <span>{t('admin.admissions.bulk.manualStageDisabled')}</span>
-        </div>
+        <AdmissionsBulkActionBar
+          selectedItems={
+            view === 'kanban'
+              ? kanbanColumns.flatMap((col) => col.items).filter((item) => isSelected(item.id))
+              : tableRows.filter((item) => isSelected(item.id))
+          }
+          onClearSelection={clearSelection}
+          onUpdated={reloadCurrentView}
+          visibleCount={view === 'kanban' ? undefined : tableRows.length}
+          onSelectVisible={
+            view === 'table'
+              ? () => toggleVisible(tableRows.map((r) => r.id))
+              : () =>
+                  toggleVisible(
+                    kanbanColumns.flatMap((col) => col.items).map((item) => item.id),
+                  )
+          }
+        />
       ) : null}
 
       {view === 'kanban' && workspacePreset.kanbanAllowed ? (
@@ -701,7 +740,7 @@ export function AdmissionsListPage() {
         ) : (
           <AdmissionsRawStateKanban
             columns={kanbanColumns}
-            allowDrag={false}
+            allowDrag
             onUpdated={reloadCurrentView}
             onLoadMore={(state) => kanbanBoard.loadMore(state)}
             selectionMode={selectionMode}

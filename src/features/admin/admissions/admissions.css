@@ -515,14 +515,23 @@
   align-items: center;
   gap: 0.35rem;
   margin: 0 0.15rem 0.45rem;
-  padding: 0.2rem 0.15rem;
+  padding: 0.35rem 0.35rem;
+  z-index: 5;
+  background: color-mix(in srgb, var(--surface-2, #f8fafc) 92%, white);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 70%, transparent);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--c-text, #0f172a) 4%, transparent);
 }
 
 .admissions-kanban-scroll-rail--top {
+  position: sticky;
+  top: 0.35rem;
   margin: 0.15rem 0.15rem 0.4rem;
 }
 
 .admissions-kanban-scroll-rail--bottom {
+  position: sticky;
+  bottom: 0.35rem;
   margin: 0.4rem 0.15rem 0.1rem;
 }
 
@@ -591,6 +600,7 @@
   position: absolute;
   top: 1px;
   bottom: 1px;
+  left: 0;
   border-radius: 999px;
   background: linear-gradient(
     180deg,
@@ -600,7 +610,7 @@
   box-shadow: 0 1px 2px color-mix(in srgb, var(--primary, #2563eb) 25%, transparent);
   cursor: grab;
   touch-action: none;
-  transition: inset-inline-start 0.08s linear, left 0.08s linear;
+  transition: left 0.08s linear;
 }
 
 .admissions-kanban-scroll-rail__thumb:active {
@@ -753,7 +763,24 @@
   flex-direction: column;
   overflow: visible;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--kanban-accent) 10%, white);
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, opacity 0.15s,
+    transform 0.15s, flex-basis 0.15s, width 0.15s, max-width 0.15s;
+}
+
+.admissions-kanban__column--ghost {
+  flex-basis: 13.5rem;
+  width: 13.5rem;
+  max-width: 13.5rem;
+  min-height: 3.75rem;
+  opacity: 0.42;
+  background: color-mix(in srgb, var(--kanban-accent) 4%, white);
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.admissions-kanban__column--ghost.admissions-kanban__column--drop-target {
+  opacity: 0.78;
+  border-style: solid;
 }
 
 .admissions-kanban__column:has([aria-expanded='true']) {
@@ -2839,8 +2866,9 @@
     font-size: 0.875rem;
   }
 
-  .admission-card__drag-handle {
-    display: none;
+  /* Keep Kanban drag affordance visible; stacked board still supports DnD. */
+  .admissions-kanban .admission-card__drag-handle {
+    display: inline-flex;
   }
 
   .admission-card-wrap {
@@ -2943,27 +2971,71 @@
   opacity: 0.45;
 }
 
-.admission-card--dragging {
-  border-style: dashed;
-}
-
 .admission-card--saving {
   opacity: 0.65;
   pointer-events: none;
 }
 
+/* Pointer-drag handle (not HTML5 DnD). */
 .admission-card__drag-handle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.1rem;
+  flex-shrink: 0;
+  min-width: 1.75rem;
+  min-height: 1.85rem;
   margin: 0;
-  font-size: 0.78rem;
+  padding: 0.3rem 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--primary, #2563eb) 28%, var(--c-border, #e2e8f0));
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--primary, #2563eb) 10%, white);
+  font: inherit;
+  font-size: 1rem;
   line-height: 1;
   letter-spacing: -0.06em;
-  color: var(--c-muted, #64748b);
+  color: var(--c-text, #0f172a);
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
   cursor: grab;
+  pointer-events: auto;
+  z-index: 3;
+}
+
+.admission-card__drag-handle:hover {
+  background: color-mix(in srgb, var(--primary, #2563eb) 16%, white);
+}
+
+.admission-card__drag-handle:active {
+  cursor: grabbing;
+  background: color-mix(in srgb, var(--primary, #2563eb) 22%, white);
+}
+
+.admission-card--dragging {
+  opacity: 0.45;
+}
+
+.admissions-kanban-drag-ghost {
+  position: fixed;
+  z-index: 80;
+  max-width: 14rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--primary, #2563eb) 35%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, white 92%, var(--primary, #2563eb));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--c-text, #0f172a) 18%, transparent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admissions-kanban-outer[data-dragging='true'] {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .admission-state-select {

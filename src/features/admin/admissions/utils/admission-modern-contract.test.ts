@@ -209,9 +209,11 @@ describe('admission modern contract', () => {
       resolve(process.cwd(), 'src/features/admin/admissions/components/admission-list-actions-menu.tsx'),
       'utf8',
     );
-    expect(kanban).toContain('allowDrag = false');
-    expect(listPage).toContain('allowDrag={false}');
-    expect(listPage).toContain('admissions-bulk-disabled');
+    expect(kanban).toContain('allowDrag = true');
+    expect(listPage).toContain('allowDrag');
+    expect(listPage).toContain('AdmissionsBulkActionBar');
+    expect(listPage).not.toContain('admissions-bulk-disabled');
+    expect(listPage).not.toContain('manualStageDisabled');
     expect(menu).not.toContain('handleFollowUpState');
     expect(menu).not.toContain('changeFollowUp');
     expect(menu).toContain('executeAdmissionAction');

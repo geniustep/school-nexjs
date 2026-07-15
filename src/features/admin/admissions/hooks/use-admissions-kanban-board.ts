@@ -199,24 +199,32 @@ export function useAdmissionsKanbanBoard({
     }
 
     let cancelled = false;
-    setInitialLoading(true);
-    setColumnStates(
-      Object.fromEntries(
-        activeColumns.map((state) => [
-          state,
-          {
+
+    // Soft refresh: keep previous cards visible; only block the whole board on first load.
+    setColumnStates((prev) => {
+      const hadItems = activeColumns.some((state) => (prev[state]?.items?.length ?? 0) > 0);
+      setInitialLoading(!hadItems);
+      return Object.fromEntries(
+        activeColumns.map((state) => {
+          const existing = prev[state];
+          const keepItems = existing?.items ?? [];
+          return [
             state,
-            items: [],
-            total: 0,
-            page: 0,
-            hasMore: false,
-            loading: true,
-            loadingMore: false,
-            error: null,
-          } satisfies AdmissionsKanbanColumn,
-        ]),
-      ),
-    );
+            {
+              state,
+              items: keepItems,
+              total: existing?.total ?? keepItems.length,
+              page: existing?.page ?? 0,
+              hasMore: existing?.hasMore ?? false,
+              // Empty columns show local skeleton; populated columns stay visible.
+              loading: keepItems.length === 0,
+              loadingMore: false,
+              error: null,
+            } satisfies AdmissionsKanbanColumn,
+          ];
+        }),
+      );
+    });
 
     void (async () => {
       if (partitionByApplicationStatus) {
@@ -251,7 +259,10 @@ export function useAdmissionsKanbanBoard({
         return;
       }
 
-      const results = await Promise.all(
+      // Progressive settle: paint the board as soon as the first column returns
+      // instead of waiting for Promise.all wall-time (slowest column).
+      let settledCount = 0;
+      await Promise.all(
         activeColumns.map(async (state) => {
           const res = await fetchAdmissions({
             active_school_id: activeSchoolId,
@@ -261,18 +272,16 @@ export function useAdmissionsKanbanBoard({
             page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
             ...resolvedExtraQuery,
           });
-          return { state, res };
+          if (cancelled) return;
+          settledCount += 1;
+          setColumnStates((prev) => ({
+            ...prev,
+            [state]: columnFromResponse(state, res, 1, [], true),
+          }));
+          if (settledCount === 1) setInitialLoading(false);
         }),
       );
-
-      if (cancelled) return;
-
-      const next: Record<string, AdmissionsKanbanColumn> = {};
-      for (const { state, res } of results) {
-        next[state] = columnFromResponse(state, res, 1, [], true);
-      }
-      setColumnStates(next);
-      setInitialLoading(false);
+      if (!cancelled) setInitialLoading(false);
     })();
 
     return () => {

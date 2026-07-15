@@ -1,5 +1,3 @@
-import { isFollowUpApplicationStatus } from './admission-modern-status';
-
 const RAW_COLUMN_STATES = [
   'new',
   'follow_up',
@@ -8,9 +6,10 @@ const RAW_COLUMN_STATES = [
   'waitlisted',
 ] as const;
 
-/** Drag targets: follow_up application_status columns only (drag disabled in UI). */
+/** Drag targets: any official status column except registered. */
 export function isRawKanbanDropTarget(state: string): boolean {
-  return isFollowUpApplicationStatus(state);
+  if (!state || state === 'registered') return false;
+  return true;
 }
 
 export function rawKanbanColumnClass(state: string): string {

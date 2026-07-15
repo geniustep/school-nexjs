@@ -161,8 +161,113 @@ export function resolvePrimaryNextActionCode(primary: unknown): string | null {
 
 export function filterDailyModernActions(actions: unknown) {
   return normalizeModernAllowedActions(actions).filter(
-    (action) => action.allowed && action.code !== EXCEPTIONAL_ONLY && action.code !== 'start_registration',
+    (action) =>
+      action.allowed &&
+      action.code !== EXCEPTIONAL_ONLY &&
+      action.code !== 'start_registration' &&
+      // Dedicated dialog (needs target_status + note) — never auto-run.
+      action.code !== 'return_to_status' &&
+      action.code !== 'change_status',
   );
+}
+
+/** Normalize Backend status-target lists into status code strings. No local fallback list. */
+export function normalizeAllowedStatusTargets(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of raw) {
+    let code = '';
+    if (typeof item === 'string') {
+      code = item.trim();
+    } else if (item && typeof item === 'object') {
+      const row = item as {
+        code?: unknown;
+        status?: unknown;
+        target_status?: unknown;
+      };
+      const candidate = row.code ?? row.status ?? row.target_status;
+      code = typeof candidate === 'string' ? candidate.trim() : '';
+    }
+    if (!code || seen.has(code)) continue;
+    seen.add(code);
+    out.push(code);
+  }
+  return out;
+}
+
+/** @deprecated Prefer normalizeAllowedStatusTargets — 14A alias. */
+export function normalizeAllowedReturnTargets(raw: unknown): string[] {
+  return normalizeAllowedStatusTargets(raw);
+}
+
+/**
+ * Unified change_status visibility — Backend allowed_status_targets only.
+ * registered is never changeable; rejected/closed may show when Backend allows reopen via targets.
+ */
+export function canShowChangeStatusAction(record: {
+  application_status?: unknown;
+  modern_allowed_actions?: unknown;
+  allowed_status_targets?: unknown;
+  allowed_return_targets?: unknown;
+} | null | undefined): boolean {
+  if (!record) return false;
+  const status =
+    typeof record.application_status === 'string' ? record.application_status.trim() : '';
+  if (status === 'registered') return false;
+  const targets = normalizeAllowedStatusTargets(record.allowed_status_targets);
+  if (targets.length === 0) return false;
+  if (isModernActionExplicitlyDenied(record.modern_allowed_actions, 'change_status')) {
+    return false;
+  }
+  const modern = normalizeModernAllowedActions(record.modern_allowed_actions);
+  const hasChangeEntry = modern.some((action) => action.code === 'change_status');
+  if (hasChangeEntry) {
+    return isModernActionAllowed(record.modern_allowed_actions, 'change_status');
+  }
+  return true;
+}
+
+/**
+ * Intersection of allowed_status_targets across selected records (bulk).
+ */
+export function intersectAllowedStatusTargets(
+  records: Array<{ allowed_status_targets?: unknown } | null | undefined>,
+): string[] {
+  const lists = records.map((record) => normalizeAllowedStatusTargets(record?.allowed_status_targets));
+  if (lists.length === 0) return [];
+  let intersection = lists[0] ?? [];
+  for (let i = 1; i < lists.length; i += 1) {
+    const set = new Set(lists[i]);
+    intersection = intersection.filter((code) => set.has(code));
+  }
+  return intersection;
+}
+
+/**
+ * Return-to-earlier-status visibility — Backend fields only (14A retained).
+ * Prefer canShowChangeStatusAction for the unified UI.
+ */
+export function canShowReturnToStatusAction(record: {
+  application_status?: unknown;
+  modern_allowed_actions?: unknown;
+  allowed_return_targets?: unknown;
+} | null | undefined): boolean {
+  if (!record) return false;
+  const status =
+    typeof record.application_status === 'string' ? record.application_status.trim() : '';
+  if (status === 'registered' || status === 'rejected' || status === 'closed') return false;
+  const targets = normalizeAllowedReturnTargets(record.allowed_return_targets);
+  if (targets.length === 0) return false;
+  if (isModernActionExplicitlyDenied(record.modern_allowed_actions, 'return_to_status')) {
+    return false;
+  }
+  const modern = normalizeModernAllowedActions(record.modern_allowed_actions);
+  const hasReturnEntry = modern.some((action) => action.code === 'return_to_status');
+  if (hasReturnEntry) {
+    return isModernActionAllowed(record.modern_allowed_actions, 'return_to_status');
+  }
+  return true;
 }
 
 export function resolveStudentNavigation(

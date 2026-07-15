@@ -29,7 +29,11 @@ import {
 } from './admission-status-display';
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
 import { resolveAdmissionStudentId } from './admission-registration';
-import { normalizeModernAllowedActions } from './admission-modern-actions';
+import {
+  normalizeAllowedReturnTargets,
+  normalizeAllowedStatusTargets,
+  normalizeModernAllowedActions,
+} from './admission-modern-actions';
 import {
   normalizeAdmissionRequestedServices,
   normalizeHasRequestedServices,
@@ -84,6 +88,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   next_action: AdmissionNextAction;
   modern_allowed_actions: ReturnType<typeof normalizeModernAllowedActions>;
   exception_actions: ReturnType<typeof normalizeModernAllowedActions>;
+  allowed_return_targets: string[];
+  allowed_status_targets: string[];
 } {
   const decision = normalizeAdmissionDecision(raw);
   const status_warnings = normalizeStatusWarnings(raw.status_warnings);
@@ -110,6 +116,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   const next_action = normalizeAdmissionNextAction(raw.next_action);
   const modern_allowed_actions = normalizeModernAllowedActions(raw.modern_allowed_actions);
   const exception_actions = normalizeModernAllowedActions(raw.exception_actions);
+  const allowed_return_targets = normalizeAllowedReturnTargets(raw.allowed_return_targets);
+  const allowed_status_targets = normalizeAllowedStatusTargets(raw.allowed_status_targets);
 
   const workflowSource = asAdmissionWorkflowFields({
     ...raw,
@@ -160,6 +168,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
     primary_next_action: raw.primary_next_action ?? null,
     modern_allowed_actions,
     exception_actions,
+    allowed_return_targets,
+    allowed_status_targets,
     navigation: raw.navigation && typeof raw.navigation === 'object' ? raw.navigation : null,
     warnings: Array.isArray(raw.warnings) ? raw.warnings : [],
     blocking_reasons: Array.isArray(raw.blocking_reasons) ? raw.blocking_reasons : [],
@@ -197,6 +207,8 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
     primary_next_action: normalized.primary_next_action as AdmissionListItem['primary_next_action'],
     modern_allowed_actions: normalized.modern_allowed_actions,
     exception_actions: normalized.exception_actions,
+    allowed_return_targets: normalized.allowed_return_targets,
+    allowed_status_targets: normalized.allowed_status_targets,
     navigation: normalized.navigation as AdmissionListItem['navigation'],
     warnings: normalized.warnings as AdmissionListItem['warnings'],
     blocking_reasons: normalized.blocking_reasons as AdmissionListItem['blocking_reasons'],
@@ -238,6 +250,8 @@ export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDeta
     primary_next_action: normalized.primary_next_action as AdmissionDetail['primary_next_action'],
     modern_allowed_actions: normalized.modern_allowed_actions,
     exception_actions: normalized.exception_actions,
+    allowed_return_targets: normalized.allowed_return_targets,
+    allowed_status_targets: normalized.allowed_status_targets,
     navigation: normalized.navigation as AdmissionDetail['navigation'],
     warnings: normalized.warnings as AdmissionDetail['warnings'],
     blocking_reasons: normalized.blocking_reasons as AdmissionDetail['blocking_reasons'],

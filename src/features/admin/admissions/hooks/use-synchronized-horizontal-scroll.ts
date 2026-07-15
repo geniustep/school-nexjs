@@ -4,14 +4,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   boardStartScrollLeft,
   computeHorizontalScrollMetrics,
-  scrollLeftFromRatio,
+  scrollLeftAfterThumbDrag,
+  scrollLeftFromPhysicalRatio,
   type HorizontalScrollMetrics,
 } from '../utils/synchronized-horizontal-scroll';
+import { horizontalScrollMetricsEqual } from '../utils/horizontal-scroll-metrics-equal';
 
 const DEFAULT_STEP = 300;
 
 const INITIAL_METRICS: HorizontalScrollMetrics = {
   ratio: 0,
+  scrollRatio: 0,
+  thumbInset: 0,
   thumbRatio: 1,
   overflow: false,
   canScrollBack: false,
@@ -21,7 +25,7 @@ const INITIAL_METRICS: HorizontalScrollMetrics = {
 
 /**
  * Single content scroller + dual custom rails (top/bottom) kept in sync.
- * Does not invent a second native scrollbar; rails drive the same element.
+ * Scroller is LTR; RTL boards use row-reverse + start-at-max scroll.
  */
 export function useSynchronizedHorizontalScroll(options: {
   dir: 'rtl' | 'ltr';
@@ -38,38 +42,43 @@ export function useSynchronizedHorizontalScroll(options: {
   const syncScrollUi = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setMetrics(
-      computeHorizontalScrollMetrics(el.scrollLeft, el.scrollWidth, el.clientWidth),
+    const next = computeHorizontalScrollMetrics(
+      el.scrollLeft,
+      el.scrollWidth,
+      el.clientWidth,
+      dir,
     );
-  }, []);
+    setMetrics((prev) => (horizontalScrollMetricsEqual(prev, next) ? prev : next));
+  }, [dir]);
 
   const scrollTowardPipelineStart = useCallback(() => {
-    scrollRef.current?.scrollBy({ left: step, behavior: 'smooth' });
-  }, [step]);
+    const el = scrollRef.current;
+    if (!el) return;
+    // RTL start = max scroll → move toward start by increasing scrollLeft.
+    el.scrollBy({ left: dir === 'rtl' ? step : -step, behavior: 'smooth' });
+  }, [dir, step]);
 
   const scrollTowardPipelineEnd = useCallback(() => {
-    scrollRef.current?.scrollBy({ left: -step, behavior: 'smooth' });
-  }, [step]);
-
-  const setScrollRatio = useCallback((ratio: number) => {
     const el = scrollRef.current;
-    if (!el || syncingRef.current) return;
-    syncingRef.current = true;
-    const max = Math.max(0, el.scrollWidth - el.clientWidth);
-    el.scrollLeft = scrollLeftFromRatio(max, ratio);
-    requestAnimationFrame(() => {
-      syncingRef.current = false;
-      syncScrollUi();
-    });
-  }, [syncScrollUi]);
+    if (!el) return;
+    el.scrollBy({ left: dir === 'rtl' ? -step : step, behavior: 'smooth' });
+  }, [dir, step]);
 
   const navigateRail = useCallback(
     (clientX: number, track: HTMLElement) => {
+      const el = scrollRef.current;
+      if (!el || syncingRef.current) return;
       const rect = track.getBoundingClientRect();
-      const relative = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      setScrollRatio(relative);
+      const physical = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(rect.width, 1)));
+      syncingRef.current = true;
+      const max = Math.max(0, el.scrollWidth - el.clientWidth);
+      el.scrollLeft = scrollLeftFromPhysicalRatio(max, physical, dir);
+      requestAnimationFrame(() => {
+        syncingRef.current = false;
+        syncScrollUi();
+      });
     },
-    [setScrollRatio],
+    [dir, syncScrollUi],
   );
 
   const onThumbPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
@@ -93,9 +102,16 @@ export function useSynchronizedHorizontalScroll(options: {
       if (travel <= 0) return;
 
       const deltaX = event.clientX - drag.startX;
-      el.scrollLeft = Math.max(0, Math.min(max, drag.startScroll + (deltaX / travel) * max));
+      el.scrollLeft = scrollLeftAfterThumbDrag({
+        startScroll: drag.startScroll,
+        deltaX,
+        travel,
+        max,
+        dir,
+      });
+      syncScrollUi();
     },
-    [metrics.thumbRatio],
+    [dir, metrics.thumbRatio, syncScrollUi],
   );
 
   const onThumbPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
@@ -103,7 +119,8 @@ export function useSynchronizedHorizontalScroll(options: {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-  }, []);
+    syncScrollUi();
+  }, [syncScrollUi]);
 
   const resetScrollPosition = useCallback(() => {
     const el = scrollRef.current;
@@ -145,7 +162,6 @@ export function useSynchronizedHorizontalScroll(options: {
     syncScrollUi,
     scrollTowardPipelineStart,
     scrollTowardPipelineEnd,
-    setScrollRatio,
     navigateRail,
     onThumbPointerDown,
     onThumbPointerMove,

@@ -62,6 +62,71 @@ export type AdmissionKanbanPresentationColumn = {
   loadMoreStage: string | null;
 };
 
+/** Empty status columns (0 pupils) are hidden until a card is being dragged. */
+export function isKanbanColumnVacant(column: {
+  total: number;
+  items: readonly unknown[];
+  loading: boolean;
+}): boolean {
+  return !column.loading && column.total === 0 && column.items.length === 0;
+}
+
+/**
+ * Idle: hide vacant columns.
+ * Dragging: reveal vacant columns as faint drop slots (`isGhost`) only when they
+ * are allowed for the dragged card (`allowedTargetIds` from Backend Payload).
+ * `registered` never appears as a ghost drop slot.
+ */
+export function visibleKanbanColumnsForBoard<T extends {
+  id: string;
+  total: number;
+  items: readonly unknown[];
+  loading: boolean;
+}>(
+  columns: readonly T[],
+  options: {
+    dragging: boolean;
+    /** Official statuses from `allowed_status_targets` for the dragged card. */
+    allowedTargetIds?: readonly string[] | null;
+  },
+): Array<T & { isGhost: boolean }> {
+  if (!options.dragging) {
+    return columns
+      .filter((column) => !isKanbanColumnVacant(column))
+      .map((column) => ({ ...column, isGhost: false }));
+  }
+
+  const allowed = options.allowedTargetIds;
+  return columns
+    .filter((column) => {
+      if (!isKanbanColumnVacant(column)) return true;
+      if (column.id === 'registered') return false;
+      if (allowed == null) return true;
+      return allowed.includes(column.id);
+    })
+    .map((column) => ({
+      ...column,
+      isGhost: isKanbanColumnVacant(column),
+    }));
+}
+
+/** Drop highlight for a column while dragging — respects Backend targets. */
+export function isKanbanColumnDroppableForDrag(input: {
+  columnId: string;
+  allowDrag: boolean;
+  dragging: boolean;
+  allowedTargetIds: readonly string[] | null | undefined;
+  dropStage: string | null;
+  isDropTargetState: (state: string) => boolean;
+}): boolean {
+  const { columnId, allowDrag, dragging, allowedTargetIds, dropStage, isDropTargetState } =
+    input;
+  if (!allowDrag || !dragging || dropStage == null || dropStage !== columnId) return false;
+  if (!isDropTargetState(dropStage)) return false;
+  if (allowedTargetIds == null) return true;
+  return allowedTargetIds.includes(dropStage);
+}
+
 function emptyColumn(state: string): AdmissionsKanbanColumn {
   return {
     state,
@@ -133,12 +198,16 @@ export function groupKanbanColumnsForPresentation(
   });
 }
 
-/** Drop target mapping — drag disabled; returns null for modern boards. */
+/**
+ * Drop target = official application_status column id.
+ * `registered` is never a drop target (terminal conversion).
+ */
 export function presentationColumnDropStage(
   columnId: AdmissionKanbanPresentationColumnId,
 ): string | null {
-  if (MODERN_STATUS_COLUMNS.has(columnId)) return null;
-  return null;
+  if (!columnId || columnId === 'registered') return null;
+  if (MODERN_STATUS_COLUMNS.has(columnId)) return columnId;
+  return columnId;
 }
 
 export function resolveAdmissionProcessingStageBadgeKey(

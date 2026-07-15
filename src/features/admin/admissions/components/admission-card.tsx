@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
 import { PhoneText } from '@/components/ui/numeric-text';
@@ -32,7 +33,19 @@ export function readAdmissionCardDragPayload(dataTransfer: DataTransfer): number
   return Number.isFinite(id) && id > 0 ? id : null;
 }
 
-export function AdmissionCard({
+/** Checkbox / menu / links must not initiate Kanban drag. */
+export function isAdmissionCardDragBlockedTarget(target: EventTarget | null): boolean {
+  const el = target as { closest?: (selector: string) => unknown } | null;
+  if (!el || typeof el.closest !== 'function') return false;
+  if (el.closest('.admission-card__drag-handle')) return false;
+  return Boolean(
+    el.closest(
+      'a, input, textarea, select, label, button, .admission-card__select, .admission-card__actions',
+    ),
+  );
+}
+
+function AdmissionCardComponent({
   item,
   draggable = false,
   showStateBadge = true,
@@ -40,8 +53,7 @@ export function AdmissionCard({
   processingStageHintKey = null,
   isDragging = false,
   isSaving = false,
-  onDragStart,
-  onDragEnd,
+  onDragPointerDown,
   selectable = false,
   selected = false,
   selectionMode = false,
@@ -57,8 +69,8 @@ export function AdmissionCard({
   processingStageHintKey?: string | null;
   isDragging?: boolean;
   isSaving?: boolean;
-  onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
-  onDragEnd?: (event: React.DragEvent<HTMLDivElement>) => void;
+  /** Pointer-based Kanban drag (preferred over HTML5 DnD). */
+  onDragPointerDown?: (event: React.PointerEvent<HTMLElement>) => void;
   selectable?: boolean;
   selected?: boolean;
   selectionMode?: boolean;
@@ -73,7 +85,7 @@ export function AdmissionCard({
   const levelName = refName(item.requested_level);
   const guardianName = cleanDisplayValue(item.guardian_name);
   const guardianPhone = cleanDisplayValue(item.guardian_phone);
-  const dragEnabled = draggable && !selectionMode && !isSaving;
+  const dragEnabled = draggable && !isSaving;
   const displayName = studentName || t('common.dash');
   const status =
     typeof item.application_status === 'string' && item.application_status.trim()
@@ -89,33 +101,21 @@ export function AdmissionCard({
   const servicesCount = item.requested_services?.length ?? 0;
   const serviceMaxVisible = servicesCount <= 3 ? 3 : 2;
 
-  function isInteractiveDragSource(target: EventTarget | null): boolean {
-    if (!(target instanceof Element)) return false;
-    return Boolean(
-      target.closest(
-        'input, button, a, label, .admission-card__select, .admission-card__actions, .admission-card__open-detail',
-      ),
-    );
-  }
-
-  function handleCardClick(event: React.MouseEvent) {
-    if (!selectionMode || !onToggleSelect) return;
-    event.preventDefault();
-    event.stopPropagation();
-    onToggleSelect();
-  }
-
   function handleCheckboxChange(event: React.ChangeEvent<HTMLInputElement>) {
     event.stopPropagation();
     onToggleSelect?.();
   }
 
-  function handleDragStart(event: React.DragEvent<HTMLDivElement>) {
-    if (!dragEnabled || isInteractiveDragSource(event.target)) {
-      event.preventDefault();
-      return;
+  function handleDragPointerDown(event: React.PointerEvent<HTMLElement>) {
+    if (!dragEnabled || event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Capture may fail if the element is not active yet.
     }
-    onDragStart?.(event);
+    onDragPointerDown?.(event);
   }
 
   const tools = (
@@ -143,58 +143,48 @@ export function AdmissionCard({
           />
         </label>
       ) : null}
-      {!selectionMode ? (
-        <div
-          className="admission-card__actions"
-          onClick={(event) => event.stopPropagation()}
-          onMouseDown={(event) => event.stopPropagation()}
-        >
-          <AdmissionListActionsMenu
-            admissionId={item.id}
-            listItem={item}
-            onUpdated={onUpdated}
-            compact
-          />
-        </div>
-      ) : null}
+      <div
+        className="admission-card__actions"
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <AdmissionListActionsMenu
+          admissionId={item.id}
+          listItem={item}
+          onUpdated={onUpdated}
+          compact
+        />
+      </div>
     </div>
   );
 
   const header = (
     <div className="admission-card__header">
       <div className="admission-card__identity">
-        {draggable && !selectionMode ? (
-          <span
+        {dragEnabled ? (
+          <button
+            type="button"
             className="admission-card__drag-handle"
-            aria-hidden="true"
+            aria-label={t('admin.admissions.kanban.dragHint')}
             title={t('admin.admissions.kanban.dragHint')}
+            data-testid={`admission-card-drag-handle-${item.id}`}
+            data-admission-id={item.id}
+            onPointerDown={handleDragPointerDown}
+            onClick={(event) => event.preventDefault()}
           >
-            ⋮⋮
-          </span>
+            <span aria-hidden="true">⋮⋮</span>
+          </button>
         ) : null}
-        {selectionMode ? (
-          <div className="admission-card__identity-text">
-            <h3 className="admission-card__title" dir="auto" title={displayName}>
-              {displayName}
-            </h3>
-            {levelName ? (
-              <p className="admission-card__level" dir="auto" title={levelName}>
-                {levelName}
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <Link href={href} className="admission-card__identity-link">
-            <h3 className="admission-card__title" dir="auto" title={displayName}>
-              {displayName}
-            </h3>
-            {levelName ? (
-              <p className="admission-card__level" dir="auto" title={levelName}>
-                {levelName}
-              </p>
-            ) : null}
-          </Link>
-        )}
+        <Link href={href} className="admission-card__identity-link" draggable={false}>
+          <h3 className="admission-card__title" dir="auto" title={displayName}>
+            {displayName}
+          </h3>
+          {levelName ? (
+            <p className="admission-card__level" dir="auto" title={levelName}>
+              {levelName}
+            </p>
+          ) : null}
+        </Link>
       </div>
       {tools}
     </div>
@@ -202,16 +192,6 @@ export function AdmissionCard({
 
   const content = (
     <div className="admission-card__content">
-      {selectionMode ? (
-        <Link
-          href={href}
-          className="admission-card__open-detail"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {t('admin.admissions.selection.openDetail')}
-        </Link>
-      ) : null}
-
       {(item.requested_services?.length ?? 0) > 0 ? (
         <div className="admission-card__requested-services">
           <AdmissionRequestedServicesChips
@@ -332,31 +312,19 @@ export function AdmissionCard({
     selectionMode && 'admission-card--selection-mode',
   );
 
-  if (selectionMode) {
-    return (
-      <div
-        className={cardClassName}
-        data-testid={`admission-card-${item.id}`}
-        onClick={handleCardClick}
-      >
-        {header}
-        {content}
-      </div>
-    );
-  }
-
   return (
     <div
       className={cardClassName}
       data-testid={`admission-card-${item.id}`}
-      draggable={dragEnabled}
-      onDragStart={dragEnabled ? handleDragStart : undefined}
-      onDragEnd={dragEnabled ? onDragEnd : undefined}
+      data-draggable={dragEnabled ? 'true' : 'false'}
     >
       {header}
-      <Link href={href} className="admission-card__link">
+      <Link href={href} className="admission-card__link" draggable={false}>
         {content}
       </Link>
     </div>
   );
 }
+
+/** Memoized for Kanban: pointer-move no longer re-renders every card. */
+export const AdmissionCard = memo(AdmissionCardComponent);

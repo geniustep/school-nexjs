@@ -12,8 +12,10 @@ import { mapAdmissionActionError } from '../utils/admission-action-errors';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import { buildAdmissionTabHref, type AdmissionTabId } from '../utils/admission-detail-tabs';
 import {
+  canShowChangeStatusAction,
   filterDailyModernActions,
   hasModernContract,
+  normalizeAllowedStatusTargets,
   resolveDetailPrimaryActionCode,
   resolveStudentNavigation,
   shouldShowConvertToStudentAction,
@@ -27,6 +29,7 @@ import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 import { AdmissionCloseDialog } from './admission-close-dialog';
+import { AdmissionChangeStatusDialog } from './admission-change-status-dialog';
 
 type DecisionAction =
   | 'accept'
@@ -58,6 +61,8 @@ export function AdmissionPrimaryActionPanel({
   const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [changeStatusOpen, setChangeStatusOpen] = useState(false);
+  const [initialTarget, setInitialTarget] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const modern = hasModernContract(detail);
@@ -66,6 +71,9 @@ export function AdmissionPrimaryActionPanel({
   const terminalReason = resolveAdmissionTerminalReasonPanel(detail);
   const primaryCode = resolveDetailPrimaryActionCode(detail);
   const daily = filterDailyModernActions(detail.modern_allowed_actions);
+  const canChangeStatus = canShowChangeStatusAction(detail);
+  const statusTargets = normalizeAllowedStatusTargets(detail.allowed_status_targets);
+  const canWaitlist = canChangeStatus && statusTargets.includes('waitlisted');
   const studentNav = resolveStudentNavigation(detail.navigation, detail.student_id);
   const convertAllowed = shouldShowConvertToStudentAction(detail);
   const secondary = daily.filter(
@@ -73,7 +81,7 @@ export function AdmissionPrimaryActionPanel({
       action.code !== primaryCode &&
       action.code !== 'link_existing_student' &&
       action.code !== 'start_registration' &&
-      // Dedicated convert CTA already rendered — do not bury a duplicate in overflow.
+      action.code !== 'waitlist' &&
       !(convertAllowed && action.code === 'convert_to_student') &&
       !(primaryCode === 'convert_to_student' && action.code === 'convert_to_student'),
   );
@@ -95,6 +103,11 @@ export function AdmissionPrimaryActionPanel({
     },
     [admissionId, router],
   );
+
+  function openChangeStatus(target?: string | null) {
+    setInitialTarget(target ?? null);
+    setChangeStatusOpen(true);
+  }
 
   function showError(error: unknown) {
     const mapped = mapAdmissionActionError(error);
@@ -144,6 +157,14 @@ export function AdmissionPrimaryActionPanel({
       setCloseOpen(true);
       return;
     }
+    if (primaryCode === 'change_status' || primaryCode === 'return_to_status') {
+      openChangeStatus();
+      return;
+    }
+    if (primaryCode === 'waitlist') {
+      openChangeStatus('waitlisted');
+      return;
+    }
     if (primaryCode === 'convert_to_student') {
       void runAction('convert_to_student');
       return;
@@ -154,6 +175,77 @@ export function AdmissionPrimaryActionPanel({
     }
     void runAction(primaryCode);
   }
+
+  const changeStatusButton =
+    canChangeStatus &&
+    primaryCode !== 'change_status' &&
+    primaryCode !== 'return_to_status' ? (
+      <button
+        type="button"
+        className="btn btn--ghost btn--sm"
+        disabled={busy}
+        data-testid="admission-change-status-action"
+        onClick={() => openChangeStatus()}
+      >
+        {t(modernActionLabelKey('change_status'))}
+      </button>
+    ) : null;
+
+  const waitlistButton = canWaitlist ? (
+    <button
+      type="button"
+      className="btn btn--ghost btn--sm"
+      disabled={busy}
+      data-testid="admission-waitlist-status-action"
+      onClick={() => openChangeStatus('waitlisted')}
+    >
+      {t(modernActionLabelKey('waitlist'))}
+    </button>
+  ) : null;
+
+  const dialogs = (
+    <>
+      <AdmissionQuickFollowUpDialog
+        admissionId={Number(admissionId)}
+        open={followUpOpen}
+        onClose={() => setFollowUpOpen(false)}
+        onSuccess={() => onUpdated()}
+      />
+      <AdmissionModernDecisionDialog
+        admissionId={Number(admissionId)}
+        action={decisionAction ?? 'accept'}
+        open={decisionAction != null}
+        onClose={() => setDecisionAction(null)}
+        onSuccess={() => onUpdated()}
+      />
+      <AdmissionReopenDialog
+        admissionId={Number(admissionId)}
+        open={reopenOpen}
+        onClose={() => setReopenOpen(false)}
+        onSuccess={() => onUpdated()}
+      />
+      <AdmissionCloseDialog
+        admissionId={Number(admissionId)}
+        applicationName={detail.student_name}
+        open={closeOpen}
+        onClose={() => setCloseOpen(false)}
+        onSuccess={() => onUpdated()}
+      />
+      <AdmissionChangeStatusDialog
+        admissionId={Number(admissionId)}
+        applicationName={detail.student_name}
+        currentStatus={status}
+        allowedStatusTargets={detail.allowed_status_targets}
+        initialTargetStatus={initialTarget}
+        open={changeStatusOpen}
+        onClose={() => {
+          setChangeStatusOpen(false);
+          setInitialTarget(null);
+        }}
+        onSuccess={(next) => onUpdated(next)}
+      />
+    </>
+  );
 
   if (!modern) {
     return (
@@ -188,6 +280,7 @@ export function AdmissionPrimaryActionPanel({
   if (terminalReason) {
     return (
       <div
+        ref={rootRef}
         className={cn('admission-primary-action-panel', className)}
         data-testid="admission-primary-action-panel"
         data-reason-kind={terminalReason.kind}
@@ -200,14 +293,15 @@ export function AdmissionPrimaryActionPanel({
           >
             {terminalReason.reason || t(terminalReason.emptyKey)}
           </p>
+          {changeStatusButton}
         </div>
+        {dialogs}
       </div>
     );
   }
 
   const primaryAllowed = primaryCode != null;
-  const showConvertFallback =
-    convertAllowed && primaryCode !== 'convert_to_student';
+  const showConvertFallback = convertAllowed && primaryCode !== 'convert_to_student';
 
   return (
     <div
@@ -225,11 +319,15 @@ export function AdmissionPrimaryActionPanel({
               data-testid={
                 primaryCode === 'convert_to_student'
                   ? 'admission-convert-to-student-primary'
-                  : 'admission-primary-action-button'
+                  : primaryCode === 'change_status' || primaryCode === 'return_to_status'
+                    ? 'admission-change-status-action'
+                    : 'admission-primary-action-button'
               }
               onClick={openPrimary}
             >
-              {t(modernActionLabelKey(primaryCode))}
+              {primaryCode === 'return_to_status'
+                ? t(modernActionLabelKey('change_status'))
+                : t(modernActionLabelKey(primaryCode))}
             </button>
           </div>
         ) : (
@@ -249,6 +347,9 @@ export function AdmissionPrimaryActionPanel({
             {t(modernActionLabelKey('convert_to_student'))}
           </button>
         ) : null}
+
+        {changeStatusButton}
+        {waitlistButton}
 
         {secondary.length > 0 ? (
           <div className="admission-primary-action-panel__more">
@@ -283,11 +384,15 @@ export function AdmissionPrimaryActionPanel({
                         setDecisionAction(action.code);
                       } else if (action.code === 'reopen') setReopenOpen(true);
                       else if (action.code === 'close') setCloseOpen(true);
-                      else if (action.code === 'convert_to_student') void runAction('convert_to_student');
+                      else if (action.code === 'change_status' || action.code === 'return_to_status') {
+                        openChangeStatus();
+                      } else if (action.code === 'convert_to_student') void runAction('convert_to_student');
                       else void runAction(action.code);
                     }}
                   >
-                    {t(modernActionLabelKey(action.code))}
+                    {action.code === 'return_to_status'
+                      ? t(modernActionLabelKey('change_status'))
+                      : t(modernActionLabelKey(action.code))}
                   </button>
                 ))}
               </div>
@@ -296,32 +401,7 @@ export function AdmissionPrimaryActionPanel({
         ) : null}
       </div>
 
-      <AdmissionQuickFollowUpDialog
-        admissionId={Number(admissionId)}
-        open={followUpOpen}
-        onClose={() => setFollowUpOpen(false)}
-        onSuccess={() => onUpdated()}
-      />
-      <AdmissionModernDecisionDialog
-        admissionId={Number(admissionId)}
-        action={decisionAction ?? 'accept'}
-        open={decisionAction != null}
-        onClose={() => setDecisionAction(null)}
-        onSuccess={() => onUpdated()}
-      />
-      <AdmissionReopenDialog
-        admissionId={Number(admissionId)}
-        open={reopenOpen}
-        onClose={() => setReopenOpen(false)}
-        onSuccess={() => onUpdated()}
-      />
-      <AdmissionCloseDialog
-        admissionId={Number(admissionId)}
-        applicationName={detail.student_name}
-        open={closeOpen}
-        onClose={() => setCloseOpen(false)}
-        onSuccess={() => onUpdated()}
-      />
+      {dialogs}
     </div>
   );
 }

@@ -56,9 +56,25 @@ export type AdmissionModernActionCode =
   | 'accept_and_record_family_approval'
   | 'close'
   | 'reopen'
+  | 'return_to_status'
+  | 'change_status'
   | 'convert_to_student'
   | 'link_existing_student'
   | string;
+
+/** Backend-provided status target codes (change_status / return_to_status) — never invent locally. */
+export type AdmissionStatusTarget =
+  | string
+  | {
+      code?: string | null;
+      status?: string | null;
+      target_status?: string | null;
+      label?: string | null;
+      [key: string]: unknown;
+    };
+
+/** @deprecated Prefer AdmissionStatusTarget — retained for 14A compatibility. */
+export type AdmissionReturnTarget = AdmissionStatusTarget;
 
 export interface AdmissionLastAction {
   code?: string | null;
@@ -103,10 +119,37 @@ export interface ExecuteAdmissionActionPayload {
   result?: string;
   note?: string;
   reason?: string;
+  target_status?: string;
+  confirm_family_approval?: boolean;
   next_action?: string;
   next_action_date?: string;
   scheduled_at?: string;
   appointment_at?: string;
+  [key: string]: unknown;
+}
+
+export interface ExecuteAdmissionsBulkActionPayload {
+  action: 'change_status' | string;
+  application_ids: number[];
+  target_status: string;
+  note: string;
+  confirm_family_approval?: boolean;
+  [key: string]: unknown;
+}
+
+export interface AdmissionsBulkActionBlocker {
+  application_id?: number | null;
+  id?: number | null;
+  code?: string | null;
+  message?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AdmissionsBulkActionResult {
+  changed_count?: number | null;
+  application_ids?: number[] | null;
+  blockers?: AdmissionsBulkActionBlocker[] | null;
+  items?: AdmissionDetail[] | null;
   [key: string]: unknown;
 }
 
@@ -351,6 +394,10 @@ export interface AdmissionListItem {
   primary_next_action?: AdmissionNextAction;
   modern_allowed_actions?: AdmissionModernAllowedAction[] | string[] | null;
   exception_actions?: AdmissionModernAllowedAction[] | string[] | null;
+  /** Backend source of truth for return_to_status targets (list seed, 14A). */
+  allowed_return_targets?: AdmissionStatusTarget[] | null;
+  /** Backend source of truth for unified change_status targets. */
+  allowed_status_targets?: AdmissionStatusTarget[] | null;
   navigation?: AdmissionNavigation | null;
   warnings?: Array<string | Record<string, unknown>> | null;
   blocking_reasons?: AdmissionBlockingReason[] | null;
@@ -546,6 +593,10 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   primary_next_action?: AdmissionNextAction;
   modern_allowed_actions?: AdmissionModernAllowedAction[] | string[] | null;
   exception_actions?: AdmissionModernAllowedAction[] | string[] | null;
+  /** Backend source of truth for return_to_status Select options (14A). */
+  allowed_return_targets?: AdmissionStatusTarget[] | null;
+  /** Backend source of truth for unified change_status Select options. */
+  allowed_status_targets?: AdmissionStatusTarget[] | null;
   navigation?: AdmissionNavigation | null;
   warnings?: Array<string | Record<string, unknown>> | null;
   blocking_reasons?: AdmissionBlockingReason[] | null;

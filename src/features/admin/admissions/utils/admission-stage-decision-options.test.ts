@@ -22,12 +22,8 @@ import { vi } from 'vitest';
 
 describe('getAdmissionDecisionOptions', () => {
   it('returns creatable decisions without accepted_with_condition', () => {
-    expect([...getAdmissionDecisionOptions()]).toEqual([
-      'accepted',
-      'waitlisted',
-      'needs_reassessment',
-      'rejected',
-    ]);
+    expect([...getAdmissionDecisionOptions()]).toEqual(['accepted', 'rejected']);
+    expect(isAdmissionDecisionOption('waitlisted')).toBe(false);
     expect(isAdmissionDecisionOption('accepted_with_condition')).toBe(false);
   });
 

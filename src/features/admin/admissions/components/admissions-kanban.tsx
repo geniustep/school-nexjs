@@ -27,7 +27,6 @@ import {
 } from '../utils/admission-ui-stage';
 import {
   AdmissionCard,
-  admissionCardDragPayload,
   readAdmissionCardDragPayload,
 } from './admission-card';
 import type { AdmissionListItem } from '@/types/admission';
@@ -462,17 +461,8 @@ export function AdmissionsKanban({
                             selectionMode={selectionMode}
                             onToggleSelect={() => onToggleSelect?.(item.id)}
                             onUpdated={onUpdated}
-                            onDragStart={(event) => {
-                              event.dataTransfer.setData(
-                                'application/x-admission-id',
-                                admissionCardDragPayload(item.id),
-                              );
-                              event.dataTransfer.effectAllowed = 'move';
+                            onDragPointerDown={() => {
                               setDraggingAdmissionId(item.id);
-                            }}
-                            onDragEnd={() => {
-                              setDraggingAdmissionId(null);
-                              setDropTargetStage(null);
                             }}
                           />
                         );

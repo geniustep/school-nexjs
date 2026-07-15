@@ -40,6 +40,10 @@ export function modernActionLabelKey(code: string): string {
       return 'admin.admissions.actions.reopen';
     case 'close':
       return 'admin.admissions.actions.close';
+    case 'return_to_status':
+      return 'admin.admissions.actions.returnToStatus';
+    case 'change_status':
+      return 'admin.admissions.actions.changeStatus';
     case 'waitlist':
       return 'admin.admissions.actions.waitlist';
     case 'add_note':

@@ -301,7 +301,7 @@ describe('admissions filters compliance matrix', () => {
       ),
       'utf8',
     );
-    expect(listPage).toContain('allowDrag={false}');
+    expect(listPage).toContain('allowDrag');
     expect(listPage).not.toContain('attention_level');
     expect(kanbanHook).toContain('application_status: state');
     expect(kanbanHook).not.toContain('processing_stage: state');

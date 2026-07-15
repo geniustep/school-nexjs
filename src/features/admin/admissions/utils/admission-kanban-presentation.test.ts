@@ -73,8 +73,9 @@ describe('application_status kanban presentation', () => {
   });
 
   it('disables drop targets for modern application_status boards', () => {
-    expect(presentationColumnDropStage('follow_up')).toBeNull();
-    expect(presentationColumnDropStage('in_assessment')).toBeNull();
-    expect(presentationColumnDropStage('decision_pending')).toBeNull();
+    expect(presentationColumnDropStage('follow_up')).toBe('follow_up');
+    expect(presentationColumnDropStage('in_assessment')).toBe('in_assessment');
+    expect(presentationColumnDropStage('decision_pending')).toBe('decision_pending');
+    expect(presentationColumnDropStage('registered')).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import {
   boardStartScrollLeft,
   computeHorizontalScrollMetrics,
   nextSyncedScrollLeft,
+  scrollLeftAfterThumbDrag,
   scrollLeftFromRatio,
 } from './synchronized-horizontal-scroll';
 import {
@@ -20,7 +21,10 @@ import {
   parseWorkspaceListStateFromSearchParams,
   type AdmissionWorkspaceListState,
 } from './admission-workspace';
-import { admissionKanbanFetchStages } from './admission-kanban-presentation';
+import {
+  admissionKanbanFetchStages,
+  visibleKanbanColumnsForBoard,
+} from './admission-kanban-presentation';
 import {
   evaluateManualStageChange,
   getAdmissionManualStageOptions,
@@ -104,44 +108,80 @@ describe('column accents and labels', () => {
 
 describe('synchronized horizontal scroll helpers', () => {
   it('10-16. overflow, ratio sync, no-loop, no overflow', () => {
-    const overflow = computeHorizontalScrollMetrics(40, 1000, 400);
+    const overflow = computeHorizontalScrollMetrics(40, 1000, 400, 'ltr');
     expect(overflow.overflow).toBe(true);
     expect(overflow.thumbRatio).toBeLessThan(1);
     expect(overflow.ratio).toBeCloseTo(40 / 600, 5);
 
-    const none = computeHorizontalScrollMetrics(0, 400, 400);
+    const none = computeHorizontalScrollMetrics(0, 400, 400, 'ltr');
     expect(none.overflow).toBe(false);
     expect(none.thumbRatio).toBe(1);
 
-    expect(scrollLeftFromRatio(600, 0.5)).toBe(300);
+    expect(scrollLeftFromRatio(600, 0.5, 'ltr')).toBe(300);
     expect(nextSyncedScrollLeft(120, 120)).toBeNull();
     expect(nextSyncedScrollLeft(120, 80)).toBe(120);
   });
 
-  it('19-20. RTL/LTR board start positions', () => {
+  it('19-20. RTL/LTR board start positions and thumb drag direction', () => {
     expect(boardStartScrollLeft(1000, 400, 'ltr')).toBe(0);
     expect(boardStartScrollLeft(1000, 400, 'rtl')).toBe(600);
+
+    const rtlStart = computeHorizontalScrollMetrics(600, 1000, 400, 'rtl');
+    expect(rtlStart.ratio).toBeCloseTo(0, 5);
+    expect(rtlStart.thumbInset).toBeCloseTo(1, 5);
+    expect(rtlStart.canScrollForward).toBe(true);
+    expect(rtlStart.canScrollBack).toBe(false);
+
+    // LTR: finger right → toward end (higher scrollLeft).
+    expect(
+      scrollLeftAfterThumbDrag({
+        startScroll: 0,
+        deltaX: 150,
+        travel: 300,
+        max: 600,
+        dir: 'ltr',
+      }),
+    ).toBe(300);
+    // RTL: start at right; finger left → toward end (lower scrollLeft).
+    expect(
+      scrollLeftAfterThumbDrag({
+        startScroll: 600,
+        deltaX: -150,
+        travel: 300,
+        max: 600,
+        dir: 'rtl',
+      }),
+    ).toBe(300);
+  });
+
+  it('hides vacant columns until drag, then reveals allowed ghost slots', () => {
+    const columns = [
+      { id: 'new', total: 2, items: [{ id: 1 }], loading: false },
+      { id: 'follow_up', total: 0, items: [], loading: false },
+      { id: 'waitlisted', total: 0, items: [], loading: true },
+    ];
+    const idle = visibleKanbanColumnsForBoard(columns, { dragging: false });
+    expect(idle.map((c) => c.id)).toEqual(['new', 'waitlisted']);
+    expect(idle.every((c) => !c.isGhost)).toBe(true);
+
+    const dragging = visibleKanbanColumnsForBoard(columns, {
+      dragging: true,
+      allowedTargetIds: ['follow_up'],
+    });
+    expect(dragging.map((c) => c.id)).toEqual(['new', 'follow_up', 'waitlisted']);
+    expect(dragging.find((c) => c.id === 'follow_up')?.isGhost).toBe(true);
+    expect(dragging.find((c) => c.id === 'waitlisted')?.isGhost).toBe(false);
   });
 });
 
 describe('drag / drop targets', () => {
-  it('31-35. follow_up application_status columns are drop targets; others blocked', () => {
+  it('31-35. follow_up / official statuses are drop targets; registered blocked', () => {
     for (const stage of FOLLOW_UP_WORKSPACE_STATES) {
       expect(isRawKanbanDropTarget(stage)).toBe(true);
     }
-    for (const blocked of [
-      'confirmed',
-      'registered',
-      'accepted',
-      'offer_sent',
-      'lost',
-      'cancelled',
-      'duplicate',
-      'decision_pending',
-      'initial_follow_up',
-    ]) {
-      expect(isRawKanbanDropTarget(blocked)).toBe(false);
-    }
+    expect(isRawKanbanDropTarget('decision_pending')).toBe(true);
+    expect(isRawKanbanDropTarget('accepted')).toBe(true);
+    expect(isRawKanbanDropTarget('registered')).toBe(false);
 
     expect(
       evaluateManualStageChange({ state: 'new' }, 'confirmed').apply,

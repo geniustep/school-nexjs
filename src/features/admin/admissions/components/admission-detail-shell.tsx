@@ -198,7 +198,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useSession();
-  const { loading, data, error, reload } = useAdmissionDetail(admissionId);
+  const { loading, data, error, reload, replaceData } = useAdmissionDetail(admissionId);
   const searchTab = searchParams.get('tab');
   const tab = parseAdmissionTab(searchTab);
   const [editRequestSeq, setEditRequestSeq] = useState(0);
@@ -412,7 +412,10 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <AdmissionPrimaryActionPanel
             detail={detail}
             admissionId={admissionId}
-            onUpdated={() => reload()}
+            onUpdated={(next) => {
+              if (next) replaceData(next);
+              else reload();
+            }}
             onRequestEdit={canEdit ? requestLimitedEdit : undefined}
             className="admission-primary-action-panel--ops"
           />

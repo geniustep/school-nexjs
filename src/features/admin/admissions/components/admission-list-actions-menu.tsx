@@ -14,6 +14,7 @@ import {
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import { mapAdmissionActionError } from '../utils/admission-action-errors';
 import {
+  canShowChangeStatusAction,
   filterDailyModernActions,
   hasModernContract,
   isModernActionAllowed,
@@ -30,6 +31,7 @@ import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 import { AdmissionCloseDialog } from './admission-close-dialog';
+import { AdmissionChangeStatusDialog } from './admission-change-status-dialog';
 
 type MenuCoords = { top: number; left: number };
 type DecisionAction =
@@ -76,6 +78,8 @@ export function AdmissionListActionsMenu({
     primary_next_action?: AdmissionDetail['primary_next_action'];
     modern_allowed_actions?: AdmissionDetail['modern_allowed_actions'];
     exception_actions?: AdmissionDetail['exception_actions'];
+    allowed_return_targets?: AdmissionDetail['allowed_return_targets'];
+    allowed_status_targets?: AdmissionDetail['allowed_status_targets'];
     navigation?: AdmissionDetail['navigation'];
     student_id?: number | false | null;
     last_action?: AdmissionDetail['last_action'];
@@ -100,6 +104,7 @@ export function AdmissionListActionsMenu({
   const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [changeStatusOpen, setChangeStatusOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const loadDetail = useCallback(async () => {
@@ -193,6 +198,8 @@ export function AdmissionListActionsMenu({
         | 'primary_next_action'
         | 'modern_allowed_actions'
         | 'exception_actions'
+        | 'allowed_return_targets'
+        | 'allowed_status_targets'
         | 'navigation'
         | 'student_id'
         | 'last_action'
@@ -207,6 +214,7 @@ export function AdmissionListActionsMenu({
   const studentNav = seed
     ? resolveStudentNavigation(seed.navigation, seed.student_id)
     : null;
+  const canChangeStatus = Boolean(seed && canShowChangeStatusAction(seed));
 
   const canLogContact =
     modern &&
@@ -379,6 +387,22 @@ export function AdmissionListActionsMenu({
             </button>
           ) : null}
 
+          {canChangeStatus ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item"
+              disabled={busy}
+              data-testid="admission-actions-change-status"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setChangeStatusOpen(true), 0);
+              }}
+            >
+              {t(modernActionLabelKey('change_status'))}
+            </button>
+          ) : null}
+
           {canReopen ? (
             <button
               type="button"
@@ -481,6 +505,27 @@ export function AdmissionListActionsMenu({
         }}
         onSuccess={() => {
           afterSuccess();
+          void loadDetail();
+        }}
+      />
+      <AdmissionChangeStatusDialog
+        admissionId={admissionId}
+        applicationName={
+          (detail?.student_name as string | undefined) ||
+          listItem?.student_name ||
+          null
+        }
+        currentStatus={status}
+        allowedStatusTargets={
+          detail?.allowed_status_targets ?? listItem?.allowed_status_targets ?? []
+        }
+        open={changeStatusOpen}
+        onClose={() => {
+          setChangeStatusOpen(false);
+          triggerRef.current?.focus();
+        }}
+        onSuccess={(next) => {
+          afterSuccess(next);
           void loadDetail();
         }}
       />

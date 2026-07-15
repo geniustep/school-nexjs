@@ -221,3 +221,101 @@ export function mapAdmissionCloseActionError(error: unknown): string {
   }
   return 'admin.admissions.closeDialog.unknownError';
 }
+
+export function isReturnToStatusNoteRequiredMessage(message: string): boolean {
+  const normalized = normalizeMessage(message);
+  if (!normalized) return false;
+  return (
+    (normalized.includes('note') &&
+      normalized.includes('required') &&
+      (normalized.includes('return') || normalized.includes('return_to_status'))) ||
+    normalized.includes('note is required') ||
+    normalized.includes('reason is required') ||
+    normalized.includes('return reason')
+  );
+}
+
+export function mapAdmissionReturnToStatusActionError(error: unknown): string {
+  const mapped = mapAdmissionChangeStatusActionError(error);
+  return mapped.replace(
+    'admin.admissions.changeStatusDialog.',
+    'admin.admissions.returnToStatusDialog.',
+  );
+}
+
+export function mapAdmissionChangeStatusActionError(error: unknown): string {
+  const value = error as ApiErrorBody & {
+    status?: number;
+    details?: { status?: number; code?: string; message?: string };
+  };
+  const status = value?.status ?? value?.details?.status;
+  const codeLower = String(value?.code ?? value?.details?.code ?? '').trim().toLowerCase();
+  const message = String(value?.message ?? value?.details?.message ?? '');
+  const messageLower = message.toLowerCase();
+
+  if (isReturnToStatusNoteRequiredMessage(message)) {
+    return 'admin.admissions.changeStatusDialog.noteRequired';
+  }
+  if (
+    /family.?approval|confirm_family_approval/i.test(messageLower) ||
+    codeLower.includes('family_approval')
+  ) {
+    return 'admin.admissions.changeStatusDialog.familyApprovalRequired';
+  }
+  if (
+    codeLower.includes('target') ||
+    /target[_ ]?status|not allowed|invalid target|disallowed target/i.test(message)
+  ) {
+    return 'admin.admissions.changeStatusDialog.targetNotAllowed';
+  }
+  if (
+    codeLower.includes('registered') ||
+    /already registered|cannot (return|change).*registered|status is registered/i.test(
+      messageLower,
+    )
+  ) {
+    return 'admin.admissions.changeStatusDialog.registeredBlocked';
+  }
+  if (
+    status === 409 ||
+    codeLower === 'conflict' ||
+    codeLower === 'stale_state' ||
+    /updated elsewhere|stale|conflict|changed by another/i.test(messageLower)
+  ) {
+    return 'admin.admissions.changeStatusDialog.conflict';
+  }
+  if (
+    status === 403 ||
+    codeLower === 'forbidden' ||
+    codeLower === 'permission_denied' ||
+    /permission denied|forbidden/i.test(message)
+  ) {
+    return 'admin.admissions.changeStatusDialog.permissionDenied';
+  }
+  if (status === 404 || codeLower === 'not_found' || /application not found|not found/i.test(message)) {
+    return 'admin.admissions.changeStatusDialog.notFound';
+  }
+  if (
+    codeLower === 'invalid_state' ||
+    /invalid state|cannot (return|change)/i.test(messageLower)
+  ) {
+    return 'admin.admissions.changeStatusDialog.invalidState';
+  }
+  if (
+    codeLower === 'network_error' ||
+    codeLower === 'failed_to_fetch' ||
+    /network|failed to fetch|offline/i.test(message)
+  ) {
+    return 'admin.admissions.changeStatusDialog.networkError';
+  }
+
+  const mapped = mapAdmissionActionError(error);
+  if (mapped === 'admin.admissions.actionErrors.conflict') {
+    return 'admin.admissions.changeStatusDialog.conflict';
+  }
+  if (mapped.startsWith('admin.admissions.changeStatusDialog.')) return mapped;
+  if (typeof value?.message === 'string' && value.message.trim() && !isTechnicalFieldPathMessage(value.message)) {
+    return value.message;
+  }
+  return 'admin.admissions.changeStatusDialog.unknownError';
+}
