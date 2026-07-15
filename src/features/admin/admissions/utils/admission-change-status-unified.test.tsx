@@ -379,10 +379,13 @@ describe('AdmissionChangeStatusDialog', () => {
     const onClear = vi.fn();
     executeAdmissionsBulkAction.mockResolvedValue({
       success: false,
-      error: { message: 'blocked' },
-      data: {
-        blockers: [{ application_id: 1, message: 'غير مسموح للطلب 1' }],
+      error: {
+        message: 'blocked',
+        details: {
+          blockers: [{ application_id: 1, message: 'غير مسموح للطلب 1' }],
+        },
       },
+      meta: {},
     });
 
     renderAr(

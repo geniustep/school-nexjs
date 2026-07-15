@@ -6,6 +6,7 @@ import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionDetail, AdmissionsBulkActionBlocker } from '@/types/admission';
+import type { ApiError, ApiErrorBody } from '@/types/api';
 import {
   executeAdmissionAction,
   executeAdmissionsBulkAction,
@@ -19,6 +20,18 @@ function noteLabelKey(target: string): string {
   if (target === 'rejected') return 'admin.admissions.changeStatusDialog.noteLabelRejected';
   if (target === 'closed') return 'admin.admissions.changeStatusDialog.noteLabelClosed';
   return 'admin.admissions.changeStatusDialog.noteLabel';
+}
+
+/** Bulk failure envelope carries blockers on error.details (or legacy error.blockers). */
+function extractBulkActionBlockers(error: ApiError['error']): AdmissionsBulkActionBlocker[] {
+  const body = error as ApiErrorBody & {
+    blockers?: unknown;
+    details?: Record<string, unknown> | null;
+  };
+  const fromDetails = body.details?.blockers;
+  if (Array.isArray(fromDetails)) return fromDetails as AdmissionsBulkActionBlocker[];
+  if (Array.isArray(body.blockers)) return body.blockers as AdmissionsBulkActionBlocker[];
+  return [];
 }
 
 export function AdmissionChangeStatusDialog({
@@ -172,11 +185,7 @@ export function AdmissionChangeStatusDialog({
         return;
       }
 
-      const rawBlockers = Array.isArray(res.data?.blockers)
-        ? res.data.blockers
-        : Array.isArray((res.error as { blockers?: AdmissionsBulkActionBlocker[] })?.blockers)
-          ? ((res.error as { blockers: AdmissionsBulkActionBlocker[] }).blockers)
-          : [];
+      const rawBlockers = extractBulkActionBlockers(res.error);
       setBlockers(rawBlockers);
       onBulkFailure?.(rawBlockers);
       const mapped = mapAdmissionChangeStatusActionError(res.error);
