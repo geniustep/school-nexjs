@@ -186,16 +186,21 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
     cleanOptionalText(raw.name) ??
     (typeof item.reference === 'string' ? cleanOptionalText(item.reference) : null);
   const lost_reason = cleanOptionalText(raw.lost_reason);
+  // Odoo may send boolean false for empty M2O/related fields; read via unknown.
+  const rejectionRaw = (raw as Record<string, unknown>).rejection;
   const rejection =
-    raw.rejection && typeof raw.rejection === 'object'
-      ? (raw.rejection as AdmissionListItem['rejection'])
-      : raw.rejection === false
+    rejectionRaw && typeof rejectionRaw === 'object'
+      ? (rejectionRaw as NonNullable<AdmissionListItem['rejection']>)
+      : rejectionRaw === false
         ? null
         : ((item as { rejection?: AdmissionListItem['rejection'] }).rejection ?? null);
+  const requestedLevelRaw = (raw as Record<string, unknown>).requested_level;
   const requested_level =
-    raw.requested_level === false || raw.requested_level == null
+    requestedLevelRaw === false || requestedLevelRaw == null
       ? null
-      : (raw.requested_level as AdmissionListItem['requested_level']);
+      : (requestedLevelRaw as AdmissionListItem['requested_level']);
+  const guardianNameRaw = (raw as Record<string, unknown>).guardian_name;
+  const guardianPhoneRaw = (raw as Record<string, unknown>).guardian_phone;
   return {
     ...item,
     ...normalized,
@@ -205,13 +210,13 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
     rejection,
     requested_level,
     guardian_name:
-      raw.guardian_name === false || raw.guardian_name == null
+      guardianNameRaw === false || guardianNameRaw == null
         ? null
-        : cleanOptionalText(raw.guardian_name) ?? item.guardian_name ?? null,
+        : cleanOptionalText(guardianNameRaw) ?? item.guardian_name ?? null,
     guardian_phone:
-      raw.guardian_phone === false || raw.guardian_phone == null
+      guardianPhoneRaw === false || guardianPhoneRaw == null
         ? null
-        : cleanOptionalText(raw.guardian_phone) ?? item.guardian_phone ?? null,
+        : cleanOptionalText(guardianPhoneRaw) ?? item.guardian_phone ?? null,
     admission_workspace:
       typeof (item as { admission_workspace?: unknown }).admission_workspace === 'string'
         ? (item as { admission_workspace: string }).admission_workspace
