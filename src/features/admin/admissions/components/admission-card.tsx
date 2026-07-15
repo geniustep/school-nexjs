@@ -13,6 +13,7 @@ import {
 import { applicationStatusLabelKey } from '../utils/admission-modern-status';
 import { resolveOperationalActionLabel } from '../utils/admission-operational-labels';
 import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
+import { resolveAdmissionTerminalReasonPanel } from '../utils/admission-terminal-reason';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
 import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
@@ -78,8 +79,13 @@ export function AdmissionCard({
     typeof item.application_status === 'string' && item.application_status.trim()
       ? item.application_status.trim()
       : null;
-  const primaryCode = resolvePrimaryNextActionCode(item.primary_next_action);
-  const primaryLabel = resolveOperationalActionLabel(primaryCode, t);
+  const terminalReason = resolveAdmissionTerminalReasonPanel(item);
+  const primaryCode = terminalReason
+    ? null
+    : resolvePrimaryNextActionCode(item.primary_next_action);
+  const primaryLabel = terminalReason
+    ? terminalReason.reason
+    : resolveOperationalActionLabel(primaryCode, t);
   const servicesCount = item.requested_services?.length ?? 0;
   const serviceMaxVisible = servicesCount <= 3 ? 3 : 2;
 
@@ -278,9 +284,26 @@ export function AdmissionCard({
       <div
         className="admission-card__primary-next"
         data-testid="admission-card-primary-next"
+        data-reason-kind={terminalReason?.kind}
       >
-        <span className="admission-card__section-label">{t('admin.admissions.nextAction')}</span>
-        {primaryLabel ? (
+        <span className="admission-card__section-label">
+          {terminalReason
+            ? t(terminalReason.titleKey)
+            : t('admin.admissions.nextAction')}
+        </span>
+        {terminalReason ? (
+          <p
+            className={
+              terminalReason.reason
+                ? 'admission-card__primary-next-value'
+                : 'admission-card__primary-next-value muted'
+            }
+            dir="auto"
+            data-testid="admission-card-terminal-reason"
+          >
+            {terminalReason.reason || t(terminalReason.emptyKey)}
+          </p>
+        ) : primaryLabel ? (
           <p
             className="admission-card__primary-next-value"
             dir="auto"

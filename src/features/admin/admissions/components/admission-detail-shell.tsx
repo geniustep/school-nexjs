@@ -44,6 +44,7 @@ import { AdmissionStudentConversionAction } from './admission-student-conversion
 import { AdmissionModernStatusBadge } from './admission-modern-status-badge';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
 import { OverviewEmptyValue } from './admission-overview-primitives';
+import { resolveAdmissionTerminalReasonPanel } from '../utils/admission-terminal-reason';
 import {
   AdmissionGuardiansDetails,
   normalizeAdmissionGuardiansForDisplay,
@@ -323,6 +324,8 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
     }
   }
 
+  const terminalReason = resolveAdmissionTerminalReasonPanel(detail);
+
   return (
     <div className="admissions-detail-shell">
       <header className="admissions-detail-header-card">
@@ -401,7 +404,11 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
       <section className="admissions-detail-ops" aria-label={t('admin.admissions.table.actions')}>
         <div className="admissions-detail-ops__cell admissions-detail-ops__cell--actions">
-          <div className="admissions-detail-ops__label">{t('admin.admissions.nextAction')}</div>
+          <div className="admissions-detail-ops__label">
+            {terminalReason
+              ? t(terminalReason.titleKey)
+              : t('admin.admissions.nextAction')}
+          </div>
           <AdmissionPrimaryActionPanel
             detail={detail}
             admissionId={admissionId}

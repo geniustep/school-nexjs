@@ -5248,6 +5248,12 @@
         "reasonRequired": "Enter a rejection reason",
         "reasonPlaceholder": "Enter the rejection reason"
       },
+      "terminalReason": {
+        "rejectionTitle": "Rejection reason",
+        "closureTitle": "Closure reason",
+        "noRejectionReason": "No rejection reason was recorded",
+        "noClosureReason": "No closure reason was recorded"
+      },
       "offerStates": {
         "draft": "Draft",
         "sent": "Sent",

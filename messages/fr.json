@@ -5248,6 +5248,12 @@
         "reasonRequired": "Saisissez le motif du refus",
         "reasonPlaceholder": "Saisissez le motif du refus"
       },
+      "terminalReason": {
+        "rejectionTitle": "Motif du refus",
+        "closureTitle": "Motif de clôture",
+        "noRejectionReason": "Aucun motif de refus n'a été enregistré",
+        "noClosureReason": "Aucun motif de clôture n'a été enregistré"
+      },
       "offerStates": {
         "draft": "Brouillon",
         "sent": "Envoyée",

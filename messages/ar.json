@@ -5429,6 +5429,12 @@
         "reasonRequired": "أدخل سبب الرفض",
         "reasonPlaceholder": "أدخل سبب الرفض"
       },
+      "terminalReason": {
+        "rejectionTitle": "سبب الرفض",
+        "closureTitle": "سبب الإغلاق",
+        "noRejectionReason": "لم يتم تسجيل سبب الرفض",
+        "noClosureReason": "لم يتم تسجيل سبب الإغلاق"
+      },
       "offerStates": {
         "draft": "مسودة",
         "sent": "مُرسَل",

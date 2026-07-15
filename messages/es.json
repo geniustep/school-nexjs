@@ -5248,6 +5248,12 @@
         "reasonRequired": "Introduzca el motivo del rechazo",
         "reasonPlaceholder": "Introduzca el motivo del rechazo"
       },
+      "terminalReason": {
+        "rejectionTitle": "Motivo del rechazo",
+        "closureTitle": "Motivo del cierre",
+        "noRejectionReason": "No se registró un motivo de rechazo",
+        "noClosureReason": "No se registró un motivo de cierre"
+      },
       "offerStates": {
         "draft": "Borrador",
         "sent": "Enviada",

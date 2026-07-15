@@ -20,6 +20,7 @@ import {
 } from '../utils/admission-modern-actions';
 import { modernActionLabelKey } from '../utils/admission-operational-labels';
 import { resolveApplicationStatus } from '../utils/admission-modern-status';
+import { resolveAdmissionTerminalReasonPanel } from '../utils/admission-terminal-reason';
 import { buildContinueRegistrationHref } from '../utils/admission-registration';
 import type { AdmissionDetail } from '@/types/admission';
 import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog';
@@ -62,6 +63,7 @@ export function AdmissionPrimaryActionPanel({
   const modern = hasModernContract(detail);
   const status = resolveApplicationStatus(detail);
   const registered = status === 'registered';
+  const terminalReason = resolveAdmissionTerminalReasonPanel(detail);
   const primaryCode = resolveDetailPrimaryActionCode(detail);
   const daily = filterDailyModernActions(detail.modern_allowed_actions);
   const studentNav = resolveStudentNavigation(detail.navigation, detail.student_id);
@@ -178,6 +180,26 @@ export function AdmissionPrimaryActionPanel({
               {t('admin.admissions.registration.openStudentProfile')}
             </Link>
           ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (terminalReason) {
+    return (
+      <div
+        className={cn('admission-primary-action-panel', className)}
+        data-testid="admission-primary-action-panel"
+        data-reason-kind={terminalReason.kind}
+      >
+        <div className="admission-primary-action-panel__toolbar">
+          <p
+            className={terminalReason.reason ? undefined : 'muted tiny'}
+            dir="auto"
+            data-testid="admission-terminal-reason"
+          >
+            {terminalReason.reason || t(terminalReason.emptyKey)}
+          </p>
         </div>
       </div>
     );

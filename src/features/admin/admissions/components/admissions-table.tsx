@@ -23,6 +23,7 @@ import { AdmissionLastActionSummary } from './admission-last-action-summary';
 import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
 import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
 import { modernActionLabelKey } from '../utils/admission-operational-labels';
+import { resolveAdmissionTerminalReasonPanel } from '../utils/admission-terminal-reason';
 import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
@@ -184,6 +185,18 @@ export function AdmissionsTable({
         key: 'next_action',
         header: t('admin.admissions.table.nextAction'),
         render: (row) => {
+          const terminalReason = resolveAdmissionTerminalReasonPanel(row);
+          if (terminalReason) {
+            return (
+              <span data-testid="admission-table-terminal-reason" data-reason-kind={terminalReason.kind}>
+                <span className="muted tiny">{t(terminalReason.titleKey)}</span>
+                {': '}
+                <span dir="auto">
+                  {terminalReason.reason || t(terminalReason.emptyKey)}
+                </span>
+              </span>
+            );
+          }
           const primary = resolvePrimaryNextActionCode(row.primary_next_action);
           if (primary) {
             const labelKey = modernActionLabelKey(primary);
