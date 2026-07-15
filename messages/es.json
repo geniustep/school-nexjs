@@ -4566,6 +4566,21 @@
         "invalid_action": "This action is not currently available.",
         "conflict": "The application was updated elsewhere."
       },
+      "closeDialog": {
+        "title": "Cerrar solicitud de admisión",
+        "description": "La solicitud pasará a las solicitudes cerradas y ya no aparecerá entre las abiertas.",
+        "noteLabel": "Motivo del cierre",
+        "notePlaceholder": "Escriba el motivo del cierre de la solicitud...",
+        "noteRequired": "El motivo del cierre es obligatorio.",
+        "confirm": "Confirmar cierre",
+        "submitting": "Cerrando la solicitud…",
+        "success": "Solicitud de admisión cerrada.",
+        "permissionDenied": "No tiene permiso para cerrar esta solicitud.",
+        "invalidState": "No se puede cerrar la solicitud desde su estado actual.",
+        "notFound": "No se encontró la solicitud de admisión.",
+        "networkError": "No se pudo cerrar la solicitud. Compruebe la conexión e inténtelo de nuevo.",
+        "unknownError": "No se pudo cerrar la solicitud en este momento."
+      },
       "requestedServices": {
         "title": "Servicios escolares solicitados",
         "description": "Seleccione los servicios que la familia pidió con esta solicitud (opcional).",

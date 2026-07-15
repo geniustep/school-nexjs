@@ -4568,6 +4568,21 @@
         "invalid_action": "This action is not currently available.",
         "conflict": "The application was updated elsewhere. Refresh and try again."
       },
+      "closeDialog": {
+        "title": "Close admission application",
+        "description": "The application will move to closed applications and will no longer appear among open applications.",
+        "noteLabel": "Reason for closing",
+        "notePlaceholder": "Write the reason for closing this application...",
+        "noteRequired": "A closing reason is required.",
+        "confirm": "Confirm close",
+        "submitting": "Closing application…",
+        "success": "Admission application closed.",
+        "permissionDenied": "You do not have permission to close this application.",
+        "invalidState": "This application cannot be closed from its current status.",
+        "notFound": "The admission application could not be found.",
+        "networkError": "Could not close the application. Check your connection and try again.",
+        "unknownError": "Could not close the application right now."
+      },
       "requestedServices": {
         "title": "Requested school services",
         "description": "Select services the family asked for with this application (optional).",

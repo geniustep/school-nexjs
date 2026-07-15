@@ -4566,6 +4566,21 @@
         "invalid_action": "This action is not currently available.",
         "conflict": "The application was updated elsewhere."
       },
+      "closeDialog": {
+        "title": "Fermer la demande d'admission",
+        "description": "La demande passera parmi les demandes fermées et n'apparaîtra plus parmi les demandes ouvertes.",
+        "noteLabel": "Motif de fermeture",
+        "notePlaceholder": "Indiquez le motif de fermeture de la demande...",
+        "noteRequired": "Le motif de fermeture est obligatoire.",
+        "confirm": "Confirmer la fermeture",
+        "submitting": "Fermeture de la demande…",
+        "success": "Demande d'admission fermée.",
+        "permissionDenied": "Vous n'avez pas l'autorisation de fermer cette demande.",
+        "invalidState": "Cette demande ne peut pas être fermée depuis son statut actuel.",
+        "notFound": "La demande d'admission est introuvable.",
+        "networkError": "Impossible de fermer la demande. Vérifiez la connexion puis réessayez.",
+        "unknownError": "Impossible de fermer la demande pour le moment."
+      },
       "requestedServices": {
         "title": "Services scolaires demandés",
         "description": "Sélectionnez les services demandés par la famille avec cette candidature (facultatif).",

@@ -24,6 +24,7 @@ import type { AdmissionDetail } from '@/types/admission';
 import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog';
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
+import { AdmissionCloseDialog } from './admission-close-dialog';
 
 type DecisionAction =
   | 'accept'
@@ -79,6 +80,7 @@ export function AdmissionPrimaryActionPanel({
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const modern = hasModernContract(detail);
@@ -158,6 +160,10 @@ export function AdmissionPrimaryActionPanel({
     }
     if (primaryCode === 'reopen') {
       setReopenOpen(true);
+      return;
+    }
+    if (primaryCode === 'close') {
+      setCloseOpen(true);
       return;
     }
     if (primaryCode === 'convert_to_student') {
@@ -274,6 +280,7 @@ export function AdmissionPrimaryActionPanel({
                     ) {
                       setDecisionAction(action.code);
                     } else if (action.code === 'reopen') setReopenOpen(true);
+                    else if (action.code === 'close') setCloseOpen(true);
                     else if (action.code === 'convert_to_student') void runAction('convert_to_student');
                     else void runAction(action.code);
                   }}
@@ -303,6 +310,13 @@ export function AdmissionPrimaryActionPanel({
         admissionId={Number(admissionId)}
         open={reopenOpen}
         onClose={() => setReopenOpen(false)}
+        onSuccess={() => onUpdated()}
+      />
+      <AdmissionCloseDialog
+        admissionId={Number(admissionId)}
+        applicationName={detail.student_name}
+        open={closeOpen}
+        onClose={() => setCloseOpen(false)}
         onSuccess={() => onUpdated()}
       />
     </div>

@@ -5953,6 +5953,18 @@
   color: var(--c-text, #0f172a);
 }
 
+.admission-close-dialog__subject {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+}
+
+.confirmation-dialog .field-error {
+  margin: 0.35rem 0 0;
+  color: var(--color-danger, #b42318);
+  font-size: 0.875rem;
+}
+
 .confirmation-dialog__actions {
   display: flex;
   flex-wrap: wrap;

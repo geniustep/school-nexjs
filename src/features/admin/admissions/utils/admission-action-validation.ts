@@ -30,3 +30,7 @@ export function validateReject(input: { note?: string; reason?: string }) {
 export function validateAccept(_input: { note?: string }) {
   return null;
 }
+
+export function validateClose(input: { note?: string }) {
+  return input.note?.trim() ? null : 'admin.admissions.closeDialog.noteRequired';
+}

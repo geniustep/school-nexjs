@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils/cn';
 import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog';
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
+import { AdmissionCloseDialog } from './admission-close-dialog';
 
 type MenuCoords = { top: number; left: number };
 type DecisionAction =
@@ -95,6 +96,7 @@ export function AdmissionListActionsMenu({
   /** Optional list row seed so modern actions can open without waiting for detail fetch. */
   listItem?: {
     application_status?: string | null;
+    student_name?: string | null;
     primary_next_action?: AdmissionDetail['primary_next_action'];
     modern_allowed_actions?: AdmissionDetail['modern_allowed_actions'];
     exception_actions?: AdmissionDetail['exception_actions'];
@@ -121,6 +123,7 @@ export function AdmissionListActionsMenu({
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const loadDetail = useCallback(async () => {
@@ -390,7 +393,11 @@ export function AdmissionListActionsMenu({
               role="menuitem"
               className="admissions-row-actions__item"
               disabled={busy}
-              onClick={() => void runSimpleAction('close')}
+              data-testid="admission-actions-close"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setCloseOpen(true), 0);
+              }}
             >
               {t(modernActionLabelKey('close'))}
             </button>
@@ -477,6 +484,23 @@ export function AdmissionListActionsMenu({
         open={reopenOpen}
         onClose={() => {
           setReopenOpen(false);
+          triggerRef.current?.focus();
+        }}
+        onSuccess={() => {
+          afterSuccess();
+          void loadDetail();
+        }}
+      />
+      <AdmissionCloseDialog
+        admissionId={admissionId}
+        applicationName={
+          (detail?.student_name as string | undefined) ||
+          listItem?.student_name ||
+          null
+        }
+        open={closeOpen}
+        onClose={() => {
+          setCloseOpen(false);
           triggerRef.current?.focus();
         }}
         onSuccess={() => {
