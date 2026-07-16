@@ -33,11 +33,12 @@ function user(caps: string[]): CurrentUser {
   return {
     id: 1,
     name: 'Admin',
-    login: 'admin@test',
+    email: 'admin@test.local',
     role: 'admin',
     effective_capabilities: caps,
     permissions: [],
-  } as CurrentUser;
+    school: { id: 1, name: 'School' },
+  } satisfies CurrentUser;
 }
 
 describe('jathatha endpoints and BFF', () => {

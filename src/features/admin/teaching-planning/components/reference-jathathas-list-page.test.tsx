@@ -25,7 +25,15 @@ vi.mock('@/lib/hooks/use-admin-resource', () => ({ useAdminResource: (path: stri
 import { ReferenceJathathasListPage } from './reference-jathathas-list-page';
 
 function admin(caps: string[]): CurrentUser {
-  return { id: 1, name: 'Admin', login: 'admin', role: 'admin', effective_capabilities: caps, permissions: [] } as CurrentUser;
+  return {
+    id: 1,
+    name: 'Admin',
+    email: 'admin@test.local',
+    role: 'admin',
+    effective_capabilities: caps,
+    permissions: [],
+    school: { id: 1, name: 'School' },
+  } satisfies CurrentUser;
 }
 function resource(overrides: Partial<Resource> = {}): Resource {
   return { data: [], loading: false, initialLoading: false, fetching: false, error: null, meta: null, reload: vi.fn(), ...overrides };
