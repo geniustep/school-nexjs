@@ -19,6 +19,7 @@ function readFilters(searchParams: URLSearchParams): ReceiptsListFilters {
   return {
     search: searchParams.get('search') ?? '',
     studentId: searchParams.get('student_id') ?? searchParams.get('studentId') ?? '',
+    involvedStudentId: searchParams.get('involved_student_id') ?? '',
     payerId: searchParams.get('payer_id') ?? '',
     billingPartnerId: searchParams.get('billing_partner_id') ?? '',
     collectionId: searchParams.get('collection_id') ?? '',
@@ -33,6 +34,7 @@ function readFilters(searchParams: URLSearchParams): ReceiptsListFilters {
 const URL_KEYS: Record<keyof ReceiptsListFilters, string> = {
   search: 'search',
   studentId: 'student_id',
+  involvedStudentId: 'involved_student_id',
   payerId: 'payer_id',
   billingPartnerId: 'billing_partner_id',
   collectionId: 'collection_id',

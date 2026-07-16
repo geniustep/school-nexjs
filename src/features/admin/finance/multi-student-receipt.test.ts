@@ -13,7 +13,7 @@ describe('multi-student receipt presentation', () => {
     expect(receiptViewSource).toContain('isMultiStudent');
     expect(receiptViewSource).toContain('childAllocations');
     expect(receiptViewSource).toContain('receipt-details__child-lines');
-    expect(receiptViewSource).toContain('admin.finance.receipts.multiStudentBadge');
+    expect(receiptViewSource).toContain('admin.finance.receipts.familyReceiptBadge');
   });
 
   it('maps snapshot children into receipt children for UI', () => {

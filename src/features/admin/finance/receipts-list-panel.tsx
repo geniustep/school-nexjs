@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
+import { FamilyReceiptListMeta } from '@/features/admin/finance/family-receipt-list-meta';
 import { ReceiptActionsMenu } from '@/features/admin/finance/receipt-actions-menu';
 import { ReceiptDetailDrawer } from '@/features/admin/finance/receipt-detail-drawer';
 import {
@@ -24,6 +25,7 @@ import {
   receiptsListHasActiveQuery,
   resolveReceiptsListEmptyVariant,
 } from '@/features/admin/finance/utils/receipts-list-present';
+import { resolveReceiptChildrenCount } from '@/features/admin/finance/utils/family-receipt-present';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -40,6 +42,7 @@ import '@/features/admin/finance/payment-documents-lists.css';
 export type ReceiptsListFilters = {
   search: string;
   studentId: string;
+  involvedStudentId: string;
   payerId: string;
   billingPartnerId: string;
   collectionId: string;
@@ -75,6 +78,7 @@ export function ReceiptsListPanel({
       page_size: RECEIPTS_PAGE_SIZE,
       search: filters.search || undefined,
       student_id: filters.studentId || undefined,
+      involved_student_id: filters.involvedStudentId || undefined,
       payer_id: filters.payerId || undefined,
       billing_partner_id: filters.billingPartnerId || undefined,
       collection_id: filters.collectionId || undefined,
@@ -120,15 +124,27 @@ export function ReceiptsListPanel({
         render: (row) => {
           const sid = row.student_id;
           const label = row.student_name ?? t('common.dash');
-          if (!sid) return <span dir="auto">{label}</span>;
+          const childrenCount = resolveReceiptChildrenCount(row);
           return (
-            <Link
-              href={buildStudentFinanceLink(sid, 'finance', returnTo)}
-              onClick={(e) => e.stopPropagation()}
-              dir="auto"
-            >
-              {label}
-            </Link>
+            <div className="finance-receipt-family-cell">
+              {sid ? (
+                <Link
+                  href={buildStudentFinanceLink(sid, 'finance', returnTo)}
+                  onClick={(e) => e.stopPropagation()}
+                  dir="auto"
+                >
+                  {label}
+                </Link>
+              ) : (
+                <span dir="auto">{label}</span>
+              )}
+              <FamilyReceiptListMeta receipt={row} />
+              {childrenCount != null && childrenCount > 0 ? (
+                <span className="sr-only">
+                  {t('admin.finance.receipts.childrenCountLabel', { count: childrenCount })}
+                </span>
+              ) : null}
+            </div>
           );
         },
       },
@@ -203,7 +219,9 @@ export function ReceiptsListPanel({
     onFiltersChange({
       search: null,
       studentId: null,
+      involvedStudentId: null,
       payerId: null,
+      billingPartnerId: null,
       collectionId: null,
       dateFrom: null,
       dateTo: null,
@@ -238,6 +256,25 @@ export function ReceiptsListPanel({
           billingPartnerId={filters.billingPartnerId}
           onClear={() => onFiltersChange({ billingPartnerId: null, page: 1 })}
         />
+      ) : null}
+      {filters.involvedStudentId ? (
+        <div className="finance-receivable-list__chips" aria-label={t('admin.finance.receipts.activeFilters')}>
+          <span className="finance-receivable-list__chip">
+            <span dir="ltr">
+              {t('admin.finance.receipts.involvedStudentFilterChip', {
+                id: filters.involvedStudentId,
+              })}
+            </span>
+            <button
+              type="button"
+              className="finance-receivable-list__chip-clear"
+              aria-label={t('common.clear')}
+              onClick={() => onFiltersChange({ involvedStudentId: null, page: 1 })}
+            >
+              ×
+            </button>
+          </span>
+        </div>
       ) : null}
 
       <div className="finance-receivable-list__context">

@@ -85,9 +85,14 @@ export function ReceiptDetailView({
 
   const allocations = receipt.allocations ?? snapshot?.allocations ?? [];
   const children = receipt.children ?? snapshot?.children ?? [];
+  const childrenCount =
+    typeof receipt.children_count === 'number'
+      ? receipt.children_count
+      : children.length || undefined;
   const isMultiStudent =
     receipt.is_multi_student === true ||
     snapshot?.is_multi_student === true ||
+    (childrenCount != null && childrenCount > 1) ||
     children.length > 1;
 
   return (
@@ -277,7 +282,12 @@ export function ReceiptDetailView({
             {t('admin.finance.receipts.sections.children')}
             {isMultiStudent ? (
               <span className="badge badge--blue receipt-details__multi-badge">
-                {t('admin.finance.receipts.multiStudentBadge')}
+                {t('admin.finance.receipts.familyReceiptBadge')}
+              </span>
+            ) : null}
+            {childrenCount != null ? (
+              <span className="muted tiny" dir="ltr">
+                {t('admin.finance.receipts.childrenCountLabel', { count: childrenCount })}
               </span>
             ) : null}
           </h2>

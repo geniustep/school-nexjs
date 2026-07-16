@@ -17,6 +17,44 @@ function normalizeStringArray(value: unknown): string[] | undefined {
   return value.filter((item): item is string => typeof item === 'string');
 }
 
+function normalizeNumberId(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isInteger(value)) return value;
+  if (typeof value === 'string' && /^\d+$/.test(value.trim())) return Number(value.trim());
+  return undefined;
+}
+
+/** Preserve order; drop non-numeric entries without throwing. */
+function normalizeInvolvedStudentIds(value: unknown): number[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ids: number[] = [];
+  for (const item of value) {
+    const id = normalizeNumberId(item);
+    if (id != null) ids.push(id);
+  }
+  return ids.length ? ids : undefined;
+}
+
+function resolveChildrenCount(
+  rawCount: unknown,
+  children: FinanceReceiptChildBreakdown[] | undefined,
+): number | undefined {
+  if (typeof rawCount === 'number' && Number.isFinite(rawCount)) return rawCount;
+  if (children?.length) return children.length;
+  return undefined;
+}
+
+function resolveIsMultiStudent(options: {
+  flag?: unknown;
+  snapshotFlag?: boolean;
+  childrenCount?: number;
+  childrenLength?: number;
+}): boolean | undefined {
+  if (options.flag === true || options.snapshotFlag === true) return true;
+  const count = options.childrenCount ?? options.childrenLength ?? 0;
+  if (count > 1) return true;
+  return undefined;
+}
+
 function normalizeCheque(raw: unknown): FinanceReceiptCheque | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   const source = raw as Record<string, unknown>;
@@ -179,10 +217,10 @@ function normalizeSnapshot(raw: unknown): FinanceReceiptSnapshot | undefined {
           .filter((row): row is FinanceReceiptAllocation => row != null)
       : undefined,
     children: normalizeReceiptChildren(source.children),
-    is_multi_student:
-      source.is_multi_student === true ||
-      (Array.isArray(source.children) && source.children.length > 1) ||
-      undefined,
+    is_multi_student: resolveIsMultiStudent({
+      flag: source.is_multi_student,
+      childrenLength: Array.isArray(source.children) ? source.children.length : undefined,
+    }),
   };
 }
 
@@ -194,6 +232,9 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
   const totals = normalizeTotals(source.totals);
   const snapshot = normalizeSnapshot(source.snapshot);
   const settlementRaw = readRecord(source.settlement);
+  const children =
+    normalizeReceiptChildren(source.children) ?? snapshot?.children;
+  const childrenCount = resolveChildrenCount(source.children_count, children);
 
   return {
     id: source.id,
@@ -223,6 +264,9 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
     payer_name: typeof source.payer_name === 'string' ? source.payer_name : undefined,
     actual_payer_name:
       typeof source.actual_payer_name === 'string' ? source.actual_payer_name : undefined,
+    billing_partner_id: normalizeNumberId(source.billing_partner_id),
+    billing_partner_name:
+      typeof source.billing_partner_name === 'string' ? source.billing_partner_name : undefined,
     issued_at: typeof source.issued_at === 'string' ? source.issued_at : null,
     issued_by:
       typeof source.issued_by === 'string'
@@ -255,14 +299,17 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
           .map(normalizeAllocation)
           .filter((row): row is FinanceReceiptAllocation => row != null)
       : snapshot?.allocations,
-    children:
-      normalizeReceiptChildren(source.children) ??
-      snapshot?.children,
-    is_multi_student:
-      source.is_multi_student === true ||
-      snapshot?.is_multi_student === true ||
-      ((normalizeReceiptChildren(source.children) ?? snapshot?.children)?.length ?? 0) > 1 ||
-      undefined,
+    children,
+    children_count: childrenCount,
+    collection_scope:
+      typeof source.collection_scope === 'string' ? source.collection_scope : undefined,
+    involved_student_ids: normalizeInvolvedStudentIds(source.involved_student_ids),
+    is_multi_student: resolveIsMultiStudent({
+      flag: source.is_multi_student,
+      snapshotFlag: snapshot?.is_multi_student,
+      childrenCount,
+      childrenLength: children?.length,
+    }),
     cheque: normalizeCheque(source.cheque) ?? snapshot?.cheque,
     currency:
       typeof source.currency === 'string'

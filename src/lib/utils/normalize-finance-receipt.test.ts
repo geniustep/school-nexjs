@@ -59,6 +59,11 @@ describe('normalize-finance-receipt', () => {
       collection_amount: 5000,
       allocated_amount: 5000,
       is_multi_student: true,
+      collection_scope: 'family',
+      involved_student_ids: [6857, 6858],
+      children_count: 2,
+      billing_partner_id: 9046,
+      billing_partner_name: 'عائلة تجريبية',
       snapshot: {
         is_multi_student: true,
         children: [
@@ -84,10 +89,30 @@ describe('normalize-finance-receipt', () => {
       },
     });
     expect(receipt?.is_multi_student).toBe(true);
+    expect(receipt?.collection_scope).toBe('family');
+    expect(receipt?.involved_student_ids).toEqual([6857, 6858]);
+    expect(receipt?.children_count).toBe(2);
+    expect(receipt?.billing_partner_id).toBe(9046);
+    expect(receipt?.billing_partner_name).toBe('عائلة تجريبية');
     expect(receipt?.children).toHaveLength(2);
     expect(receipt?.children?.[0]?.student_name).toBe('أحمد العلوي');
     expect(receipt?.children?.[0]?.allocations).toHaveLength(2);
     expect(receipt?.children?.[1]?.allocated_amount).toBe(2500);
+  });
+
+  it('falls back children_count from children length and drops invalid involved ids', () => {
+    const receipt = normalizeFinanceReceipt({
+      id: 90,
+      number: 'PAY/2026/000102',
+      involved_student_ids: [6857, '6858', 'x', null, 12.5],
+      children: [
+        { student_id: 6857, student_name: 'A', allocated_amount: 100 },
+        { student_id: 6858, student_name: 'B', allocated_amount: 200 },
+      ],
+    });
+    expect(receipt?.children_count).toBe(2);
+    expect(receipt?.involved_student_ids).toEqual([6857, 6858]);
+    expect(receipt?.is_multi_student).toBe(true);
   });
 
   it('infers multi-student from children length when flag absent', () => {

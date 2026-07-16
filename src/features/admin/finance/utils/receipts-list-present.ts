@@ -10,6 +10,7 @@ export type ReceiptsListEmptyVariant = 'no-data' | 'no-match';
 export type ReceiptsActiveQueryInput = {
   search?: string;
   studentId?: string;
+  involvedStudentId?: string;
   payerId?: string;
   billingPartnerId?: string;
   collectionId?: string;
@@ -23,6 +24,7 @@ export function receiptsListHasActiveQuery(options: ReceiptsActiveQueryInput): b
   return !!(
     options.search?.trim() ||
     options.studentId?.trim() ||
+    options.involvedStudentId?.trim() ||
     options.payerId?.trim() ||
     options.billingPartnerId?.trim() ||
     options.collectionId?.trim() ||

@@ -9084,6 +9084,13 @@
           "cheques": "Cheques",
           "collect": "Registrar cobro"
         },
+        "receiptsSection": {
+          "title": "Recibos",
+          "viewAll": "Ver todos los recibos",
+          "empty": "No hay recibos para esta cuenta.",
+          "loadError": "No se pudieron cargar los recibos.",
+          "summaryCount": "{count} recibo(s)"
+        },
         "members": {
           "title": "Miembros de la cuenta",
           "loadError": "No se pudieron cargar los miembros de la cuenta.",
@@ -10592,6 +10599,10 @@
           "collection": "Cobro"
         },
         "multiStudentBadge": "Varios alumnos",
+        "familyReceiptBadge": "Recibo familiar",
+        "childrenCountLabel": "{count} hijos",
+        "childrenSummaryNamed": "{name} + {remaining} más",
+        "involvedStudentFilterChip": "Alumno involucrado #{id}",
         "noChildBreakdown": "No hay desglose por hijo en esta captura."
       },
       "cashDesk": {

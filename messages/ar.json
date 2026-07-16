@@ -9227,6 +9227,13 @@
           "cheques": "الشيكات",
           "collect": "تسجيل تحصيل"
         },
+        "receiptsSection": {
+          "title": "الإيصالات",
+          "viewAll": "عرض جميع الإيصالات",
+          "empty": "لا توجد إيصالات لهذا الحساب.",
+          "loadError": "تعذر تحميل الإيصالات.",
+          "summaryCount": "{count} إيصال"
+        },
         "members": {
           "title": "أعضاء الحساب",
           "loadError": "تعذر تحميل أعضاء الحساب.",
@@ -10745,6 +10752,10 @@
           "collection": "التحصيل"
         },
         "multiStudentBadge": "عدة أبناء",
+        "familyReceiptBadge": "إيصال عائلي",
+        "childrenCountLabel": "{count} أبناء",
+        "childrenSummaryNamed": "{name} + {remaining} آخر",
+        "involvedStudentFilterChip": "تلميذ مشمول #{id}",
         "noChildBreakdown": "لا يتوفر تفصيل حسب الابن في لقطة هذا الإيصال."
       },
       "cashDesk": {

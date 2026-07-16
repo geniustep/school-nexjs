@@ -1,51 +1,51 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { FamilyReceiptListMeta } from '@/features/admin/finance/family-receipt-list-meta';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { StudentReceiptActionsMenu } from '@/features/admin/student-finance/components/student-receipt-actions-menu';
+import { ReceiptActionsMenu } from '@/features/admin/finance/receipt-actions-menu';
 import { ReceiptDetailDrawer } from '@/features/admin/finance/receipt-detail-drawer';
 import {
   ReceiptSettlementBadge,
   ReceiptStateBadge,
 } from '@/features/admin/finance/receipt-status-badges';
-import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
-import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { paymentMethodLabel } from '@/lib/utils/finance';
 import { parseFinanceReceiptList } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
 
-export function StudentReceiptsSection({
-  studentId,
+const BILLING_ACCOUNT_RECEIPTS_PAGE_SIZE = 5;
+
+export function BillingAccountReceiptsSection({
+  billingPartnerId,
   returnTo,
-  refreshSignal = 0,
+  receiptCount,
+  receiptAmount,
+  currency,
 }: {
-  studentId: number;
-  returnTo?: string;
-  refreshSignal?: number;
+  billingPartnerId: number;
+  returnTo: string;
+  receiptCount?: number;
+  receiptAmount?: number;
+  currency?: unknown;
 }) {
   const t = useT();
   const { formatDateTime } = useFormat();
   const [selectedReceiptId, setSelectedReceiptId] = useState<number | null>(null);
 
   const state = useAdminResource<FinanceReceipt[]>(endpoints.admin.financeReceipts, {
-    involved_student_id: studentId,
+    billing_partner_id: billingPartnerId,
     page: 1,
-    page_size: 5,
+    page_size: BILLING_ACCOUNT_RECEIPTS_PAGE_SIZE,
   });
 
-  useEffect(() => {
-    if (refreshSignal > 0) state.reload();
-  }, [refreshSignal, state.reload]);
-
   const rows = useMemo(() => parseFinanceReceiptList(state.data), [state.data]);
+  const allReceiptsHref = `/admin/finance/receipts?billing_partner_id=${billingPartnerId}&returnTo=${encodeURIComponent(returnTo)}`;
 
   const columns: Column<FinanceReceipt>[] = useMemo(
     () => [
@@ -64,21 +64,20 @@ export function StudentReceiptsSection({
       {
         key: 'issued_at',
         header: t('admin.finance.receipts.columns.issuedAt'),
-        render: (row) => formatDateTime(row.issued_at) || t('common.dash'),
+        render: (row) => (
+          <span dir="ltr">{formatDateTime(row.issued_at) || t('common.dash')}</span>
+        ),
       },
       {
         key: 'amount',
         header: t('admin.finance.receipts.columns.collectionAmount'),
-        render: (row) => <FinanceMoney amount={row.collection_amount} currency={row.currency} />,
-      },
-      {
-        key: 'method',
-        header: t('admin.finance.paymentMethod'),
-        render: (row) => paymentMethodLabel(row.payment_method, t),
+        render: (row) => (
+          <FinanceMoney amount={row.collection_amount} currency={row.currency ?? currency} />
+        ),
       },
       {
         key: 'state',
-        header: t('academic.status'),
+        header: t('admin.finance.receipts.columns.receiptState'),
         render: (row) => (
           <span className="finance-status-badges-inline">
             <ReceiptStateBadge state={row.state ?? 'issued'} />
@@ -93,33 +92,46 @@ export function StudentReceiptsSection({
         header: t('admin.finance.receipts.columns.actions'),
         className: 'finance-receipts-actions-col',
         render: (row) => (
-          <StudentReceiptActionsMenu receipt={row} onView={() => setSelectedReceiptId(row.id)} />
+          <ReceiptActionsMenu receipt={row} onView={() => setSelectedReceiptId(row.id)} />
         ),
       },
     ],
-    [formatDateTime, t],
+    [currency, formatDateTime, t],
   );
 
   return (
-    <div className="student-finance-section student-receipts-section">
-      <Student360SectionHeader
-        title={t('admin.finance.receipts.studentSectionTitle')}
-        action={
-          <Link
-            href={`/admin/finance/receipts?involved_student_id=${studentId}`}
-            className="btn btn--ghost btn--sm"
-          >
-            {t('admin.finance.receipts.viewAllForStudent')}
-          </Link>
-        }
-      />
-      {state.initialLoading ? <StudentSectionSkeleton rows={3} /> : null}
+    <section className="finance-billing-section finance-billing-receipts-section">
+      <div className="between finance-billing-receipts-section__head">
+        <div>
+          <h2>{t('admin.finance.billingAccounts.receiptsSection.title')}</h2>
+          {receiptCount != null || receiptAmount != null ? (
+            <p className="muted tiny">
+              {receiptCount != null
+                ? t('admin.finance.billingAccounts.receiptsSection.summaryCount', {
+                    count: receiptCount,
+                  })
+                : null}
+              {receiptCount != null && receiptAmount != null ? ' · ' : null}
+              {receiptAmount != null ? (
+                <FinanceMoney amount={receiptAmount} currency={currency} />
+              ) : null}
+            </p>
+          ) : null}
+        </div>
+        <Link href={allReceiptsHref} className="btn btn--ghost btn--sm">
+          {t('admin.finance.billingAccounts.receiptsSection.viewAll')}
+        </Link>
+      </div>
+
+      {state.initialLoading ? (
+        <p className="muted">{t('common.loading')}</p>
+      ) : null}
       {state.error ? <ApiErrorView error={state.error} onRetry={state.reload} /> : null}
       {!state.initialLoading && !state.error && rows.length === 0 ? (
-        <p className="muted">{t('admin.finance.receipts.studentEmpty')}</p>
+        <p className="muted">{t('admin.finance.billingAccounts.receiptsSection.empty')}</p>
       ) : null}
       {rows.length > 0 ? (
-        <div className="student-finance-table-wrap">
+        <div className="finance-billing-receipts-section__table">
           <DataTable
             columns={columns}
             rows={rows}
@@ -128,12 +140,13 @@ export function StudentReceiptsSection({
           />
         </div>
       ) : null}
+
       <ReceiptDetailDrawer
         open={selectedReceiptId != null}
         receiptId={selectedReceiptId}
         onClose={() => setSelectedReceiptId(null)}
         returnTo={returnTo}
       />
-    </div>
+    </section>
   );
 }

@@ -3293,6 +3293,30 @@
   font-weight: 600;
 }
 
+.finance-receipt-family-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.finance-receipt-family-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.finance-billing-receipts-section__head {
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.finance-billing-receipts-section__table {
+  overflow-x: auto;
+}
+
 .receipt-details__child {
   padding: 12px 14px;
   border: 1px solid var(--c-border, #e2e8f0);

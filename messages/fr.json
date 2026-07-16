@@ -9084,6 +9084,13 @@
           "cheques": "Chèques",
           "collect": "Enregistrer un encaissement"
         },
+        "receiptsSection": {
+          "title": "Reçus",
+          "viewAll": "Voir tous les reçus",
+          "empty": "Aucun reçu pour ce compte.",
+          "loadError": "Impossible de charger les reçus.",
+          "summaryCount": "{count} reçu(s)"
+        },
         "members": {
           "title": "Membres du compte",
           "loadError": "Impossible de charger les membres du compte.",
@@ -10593,6 +10600,10 @@
           "collection": "Encaissement"
         },
         "multiStudentBadge": "Plusieurs élèves",
+        "familyReceiptBadge": "Reçu familial",
+        "childrenCountLabel": "{count} enfants",
+        "childrenSummaryNamed": "{name} + {remaining} autre(s)",
+        "involvedStudentFilterChip": "Élève concerné #{id}",
         "noChildBreakdown": "Aucune répartition par enfant dans cet instantané."
       },
       "cashDesk": {

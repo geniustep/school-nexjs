@@ -15,6 +15,7 @@ import {
   BillingAccountStudentsSection,
   BillingAccountSummaryCards,
 } from '@/features/admin/finance/billing-account-detail-sections';
+import { BillingAccountReceiptsSection } from '@/features/admin/finance/billing-account-receipts-section';
 import { BillingAccountCreditSection } from '@/features/admin/finance/credit-balance/credit-balance-detail-sections';
 import { BillingAccountMembersSection } from '@/features/admin/finance/billing-membership/billing-account-members-section';
 import { FamilyCollectionDrawer } from '@/features/admin/finance/family-collection-drawer';
@@ -28,7 +29,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { FINANCE_VIEW, canViewStudentBalance } from '@/lib/permissions/finance';
+import { FINANCE_VIEW, canViewPayments, canViewStudentBalance } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
 import { useSession } from '@/features/auth/session-context';
 import {
@@ -336,6 +337,16 @@ export default function AdminFinanceBillingAccountDetailPage({
               returnTo={pageReturnTo}
               allowedActions={detail.allowed_actions}
             />
+
+            {canViewPayments(user) ? (
+              <BillingAccountReceiptsSection
+                billingPartnerId={Number(billingPartnerId)}
+                returnTo={pageReturnTo}
+                receiptCount={detail.summary.receipt_count}
+                receiptAmount={detail.summary.receipt_amount}
+                currency={detail.summary.currency}
+              />
+            ) : null}
 
             <BillingAccountActivitySection
               activities={detail.recent_activity}

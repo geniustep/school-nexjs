@@ -19,6 +19,7 @@ describe('receipts-list-present', () => {
     expect(receiptsListHasActiveQuery({ paymentMethod: 'cash' })).toBe(true);
     expect(receiptsListHasActiveQuery({ dateFrom: '2026-01-01' })).toBe(true);
     expect(receiptsListHasActiveQuery({ billingPartnerId: '9' })).toBe(true);
+    expect(receiptsListHasActiveQuery({ involvedStudentId: '6858' })).toBe(true);
   });
 
   it('separates no-data from no-match', () => {

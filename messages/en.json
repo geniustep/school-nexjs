@@ -9084,6 +9084,13 @@
           "cheques": "Cheques",
           "collect": "Record collection"
         },
+        "receiptsSection": {
+          "title": "Receipts",
+          "viewAll": "View all receipts",
+          "empty": "No receipts for this account.",
+          "loadError": "Could not load receipts.",
+          "summaryCount": "{count} receipt(s)"
+        },
         "members": {
           "title": "Account members",
           "loadError": "Could not load account members.",
@@ -10592,6 +10599,10 @@
           "collection": "Collection"
         },
         "multiStudentBadge": "Multi-student",
+        "familyReceiptBadge": "Family receipt",
+        "childrenCountLabel": "{count} children",
+        "childrenSummaryNamed": "{name} + {remaining} other(s)",
+        "involvedStudentFilterChip": "Involved student #{id}",
         "noChildBreakdown": "No per-child breakdown in this receipt snapshot."
       },
       "cashDesk": {

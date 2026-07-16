@@ -964,6 +964,9 @@ export interface FinanceReceipt {
   payer_name?: string;
   actual_payer_name?: string;
   payer?: Ref;
+  /** Billing partner (family payer) when provided by list/detail payloads. */
+  billing_partner_id?: number;
+  billing_partner_name?: string;
   issued_at?: string | null;
   issued_by?: Ref | string | null;
   print_count?: number;
@@ -981,6 +984,12 @@ export interface FinanceReceipt {
   children?: FinanceReceiptChildBreakdown[];
   /** Snapshot flag: family / multi-student receipt breakdown. */
   is_multi_student?: boolean;
+  /** Collection scope when provided (e.g. `family`). */
+  collection_scope?: string;
+  /** All students involved in the receipt (anchor + beneficiaries). */
+  involved_student_ids?: number[];
+  /** Authoritative children count from API when present. */
+  children_count?: number;
   cheque?: FinanceReceiptCheque;
   currency?: string;
 }
