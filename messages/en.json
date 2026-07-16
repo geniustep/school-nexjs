@@ -8078,11 +8078,27 @@
               "payment_collected": "Payment collected",
               "receipt_issued": "Receipt issued",
               "collection_reversed": "Collection reversed",
-              "unknown": "Financial operation"
+              "unknown": "Financial operation",
+              "agreement_line_added": "Agreement line added",
+              "agreement_line_modified": "Agreement line modified",
+              "agreement_line_cancelled": "Agreement line cancelled"
             },
             "auditOnly": "Internal audit record",
             "agreementReference": "Agreement reference",
-            "auditAmountExcluded": "Not counted as a financial effect"
+            "auditAmountExcluded": "Not counted as a financial effect",
+            "fields": {
+              "affectedService": "Line / service",
+              "reason": "Reason",
+              "effectiveFrom": "Effective from"
+            },
+            "amountMeanings": {
+              "agreement_line_added": "Added line total as returned by the server",
+              "agreement_line_modified": "Line modification impact as returned by the server",
+              "agreement_line_cancelled": "Cancelled line gross amount (negative) as returned by the server",
+              "agreement_lifecycle": "Agreement or operational schedule total as returned by the server",
+              "payment": "Collection or receipt amount as returned by the server",
+              "generic": "Operation amount as returned by the server"
+            }
           },
           "actions": {
             "createFinancialAgreement": "Create financial agreement",
@@ -8330,9 +8346,9 @@
           "replace": {
             "action": "Change financial plan",
             "title": "Change financial plan",
-            "description": "Change or replace the financial plan. If payments or receipts already exist, they cannot be modified; any change applies to future periods or as a separate financial adjustment.",
-            "actionHint": "You can change the plan, but past installments and receipts cannot be modified. New changes apply to future periods or as a separate adjustment.",
-            "paymentsExistHint": "Past installments and receipts cannot be modified. The adjustment applies to future periods only.",
+            "description": "Replaces the current agreement with a new one for the selected fee plan. Available only before any payment activity is recorded. The server preview is the final decision.",
+            "actionHint": "Available only before any payment is recorded. Open preview so the server can decide whether replacement is allowed.",
+            "paymentsExistHint": "This file appears to already have recorded payments. The server may block plan replacement; open preview for the exact reason.",
             "fields": {
               "feePlan": "New fee plan",
               "reason": "Change reason",
@@ -8347,7 +8363,8 @@
               "feePlanRequired": "Select a new fee plan.",
               "reasonRequired": "Enter a change reason.",
               "confirmRequired": "Confirm replacing the current agreement before applying."
-            }
+            },
+            "unpaidOnlyHint": "Full plan replacement is available only before any payment is recorded. If payments exist, use Manage financial agreement to amend lines."
           },
           "special": {
             "action": "Special financial adjustment",
@@ -8411,7 +8428,7 @@
             "feePlanNotAssignable": "Selected fee plan is not assignable.",
             "feeTypeNotInAgreement": "Fee type is not in the current agreement.",
             "noFuturePeriodsToAffect": "No future periods are available for this discount.",
-            "planChangeBlockedByPayments": "Full plan replacement is not available after payments. Apply changes to future periods or use a special financial adjustment.",
+            "planChangeBlockedByPayments": "The full plan cannot be replaced after a payment has been recorded. Use Manage financial agreement to amend future lines.",
             "planChangeBlockedByReceipts": "Full plan replacement is not available after receipts. Apply changes to future periods or use a special financial adjustment.",
             "planChangeBlockedByPendingCheques": "Cheques are linked to affected periods. Settle them before applying this change.",
             "agreementChangeForbidden": "You do not have permission to change the fee plan.",
@@ -8419,7 +8436,14 @@
             "discountExceedsRemaining": "Discount exceeds remaining amount in selected periods.",
             "agreementTotalsMismatch": "Agreement totals could not be reconciled after the change.",
             "forbidden": "You do not have permission to perform this action.",
-            "unauthorized": "You do not have permission to perform this financial adjustment."
+            "unauthorized": "You do not have permission to perform this financial adjustment.",
+            "legacySpecialAdjustmentRetired": "The special financial adjustment flow is retired. Use Manage financial agreement, then modify the line."
+          },
+          "retired": {
+            "title": "Special financial adjustment is no longer available here",
+            "description": "The social discount on future installments flow is retired. It cannot be run from the finance command bar.",
+            "replacementHint": "To adjust an existing line, open Manage financial agreement, then modify the line (modify_line).",
+            "manageAgreementCta": "Manage financial agreement"
           }
         },
         "executive": {

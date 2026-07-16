@@ -10,6 +10,8 @@ import {
 
 const I18N_PREFIX = 'admin.student360.financeWorkspace.agreementContext.operations.types';
 const UNKNOWN_LABEL_KEY = `${I18N_PREFIX}.unknown`;
+const AMOUNT_MEANING_PREFIX =
+  'admin.student360.financeWorkspace.agreementContext.operations.amountMeanings';
 
 const OPERATION_ALIASES: Record<string, FinanceOperationKind> = {
   agreement_created: 'agreement_created',
@@ -34,6 +36,15 @@ const OPERATION_ALIASES: Record<string, FinanceOperationKind> = {
   agreement_reset: 'agreement_reset',
   reset_financial_agreement: 'agreement_reset',
   financial_agreement_reset: 'agreement_reset',
+  agreement_line_added: 'agreement_line_added',
+  add_line: 'agreement_line_added',
+  line_added: 'agreement_line_added',
+  agreement_line_modified: 'agreement_line_modified',
+  modify_line: 'agreement_line_modified',
+  line_modified: 'agreement_line_modified',
+  agreement_line_cancelled: 'agreement_line_cancelled',
+  cancel_line: 'agreement_line_cancelled',
+  line_cancelled: 'agreement_line_cancelled',
   fees_generated: 'fees_generated',
   generate_fees: 'fees_generated',
   installments_generated: 'installments_generated',
@@ -81,6 +92,34 @@ function readOperationKind(raw: Record<string, unknown>): FinanceOperationKind {
 
 function operationLabelKey(kind: FinanceOperationKind): string {
   return kind === 'unknown' ? UNKNOWN_LABEL_KEY : `${I18N_PREFIX}.${kind}`;
+}
+
+function amountMeaningKey(kind: FinanceOperationKind, amount: number | null): string | null {
+  if (amount == null) return null;
+  switch (kind) {
+    case 'agreement_line_added':
+      return `${AMOUNT_MEANING_PREFIX}.agreement_line_added`;
+    case 'agreement_line_modified':
+      return `${AMOUNT_MEANING_PREFIX}.agreement_line_modified`;
+    case 'agreement_line_cancelled':
+      return `${AMOUNT_MEANING_PREFIX}.agreement_line_cancelled`;
+    case 'payment_collected':
+    case 'receipt_issued':
+    case 'collection_reversed':
+      return `${AMOUNT_MEANING_PREFIX}.payment`;
+    case 'agreement_created':
+    case 'agreement_submitted':
+    case 'agreement_approved':
+    case 'agreement_activated':
+    case 'agreement_amended':
+    case 'agreement_cancelled':
+    case 'agreement_reset':
+    case 'fees_generated':
+    case 'installments_generated':
+      return `${AMOUNT_MEANING_PREFIX}.agreement_lifecycle`;
+    default:
+      return `${AMOUNT_MEANING_PREFIX}.generic`;
+  }
 }
 
 function readAmount(raw: Record<string, unknown>): number | null {
@@ -175,6 +214,68 @@ function readAuditId(raw: Record<string, unknown>): string | null {
   return readString(raw.audit_id);
 }
 
+/** Backend description pattern: `{label} — {reason} (من {effective_from})`. */
+export function parseFinanceOperationDescription(description: string | null): {
+  reason: string | null;
+  effectiveFrom: string | null;
+} {
+  if (!description) return { reason: null, effectiveFrom: null };
+
+  const withEffective = description.match(
+    /^(?<label>.+?)\s*[—–-]\s*(?<reason>.+?)\s*\((?:من|from)\s+(?<effective>[^)]+)\)\s*$/u,
+  );
+  if (withEffective?.groups) {
+    return {
+      reason: withEffective.groups.reason?.trim() || null,
+      effectiveFrom: withEffective.groups.effective?.trim() || null,
+    };
+  }
+
+  const reasonOnly = description.match(/^(?<label>.+?)\s*[—–-]\s*(?<reason>.+)\s*$/u);
+  if (reasonOnly?.groups?.reason) {
+    return { reason: reasonOnly.groups.reason.trim(), effectiveFrom: null };
+  }
+
+  return { reason: null, effectiveFrom: null };
+}
+
+function readAffectedServiceLabel(raw: Record<string, unknown>): string | null {
+  return (
+    readString(raw.service_name) ??
+    readString(raw.line_label) ??
+    readString(raw.line_name) ??
+    readString(raw.affected_service) ??
+    readString(raw.affected_line_label) ??
+    readString(raw.fee_type_name) ??
+    readString(raw.product_name) ??
+    readString(raw.target_label) ??
+    readString(readRecord(raw.line).name) ??
+    readString(readRecord(raw.service).name)
+  );
+}
+
+function readReason(raw: Record<string, unknown>, parsedReason: string | null): string | null {
+  return (
+    readString(raw.reason) ??
+    readString(raw.reason_note) ??
+    readString(raw.change_reason) ??
+    parsedReason
+  );
+}
+
+function readEffectiveFrom(
+  raw: Record<string, unknown>,
+  parsedEffectiveFrom: string | null,
+): string | null {
+  return (
+    readString(raw.effective_from) ??
+    readString(raw.effective_date) ??
+    readString(raw.effective_period) ??
+    readString(raw.valid_from) ??
+    parsedEffectiveFrom
+  );
+}
+
 function normalizeOperationEntry(raw: unknown, index: number): FinanceOperationHistoryEntry | null {
   const obj = readRecord(raw);
   const date =
@@ -189,13 +290,20 @@ function normalizeOperationEntry(raw: unknown, index: number): FinanceOperationH
     readString(obj.uuid) ??
     `${kind}-${date ?? 'undated'}-${index}`;
   const auditOnly = obj.audit_only === true;
+  const description = readString(obj.description) ?? readString(obj.note) ?? readString(obj.summary);
+  const parsed = parseFinanceOperationDescription(description);
+  const amount = readAmount(obj);
 
   return {
     id,
     date,
     operationKind: kind,
     operationLabelKey: operationLabelKey(kind),
-    description: readString(obj.description) ?? readString(obj.note) ?? readString(obj.summary),
+    description,
+    reason: readReason(obj, parsed.reason),
+    affectedServiceLabel: readAffectedServiceLabel(obj),
+    effectiveFrom: readEffectiveFrom(obj, parsed.effectiveFrom),
+    amountMeaningKey: amountMeaningKey(kind, amount),
     performedByLabel: performedBy.performedByLabel,
     performedByKey: performedBy.performedByKey,
     state: readString(obj.state) ?? readString(obj.status),
@@ -204,7 +312,7 @@ function normalizeOperationEntry(raw: unknown, index: number): FinanceOperationH
     auditId: readAuditId(obj),
     auditOnly,
     operationGroupKey: readString(obj.operation_group_key),
-    amount: readAmount(obj),
+    amount,
     currency: readCurrency(obj),
   };
 }

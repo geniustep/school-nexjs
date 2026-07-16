@@ -35,6 +35,10 @@ export interface NormalizedChangePlanPreview {
   canApply: boolean;
   blockingReasons: string[];
   warnings: string[];
+  /** True when Backend marks a legacy mode (e.g. retired social discount) as deprecated. */
+  deprecated?: boolean;
+  replacementWorkflow?: string | null;
+  replacementOperation?: string | null;
   currentAgreementLabel?: string | null;
   currentFeePlanLabel?: string | null;
   newFeePlanLabel?: string | null;

@@ -15,17 +15,14 @@ import {
   previewStudentChangePlan,
 } from '../api/finance-admin-api';
 import {
-  buildChangePlanPayload,
-  monthPeriodsFromRange,
+  buildReplaceIfUnpaidApplyPayload,
+  buildReplaceIfUnpaidPreviewPayload,
   type ReplaceIfUnpaidFormState,
-  type SocialDiscountFormState,
 } from '../utils/build-change-plan-payload';
 import { resolveChangePlanErrorMessage } from '../utils/change-plan-errors';
 import { normalizeChangePlanPreview } from '../utils/normalize-change-plan-preview';
 import { resolveAgreementStateLabel } from '../utils/reference-labels';
 import type { ChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
-
-const SOCIAL_FEE_TYPES = ['tuition', 'transport'] as const;
 
 function defaultReplaceForm(): ReplaceIfUnpaidFormState {
   return {
@@ -36,16 +33,8 @@ function defaultReplaceForm(): ReplaceIfUnpaidFormState {
   };
 }
 
-function defaultSocialForm(): SocialDiscountFormState {
-  return {
-    effectiveDate: '',
-    feeTypeCode: 'tuition',
-    discountType: 'percent',
-    discountValue: '',
-    reasonNote: '',
-    affectedPeriods: [],
-    confirmFinancialImpact: false,
-  };
+function isRetiredLegacyMode(mode: ChangePlanMode): boolean {
+  return mode === 'social_discount_on_future_installments';
 }
 
 export function ChangePlanDrawer({
@@ -55,7 +44,9 @@ export function ChangePlanDrawer({
   academicYearId,
   levelId,
   eligibility,
+  paymentsExistHint = false,
   onClose,
+  onNavigateToAgreements,
   onSuccess,
 }: {
   open: boolean;
@@ -64,14 +55,16 @@ export function ChangePlanDrawer({
   academicYearId: string;
   levelId?: number | null;
   eligibility: ChangePlanEligibility;
+  /** Display-only hint from workspace totals; Backend preview remains authoritative. */
+  paymentsExistHint?: boolean;
   onClose: () => void;
+  onNavigateToAgreements?: () => void;
   onSuccess: () => void;
 }) {
   const t = useT();
   const toast = useToast();
+  const retiredLegacyMode = isRetiredLegacyMode(mode);
   const [replaceForm, setReplaceForm] = useState(defaultReplaceForm);
-  const [socialForm, setSocialForm] = useState(defaultSocialForm);
-  const [periodEndMonth, setPeriodEndMonth] = useState('');
   const [preview, setPreview] = useState<NormalizedChangePlanPreview | null>(null);
   const [previewReady, setPreviewReady] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -88,15 +81,13 @@ export function ChangePlanDrawer({
     [plans, academicYearId],
   );
 
-  const title =
-    mode === 'replace_if_unpaid'
-      ? t('admin.student360.financeWorkspace.changePlan.replace.title')
-      : t('admin.student360.financeWorkspace.changePlan.special.title');
+  const title = retiredLegacyMode
+    ? t('admin.student360.financeWorkspace.changePlan.retired.title')
+    : t('admin.student360.financeWorkspace.changePlan.replace.title');
 
-  const subtitle =
-    mode === 'replace_if_unpaid'
-      ? t('admin.student360.financeWorkspace.changePlan.replace.description')
-      : t('admin.student360.financeWorkspace.changePlan.special.description');
+  const subtitle = retiredLegacyMode
+    ? t('admin.student360.financeWorkspace.changePlan.retired.description')
+    : t('admin.student360.financeWorkspace.changePlan.replace.description');
 
   const canEdit = eligibility.hasActiveAgreementInUi;
   const agreementStateLabel = eligibility.agreementState
@@ -105,8 +96,6 @@ export function ChangePlanDrawer({
 
   function resetAndClose() {
     setReplaceForm(defaultReplaceForm());
-    setSocialForm(defaultSocialForm());
-    setPeriodEndMonth('');
     setPreview(null);
     setPreviewReady(false);
     setFormError(null);
@@ -119,57 +108,14 @@ export function ChangePlanDrawer({
     setPreviewReady(false);
   }
 
-  function resolveSocialFormForSubmit(): SocialDiscountFormState {
-    const startMonth = socialForm.effectiveDate.slice(0, 7);
-    const periods =
-      socialForm.affectedPeriods.length > 0
-        ? socialForm.affectedPeriods
-        : periodEndMonth
-          ? monthPeriodsFromRange(startMonth, periodEndMonth)
-          : [];
-    if (periods.length > 0 && socialForm.affectedPeriods.length === 0) {
-      return { ...socialForm, affectedPeriods: periods };
-    }
-    return socialForm;
-  }
-
   function validateForm(): boolean {
-    if (mode === 'replace_if_unpaid') {
-      if (!replaceForm.newFeePlanId) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.replace.errors.feePlanRequired'));
-        return false;
-      }
-      if (!replaceForm.changeReason.trim()) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.replace.errors.reasonRequired'));
-        return false;
-      }
-    } else {
-      if (!socialForm.effectiveDate) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.effectiveDateRequired'));
-        return false;
-      }
-      if (!socialForm.reasonNote.trim()) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.reasonNoteRequired'));
-        return false;
-      }
-      if (!socialForm.discountValue || Number(socialForm.discountValue) <= 0) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.discountRequired'));
-        return false;
-      }
-      const startMonth = socialForm.effectiveDate.slice(0, 7);
-      const periods =
-        socialForm.affectedPeriods.length > 0
-          ? socialForm.affectedPeriods
-          : periodEndMonth
-            ? monthPeriodsFromRange(startMonth, periodEndMonth)
-            : [];
-      if (!periods.length) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.periodsRequired'));
-        return false;
-      }
-      if (socialForm.affectedPeriods.length === 0) {
-        setSocialForm((prev) => ({ ...prev, affectedPeriods: periods }));
-      }
+    if (!replaceForm.newFeePlanId) {
+      setFormError(t('admin.student360.financeWorkspace.changePlan.replace.errors.feePlanRequired'));
+      return false;
+    }
+    if (!replaceForm.changeReason.trim()) {
+      setFormError(t('admin.student360.financeWorkspace.changePlan.replace.errors.reasonRequired'));
+      return false;
     }
     setFormError(null);
     return true;
@@ -177,20 +123,36 @@ export function ChangePlanDrawer({
 
   async function handlePreview(e: React.FormEvent) {
     e.preventDefault();
+    if (retiredLegacyMode) return;
     if (!canEdit) {
       setFormError(t('admin.student360.financeWorkspace.changePlan.eligibility.noActiveAgreement'));
       return;
     }
     if (!validateForm()) return;
     setPreviewLoading(true);
-    const formState =
-      mode === 'replace_if_unpaid' ? replaceForm : resolveSocialFormForSubmit();
-    const payload = buildChangePlanPayload(mode, formState, 'preview');
+    const payload = buildReplaceIfUnpaidPreviewPayload(replaceForm);
     const res = await previewStudentChangePlan(studentId, payload, {
       academic_year_id: Number(academicYearId),
     });
     setPreviewLoading(false);
     if (!res.success) {
+      if (res.error.code === 'legacy_special_adjustment_retired') {
+        setFormError(
+          resolveChangePlanErrorMessage(res.error.code, res.error.message, t),
+        );
+        setPreview({
+          canApply: false,
+          blockingReasons: ['legacy_special_adjustment_retired'],
+          warnings: [],
+          deprecated: true,
+          replacementWorkflow: 'agreement_amendments',
+          replacementOperation: 'modify_line',
+          preservedPeriods: [],
+          affectedPeriods: [],
+        });
+        setPreviewReady(true);
+        return;
+      }
       if (res.error.code === 'no_active_agreement' && eligibility.hasActiveAgreementInUi) {
         setFormError(
           t('admin.student360.financeWorkspace.changePlan.eligibility.activeAgreementServiceMismatch'),
@@ -203,7 +165,11 @@ export function ChangePlanDrawer({
     const normalized = normalizeChangePlanPreview(res.data);
     setPreview(normalized);
     setPreviewReady(true);
-    if (!normalized.canApply && normalized.blockingReasons.length === 0) {
+    if (normalized.deprecated) {
+      setFormError(
+        resolveChangePlanErrorMessage('legacy_special_adjustment_retired', undefined, t),
+      );
+    } else if (!normalized.canApply && normalized.blockingReasons.length === 0) {
       setFormError(t('admin.student360.financeWorkspace.changePlan.errors.cannotApply'));
     } else {
       setFormError(null);
@@ -211,16 +177,22 @@ export function ChangePlanDrawer({
   }
 
   async function handleApplyConfirmed() {
+    if (retiredLegacyMode || preview?.deprecated) return;
     if (!previewReady || !validateForm()) return;
     setApplyLoading(true);
-    const formState =
-      mode === 'replace_if_unpaid' ? replaceForm : resolveSocialFormForSubmit();
-    const payload = buildChangePlanPayload(mode, formState, 'apply');
+    const payload = buildReplaceIfUnpaidApplyPayload(replaceForm);
     const res = await applyStudentChangePlan(studentId, payload, {
       academic_year_id: Number(academicYearId),
     });
     setApplyLoading(false);
     if (!res.success) {
+      if (res.error.code === 'legacy_special_adjustment_retired') {
+        setFormError(
+          resolveChangePlanErrorMessage(res.error.code, res.error.message, t),
+        );
+        setShowApplyConfirm(false);
+        return;
+      }
       if (res.error.code === 'no_active_agreement' && eligibility.hasActiveAgreementInUi) {
         setFormError(
           t('admin.student360.financeWorkspace.changePlan.eligibility.activeAgreementServiceMismatch'),
@@ -236,7 +208,43 @@ export function ChangePlanDrawer({
     onSuccess();
   }
 
+  function handleGoToAgreements() {
+    resetAndClose();
+    onNavigateToAgreements?.();
+  }
+
   if (!open) return null;
+
+  if (retiredLegacyMode) {
+    return (
+      <SetupDrawer open={open} title={title} subtitle={subtitle} onClose={resetAndClose} size="wide">
+        <section
+          className="student-finance-change-plan-retired"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="student-finance-change-plan-retired__title">
+            {t('admin.student360.financeWorkspace.changePlan.retired.title')}
+          </p>
+          <p>{t('admin.student360.financeWorkspace.changePlan.retired.description')}</p>
+          <p className="tiny muted">
+            {t('admin.student360.financeWorkspace.changePlan.retired.replacementHint')}
+          </p>
+          <div className="row">
+            <button type="button" className="btn btn--primary" onClick={handleGoToAgreements}>
+              {t('admin.student360.financeWorkspace.changePlan.retired.manageAgreementCta')}
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={resetAndClose}>
+              {t('common.cancel')}
+            </button>
+          </div>
+        </section>
+      </SetupDrawer>
+    );
+  }
+
+  const showRetiredFromPreview = preview?.deprecated === true;
+  const canShowApply = previewReady && preview?.canApply === true && !showRetiredFromPreview;
 
   return (
     <>
@@ -258,6 +266,16 @@ export function ChangePlanDrawer({
               ? t('admin.student360.financeWorkspace.changePlan.eligibility.eligibleDetail')
               : t('admin.student360.financeWorkspace.changePlan.eligibility.noActiveAgreement')}
           </p>
+          {canEdit ? (
+            <p className="student-finance-change-plan-eligibility__meta tiny muted">
+              {t('admin.student360.financeWorkspace.changePlan.replace.unpaidOnlyHint')}
+            </p>
+          ) : null}
+          {canEdit && paymentsExistHint ? (
+            <p className="student-finance-change-plan-eligibility__meta tiny muted" role="note">
+              {t('admin.student360.financeWorkspace.changePlan.replace.paymentsExistHint')}
+            </p>
+          ) : null}
           {!canEdit && agreementStateLabel ? (
             <p className="student-finance-change-plan-eligibility__meta tiny muted">
               {t('admin.student360.financeWorkspace.changePlan.eligibility.currentAgreementState', {
@@ -267,232 +285,124 @@ export function ChangePlanDrawer({
           ) : null}
         </section>
 
-        <form className="student-finance-change-plan-form stack" onSubmit={handlePreview}>
-          <p className="student-finance-change-plan-hint" role="note">
-            {mode === 'replace_if_unpaid'
-              ? t('admin.student360.financeWorkspace.changePlan.replace.paymentsExistHint')
-              : t('admin.student360.financeWorkspace.changePlan.special.preservedWarning')}
-          </p>
-          {mode === 'replace_if_unpaid' ? (
-            <>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.replace.fields.feePlan')}
-                </span>
-                <select
-                  className="input"
-                  value={replaceForm.newFeePlanId}
-                  onChange={(e) => {
-                    setReplaceForm((prev) => ({ ...prev, newFeePlanId: e.target.value }));
-                    invalidatePreview();
-                  }}
-                  disabled={plansLoading || !canEdit}
-                >
-                  <option value="">{t('common.dash')}</option>
-                  {filteredPlans.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.replace.fields.reason')}
-                </span>
-                <input
-                  className="input"
-                  value={replaceForm.changeReason}
-                  onChange={(e) => {
-                    setReplaceForm((prev) => ({ ...prev, changeReason: e.target.value }));
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.replace.fields.activationMode')}
-                </span>
-                <select
-                  className="input"
-                  value={replaceForm.activationMode}
-                  onChange={(e) => {
-                    setReplaceForm((prev) => ({
-                      ...prev,
-                      activationMode: e.target.value as ReplaceIfUnpaidFormState['activationMode'],
-                    }));
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                >
-                  <option value="activate">
-                    {t('admin.student360.financeWorkspace.changePlan.replace.activation.activate')}
-                  </option>
-                  <option value="draft">
-                    {t('admin.student360.financeWorkspace.changePlan.replace.activation.draft')}
-                  </option>
-                </select>
-              </label>
-              <label className="row">
-                <input
-                  type="checkbox"
-                  checked={replaceForm.confirmReplace}
-                  onChange={(e) => {
-                    setReplaceForm((prev) => ({ ...prev, confirmReplace: e.target.checked }));
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                />
-                <span>{t('admin.student360.financeWorkspace.changePlan.replace.fields.confirmReplace')}</span>
-              </label>
-            </>
-          ) : (
-            <>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.special.fields.effectiveDate')}
-                </span>
-                <input
-                  className="input"
-                  type="date"
-                  value={socialForm.effectiveDate}
-                  onChange={(e) => {
-                    setSocialForm((prev) => ({ ...prev, effectiveDate: e.target.value }));
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.special.fields.feeType')}
-                </span>
-                <select
-                  className="input"
-                  value={socialForm.feeTypeCode}
-                  onChange={(e) => {
-                    setSocialForm((prev) => ({ ...prev, feeTypeCode: e.target.value }));
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                >
-                  {SOCIAL_FEE_TYPES.map((code) => (
-                    <option key={code} value={code}>
-                      {t(`admin.student360.financeWorkspace.changePlan.special.feeTypes.${code}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="row">
-                <label>
-                  <span className="tiny muted">
-                    {t('admin.student360.financeWorkspace.changePlan.special.fields.discountType')}
-                  </span>
-                  <select
-                    className="input"
-                    value={socialForm.discountType}
-                    onChange={(e) => {
-                      setSocialForm((prev) => ({
-                        ...prev,
-                        discountType: e.target.value as SocialDiscountFormState['discountType'],
-                      }));
-                      invalidatePreview();
-                    }}
-                    disabled={!canEdit}
-                  >
-                    <option value="percent">
-                      {t('admin.student360.financeWorkspace.changePlan.special.discountTypes.percent')}
-                    </option>
-                    <option value="amount">
-                      {t('admin.student360.financeWorkspace.changePlan.special.discountTypes.amount')}
-                    </option>
-                  </select>
-                </label>
-                <label>
-                  <span className="tiny muted">
-                    {t('admin.student360.financeWorkspace.changePlan.special.fields.discountValue')}
-                  </span>
-                  <input
-                    className="input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={socialForm.discountValue}
-                    onChange={(e) => {
-                      setSocialForm((prev) => ({ ...prev, discountValue: e.target.value }));
-                      invalidatePreview();
-                    }}
-                    disabled={!canEdit}
-                  />
-                </label>
-              </div>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.special.fields.periodEnd')}
-                </span>
-                <input
-                  className="input"
-                  type="month"
-                  value={periodEndMonth}
-                  onChange={(e) => {
-                    setPeriodEndMonth(e.target.value);
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                />
-              </label>
-              <label>
-                <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.special.fields.reasonNote')}
-                </span>
-                <textarea
-                  className="input"
-                  rows={3}
-                  value={socialForm.reasonNote}
-                  onChange={(e) => {
-                    setSocialForm((prev) => ({ ...prev, reasonNote: e.target.value }));
-                    invalidatePreview();
-                  }}
-                  disabled={!canEdit}
-                />
-              </label>
-              <p className="tiny muted">
-                {t('admin.student360.financeWorkspace.changePlan.special.preservedWarning')}
-              </p>
-            </>
-          )}
-
-          {formError ? <p className="form-error">{formError}</p> : null}
-
-          <div className="row">
-            <button type="submit" className="btn btn--primary" disabled={previewLoading || !canEdit}>
-              {previewLoading
-                ? t('common.loading')
-                : t('admin.student360.financeWorkspace.changePlan.previewAction')}
+        {showRetiredFromPreview ? (
+          <section className="student-finance-change-plan-retired" role="status" aria-live="polite">
+            <p>{resolveChangePlanErrorMessage('legacy_special_adjustment_retired', undefined, t)}</p>
+            <p className="tiny muted">
+              {t('admin.student360.financeWorkspace.changePlan.retired.replacementHint')}
+            </p>
+            <button type="button" className="btn btn--primary" onClick={handleGoToAgreements}>
+              {t('admin.student360.financeWorkspace.changePlan.retired.manageAgreementCta')}
             </button>
-            {previewReady && preview?.canApply ? (
-              <button
-                type="button"
-                className="btn btn--ghost"
-                disabled={applyLoading}
-                onClick={() => {
-                  if (mode === 'replace_if_unpaid' && !replaceForm.confirmReplace) {
-                    setFormError(
-                      t('admin.student360.financeWorkspace.changePlan.replace.errors.confirmRequired'),
-                    );
-                    return;
-                  }
-                  setShowApplyConfirm(true);
+          </section>
+        ) : (
+          <form className="student-finance-change-plan-form stack" onSubmit={handlePreview}>
+            <p className="student-finance-change-plan-hint" role="note">
+              {t('admin.student360.financeWorkspace.changePlan.replace.unpaidOnlyHint')}
+            </p>
+            <label>
+              <span className="tiny muted">
+                {t('admin.student360.financeWorkspace.changePlan.replace.fields.feePlan')}
+              </span>
+              <select
+                className="input"
+                value={replaceForm.newFeePlanId}
+                onChange={(e) => {
+                  setReplaceForm((prev) => ({ ...prev, newFeePlanId: e.target.value }));
+                  invalidatePreview();
                 }}
+                disabled={plansLoading || !canEdit}
               >
-                {t('admin.student360.financeWorkspace.changePlan.applyAction')}
-              </button>
-            ) : null}
-          </div>
-        </form>
+                <option value="">{t('common.dash')}</option>
+                {filteredPlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span className="tiny muted">
+                {t('admin.student360.financeWorkspace.changePlan.replace.fields.reason')}
+              </span>
+              <input
+                className="input"
+                value={replaceForm.changeReason}
+                onChange={(e) => {
+                  setReplaceForm((prev) => ({ ...prev, changeReason: e.target.value }));
+                  invalidatePreview();
+                }}
+                disabled={!canEdit}
+              />
+            </label>
+            <label>
+              <span className="tiny muted">
+                {t('admin.student360.financeWorkspace.changePlan.replace.fields.activationMode')}
+              </span>
+              <select
+                className="input"
+                value={replaceForm.activationMode}
+                onChange={(e) => {
+                  setReplaceForm((prev) => ({
+                    ...prev,
+                    activationMode: e.target.value as ReplaceIfUnpaidFormState['activationMode'],
+                  }));
+                  invalidatePreview();
+                }}
+                disabled={!canEdit}
+              >
+                <option value="activate">
+                  {t('admin.student360.financeWorkspace.changePlan.replace.activation.activate')}
+                </option>
+                <option value="draft">
+                  {t('admin.student360.financeWorkspace.changePlan.replace.activation.draft')}
+                </option>
+              </select>
+            </label>
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={replaceForm.confirmReplace}
+                onChange={(e) => {
+                  setReplaceForm((prev) => ({ ...prev, confirmReplace: e.target.checked }));
+                  invalidatePreview();
+                }}
+                disabled={!canEdit}
+              />
+              <span>{t('admin.student360.financeWorkspace.changePlan.replace.fields.confirmReplace')}</span>
+            </label>
 
-        {preview ? (
+            {formError ? <p className="form-error">{formError}</p> : null}
+
+            <div className="row">
+              <button type="submit" className="btn btn--primary" disabled={previewLoading || !canEdit}>
+                {previewLoading
+                  ? t('common.loading')
+                  : t('admin.student360.financeWorkspace.changePlan.previewAction')}
+              </button>
+              {canShowApply ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  disabled={applyLoading}
+                  onClick={() => {
+                    if (!replaceForm.confirmReplace) {
+                      setFormError(
+                        t('admin.student360.financeWorkspace.changePlan.replace.errors.confirmRequired'),
+                      );
+                      return;
+                    }
+                    setShowApplyConfirm(true);
+                  }}
+                >
+                  {t('admin.student360.financeWorkspace.changePlan.applyAction')}
+                </button>
+              ) : null}
+            </div>
+          </form>
+        )}
+
+        {preview && !showRetiredFromPreview ? (
           <section className="student-finance-change-plan-preview stack">
             <h3>{t('admin.student360.financeWorkspace.changePlan.previewTitle')}</h3>
             <dl className="detail-list compact">
@@ -516,11 +426,7 @@ export function ChangePlanDrawer({
               ) : null}
               <div>
                 <dt>{t('admin.student360.financeWorkspace.changePlan.preview.canApply')}</dt>
-                <dd>
-                  {preview.canApply
-                    ? t('common.yes')
-                    : t('common.no')}
-                </dd>
+                <dd>{preview.canApply ? t('common.yes') : t('common.no')}</dd>
               </div>
               {preview.willAmendCurrent != null ? (
                 <div>
@@ -584,17 +490,22 @@ export function ChangePlanDrawer({
                 ))}
               </ul>
             ) : null}
+            {preview.blockingReasons.includes('plan_change_blocked_by_payments') ? (
+              <div className="student-finance-change-plan-retired" role="note">
+                <p className="tiny muted">
+                  {t('admin.student360.financeWorkspace.changePlan.retired.replacementHint')}
+                </p>
+                <button type="button" className="btn btn--ghost" onClick={handleGoToAgreements}>
+                  {t('admin.student360.financeWorkspace.changePlan.retired.manageAgreementCta')}
+                </button>
+              </div>
+            ) : null}
             {preview.warnings.length ? (
               <ul className="student-finance-change-plan-warnings">
                 {preview.warnings.map((warning) => (
                   <li key={warning}>{resolveChangePlanErrorMessage(warning, undefined, t)}</li>
                 ))}
               </ul>
-            ) : null}
-            {mode === 'social_discount_on_future_installments' ? (
-              <p className="tiny muted">
-                {t('admin.student360.financeWorkspace.changePlan.special.noPastChangesWarning')}
-              </p>
             ) : null}
           </section>
         ) : null}

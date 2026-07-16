@@ -50,6 +50,9 @@ export type FinanceOperationKind =
   | 'agreement_amended'
   | 'agreement_cancelled'
   | 'agreement_reset'
+  | 'agreement_line_added'
+  | 'agreement_line_modified'
+  | 'agreement_line_cancelled'
   | 'fees_generated'
   | 'installments_generated'
   | 'payment_collected'
@@ -63,6 +66,14 @@ export interface FinanceOperationHistoryEntry {
   operationKind: FinanceOperationKind;
   operationLabelKey: string;
   description: string | null;
+  /** Free-text reason when separable from the operation label. */
+  reason: string | null;
+  /** Affected line/service label when provided by Backend or parseable. */
+  affectedServiceLabel: string | null;
+  /** Effective-from date/period when provided by Backend or parseable. */
+  effectiveFrom: string | null;
+  /** i18n key clarifying amount meaning without recalculating it. */
+  amountMeaningKey: string | null;
   performedByLabel: string;
   performedByKey: string;
   state: string | null;

@@ -8078,11 +8078,27 @@
               "payment_collected": "Cobro registrado",
               "receipt_issued": "Recibo emitido",
               "collection_reversed": "Cobro revertido",
-              "unknown": "Operación financiera"
+              "unknown": "Operación financiera",
+              "agreement_line_added": "Línea de acuerdo añadida",
+              "agreement_line_modified": "Línea de acuerdo modificada",
+              "agreement_line_cancelled": "Línea de acuerdo cancelada"
             },
             "auditOnly": "Registro de auditoría interna",
             "agreementReference": "Referencia del acuerdo",
-            "auditAmountExcluded": "No contabilizado como efecto financiero"
+            "auditAmountExcluded": "No contabilizado como efecto financiero",
+            "fields": {
+              "affectedService": "Línea / servicio",
+              "reason": "Motivo",
+              "effectiveFrom": "Vigente desde"
+            },
+            "amountMeanings": {
+              "agreement_line_added": "Total de la línea añadida según el servidor",
+              "agreement_line_modified": "Impacto de la modificación según el servidor",
+              "agreement_line_cancelled": "Importe bruto de la línea cancelada (negativo) según el servidor",
+              "agreement_lifecycle": "Total del acuerdo o calendario operativo según el servidor",
+              "payment": "Importe de cobro o recibo según el servidor",
+              "generic": "Importe de la operación según el servidor"
+            }
           },
           "actions": {
             "createFinancialAgreement": "Crear acuerdo financiero",
@@ -8330,9 +8346,9 @@
           "replace": {
             "action": "Cambiar plan financiero",
             "title": "Cambiar plan financiero",
-            "description": "Cambiar o sustituir el plan financiero. Si ya hay pagos o recibos, no se pueden modificar; cualquier cambio se aplica a periodos futuros o como ajuste separado.",
-            "actionHint": "Puede cambiar el plan, pero las cuotas y recibos anteriores no se pueden modificar.",
-            "paymentsExistHint": "Las cuotas y recibos anteriores no se pueden modificar. El ajuste se aplica solo a periodos futuros.",
+            "description": "Sustituye el acuerdo actual por uno nuevo según el plan elegido. Solo disponible antes de registrar cualquier pago. La decisión final la da la vista previa del servidor.",
+            "actionHint": "Solo disponible antes de registrar cualquier pago. Abra la vista previa para que el servidor decida si el reemplazo es posible.",
+            "paymentsExistHint": "Este expediente parece tener pagos registrados. El servidor puede bloquear el reemplazo; abra la vista previa para el motivo exacto.",
             "fields": {
               "feePlan": "Nuevo plan de tarifas",
               "reason": "Motivo del cambio",
@@ -8347,7 +8363,8 @@
               "feePlanRequired": "Seleccione un plan de tarifas.",
               "reasonRequired": "Indique el motivo del cambio.",
               "confirmRequired": "Confirme la sustitución antes de aplicar."
-            }
+            },
+            "unpaidOnlyHint": "El reemplazo completo del plan solo está disponible antes de registrar pagos. Si ya hay pagos, use Gestionar acuerdo financiero para modificar líneas."
           },
           "special": {
             "action": "Ajuste financiero especial",
@@ -8411,7 +8428,7 @@
             "feePlanNotAssignable": "El plan no es asignable.",
             "feeTypeNotInAgreement": "El tipo de tarifa no está en el acuerdo.",
             "noFuturePeriodsToAffect": "No hay periodos futuros que afectar.",
-            "planChangeBlockedByPayments": "No se puede reemplazar el plan por completo tras pagos. Aplique el cambio a periodos futuros o mediante un ajuste financiero especial.",
+            "planChangeBlockedByPayments": "No se puede reemplazar el plan completo después de registrar un pago. Use Gestionar acuerdo financiero para modificar líneas futuras.",
             "planChangeBlockedByReceipts": "No se puede reemplazar el plan por completo tras recibos. Aplique el cambio a periodos futuros o mediante un ajuste financiero especial.",
             "planChangeBlockedByPendingCheques": "Hay cheques vinculados a los periodos afectados. Liquídelos antes de aplicar el cambio.",
             "agreementChangeForbidden": "Sin permiso para cambiar el plan.",
@@ -8419,7 +8436,14 @@
             "discountExceedsRemaining": "El descuento supera el importe restante.",
             "agreementTotalsMismatch": "Los totales del acuerdo no coinciden.",
             "forbidden": "Acción prohibida.",
-            "unauthorized": "No autorizado."
+            "unauthorized": "No autorizado.",
+            "legacySpecialAdjustmentRetired": "El flujo de ajuste financiero especial está retirado. Use Gestionar acuerdo financiero y luego modificar la línea."
+          },
+          "retired": {
+            "title": "El ajuste financiero especial ya no está disponible aquí",
+            "description": "El flujo de descuento social sobre cuotas futuras está retirado. No se puede ejecutar desde la barra de acciones.",
+            "replacementHint": "Para ajustar una línea existente, abra Gestionar acuerdo financiero y luego modifique la línea (modify_line).",
+            "manageAgreementCta": "Gestionar acuerdo financiero"
           }
         },
         "executive": {

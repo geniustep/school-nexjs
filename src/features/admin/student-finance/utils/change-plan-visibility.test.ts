@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { changePlanErrorMessageKey } from './change-plan-errors';
-import { resolveChangePlanVisibility } from './resolve-change-plan-visibility';
+import {
+  resolveChangePlanVisibility,
+  resolvePaymentsExistDisplayHint,
+} from './resolve-change-plan-visibility';
 
 describe('resolve-change-plan-visibility', () => {
-  it('shows change plan actions when an active agreement is present in UI', () => {
+  it('shows change plan only (no special adjustment) when an active agreement is present', () => {
     expect(
       resolveChangePlanVisibility({
         workspace: { current_agreement: { id: 1, state: 'active' } } as never,
@@ -12,7 +15,7 @@ describe('resolve-change-plan-visibility', () => {
       }),
     ).toEqual({
       showChangePlan: true,
-      showSpecialAdjustment: true,
+      showSpecialAdjustment: false,
       showReviewAgreement: false,
       reviewAgreementKind: 'review',
       eligibility: {
@@ -28,6 +31,7 @@ describe('resolve-change-plan-visibility', () => {
         reviewActionKind: 'review',
         hasInactiveAgreementRecord: false,
       },
+      paymentsExistHint: false,
     });
   });
 
@@ -59,6 +63,7 @@ describe('resolve-change-plan-visibility', () => {
         reviewActionKind: 'review',
         hasInactiveAgreementRecord: false,
       },
+      paymentsExistHint: false,
     });
   });
 
@@ -87,6 +92,7 @@ describe('resolve-change-plan-visibility', () => {
         reviewActionKind: 'review',
         hasInactiveAgreementRecord: false,
       },
+      paymentsExistHint: false,
     });
   });
 
@@ -115,7 +121,30 @@ describe('resolve-change-plan-visibility', () => {
         reviewActionKind: 'review',
         hasInactiveAgreementRecord: false,
       },
+      paymentsExistHint: false,
     });
+  });
+
+  it('surfaces paymentsExistHint as display-only when paid_confirmed > 0', () => {
+    const visibility = resolveChangePlanVisibility({
+      workspace: { current_agreement: { id: 1, state: 'active' } } as never,
+      financialOverview: { totals: { paid_confirmed: 500, paid: 500 } } as never,
+      studentCapabilities: { can_assign_fees: true } as never,
+    });
+    expect(visibility.showChangePlan).toBe(true);
+    expect(visibility.showSpecialAdjustment).toBe(false);
+    expect(visibility.paymentsExistHint).toBe(true);
+  });
+});
+
+describe('resolvePaymentsExistDisplayHint', () => {
+  it('is true for confirmed paid totals without inventing blockers', () => {
+    expect(
+      resolvePaymentsExistDisplayHint({
+        workspace: null,
+        financialOverview: { totals: { paid_confirmed: 10, paid: 0 } } as never,
+      }),
+    ).toBe(true);
   });
 });
 
@@ -129,6 +158,18 @@ describe('change-plan-errors', () => {
   it('maps forbidden code', () => {
     expect(changePlanErrorMessageKey('forbidden')).toBe(
       'admin.student360.financeWorkspace.changePlan.errors.forbidden',
+    );
+  });
+
+  it('maps legacy_special_adjustment_retired', () => {
+    expect(changePlanErrorMessageKey('legacy_special_adjustment_retired')).toBe(
+      'admin.student360.financeWorkspace.changePlan.errors.legacySpecialAdjustmentRetired',
+    );
+  });
+
+  it('maps plan_change_blocked_by_payments', () => {
+    expect(changePlanErrorMessageKey('plan_change_blocked_by_payments')).toBe(
+      'admin.student360.financeWorkspace.changePlan.errors.planChangeBlockedByPayments',
     );
   });
 });

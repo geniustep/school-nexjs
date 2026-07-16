@@ -71,6 +71,61 @@ function OperationStateBadge({
   );
 }
 
+function OperationDetails({
+  entry,
+  t,
+}: {
+  entry: FinanceOperationHistoryEntry;
+  t: (key: string, params?: Record<string, string>) => string;
+}) {
+  const hasStructured =
+    Boolean(entry.affectedServiceLabel) ||
+    Boolean(entry.reason) ||
+    Boolean(entry.effectiveFrom);
+
+  if (!hasStructured) {
+    return <span dir="auto">{entry.description ?? t('common.dash')}</span>;
+  }
+
+  return (
+    <div className="student-finance-operations-history__details">
+      {entry.affectedServiceLabel ? (
+        <div className="student-finance-operations-history__detail-row">
+          <span className="student-finance-operations-history__detail-label">
+            {t('admin.student360.financeWorkspace.agreementContext.operations.fields.affectedService')}
+          </span>
+          <span dir="auto">{entry.affectedServiceLabel}</span>
+        </div>
+      ) : null}
+      {entry.reason ? (
+        <div className="student-finance-operations-history__detail-row">
+          <span className="student-finance-operations-history__detail-label">
+            {t('admin.student360.financeWorkspace.agreementContext.operations.fields.reason')}
+          </span>
+          <span dir="auto">{entry.reason}</span>
+        </div>
+      ) : null}
+      {entry.effectiveFrom ? (
+        <div className="student-finance-operations-history__detail-row">
+          <span className="student-finance-operations-history__detail-label">
+            {t('admin.student360.financeWorkspace.agreementContext.operations.fields.effectiveFrom')}
+          </span>
+          <span dir="ltr">{entry.effectiveFrom}</span>
+        </div>
+      ) : null}
+      {!entry.affectedServiceLabel && !entry.reason && entry.description ? (
+        <span dir="auto">{entry.description}</span>
+      ) : null}
+      {entry.agreementReference ? (
+        <div className="student-finance-operations-history__agreement-ref muted tiny">
+          {t('admin.student360.financeWorkspace.agreementContext.operations.agreementReference')}:{' '}
+          <code dir="ltr">{entry.agreementReference}</code>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function HistoryRow({
   entry,
   labels,
@@ -85,6 +140,10 @@ function HistoryRow({
   const typeTone = resolveFinanceOperationTone(entry.operationKind);
   const stateLabel = entry.state ?? t('common.dash');
   const stateTone = resolveFinanceOperationStateTone(entry.state);
+  const hasStructured =
+    Boolean(entry.affectedServiceLabel) ||
+    Boolean(entry.reason) ||
+    Boolean(entry.effectiveFrom);
 
   return (
     <tr
@@ -106,8 +165,8 @@ function HistoryRow({
         />
       </td>
       <td data-label={labels.description} className="student-finance-operations-history__cell-desc">
-        <span dir="auto">{entry.description ?? t('common.dash')}</span>
-        {entry.agreementReference ? (
+        <OperationDetails entry={entry} t={t} />
+        {!hasStructured && entry.agreementReference ? (
           <div className="student-finance-operations-history__agreement-ref muted tiny">
             {t('admin.student360.financeWorkspace.agreementContext.operations.agreementReference')}:{' '}
             <code dir="ltr">{entry.agreementReference}</code>
@@ -129,7 +188,14 @@ function HistoryRow({
       </td>
       <td data-label={labels.amount} className="student-finance-operations-history__cell-amount">
         {entry.amount != null && !entry.auditOnly ? (
-          <FinanceMoney amount={entry.amount} currency={entry.currency ?? undefined} />
+          <div className="student-finance-operations-history__amount-block">
+            <FinanceMoney amount={entry.amount} currency={entry.currency ?? undefined} />
+            {entry.amountMeaningKey ? (
+              <span className="student-finance-operations-history__amount-meaning muted tiny">
+                {t(entry.amountMeaningKey)}
+              </span>
+            ) : null}
+          </div>
         ) : entry.auditOnly ? (
           <span className="student-finance-operations-history__muted">
             {t('admin.student360.financeWorkspace.agreementContext.operations.auditAmountExcluded')}
@@ -178,10 +244,6 @@ export function StudentFinanceOperationsHistoryPanel({
     >
       <header className="student-finance-operations-history__head">
         <div className="student-finance-operations-history__head-copy">
-          <span className="student-finance-operations-history__eyebrow">
-            {t('admin.student360.financeWorkspace.tabs.historical')}
-          </span>
-          <h2>{t('admin.student360.financeWorkspace.agreementContext.operationsHistoryTitle')}</h2>
           <p className="student-finance-operations-history__desc">
             {t('admin.student360.financeWorkspace.historical.description')}
           </p>

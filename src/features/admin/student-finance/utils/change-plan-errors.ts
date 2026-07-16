@@ -29,6 +29,8 @@ export function changePlanErrorMessageKey(code: string | undefined): string | nu
       return 'admin.student360.financeWorkspace.changePlan.errors.planChangeBlockedByReceipts';
     case 'plan_change_blocked_by_pending_cheques':
       return 'admin.student360.financeWorkspace.changePlan.errors.planChangeBlockedByPendingCheques';
+    case 'legacy_special_adjustment_retired':
+      return 'admin.student360.financeWorkspace.changePlan.errors.legacySpecialAdjustmentRetired';
     case 'agreement_change_forbidden':
       return 'admin.student360.financeWorkspace.changePlan.errors.agreementChangeForbidden';
     case 'agreement_activation_forbidden':

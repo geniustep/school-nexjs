@@ -8078,11 +8078,27 @@
               "payment_collected": "Recouvrement enregistré",
               "receipt_issued": "Reçu émis",
               "collection_reversed": "Recouvrement annulé",
-              "unknown": "Opération financière"
+              "unknown": "Opération financière",
+              "agreement_line_added": "Ligne d'accord ajoutée",
+              "agreement_line_modified": "Ligne d'accord modifiée",
+              "agreement_line_cancelled": "Ligne d'accord annulée"
             },
             "auditOnly": "Journal d'audit interne",
             "agreementReference": "Référence de l'accord",
-            "auditAmountExcluded": "Non compté comme effet financier"
+            "auditAmountExcluded": "Non compté comme effet financier",
+            "fields": {
+              "affectedService": "Ligne / service",
+              "reason": "Motif",
+              "effectiveFrom": "Date d'effet"
+            },
+            "amountMeanings": {
+              "agreement_line_added": "Total de la ligne ajoutée tel que renvoyé par le serveur",
+              "agreement_line_modified": "Impact de la modification tel que renvoyé par le serveur",
+              "agreement_line_cancelled": "Montant brut de la ligne annulée (négatif) tel que renvoyé par le serveur",
+              "agreement_lifecycle": "Total de l'accord ou du calendrier opérationnel tel que renvoyé par le serveur",
+              "payment": "Montant d'encaissement ou de reçu tel que renvoyé par le serveur",
+              "generic": "Montant de l'opération tel que renvoyé par le serveur"
+            }
           },
           "actions": {
             "createFinancialAgreement": "Créer un accord financier",
@@ -8330,9 +8346,9 @@
           "replace": {
             "action": "Changer le plan financier",
             "title": "Changer le plan financier",
-            "description": "Modifier ou remplacer le plan financier. Si des paiements ou reçus existent déjà, ils ne peuvent pas être modifiés ; tout changement s'applique aux périodes futures ou comme ajustement séparé.",
-            "actionHint": "Vous pouvez changer le plan, mais les échéances et reçus passés ne peuvent pas être modifiés.",
-            "paymentsExistHint": "Les échéances et reçus passés ne peuvent pas être modifiés. L'ajustement s'applique aux périodes futures uniquement.",
+            "description": "Remplace l'accord actuel par un nouvel accord selon le plan choisi. Disponible uniquement avant tout paiement enregistré. La décision finale vient de l'aperçu serveur.",
+            "actionHint": "Disponible uniquement avant tout paiement. Ouvrez l'aperçu pour que le serveur décide si le remplacement est possible.",
+            "paymentsExistHint": "Ce dossier semble déjà contenir des paiements. Le serveur peut bloquer le remplacement ; ouvrez l'aperçu pour le motif exact.",
             "fields": {
               "feePlan": "Nouveau plan tarifaire",
               "reason": "Motif du changement",
@@ -8347,7 +8363,8 @@
               "feePlanRequired": "Sélectionnez un plan tarifaire.",
               "reasonRequired": "Indiquez le motif du changement.",
               "confirmRequired": "Confirmez le remplacement avant d'appliquer."
-            }
+            },
+            "unpaidOnlyHint": "Le remplacement complet du plan n'est possible qu'avant tout paiement. Sinon, utilisez Gérer l'accord financier pour modifier les lignes."
           },
           "special": {
             "action": "Ajustement financier spécial",
@@ -8411,7 +8428,7 @@
             "feePlanNotAssignable": "Plan non assignable.",
             "feeTypeNotInAgreement": "Type de frais absent de l'accord.",
             "noFuturePeriodsToAffect": "Aucune période future à affecter.",
-            "planChangeBlockedByPayments": "Le remplacement complet du plan n'est plus possible après des paiements. Appliquez le changement aux périodes futures ou via un ajustement financier.",
+            "planChangeBlockedByPayments": "Le plan complet ne peut pas être remplacé après un paiement enregistré. Utilisez Gérer l'accord financier pour modifier les lignes futures.",
             "planChangeBlockedByReceipts": "Le remplacement complet du plan n'est plus possible après des reçus. Appliquez le changement aux périodes futures ou via un ajustement financier.",
             "planChangeBlockedByPendingCheques": "Des chèques sont liés aux périodes concernées. Réglez-les avant d'appliquer la modification.",
             "agreementChangeForbidden": "Pas de permission pour changer le plan.",
@@ -8419,7 +8436,14 @@
             "discountExceedsRemaining": "La remise dépasse le montant restant.",
             "agreementTotalsMismatch": "Totaux de l'accord incohérents.",
             "forbidden": "Interdit.",
-            "unauthorized": "Non autorisé."
+            "unauthorized": "Non autorisé.",
+            "legacySpecialAdjustmentRetired": "Le flux d'ajustement financier spécial est retiré. Utilisez Gérer l'accord financier, puis modifier la ligne."
+          },
+          "retired": {
+            "title": "L'ajustement financier spécial n'est plus disponible ici",
+            "description": "Le flux de remise sociale sur les échéances futures est retiré. Il ne peut plus être lancé depuis la barre d’actions.",
+            "replacementHint": "Pour ajuster une ligne existante, ouvrez Gérer l'accord financier puis modifiez la ligne (modify_line).",
+            "manageAgreementCta": "Gérer l'accord financier"
           }
         },
         "executive": {

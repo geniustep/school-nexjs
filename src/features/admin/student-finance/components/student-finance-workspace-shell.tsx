@@ -357,12 +357,15 @@ export function StudentFinanceWorkspaceShell({
       onOpenAgreements={() => syncSubTabToUrl('agreements')}
       onRecordPayment={() => setPaymentEntryOpen(true)}
       showChangePlan={changePlanVisibility.showChangePlan}
-      showSpecialAdjustment={changePlanVisibility.showSpecialAdjustment}
       showReviewAgreement={changePlanVisibility.showReviewAgreement && subTab !== 'agreements'}
       reviewAgreementKind={changePlanVisibility.reviewAgreementKind}
       onReviewAgreement={() => syncSubTabToUrl('agreements')}
       onOpenChangePlan={() => setChangePlanMode('replace_if_unpaid')}
-      onOpenSpecialAdjustment={() => setChangePlanMode('social_discount_on_future_installments')}
+      changePlanHint={
+        changePlanVisibility.paymentsExistHint
+          ? t('admin.student360.financeWorkspace.changePlan.replace.paymentsExistHint')
+          : t('admin.student360.financeWorkspace.changePlan.replace.actionHint')
+      }
     />
   );
 
@@ -634,7 +637,12 @@ export function StudentFinanceWorkspaceShell({
           academicYearId={effectiveYearId}
           levelId={details.student.level?.id ?? null}
           eligibility={changePlanVisibility.eligibility}
+          paymentsExistHint={changePlanVisibility.paymentsExistHint}
           onClose={() => setChangePlanMode(null)}
+          onNavigateToAgreements={() => {
+            setChangePlanMode(null);
+            syncSubTabToUrl('agreements');
+          }}
           onSuccess={refreshFinanceData}
         />
       ) : null}

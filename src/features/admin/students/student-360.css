@@ -2908,6 +2908,21 @@
   color: var(--text-secondary, #475569);
 }
 
+.student-finance-change-plan-retired {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-warn, #d97706) 30%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-warn, #d97706) 7%, var(--surface, #fff));
+}
+
+.student-finance-change-plan-retired__title {
+  margin: 0;
+  font-weight: 700;
+}
+
 .student-finance-change-plan-eligibility {
   margin: 0 0 16px;
   padding: 12px 14px;
@@ -3531,6 +3546,43 @@
   max-width: 18rem;
   line-height: 1.45;
   color: var(--text, #0f172a);
+}
+
+.student-finance-operations-history__details {
+  display: grid;
+  gap: 4px;
+}
+
+.student-finance-operations-history__detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.student-finance-operations-history__detail-label {
+  color: var(--c-muted, #64748b);
+  font-weight: 600;
+}
+
+.student-finance-operations-history__detail-label::after {
+  content: ':';
+}
+
+.student-finance-operations-history__amount-block {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+}
+
+[dir='rtl'] .student-finance-operations-history__amount-block {
+  justify-items: start;
+}
+
+.student-finance-operations-history__amount-meaning {
+  max-width: 18ch;
+  line-height: 1.35;
 }
 
 .student-finance-operations-history__cell-user {

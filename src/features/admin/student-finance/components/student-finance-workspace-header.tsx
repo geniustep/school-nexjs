@@ -22,12 +22,11 @@ export function StudentFinanceWorkspaceHeader({
   onOpenAgreements,
   onRecordPayment,
   showChangePlan,
-  showSpecialAdjustment,
   showReviewAgreement,
   reviewAgreementKind = 'review',
   onOpenChangePlan,
-  onOpenSpecialAdjustment,
   onReviewAgreement,
+  changePlanHint,
 }: {
   studentId: number;
   academicYears: { id: number; name: string }[];
@@ -50,12 +49,12 @@ export function StudentFinanceWorkspaceHeader({
   onOpenAgreements: () => void;
   onRecordPayment: () => void;
   showChangePlan?: boolean;
-  showSpecialAdjustment?: boolean;
   showReviewAgreement?: boolean;
   reviewAgreementKind?: 'fix' | 'review';
   onOpenChangePlan?: () => void;
-  onOpenSpecialAdjustment?: () => void;
   onReviewAgreement?: () => void;
+  /** Display-only title hint for change-plan eligibility. */
+  changePlanHint?: string | null;
 }) {
   const t = useT();
 
@@ -77,7 +76,6 @@ export function StudentFinanceWorkspaceHeader({
     showCollectDisabled ||
     !!billingPartnerId ||
     showChangePlan ||
-    showSpecialAdjustment ||
     showReviewAgreement;
 
   return (
@@ -183,20 +181,13 @@ export function StudentFinanceWorkspaceHeader({
               <button
                 type="button"
                 className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                title={t('admin.student360.financeWorkspace.changePlan.replace.actionHint')}
+                title={
+                  changePlanHint ??
+                  t('admin.student360.financeWorkspace.changePlan.replace.actionHint')
+                }
                 onClick={onOpenChangePlan}
               >
                 {t('admin.student360.financeWorkspace.changePlan.replace.action')}
-              </button>
-            ) : null}
-            {showSpecialAdjustment ? (
-              <button
-                type="button"
-                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                title={t('admin.student360.financeWorkspace.changePlan.special.actionHint')}
-                onClick={onOpenSpecialAdjustment}
-              >
-                {t('admin.student360.financeWorkspace.changePlan.special.action')}
               </button>
             ) : null}
             {showCollectEnabled ? (

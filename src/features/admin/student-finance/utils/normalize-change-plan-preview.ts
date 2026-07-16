@@ -110,19 +110,36 @@ export function normalizeChangePlanPreview(raw: unknown): NormalizedChangePlanPr
     ...new Set([...readReasonCodes(preview, 'warnings'), ...readReasonCodes(root, 'warnings')]),
   ];
 
-  const canApply =
-    readBool(preview, 'can_apply', 'applicable') ??
-    readBool(root, 'can_apply', 'applicable') ??
-    (blockingReasons.length === 0 ? true : false);
+  const deprecated =
+    readBool(preview, 'deprecated') ?? readBool(root, 'deprecated') ?? false;
+
+  const canApply = deprecated
+    ? false
+    : (readBool(preview, 'can_apply', 'applicable') ??
+      readBool(root, 'can_apply', 'applicable') ??
+      (blockingReasons.length === 0 ? true : false));
 
   const policy = readString(preview, 'policy') ?? readString(root, 'policy');
   const willAmendFromPolicy = policy ? /amended|amend/i.test(policy) : undefined;
   const willCreateFromPolicy = policy ? /new agreement|created/i.test(policy) : undefined;
 
+  const replacementWorkflow =
+    readString(preview, 'replacement_workflow') ?? readString(root, 'replacement_workflow');
+  const replacementOperation =
+    readString(preview, 'replacement_operation') ?? readString(root, 'replacement_operation');
+
+  const mergedBlockingReasons =
+    deprecated && !blockingReasons.includes('legacy_special_adjustment_retired')
+      ? [...blockingReasons, 'legacy_special_adjustment_retired']
+      : blockingReasons;
+
   return {
     canApply,
-    blockingReasons,
+    blockingReasons: mergedBlockingReasons,
     warnings,
+    deprecated,
+    replacementWorkflow,
+    replacementOperation,
     currentAgreementLabel: readString(current, 'name', 'agreement', 'agreement_name', 'agreement_label'),
     currentFeePlanLabel: readString(current, 'fee_plan_name', 'fee_plan', 'current_fee_plan'),
     newFeePlanLabel: readString(next, 'fee_plan_name', 'fee_plan', 'new_fee_plan'),

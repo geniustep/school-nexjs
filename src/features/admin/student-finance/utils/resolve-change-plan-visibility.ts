@@ -141,11 +141,14 @@ export function resolveChangePlanVisibility(input: {
   canCollect?: boolean;
 }): {
   showChangePlan: boolean;
-  showSpecialAdjustment: boolean;
+  /** Always false — legacy special adjustment is retired from the command bar. */
+  showSpecialAdjustment: false;
   showReviewAgreement: boolean;
   reviewAgreementKind: 'fix' | 'review';
   eligibility: ChangePlanEligibility;
   inactiveAgreement: InactiveAgreementPresentation;
+  /** Display-only hint when workspace already shows confirmed payments. */
+  paymentsExistHint: boolean;
 } {
   const showManageAgreementBar = input.showManageAgreementBar !== false;
 
@@ -161,6 +164,11 @@ export function resolveChangePlanVisibility(input: {
     eligibility,
   });
 
+  const paymentsExistHint = resolvePaymentsExistDisplayHint({
+    workspace: input.workspace,
+    financialOverview: input.financialOverview,
+  });
+
   if (!showManageAgreementBar || !eligibility.hasFinanceAccess) {
     return {
       showChangePlan: false,
@@ -169,6 +177,7 @@ export function resolveChangePlanVisibility(input: {
       reviewAgreementKind: 'review',
       eligibility,
       inactiveAgreement,
+      paymentsExistHint,
     };
   }
 
@@ -180,15 +189,34 @@ export function resolveChangePlanVisibility(input: {
       reviewAgreementKind: inactiveAgreement.reviewActionKind,
       eligibility,
       inactiveAgreement,
+      paymentsExistHint,
     };
   }
 
   return {
     showChangePlan: true,
-    showSpecialAdjustment: true,
+    showSpecialAdjustment: false,
     showReviewAgreement: false,
     reviewAgreementKind: 'review',
     eligibility,
     inactiveAgreement,
+    paymentsExistHint,
   };
+}
+
+/** Display-only: never blocks the change-plan button or replaces Backend preview. */
+export function resolvePaymentsExistDisplayHint(input: {
+  workspace?: StudentFinanceWorkspace | null;
+  financialOverview?: StudentFinancialOverview | null;
+}): boolean {
+  const overviewPaid =
+    (input.financialOverview?.totals?.paid_confirmed ?? 0) > 0 ||
+    (input.financialOverview?.totals?.paid ?? 0) > 0;
+  if (overviewPaid) return true;
+
+  const summary = input.workspace?.summary;
+  if ((summary?.confirmed_paid ?? 0) > 0) return true;
+
+  const agreementPaid = input.workspace?.current_agreement?.paid_total;
+  return typeof agreementPaid === 'number' && agreementPaid > 0;
 }
