@@ -8283,6 +8283,8 @@
             "invalidEffectivePeriod": "Periodo de vigencia no válido.",
             "effectivePeriodRequired": "Seleccione un periodo de vigencia válido del calendario de facturación.",
             "ambiguousAgreementLineTarget": "Hay más de una línea coincidente. Seleccione la línea deseada de la lista.",
+            "servicePeriodOverlap": "Este servicio ya tiene un período activo o solapado en este acuerdo.",
+            "serviceAlreadyExists": "Este servicio ya existe en este acuerdo.",
             "generic": "No se pudo previsualizar la modificación del acuerdo. Inténtelo de nuevo o contacte con administración financiera."
           }
         },

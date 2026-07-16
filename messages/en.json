@@ -8283,6 +8283,8 @@
             "invalidEffectivePeriod": "Invalid start month.",
             "effectivePeriodRequired": "Select a valid start month from the billing calendar.",
             "ambiguousAgreementLineTarget": "Multiple matching lines were found. Select the intended line from the list.",
+            "servicePeriodOverlap": "This service already has an active or overlapping period on this agreement.",
+            "serviceAlreadyExists": "This service already exists on this agreement.",
             "generic": "Could not preview the agreement amendment. Try again or contact finance administration."
           }
         },

@@ -8283,6 +8283,8 @@
             "invalidEffectivePeriod": "Période d'effet invalide.",
             "effectivePeriodRequired": "Sélectionnez une période d'effet valide dans le calendrier de facturation.",
             "ambiguousAgreementLineTarget": "Plusieurs lignes correspondent. Choisissez la ligne souhaitée dans la liste.",
+            "servicePeriodOverlap": "Ce service existe déjà sur une période active ou chevauchante de cet accord.",
+            "serviceAlreadyExists": "Ce service existe déjà dans cet accord.",
             "generic": "Impossible de prévisualiser la modification de l'accord. Réessayez ou contactez l'administration financière."
           }
         },

@@ -39,6 +39,10 @@ export function agreementAmendmentErrorMessageKey(code: string | undefined): str
       return 'admin.student360.financeWorkspace.agreementAmendment.reasonCodes.one_time_line_not_period_amendable';
     case 'ambiguous_agreement_line_target':
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.ambiguousAgreementLineTarget';
+    case 'agreement_service_period_overlap':
+      return 'admin.student360.financeWorkspace.agreementAmendment.errors.servicePeriodOverlap';
+    case 'agreement_line_service_already_exists':
+      return 'admin.student360.financeWorkspace.agreementAmendment.errors.serviceAlreadyExists';
     case 'source_line_id_required_for_adjust_line_amount':
     case 'line_amount_not_amendable':
     case 'line_has_confirmed_collections':
