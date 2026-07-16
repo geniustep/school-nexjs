@@ -2,7 +2,17 @@ import { describe, expect, it } from 'vitest';
 import {
   resolveAdmissionTerminalReasonPanel,
   resolveClosureReason,
+  type AdmissionTerminalReasonSource,
 } from './admission-terminal-reason';
+
+/** Raw-like fixture that may include fields the normalized source type omits. */
+function terminalSource(
+  fields: AdmissionTerminalReasonSource & {
+    primary_next_action?: unknown;
+  },
+): AdmissionTerminalReasonSource {
+  return fields;
+}
 
 describe('resolveClosureReason', () => {
   it('prefers lost_reason from detail contract', () => {
@@ -38,11 +48,13 @@ describe('resolveClosureReason', () => {
 
 describe('resolveAdmissionTerminalReasonPanel', () => {
   it('rejected → rejection title keys and rejection.reason text', () => {
-    const panel = resolveAdmissionTerminalReasonPanel({
-      application_status: 'rejected',
-      rejection: { is_rejected: true, reason: 'Incomplete documents' },
-      primary_next_action: { code: 'reopen' } as never,
-    });
+    const panel = resolveAdmissionTerminalReasonPanel(
+      terminalSource({
+        application_status: 'rejected',
+        rejection: { is_rejected: true, reason: 'Incomplete documents' },
+        primary_next_action: { code: 'reopen' },
+      }),
+    );
     expect(panel).toMatchObject({
       kind: 'rejected',
       titleKey: 'admin.admissions.terminalReason.rejectionTitle',
@@ -52,11 +64,13 @@ describe('resolveAdmissionTerminalReasonPanel', () => {
   });
 
   it('closed → closure title keys and lost_reason / last_action note', () => {
-    const panel = resolveAdmissionTerminalReasonPanel({
-      application_status: 'closed',
-      lost_reason: 'Capacity full',
-      primary_next_action: { code: 'reopen' } as never,
-    });
+    const panel = resolveAdmissionTerminalReasonPanel(
+      terminalSource({
+        application_status: 'closed',
+        lost_reason: 'Capacity full',
+        primary_next_action: { code: 'reopen' },
+      }),
+    );
     expect(panel).toMatchObject({
       kind: 'closed',
       titleKey: 'admin.admissions.terminalReason.closureTitle',
@@ -66,12 +80,14 @@ describe('resolveAdmissionTerminalReasonPanel', () => {
   });
 
   it('does not invent reason from primary_next_action', () => {
-    const panel = resolveAdmissionTerminalReasonPanel({
-      application_status: 'closed',
-      lost_reason: null,
-      last_action: null,
-      primary_next_action: { code: 'reopen', label: 'إعادة فتح' } as never,
-    });
+    const panel = resolveAdmissionTerminalReasonPanel(
+      terminalSource({
+        application_status: 'closed',
+        lost_reason: null,
+        last_action: null,
+        primary_next_action: { code: 'reopen', label: 'إعادة فتح' },
+      }),
+    );
     expect(panel?.reason).toBe('');
     expect(panel?.emptyKey).toBe('admin.admissions.terminalReason.noClosureReason');
   });
@@ -79,7 +95,7 @@ describe('resolveAdmissionTerminalReasonPanel', () => {
   it('rejected without reason uses empty fallback key (caller renders copy)', () => {
     const panel = resolveAdmissionTerminalReasonPanel({
       application_status: 'rejected',
-      rejection: { is_rejected: true, reason: false },
+      rejection: { is_rejected: true, reason: null },
     });
     expect(panel?.reason).toBe('');
     expect(panel?.emptyKey).toBe('admin.admissions.terminalReason.noRejectionReason');
@@ -87,16 +103,20 @@ describe('resolveAdmissionTerminalReasonPanel', () => {
 
   it('non-terminal statuses stay on next-action path (null panel)', () => {
     expect(
-      resolveAdmissionTerminalReasonPanel({
-        application_status: 'follow_up',
-        primary_next_action: { code: 'log_contact' } as never,
-      }),
+      resolveAdmissionTerminalReasonPanel(
+        terminalSource({
+          application_status: 'follow_up',
+          primary_next_action: { code: 'log_contact' },
+        }),
+      ),
     ).toBeNull();
     expect(
-      resolveAdmissionTerminalReasonPanel({
-        application_status: 'accepted',
-        primary_next_action: { code: 'convert_to_student' } as never,
-      }),
+      resolveAdmissionTerminalReasonPanel(
+        terminalSource({
+          application_status: 'accepted',
+          primary_next_action: { code: 'convert_to_student' },
+        }),
+      ),
     ).toBeNull();
   });
 });

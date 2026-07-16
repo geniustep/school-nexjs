@@ -16,6 +16,24 @@ import {
 import { resolveEffectiveHideConverted } from './filter-admission-list-items';
 import type { AdmissionsDashboard } from '@/types/admission';
 
+function admissionsDashboard(
+  patch: Partial<AdmissionsDashboard> = {},
+): AdmissionsDashboard {
+  return {
+    total_open: 0,
+    new_count: 0,
+    visit_pending_count: 0,
+    under_review_count: 0,
+    accepted_count: 0,
+    offer_sent_count: 0,
+    confirmed_count: 0,
+    lost_count: 0,
+    today_appointments: 0,
+    overdue_next_actions: 0,
+    ...patch,
+  };
+}
+
 function base(patch: Partial<AdmissionWorkspaceListState> = {}): AdmissionWorkspaceListState {
   return {
     workspace: 'follow_up',
@@ -33,24 +51,27 @@ function base(patch: Partial<AdmissionWorkspaceListState> = {}): AdmissionWorksp
 
 describe('admissions pre-commit counts / registered / status-nav / services', () => {
   it('resolves open from total_open only (no client sum)', () => {
-    const dash = {
+    const dash = admissionsDashboard({
       total_open: 61,
       application_status_counts: {
         new: 30,
         follow_up: 9,
         registered: 18,
       },
-    } as AdmissionsDashboard;
+    });
     expect(resolveOpenAdmissionsCount(dash)).toBe(61);
-    expect(resolveOpenAdmissionsCount({} as AdmissionsDashboard)).toBeNull();
+    // Incomplete dashboard probe: open count requires a numeric total_open.
+    const withoutOpen = admissionsDashboard();
+    Reflect.deleteProperty(withoutOpen, 'total_open');
+    expect(resolveOpenAdmissionsCount(withoutOpen)).toBeNull();
   });
 
   it('resolves new from application_status_counts over inflated new_count', () => {
-    const dash = {
+    const dash = admissionsDashboard({
       new_count: 43,
       application_status_counts: { new: 30 },
       application_status_new_count: 30,
-    } as AdmissionsDashboard;
+    });
     expect(resolveNewAdmissionsCount(dash)).toBe(30);
     expect(resolveApplicationStatusCount(dash, 'new')).toBe(30);
   });

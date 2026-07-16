@@ -4,7 +4,6 @@ import { resolveMaskedIdentityDocument } from '@/features/admin/parents/utils/id
 import { mapGuardianApiError } from './guardian-api-errors';
 import {
   buildGuardianQuickCreatePayload,
-  payloadHasIdentityDocumentFields,
 } from './guardian-quick-create-payload';
 import {
   buildCreateFamilyBatchPayload,
@@ -74,7 +73,11 @@ describe('guardian quick-create identity document mapping', () => {
       identityDocument: emptyIdentityDocumentFormValues(),
     });
     expect(payload.name).toBe('Ahmed Alaoui');
-    expect(payloadHasIdentityDocumentFields(payload as Record<string, unknown>)).toBe(false);
+    expect(Object.keys(payload)).not.toContain('identity_document_type');
+    expect(Object.keys(payload)).not.toContain('identity_document_number');
+    expect(Object.keys(payload)).not.toContain('identity_document_country');
+    expect(Object.keys(payload)).not.toContain('national_id');
+    expect(Object.keys(payload)).not.toContain('national_id_masked');
   });
 
   it('handles country defaults and passport country requirement via payload builder', () => {
@@ -164,10 +167,10 @@ describe('family batch isolation from identity document', () => {
     expect(sharedFlat).not.toContain('identity_document');
     expect(sharedFlat).not.toContain('national_id');
     expect(payload.shared_contact.guardian_id).toBe(42);
-    expect(
-      payloadHasIdentityDocumentFields(
-        payload.shared_contact as unknown as Record<string, unknown>,
-      ),
-    ).toBe(false);
+    expect(Object.keys(payload.shared_contact)).not.toContain('identity_document_type');
+    expect(Object.keys(payload.shared_contact)).not.toContain('identity_document_number');
+    expect(Object.keys(payload.shared_contact)).not.toContain('identity_document_country');
+    expect(Object.keys(payload.shared_contact)).not.toContain('national_id');
+    expect(Object.keys(payload.shared_contact)).not.toContain('national_id_masked');
   });
 });
