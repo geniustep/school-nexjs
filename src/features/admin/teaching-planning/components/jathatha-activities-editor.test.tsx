@@ -116,8 +116,12 @@ describe('JathathaActivitiesEditor', () => {
       <LocaleProvider><JathathaActivitiesEditor value={[row]} detailLevel="compact" /></LocaleProvider>,
     );
     expect(screen.queryByText('Instructions')).toBeNull();
-    expect(screen.getAllByRole('textbox')).toSatisfy((fields) => fields.every((field) => field.getAttribute('dir') === 'auto'));
-    expect(screen.getAllByRole('spinbutton')).toSatisfy((fields) => fields.every((field) => field.getAttribute('dir') === 'ltr'));
+    expect(screen.getAllByRole('textbox')).toSatisfy((fields) =>
+      fields.every((field: HTMLElement) => field.getAttribute('dir') === 'auto'),
+    );
+    expect(screen.getAllByRole('spinbutton')).toSatisfy((fields) =>
+      fields.every((field: HTMLElement) => field.getAttribute('dir') === 'ltr'),
+    );
 
     rerender(<LocaleProvider><JathathaActivitiesEditor value={[row]} detailLevel="standard" /></LocaleProvider>);
     expect(screen.getByText('Instructions')).toBeTruthy();

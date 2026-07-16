@@ -3,7 +3,7 @@
 import { cleanup, render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, Dispatch, SetStateAction } from 'react';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { LOCALE_STORAGE_KEY } from '@/lib/i18n/config';
 import type { StudentSearchHit } from '@/types/student-search';
@@ -43,8 +43,9 @@ const mockControl: MockHookControl = {
   error: false,
 };
 
-const mockSetQuery = vi.fn((nextQuery: string) => {
-  mockControl.query = nextQuery;
+const mockSetQuery = vi.fn<Dispatch<SetStateAction<string>>>((nextQuery) => {
+  mockControl.query =
+    typeof nextQuery === 'function' ? nextQuery(mockControl.query) : nextQuery;
   rerenderPicker?.();
 });
 
@@ -94,8 +95,8 @@ function sampleHit(
 ): StudentSearchHit {
   return {
     code: `S${partial.id}`,
-    level: 'Grade 6',
-    class: '6A',
+    level: { id: 6, name: 'Grade 6' },
+    class: { id: 1, name: '6A' },
     status: 'active',
     gender: null,
     date_of_birth: null,

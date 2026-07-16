@@ -11,8 +11,8 @@ import { STUDENT_SEARCH_DEBOUNCE_MS } from './student-search-query';
 const sampleHit = (id: number): StudentSearchHit => ({
   id,
   code: `S${id}`,
-  level: 'Grade 6',
-  class: '6A',
+  level: { id: 6, name: 'Grade 6' },
+  class: { id: 1, name: '6A' },
   status: 'active',
   gender: null,
   date_of_birth: null,
