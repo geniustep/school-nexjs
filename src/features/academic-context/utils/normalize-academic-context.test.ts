@@ -229,11 +229,11 @@ describe('Teaching language UX safety', () => {
 
 describe('Semantic protection', () => {
   it('keeps school.cycle ≠ school.term and Subject ≠ Offering ≠ Reference', () => {
-    expect('school.cycle' !== 'school.term').toBe(true);
-    expect('school.term' !== 'school.timetable.period').toBe(true);
-    expect('school.term' !== 'school.academic.billing.calendar.period').toBe(true);
-    expect('Subject' !== 'Teaching Offering').toBe(true);
-    expect('Teaching Offering' !== 'Teaching Reference').toBe(true);
-    expect('Weekly Slot' !== 'Session Occurrence').toBe(true);
+    expect('school.cycle').not.toBe('school.term');
+    expect('school.term').not.toBe('school.timetable.period');
+    expect('school.term').not.toBe('school.academic.billing.calendar.period');
+    expect('Subject').not.toBe('Teaching Offering');
+    expect('Teaching Offering').not.toBe('Teaching Reference');
+    expect('Weekly Slot').not.toBe('Session Occurrence');
   });
 });
