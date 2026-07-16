@@ -6,7 +6,8 @@ import type {
 import type { AgreementAmendmentLineOption } from './resolve-amendment-form-options';
 import {
   lineSupportsAdjustLineAmount,
-  lineSupportsPeriodAmendment,
+  lineSupportsCancelLine,
+  lineSupportsModifyLine,
 } from './agreement-amendment-line-eligibility';
 import { resolvePayloadOperationType } from './agreement-amendment-path';
 
@@ -120,7 +121,7 @@ export function canSubmitAgreementAmendmentForm(
   if (!form.sourceLineId || !selectedLine) return false;
 
   if (form.operationType === 'cancel_line') {
-    if (!lineSupportsPeriodAmendment(selectedLine)) return false;
+    if (!lineSupportsCancelLine(selectedLine)) return false;
     return Boolean(form.effectivePeriodId.trim());
   }
 
@@ -130,7 +131,7 @@ export function canSubmitAgreementAmendmentForm(
       return form.amount.trim() !== '' && Number.isFinite(Number(form.amount)) && Number(form.amount) >= 0;
     }
     if (form.amendmentPath === 'period_range') {
-      if (!lineSupportsPeriodAmendment(selectedLine)) return false;
+      if (!lineSupportsModifyLine(selectedLine)) return false;
       if (!form.effectivePeriodId.trim()) return false;
       return form.amount.trim() !== '' && Number.isFinite(Number(form.amount));
     }

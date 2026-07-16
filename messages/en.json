@@ -7394,6 +7394,7 @@
           "service": "Service",
           "category": "Category",
           "commitment": "Commitment",
+          "operationalState": "Operational state",
           "pricingUnit": "Pricing unit",
           "period": "Period",
           "quantity": "Qty",
@@ -7401,6 +7402,20 @@
           "gross": "Gross",
           "discount": "Discount",
           "net": "Net"
+        },
+        "lineOperationalState": {
+          "active_current": "Active",
+          "cancelled_historical_only": "Cancelled",
+          "completed_historical_only": "Completed",
+          "historical_only": "Historical only",
+          "unscheduled": "Unscheduled",
+          "unavailable": "Operational state unavailable",
+          "unavailableDescription": "The operational lifecycle contract is not yet provided by the server.",
+          "includedInCurrentSchedule": "Included in the current schedule",
+          "notIncludedInCurrentSchedule": "Not included in the current schedule",
+          "cancelledHistoricalDescription": "Historical only — not in the current schedule",
+          "historicalOnlyDescription": "Historical only",
+          "unscheduledDescription": "No installment schedule is linked to this line"
         },
         "scheduleColumns": {
           "period": "Period",
@@ -8229,6 +8244,8 @@
             "invalid_adjusted_amount": "The new amount is invalid.",
             "adjusted_amount_must_be_non_negative": "The new amount must be zero or greater.",
             "no_open_installments_to_adjust": "There are no open installments to adjust for this line.",
+            "no_open_installments_to_amend": "There are no open installments that can be amended from the selected period.",
+            "agreement_line_lifecycle_unavailable": "This line's operational lifecycle is unavailable from the server. Preview is blocked until the lifecycle contract is present.",
             "monthly_unit_price_seems_high": "Warning: you entered {newUnitPrice} as the new monthly price. It will apply to {affectedPeriodCount} months, for a line total of {newTotalForAffectedPeriods}. If you meant an annual total of 18,000, the monthly price is {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {

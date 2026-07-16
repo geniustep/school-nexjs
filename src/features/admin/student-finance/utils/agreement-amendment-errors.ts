@@ -46,6 +46,8 @@ export function agreementAmendmentErrorMessageKey(code: string | undefined): str
     case 'invalid_adjusted_amount':
     case 'adjusted_amount_must_be_non_negative':
     case 'no_open_installments_to_adjust':
+    case 'no_open_installments_to_amend':
+    case 'agreement_line_lifecycle_unavailable':
       return agreementAmendmentReasonMessageKey(code);
     default:
       return null;

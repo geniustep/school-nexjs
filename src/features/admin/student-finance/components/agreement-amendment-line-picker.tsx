@@ -10,8 +10,11 @@ import {
   isLineFullyBlockedForAmendment,
   lineSupportsAdjustLineAmount,
   lineSupportsPeriodAmendment,
+  resolveAgreementLineOperationBlockReasonCode,
 } from '../utils/agreement-amendment-line-eligibility';
 import { isLineSelectableForAmendmentOperation } from '../utils/agreement-amendment-path';
+import { AgreementLineOperationalStateBadge } from './agreement-line-operational-state-badge';
+import { agreementAmendmentReasonMessageKey } from '../utils/agreement-amendment-errors';
 
 function resolvePeriodBlockReasonLabel(
   line: AgreementAmendmentLineOption,
@@ -40,6 +43,19 @@ function resolveAmountBlockReasonLabel(
   const reason = line.amountAmendmentBlockReason;
   if (!reason) return null;
   const key = resolveAgreementAmendmentBlockReasonKey(reason);
+  if (!key) return null;
+  const translated = t(key);
+  return translated !== key ? translated : null;
+}
+
+function resolveOperationBlockReasonLabel(
+  line: AgreementAmendmentLineOption,
+  operationType: AgreementAmendmentOperationType,
+  t: (key: string) => string,
+): string | null {
+  const code = resolveAgreementLineOperationBlockReasonCode(line, operationType);
+  if (!code) return null;
+  const key = agreementAmendmentReasonMessageKey(code);
   if (!key) return null;
   const translated = t(key);
   return translated !== key ? translated : null;
@@ -77,6 +93,7 @@ export function AgreementAmendmentLinePicker({
           const isSelected = selectedLineId === String(line.id);
           const periodBlockReason = resolvePeriodBlockReasonLabel(line, t);
           const amountBlockReason = resolveAmountBlockReasonLabel(line, t);
+          const operationBlockReason = resolveOperationBlockReasonLabel(line, operationType, t);
           const amountAmendable = lineSupportsAdjustLineAmount(line);
           const periodAmendable = lineSupportsPeriodAmendment(line);
           const fullyBlocked = isLineFullyBlockedForAmendment(line);
@@ -108,12 +125,13 @@ export function AgreementAmendmentLinePicker({
                   <span className="student-finance-amendment-line-picker__name" dir="auto">
                     {line.label}
                   </span>
+                  <AgreementLineOperationalStateBadge source={line} showDescription />
                   {line.duplicateServiceWarning ? (
                     <span className="student-finance-amendment-line-picker__badge">
                       {t('admin.student360.financeWorkspace.agreementAmendment.duplicateServiceWarning')}
                     </span>
                   ) : null}
-                  {!periodAmendable ? (
+                  {!periodAmendable && selectable ? (
                     <span className="student-finance-amendment-line-picker__badge student-finance-amendment-line-picker__badge--muted">
                       {t('admin.student360.financeWorkspace.agreementAmendment.notPeriodAmendable')}
                     </span>
@@ -171,11 +189,16 @@ export function AgreementAmendmentLinePicker({
                     {t('admin.student360.financeWorkspace.agreementAmendment.oneTimeAmountAmendableNote')}
                   </p>
                 ) : null}
-                {!selectable && fullyBlocked ? (
+                {!selectable ? (
                   <p className="student-finance-amendment-line-picker__reason" role="note">
-                    {amountBlockReason ??
+                    {operationBlockReason ??
+                      amountBlockReason ??
                       periodBlockReason ??
-                      t('admin.student360.financeWorkspace.agreementAmendment.lineAmountNotAmendable')}
+                      (fullyBlocked
+                        ? t('admin.student360.financeWorkspace.agreementAmendment.lineAmountNotAmendable')
+                        : t(
+                            'admin.student360.financeWorkspace.agreementAmendment.reasonCodes.agreement_line_lifecycle_unavailable',
+                          ))}
                   </p>
                 ) : null}
               </button>
