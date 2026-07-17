@@ -1121,7 +1121,71 @@
         "completed": "مكتمل",
         "delayed": "متأخر",
         "overdelivered": "تجاوز التنفيذ"
-      }
+      },
+      "planningTitle": "التخطيط وتقدم البرنامج",
+      "planningSubtitle": "عرض المنجز والمتبقي والعنصر التالي المقترح ضمن سياق إسنادك.",
+      "contextTitle": "سياق التدريس",
+      "selectContextTitle": "اختر القسم ومسار التدريس",
+      "selectContextDesc": "يلزم اختيار القسم ومسار التدريس لعرض تقدم البرنامج.",
+      "noActivePlan": "لا توجد خطة تدريس مفعّلة لهذا السياق بعد.",
+      "noActivePlanDesc": "عندما تُفعَّل خطة التوزيع السنوي ستظهر هنا نسب التقدم والمتبقي والاقتراح.",
+      "programProgress": "تقدم البرنامج",
+      "earnedUnits": "الوحدات المنجزة / المخططة",
+      "buckets": {
+        "completed": "مكتمل",
+        "partial": "جزئي",
+        "deferred": "مؤجل",
+        "notStarted": "لم يبدأ",
+        "remaining": "المتبقي"
+      },
+      "lastConfirmedTitle": "آخر تنفيذ مؤكد",
+      "lastConfirmedDate": "التاريخ",
+      "lastConfirmedItem": "العنصر",
+      "noLastConfirmed": "لا يوجد تنفيذ مؤكد بعد.",
+      "documentationGapsTitle": "فجوات التوثيق",
+      "documentationGapsCount": "حصة ماضية تحتاج توثيقًا",
+      "documentationGapsNone": "لا توجد حصص ماضية غير موثّقة في هذا السياق.",
+      "goDocumentToday": "العودة إلى يومي للتوثيق",
+      "goToday": "يومي",
+      "suggestedNextTitle": "العنصر التالي المقترح",
+      "sequenceOrder": "الترتيب",
+      "suggestionPostponedWarning": "هذا العنصر مؤجل وحان دوره حسب الخطة.",
+      "chooseOther": "اختيار عنصر آخر",
+      "noSuggestion": "لا يوجد اقتراح حالي لهذا السياق.",
+      "programListTitle": "قائمة البرنامج",
+      "emptyProgram": "لا توجد عناصر برنامج في هذا السياق.",
+      "columns": {
+        "order": "الترتيب",
+        "item": "العنصر",
+        "planned": "الوحدات المخططة",
+        "done": "المنجز",
+        "remaining": "المتبقي",
+        "status": "الحالة"
+      },
+      "suggestionReasons": {
+        "resume_partial_line": "متابعة العنصر الجزئي",
+        "postponed_due": "عنصر مؤجل حان دوره",
+        "first_remaining_by_sequence": "العنصر التالي حسب ترتيب الخطة",
+        "plan_completed": "اكتملت عناصر الخطة",
+        "fallback": "اقتراح مبني على تقدم الخطة"
+      },
+      "decision": {
+        "alternativeTitle": "اختيار عنصر آخر",
+        "postponeTitle": "تأجيل العنصر",
+        "postponeAction": "تأجيل هذا العنصر",
+        "description": "هذا الاختيار لا يعني تنفيذ الحصة. يُحفظ القرار فقط مع السبب عند الحاجة.",
+        "selectItem": "العنصر",
+        "reasonLabel": "سبب الاختيار",
+        "reasonRequired": "السبب مطلوب لاختيار بديل أو تأجيل.",
+        "lineRequired": "اختر عنصرًا من القائمة.",
+        "noEligible": "لا توجد عناصر متبقية مسموح بها.",
+        "save": "حفظ القرار",
+        "saved": "تم حفظ القرار."
+      },
+      "openPlanning": "فتح التخطيط والتقدم",
+      "todaySnippetDesc": "راجع تقدم البرنامج والعنصر التالي المقترح من صفحة التخطيط.",
+      "summaryRedirectDesc": "ملخص التقدم أصبح مرتبطًا بسياق القسم ومسار التدريس.",
+      "permissionDenied": "ليست لديك صلاحية عرض تقدم هذا السياق."
     }
   },
   "actions": {
@@ -12616,7 +12680,25 @@
         },
         "plannedDates": {
           "title": "التواريخ المخطط لها"
-        }
+        },
+        "curriculumTitle": "تقدم البرنامج حسب السياق",
+        "selectContextTitle": "اختر قسمًا لعرض التقدم",
+        "selectContextDesc": "التقدم التشغيلي يُعرض حسب القسم ومسار التدريس ضمن نطاق مدرستك.",
+        "noActivePlan": "لا توجد خطة تدريس مفعّلة لهذا السياق بعد.",
+        "noActivePlanDesc": "عند تفعيل التوزيع السنوي سيظهر هنا تفصيل التقدم وفجوات التوثيق.",
+        "programProgress": "تقدم البرنامج",
+        "buckets": {
+          "completed": "مكتمل",
+          "partial": "جزئي",
+          "deferred": "مؤجل",
+          "remaining": "المتبقي"
+        },
+        "documentationGaps": "يحتاج توثيقًا",
+        "documentationGapsHint": "حصص ماضية تحتاج توثيقًا — مستقل عن نسبة الإنجاز.",
+        "needsDocumentation": "يحتاج توثيقًا",
+        "lastConfirmed": "آخر تنفيذ مؤكد",
+        "suggestedNext": "العنصر التالي المقترح",
+        "viewContextDetails": "تفاصيل السياق"
       },
       "backToHub": "العودة إلى التخطيط التربوي",
       "print": {

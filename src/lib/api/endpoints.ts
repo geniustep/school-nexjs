@@ -251,6 +251,7 @@ export const endpoints = {
     teachingProgressLines: '/admin/teaching-progress-lines',
     teachingProgressLine: (id: number | string) => `/admin/teaching-progress-lines/${id}`,
     teachingProgressSummary: '/admin/teaching-progress-summary',
+    teachingExecutionDecisions: '/admin/teaching/execution-decisions',
 
     staff: '/admin/staff',
     staffMember: (id: number | string) => `/admin/staff/${id}`,
@@ -639,6 +640,11 @@ export const endpoints = {
     teachingProgress: '/teacher/teaching-progress',
     teachingProgressLine: (id: number | string) => `/teacher/teaching-progress/${id}`,
     teachingProgressSummary: '/teacher/teaching-progress-summary',
+    /** V3 curriculum remaining (Distribution − Progress). Not interim remaining.item. */
+    teachingRemaining: '/teacher/teaching/remaining',
+    teachingSuggestedNextItem: '/teacher/teaching/suggested-next-item',
+    teachingExecutionDecisions: '/teacher/teaching/execution-decisions',
+    teachingExecutionDecision: '/teacher/teaching/decision',
   },
 
   attachments: {

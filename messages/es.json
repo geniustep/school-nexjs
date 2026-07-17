@@ -1121,7 +1121,71 @@
         "completed": "Completado",
         "delayed": "Retrasado",
         "overdelivered": "Sobreentregado"
-      }
+      },
+      "planningTitle": "Planificación y avance del programa",
+      "planningSubtitle": "Consulte lo realizado, lo restante y el siguiente elemento sugerido en su contexto.",
+      "contextTitle": "Contexto de enseñanza",
+      "selectContextTitle": "Seleccione la clase y la oferta",
+      "selectContextDesc": "Se requieren clase y oferta para mostrar el avance.",
+      "noActivePlan": "Aún no hay un plan de enseñanza activo para este contexto.",
+      "noActivePlanDesc": "Cuando se active un plan de distribución anual, el avance y la sugerencia aparecerán aquí.",
+      "programProgress": "Avance del programa",
+      "earnedUnits": "Unidades realizadas / planificadas",
+      "buckets": {
+        "completed": "Completado",
+        "partial": "Parcial",
+        "deferred": "Aplazado",
+        "notStarted": "No iniciado",
+        "remaining": "Restante"
+      },
+      "lastConfirmedTitle": "Última ejecución confirmada",
+      "lastConfirmedDate": "Fecha",
+      "lastConfirmedItem": "Elemento",
+      "noLastConfirmed": "Aún no hay una ejecución confirmada.",
+      "documentationGapsTitle": "Brechas de documentación",
+      "documentationGapsCount": "sesión(es) pasada(s) por documentar",
+      "documentationGapsNone": "No hay sesiones pasadas sin documentar en este contexto.",
+      "goDocumentToday": "Ir a Hoy para documentar",
+      "goToday": "Hoy",
+      "suggestedNextTitle": "Siguiente elemento sugerido",
+      "sequenceOrder": "Orden",
+      "suggestionPostponedWarning": "Este elemento fue aplazado y corresponde según el plan.",
+      "chooseOther": "Elegir otro elemento",
+      "noSuggestion": "No hay sugerencia actual para este contexto.",
+      "programListTitle": "Lista del programa",
+      "emptyProgram": "No hay elementos de programa en este contexto.",
+      "columns": {
+        "order": "Orden",
+        "item": "Elemento",
+        "planned": "Unidades planificadas",
+        "done": "Realizado",
+        "remaining": "Restante",
+        "status": "Estado"
+      },
+      "suggestionReasons": {
+        "resume_partial_line": "Reanudar el elemento parcialmente realizado",
+        "postponed_due": "Elemento aplazado que corresponde",
+        "first_remaining_by_sequence": "Siguiente elemento según el orden del plan",
+        "plan_completed": "Todos los elementos del plan están realizados",
+        "fallback": "Sugerencia basada en el avance del plan"
+      },
+      "decision": {
+        "alternativeTitle": "Elegir otro elemento",
+        "postponeTitle": "Aplazar elemento",
+        "postponeAction": "Aplazar este elemento",
+        "description": "Esta elección no registra la sesión. Solo se guarda la decisión, con motivo si es necesario.",
+        "selectItem": "Elemento",
+        "reasonLabel": "Motivo de la elección",
+        "reasonRequired": "Se requiere un motivo para alternativa o aplazamiento.",
+        "lineRequired": "Seleccione un elemento de la lista.",
+        "noEligible": "No hay elementos restantes elegibles.",
+        "save": "Guardar decisión",
+        "saved": "Decisión guardada."
+      },
+      "openPlanning": "Abrir planificación y avance",
+      "todaySnippetDesc": "Revise el avance del programa y el siguiente elemento en la página de planificación.",
+      "summaryRedirectDesc": "El resumen de avance está vinculado al contexto de clase y oferta.",
+      "permissionDenied": "No tiene permiso para ver el avance de este contexto."
     }
   },
   "actions": {
@@ -12547,7 +12611,25 @@
         },
         "plannedDates": {
           "title": "Fechas planificadas"
-        }
+        },
+        "curriculumTitle": "Avance del programa por contexto",
+        "selectContextTitle": "Seleccione una clase para ver el avance",
+        "selectContextDesc": "El avance operativo se muestra por clase y oferta dentro del alcance de su escuela.",
+        "noActivePlan": "Aún no hay un plan de enseñanza activo para este contexto.",
+        "noActivePlanDesc": "Cuando la distribución anual esté activa, el detalle de avance y las brechas aparecerán aquí.",
+        "programProgress": "Avance del programa",
+        "buckets": {
+          "completed": "Completado",
+          "partial": "Parcial",
+          "deferred": "Aplazado",
+          "remaining": "Restante"
+        },
+        "documentationGaps": "Por documentar",
+        "documentationGapsHint": "Sesiones pasadas por documentar — independiente de la tasa de avance.",
+        "needsDocumentation": "Por documentar",
+        "lastConfirmed": "Última ejecución confirmada",
+        "suggestedNext": "Siguiente elemento sugerido",
+        "viewContextDetails": "Detalles del contexto"
       },
       "backToHub": "Volver a la planificación pedagógica",
       "print": {

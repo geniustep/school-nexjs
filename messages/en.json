@@ -1121,7 +1121,71 @@
         "completed": "Completed",
         "delayed": "Delayed",
         "overdelivered": "Overdelivered"
-      }
+      },
+      "planningTitle": "Planning and program progress",
+      "planningSubtitle": "View completed, remaining, and the suggested next item in your assignment context.",
+      "contextTitle": "Teaching context",
+      "selectContextTitle": "Select class and teaching offering",
+      "selectContextDesc": "Class and offering are required to show program progress.",
+      "noActivePlan": "No active teaching plan for this context yet.",
+      "noActivePlanDesc": "When an annual distribution plan is activated, progress and suggestions will appear here.",
+      "programProgress": "Program progress",
+      "earnedUnits": "Earned / planned units",
+      "buckets": {
+        "completed": "Completed",
+        "partial": "Partial",
+        "deferred": "Postponed",
+        "notStarted": "Not started",
+        "remaining": "Remaining"
+      },
+      "lastConfirmedTitle": "Last confirmed delivery",
+      "lastConfirmedDate": "Date",
+      "lastConfirmedItem": "Item",
+      "noLastConfirmed": "No confirmed delivery yet.",
+      "documentationGapsTitle": "Documentation gaps",
+      "documentationGapsCount": "past session(s) need documentation",
+      "documentationGapsNone": "No undocumented past sessions in this context.",
+      "goDocumentToday": "Go to Today to document",
+      "goToday": "Today",
+      "suggestedNextTitle": "Suggested next item",
+      "sequenceOrder": "Order",
+      "suggestionPostponedWarning": "This item was postponed and is due according to the plan.",
+      "chooseOther": "Choose another item",
+      "noSuggestion": "No current suggestion for this context.",
+      "programListTitle": "Program list",
+      "emptyProgram": "No program items in this context.",
+      "columns": {
+        "order": "Order",
+        "item": "Item",
+        "planned": "Planned units",
+        "done": "Done",
+        "remaining": "Remaining",
+        "status": "Status"
+      },
+      "suggestionReasons": {
+        "resume_partial_line": "Resume the partially completed item",
+        "postponed_due": "Postponed item is due",
+        "first_remaining_by_sequence": "Next item by plan sequence",
+        "plan_completed": "All plan items are completed",
+        "fallback": "Suggestion based on plan progress"
+      },
+      "decision": {
+        "alternativeTitle": "Choose another item",
+        "postponeTitle": "Postpone item",
+        "postponeAction": "Postpone this item",
+        "description": "This choice does not record the session. Only the decision is saved, with a reason when required.",
+        "selectItem": "Item",
+        "reasonLabel": "Reason for choice",
+        "reasonRequired": "A reason is required for alternative or postpone.",
+        "lineRequired": "Select an item from the list.",
+        "noEligible": "No eligible remaining items.",
+        "save": "Save decision",
+        "saved": "Decision saved."
+      },
+      "openPlanning": "Open planning and progress",
+      "todaySnippetDesc": "Review program progress and the suggested next item on the planning page.",
+      "summaryRedirectDesc": "Progress summary is now tied to class and offering context.",
+      "permissionDenied": "You do not have permission to view progress for this context."
     }
   },
   "actions": {
@@ -12546,7 +12610,25 @@
         },
         "plannedDates": {
           "title": "Planned dates"
-        }
+        },
+        "curriculumTitle": "Program progress by context",
+        "selectContextTitle": "Select a class to view progress",
+        "selectContextDesc": "Operational progress is shown by class and offering within your school scope.",
+        "noActivePlan": "No active teaching plan for this context yet.",
+        "noActivePlanDesc": "When annual distribution is active, progress detail and documentation gaps appear here.",
+        "programProgress": "Program progress",
+        "buckets": {
+          "completed": "Completed",
+          "partial": "Partial",
+          "deferred": "Postponed",
+          "remaining": "Remaining"
+        },
+        "documentationGaps": "Needs documentation",
+        "documentationGapsHint": "Past sessions need documentation — independent of completion rate.",
+        "needsDocumentation": "Needs documentation",
+        "lastConfirmed": "Last confirmed delivery",
+        "suggestedNext": "Suggested next item",
+        "viewContextDetails": "Context details"
       },
       "backToHub": "Back to pedagogical planning",
       "print": {

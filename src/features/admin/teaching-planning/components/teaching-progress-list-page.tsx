@@ -18,14 +18,14 @@ import { PermissionDeniedState } from '@/components/states/states';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
-import { Badge, Card, PageHeader, SectionHead, StatCard } from '@/components/ui/primitives';
+import { Badge, PageHeader } from '@/components/ui/primitives';
 import { RequireTeachingPlanningAccess } from '@/features/admin/teaching-planning/components/require-teaching-planning';
 import { TeachingPlanningListBack } from '@/features/admin/teaching-planning/components/teaching-planning-list-back';
 import { TeachingPlanningListSearch } from '@/features/admin/teaching-planning/components/teaching-planning-list-search';
 import { buildPrintReportQuery } from '@/features/teaching-planning/print/utils/print-helpers';
+import { TeachingCurriculumProgressPanel } from '@/features/admin/teaching-planning/components/teaching-curriculum-progress-panel';
 import {
   normalizeTeachingProgressLines,
-  normalizeTeachingProgressSummary,
 } from '@/features/admin/teaching-planning/utils/normalize-teaching-delivery';
 import {
   TEACHING_PLANNING_PAGE_SIZE,
@@ -51,11 +51,6 @@ export function TeachingProgressListPage() {
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => setPage(1), [search, statusFilter]);
-
-  const summaryState = useAdminResource<unknown>(
-    canSee ? endpoints.admin.teachingProgressSummary : null,
-  );
-  const summary = useMemo(() => normalizeTeachingProgressSummary(summaryState.data), [summaryState.data]);
 
   const linesState = useAdminResource<unknown>(canSee ? endpoints.admin.teachingProgressLines : null, {
     page,
@@ -230,55 +225,7 @@ export function TeachingProgressListPage() {
           <PermissionDeniedState description={t('admin.pageForbidden')} />
         ) : (
           <>
-            <div className="tp-list__stats grid grid--stats">
-              <StatCard
-                label={t('admin.teachingPlanning.progress.stats.coverage')}
-                value={summary.coverage_percent != null ? `${summary.coverage_percent}%` : '—'}
-                tone="blue"
-              />
-              <StatCard
-                label={t('admin.teachingPlanning.progress.stats.planned')}
-                value={summary.planned_lines ?? '—'}
-              />
-              <StatCard
-                label={t('admin.teachingPlanning.progress.stats.started')}
-                value={summary.started_lines ?? '—'}
-              />
-              <StatCard
-                label={t('admin.teachingPlanning.progress.stats.completed')}
-                value={summary.completed_lines ?? '—'}
-                tone="green"
-              />
-              <StatCard
-                label={t('admin.teachingPlanning.progress.stats.delayed')}
-                value={summary.delayed_lines ?? '—'}
-                tone={summary.delayed_lines ? 'red' : 'none'}
-              />
-            </div>
-
-            {(summary.classes_needing_attention ?? []).length > 0 ? (
-              <Card>
-                <SectionHead title={t('admin.teachingPlanning.progress.attention.title')} />
-                <div className="tp-list__attention">
-                  {(summary.classes_needing_attention ?? []).map((ref) => (
-                    <Badge key={ref.id} tone="amber">
-                      {ref.name}
-                    </Badge>
-                  ))}
-                </div>
-              </Card>
-            ) : null}
-
-            {summary.last_delivery ? (
-              <Card>
-                <SectionHead title={t('admin.teachingPlanning.progress.lastDelivery.title')} />
-                <p dir="auto">
-                  <Link href={`/admin/teaching-planning/actual-deliveries/${summary.last_delivery.id}`}>
-                    {summary.last_delivery.delivered_title ?? summary.last_delivery.class?.name ?? t('common.dash')}
-                  </Link>
-                </p>
-              </Card>
-            ) : null}
+            <TeachingCurriculumProgressPanel />
 
             <div className="tp-list-filters">
               <div className="tp-list-filters__primary">

@@ -1,6 +1,8 @@
 /**
  * Actual Delivery / Class Journal / Teaching Progress contracts —
- * synced with ODOO-TEACHING-DELIVERY-JOURNAL-PROGRESS-8.
+ * synced with ODOO-TEACHING-DELIVERY-JOURNAL-PROGRESS-8 and
+ * ODOO-TEACHING-V3-PROGRESS-REMAINING-NEXT-219
+ * (Odoo commit 26d7b1c87d0ddb7a8aaa5a86cfc8c718061bfb27).
  *
  * Semantic guards (non-negotiable):
  * - Teacher Jathatha ≠ Actual Delivery Record
@@ -9,6 +11,7 @@
  * - Annual Distribution Line ≠ Actual Delivery Record
  * - Journal is generated and read-only
  * - Progress is derived and read-only
+ * - Progress percentage / remaining / suggestion are Backend SoT (no FE recompute)
  */
 
 import type {
@@ -387,7 +390,116 @@ export interface TeachingProgressLineDetail extends TeachingProgressLineSummary 
   planned_dates?: string[];
 }
 
+/** Curriculum progress context for a class (+ optional offering). */
+export interface TeachingProgressContext {
+  school_id?: number | null;
+  academic_year_id?: number | null;
+  class_id?: number | null;
+  teaching_offering_id?: number | null;
+  annual_distribution_id?: number | null;
+}
+
+export type TeachingSuggestionReason =
+  | 'resume_partial_line'
+  | 'postponed_due'
+  | 'first_remaining_by_sequence'
+  | 'plan_completed'
+  | string;
+
+/** Remaining / suggested distribution line candidate (Backend-derived). */
+export interface TeachingRemainingItem {
+  distribution_line_id: number;
+  title?: string | null;
+  name?: string | null;
+  order?: number | null;
+  sequence_order?: number | null;
+  planned_period?: {
+    start?: string | null;
+    end?: string | null;
+  } | null;
+  delivered_session_units?: number | null;
+  remaining_units?: number | null;
+  completion_status?: TeachingProgressStatus | null;
+  completed?: boolean;
+  is_partial?: boolean;
+  postponed?: boolean;
+  latest_postponement_reason?: string | null;
+  latest_postponement_at?: string | null;
+  eligibility?: boolean;
+  blocked_reason?: string | null;
+  suggested_rank?: number | null;
+}
+
+export type TeachingSuggestedNextItem = TeachingRemainingItem;
+
+export type TeachingExecutionDecisionType =
+  | 'accept_suggestion'
+  | 'select_alternative'
+  | 'postpone_item'
+  | 'choose_postponed'
+  | string;
+
+export interface TeachingExecutionDecisionPayload {
+  decision_type: TeachingExecutionDecisionType;
+  class_id: number;
+  offering_id: number;
+  distribution_line_id?: number | null;
+  selected_distribution_line_id?: number | null;
+  suggested_distribution_line_id?: number | null;
+  reason?: string | null;
+  occurrence_id?: number | null;
+}
+
+export interface TeachingLastConfirmedDelivery {
+  id: number;
+  session_date?: string | null;
+  state?: ActualDeliveryState | null;
+  completion_state?: DeliveryCompletionState | null;
+  delivered_distribution_line_id?: number | null;
+  delivered_title?: string | null;
+}
+
+export interface TeachingNextItemAllowedActions {
+  list_remaining?: boolean;
+  suggest_next?: boolean;
+  accept_suggestion?: boolean;
+  select_alternative?: boolean;
+  postpone_item?: boolean;
+  choose_postponed?: boolean;
+  view_decision_history?: boolean;
+  [key: string]: boolean | undefined;
+}
+
+export interface TeachingTeacherNextItemPayload {
+  suggestion?: TeachingSuggestedNextItem | null;
+  suggestion_status?: string | null;
+  suggestion_reason?: TeachingSuggestionReason | null;
+  candidates: TeachingRemainingItem[];
+  postponed_items: TeachingRemainingItem[];
+  current_decision?: TeachingExecutionDecisionRecord | null;
+  decision?: TeachingExecutionDecisionRecord | null;
+  allowed_actions?: TeachingNextItemAllowedActions | null;
+  warnings: string[];
+  source?: string | null;
+}
+
+export interface TeachingExecutionDecisionRecord {
+  id: number;
+  decision_type?: TeachingExecutionDecisionType | null;
+  reason?: string | null;
+  state?: string | null;
+  class_id?: number | null;
+  teaching_offering_id?: number | null;
+  suggested_distribution_line_id?: number | null;
+  selected_distribution_line_id?: number | null;
+  decided_at?: string | null;
+  confirmed_at?: string | null;
+  is_v3_curriculum_decision?: boolean;
+  [key: string]: unknown;
+}
+
 export interface TeachingProgressSummary {
+  /** Legacy aggregate aliases (may be absent on class-scoped V3 payload). */
   coverage_percent?: number | null;
   planned_lines?: number | null;
   started_lines?: number | null;
@@ -398,6 +510,31 @@ export interface TeachingProgressSummary {
   last_delivery?: ActualDeliverySummary | null;
   classes_needing_attention?: TeachingPlanningNamedRef[];
   counts?: Record<string, number>;
+  /** V3 curriculum progress (Backend SoT). */
+  context?: TeachingProgressContext | null;
+  class_id?: number | null;
+  teaching_offering_id?: number | null;
+  total_items?: number | null;
+  completed_items?: number | null;
+  partial_items?: number | null;
+  deferred_items?: number | null;
+  not_started_items?: number | null;
+  remaining_items?: number | null;
+  undocumented_past_sessions?: number | null;
+  progress_percentage?: number | null;
+  weight_basis?: string | null;
+  earned_units?: number | null;
+  total_applicable_units?: number | null;
+  planned_session_total?: number | null;
+  delivered_session_units?: number | null;
+  remaining_units?: number | null;
+  line_count?: number | null;
+  status_counts?: Record<string, number>;
+  lines?: TeachingProgressLineSummary[];
+  last_confirmed_delivery?: TeachingLastConfirmedDelivery | null;
+  suggested_next_item?: TeachingSuggestedNextItem | null;
+  suggestion_reason?: TeachingSuggestionReason | null;
+  item_bucket_contract?: string | null;
 }
 
 export const DELIVERY_ERROR_CODES = [

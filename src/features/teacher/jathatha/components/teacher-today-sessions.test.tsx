@@ -20,6 +20,12 @@ vi.mock('@/features/teacher/ui/teacher-primitives', () => ({
   TeacherSection: ({ children }: any) => <section>{children}</section>,
   TeacherEmptyState: ({ title }: any) => <p>{title}</p>,
   TeacherContentCard: ({ title, badge, meta, footer, href }: any) => <article><a href={href}>{title}</a>{badge}{meta}{footer}</article>,
+  TeacherWorkspaceCard: ({ title, children }: any) => (
+    <section>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  ),
 }));
 vi.mock('@/components/badges/workflow-badge', () => ({
   WorkflowBadge: ({ state }: any) => state ? <span>workflow:{state}</span> : null,

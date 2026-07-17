@@ -22,9 +22,15 @@ import type {
   DeliveryDistributionLineRef,
   DeliveryReadiness,
   ProgressSummarySnippet,
+  TeachingExecutionDecisionRecord,
+  TeachingLastConfirmedDelivery,
+  TeachingNextItemAllowedActions,
+  TeachingProgressContext,
   TeachingProgressLineDetail,
   TeachingProgressLineSummary,
   TeachingProgressSummary,
+  TeachingRemainingItem,
+  TeachingTeacherNextItemPayload,
 } from '@/types/teaching-delivery';
 import type {
   TeachingPlanningAllowedActions,
@@ -370,6 +376,127 @@ export function normalizeTeachingProgressLineDetail(
   };
 }
 
+export function normalizeTeachingProgressContext(
+  raw: unknown,
+): TeachingProgressContext | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  return {
+    school_id: asNumber(record.school_id) ?? null,
+    academic_year_id: asNumber(record.academic_year_id) ?? null,
+    class_id: asNumber(record.class_id) ?? null,
+    teaching_offering_id: asNumber(record.teaching_offering_id) ?? null,
+    annual_distribution_id: asNumber(record.annual_distribution_id) ?? null,
+  };
+}
+
+export function normalizeTeachingRemainingItem(raw: unknown): TeachingRemainingItem | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  const distributionLineId =
+    asNumber(record.distribution_line_id) ?? asNumber(record.id);
+  if (distributionLineId == null) return null;
+  const plannedPeriod = asRecord(record.planned_period);
+  return {
+    distribution_line_id: distributionLineId,
+    title: asString(record.title) ?? asString(record.name) ?? null,
+    name: asString(record.name) ?? asString(record.title) ?? null,
+    order: asNumber(record.order) ?? null,
+    sequence_order: asNumber(record.sequence_order) ?? asNumber(record.order) ?? null,
+    planned_period: plannedPeriod
+      ? {
+          start: asString(plannedPeriod.start) ?? null,
+          end: asString(plannedPeriod.end) ?? null,
+        }
+      : null,
+    delivered_session_units: asNumber(record.delivered_session_units) ?? null,
+    remaining_units: asNumber(record.remaining_units) ?? null,
+    completion_status: asString(record.completion_status) ?? asString(record.status) ?? null,
+    completed: asBoolean(record.completed),
+    is_partial: asBoolean(record.is_partial),
+    postponed: asBoolean(record.postponed),
+    latest_postponement_reason: asString(record.latest_postponement_reason) ?? null,
+    latest_postponement_at: asString(record.latest_postponement_at) ?? null,
+    eligibility: asBoolean(record.eligibility),
+    blocked_reason: asString(record.blocked_reason) ?? null,
+    suggested_rank: asNumber(record.suggested_rank) ?? null,
+  };
+}
+
+export function normalizeTeachingRemainingItems(raw: unknown): TeachingRemainingItem[] {
+  return listItems(raw)
+    .map(normalizeTeachingRemainingItem)
+    .filter((item): item is TeachingRemainingItem => item != null);
+}
+
+export function normalizeTeachingLastConfirmedDelivery(
+  raw: unknown,
+): TeachingLastConfirmedDelivery | null {
+  const record = asRecord(raw);
+  const id = asNumber(record?.id);
+  if (!record || id == null) return null;
+  return {
+    id,
+    session_date: asString(record.session_date) ?? null,
+    state: asString(record.state) ?? null,
+    completion_state: asString(record.completion_state) ?? null,
+    delivered_distribution_line_id: asNumber(record.delivered_distribution_line_id) ?? null,
+    delivered_title: asString(record.delivered_title) ?? null,
+  };
+}
+
+export function normalizeTeachingExecutionDecisionRecord(
+  raw: unknown,
+): TeachingExecutionDecisionRecord | null {
+  const record = asRecord(raw);
+  const id = asNumber(record?.id);
+  if (!record || id == null) return null;
+  return {
+    ...record,
+    id,
+    decision_type: asString(record.decision_type) ?? null,
+    reason: asString(record.reason) ?? null,
+    state: asString(record.state) ?? null,
+    class_id: asNumber(record.class_id) ?? null,
+    teaching_offering_id: asNumber(record.teaching_offering_id) ?? null,
+    suggested_distribution_line_id: asNumber(record.suggested_distribution_line_id) ?? null,
+    selected_distribution_line_id: asNumber(record.selected_distribution_line_id) ?? null,
+    decided_at: asString(record.decided_at) ?? null,
+    confirmed_at: asString(record.confirmed_at) ?? null,
+    is_v3_curriculum_decision: asBoolean(record.is_v3_curriculum_decision),
+  };
+}
+
+export function normalizeTeachingNextItemAllowedActions(
+  raw: unknown,
+): TeachingNextItemAllowedActions | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  const out: TeachingNextItemAllowedActions = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (typeof value === 'boolean') out[key] = value;
+  }
+  return out;
+}
+
+export function normalizeTeachingTeacherNextItemPayload(
+  raw: unknown,
+): TeachingTeacherNextItemPayload {
+  const record = asRecord(unwrapItem(raw)) ?? {};
+  return {
+    suggestion: normalizeTeachingRemainingItem(record.suggestion),
+    suggestion_status: asString(record.suggestion_status) ?? null,
+    suggestion_reason: asString(record.suggestion_reason) ?? null,
+    candidates: normalizeTeachingRemainingItems(record.candidates),
+    postponed_items: normalizeTeachingRemainingItems(record.postponed_items),
+    current_decision: normalizeTeachingExecutionDecisionRecord(record.current_decision),
+    decision: normalizeTeachingExecutionDecisionRecord(record.decision),
+    allowed_actions: normalizeTeachingNextItemAllowedActions(record.allowed_actions),
+    warnings: stringArray(record.warnings),
+    source: asString(record.source) ?? null,
+  };
+}
+
 export function normalizeTeachingProgressSummary(raw: unknown): TeachingProgressSummary {
   const record = asRecord(unwrapItem(raw)) ?? {};
   const classesNeedingAttention = Array.isArray(record.classes_needing_attention)
@@ -378,12 +505,15 @@ export function normalizeTeachingProgressSummary(raw: unknown): TeachingProgress
         .filter((item): item is TeachingPlanningNamedRef => item != null)
     : [];
   const counts = asRecord(record.counts);
+  const statusCounts = asRecord(record.status_counts);
+  const progressPercentage =
+    asNumber(record.progress_percentage) ?? asNumber(record.coverage_percent) ?? null;
   return {
-    coverage_percent: asNumber(record.coverage_percent) ?? null,
-    planned_lines: asNumber(record.planned_lines) ?? null,
+    coverage_percent: progressPercentage,
+    planned_lines: asNumber(record.planned_lines) ?? asNumber(record.total_items) ?? null,
     started_lines: asNumber(record.started_lines) ?? null,
-    completed_lines: asNumber(record.completed_lines) ?? null,
-    delayed_lines: asNumber(record.delayed_lines) ?? null,
+    completed_lines: asNumber(record.completed_lines) ?? asNumber(record.completed_items) ?? null,
+    delayed_lines: asNumber(record.delayed_lines) ?? asNumber(record.deferred_items) ?? null,
     current_lines: normalizeTeachingProgressLines(record.current_lines),
     next_remaining_lines: normalizeTeachingProgressLines(record.next_remaining_lines),
     last_delivery: normalizeActualDeliverySummary(record.last_delivery),
@@ -395,6 +525,39 @@ export function normalizeTeachingProgressSummary(raw: unknown): TeachingProgress
             .filter((entry): entry is [string, number] => entry[1] != null),
         )
       : {},
+    context: normalizeTeachingProgressContext(record.context),
+    class_id: asNumber(record.class_id) ?? null,
+    teaching_offering_id: asNumber(record.teaching_offering_id) ?? null,
+    total_items: asNumber(record.total_items) ?? asNumber(record.line_count) ?? null,
+    completed_items: asNumber(record.completed_items) ?? asNumber(record.completed_lines) ?? null,
+    partial_items: asNumber(record.partial_items) ?? null,
+    deferred_items: asNumber(record.deferred_items) ?? null,
+    not_started_items: asNumber(record.not_started_items) ?? null,
+    remaining_items: asNumber(record.remaining_items) ?? null,
+    undocumented_past_sessions: asNumber(record.undocumented_past_sessions) ?? null,
+    progress_percentage: progressPercentage,
+    weight_basis: asString(record.weight_basis) ?? null,
+    earned_units: asNumber(record.earned_units) ?? asNumber(record.delivered_session_units) ?? null,
+    total_applicable_units:
+      asNumber(record.total_applicable_units) ?? asNumber(record.planned_session_total) ?? null,
+    planned_session_total: asNumber(record.planned_session_total) ?? null,
+    delivered_session_units: asNumber(record.delivered_session_units) ?? null,
+    remaining_units: asNumber(record.remaining_units) ?? null,
+    line_count: asNumber(record.line_count) ?? null,
+    status_counts: statusCounts
+      ? Object.fromEntries(
+          Object.entries(statusCounts)
+            .map(([key, value]) => [key, asNumber(value)] as const)
+            .filter((entry): entry is [string, number] => entry[1] != null),
+        )
+      : {},
+    lines: normalizeTeachingProgressLines(record.lines),
+    last_confirmed_delivery: normalizeTeachingLastConfirmedDelivery(
+      record.last_confirmed_delivery,
+    ),
+    suggested_next_item: normalizeTeachingRemainingItem(record.suggested_next_item),
+    suggestion_reason: asString(record.suggestion_reason) ?? null,
+    item_bucket_contract: asString(record.item_bucket_contract) ?? null,
   };
 }
 

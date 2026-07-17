@@ -89,6 +89,9 @@ describe('delivery endpoints and BFF policy', () => {
     expect(assertBffRoutePolicy('/teacher/session-occurrences/9/delivery-context', 'GET').ok).toBe(
       true,
     );
+    expect(assertBffRoutePolicy('/teacher/teaching/suggested-next-item', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/teacher/teaching/decision', 'POST').ok).toBe(true);
+    expect(assertBffRoutePolicy('/teacher/teaching/remaining', 'GET').ok).toBe(true);
     expect(assertBffRoutePolicy('/admin/actual-deliveries', 'GET').ok).toBe(true);
     expect(assertBffRoutePolicy('/admin/actual-deliveries/1/request-correction', 'POST').ok).toBe(
       true,
@@ -96,6 +99,7 @@ describe('delivery endpoints and BFF policy', () => {
     expect(assertBffRoutePolicy('/admin/class-journal', 'GET').ok).toBe(true);
     expect(assertBffRoutePolicy('/admin/teaching-progress-lines', 'GET').ok).toBe(true);
     expect(assertBffRoutePolicy('/admin/teaching-progress-summary', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/admin/teaching/execution-decisions', 'GET').ok).toBe(true);
   });
 });
 
@@ -293,6 +297,17 @@ describe('delivery semantic and route safety', () => {
     expect(api).toContain('endpoints.teacher.actualDeliveries');
     expect(api).not.toContain('/teacher/teaching/delivery');
     expect(api).not.toContain('/teacher/teaching/progress');
+  });
+
+  it('adopts V3 curriculum next-item routes without using teaching/progress as SoT', () => {
+    const curriculumApi = source(
+      'src/features/teacher/teaching-progress/api/teacher-curriculum-progress-api.ts',
+    );
+    expect(curriculumApi).toContain('endpoints.teacher.teachingProgressSummary');
+    expect(curriculumApi).toContain('endpoints.teacher.teachingSuggestedNextItem');
+    expect(curriculumApi).toContain('endpoints.teacher.teachingExecutionDecision');
+    expect(curriculumApi).not.toContain('/teacher/teaching/progress');
+    expect(curriculumApi).not.toContain('/teacher/teaching/delivery');
   });
 
   it('does not duplicate homework or attendance modules inside delivery feature', () => {

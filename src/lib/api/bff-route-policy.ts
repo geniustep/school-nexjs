@@ -32,6 +32,8 @@ export const BFF_ADMIN_FAMILIES = [
   'class-journal',
   'teaching-progress-lines',
   'teaching-progress-summary',
+  /** V3 next-item decisions / remaining under /admin/teaching/* */
+  'teaching',
   'staff',
   'tracks',
   'attendance',
@@ -65,6 +67,8 @@ const BFF_TEACHER_FAMILIES = [
   'class-journal',
   'teaching-progress',
   'teaching-progress-summary',
+  /** V3 remaining / suggested-next / decision under /teacher/teaching/* */
+  'teaching',
 ] as const;
 
 const BFF_PARENT_FAMILIES = ['dashboard', 'children', 'finance'] as const;
@@ -130,6 +134,7 @@ const BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES = new Set([
   'class-journal',
   'teaching-progress-lines',
   'teaching-progress-summary',
+  'teaching',
   'tracks',
   'guardians',
   'parents',
