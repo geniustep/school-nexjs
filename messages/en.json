@@ -6200,7 +6200,7 @@
       },
       "enrollmentEmptyDesc": "Create an enrollment to link the pupil to the academic year and class.",
       "guardiansEmptyDesc": "Link a guardian for communication and related responsibilities.",
-      "guardiansCopyPhone": "Copy",
+      "guardiansCopyPhone": "Copy phone number",
       "guardiansCopiedPhone": "Phone number copied.",
       "guardiansOpenProfile": "Open guardian profile",
       "guardiansActiveCount": "{count} active guardians",
@@ -7175,7 +7175,7 @@
         "create": "Create financial agreement",
         "applyFeePlan": "Apply fee plan",
         "createManualAgreement": "Create manual agreement",
-        "edit": "Edit agreement",
+        "edit": "Edit financial agreement",
         "emptyTitle": "No financial agreement for this academic year.",
         "emptyDescription": "Create an agreement to define services, prices, and the payment schedule.",
         "noIndependentAgreementTitle": "No standalone financial agreement for this student.",
@@ -7196,7 +7196,10 @@
         "noScheduleDesc": "Installments will appear after services are added and the schedule is generated.",
         "noBillingParty": "No billing party assigned",
         "noBillingPartyDesc": "Link a guardian or billing party before activating the agreement.",
-        "schedulePolicyTitle": "Schedule policy",
+        "schedulePolicyTitle": "Agreement terms",
+        "scheduleTermsTitle": "Agreement terms",
+        "scheduleTermsDesc": "Schedule generation and due-date rules applied to this agreement.",
+        "scheduleTermsEmpty": "No schedule terms are saved for this agreement.",
         "openGuardians": "Open guardians",
         "fields": {
           "academicYear": "Academic year",
@@ -7211,7 +7214,8 @@
           "partyType": "Payer type",
           "relationship": "Relationship",
           "contact": "Contact",
-          "installmentCount": "Installments"
+          "installmentCount": "Installments",
+          "notes": "Agreement notes"
         },
         "replaceDraftFromFees": "Replace with agreement from current fees",
         "replaceDraftConfirmTitle": "Replace empty draft",
@@ -7426,10 +7430,14 @@
         },
         "schedulePolicy": {
           "generation": "Generation mode",
-          "display": "Display policy",
+          "display": "Installment display rule",
           "dueDay": "Due day",
+          "dueDayOfMonth": "Day {day} of each month",
+          "dueOffsetDays": "{days} days after period start",
           "earlyPayment": "Allow early payment",
-          "firstPeriod": "First period policy"
+          "firstPeriod": "First period policy",
+          "displayOffset": "Display offset",
+          "displayOffsetDays": "{days} days"
         },
         "states": {
           "draft": "Draft",
@@ -7617,9 +7625,16 @@
           "lead": "This student has siblings linked to the same family billing account.",
           "siblingCount": "Sibling count",
           "siblingNames": "Sibling names",
+          "siblingSummary": "{count} siblings",
+          "moreSiblings": "+{count}",
           "activeAgreements": "Active sibling agreements",
+          "activeAgreementsYes": "Active sibling agreements",
+          "activeAgreementsNo": "No active sibling agreements",
           "familyOverdue": "Family overdue balance",
-          "discountHint": "This student may be eligible for a sibling discount per school policy."
+          "familyOverdueYes": "Family has overdue",
+          "familyOverdueNo": "No family overdue",
+          "discountHint": "This student may be eligible for a sibling discount per school policy.",
+          "discountHintShort": "Possible sibling discount"
         },
         "collectionContext": {
           "title": "Family-level collection",
@@ -7841,6 +7856,7 @@
         "pageTitle": "Financial file",
         "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
         "tabsAria": "Financial file tabs",
+        "subtabsScrollHint": "Scroll horizontally to see more finance sections",
         "tabs": {
           "overview": "Financial overview",
           "fees": "Fees & services",
@@ -8019,6 +8035,9 @@
         "agreementContext": {
           "sectionAria": "Financial agreement and fee plan context",
           "feePlanTitle": "Fee plan",
+          "showFeePlanDetails": "Show plan details",
+          "hideFeePlanDetails": "Hide details",
+          "futureDatedActionsUnavailable": "Dated amendment actions are not available yet.",
           "statusTitle": "Financial agreement status",
           "operationsHistoryTitle": "Financial operations history",
           "noValidFeePlan": "No valid fee plan has been linked yet",

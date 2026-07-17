@@ -1,6 +1,5 @@
 'use client';
 
-import { Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { familyFinanceErrorMessageKey } from '@/lib/utils/normalize-family-finance';
 import { useStudentFamilyPlanContext } from '../hooks/use-student-family-finance';
@@ -8,9 +7,11 @@ import { useStudentFamilyPlanContext } from '../hooks/use-student-family-finance
 export function FamilyPlanContextCard({
   studentId,
   refreshSignal = 0,
+  compact = false,
 }: {
   studentId: number;
   refreshSignal?: number;
+  compact?: boolean;
 }) {
   const t = useT();
   const { loading, data, error } = useStudentFamilyPlanContext(studentId, true, refreshSignal);
@@ -19,7 +20,7 @@ export function FamilyPlanContextCard({
   if (error) {
     if (error.code === 'family_not_resolved') return null;
     return (
-      <div className="student-finance-family-plan-context student-finance-card-alert" role="status">
+      <div className="student-finance-family-strip student-finance-family-strip--error" role="status">
         <p>{t(familyFinanceErrorMessageKey(error.code))}</p>
       </div>
     );
@@ -32,47 +33,62 @@ export function FamilyPlanContextCard({
   const siblingNames = data.siblings
     .map((sibling) => sibling.student_name?.trim())
     .filter(Boolean)
+    .slice(0, compact ? 3 : 8);
+  const extraCount = Math.max(0, siblingCount - siblingNames.length);
+  const namesLabel = [
+    ...siblingNames,
+    extraCount > 0 ? t('admin.student360.familyFinance.planContext.moreSiblings', { count: extraCount }) : null,
+  ]
+    .filter(Boolean)
     .join(' · ');
 
   return (
-    <Card className="student-finance-family-plan-context student-finance-section">
-      <h4 className="student-finance-family-plan-context__title">
-        {t('admin.student360.familyFinance.planContext.title')}
-      </h4>
-      <p className="student-finance-family-plan-context__lead">
-        {t('admin.student360.familyFinance.planContext.lead')}
-      </p>
-      <dl className="detail-list student-finance-family-plan-context__facts">
-        <div>
-          <dt>{t('admin.student360.familyFinance.planContext.siblingCount')}</dt>
-          <dd>{siblingCount}</dd>
+    <aside
+      className={`student-finance-family-strip${compact ? ' student-finance-family-strip--compact' : ''}`}
+      aria-label={t('admin.student360.familyFinance.planContext.title')}
+    >
+      <div className="student-finance-family-strip__identity">
+        <span className="student-finance-family-strip__mark" aria-hidden="true">
+          ◈
+        </span>
+        <div className="student-finance-family-strip__copy">
+          <span className="student-finance-family-strip__title">
+            {t('admin.student360.familyFinance.planContext.title')}
+          </span>
+          <span className="student-finance-family-strip__meta" dir="auto">
+            {t('admin.student360.familyFinance.planContext.siblingSummary', {
+              count: siblingCount,
+            })}
+            {namesLabel ? ` — ${namesLabel}` : ''}
+          </span>
         </div>
-        {siblingNames ? (
-          <div>
-            <dt>{t('admin.student360.familyFinance.planContext.siblingNames')}</dt>
-            <dd dir="auto">{siblingNames}</dd>
-          </div>
+      </div>
+
+      <div className="student-finance-family-strip__flags">
+        <span
+          className={`student-finance-family-strip__chip${
+            data.has_active_sibling_agreements ? ' is-positive' : ''
+          }`}
+        >
+          {data.has_active_sibling_agreements
+            ? t('admin.student360.familyFinance.planContext.activeAgreementsYes')
+            : t('admin.student360.familyFinance.planContext.activeAgreementsNo')}
+        </span>
+        <span
+          className={`student-finance-family-strip__chip${
+            data.family_has_overdue ? ' is-warning' : ''
+          }`}
+        >
+          {data.family_has_overdue
+            ? t('admin.student360.familyFinance.planContext.familyOverdueYes')
+            : t('admin.student360.familyFinance.planContext.familyOverdueNo')}
+        </span>
+        {data.eligible_family_discount_hint?.eligible ? (
+          <span className="student-finance-family-strip__chip is-info">
+            {t('admin.student360.familyFinance.planContext.discountHintShort')}
+          </span>
         ) : null}
-        <div>
-          <dt>{t('admin.student360.familyFinance.planContext.activeAgreements')}</dt>
-          <dd>
-            {data.has_active_sibling_agreements
-              ? t('common.yes')
-              : t('common.no')}
-          </dd>
-        </div>
-        <div>
-          <dt>{t('admin.student360.familyFinance.planContext.familyOverdue')}</dt>
-          <dd>
-            {data.family_has_overdue ? t('common.yes') : t('common.no')}
-          </dd>
-        </div>
-      </dl>
-      {data.eligible_family_discount_hint?.eligible ? (
-        <p className="student-finance-family-plan-context__hint tiny muted" role="note">
-          {t('admin.student360.familyFinance.planContext.discountHint')}
-        </p>
-      ) : null}
-    </Card>
+      </div>
+    </aside>
   );
 }

@@ -28,6 +28,13 @@ import {
   normalizeResetAmountChangedPresentation,
 } from '../utils/normalize-reset-amount-changed';
 
+const FUTURE_DATED_ACTION_KINDS = new Set([
+  'add_service_from_date',
+  'stop_service_from_date',
+  'reschedule_remaining',
+  'terminate_from_date',
+]);
+
 function statusPillClass(tone: string): string {
   return `student-finance-status-pill student-finance-status-pill--${tone === 'ok' ? 'ok' : tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'neutral'}`;
 }
@@ -123,6 +130,8 @@ export function StudentFinanceAgreementContextPanel({
     workspace?.current_agreement?.id ??
     null;
 
+  const [feePlanDetailsOpen, setFeePlanDetailsOpen] = useState(false);
+
   const actions = useMemo(
     () =>
       resolveFinanceAgreementActions({
@@ -134,6 +143,22 @@ export function StudentFinanceAgreementContextPanel({
         resetDisabledReasonText: resetPresentation.disabledReasonText,
       }),
     [workspace, financialOverview, agreement, resetPresentation],
+  );
+
+  const visibleActions = useMemo(
+    () =>
+      actions.filter(
+        (action) => action.enabled || !FUTURE_DATED_ACTION_KINDS.has(action.kind),
+      ),
+    [actions],
+  );
+
+  const hasUnavailableFutureActions = useMemo(
+    () =>
+      actions.some(
+        (action) => !action.enabled && FUTURE_DATED_ACTION_KINDS.has(action.kind),
+      ),
+    [actions],
   );
 
   const handleActionClick = useCallback(
@@ -228,82 +253,112 @@ export function StudentFinanceAgreementContextPanel({
               {t('admin.student360.financeWorkspace.agreementContext.noValidFeePlan')}
             </p>
           ) : (
-            <dl className="student-finance-agreement-context__facts">
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.feePlanName')}</dt>
-                <dd dir="auto">{feePlan.feePlanName ?? t('common.dash')}</dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.feePlanId')}</dt>
-                <dd className="mono">{feePlan.feePlanId ?? t('common.dash')}</dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.finance.academicYear')}</dt>
-                <dd>{feePlan.academicYear ?? t('common.dash')}</dd>
-              </div>
-              {feePlan.cycleLabel ? (
+            <>
+              <dl className="student-finance-agreement-context__facts student-finance-agreement-context__facts--compact">
                 <div>
-                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.cycle')}</dt>
-                  <dd dir="auto">{feePlan.cycleLabel}</dd>
+                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.feePlanName')}</dt>
+                  <dd dir="auto">{feePlan.feePlanName ?? t('common.dash')}</dd>
                 </div>
-              ) : null}
-              {feePlan.levelLabel ? (
                 <div>
-                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.level')}</dt>
-                  <dd dir="auto">{feePlan.levelLabel}</dd>
+                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.agreementNumber')}</dt>
+                  <dd dir="auto" className="mono">{feePlan.agreementNumber ?? t('common.dash')}</dd>
                 </div>
-              ) : null}
-              {feePlan.classLabel ? (
+                {feePlan.billingPartnerLabel ? (
+                  <div>
+                    <dt>{t('admin.finance.billingPartner')}</dt>
+                    <dd dir="auto">{feePlan.billingPartnerLabel}</dd>
+                  </div>
+                ) : null}
                 <div>
-                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.class')}</dt>
-                  <dd dir="auto">{feePlan.classLabel}</dd>
+                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.netAmount')}</dt>
+                  <dd>
+                    <FinanceMoney amount={feePlan.netAmount} currency={feePlan.currency ?? undefined} />
+                  </dd>
                 </div>
-              ) : null}
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.agreementNumber')}</dt>
-                <dd dir="auto" className="mono">{feePlan.agreementNumber ?? t('common.dash')}</dd>
-              </div>
-              {feePlan.billingPartnerLabel ? (
                 <div>
-                  <dt>{t('admin.finance.billingPartner')}</dt>
-                  <dd dir="auto">{feePlan.billingPartnerLabel}</dd>
+                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.remainingAmount')}</dt>
+                  <dd>
+                    <FinanceMoney
+                      amount={feePlan.remainingAmount}
+                      currency={feePlan.currency ?? undefined}
+                    />
+                  </dd>
                 </div>
+              </dl>
+              {feePlanDetailsOpen ? (
+                <dl className="student-finance-agreement-context__facts student-finance-agreement-context__facts--details">
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.feePlanId')}</dt>
+                    <dd className="mono">{feePlan.feePlanId ?? t('common.dash')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.finance.academicYear')}</dt>
+                    <dd>{feePlan.academicYear ?? t('common.dash')}</dd>
+                  </div>
+                  {feePlan.cycleLabel ? (
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.cycle')}</dt>
+                      <dd dir="auto">{feePlan.cycleLabel}</dd>
+                    </div>
+                  ) : null}
+                  {feePlan.levelLabel ? (
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.level')}</dt>
+                      <dd dir="auto">{feePlan.levelLabel}</dd>
+                    </div>
+                  ) : null}
+                  {feePlan.classLabel ? (
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.class')}</dt>
+                      <dd dir="auto">{feePlan.classLabel}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.agreementState')}</dt>
+                    <dd>
+                      {feePlan.agreementState
+                        ? resolveFinanceAgreementStateLabel(t, feePlan.agreementState, {
+                            hasBillableContext: feePlan.showAsInactive,
+                          })
+                        : t('common.dash')}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.validFrom')}</dt>
+                    <dd>{feePlan.validFrom ? formatDate(feePlan.validFrom) : t('common.dash')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.validUntil')}</dt>
+                    <dd>{feePlan.validUntil ? formatDate(feePlan.validUntil) : t('common.dash')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.grossAmount')}</dt>
+                    <dd>
+                      <FinanceMoney amount={feePlan.grossAmount} currency={feePlan.currency ?? undefined} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.discountAmount')}</dt>
+                    <dd>
+                      <FinanceMoney
+                        amount={feePlan.discountAmount}
+                        currency={feePlan.currency ?? undefined}
+                      />
+                    </dd>
+                  </div>
+                </dl>
               ) : null}
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.agreementState')}</dt>
-                <dd>
-                  {feePlan.agreementState
-                    ? resolveFinanceAgreementStateLabel(t, feePlan.agreementState, {
-                        hasBillableContext: feePlan.showAsInactive,
-                      })
-                    : t('common.dash')}
-                </dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.validFrom')}</dt>
-                <dd>{feePlan.validFrom ? formatDate(feePlan.validFrom) : t('common.dash')}</dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.validUntil')}</dt>
-                <dd>{feePlan.validUntil ? formatDate(feePlan.validUntil) : t('common.dash')}</dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.grossAmount')}</dt>
-                <dd><FinanceMoney amount={feePlan.grossAmount} currency={feePlan.currency ?? undefined} /></dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.discountAmount')}</dt>
-                <dd><FinanceMoney amount={feePlan.discountAmount} currency={feePlan.currency ?? undefined} /></dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.netAmount')}</dt>
-                <dd><FinanceMoney amount={feePlan.netAmount} currency={feePlan.currency ?? undefined} /></dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.remainingAmount')}</dt>
-                <dd><FinanceMoney amount={feePlan.remainingAmount} currency={feePlan.currency ?? undefined} /></dd>
-              </div>
-            </dl>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm student-finance-agreement-context__details-toggle"
+                aria-expanded={feePlanDetailsOpen}
+                onClick={() => setFeePlanDetailsOpen((open) => !open)}
+              >
+                {feePlanDetailsOpen
+                  ? t('admin.student360.financeWorkspace.agreementContext.hideFeePlanDetails')
+                  : t('admin.student360.financeWorkspace.agreementContext.showFeePlanDetails')}
+              </button>
+            </>
           )}
         </article>
 
@@ -328,9 +383,9 @@ export function StudentFinanceAgreementContextPanel({
               mismatch={financeReview.billingPartnerMismatch}
             />
           ) : null}
-          {actions.length ? (
+          {visibleActions.length ? (
             <div className="student-finance-agreement-context__actions">
-              {actions.map((action) => (
+              {visibleActions.map((action) => (
                 <AgreementActionButton
                   key={action.kind}
                   action={action}
@@ -339,6 +394,11 @@ export function StudentFinanceAgreementContextPanel({
                 />
               ))}
             </div>
+          ) : null}
+          {hasUnavailableFutureActions ? (
+            <p className="student-finance-agreement-context__future-note" role="note">
+              {t('admin.student360.financeWorkspace.agreementContext.futureDatedActionsUnavailable')}
+            </p>
           ) : null}
         </article>
       </div>

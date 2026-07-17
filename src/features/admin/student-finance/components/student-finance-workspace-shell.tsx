@@ -39,12 +39,9 @@ import { resolveDraftAgreementPresentation } from '../utils/resolve-draft-agreem
 import { StudentFinanceExecutiveSummary } from './student-finance-executive-summary';
 import { DraftAgreementFinanceBanner } from './draft-agreement-finance-banner';
 import { StudentFinanceOverviewPanel } from './student-finance-overview-panel';
-import { StudentFinanceFeesPanel } from './student-finance-fees-panel';
 import { StudentFinanceSchedulePanel } from './student-finance-schedule-panel';
 import { StudentFinanceCollectionsPanel } from './student-finance-collections-panel';
 import { StudentFinanceChequesPanel } from './student-finance-cheques-panel';
-import { StudentFinanceAdjustmentsPanel } from './student-finance-adjustments-panel';
-import { StudentFinanceLedgerPanel } from './student-finance-ledger-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
 import { postAgreementAction } from '../api/finance-admin-api';
@@ -70,20 +67,17 @@ import { useToast } from '@/components/ui/toast';
 
 const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[] }[] = [
   { tabs: ['overview'] },
-  { tabs: ['fees', 'agreements', 'schedule'] },
+  { tabs: ['agreements', 'schedule'] },
   { tabs: ['collections', 'cheques'] },
-  { tabs: ['adjustments', 'ledger', 'historical'] },
+  { tabs: ['historical'] },
 ];
 
 const FINANCE_TAB_ICONS: Record<StudentFinanceSubTab, string> = {
   overview: '◉',
-  fees: '▤',
   agreements: '✎',
   schedule: '▦',
   collections: '↗',
   cheques: '☰',
-  adjustments: '±',
-  ledger: '≡',
   historical: '◷',
 };
 
@@ -239,9 +233,16 @@ export function StudentFinanceWorkspaceShell({
   );
 
   useEffect(() => {
+    const rawSubTab = searchParams.get('financeSubTab');
     const fromUrl = resolveInitialSubTab(searchParams);
     setSubTab((current) => (current === fromUrl ? current : fromUrl));
-  }, [searchParams]);
+    // Rewrite removed sub-tab URLs (adjustments → agreements, ledger → historical).
+    if (rawSubTab === 'fees' || rawSubTab === 'adjustments' || rawSubTab === 'ledger') {
+      const base = `/admin/students/${studentId}?tab=finance`;
+      const href = fromUrl === 'overview' ? base : `${base}&financeSubTab=${fromUrl}`;
+      router.replace(href, { scroll: false });
+    }
+  }, [searchParams, router, studentId]);
 
   useEffect(() => {
     if (searchParams.get('collect') !== '1') return;
@@ -305,10 +306,10 @@ export function StudentFinanceWorkspaceShell({
         workspace: workspace ?? null,
         financialOverview: financialOverviewState.data,
         studentCapabilities: capabilities,
-        showManageAgreementBar: subTab !== 'agreements',
+        showManageAgreementBar: true,
         canCollect: canCollectCapability,
       }),
-    [workspace, financialOverviewState.data, capabilities, subTab, canCollectCapability],
+    [workspace, financialOverviewState.data, capabilities, canCollectCapability],
   );
 
   const financeActionState = useMemo(
@@ -325,9 +326,9 @@ export function StudentFinanceWorkspaceShell({
   );
 
   const sectionsWithoutEmptyGate: StudentFinanceSubTab[] = useMemo(() => {
-    const base: StudentFinanceSubTab[] = ['agreements', 'cheques', 'adjustments', 'ledger', 'historical'];
+    const base: StudentFinanceSubTab[] = ['agreements', 'cheques', 'historical'];
     if (financeSetupState.kind !== 'clean_no_finance' && financeSetupState.kind !== 'active_agreement') {
-      return [...base, 'schedule', 'fees', 'overview', 'collections'];
+      return [...base, 'schedule', 'overview', 'collections'];
     }
     return base;
   }, [financeSetupState.kind]);
@@ -356,7 +357,7 @@ export function StudentFinanceWorkspaceShell({
       onOpenSchedule={() => syncSubTabToUrl('schedule')}
       onOpenAgreements={() => syncSubTabToUrl('agreements')}
       onRecordPayment={() => setPaymentEntryOpen(true)}
-      showChangePlan={changePlanVisibility.showChangePlan}
+      showChangePlan={changePlanVisibility.showChangePlan && subTab !== 'agreements'}
       showReviewAgreement={changePlanVisibility.showReviewAgreement && subTab !== 'agreements'}
       reviewAgreementKind={changePlanVisibility.reviewAgreementKind}
       onReviewAgreement={() => syncSubTabToUrl('agreements')}
@@ -368,6 +369,10 @@ export function StudentFinanceWorkspaceShell({
       }
     />
   );
+
+  const changePlanHint = changePlanVisibility.paymentsExistHint
+    ? t('admin.student360.financeWorkspace.changePlan.replace.paymentsExistHint')
+    : t('admin.student360.financeWorkspace.changePlan.replace.actionHint');
 
   const sharedPanelProps = useMemo(
     () => ({
@@ -522,6 +527,9 @@ export function StudentFinanceWorkspaceShell({
               </div>
             ))}
           </div>
+          <p className="student-finance-subtabs__scroll-hint">
+            {t('admin.student360.financeWorkspace.subtabsScrollHint')}
+          </p>
         </nav>
       </div>
 
@@ -591,7 +599,6 @@ export function StudentFinanceWorkspaceShell({
               <StudentFinanceOverviewPanel {...sharedPanelProps} />
             </>
           ) : null}
-          {subTab === 'fees' ? <StudentFinanceFeesPanel {...sharedPanelProps} /> : null}
           {subTab === 'agreements' ? (
             <StudentFinancialAgreementTab
               studentId={studentId}
@@ -600,13 +607,14 @@ export function StudentFinanceWorkspaceShell({
               financialOverview={financialOverviewState.data}
               onChanged={() => refreshFinanceData()}
               embedded
+              showChangePlan={changePlanVisibility.showChangePlan}
+              onOpenChangePlan={() => setChangePlanMode('replace_if_unpaid')}
+              changePlanHint={changePlanHint}
             />
           ) : null}
           {subTab === 'schedule' ? <StudentFinanceSchedulePanel {...sharedPanelProps} /> : null}
           {subTab === 'collections' ? <StudentFinanceCollectionsPanel {...sharedPanelProps} /> : null}
           {subTab === 'cheques' ? <StudentFinanceChequesPanel {...sharedPanelProps} /> : null}
-          {subTab === 'adjustments' ? <StudentFinanceAdjustmentsPanel {...sharedPanelProps} /> : null}
-          {subTab === 'ledger' ? <StudentFinanceLedgerPanel /> : null}
           {subTab === 'historical' ? (
             <StudentFinanceOperationsHistoryPanel workspace={workspace} />
           ) : null}

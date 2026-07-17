@@ -13,9 +13,9 @@ import { StudentStatusSummary } from './student-status-summary';
 import { StudentCreateGuardianOnboardingBanner } from './student-create-guardian-onboarding-banner';
 import { StudentOverviewAlerts } from './student-overview-alerts';
 import { StudentOverviewCards } from './student-overview-cards';
+import { StudentOverviewFinanceStrip } from './student-overview-finance-strip';
 import { StudentProfileDetailPanel } from './student-profile-detail-panel';
 import { StudentAdmissionDataPanel } from './student-admission-data-panel';
-import { StudentSiblingsInfoPanel } from './student-siblings-info-panel';
 import type { StudentOverviewData } from '@/types/student-overview';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
@@ -115,6 +115,18 @@ export function StudentOverviewTab({
         onCreateAccount={canManageAccount ? scrollToLoginAccount : undefined}
       />
 
+      {showFinance ? (
+        <StudentOverviewFinanceStrip
+          studentId={studentId}
+          financialOverview={financialOverviewState.data}
+          overviewFinance={overview?.finance_summary}
+          loading={
+            financialOverviewState.loading ||
+            (overviewLoading && !overview?.finance_summary)
+          }
+        />
+      ) : null}
+
       <StudentOverviewCards
         overview={overview}
         loading={overviewLoading}
@@ -122,21 +134,16 @@ export function StudentOverviewTab({
       />
 
       <div className="student-360-overview__details-layout">
-      <StudentProfileDetailPanel
-        details={details}
-        canManage={canManage}
-        onEditProfile={onEditProfile}
-        onAccountChanged={onAccountChanged}
-      />
-
-      <div className="student-360-overview__details-aside">
-        <StudentAdmissionDataPanel student={details.student} />
-        <StudentSiblingsInfoPanel
-          student={details.student}
+        <StudentProfileDetailPanel
+          details={details}
           canManage={canManage}
-          onAddSibling={onEditProfile}
+          onEditProfile={onEditProfile}
+          onAccountChanged={onAccountChanged}
         />
-      </div>
+
+        <div className="student-360-overview__details-aside">
+          <StudentAdmissionDataPanel student={details.student} />
+        </div>
       </div>
     </div>
   );

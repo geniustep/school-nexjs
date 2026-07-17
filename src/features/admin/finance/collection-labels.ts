@@ -26,7 +26,7 @@ const FRENCH_MONTHS: Record<string, string> = {
 };
 
 const ENGLISH_REPLACEMENTS: [RegExp, string][] = [
-  [/single\s*payment/gi, 'الدفعة الوحيدة'],
+  [/single\s*payment/gi, 'الأداء لمرة واحدة'],
   [/installment\s*(\d+)\s*\/\s*(\d+)/gi, 'قسط $1/$2'],
 ];
 

@@ -21,7 +21,6 @@ import {
   StudentInlineLoading,
   StudentYearSelectSkeleton,
 } from '@/features/admin/students/components/student-360-loading';
-import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
 import { canAssignStudentFees } from '@/features/admin/students/utils/resolve-capabilities';
@@ -112,6 +111,9 @@ export function StudentFinancialAgreementTab({
   onOpenGuardians,
   financialOverview,
   embedded = false,
+  showChangePlan = false,
+  onOpenChangePlan,
+  changePlanHint,
 }: {
   studentId: number;
   details: StudentDetailsData;
@@ -120,6 +122,9 @@ export function StudentFinancialAgreementTab({
   onOpenGuardians?: () => void;
   financialOverview?: StudentFinancialOverview | null;
   embedded?: boolean;
+  showChangePlan?: boolean;
+  onOpenChangePlan?: () => void;
+  changePlanHint?: string | null;
 }) {
   const t = useT();
   const toast = useToast();
@@ -785,6 +790,52 @@ export function StudentFinancialAgreementTab({
     return <ApiErrorView error={workspaceState.error} onRetry={workspaceState.reload} />;
   }
 
+  const canEditAgreement =
+    hasAgreementData(displayAgreement ?? agreement) &&
+    (displayAllowed.edit === true || allowed.edit === true || canCustomizeAgreement);
+
+  const pageSetupButtons = (
+    <>
+      {canEditAgreement ? (
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          onClick={() => setShowCreate(true)}
+          disabled={!!actionLoading}
+        >
+          {t('admin.student360.financialAgreement.edit')}
+        </button>
+      ) : null}
+      {canCreate && !hasAgreementData(agreement) ? (
+        <>
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            onClick={() => setShowAssignFeePlan(true)}
+          >
+            {t('admin.student360.financialAgreement.applyFeePlan')}
+          </button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowCreate(true)}>
+            {t('admin.student360.financialAgreement.createManualAgreement')}
+          </button>
+        </>
+      ) : null}
+      {showChangePlan && onOpenChangePlan ? (
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={onOpenChangePlan}
+          title={
+            changePlanHint ?? t('admin.student360.financeWorkspace.changePlan.replace.actionHint')
+          }
+          aria-label={t('admin.student360.financeWorkspace.changePlan.replace.action')}
+        >
+          {t('admin.student360.financeWorkspace.changePlan.replace.action')}
+        </button>
+      ) : null}
+    </>
+  );
+
   const headerActions = (
     <div className="student-finance-header-actions">
       {refState.loading && !academicYears.length ? (
@@ -806,34 +857,18 @@ export function StudentFinancialAgreementTab({
           </select>
         </label>
       )}
-      <div className="student-finance-header-buttons">
-        {canCreate && !hasAgreementData(agreement) ? (
-          <>
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              onClick={() => setShowAssignFeePlan(true)}
-            >
-              {t('admin.student360.financialAgreement.applyFeePlan')}
-            </button>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowCreate(true)}>
-              {t('admin.student360.financialAgreement.createManualAgreement')}
-            </button>
-          </>
-        ) : null}
-        {agreement && allowed.edit && !canCustomizeAgreement ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => setShowCreate(true)}
-            disabled={!!actionLoading}
-          >
-            {t('admin.student360.financialAgreement.edit')}
-          </button>
-        ) : null}
-      </div>
+      <div className="student-finance-header-buttons">{pageSetupButtons}</div>
     </div>
   );
+
+  const embeddedPageToolbar = embedded ? (
+    <div className="student-finance-agreement-toolbar">
+      <h3 className="student-finance-agreement-toolbar__title">
+        {t('admin.student360.financialAgreement.pageTitle')}
+      </h3>
+      <div className="student-finance-agreement-toolbar__actions">{pageSetupButtons}</div>
+    </div>
+  ) : null;
 
   if (phase !== 'ready') {
     return (
@@ -872,11 +907,13 @@ export function StudentFinancialAgreementTab({
             description={t('admin.student360.financialAgreement.pageDescription')}
             action={headerActions}
           />
-        ) : null}
+        ) : (
+          embeddedPageToolbar
+        )}
         {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
         {renderRegularizeCallout()}
         {renderCreateFromFeesNotice()}
-        <FamilyPlanContextCard studentId={studentId} />
+        <FamilyPlanContextCard studentId={studentId} compact />
 
         {draftAgreement ? (
           <Card className="student-finance-section student-finance-draft-agreement">
@@ -1236,7 +1273,9 @@ export function StudentFinancialAgreementTab({
             description={t('admin.student360.financialAgreement.pageDescription')}
             action={headerActions}
           />
-        ) : null}
+        ) : (
+          embeddedPageToolbar
+        )}
         <Card className="student-finance-section student-finance-draft-agreement">
           <Student360SectionHeader title={t('admin.student360.financialAgreement.incompleteDraftTitle')} />
           <p>{t('admin.student360.financialAgreement.incompleteDraftDesc')}</p>
@@ -1321,8 +1360,6 @@ export function StudentFinancialAgreementTab({
     },
   });
 
-  const policies = activeAgreement.schedule_policies;
-
   const executiveSummary = resolveAgreementsExecutiveSummary({
     workspace,
     agreement: activeAgreement,
@@ -1332,6 +1369,69 @@ export function StudentFinancialAgreementTab({
   const operationalInstallments = filterOperationalInstallments(activeAgreement.installments);
   warnCancelledInOperationalInstallments(activeAgreement.installments);
 
+  const hasWorkflowActions =
+    !!workflowAllowed.submit ||
+    !!workflowAllowed.approve ||
+    !!workflowAllowed.activate ||
+    !!workflowAllowed.cancel ||
+    !!workflowAllowed.cancel_future_installments;
+
+  const workflowActionButtons = (
+    <>
+      {workflowAllowed.submit ? (
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          disabled={actionLoading === 'submit'}
+          onClick={() =>
+            requestAction('submit', 'admin.student360.financialAgreement.confirmSubmit', activeAgreement.id)
+          }
+        >
+          {t('admin.student360.financialAgreement.actions.submit')}
+        </button>
+      ) : null}
+      {workflowAllowed.approve ? (
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          disabled={actionLoading === 'approve'}
+          onClick={() =>
+            requestAction('approve', 'admin.student360.financialAgreement.confirmApprove', activeAgreement.id)
+          }
+        >
+          {t('admin.student360.financialAgreement.actions.approve')}
+        </button>
+      ) : null}
+      {workflowAllowed.activate ? (
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          disabled={actionLoading === 'activate'}
+          onClick={() => requestActivate(activeAgreement, refName(billingPartner) ?? '—')}
+        >
+          {t('admin.student360.financialAgreement.actions.activate')}
+        </button>
+      ) : null}
+      {workflowAllowed.cancel ? (
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          disabled={actionLoading === 'cancel'}
+          onClick={() =>
+            requestAction('cancel', 'admin.student360.financialAgreement.confirmCancel', activeAgreement.id)
+          }
+        >
+          {t('admin.student360.financialAgreement.actions.cancel')}
+        </button>
+      ) : null}
+      {workflowAllowed.cancel_future_installments ? (
+        <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowCancelFuture(true)}>
+          {t('admin.student360.financialAgreement.actions.cancelFuture')}
+        </button>
+      ) : null}
+    </>
+  );
+
   return (
     <div className={`student-finance-agreement-panel ${embedded ? 'student-finance-agreement-embedded' : 'student-finance-tab student-360-tab-panel'}${isBackgroundRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
       {!embedded ? (
@@ -1340,16 +1440,28 @@ export function StudentFinancialAgreementTab({
           description={t('admin.student360.financialAgreement.pageDescription')}
           action={headerActions}
         />
-      ) : null}
+      ) : (
+        <div className="student-finance-agreement-toolbar">
+          <h3 className="student-finance-agreement-toolbar__title">
+            {t('admin.student360.financialAgreement.pageTitle')}
+          </h3>
+          <div className="student-finance-agreement-toolbar__actions">
+            {pageSetupButtons}
+            {workflowActionButtons}
+          </div>
+        </div>
+      )}
       {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
       {renderCreateFromFeesNotice()}
-      <FamilyPlanContextCard studentId={studentId} />
+      <FamilyPlanContextCard studentId={studentId} compact />
       <ParallelDraftAgreementsBanner presentation={parallelDraftAgreements} />
-      <AgreementsExecutiveSummary
-        presentation={executiveSummary}
-        currency={currency}
-        hasBillableContext={financeEligibility.hasBillableFinanceContext}
-      />
+      {!embedded ? (
+        <AgreementsExecutiveSummary
+          presentation={executiveSummary}
+          currency={currency}
+          hasBillableContext={financeEligibility.hasBillableFinanceContext}
+        />
+      ) : null}
 
       {isInactiveAgreementState(activeAgreement.state) ? (
         <div className="student-finance-section student-finance-card-alert" role="alert">
@@ -1371,11 +1483,16 @@ export function StudentFinancialAgreementTab({
               {activeAgreement.number ?? activeAgreement.name ?? t('common.dash')}
             </h3>
           </div>
-          <AgreementStateBadge
-            state={activeAgreement.state}
-            financeContext
-            hasBillableContext={financeEligibility.hasBillableFinanceContext}
-          />
+          <div className="student-finance-agreement-header__status">
+            <AgreementStateBadge
+              state={activeAgreement.state}
+              financeContext
+              hasBillableContext={financeEligibility.hasBillableFinanceContext}
+            />
+            {!embedded && hasWorkflowActions ? (
+              <div className="student-finance-agreement-header__actions">{workflowActionButtons}</div>
+            ) : null}
+          </div>
         </div>
         <dl className="student-finance-agreement-meta student-finance-agreement-header__meta">
           <div>
@@ -1401,18 +1518,21 @@ export function StudentFinancialAgreementTab({
       </Card>
 
       {summaryCards.length ? (
-        <Student360MetricGrid
-          variant="finance"
-          className="student-finance-agreement-summary"
-          items={summaryCards.map((item) => ({
-            key: item.key,
-            label: item.label,
-            tone: item.tone,
-            value: (
-              <FinanceMoney amount={item.value} currency={currency?.name} />
-            ),
-          }))}
-        />
+        <div className="student-finance-agreement-kpi-strip" role="group">
+          {summaryCards.map((item) => (
+            <div
+              key={item.key}
+              className={`student-finance-agreement-kpi-strip__item${
+                item.tone ? ` student-finance-agreement-kpi-strip__item--${item.tone}` : ''
+              }`}
+            >
+              <span className="student-finance-agreement-kpi-strip__value">
+                <FinanceMoney amount={item.value} currency={currency?.name} />
+              </span>
+              <span className="student-finance-agreement-kpi-strip__label">{item.label}</span>
+            </div>
+          ))}
+        </div>
       ) : null}
 
       {draftPresentation.totalsMismatch ? (
@@ -1421,23 +1541,13 @@ export function StudentFinancialAgreementTab({
         </p>
       ) : null}
 
-      <AgreementEnrollmentCustomizationsSection presentation={draftPresentation} />
-
-      {canCustomizeAgreement || activeAgreement.state === 'active' ? (
-        <AgreementDraftCustomizationSection
-          agreement={activeAgreement}
-          currency={currency?.name}
-          onChanged={refreshAll}
-        />
-      ) : null}
-
-      <div className="student-finance-agreement-details-grid">
-        <article className="student-finance-agreement-detail-card">
+      <div className="student-finance-agreement-snapshot">
+        <article className="student-finance-agreement-detail-card student-finance-agreement-detail-card--compact">
           <h4 className="student-finance-agreement-detail-card__title">
             {t('admin.student360.financialAgreement.billingPartyTitle')}
           </h4>
           {billingPartner ? (
-            <div className="student-finance-billing-profile">
+            <div className="student-finance-billing-profile student-finance-billing-profile--compact">
               <span className="student-finance-billing-profile__avatar" aria-hidden="true">
                 {billingPartyInitials}
               </span>
@@ -1459,71 +1569,53 @@ export function StudentFinancialAgreementTab({
                   <span className="student-finance-billing-profile__type">{billingPartyTypeLabel}</span>
                 </div>
                 {guardianRel ? (
-                  <dl className="student-finance-billing-profile__meta">
-                    <div>
-                      <dt>{t('admin.student360.financialAgreement.fields.relationship')}</dt>
-                      <dd>{relationshipTypeLabel(t, guardianRel.relationship_type)}</dd>
-                    </div>
-                    {guardianRel.guardian?.email ? (
-                      <div>
-                        <dt>{t('admin.email')}</dt>
-                        <dd>
-                          <a href={`mailto:${guardianRel.guardian.email}`}>{guardianRel.guardian.email}</a>
-                        </dd>
-                      </div>
-                    ) : null}
+                  <p className="student-finance-billing-profile__line" dir="auto">
+                    <span>{relationshipTypeLabel(t, guardianRel.relationship_type)}</span>
                     {guardianRel.guardian?.phone ? (
-                      <div>
-                        <dt>{t('admin.phone')}</dt>
-                        <dd>
-                          <a href={`tel:${guardianRel.guardian.phone}`} dir="auto">
-                            {guardianRel.guardian.phone}
-                          </a>
-                        </dd>
-                      </div>
+                      <>
+                        <span aria-hidden="true"> · </span>
+                        <a href={`tel:${guardianRel.guardian.phone}`}>{guardianRel.guardian.phone}</a>
+                      </>
                     ) : null}
-                  </dl>
+                    {guardianRel.guardian?.email ? (
+                      <>
+                        <span aria-hidden="true"> · </span>
+                        <a href={`mailto:${guardianRel.guardian.email}`}>{guardianRel.guardian.email}</a>
+                      </>
+                    ) : null}
+                  </p>
                 ) : null}
               </div>
             </div>
           ) : (
-            <Student360CompactEmpty
-              className="student-finance-agreement-detail-empty"
-              title={t('admin.student360.financialAgreement.noBillingParty')}
-              description={t('admin.student360.financialAgreement.noBillingPartyDesc')}
-              action={
-                onOpenGuardians ? (
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenGuardians}>
-                    {t('admin.student360.financialAgreement.openGuardians')}
-                  </button>
-                ) : undefined
-              }
-            />
+            <div className="student-finance-agreement-detail-empty-inline" role="status">
+              <p>{t('admin.student360.financialAgreement.noBillingParty')}</p>
+              {onOpenGuardians ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenGuardians}>
+                  {t('admin.student360.financialAgreement.openGuardians')}
+                </button>
+              ) : null}
+            </div>
           )}
         </article>
 
-        <article className="student-finance-agreement-detail-card">
-          <div className="student-finance-agreement-detail-card__head">
-            <h4 className="student-finance-agreement-detail-card__title">
+        <article className="student-finance-agreement-adjustments-bar">
+          <div className="student-finance-agreement-adjustments-bar__head">
+            <h4 className="student-finance-agreement-adjustments-bar__title">
               {t('admin.student360.financialAgreement.adjustments.title')}
             </h4>
             {activeAgreement.state === 'draft' && allowed.edit ? (
-              <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAdjustment(true)}>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowAdjustment(true)}>
                 {t('admin.student360.financialAgreement.adjustments.addButton')}
               </button>
             ) : null}
           </div>
           {(activeAgreement.adjustments?.length ?? 0) === 0 ? (
-            <div className="student-finance-agreement-detail-empty-inline" role="status">
-              <span className="student-finance-agreement-detail-empty-inline__icon" aria-hidden="true">
-                —
-              </span>
-              <p>
-                {draftPresentation.enrollmentCustomizations.length > 0
-                  ? t('admin.student360.financialAgreement.adjustments.emptyWithEnrollmentCustomizations')
-                  : t('admin.student360.financialAgreement.adjustments.empty')}
-              </p>
-            </div>
+            <p className="student-finance-agreement-adjustments-bar__empty" role="status">
+              {draftPresentation.enrollmentCustomizations.length > 0
+                ? t('admin.student360.financialAgreement.adjustments.emptyWithEnrollmentCustomizations')
+                : t('admin.student360.financialAgreement.adjustments.empty')}
+            </p>
           ) : (
             <div className="student-finance-table-wrap student-finance-adjustments-list">
               <table className="data-table">
@@ -1539,18 +1631,24 @@ export function StudentFinancialAgreementTab({
                 <tbody>
                   {activeAgreement.adjustments?.map((adj) => (
                     <tr key={adj.id}>
-                      <td>{resolveAdjustmentTypeLabel(t, adj.adjustment_type)}</td>
-                      <td>
+                      <td data-label={t('admin.student360.financialAgreement.adjustments.type')}>
+                        {resolveAdjustmentTypeLabel(t, adj.adjustment_type)}
+                      </td>
+                      <td data-label={t('admin.student360.financialAgreement.adjustments.amount')}>
                         {adj.percentage != null ? (
                           <span dir="ltr">{adj.percentage}%</span>
                         ) : (
                           <FinanceMoney amount={adj.amount ?? undefined} currency={currency?.name} />
                         )}
                       </td>
-                      <td dir="auto">{adj.reason ?? t('common.dash')}</td>
-                      <td>{resolveAdjustmentPolicyLabel(t, adj.application_policy)}</td>
+                      <td data-label={t('admin.student360.financialAgreement.adjustments.reason')} dir="auto">
+                        {adj.reason ?? t('common.dash')}
+                      </td>
+                      <td data-label={t('admin.student360.financialAgreement.adjustments.policy')}>
+                        {resolveAdjustmentPolicyLabel(t, adj.application_policy)}
+                      </td>
                       {activeAgreement.state === 'draft' ? (
-                        <td>
+                        <td data-label={t('common.actions')}>
                           <button
                             type="button"
                             className="btn btn--ghost btn--sm"
@@ -1580,77 +1678,46 @@ export function StudentFinancialAgreementTab({
         </article>
       </div>
 
+      <AgreementEnrollmentCustomizationsSection presentation={draftPresentation} />
+
+      {canCustomizeAgreement || activeAgreement.state === 'active' ? (
+        <AgreementDraftCustomizationSection
+          agreement={activeAgreement}
+          currency={currency?.name}
+          onChanged={refreshAll}
+        />
+      ) : null}
+
       {!canCustomizeAgreement ? (
-      <Card className="student-finance-section">
-        <Student360SectionHeader title={t('admin.student360.financialAgreement.linesTitle')} />
-        {(activeAgreement.lines?.length ?? 0) === 0 ? (
-          <Student360CompactEmpty
-            className="student-360-compact-empty--section"
-            title={t('admin.student360.financialAgreement.noLines')}
-            description={t('admin.student360.financialAgreement.noLinesDesc')}
-          />
-        ) : (
-          <div className="student-finance-table-wrap">
-            <DataTable
-              columns={lineColumns}
-              rows={activeAgreement.lines ?? []}
-              rowKey={(row) => row.id ?? `${row.service_id}-${row.tariff_id ?? 0}`}
+        <Card className="student-finance-section">
+          <Student360SectionHeader title={t('admin.student360.financialAgreement.linesTitle')} />
+          {(activeAgreement.lines?.length ?? 0) === 0 ? (
+            <Student360CompactEmpty
+              className="student-360-compact-empty--section"
+              title={t('admin.student360.financialAgreement.noLines')}
+              description={t('admin.student360.financialAgreement.noLinesDesc')}
             />
-          </div>
-        )}
-      </Card>
+          ) : (
+            <div className="student-finance-table-wrap">
+              <DataTable
+                columns={lineColumns}
+                rows={activeAgreement.lines ?? []}
+                rowKey={(row) => row.id ?? `${row.service_id}-${row.tariff_id ?? 0}`}
+              />
+            </div>
+          )}
+        </Card>
       ) : null}
 
       <Card className="student-finance-section">
         <Student360SectionHeader title={t('admin.student360.financialAgreement.currentScheduleTitle')} />
         {operationalInstallments.length === 0 ? (
-          policies ? (
-            <div className="student-finance-schedule-policy student-finance-schedule-policy--compact">
-              <p className="student-finance-schedule-policy__title">
-                {t('admin.student360.financialAgreement.schedulePolicyTitle')}
-              </p>
-              <ul className="student-finance-schedule-policy__list">
-                <li>
-                  {t('admin.student360.financialAgreement.schedulePolicy.generation')}:{' '}
-                  {resolveReferenceLabel(
-                    t,
-                    'schedule_generation_mode',
-                    policies.generation_mode ?? '',
-                    refState.data?.schedule_generation_modes,
-                  )}
-                </li>
-                <li>
-                  {t('admin.student360.financialAgreement.schedulePolicy.display')}:{' '}
-                  {resolveReferenceLabel(t, 'display_rule', policies.display_rule ?? '', refState.data?.display_rules)}
-                </li>
-                <li>
-                  {t('admin.student360.financialAgreement.schedulePolicy.dueDay')}:{' '}
-                  {policies.due_day_of_month ?? policies.due_offset_days ?? '—'}
-                </li>
-                <li>
-                  {t('admin.student360.financialAgreement.schedulePolicy.earlyPayment')}:{' '}
-                  {policies.allow_early_payment ? t('common.yes') : t('common.no')}
-                </li>
-                <li>
-                  {t('admin.student360.financialAgreement.schedulePolicy.firstPeriod')}:{' '}
-                  {resolveReferenceLabel(
-                    t,
-                    'first_period_policy',
-                    policies.first_period_policy ?? '',
-                    refState.data?.first_period_policies,
-                  )}
-                </li>
-              </ul>
-            </div>
-          ) : (
-            <Student360CompactEmpty
-              className="student-360-compact-empty--section"
-              title={t('admin.student360.financialAgreement.noSchedule')}
-              description={t('admin.student360.financialAgreement.noScheduleDesc')}
-            />
-          )
+          <Student360CompactEmpty
+            className="student-360-compact-empty--section"
+            title={t('admin.student360.financialAgreement.noSchedule')}
+            description={t('admin.student360.financialAgreement.noScheduleDesc')}
+          />
         ) : (
-          <>
           <div className="student-finance-table-wrap">
             <DataTable
               columns={scheduleColumns}
@@ -1658,112 +1725,16 @@ export function StudentFinancialAgreementTab({
               rowKey={(row) => row.id ?? `${row.period_start ?? 'p'}-${row.due_date ?? 'd'}`}
             />
           </div>
-        {policies ? (
-          <div className="student-finance-schedule-policy student-finance-schedule-policy--compact">
-            <p className="student-finance-schedule-policy__title">
-              {t('admin.student360.financialAgreement.schedulePolicyTitle')}
-            </p>
-            <ul className="student-finance-schedule-policy__list">
-              <li>
-                {t('admin.student360.financialAgreement.schedulePolicy.generation')}:{' '}
-                {resolveReferenceLabel(
-                  t,
-                  'schedule_generation_mode',
-                  policies.generation_mode ?? '',
-                  refState.data?.schedule_generation_modes,
-                )}
-              </li>
-              <li>
-                {t('admin.student360.financialAgreement.schedulePolicy.display')}:{' '}
-                {resolveReferenceLabel(t, 'display_rule', policies.display_rule ?? '', refState.data?.display_rules)}
-              </li>
-              <li>
-                {t('admin.student360.financialAgreement.schedulePolicy.dueDay')}:{' '}
-                {policies.due_day_of_month ?? policies.due_offset_days ?? '—'}
-              </li>
-              <li>
-                {t('admin.student360.financialAgreement.schedulePolicy.earlyPayment')}:{' '}
-                {policies.allow_early_payment ? t('common.yes') : t('common.no')}
-              </li>
-              <li>
-                {t('admin.student360.financialAgreement.schedulePolicy.firstPeriod')}:{' '}
-                {resolveReferenceLabel(
-                  t,
-                  'first_period_policy',
-                  policies.first_period_policy ?? '',
-                  refState.data?.first_period_policies,
-                )}
-              </li>
-            </ul>
-          </div>
-        ) : null}
-          </>
         )}
       </Card>
 
       <AgreementHistoricalScheduleSection agreement={activeAgreement} currency={currency?.name} />
 
-      <div className="student-finance-agreement-actions-bar">
-      <div className="student-finance-agreement-actions row">
-        {workflowAllowed.submit ? (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            disabled={actionLoading === 'submit'}
-            onClick={() =>
-              requestAction('submit', 'admin.student360.financialAgreement.confirmSubmit', activeAgreement.id)
-            }
-          >
-            {t('admin.student360.financialAgreement.actions.submit')}
-          </button>
-        ) : null}
-        {workflowAllowed.approve ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            disabled={actionLoading === 'approve'}
-            onClick={() =>
-              requestAction('approve', 'admin.student360.financialAgreement.confirmApprove', activeAgreement.id)
-            }
-          >
-            {t('admin.student360.financialAgreement.actions.approve')}
-          </button>
-        ) : null}
-        {workflowAllowed.activate ? (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            disabled={actionLoading === 'activate'}
-            onClick={() =>
-              requestActivate(activeAgreement, refName(billingPartner) ?? '—')
-            }
-          >
-            {t('admin.student360.financialAgreement.actions.activate')}
-          </button>
-        ) : null}
-        {workflowAllowed.cancel ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            disabled={actionLoading === 'cancel'}
-            onClick={() =>
-              requestAction('cancel', 'admin.student360.financialAgreement.confirmCancel', activeAgreement.id)
-            }
-          >
-            {t('admin.student360.financialAgreement.actions.cancel')}
-          </button>
-        ) : null}
-        {workflowAllowed.cancel_future_installments ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => setShowCancelFuture(true)}
-          >
-            {t('admin.student360.financialAgreement.actions.cancelFuture')}
-          </button>
-        ) : null}
-      </div>
-      </div>
+      {hasWorkflowActions ? (
+        <div className="student-finance-agreement-actions-bar" aria-label={t('admin.student360.financialAgreement.pageTitle')}>
+          <div className="student-finance-agreement-actions row">{workflowActionButtons}</div>
+        </div>
+      ) : null}
 
       {showCancelFuture ? (
         <CancelFutureInstallmentsDrawer

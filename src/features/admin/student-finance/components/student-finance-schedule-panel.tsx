@@ -220,42 +220,46 @@ export function StudentFinanceSchedulePanel({
         </div>
       ) : null}
 
-      <Student360MetricGrid
-        variant="finance"
-        className={`student-finance-schedule-summary${summaryItemsMuted ? ' student-360-metric-grid--muted' : ''}`}
-        items={[
-          {
-            key: 'total',
-            label: t('admin.student360.financeWorkspace.schedule.summary.total'),
-            value: scheduleSummary.total,
-            tone: summaryItemsMuted ? 'none' : 'slate',
-          },
-          {
-            key: 'paid',
-            label: t('admin.student360.financeWorkspace.schedule.summary.paid'),
-            value: scheduleSummary.paid,
-            tone: summaryItemsMuted ? 'none' : 'green',
-          },
-          {
-            key: 'due',
-            label: t('admin.student360.financeWorkspace.schedule.summary.due'),
-            value: scheduleSummary.due,
-            tone: summaryItemsMuted ? 'none' : 'amber',
-          },
-          {
-            key: 'overdue',
-            label: t('admin.student360.financeWorkspace.schedule.summary.overdue'),
-            value: scheduleSummary.overdue,
-            tone: summaryItemsMuted ? 'none' : 'red',
-          },
-          {
-            key: 'upcoming',
-            label: t('admin.student360.financeWorkspace.schedule.summary.upcoming'),
-            value: scheduleSummary.upcoming,
-            tone: summaryItemsMuted ? 'none' : 'blue',
-          },
-        ]}
-      />
+      {installmentsState.initialLoading ? (
+        <StudentSectionSkeleton rows={2} />
+      ) : (
+        <Student360MetricGrid
+          variant="finance"
+          className={`student-finance-schedule-summary${summaryItemsMuted ? ' student-360-metric-grid--muted' : ''}`}
+          items={[
+            {
+              key: 'total',
+              label: t('admin.student360.financeWorkspace.schedule.summary.total'),
+              value: scheduleSummary.total,
+              tone: summaryItemsMuted ? 'none' : 'slate',
+            },
+            {
+              key: 'paid',
+              label: t('admin.student360.financeWorkspace.schedule.summary.paid'),
+              value: scheduleSummary.paid,
+              tone: summaryItemsMuted ? 'none' : 'green',
+            },
+            {
+              key: 'due',
+              label: t('admin.student360.financeWorkspace.schedule.summary.due'),
+              value: scheduleSummary.due,
+              tone: summaryItemsMuted ? 'none' : 'amber',
+            },
+            {
+              key: 'overdue',
+              label: t('admin.student360.financeWorkspace.schedule.summary.overdue'),
+              value: scheduleSummary.overdue,
+              tone: summaryItemsMuted ? 'none' : 'red',
+            },
+            {
+              key: 'upcoming',
+              label: t('admin.student360.financeWorkspace.schedule.summary.upcoming'),
+              value: scheduleSummary.upcoming,
+              tone: summaryItemsMuted ? 'none' : 'blue',
+            },
+          ]}
+        />
+      )}
 
       <article className="student-finance-schedule-table-card">
         <div className="student-finance-schedule-table-card__toolbar">

@@ -11,13 +11,24 @@
 
 /* ── Profile hero: header + tabs as one card ── */
 .student-360-profile-hero {
+  position: relative;
+  z-index: 25;
   border: 1px solid var(--c-border, #e2e8f0);
   border-radius: 16px;
-  overflow: hidden;
+  /* visible so header overflow menus are not clipped under tab content */
+  overflow: visible;
   background: var(--bg, #fff);
   box-shadow:
     0 1px 2px rgb(15 23 42 / 0.04),
     0 4px 16px rgb(15 23 42 / 0.05);
+}
+
+.student-360-profile-hero .student-360-header {
+  position: relative;
+  z-index: 40;
+  border-radius: 16px 16px 0 0;
+  overflow: visible;
+  background: var(--bg, #fff);
 }
 
 .student-360-profile-hero .student-360-tabs-sticky {
@@ -28,6 +39,8 @@
   padding: 0;
   border-top: 1px solid var(--c-border-subtle, #f1f5f9);
   border-bottom: none;
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
   background: linear-gradient(to bottom, var(--surface-1, #fafbfc) 0%, var(--bg, #fff) 100%);
   box-shadow: none;
 }
@@ -86,14 +99,18 @@
 }
 
 .student-360-header__inner {
-  padding: 18px 20px 16px;
+  padding: 14px 18px 12px;
+}
+
+.student-360-header--compact .student-360-header__inner {
+  padding: 14px 18px 12px;
 }
 
 .student-360-header__row--primary {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 16px;
+  align-items: center;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -106,7 +123,7 @@
 .student-360-header__body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -123,9 +140,48 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 8px;
   min-width: 0;
   flex: 1 1 auto;
+}
+
+.student-360-header__names {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.student-360-header__title--primary {
+  margin: 0;
+  font-size: clamp(1.2rem, 1.05rem + 0.55vw, 1.45rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--raqeem-primary, #243b6b);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.student-360-header__title--secondary {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--text-muted, #64748b);
+  font-family: var(--font-latin, inherit);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.student-360-header__names:has(.student-360-header__title--secondary)
+  .student-360-header__title--primary {
+  padding-block-end: 2px;
+  border-block-end: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 12%, transparent);
+  margin-block-end: 2px;
 }
 
 .student-360-header__main {
@@ -165,15 +221,15 @@
 
 .student-360-header__ref {
   font-size: 0.6875rem;
-  font-weight: 500;
+  font-weight: 550;
   color: var(--text-muted, #64748b);
   flex-shrink: 0;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: var(--surface-2, #f8fafc);
-  border: 1px solid var(--c-border-subtle, #f1f5f9);
-  letter-spacing: 0.01em;
-  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 5%, var(--surface-2, #f8fafc));
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 10%, var(--c-border, #e2e8f0));
+  letter-spacing: 0.02em;
+  max-width: min(100%, 22rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -191,13 +247,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-}
-
-.student-360-header__status-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
 }
 
 .student-360-header__alerts {
@@ -219,6 +268,61 @@
 .student-360-header--has-critical .student-360-header__alerts {
   background: color-mix(in srgb, var(--c-red, #dc2626) 4%, var(--surface-2, #f8fafc));
   border-color: color-mix(in srgb, var(--c-red, #dc2626) 12%, var(--c-border, #e2e8f0));
+}
+
+.student-360-header__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2, #f8fafc) 80%, transparent);
+}
+
+.student-360-header__status-row .badge {
+  box-shadow: none;
+}
+
+.student-360-header__academic-context {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--raqeem-primary, #243b6b);
+  max-width: min(100%, 28rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 12%, var(--c-border, #e2e8f0));
+}
+
+.student-360-header__attention-cue {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-amber, #d97706);
+  text-decoration: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--c-amber-soft, #fffbeb);
+  border: 1px solid rgb(217 119 6 / 0.22);
+  white-space: nowrap;
+}
+
+.student-360-header__attention-cue:hover,
+.student-360-header__attention-cue:focus-visible {
+  color: var(--c-amber, #b45309);
+  outline: 2px solid color-mix(in srgb, var(--c-amber, #d97706) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.student-360-header--has-attention .student-360-header__accent {
+  background: linear-gradient(
+    90deg,
+    var(--c-amber, #d97706) 0%,
+    color-mix(in srgb, var(--c-amber, #d97706) 55%, var(--c-primary, #2563eb)) 100%
+  );
 }
 
 .student-360-header__avatar-wrap {
@@ -358,12 +462,11 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 6px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
+  gap: 6px;
+  padding: 4px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-2, #f8fafc) 70%, #fff);
   border: 1px solid var(--c-border-subtle, #e2e8f0);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .student-360-quick-actions__payment {
@@ -457,6 +560,7 @@
 
 .student-360-quick-actions__more {
   position: relative;
+  z-index: 50;
 }
 
 .student-360-quick-actions__more-btn {
@@ -472,9 +576,9 @@
   background: var(--bg, #fff);
   border: 1px solid var(--c-border, #e2e8f0);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.12);
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.18);
   padding: 6px;
-  z-index: 30;
+  z-index: 80;
 }
 
 .student-360-quick-actions__menu-item {
@@ -846,15 +950,360 @@
 .student-360-overview {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   margin-top: 0;
 }
 
 .student-360-overview__details-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.85fr);
   gap: 14px;
   align-items: start;
+}
+
+/* ── Overview finance strip (soft surface) ── */
+.student-finance-strip {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 16px 18px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background:
+    linear-gradient(
+      180deg,
+      #fff 0%,
+      color-mix(in srgb, var(--raqeem-primary, #243b6b) 3.5%, #f8fafc) 100%
+    );
+  color: var(--text, #0f172a);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.student-finance-strip::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--raqeem-primary, #243b6b) 75%, #fff),
+    color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 70%, #fff)
+  );
+}
+
+.student-finance-strip__glow {
+  display: none;
+}
+
+.student-finance-strip--overdue {
+  background:
+    linear-gradient(
+      180deg,
+      #fff 0%,
+      color-mix(in srgb, #f97316 5%, #f8fafc) 100%
+    );
+  border-color: color-mix(in srgb, #f97316 18%, var(--c-border, #e2e8f0));
+}
+
+.student-finance-strip--overdue::before {
+  background: linear-gradient(90deg, #fdba74, #fca5a5);
+}
+
+.student-finance-strip--complete {
+  background:
+    linear-gradient(
+      180deg,
+      #fff 0%,
+      color-mix(in srgb, #16a34a 5%, #f8fafc) 100%
+    );
+  border-color: color-mix(in srgb, #16a34a 16%, var(--c-border, #e2e8f0));
+}
+
+.student-finance-strip--complete::before {
+  background: linear-gradient(90deg, #86efac, #5eead4);
+}
+
+.student-finance-strip--empty,
+.student-finance-strip--healthy,
+.student-finance-strip--progress {
+  background:
+    linear-gradient(
+      180deg,
+      #fff 0%,
+      color-mix(in srgb, var(--raqeem-primary, #243b6b) 3.5%, #f8fafc) 100%
+    );
+}
+
+.student-finance-strip__head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.student-finance-strip__eyebrow {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-strip__title {
+  margin: 4px 0 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.student-finance-strip__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 16%, var(--c-border, #e2e8f0));
+  color: var(--raqeem-primary, #243b6b);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.student-finance-strip__link:hover {
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 5%, #fff);
+}
+
+.student-finance-strip__metrics {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.student-finance-strip__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.student-finance-strip__metric-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-strip__metric-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text, #0f172a);
+}
+
+.student-finance-strip__metric-value .finance-amount {
+  color: inherit;
+  font-weight: 700;
+}
+
+.student-finance-strip__percent-chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--raqeem-primary, #243b6b);
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 8%, #fff);
+}
+
+.student-finance-strip__metric--paid .student-finance-strip__metric-value {
+  color: color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 70%, #0f172a);
+}
+
+.student-finance-strip__metric--overdue {
+  background: #fff7ed;
+  border-color: color-mix(in srgb, #f97316 22%, var(--c-border, #e2e8f0));
+}
+
+.student-finance-strip__metric--overdue .student-finance-strip__metric-value {
+  color: #c2410c;
+}
+
+.student-finance-strip__track-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.student-finance-strip__track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 8%, #eef2f7);
+  overflow: visible;
+}
+
+.student-finance-strip__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--raqeem-primary, #243b6b) 75%, #fff),
+    color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 80%, #fff)
+  );
+  transition: width 420ms ease;
+  min-width: 0;
+}
+
+.student-finance-strip--complete .student-finance-strip__fill {
+  background: linear-gradient(90deg, #86efac, #5eead4);
+}
+
+.student-finance-strip--overdue .student-finance-strip__fill {
+  background: linear-gradient(90deg, #fdba74, #fca5a5);
+}
+
+.student-finance-strip__marker {
+  position: absolute;
+  top: 50%;
+  translate: -50% -50%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+html[dir='rtl'] .student-finance-strip__marker {
+  translate: 50% -50%;
+}
+
+.student-finance-strip__marker-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--raqeem-primary, #243b6b);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  border: 1px solid var(--c-border, #e2e8f0);
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.08);
+  transform: translateY(-16px);
+}
+
+.student-finance-strip__stages {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.student-finance-strip__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  opacity: 0.45;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-strip__stage.is-past,
+.student-finance-strip__stage.is-active {
+  opacity: 1;
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.student-finance-strip__stage.is-muted {
+  opacity: 0.3;
+}
+
+.student-finance-strip__stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 2px solid #e2e8f0;
+}
+
+.student-finance-strip__stage.is-past .student-finance-strip__stage-dot,
+.student-finance-strip__stage.is-active .student-finance-strip__stage-dot {
+  background: var(--raqeem-secondary, #24a6a1);
+  border-color: color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 35%, #fff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 16%, transparent);
+}
+
+.student-finance-strip__stage-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.student-finance-strip--loading {
+  min-height: 140px;
+  background: linear-gradient(135deg, #e2e8f0, #f8fafc);
+  border-color: var(--c-border, #e2e8f0);
+  box-shadow: none;
+}
+
+.student-finance-strip__skeleton {
+  height: 110px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #e2e8f0 20%, #f1f5f9 45%, #e2e8f0 70%);
+  background-size: 200% 100%;
+  animation: student-finance-strip-shimmer 1.2s linear infinite;
+}
+
+@keyframes student-finance-strip-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .student-finance-strip__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-finance-strip__stages {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .student-finance-strip {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .student-finance-strip__metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .student-finance-strip__stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .student-finance-strip__marker-bubble {
+    transform: translateY(-16px);
+  }
 }
 
 .student-360-overview__details-aside {
@@ -1617,9 +2066,7 @@
   color: var(--text-muted, #64748b);
 }
 
-.student-360-guardians-grid:has(> :only-child) {
-  grid-template-columns: minmax(min(100%, 520px), 700px);
-}
+/* Guardians list is single-column; keep full width. */
 
 .student-360-skeleton-bar {
   display: block;
@@ -3166,6 +3613,18 @@
   mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
 }
 
+[dir='rtl'] .student-finance-subtabs__rail {
+  mask-image: linear-gradient(to left, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+}
+
+.student-finance-subtabs__scroll-hint {
+  display: none;
+  margin: 6px 2px 0;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  color: var(--text-muted, #94a3b8);
+}
+
 .student-finance-subtabs__group {
   display: flex;
   align-items: stretch;
@@ -3364,6 +3823,28 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.student-finance-agreement-context__facts--compact {
+  margin-bottom: 8px;
+}
+
+.student-finance-agreement-context__facts--details {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--c-border-subtle, #f1f5f9);
+}
+
+.student-finance-agreement-context__details-toggle {
+  margin-top: 4px;
+  padding-inline: 0;
+}
+
+.student-finance-agreement-context__future-note {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted, #64748b);
 }
 
 .student-finance-agreement-context__history {
@@ -4528,12 +5009,46 @@
     padding: 0;
   }
 
-  .student-finance-hero__primary,
-  .student-finance-hero__secondary,
+  .student-finance-hero__primary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .student-finance-hero__secondary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
   .student-finance-hero__insight-stats,
-  .student-finance-plan-item__metrics,
-  .student-finance-bento__facts {
+  .student-finance-plan-item__metrics {
     grid-template-columns: 1fr;
+  }
+
+  .student-finance-bento__facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-finance-kpi,
+  .student-finance-kpi--primary {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .student-finance-kpi__value {
+    font-size: 1.05rem;
+  }
+
+  .student-finance-kpi--primary .student-finance-kpi__value {
+    font-size: 1.15rem;
+  }
+
+  .student-finance-agreement-context__facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+  }
+
+  .student-finance-schedule-summary.student-360-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .student-finance-subtabs {
@@ -4561,6 +5076,10 @@
 
   .student-finance-subtabs__group + .student-finance-subtabs__group::before {
     display: none;
+  }
+
+  .student-finance-subtabs__scroll-hint {
+    display: block;
   }
 
   .student-finance-overview__cards {
@@ -4618,57 +5137,39 @@
   }
 }
 
-.student-360-guardians-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  align-items: start;
-  position: relative;
-  z-index: 2;
-}
-
 .student-360-guardians-tab {
-  gap: 14px;
+  gap: 12px;
 }
 
 .student-360-guardians-tab__body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .student-360-guardians-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px 16px;
-  padding: 16px 18px;
-  border: 1px solid var(--c-border, #e2e8f0);
-  border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--c-primary, #2563eb) 4%, var(--bg, #fff)) 0%,
-    var(--bg, #fff) 55%
-  );
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-}
-
-.student-360-guardians-toolbar__main {
-  flex: 1;
-  min-width: 0;
+  gap: 8px 12px;
+  padding: 0 0 2px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .student-360-guardians-toolbar__title-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .student-360-guardians-toolbar__title {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text, #0f172a);
@@ -4677,217 +5178,332 @@
 .student-360-guardians-toolbar__stat {
   font-size: 0.6875rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
-  background: var(--c-primary-soft, #eff6ff);
-  color: var(--c-primary, #2563eb);
-  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 15%, transparent);
+  background: var(--surface-2, #f1f5f9);
+  color: var(--text-muted, #475569);
 }
 
-.student-360-guardians-toolbar__desc {
-  margin: 4px 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--text-muted, #64748b);
-  max-width: 56ch;
-}
-
-.student-360-guardians-toolbar__actions {
-  flex-shrink: 0;
-  padding: 4px;
-  border-radius: 10px;
-  background: var(--surface-2, #f8fafc);
-  border: 1px solid var(--c-border-subtle, #f1f5f9);
-}
-
-.student-360-guardian-card {
-  position: relative;
+.student-360-guardians-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  min-height: 0;
-  padding: 0;
+  gap: 10px;
+  border: 0;
+  background: transparent;
   overflow: visible;
-  border: 1px solid var(--c-border, #e2e8f0);
-  border-radius: 14px;
-  background: var(--bg, #fff);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
-.student-360-guardian-card--menu-open {
-  z-index: 30;
-}
-
-.student-360-guardian-card:hover {
-  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 22%, var(--c-border, #e2e8f0));
-  box-shadow: 0 2px 8px rgb(15 23 42 / 0.06);
-}
-
-.student-360-guardian-card--primary {
-  border-color: color-mix(in srgb, var(--c-green, #16a34a) 35%, var(--c-border, #e2e8f0));
-}
-
-.student-360-guardian-card__accent {
-  height: 3px;
-  border-radius: 14px 14px 0 0;
-  overflow: hidden;
-  background: linear-gradient(
-    90deg,
-    var(--c-green, #16a34a) 0%,
-    color-mix(in srgb, var(--c-green, #16a34a) 50%, var(--c-primary, #2563eb)) 100%
-  );
-}
-
-.student-360-guardian-card__layout {
+.student-360-guardian-row {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 14px;
-  padding: 16px 16px 14px;
+  align-items: start;
+  padding: 14px 16px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-2, #f8fafc) 55%, #fff) 0%, #fff 48%);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
 }
 
-.student-360-guardian-card__avatar {
-  width: 48px;
-  height: 48px;
+.student-360-guardian-row:hover {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 22%, var(--c-border, #e2e8f0));
+  box-shadow: 0 6px 18px rgb(15 23 42 / 0.07);
+}
+
+.student-360-guardian-row--primary {
+  border-color: color-mix(in srgb, var(--c-green, #16a34a) 28%, var(--c-border, #e2e8f0));
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--c-green, #16a34a) 6%, #fff) 0%,
+      #fff 55%
+    );
+}
+
+.student-360-guardian-row--primary::before {
+  content: '';
+  position: absolute;
+  inset-block: 12px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--c-green, #16a34a), color-mix(in srgb, var(--c-green, #16a34a) 40%, var(--c-primary, #2563eb)));
+}
+
+.student-360-guardian-row--ended {
+  opacity: 0.82;
+  background: var(--surface-2, #f8fafc);
+}
+
+.student-360-guardian-row--menu-open {
+  z-index: 30;
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 28%, var(--c-border, #e2e8f0));
+  box-shadow: 0 8px 22px rgb(15 23 42 / 0.1);
+}
+
+.student-360-guardian-row__avatar {
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--c-primary, #2563eb);
   background: var(--c-primary-soft, #eff6ff);
-  border: 2px solid var(--bg, #fff);
+  border: 2px solid #fff;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
   flex-shrink: 0;
 }
 
-.student-360-guardian-card--primary .student-360-guardian-card__avatar {
+.student-360-guardian-row--primary .student-360-guardian-row__avatar {
   color: var(--c-green, #16a34a);
   background: var(--c-green-soft, #f0fdf4);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-green, #16a34a) 25%, var(--c-border, #e2e8f0));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-green, #16a34a) 24%, var(--c-border, #e2e8f0));
 }
 
-.student-360-guardian-card__avatar--muted {
+.student-360-guardian-row__avatar--muted {
   color: var(--text-muted, #64748b);
   background: var(--surface-2, #f1f5f9);
   box-shadow: 0 0 0 1px var(--c-border, #e2e8f0);
 }
 
-.student-360-guardian-card__main {
+.student-360-guardian-row__body {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 0;
+  gap: 8px;
 }
 
-.student-360-guardian-card__head {
+.student-360-guardian-row__top {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 8px 12px;
 }
 
-.student-360-guardian-card__identity {
+.student-360-guardian-row__identity {
   min-width: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.student-360-guardian-card__role-badges {
-  display: flex;
-  flex-wrap: wrap;
   gap: 4px;
 }
 
-.student-360-guardian-card__meta {
-  margin: 0;
-}
-
-.student-360-guardian-card__name {
-  display: block;
+.student-360-guardian-row__name {
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--text, #0f172a);
   text-decoration: none;
 }
 
-.student-360-guardian-card__name:hover {
+.student-360-guardian-row__name:hover {
   color: var(--c-primary, #2563eb);
-  text-decoration: none;
 }
 
-.student-360-guardian-card__contact {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--surface-2, #f8fafc);
-  border: 1px solid var(--c-border-subtle, #f1f5f9);
-  font-size: 0.8125rem;
-}
-
-.student-360-guardian-card__contact-empty {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-  border: none;
-  background: transparent;
-}
-
-.student-360-guardian-card__contact-empty-title {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.student-360-guardian-card__contact-row {
+.student-360-guardian-row__chips {
   display: flex;
   flex-wrap: wrap;
+  gap: 4px;
   align-items: center;
-  gap: 6px 8px;
 }
 
-.student-360-guardian-card__contact-label {
+.student-360-guardian-row__chip {
   font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--text-muted, #94a3b8);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  line-height: 1.2;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
-.student-360-guardian-card__contact-value {
+.student-360-guardian-row__chip--rel {
+  background: var(--c-primary-soft, #eff6ff);
+  color: var(--c-primary, #2563eb);
+}
+
+.student-360-guardian-row__chip--primary {
+  background: var(--c-green-soft, #f0fdf4);
+  color: var(--c-green, #15803d);
+}
+
+.student-360-guardian-row__chip--ok {
+  background: color-mix(in srgb, #0d9488 12%, #fff);
+  color: #0f766e;
+}
+
+.student-360-guardian-row__chip--muted {
+  background: var(--surface-2, #f1f5f9);
+  color: var(--text-muted, #64748b);
+}
+
+.student-360-guardian-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.student-360-guardian-row__more {
+  min-width: 2rem;
+  padding-inline: 0.4rem;
+}
+
+.student-360-guardian-row__profile-link {
+  flex-shrink: 0;
+}
+
+.student-360-guardian-row__menu-wrap {
+  position: relative;
+  z-index: 2;
+}
+
+.student-360-guardian-row__menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  min-width: 200px;
+  padding: 4px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  box-shadow: 0 10px 28px rgb(15 23 42 / 0.12);
+}
+
+.student-360-guardian-row__menu-item {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.student-360-guardian-row__menu-item:hover {
+  background: var(--surface-2, #f8fafc);
+}
+
+.student-360-guardian-row__menu-item--danger {
+  color: var(--c-red, #dc2626);
+}
+
+.student-360-guardian-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--text-muted, #64748b);
+}
+
+.student-360-guardian-row__contact-block {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-2, #f8fafc) 88%, #fff);
+  border: 1px solid var(--c-border-subtle, #f1f5f9);
+}
+
+.student-360-guardian-row__phone {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.student-360-guardian-row__contact-link {
+  color: var(--text, #0f172a);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.student-360-guardian-row__contact-link:hover {
+  color: var(--c-primary, #2563eb);
+  text-decoration: underline;
+}
+
+.student-360-guardian-row__copy {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-primary, #2563eb);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.student-360-guardian-row__copy:hover {
+  text-decoration: underline;
+}
+
+.student-360-guardian-row__meta-warn {
+  color: var(--c-amber, #b45309);
+  font-weight: 600;
+}
+
+.student-360-guardian-row__meta-muted {
+  color: var(--text-muted, #94a3b8);
+}
+
+.student-360-guardian-row__account {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface-2, #f1f5f9);
+}
+
+.student-360-guardian-row__account-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, #475569);
+}
+
+.student-360-guardian-row__account-code {
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text, #0f172a);
 }
 
-.student-360-guardian-card__email {
-  word-break: break-all;
-}
-
-.student-360-guardian-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  padding: 10px 14px;
-  border-top: 1px solid var(--c-border-subtle, #f1f5f9);
-  background: var(--surface-1, #fafbfc);
+.student-360-guardian-row__account--empty {
+  color: var(--text-muted, #94a3b8);
 }
 
 .student-360-guardian-card__responsibilities {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
 }
 
 .student-360-guardian-card__badge-group-title {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -4901,90 +5517,20 @@
   gap: 4px;
 }
 
+.student-360-guardian-card__badges .badge {
+  font-size: 0.6875rem;
+  padding: 2px 7px;
+}
+
 .student-360-guardian-card__expand {
   align-self: flex-start;
   padding-inline: 0;
 }
 
-.student-360-guardian-card__account {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--c-border-subtle, #f1f5f9);
-}
-
-.student-360-guardian-card__menu-wrap {
-  position: relative;
-  margin-inline-start: auto;
-  z-index: 2;
-}
-
-.student-360-guardian-card__menu {
-  position: absolute;
-  inset-inline-end: 0;
-  bottom: calc(100% + 6px);
-  top: auto;
-  z-index: 40;
-  min-width: 220px;
-  padding: 6px;
-  border: 1px solid var(--c-border, #e2e8f0);
-  border-radius: 10px;
-  background: var(--bg, #fff);
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.12);
-}
-
-.student-360-guardian-card__menu-item {
-  display: block;
-  width: 100%;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  text-align: start;
-  font: inherit;
-  color: inherit;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.student-360-guardian-card__menu-item:hover {
-  background: var(--surface-2, #f8fafc);
-}
-
-.student-360-guardian-card__menu-item--danger {
-  color: var(--c-red, #dc2626);
-}
-
-.student-360-section-header--guardians {
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.student-360-section-header__main {
-  flex: 1;
-  min-width: 0;
-}
-
-.student-360-section-header__title-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.student-360-section-header__count {
-  font-size: 0.8125rem;
-  color: var(--text-muted, #64748b);
-  font-weight: 500;
-}
-
 .student-360-guardians-ended {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 4px;
+  gap: 8px;
 }
 
 .student-360-guardians-ended__head {
@@ -4995,7 +5541,7 @@
 
 .student-360-guardians-ended__title {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-muted, #64748b);
 }
@@ -5009,8 +5555,8 @@
   color: var(--text-muted, #64748b);
 }
 
-.student-360-guardians-grid--ended .student-360-guardian-card {
-  opacity: 0.88;
+.student-360-guardians-list--ended {
+  opacity: 0.92;
 }
 
 .student-360-guardians-alert {
@@ -5019,112 +5565,56 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px 12px;
-  padding: 12px 14px;
+  padding: 8px 12px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 25%, #fde68a);
-  background: color-mix(in srgb, var(--c-amber, #d97706) 6%, #fffbeb);
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 22%, #fde68a);
+  background: color-mix(in srgb, var(--c-amber, #d97706) 5%, #fffbeb);
   font-size: 0.8125rem;
-}
-
-.student-360-guardians-alert__content {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
-}
-
-.student-360-guardians-alert__icon {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--c-amber, #b45309);
-  background: rgb(255 255 255 / 0.7);
-  border: 1px solid rgb(217 119 6 / 0.25);
 }
 
 .student-360-guardians-alert p {
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
 }
 
 .student-360-compact-empty--guardians {
-  padding: 32px 20px;
+  padding: 24px 16px;
   border: 1px dashed var(--c-border, #cbd5e1);
-  border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    var(--surface-2, #f8fafc) 0%,
-    var(--bg, #fff) 100%
-  );
+  border-radius: 12px;
+  background: var(--surface-2, #f8fafc);
 }
 
 .student-360-compact-empty--finance {
-  padding: 28px 20px;
+  padding: 24px 16px;
   border: 1px dashed var(--c-border, #cbd5e1);
-  border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    var(--surface-2, #f8fafc) 0%,
-    var(--bg, #fff) 100%
-  );
+  border-radius: 12px;
+  background: var(--surface-2, #f8fafc);
 }
 
 /* Co-guardian students panel */
 .student-co-guardian-panel {
-  margin-top: 4px;
-  padding: 0;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
+  margin-top: 2px;
   border: 1px solid var(--c-border, #e2e8f0);
-  border-radius: 14px;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  border-radius: 12px;
+  background: var(--bg, #fff);
+  overflow: hidden;
 }
 
-.student-co-guardian-panel__hero {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--c-border-subtle, #f1f5f9);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--c-primary, #2563eb) 5%, var(--bg, #fff)) 0%,
-    var(--surface-1, #fafbfc) 100%
-  );
-}
-
-.student-co-guardian-panel__glyph {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  font-size: 1.125rem;
-  background: var(--c-primary-soft, #eff6ff);
-  color: var(--c-primary, #2563eb);
-  flex-shrink: 0;
-}
-
-.student-co-guardian-panel__hero-text {
+.student-co-guardian-panel__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 10px;
-  min-width: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--c-border-subtle, #f1f5f9);
+  background: var(--surface-1, #fafbfc);
 }
 
 .student-co-guardian-panel__title {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--text, #0f172a);
 }
@@ -5132,74 +5622,64 @@
 .student-co-guardian-panel__count {
   font-size: 0.6875rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
   background: var(--surface-2, #f1f5f9);
   color: var(--text-muted, #64748b);
 }
 
 .student-co-guardian-panel__body {
-  padding: 12px 14px 14px;
+  padding: 0;
 }
 
-.student-co-guardian-panel__loading,
 .student-co-guardian-panel__empty {
   margin: 0;
-  padding: 12px 4px;
+  padding: 14px;
   font-size: 0.8125rem;
   color: var(--text-muted, #64748b);
-  text-align: center;
 }
 
 .student-co-guardian-panel__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
-.student-co-guardian-panel__card {
+.student-co-guardian-panel__row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--c-border-subtle, #f1f5f9);
-  background: var(--surface-2, #f8fafc);
-  transition: border-color 140ms ease, background 140ms ease;
+  gap: 6px 12px;
+  padding: 9px 14px;
 }
 
-.student-co-guardian-panel__card:hover {
-  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
-  background: color-mix(in srgb, var(--c-primary, #2563eb) 3%, var(--surface-2, #f8fafc));
+.student-co-guardian-panel__row + .student-co-guardian-panel__row {
+  border-top: 1px solid var(--c-border-subtle, #f1f5f9);
 }
 
-.student-co-guardian-panel__card-main {
+.student-co-guardian-panel__row-main {
   min-width: 0;
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
 }
 
 .student-co-guardian-panel__name {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--text, #0f172a);
 }
 
 .student-co-guardian-panel__meta,
-.student-co-guardian-panel__status,
 .student-co-guardian-panel__shared {
   margin: 0;
   font-size: 0.75rem;
   color: var(--text-muted, #64748b);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .student-co-guardian-panel__badges {
@@ -5212,7 +5692,7 @@
 .student-co-guardian-panel__badge {
   font-size: 0.625rem;
   font-weight: 600;
-  padding: 3px 7px;
+  padding: 2px 6px;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -5228,12 +5708,12 @@
 }
 
 .student-co-guardian-panel__disclaimer {
-  margin: 10px 0 0;
-  padding-top: 10px;
+  margin: 0;
+  padding: 8px 14px 10px;
   border-top: 1px solid var(--c-border-subtle, #f1f5f9);
   font-size: 0.6875rem;
   color: var(--text-muted, #94a3b8);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .students-list-page {
@@ -6185,13 +6665,21 @@
   }
 
   .student-360-header__avatar {
-    width: 48px;
-    height: 48px;
-    font-size: 0.9375rem;
+    width: 52px;
+    height: 52px;
+    font-size: 1rem;
   }
 
-  .student-360-header__title {
-    font-size: 1.0625rem;
+  .student-360-header__title--primary {
+    font-size: 1.125rem;
+  }
+
+  .student-360-header__title--secondary {
+    font-size: 0.875rem;
+  }
+
+  .student-360-header__status-row {
+    border-radius: 12px;
   }
 
   .student-360-header__facts-grid {
@@ -6288,19 +6776,23 @@
 }
 
 .student-360-header__avatar {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: var(--surface-2, #eef2f7);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--raqeem-primary, #243b6b) 8%, #fff) 0%,
+    var(--surface-2, #eef2f7) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.125rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--c-primary, #2563eb);
+  color: var(--raqeem-primary, #243b6b);
   flex-shrink: 0;
   border: 2px solid var(--bg, #fff);
-  box-shadow: none;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
 }
 
 .student-360-header__avatar--photo {
@@ -6309,11 +6801,6 @@
 
 .student-360-header__title {
   margin: 0;
-  font-size: 1.25rem;
-  line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text, #0f172a);
 }
 
 .student-360-tabs {
@@ -6336,13 +6823,21 @@
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
   padding-block: 6px 0;
+  padding-inline: 4px;
   -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+}
+
+[dir='rtl'] .student-360-tab-bar__scroll {
+  mask-image: linear-gradient(to left, transparent, #000 12px, #000 calc(100% - 12px), transparent);
 }
 
 .student-360-tab-bar__item {
   flex: 0 0 auto;
-  min-height: 40px;
-  padding: 8px 14px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
   border: none;
   border-radius: 8px 8px 0 0;
   background: transparent;
@@ -6353,6 +6848,11 @@
   white-space: nowrap;
   cursor: pointer;
   transition: color 140ms ease, background 140ms ease;
+}
+
+.student-360-tab-bar__item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--c-primary, #2563eb) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .student-360-tab-bar__item:hover {
@@ -6400,10 +6900,6 @@
   background: var(--bg, #fff);
   padding: 12px 0;
   z-index: 2;
-}
-
-.student-360-guardian-card--ended {
-  opacity: 0.88;
 }
 
 @media (max-width: 640px) {
@@ -7191,6 +7687,7 @@
   border-top: 1px solid var(--c-border, #e2e8f0);
   padding: 12px 0;
   margin-top: 8px;
+  min-width: 0;
 }
 
 .student-360-section-card {
@@ -7600,35 +8097,23 @@
   }
 }
 
-@media (max-width: 960px) {
-  .student-360-guardians-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 640px) {
   .student-360-guardians-toolbar {
+    align-items: center;
+  }
+
+  .student-360-guardian-row {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .student-360-guardian-row__top {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .student-360-guardians-toolbar__actions {
-    width: 100%;
-  }
-
-  .student-360-guardians-toolbar__actions .btn {
-    width: 100%;
-  }
-
-  .student-360-guardian-card__layout {
-    grid-template-columns: 1fr;
-    padding: 14px;
-  }
-
-  .student-360-guardian-card__avatar {
-    width: 42px;
-    height: 42px;
-    font-size: 0.875rem;
+  .student-360-guardian-row__actions {
+    justify-content: flex-end;
   }
 
   .student-360-section-header {
@@ -7641,23 +8126,6 @@
   }
 
   .student-360-section-header__actions .btn {
-    width: 100%;
-  }
-
-  .student-360-guardian-card__actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .student-360-guardian-card__actions .btn {
-    width: 100%;
-  }
-
-  .student-360-guardian-card__menu-wrap {
-    width: 100%;
-  }
-
-  .student-360-guardian-card__menu-wrap > .btn {
     width: 100%;
   }
 
@@ -7724,6 +8192,149 @@
 .student-finance-table-wrap table.data td {
   padding: 11px 12px;
   vertical-align: top;
+}
+
+/* Mobile card-stack for all finance workspace tables (DataTable + raw tables). */
+@media (max-width: 768px) {
+  .student-finance-table-wrap {
+    overflow-x: visible;
+    margin-inline: 0;
+  }
+
+  .student-finance-table-wrap > .table-wrap.card {
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .student-finance-table-wrap table.data,
+  .student-finance-table-wrap table.data-table,
+  .student-finance-table-wrap > table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .student-finance-table-wrap table.data thead,
+  .student-finance-table-wrap table.data-table thead,
+  .student-finance-table-wrap > table thead {
+    display: none;
+  }
+
+  .student-finance-table-wrap table.data tbody,
+  .student-finance-table-wrap table.data-table tbody,
+  .student-finance-table-wrap > table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .student-finance-table-wrap table.data tbody tr,
+  .student-finance-table-wrap table.data-table tbody tr,
+  .student-finance-table-wrap > table tbody tr {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--c-border, #e2e8f0);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .student-finance-table-wrap table.data tbody tr:hover,
+  .student-finance-table-wrap table.data-table tbody tr:hover,
+  .student-finance-table-wrap > table tbody tr:hover {
+    background: color-mix(in srgb, var(--surface-2, #f8fafc) 70%, #fff);
+  }
+
+  .student-finance-table-wrap table.data tbody td,
+  .student-finance-table-wrap table.data-table tbody td,
+  .student-finance-table-wrap > table tbody td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 34%) minmax(0, 1fr);
+    align-items: start;
+    gap: 6px 10px;
+    padding: 0 !important;
+    border: none !important;
+    white-space: normal !important;
+    min-width: 0 !important;
+    max-width: none;
+    background: transparent !important;
+    vertical-align: top;
+  }
+
+  .student-finance-table-wrap table.data tbody td:not([data-label]),
+  .student-finance-table-wrap table.data tbody td[data-label=''],
+  .student-finance-table-wrap table.data-table tbody td:not([data-label]),
+  .student-finance-table-wrap table.data-table tbody td[data-label=''],
+  .student-finance-table-wrap > table tbody td:not([data-label]),
+  .student-finance-table-wrap > table tbody td[data-label=''] {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-table-wrap table.data tbody td[data-label]:not([data-label=''])::before,
+  .student-finance-table-wrap table.data-table tbody td[data-label]:not([data-label=''])::before,
+  .student-finance-table-wrap > table tbody td[data-label]:not([data-label=''])::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-muted, #64748b);
+    line-height: 1.35;
+    padding-top: 0.15em;
+  }
+
+  .student-finance-table-wrap .student-finance-schedule-status {
+    min-width: 0;
+    max-width: none;
+  }
+
+  [dir='rtl'] .student-finance-table-wrap .student-finance-schedule-status {
+    align-items: flex-start;
+  }
+
+  .student-finance-table-wrap .btn {
+    width: auto;
+  }
+
+  .student-finance-subtabs__scroll-hint {
+    display: block;
+  }
+
+  .student-finance-schedule-summary.student-360-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-finance-section .row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .student-finance-section .row > .btn {
+    flex: 1 1 auto;
+    min-width: min(100%, 9rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .student-finance-schedule-summary.student-360-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .student-finance-table-wrap table.data tbody td,
+  .student-finance-table-wrap table.data-table tbody td,
+  .student-finance-table-wrap > table tbody td {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-table-wrap table.data tbody td[data-label]:not([data-label=''])::before,
+  .student-finance-table-wrap table.data-table tbody td[data-label]:not([data-label=''])::before,
+  .student-finance-table-wrap > table tbody td[data-label]:not([data-label=''])::before {
+    margin-bottom: 2px;
+  }
 }
 
 .student-finance-filters {
@@ -7816,9 +8427,165 @@
   gap: var(--space-3);
 }
 
-.student-finance-agreement-panel {
+.student-finance-agreement-panel,
+.student-finance-agreement-embedded {
   display: grid;
   gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.student-finance-workspace__panel:has(.student-finance-agreement-embedded),
+.student-finance-workspace__panel:has(.student-finance-agreement-panel) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.student-finance-agreement-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  background: var(--surface, #fff);
+  min-width: 0;
+}
+
+.student-finance-agreement-toolbar__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--c-text, #0f172a);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.student-finance-agreement-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.student-finance-family-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  background: color-mix(in srgb, var(--c-surface-muted, #f8fafc) 88%, #fff);
+}
+
+.student-finance-family-strip--error {
+  border-color: color-mix(in srgb, #f59e0b 35%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #f59e0b 8%, #fff);
+}
+
+.student-finance-family-strip--error p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-secondary, #475569);
+}
+
+.student-finance-family-strip__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.student-finance-family-strip__mark {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.student-finance-family-strip__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.student-finance-family-strip__title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.student-finance-family-strip__meta {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--c-muted, #64748b);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-finance-family-strip--compact .student-finance-family-strip__meta {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.student-finance-family-strip__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.student-finance-family-strip__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  background: var(--c-surface, #fff);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  color: var(--c-text-secondary, #475569);
+}
+
+.student-finance-family-strip__chip.is-positive {
+  border-color: color-mix(in srgb, #16a34a 28%, transparent);
+  background: color-mix(in srgb, #16a34a 8%, #fff);
+  color: #166534;
+}
+
+.student-finance-family-strip__chip.is-warning {
+  border-color: color-mix(in srgb, #d97706 30%, transparent);
+  background: color-mix(in srgb, #d97706 10%, #fff);
+  color: #9a3412;
+}
+
+.student-finance-family-strip__chip.is-info {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 28%, transparent);
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 8%, #fff);
+  color: var(--c-primary, #2563eb);
+}
+
+@media (max-width: 768px) {
+  .student-finance-family-strip__flags {
+    justify-content: flex-start;
+    width: 100%;
+  }
 }
 
 .student-finance-agreement-header {
@@ -7835,6 +8602,20 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.student-finance-agreement-header__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.student-finance-agreement-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .student-finance-agreement-header__identity {
@@ -7888,48 +8669,143 @@
   line-height: 1.5;
 }
 
-.student-finance-agreement-summary.student-360-metric-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 168px), 1fr));
+.student-finance-agreement-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  border-radius: 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 70%, transparent);
+  min-width: 0;
+}
+
+.student-finance-agreement-kpi-strip__item {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  background: var(--surface, #fff);
+  min-width: 0;
+}
+
+.student-finance-agreement-kpi-strip__value {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c-text, #0f172a);
+  font-variant-numeric: tabular-nums;
+}
+
+.student-finance-agreement-kpi-strip__label {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--c-muted, #64748b);
+}
+
+.student-finance-agreement-kpi-strip__item--green .student-finance-agreement-kpi-strip__value {
+  color: #166534;
+}
+
+.student-finance-agreement-kpi-strip__item--red .student-finance-agreement-kpi-strip__value {
+  color: #b91c1c;
+}
+
+.student-finance-agreement-kpi-strip__item--amber .student-finance-agreement-kpi-strip__value {
+  color: #b45309;
+}
+
+.student-finance-agreement-kpi-strip__item--blue .student-finance-agreement-kpi-strip__value {
+  color: var(--c-primary, #2563eb);
+}
+
+.student-finance-agreement-snapshot {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+
+.student-finance-agreement-detail-card--compact {
+  padding: 12px 14px;
+  align-self: start;
+}
+
+.student-finance-agreement-detail-card--compact .student-finance-agreement-detail-card__title {
+  margin-bottom: 8px;
+}
+
+.student-finance-billing-profile--compact {
+  align-items: center;
   gap: 10px;
 }
 
-.student-finance-agreement-summary .student-360-metric-card {
-  text-align: start;
-  padding: 12px 14px;
+.student-finance-billing-profile--compact .student-finance-billing-profile__avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 0.75rem;
+}
+
+.student-finance-billing-profile__line {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--c-text-secondary, #475569);
+}
+
+.student-finance-billing-profile__line a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.student-finance-billing-profile__line a:hover {
+  color: var(--c-primary, #2563eb);
+  text-decoration: underline;
+}
+
+.student-finance-agreement-adjustments-bar {
+  display: grid;
+  gap: 8px;
+  padding: 10px 14px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 92%, transparent);
-  border-inline-start-width: 4px;
-  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  background: var(--c-surface, #fff);
+  min-width: 0;
 }
 
-.student-finance-agreement-summary .student-360-metric-card__value {
-  font-size: 1.05rem;
-  line-height: 1.25;
+.student-finance-agreement-adjustments-bar__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.student-finance-agreement-summary .student-360-metric-card__label {
-  margin-top: 6px;
-  font-size: 0.74rem;
-  line-height: 1.35;
+.student-finance-agreement-adjustments-bar__title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-text-secondary, #64748b);
 }
 
-.student-finance-agreement-summary .student-360-metric-card--blue {
-  grid-column: span 1;
-}
-
-@media (min-width: 900px) {
-  .student-finance-agreement-summary .student-360-metric-card--blue {
-    grid-column: span 1;
-  }
+.student-finance-agreement-adjustments-bar__empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-muted, #94a3b8);
 }
 
 @media (max-width: 720px) {
   .student-finance-agreement-header__top {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .student-finance-agreement-summary.student-360-metric-grid {
-    grid-template-columns: 1fr 1fr;
+  .student-finance-agreement-kpi-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-snapshot {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -7969,13 +8845,291 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
+}
+
+.student-finance-agreement-details-grid--trio {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .student-finance-agreement-details-grid--trio {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-finance-agreement-details-grid--trio > .student-finance-agreement-terms {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 768px) {
-  .student-finance-agreement-details-grid {
+  .student-finance-agreement-panel,
+  .student-finance-agreement-embedded {
+    gap: 12px;
+  }
+
+  .student-finance-agreement-details-grid,
+  .student-finance-agreement-details-grid--trio {
     grid-template-columns: 1fr;
   }
+
+  .student-finance-agreement-details-grid--trio > .student-finance-agreement-terms {
+    grid-column: auto;
+  }
+
+  .student-finance-agreement-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+  }
+
+  .student-finance-agreement-toolbar__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .student-finance-agreement-toolbar__actions .btn {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    padding-block: 0.55rem;
+  }
+
+  .student-finance-agreement-toolbar__actions .btn.btn--primary {
+    grid-column: 1 / -1;
+  }
+
+  .student-finance-family-strip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-finance-family-strip__identity {
+    flex: 1 1 auto;
+  }
+
+  .student-finance-family-strip__flags {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .student-finance-agreement-header {
+    padding: 14px;
+  }
+
+  .student-finance-agreement-header__number {
+    font-size: 1.05rem;
+    overflow-wrap: anywhere;
+  }
+
+  .student-finance-agreement-header__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-header__status {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .student-finance-agreement-header__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .student-finance-agreement-header__actions .btn {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .student-finance-agreement-kpi-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-snapshot {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-detail-card {
+    padding: 12px 14px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .student-finance-agreement-detail-card__head {
+    flex-wrap: wrap;
+  }
+
+  .student-finance-agreement-detail-card__head .btn {
+    width: 100%;
+  }
+
+  .student-finance-billing-profile {
+    align-items: flex-start;
+  }
+
+  .student-finance-billing-profile__meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .student-finance-agreement-adjustments-bar__head .btn {
+    width: auto;
+  }
+
+  .student-finance-agreement-actions-bar {
+    position: sticky;
+    bottom: 0;
+    inset-inline: 0;
+    margin-inline: -14px;
+    padding: 10px 14px;
+    background: color-mix(in srgb, var(--bg, #fff) 94%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .student-finance-agreement-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .student-finance-agreement-actions .btn {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    justify-content: center;
+  }
+
+  .student-finance-agreement-actions .btn.btn--primary {
+    grid-column: 1 / -1;
+  }
+
+  .student-finance-agreement-customization .student-360-section-header,
+  .student-finance-agreement-panel .student-360-section-header,
+  .student-finance-agreement-embedded .student-360-section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .student-finance-agreement-customization .student-360-section-header__actions,
+  .student-finance-agreement-panel .student-360-section-header__actions,
+  .student-finance-agreement-embedded .student-360-section-header__actions {
+    width: 100%;
+  }
+
+  .student-finance-agreement-customization .student-360-section-header__actions .btn,
+  .student-finance-agreement-panel .student-360-section-header__actions .btn,
+  .student-finance-agreement-embedded .student-360-section-header__actions .btn {
+    width: 100%;
+  }
+
+  .student-finance-agreement-schedule-actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .student-finance-agreement-schedule-actions .btn {
+    width: 100%;
+  }
+
+  .student-finance-workspace__panel:has(.student-finance-agreement-embedded) {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-finance-agreement-toolbar__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-toolbar__actions .btn.btn--primary {
+    grid-column: auto;
+  }
+
+  .student-finance-agreement-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-actions .btn.btn--primary {
+    grid-column: auto;
+  }
+
+  .student-finance-agreement-header__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+.student-finance-agreement-terms__desc {
+  margin: -4px 0 12px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--c-text-muted, #94a3b8);
+}
+
+.student-finance-agreement-terms__list {
+  display: grid;
+  gap: 10px 14px;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.student-finance-agreement-terms__list > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.student-finance-agreement-terms__list dt {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-text-muted, #94a3b8);
+}
+
+.student-finance-agreement-terms__list dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+  line-height: 1.35;
+}
+
+.student-finance-agreement-terms__notes {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+}
+
+.student-finance-agreement-terms__notes-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-text-muted, #94a3b8);
+}
+
+.student-finance-agreement-terms__notes p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--c-text-secondary, #475569);
+  white-space: pre-wrap;
 }
 
 .student-finance-agreement-detail-card {
@@ -7983,6 +9137,8 @@
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 92%, transparent);
   background: var(--c-surface, #fff);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .student-finance-agreement-detail-card__head {
@@ -11820,47 +12976,66 @@
 .student-activity-section__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .student-activity-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 148px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--c-border, #e2e8f0);
-  background: var(--surface, #fff);
+  min-height: 160px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 10%, var(--c-border, #e2e8f0));
+  background:
+    linear-gradient(165deg, #fff 0%, color-mix(in srgb, var(--raqeem-primary, #243b6b) 3%, #fff) 100%);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  overflow: hidden;
+}
+
+.student-activity-card::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--raqeem-primary, #243b6b),
+    var(--raqeem-secondary, #24a6a1)
+  );
 }
 
 .student-activity-card--sparse {
-  background: color-mix(in srgb, var(--surface-2, #f8fafc) 70%, var(--surface, #fff));
+  background: color-mix(in srgb, var(--surface-2, #f8fafc) 75%, #fff);
 }
 
 .student-activity-card__head {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .student-activity-card__glyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: color-mix(in srgb, var(--c-blue-soft, #eff6ff) 80%, var(--surface, #fff));
-  border: 1px solid color-mix(in srgb, var(--c-blue, #2563eb) 14%, transparent);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--raqeem-primary, #243b6b);
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 8%, #fff);
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 14%, transparent);
   flex-shrink: 0;
 }
 
 .student-activity-card__title {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.9375rem;
   font-weight: 700;
+  color: var(--raqeem-primary, #243b6b);
 }
 
 .student-activity-card__body {
@@ -11880,12 +13055,13 @@
 .student-activity-metric {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--c-border-subtle, #e8edf2);
-  background: var(--surface-2, #f8fafc);
+  gap: 5px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 8%, var(--c-border, #e2e8f0));
+  background: #fff;
   min-width: 0;
+  box-shadow: 0 1px 0 rgb(15 23 42 / 0.02);
 }
 
 .student-activity-metric--muted .student-activity-metric__value {
@@ -13149,6 +14325,14 @@
   overflow-x: auto;
   padding: 0.375rem 0.125rem 0.625rem;
   scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+}
+
+[dir='rtl'] .student-finance-amendment-month-rail__scroll {
+  mask-image: linear-gradient(to left, transparent, #000 12px, #000 calc(100% - 12px), transparent);
 }
 
 .student-finance-amendment-month-rail__chip {
@@ -13214,6 +14398,9 @@
   padding: 0.25rem 0.125rem 1.5rem;
   scroll-snap-type: x proximity;
   position: relative;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
 .student-finance-amendment-range-rail__point {

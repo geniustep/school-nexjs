@@ -6200,7 +6200,7 @@
       },
       "enrollmentEmptyDesc": "Cree una inscripción para vincular al alumno al año escolar y la clase.",
       "guardiansEmptyDesc": "Vincule un tutor para la comunicación y responsabilidades asociadas.",
-      "guardiansCopyPhone": "Copiar",
+      "guardiansCopyPhone": "Copiar número",
       "guardiansCopiedPhone": "Número copiado.",
       "guardiansOpenProfile": "Abrir perfil del tutor",
       "guardiansActiveCount": "{count} tutores activos",
@@ -7175,7 +7175,7 @@
         "create": "Crear acuerdo financiero",
         "applyFeePlan": "Aplicar plan de cuotas",
         "createManualAgreement": "Crear acuerdo manual",
-        "edit": "Editar acuerdo",
+        "edit": "Editar acuerdo financiero",
         "emptyTitle": "No hay acuerdo financiero para este año.",
         "emptyDescription": "Cree un acuerdo para definir servicios, precios y calendario.",
         "noIndependentAgreementTitle": "No hay acuerdo financiero independiente para este alumno.",
@@ -7196,7 +7196,10 @@
         "noScheduleDesc": "Las cuotas aparecerán tras añadir servicios y generar el calendario.",
         "noBillingParty": "Sin pagador asignado",
         "noBillingPartyDesc": "Vincule un tutor o pagador antes de activar el acuerdo.",
-        "schedulePolicyTitle": "Política de calendario",
+        "schedulePolicyTitle": "Condiciones del acuerdo",
+        "scheduleTermsTitle": "Condiciones del acuerdo",
+        "scheduleTermsDesc": "Reglas de generación del calendario y vencimiento aplicadas a este acuerdo.",
+        "scheduleTermsEmpty": "No hay condiciones de calendario guardadas para este acuerdo.",
         "openGuardians": "Abrir tutores",
         "fields": {
           "academicYear": "Año académico",
@@ -7211,7 +7214,8 @@
           "partyType": "Tipo pagador",
           "relationship": "Parentesco",
           "contact": "Contacto",
-          "installmentCount": "Plazos"
+          "installmentCount": "Plazos",
+          "notes": "Notas del acuerdo"
         },
         "replaceDraftFromFees": "Reemplazar por acuerdo desde las tasas actuales",
         "replaceDraftConfirmTitle": "Reemplazar borrador vacío",
@@ -7426,10 +7430,14 @@
         },
         "schedulePolicy": {
           "generation": "Modo generación",
-          "display": "Regla visualización",
+          "display": "Regla de visualización de cuotas",
           "dueDay": "Día vencimiento",
+          "dueDayOfMonth": "Día {day} de cada mes",
+          "dueOffsetDays": "{days} días después del inicio del periodo",
           "earlyPayment": "Pago anticipado",
-          "firstPeriod": "Primera periodo"
+          "firstPeriod": "Primera periodo",
+          "displayOffset": "Desplazamiento de visualización",
+          "displayOffsetDays": "{days} días"
         },
         "states": {
           "draft": "Borrador",
@@ -7617,9 +7625,16 @@
           "lead": "Este alumno tiene hermanos vinculados a la misma cuenta de facturación.",
           "siblingCount": "Número de hermanos",
           "siblingNames": "Nombres de los hermanos",
+          "siblingSummary": "{count} hermanos",
+          "moreSiblings": "+{count}",
           "activeAgreements": "Acuerdos activos de hermanos",
+          "activeAgreementsYes": "Acuerdos activos de hermanos",
+          "activeAgreementsNo": "Sin acuerdos activos de hermanos",
           "familyOverdue": "Atrasos familiares",
-          "discountHint": "Este alumno puede ser elegible para un descuento por hermanos según la política del centro."
+          "familyOverdueYes": "Hay atrasos familiares",
+          "familyOverdueNo": "Sin atrasos familiares",
+          "discountHint": "Este alumno puede ser elegible para un descuento por hermanos según la política del centro.",
+          "discountHintShort": "Posible descuento por hermanos"
         },
         "collectionContext": {
           "title": "Cobro a nivel familiar",
@@ -7841,6 +7856,7 @@
         "pageTitle": "Financial file",
         "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
         "tabsAria": "Financial file tabs",
+        "subtabsScrollHint": "Desplázate horizontalmente para ver más secciones",
         "tabs": {
           "overview": "Resumen financiero",
           "fees": "Tasas y servicios",
@@ -8019,6 +8035,9 @@
         "agreementContext": {
           "sectionAria": "Contexto del acuerdo financiero y plan de cuotas",
           "feePlanTitle": "Plan de cuotas",
+          "showFeePlanDetails": "Ver detalles del plan",
+          "hideFeePlanDetails": "Ocultar detalles",
+          "futureDatedActionsUnavailable": "Las acciones de enmienda fechada aún no están disponibles.",
           "statusTitle": "Estado del acuerdo financiero",
           "operationsHistoryTitle": "Historial de operaciones financieras",
           "noValidFeePlan": "Aún no se ha vinculado un plan de cuotas válido",

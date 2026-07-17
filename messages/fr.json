@@ -5829,7 +5829,9 @@
       "header": {
         "age": "Âge",
         "ageYears": "{age} ans",
-        "incompleteData": "Données incomplètes"
+        "incompleteData": "Données incomplètes",
+        "attentionCue": "À suivre",
+        "attentionCueHint": "Ouvrir l’aperçu pour revoir les alertes et l’état du dossier"
       },
       "indicators": {
         "enrolled": "Inscrit",
@@ -6082,6 +6084,23 @@
         "cardsTitle": "Vue d'ensemble",
         "activityTitle": "Activité et suivi",
         "activityDesc": "Aperçu rapide de la présence et de l'activité académique récente.",
+        "financeStrip": {
+          "eyebrow": "Dossier financier",
+          "title": "Situation financière générale",
+          "openFinance": "Ouvrir la finance",
+          "total": "Engagement total",
+          "paid": "Payé",
+          "remaining": "Restant",
+          "overdue": "En retard",
+          "progressAria": "Taux de paiement {percent} %",
+          "stages": {
+            "obligation": "Engagement",
+            "paying": "En cours",
+            "current": "À jour",
+            "overdue": "En retard",
+            "complete": "Soldé"
+          }
+        },
         "unavailableTitle": "Résumé indisponible",
         "unavailableDesc": "Le résumé consolidé n'est pas encore disponible pour cet élève. Les sections ci-dessous restent accessibles.",
         "viewDocuments": "Voir les documents",
@@ -6200,7 +6219,7 @@
       },
       "enrollmentEmptyDesc": "Créez une inscription pour lier l'élève à l'année scolaire et à la classe.",
       "guardiansEmptyDesc": "Liez un responsable pour la communication et les responsabilités associées.",
-      "guardiansCopyPhone": "Copier",
+      "guardiansCopyPhone": "Copier le numéro",
       "guardiansCopiedPhone": "Numéro copié.",
       "guardiansOpenProfile": "Ouvrir le dossier responsable",
       "guardiansActiveCount": "{count} responsables actifs",
@@ -7175,7 +7194,7 @@
         "create": "Créer un accord financier",
         "applyFeePlan": "Appliquer un plan de frais",
         "createManualAgreement": "Créer un accord manuel",
-        "edit": "Modifier l'accord",
+        "edit": "Modifier l'accord financier",
         "emptyTitle": "Aucun accord financier pour cette année.",
         "emptyDescription": "Créez un accord pour définir services, tarifs et calendrier.",
         "noIndependentAgreementTitle": "Aucun accord financier distinct pour cet élève.",
@@ -7196,7 +7215,10 @@
         "noScheduleDesc": "Les échéances apparaîtront après l'ajout des services et la génération du calendrier.",
         "noBillingParty": "Aucun payeur assigné",
         "noBillingPartyDesc": "Associez un responsable ou payeur avant d'activer l'accord.",
-        "schedulePolicyTitle": "Politique de calendrier",
+        "schedulePolicyTitle": "Conditions de l'accord",
+        "scheduleTermsTitle": "Conditions de l'accord",
+        "scheduleTermsDesc": "Règles de génération du calendrier et d'échéance appliquées à cet accord.",
+        "scheduleTermsEmpty": "Aucune condition de calendrier enregistrée pour cet accord.",
         "openGuardians": "Ouvrir responsables",
         "fields": {
           "academicYear": "Année scolaire",
@@ -7211,7 +7233,8 @@
           "partyType": "Type payeur",
           "relationship": "Lien",
           "contact": "Contact",
-          "installmentCount": "Échéances"
+          "installmentCount": "Échéances",
+          "notes": "Notes de l'accord"
         },
         "replaceDraftFromFees": "Remplacer par un accord issu des frais actuels",
         "replaceDraftConfirmTitle": "Remplacer le brouillon vide",
@@ -7426,10 +7449,14 @@
         },
         "schedulePolicy": {
           "generation": "Mode de génération",
-          "display": "Règle d'affichage",
+          "display": "Règle d'affichage des échéances",
           "dueDay": "Jour d'échéance",
+          "dueDayOfMonth": "Le jour {day} de chaque mois",
+          "dueOffsetDays": "{days} jours après le début de la période",
           "earlyPayment": "Paiement anticipé",
-          "firstPeriod": "Première période"
+          "firstPeriod": "Première période",
+          "displayOffset": "Décalage d'affichage",
+          "displayOffsetDays": "{days} jours"
         },
         "states": {
           "draft": "Brouillon",
@@ -7617,9 +7644,16 @@
           "lead": "Cet élève a des frères et sœurs liés au même compte de facturation.",
           "siblingCount": "Nombre de frères et sœurs",
           "siblingNames": "Noms des frères et sœurs",
+          "siblingSummary": "{count} frères et sœurs",
+          "moreSiblings": "+{count}",
           "activeAgreements": "Accords actifs de la fratrie",
+          "activeAgreementsYes": "Accords actifs de la fratrie",
+          "activeAgreementsNo": "Aucun accord actif de la fratrie",
           "familyOverdue": "Retards familiaux",
-          "discountHint": "Cet élève peut être éligible à une remise fratrie selon la politique de l'école."
+          "familyOverdueYes": "Retards familiaux",
+          "familyOverdueNo": "Aucun retard familial",
+          "discountHint": "Cet élève peut être éligible à une remise fratrie selon la politique de l'école.",
+          "discountHintShort": "Remise fratrie possible"
         },
         "collectionContext": {
           "title": "Encaissement au niveau familial",
@@ -7841,6 +7875,7 @@
         "pageTitle": "Financial file",
         "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
         "tabsAria": "Financial file tabs",
+        "subtabsScrollHint": "Faites défiler horizontalement pour voir les autres sections",
         "tabs": {
           "overview": "Vue financière",
           "fees": "Frais et services",
@@ -8019,6 +8054,9 @@
         "agreementContext": {
           "sectionAria": "Contexte de l'accord financier et du plan de frais",
           "feePlanTitle": "Plan de frais",
+          "showFeePlanDetails": "Afficher les détails du plan",
+          "hideFeePlanDetails": "Masquer les détails",
+          "futureDatedActionsUnavailable": "Les actions d'amendement daté ne sont pas encore disponibles.",
           "statusTitle": "Statut de l'accord financier",
           "operationsHistoryTitle": "Historique des opérations financières",
           "noValidFeePlan": "Aucun plan de frais valide n'a encore été associé",

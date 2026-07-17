@@ -30,7 +30,7 @@ function statusLabel(t: TranslateFn, status: string | null | undefined): string 
   return null;
 }
 
-function CandidateCard({
+function CandidateRow({
   candidate,
   t,
 }: {
@@ -45,36 +45,29 @@ function CandidateCard({
   const sharedNames = candidate.shared_guardian_names.filter((n) => n.trim());
   const sharedCount = candidate.shared_guardian_ids.length;
 
-  const meta: string[] = [];
-  if (level) meta.push(level);
-  if (cls) meta.push(cls);
+  const metaParts = [level, cls, status].filter(Boolean) as string[];
 
   return (
-    <li className="student-co-guardian-panel__card">
-      <div className="student-co-guardian-panel__card-main">
-        <p className="student-co-guardian-panel__name" dir="auto">
+    <li className="student-co-guardian-panel__row">
+      <div className="student-co-guardian-panel__row-main">
+        <span className="student-co-guardian-panel__name" dir="auto">
           {name}
-        </p>
-        {meta.length > 0 ? (
-          <p className="student-co-guardian-panel__meta" dir="auto">
-            {meta.join(' · ')}
-          </p>
-        ) : null}
-        {status ? (
-          <p className="student-co-guardian-panel__status" dir="auto">
-            {status}
-          </p>
+        </span>
+        {metaParts.length > 0 ? (
+          <span className="student-co-guardian-panel__meta" dir="auto">
+            {metaParts.join(' · ')}
+          </span>
         ) : null}
         {sharedNames.length > 0 ? (
-          <p className="student-co-guardian-panel__shared" dir="auto">
+          <span className="student-co-guardian-panel__shared" dir="auto">
             {t('admin.student360.coGuardian.sharedGuardiansNames', {
               names: sharedNames.join('، '),
             })}
-          </p>
+          </span>
         ) : sharedCount > 0 ? (
-          <p className="student-co-guardian-panel__shared" dir="auto">
+          <span className="student-co-guardian-panel__shared" dir="auto">
             {t('admin.student360.coGuardian.sharedGuardiansCount', { count: sharedCount })}
-          </p>
+          </span>
         ) : null}
       </div>
       <div className="student-co-guardian-panel__badges">
@@ -106,30 +99,25 @@ export function StudentCoGuardianStudentsPanel({
 
   return (
     <section
-      className="student-co-guardian-panel card"
+      className="student-co-guardian-panel"
       aria-labelledby="student-co-guardian-panel-title"
     >
-      <header className="student-co-guardian-panel__hero">
-        <span className="student-co-guardian-panel__glyph" aria-hidden="true">
-          ⚇
-        </span>
-        <div className="student-co-guardian-panel__hero-text">
-          <h3 id="student-co-guardian-panel-title" className="student-co-guardian-panel__title">
-            {t('admin.student360.coGuardian.title')}
-          </h3>
-          {data && data.summary.candidate_count > 0 ? (
-            <span className="student-co-guardian-panel__count">
-              {t('admin.student360.coGuardian.candidateCount', {
-                count: data.summary.candidate_count,
-              })}
-            </span>
-          ) : null}
-        </div>
+      <header className="student-co-guardian-panel__head">
+        <h3 id="student-co-guardian-panel-title" className="student-co-guardian-panel__title">
+          {t('admin.student360.coGuardian.title')}
+        </h3>
+        {data && data.summary.candidate_count > 0 ? (
+          <span className="student-co-guardian-panel__count">
+            {t('admin.student360.coGuardian.candidateCount', {
+              count: data.summary.candidate_count,
+            })}
+          </span>
+        ) : null}
       </header>
 
       <div className="student-co-guardian-panel__body">
         {loading && !data ? (
-          <p className="student-co-guardian-panel__loading">{t('common.loading')}</p>
+          <p className="student-co-guardian-panel__empty">{t('common.loading')}</p>
         ) : !data ? null : data.summary.guardian_count === 0 ? (
           <p className="student-co-guardian-panel__empty">
             {t('admin.student360.coGuardian.emptyNoGuardian')}
@@ -142,7 +130,7 @@ export function StudentCoGuardianStudentsPanel({
           <>
             <ul className="student-co-guardian-panel__list">
               {data.candidates.map((candidate) => (
-                <CandidateCard key={candidate.student_id} candidate={candidate} t={t} />
+                <CandidateRow key={candidate.student_id} candidate={candidate} t={t} />
               ))}
             </ul>
             <p className="student-co-guardian-panel__disclaimer">

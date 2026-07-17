@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import { cn } from '@/lib/utils/cn';
@@ -21,6 +22,11 @@ export function Student360TabBar({
   indicators?: Partial<Record<Student360TabId, Student360TabIndicator>>;
 }) {
   const t = useT();
+  const activeRef = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+  }, [activeTab]);
 
   return (
     <nav className="student-360-tab-bar" role="tablist" aria-label={ariaLabel}>
@@ -31,6 +37,7 @@ export function Student360TabBar({
           return (
             <Link
               key={tab}
+              ref={isActive ? activeRef : undefined}
               href={buildStudent360TabHref(studentId, tab)}
               scroll={false}
               role="tab"

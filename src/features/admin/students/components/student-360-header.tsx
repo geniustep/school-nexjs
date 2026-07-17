@@ -1,103 +1,57 @@
 'use client';
 
+import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { computeProfileReadinessState } from '../utils/student-readiness-state';
-import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
+import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
+import {
+  buildStudent360AcademicContextLine,
+  shouldShowStudent360HeaderAttentionCue,
+} from '../utils/build-student-360-header-shell';
+import { resolveStudentHeaderBilingualNames } from '../utils/resolve-student-header-names';
 import { Student360HeaderAvatar } from './student-360-header-avatar';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type { AcademicClassOption, AcademicLevelOption, StudentDetailsData } from '@/types/student-360';
 import type { StudentOverviewData } from '@/types/student-overview';
 import { consentHeaderBadgeKind } from '../utils/student-consent-flags';
 
-const MAX_VISIBLE_ALERT_BADGES = 4;
-
 function hasBasicIdentityGap(details: StudentDetailsData): boolean {
   const s = details.student;
   return !s.date_of_birth || !s.first_name?.trim() || !s.last_name?.trim();
 }
 
-function pushConsentHeaderBadge(
-  badges: { key: string; label: string; tone: 'amber' | 'red' | 'slate' }[],
-  key: string,
-  kind: ReturnType<typeof consentHeaderBadgeKind>,
-  labels: { pending: string; blocked: string },
-) {
-  if (!kind) return;
-  badges.push({
-    key,
-    label: labels[kind],
-    tone: kind === 'blocked' ? 'red' : 'amber',
-  });
-}
-
-function buildHeaderBadges(
-  t: (key: string) => string,
+function countHeaderAttentionSignals(
   details: StudentDetailsData,
   overview: StudentOverviewData | null | undefined,
-): { key: string; label: string; tone: 'amber' | 'red' | 'slate' }[] {
-  const badges: { key: string; label: string; tone: 'amber' | 'red' | 'slate' }[] = [];
+): number {
+  let count = 0;
 
   const family = overview?.family;
   const hasGuardian =
     family?.has_guardian === true ||
     details.guardian_relationships.some((r) => isRelationshipActive(r.state, r.active));
-  if (!hasGuardian) {
-    badges.push({
-      key: 'no-guardian',
-      label: t('admin.student360.overview.badges.noGuardian'),
-      tone: 'amber',
-    });
-  }
+  if (!hasGuardian) count += 1;
 
   const docs = overview?.documents_summary;
-  if (docs?.available !== false && (docs?.missing ?? 0) > 0) {
-    badges.push({
-      key: 'missing-docs',
-      label: t('admin.student360.overview.badges.missingDocs'),
-      tone: 'red',
-    });
-  } else if (!docs && (details.document_summary?.missing_required ?? 0) > 0) {
-    badges.push({
-      key: 'missing-docs',
-      label: t('admin.student360.overview.badges.missingDocs'),
-      tone: 'red',
-    });
-  }
+  if (docs?.available !== false && (docs?.missing ?? 0) > 0) count += 1;
+  else if (!docs && (details.document_summary?.missing_required ?? 0) > 0) count += 1;
 
   const consents = overview?.consents_summary;
   if (consents?.can_view === true) {
     const flags = consents.important_flags;
-    pushConsentHeaderBadge(badges, 'photo-consent', consentHeaderBadgeKind(flags?.photo_publish), {
-      pending: t('admin.student360.overview.badges.photoConsentPending'),
-      blocked: t('admin.student360.overview.badges.photoConsentDenied'),
-    });
-    pushConsentHeaderBadge(badges, 'trip-consent', consentHeaderBadgeKind(flags?.trip_participation), {
-      pending: t('admin.student360.overview.badges.tripConsentPending'),
-      blocked: t('admin.student360.overview.badges.tripConsentDenied'),
-    });
+    if (consentHeaderBadgeKind(flags?.photo_publish)) count += 1;
+    if (consentHeaderBadgeKind(flags?.trip_participation)) count += 1;
   }
 
   const finance = overview?.finance_summary;
-  if (finance?.available === true && (finance.total_overdue ?? 0) > 0) {
-    badges.push({
-      key: 'finance-overdue',
-      label: t('admin.student360.overview.badges.financeOverdue'),
-      tone: 'red',
-    });
-  }
+  if (finance?.available === true && (finance.total_overdue ?? 0) > 0) count += 1;
 
-  if (!details.student.massar_code?.trim()) {
-    badges.push({
-      key: 'missing-massar',
-      label: t('admin.student360.overview.badges.missingMassar'),
-      tone: 'amber',
-    });
-  }
+  if (!details.student.massar_code?.trim()) count += 1;
 
-  return badges;
+  return count;
 }
 
 export function Student360Header({
@@ -114,7 +68,12 @@ export function Student360Header({
   const t = useT();
   const s = details.student;
   const enrollment = details.current_enrollment;
-  const displayName = overview?.profile?.full_name?.trim() || getStudentDisplayName(s);
+  const fallbackDisplay = overview?.profile?.full_name?.trim() || getStudentDisplayName(s);
+  const names = resolveStudentHeaderBilingualNames({
+    nameAr: s.name_ar,
+    nameLatin: s.name_latin,
+    fallbackDisplay,
+  });
   const ref =
     overview?.profile?.registration_number ??
     s.school_number ??
@@ -133,50 +92,22 @@ export function Student360Header({
   const levelLabel = schooling?.level || enrollment?.level || s.level
     ? studentLevelLabel((schooling?.level ?? enrollment?.level ?? s.level) as AcademicLevelOption)
     : null;
-  const yearLabel = schooling?.academic_year || enrollment?.academic_year
-    ? refOrStringLabel(schooling?.academic_year ?? enrollment?.academic_year)
-    : null;
-  const schoolLabel = schooling?.school || enrollment?.school || s.school
-    ? refOrStringLabel(schooling?.school ?? enrollment?.school ?? s.school)
-    : null;
-
-  const family = overview?.family;
-  const activeGuardian = details.guardian_relationships.find(
-    (r) => isRelationshipActive(r.state, r.active) && r.is_primary_contact,
-  );
-  const guardianLine =
-    family?.primary_guardian_name?.trim() ||
-    activeGuardian?.guardian.name ||
-    null;
+  const academicContext = buildStudent360AcademicContextLine({ classLabel, levelLabel });
 
   const photo = overview?.photo;
-  const headerBadges = buildHeaderBadges(t, details, overview);
-  const visibleAlertBadges = headerBadges.slice(0, MAX_VISIBLE_ALERT_BADGES);
-  const hiddenBadgeCount = Math.max(0, headerBadges.length - MAX_VISIBLE_ALERT_BADGES);
+  const alertCount = countHeaderAttentionSignals(details, overview);
+  const showAttentionCue = shouldShowStudent360HeaderAttentionCue({
+    alertCount,
+    missingBasicIdentity: missingBasic,
+    profileReadiness,
+  });
   const showAvatarSkeleton = overviewLoading && !photo;
-
-  const factItems = [
-    schoolLabel ? { label: t('admin.finance.activeSchool'), value: schoolLabel } : null,
-    classLabel || levelLabel
-      ? {
-          label: t('admin.student360.overview.header.study'),
-          value: [classLabel, levelLabel].filter(Boolean).join(' · '),
-        }
-      : null,
-    yearLabel ? { label: t('admin.academicYearId'), value: yearLabel } : null,
-    guardianLine
-      ? { label: t('admin.student360.overview.header.guardian'), value: guardianLine }
-      : null,
-    enrollment?.state
-      ? { label: t('admin.student360.enrollmentState'), value: statusLabel(t, enrollment.state) }
-      : null,
-  ].filter(Boolean) as { label: string; value: string }[];
-
   const statusAccent = status === 'active' ? 'active' : 'default';
+  const overviewHref = `/admin/students/${s.id}`;
 
   return (
     <header
-      className={`student-360-header student-360-header--${statusAccent}${headerBadges.some((b) => b.tone === 'red') ? ' student-360-header--has-critical' : ''}`}
+      className={`student-360-header student-360-header--compact student-360-header--${statusAccent}${showAttentionCue ? ' student-360-header--has-attention' : ''}`}
     >
       <div className="student-360-header__accent" aria-hidden="true" />
 
@@ -188,16 +119,40 @@ export function Student360Header({
             <Student360HeaderAvatar
               photo={photo}
               legacyImageUrl={s.image_url}
-              displayName={displayName}
+              displayName={names.displayName}
             />
           </div>
 
           <div className="student-360-header__body">
             <div className="student-360-header__topline">
               <div className="student-360-header__title-block">
-                <h1 className="student-360-header__title">{displayName}</h1>
+                <div className="student-360-header__names">
+                  <h1
+                    className="student-360-header__title student-360-header__title--primary"
+                    dir={names.primaryDir}
+                    lang={names.primaryDir === 'rtl' ? 'ar' : 'fr'}
+                  >
+                    <span className="visually-hidden">
+                      {names.primaryDir === 'rtl'
+                        ? t('admin.student360.nameAr')
+                        : t('admin.student360.nameLatin')}
+                      :{' '}
+                    </span>
+                    {names.primary}
+                  </h1>
+                  {names.secondary ? (
+                    <p
+                      className="student-360-header__title student-360-header__title--secondary"
+                      dir={names.secondaryDir ?? 'ltr'}
+                      lang="fr"
+                    >
+                      <span className="visually-hidden">{t('admin.student360.nameLatin')}: </span>
+                      {names.secondary}
+                    </p>
+                  ) : null}
+                </div>
                 {ref ? (
-                  <span className="student-360-header__ref mono" dir="auto" title={ref}>
+                  <span className="student-360-header__ref mono" dir="ltr" title={ref}>
                     {ref}
                   </span>
                 ) : null}
@@ -208,70 +163,28 @@ export function Student360Header({
             <div className="student-360-header__meta-strip">
               <div className="student-360-header__status-row">
                 <Badge tone={status === 'active' ? 'green' : 'slate'}>{statusText}</Badge>
-                <span
-                  className={`student-360-header__readiness-badge student-360-header__readiness-badge--${profileReadiness}`}
-                >
-                  {t(`admin.student360.profileReadiness.${profileReadiness}`)}
-                </span>
-                {missingBasic ? (
+                {academicContext ? (
                   <span
-                    className="student-360-header__gap-badge"
-                    title={t('admin.student360.header.incompleteData')}
+                    className="student-360-header__academic-context"
+                    dir="auto"
+                    title={academicContext}
                   >
-                    {t('admin.student360.header.incompleteData')}
+                    {academicContext}
                   </span>
+                ) : null}
+                {showAttentionCue ? (
+                  <Link
+                    href={overviewHref}
+                    className="student-360-header__attention-cue"
+                    title={t('admin.student360.header.attentionCueHint')}
+                  >
+                    {t('admin.student360.header.attentionCue')}
+                  </Link>
                 ) : null}
               </div>
             </div>
-
-            {visibleAlertBadges.length > 0 || hiddenBadgeCount > 0 ? (
-              <div className="student-360-header__alerts" role="list">
-                {visibleAlertBadges.map((badge) => (
-                  <span
-                    key={badge.key}
-                    role="listitem"
-                    className={`student-360-header__overview-badge student-360-header__overview-badge--${badge.tone}`}
-                  >
-                    {badge.label}
-                  </span>
-                ))}
-                {hiddenBadgeCount > 0 ? (
-                  <span
-                    role="listitem"
-                    className="student-360-header__overview-badge student-360-header__overview-badge--slate"
-                    title={headerBadges
-                      .slice(MAX_VISIBLE_ALERT_BADGES)
-                      .map((b) => b.label)
-                      .join(' · ')}
-                  >
-                    {t('admin.student360.overview.header.moreBadges', { count: hiddenBadgeCount })}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         </div>
-
-        {factItems.length > 0 ? (
-          <div className="student-360-header__row student-360-header__row--secondary">
-            <dl className="student-360-header__facts-grid">
-              {factItems.map((item) => (
-                <div key={item.label} className="student-360-header__fact-item">
-                  <dt>{item.label}</dt>
-                  <dd dir="auto" title={item.value}>
-                    {item.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        ) : null}
-
-        {photo?.external_publish_allowed === true ? (
-          <p className="student-360-header__photo-note muted">
-            {t('admin.student360.overview.header.externalPublishAllowed')}
-          </p>
-        ) : null}
       </div>
     </header>
   );

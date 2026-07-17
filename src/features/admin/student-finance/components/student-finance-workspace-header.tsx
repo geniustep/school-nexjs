@@ -64,7 +64,6 @@ export function StudentFinanceWorkspaceHeader({
     canCollect &&
     allowInstallmentCollection &&
     subTab !== 'agreements' &&
-    subTab !== 'ledger' &&
     subTab !== 'historical' &&
     !shouldHideCollectButton;
   const showCollectEnabled = showCollectButton && collectPaymentAllowed !== false;
@@ -181,13 +180,17 @@ export function StudentFinanceWorkspaceHeader({
               <button
                 type="button"
                 className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                aria-label={t('admin.student360.financeWorkspace.changePlan.replace.action')}
                 title={
                   changePlanHint ??
                   t('admin.student360.financeWorkspace.changePlan.replace.actionHint')
                 }
                 onClick={onOpenChangePlan}
               >
-                {t('admin.student360.financeWorkspace.changePlan.replace.action')}
+                <span aria-hidden="true">↻</span>
+                <span className="student-finance-command-bar__btn-label">
+                  {t('admin.student360.financeWorkspace.changePlan.replace.action')}
+                </span>
               </button>
             ) : null}
             {showCollectEnabled ? (

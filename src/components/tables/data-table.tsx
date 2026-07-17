@@ -1,6 +1,7 @@
 'use client';
 
 // Generic table. Columns render from a typed config; optional row click.
+// On finance mobile layouts, `data-label` drives the card-stack presentation.
 
 import type { ReactNode } from 'react';
 import { useT } from '@/features/i18n/locale-context';
@@ -8,9 +9,17 @@ import { useT } from '@/features/i18n/locale-context';
 export interface Column<T> {
   key: string;
   header: ReactNode;
+  /** Accessible/mobile label when `header` is not a plain string. */
+  label?: string;
   render: (row: T) => ReactNode;
   width?: string;
   className?: string;
+}
+
+function resolveColumnLabel(column: Column<unknown>): string {
+  if (typeof column.label === 'string' && column.label.trim()) return column.label.trim();
+  if (typeof column.header === 'string') return column.header;
+  return '';
 }
 
 export function DataTable<T>({
@@ -19,15 +28,27 @@ export function DataTable<T>({
   onRowClick,
   rowKey,
   stickyHeader = false,
+  className,
 }: {
   columns: Column<T>[];
   rows: T[];
   onRowClick?: (row: T) => void;
   rowKey: (row: T) => string | number;
   stickyHeader?: boolean;
+  className?: string;
 }) {
   return (
-    <div className={`table-wrap card${stickyHeader ? ' table-wrap--sticky-head' : ''}`} style={{ padding: 0 }}>
+    <div
+      className={[
+        'table-wrap',
+        'card',
+        stickyHeader ? 'table-wrap--sticky-head' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={{ padding: 0 }}
+    >
       <table className="data">
         <thead>
           <tr>
@@ -49,11 +70,18 @@ export function DataTable<T>({
               className={onRowClick ? 'row-link' : undefined}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
             >
-              {columns.map((c) => (
-                <td key={c.key} className={c.className}>
-                  {c.render(row)}
-                </td>
-              ))}
+              {columns.map((c) => {
+                const dataLabel = resolveColumnLabel(c as Column<unknown>);
+                return (
+                  <td
+                    key={c.key}
+                    className={c.className}
+                    {...(dataLabel ? { 'data-label': dataLabel } : {})}
+                  >
+                    {c.render(row)}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

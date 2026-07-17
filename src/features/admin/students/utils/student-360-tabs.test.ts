@@ -14,11 +14,11 @@ describe('STUDENT_360_TAB_ORDER', () => {
     expect(STUDENT_360_TAB_ORDER).toEqual([
       'overview',
       'enrollment',
-      'academic',
       'guardians',
       'finance',
-      'health',
       'documents',
+      'health',
+      'academic',
     ]);
   });
 });
@@ -104,6 +104,6 @@ describe('buildAvailableStudent360Tabs', () => {
         showHealth: false,
         showDocuments: true,
       }),
-    ).toEqual(['overview', 'enrollment', 'academic', 'guardians', 'finance', 'documents']);
+    ).toEqual(['overview', 'enrollment', 'guardians', 'finance', 'documents', 'academic']);
   });
 });

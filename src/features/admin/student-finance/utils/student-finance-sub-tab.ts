@@ -1,24 +1,18 @@
 /** Internal sections within the Student 360 finance tab. */
 export type StudentFinanceSubTab =
   | 'overview'
-  | 'fees'
   | 'agreements'
   | 'schedule'
   | 'collections'
   | 'cheques'
-  | 'adjustments'
-  | 'ledger'
   | 'historical';
 
 export const STUDENT_FINANCE_SUB_TABS: StudentFinanceSubTab[] = [
   'overview',
-  'fees',
   'agreements',
   'schedule',
   'collections',
   'cheques',
-  'adjustments',
-  'ledger',
   'historical',
 ];
 
@@ -27,13 +21,23 @@ const SUB_TAB_SET = new Set<string>(STUDENT_FINANCE_SUB_TABS);
 /** Legacy URL value kept for redirects from the removed main tab. */
 export const LEGACY_FINANCE_AGREEMENT_SECTION = 'agreement';
 
+/** Removed finance sub-tabs kept only for URL redirects. */
+const LEGACY_SUB_TAB_REDIRECTS: Record<string, StudentFinanceSubTab> = {
+  fees: 'agreements',
+  adjustments: 'agreements',
+  ledger: 'historical',
+  [LEGACY_FINANCE_AGREEMENT_SECTION]: 'agreements',
+};
+
 export function isStudentFinanceSubTab(value: string | null | undefined): value is StudentFinanceSubTab {
   return !!value && SUB_TAB_SET.has(value);
 }
 
 export function parseStudentFinanceSubTab(value: string | null | undefined): StudentFinanceSubTab {
   if (isStudentFinanceSubTab(value)) return value;
-  if (value === LEGACY_FINANCE_AGREEMENT_SECTION) return 'agreements';
+  if (value && value in LEGACY_SUB_TAB_REDIRECTS) {
+    return LEGACY_SUB_TAB_REDIRECTS[value]!;
+  }
   return 'overview';
 }
 

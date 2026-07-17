@@ -138,33 +138,29 @@ export function StudentGuardiansTab({
   return (
     <div className="student-360-tab-panel student-360-guardians-tab">
       <header className="student-360-guardians-toolbar">
-        <div className="student-360-guardians-toolbar__main">
-          <div className="student-360-guardians-toolbar__title-row">
-            <h2 className="student-360-guardians-toolbar__title">{t('admin.student360.guardiansTitle')}</h2>
-            {active.length > 0 ? (
-              <span className="student-360-guardians-toolbar__stat">
-                {t('admin.student360.guardiansActiveCount', { count: active.length })}
-              </span>
-            ) : null}
-          </div>
-          <p className="student-360-guardians-toolbar__desc">{t('admin.student360.pages.guardians.description')}</p>
+        <div className="student-360-guardians-toolbar__title-row">
+          <h2 className="student-360-guardians-toolbar__title">{t('admin.student360.guardiansTitle')}</h2>
+          {active.length > 0 ? (
+            <span className="student-360-guardians-toolbar__stat">
+              {t('admin.student360.guardiansActiveCount', { count: active.length })}
+            </span>
+          ) : null}
         </div>
         {canManageGuardians ? (
-          <div className="student-360-guardians-toolbar__actions">
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>
-              {t('admin.student360.addGuardian')}
-            </button>
-          </div>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>
+            {t('admin.student360.addGuardian')}
+          </button>
         ) : null}
       </header>
 
       {duplicateMessage ? (
         <div className="student-360-guardians-alert" role="status">
-          <div className="student-360-guardians-alert__content">
-            <span className="student-360-guardians-alert__icon" aria-hidden="true">!</span>
-            <p>{duplicateMessage}</p>
-          </div>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => sortedActive[1] && setEditRel(sortedActive[1])}>
+          <p>{duplicateMessage}</p>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => sortedActive[1] && setEditRel(sortedActive[1])}
+          >
             {t('admin.student360.guardiansReviewRelationships')}
           </button>
         </div>
@@ -177,31 +173,27 @@ export function StudentGuardiansTab({
           description={t('admin.student360.guardiansEmptyDesc')}
           action={
             canManageGuardians ? (
-              <>
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>
-                  {t('admin.student360.addGuardian')}
-                </button>
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => setAddOpen(true)}>
-                  {t('admin.student360.searchExisting')}
-                </button>
-              </>
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>
+                {t('admin.student360.addGuardian')}
+              </button>
             ) : undefined
           }
         />
       ) : (
         <div className="student-360-guardians-tab__body">
-          <div className="student-360-guardians-grid">
+          <div className="student-360-guardians-list" role="list">
             {sortedActive.map((rel) => (
-              <GuardianRelationshipCard
-                key={rel.relationship_id}
-                rel={rel}
-                canManage={canManageGuardians}
-                isDefaultBilling={isDefaultBillingGuardian(rel.guardian.id, billingResolution)}
-                onEdit={() => setEditRel(rel)}
-                onRemove={() => setRemoveRel(rel)}
-                onCopyPhone={copyPhone}
-                onAccountChanged={onChanged}
-              />
+              <div key={rel.relationship_id} role="listitem">
+                <GuardianRelationshipCard
+                  rel={rel}
+                  canManage={canManageGuardians}
+                  isDefaultBilling={isDefaultBillingGuardian(rel.guardian.id, billingResolution)}
+                  onEdit={() => setEditRel(rel)}
+                  onRemove={() => setRemoveRel(rel)}
+                  onCopyPhone={copyPhone}
+                  onAccountChanged={onChanged}
+                />
+              </div>
             ))}
           </div>
           {ended.length > 0 ? (
@@ -210,15 +202,16 @@ export function StudentGuardiansTab({
                 <h3 className="student-360-guardians-ended__title">{t('admin.student360.endedRelationships')}</h3>
                 <span className="student-360-guardians-ended__count">{ended.length}</span>
               </header>
-              <div className="student-360-guardians-grid student-360-guardians-grid--ended">
+              <div className="student-360-guardians-list student-360-guardians-list--ended" role="list">
                 {ended.map((rel) => (
-                  <GuardianRelationshipCard
-                    key={rel.relationship_id}
-                    rel={rel}
-                    canManage={false}
-                    onEdit={() => {}}
-                    onRemove={() => {}}
-                  />
+                  <div key={rel.relationship_id} role="listitem">
+                    <GuardianRelationshipCard
+                      rel={rel}
+                      canManage={false}
+                      onEdit={() => {}}
+                      onRemove={() => {}}
+                    />
+                  </div>
                 ))}
               </div>
             </section>

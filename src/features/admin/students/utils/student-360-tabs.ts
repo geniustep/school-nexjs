@@ -2,11 +2,11 @@
 export const STUDENT_360_TAB_ORDER = [
   'overview',
   'enrollment',
-  'academic',
   'guardians',
   'finance',
-  'health',
   'documents',
+  'health',
+  'academic',
 ] as const;
 
 export type Student360TabId = (typeof STUDENT_360_TAB_ORDER)[number];
