@@ -184,8 +184,16 @@ export function StaffFormDrawer({
     setUseDifferentLogin(Boolean(memberLogin && memberEmail && memberLogin !== memberEmail));
     setPhone(member.phone ?? '');
     setJobTitle(member.job_title ?? '');
-    setAdminKind(member.admin_kind);
-    setOriginalAdminKind(member.admin_kind);
+    setAdminKind(
+      member.admin_kind && typeof member.admin_kind === 'string'
+        ? (member.admin_kind as StaffAdminKind)
+        : '',
+    );
+    setOriginalAdminKind(
+      member.admin_kind && typeof member.admin_kind === 'string'
+        ? (member.admin_kind as StaffAdminKind)
+        : '',
+    );
     const storedCodes = resolveStoredCapabilityCodes(member, permissionsPayload);
     const resolvedIds = capabilityCodesToIds(storedCodes, options?.capabilities ?? []);
     setCapabilityIds(resolvedIds);

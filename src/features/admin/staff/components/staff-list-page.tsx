@@ -15,6 +15,7 @@ import { Badge, PageHeader } from '@/components/ui/primitives';
 import { StaffAllowedActionsBadges } from '@/features/admin/staff/components/staff-allowed-actions-bar';
 import { useStaffCenterList } from '@/features/admin/staff/hooks/use-staff-center';
 import {
+  isStaffCenterParent,
   resolveStaffDisplayName,
   resolveStaffPrimarySchoolName,
   resolveStaffUserId,
@@ -83,7 +84,7 @@ export function StaffListPage() {
         render: (member) => (
           <div className="staff-center-type-badges">
             {staffUserTypeLabelKeys(member).map((key) => (
-              <Badge key={key} tone="blue">
+              <Badge key={key} tone={isStaffCenterParent(member) ? 'slate' : 'blue'}>
                 {t(key)}
               </Badge>
             ))}
@@ -94,7 +95,10 @@ export function StaffListPage() {
         key: 'admin_kind',
         header: t('admin.staffCenter.adminKind'),
         render: (member) =>
-          member.admin_kind ? resolveStaffAdminKindLabel(member.admin_kind, t) : t('common.dash'),
+          // Parents are not admin kinds — ignore misleading admin_kind from Backend.
+          isStaffCenterParent(member) || !member.admin_kind
+            ? t('common.dash')
+            : resolveStaffAdminKindLabel(member.admin_kind, t),
       },
       {
         key: 'school',

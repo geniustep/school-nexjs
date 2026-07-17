@@ -30,9 +30,12 @@ function normalizeLabelKey(value: string): string {
 }
 
 export function resolveStaffAdminKindLabel(
-  adminKind: string,
+  adminKind: string | null | undefined,
   t: TranslateFn,
 ): string {
+  if (adminKind == null || !String(adminKind).trim()) {
+    return t('common.dash');
+  }
   const kindNormalized = adminKind.trim().toLowerCase();
   if (kindNormalized === 'unknown') {
     return t('admin.staffCenter.userType.unknown');
@@ -44,6 +47,11 @@ export function resolveStaffAdminKindLabel(
   const kindKey = `admin.academicSetup.adminKind.${adminKind}`;
   const direct = t(kindKey);
   if (direct !== kindKey) return direct;
+
+  // Reuse roles.adminKind for kinds like legacy_admin not present under academicSetup.
+  const rolesKindKey = `roles.adminKind.${adminKind}`;
+  const rolesDirect = t(rolesKindKey);
+  if (rolesDirect !== rolesKindKey) return rolesDirect;
 
   const normalized = normalizeLabelKey(adminKind);
   const technicalKey = TECHNICAL_JOB_TITLE_KEYS[normalized];
@@ -74,6 +82,12 @@ export function isDuplicateAdminKindLabel(jobTitle: string, adminKind: string, t
 
 /** Primary role line: admin kind · job title (when distinct and not a raw English technical label). */
 export function formatStaffRoleLine(member: StaffMember, t: TranslateFn): string {
+  if (!member.admin_kind) {
+    const rawTitle = member.job_title?.trim();
+    if (!rawTitle) return t('common.dash');
+    return translateTechnicalJobTitle(rawTitle, t) ?? rawTitle;
+  }
+
   const primary = resolveStaffAdminKindLabel(member.admin_kind, t);
   const rawTitle = member.job_title?.trim();
   if (!rawTitle) return primary;

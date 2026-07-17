@@ -16,6 +16,7 @@ import {
   scopeStoredCapabilityCodes,
 } from '@/features/admin/staff/utils/staff-permission-merge';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
+import { isStaffCenterParent } from '@/features/admin/staff/utils/normalize-staff-center';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { StaffEffectivePermissionsPayload, StaffMember } from '@/types/academic-setup';
 
@@ -75,9 +76,10 @@ export function StaffPermissionsSection({
           },
           {
             label: t('admin.staffCenter.adminKind'),
-            value: member.admin_kind
-              ? resolveStaffAdminKindLabel(member.admin_kind, t)
-              : t('common.dash'),
+            value:
+              isStaffCenterParent(member) || !member.admin_kind
+                ? t('common.dash')
+                : resolveStaffAdminKindLabel(member.admin_kind, t),
           },
           {
             label: t('admin.staffCenter.permissionsMode'),

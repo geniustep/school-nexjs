@@ -1,5 +1,6 @@
 import { resolveCapabilityLabel } from '@/features/admin/academic-setup/utils/capability-present';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
+import { isStaffCenterParent } from '@/features/admin/staff/utils/normalize-staff-center';
 import type { Locale } from '@/lib/i18n/config';
 import type { StaffMember } from '@/types/academic-setup';
 import type { StaffCreationTemplate, StaffTemplateCreateResult } from '@/types/staff-templates';
@@ -214,9 +215,17 @@ export function resolveStaffCreationTemplateLabel(
 }
 
 export function resolveStaffRoleDisplayLabel(
-  member: Pick<StaffMember, 'role_display_name' | 'admin_kind' | 'creation_template_code'>,
+  member: Pick<
+    StaffMember,
+    'role_display_name' | 'admin_kind' | 'creation_template_code' | 'user_kind' | 'is_parent'
+  >,
   t: (key: string) => string,
 ): string {
+  // user_kind/is_parent win over role_display_name and misleading admin_kind.
+  if (isStaffCenterParent(member)) {
+    return t('admin.staffCenter.userType.parent');
+  }
+
   const display = member.role_display_name?.trim();
   if (display && !isRawStaffDisplayToken(display)) {
     return display;

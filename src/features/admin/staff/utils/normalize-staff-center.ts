@@ -8,7 +8,18 @@ import type {
   StaffMember,
   StaffScope,
   StaffTeacherLink,
+  StaffUserKind,
 } from '@/types/academic-setup';
+
+const KNOWN_ADMIN_USER_KINDS = new Set<string>([
+  'legacy_admin',
+  'project_manager',
+  'school_manager',
+  'pedagogical_director',
+  'general_supervisor',
+  'admin_staff',
+  'super_admin',
+]);
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -115,6 +126,39 @@ export function normalizeEffectivePermissionsPayload(
   };
 }
 
+function normalizeStaffUserKind(raw: unknown): StaffUserKind | null {
+  return asString(raw) as StaffUserKind | null;
+}
+
+function normalizeNullableAdminKind(
+  raw: unknown,
+): StaffMember['admin_kind'] {
+  if (raw === null) return null;
+  return asString(raw);
+}
+
+/** Parent when Backend says so — never inferred from name/login/share. */
+export function isStaffCenterParent(
+  member: Pick<StaffMember, 'user_kind' | 'is_parent'>,
+): boolean {
+  if (asString(member.user_kind)?.toLowerCase() === 'parent') return true;
+  if (member.user_kind == null && member.is_parent === true) return true;
+  return false;
+}
+
+/**
+ * Resolve canonical staff user kind for presentation.
+ * Precedence: user_kind → is_parent fallback → null (caller uses legacy flags).
+ */
+export function resolveStaffCenterUserKind(
+  member: Pick<StaffMember, 'user_kind' | 'is_parent'>,
+): StaffUserKind | null {
+  const kind = asString(member.user_kind)?.toLowerCase() ?? null;
+  if (kind) return kind as StaffUserKind;
+  if (member.is_parent === true) return 'parent';
+  return null;
+}
+
 export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
   const base = normalizeStaffMember(raw);
   const displayName = asString(raw.display_name) ?? base.name;
@@ -123,6 +167,13 @@ export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
       ? raw.effective_permissions
       : null,
   );
+  const userKind = normalizeStaffUserKind(raw.user_kind);
+  const isParent =
+    asBool(raw.is_parent) ?? (userKind?.toLowerCase() === 'parent' ? true : undefined);
+  const isParentRow = userKind?.toLowerCase() === 'parent' || isParent === true;
+  // Preserve explicit null from Backend; do not coerce null → legacy/default via `??`.
+  const adminKind =
+    raw.admin_kind === null ? null : normalizeNullableAdminKind(raw.admin_kind) ?? base.admin_kind;
 
   return {
     ...base,
@@ -132,16 +183,20 @@ export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
     phone: base.phone ?? asString(raw.mobile),
     partner_id: asNumber(raw.partner_id),
     status: asString(raw.status) ?? base.account_status,
-    is_admin_staff: asBool(raw.is_admin_staff),
-    is_teacher: asBool(raw.is_teacher),
-    teacher_id: asNumber(raw.teacher_id),
-    teacher_type: asString(raw.teacher_type),
+    user_kind: userKind,
+    is_parent: isParent,
+    admin_kind: adminKind,
+    // Parent contract: never present as admin/teacher from misleading flags.
+    is_admin_staff: isParentRow ? false : asBool(raw.is_admin_staff),
+    is_teacher: isParentRow ? false : asBool(raw.is_teacher),
+    teacher_id: isParentRow ? null : asNumber(raw.teacher_id),
+    teacher_type: isParentRow ? null : asString(raw.teacher_type),
     creation_template_code: asString(raw.creation_template_code),
     role_display_name: asString(raw.role_display_name),
     primary_school_id: asNumber(raw.primary_school_id),
     role_templates: Array.isArray(raw.role_templates) ? raw.role_templates : undefined,
     scopes: normalizeScopes(raw.scopes),
-    teacher: normalizeTeacherLink(raw.teacher),
+    teacher: isParentRow ? null : normalizeTeacherLink(raw.teacher),
     warnings: normalizeStaffWarnings(raw.warnings),
     allowed_actions: normalizeStaffAllowedActions(raw.allowed_actions),
     assigned_capabilities:
@@ -223,10 +278,36 @@ export function mergeStaffPermissionsPayload(
   };
 }
 
+/**
+ * User-type badge keys for the unified staff list.
+ * Precedence: user_kind → is_parent → legacy flags. Never infer parent from name/login.
+ * `admin_kind` alone never wins over `user_kind='parent'`.
+ */
 export function staffUserTypeLabelKeys(member: StaffMember): string[] {
-  if (member.role_display_name?.trim()) {
-    return [];
+  const kind = resolveStaffCenterUserKind(member);
+
+  if (kind === 'parent') {
+    return ['admin.staffCenter.userType.parent'];
   }
+
+  if (kind === 'teacher') {
+    return ['admin.staffCenter.userType.teacher'];
+  }
+
+  if (kind === 'legacy_admin') {
+    return ['roles.adminKind.legacy_admin'];
+  }
+
+  if (kind && KNOWN_ADMIN_USER_KINDS.has(kind)) {
+    return ['admin.staffCenter.userType.admin'];
+  }
+
+  // Unknown future user_kind — safe fallback, never admin/teacher by default.
+  if (kind) {
+    return ['admin.staffCenter.userType.unknown'];
+  }
+
+  // Legacy payloads without user_kind / is_parent.
   const keys: string[] = [];
   if (member.is_admin_staff) keys.push('admin.staffCenter.userType.admin');
   if (member.is_teacher) keys.push('admin.staffCenter.userType.teacher');
@@ -238,9 +319,10 @@ export function staffUserTypeLabelKeys(member: StaffMember): string[] {
     if (member.teacher_id || member.teacher || member.is_teacher) {
       keys.push('admin.staffCenter.userType.teacher');
     } else if (member.admin_kind) {
+      // Real admin_kind only — null/absent must not become legacy_admin or teacher.
       keys.push('admin.staffCenter.userType.admin');
     } else {
-      keys.push('admin.staffCenter.userType.teacher');
+      keys.push('admin.staffCenter.userType.unknown');
     }
   }
   return keys;

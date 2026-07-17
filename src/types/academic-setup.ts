@@ -76,6 +76,23 @@ export type StaffAdminKind =
   | 'admin_staff'
   | 'pedagogical_director';
 
+/**
+ * Canonical user classification from GET /api/v1/admin/staff (`user_kind`).
+ * Optional on legacy payloads that predate the Odoo parent contract.
+ * `(string & {})` keeps unknown future kinds assignable without breaking consumers.
+ */
+export type StaffUserKind =
+  | 'parent'
+  | 'teacher'
+  | 'legacy_admin'
+  | 'project_manager'
+  | 'school_manager'
+  | 'pedagogical_director'
+  | 'general_supervisor'
+  | 'admin_staff'
+  | 'super_admin'
+  | (string & {});
+
 export type PermissionsMode =
   | 'full_school'
   | 'assigned'
@@ -179,7 +196,12 @@ export interface StaffMember {
   mobile?: string | null;
   partner_id?: number | null;
   job_title: string | null;
-  admin_kind: StaffAdminKind;
+  /** Nullable when Backend returns null (e.g. parents). Not a general user-type label. */
+  admin_kind: StaffAdminKind | string | null;
+  /** Canonical user kind from staff endpoint — source of truth when present. */
+  user_kind?: StaffUserKind | null;
+  /** Backend parent flag — fallback when `user_kind` is absent on older payloads. */
+  is_parent?: boolean;
   permissions_mode?: PermissionsMode;
   capabilities_editable?: boolean;
   assigned_capabilities?: string[];

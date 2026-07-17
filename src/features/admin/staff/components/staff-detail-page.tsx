@@ -22,6 +22,7 @@ import { StaffAccountPasswordBanner } from '@/features/admin/staff/components/st
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
 import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
 import {
+  isStaffCenterParent,
   resolveStaffDisplayName,
   resolveStaffPrimarySchoolName,
   resolveStaffUserId,
@@ -80,7 +81,13 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               actions={
                 <div className="col" style={{ gap: 8, alignItems: 'flex-end' }}>
                   <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                    {member.role_display_name?.trim() ? (
+                    {isStaffCenterParent(member) ? (
+                      staffUserTypeLabelKeys(member).map((key) => (
+                        <Badge key={key} tone="slate">
+                          {t(key)}
+                        </Badge>
+                      ))
+                    ) : member.role_display_name?.trim() ? (
                       <Badge key="role-display" tone="blue">
                         {resolveStaffRoleDisplayLabel(member, t)}
                       </Badge>
@@ -197,9 +204,10 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                     },
                     {
                       label: t('admin.staffCenter.adminKind'),
-                      value: member.admin_kind
-                        ? resolveStaffAdminKindLabel(member.admin_kind, t)
-                        : t('common.dash'),
+                      value:
+                        isStaffCenterParent(member) || !member.admin_kind
+                          ? t('common.dash')
+                          : resolveStaffAdminKindLabel(member.admin_kind, t),
                     },
                   ]}
                 />

@@ -2277,6 +2277,7 @@
       "userType": {
         "admin": "Administrative",
         "teacher": "Teacher",
+        "parent": "Parent",
         "unknown": "Undefined"
       },
       "adminKind": "Admin kind",

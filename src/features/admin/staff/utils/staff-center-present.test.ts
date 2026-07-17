@@ -22,11 +22,13 @@ const tAr = (key: string) => {
   const labels: Record<string, string> = {
     'admin.staffCenter.userType.unknown': 'غير محدد',
     'admin.staffCenter.userType.teacher': 'أستاذ',
+    'admin.staffCenter.userType.parent': 'ولي أمر',
     'admin.staffCenter.permissionsModes.assigned': 'صلاحيات معيّنة',
     'admin.staffCenter.warnings.unknown': 'غير محدد',
     'admin.staffCenter.warnings.generic': 'ملاحظة تشغيلية',
     'admin.staffCenter.creationTemplates.subject_teacher': 'أستاذ مادة',
     'admin.staffCenter.creationTemplates.pedagogical_director': 'مدير تربوي',
+    'roles.adminKind.legacy_admin': 'مدير (قديم)',
     'common.dash': '—',
   };
   return labels[key] ?? key;
@@ -142,6 +144,21 @@ describe('staff-center-present', () => {
     };
     expect(resolveTeacherTypeDisplayLabel(member, 'unknown', tAr)).toBe('أستاذ مادة');
     expect(resolveTeacherTypeDisplayLabel(member, 'unknown', tAr)).not.toBe('unknown');
+  });
+
+  it('labels parent from user_kind even when admin_kind is misleading', () => {
+    expect(
+      resolveStaffRoleDisplayLabel(
+        {
+          user_kind: 'parent',
+          is_parent: true,
+          admin_kind: 'legacy_admin',
+          role_display_name: 'مدير (قديم)',
+          creation_template_code: null,
+        },
+        tAr,
+      ),
+    ).toBe('ولي أمر');
   });
 });
 
