@@ -87,6 +87,7 @@ describe('TeacherSessionHub', () => {
   });
 
   it('shows delivery / journal / progress tabs only when Backend allows them', async () => {
+    tab = 'progress';
     fetchTeacherSessionOccurrence.mockResolvedValue({
       success: true,
       data: occurrence({
@@ -95,12 +96,18 @@ describe('TeacherSessionHub', () => {
         current_delivery_id: 12,
         current_journal_entry_id: 33,
         progress_summary: '40%',
+        offering: { id: 20, name: 'Math offering' },
       }),
     });
     render(<TeacherSessionHub occurrenceId="9" />);
     expect(await screen.findByRole('link', { name: 'teacher.delivery.tab' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'teacher.classJournal.tab' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'teacher.teachingProgress.tab' })).toBeTruthy();
+    const planning = await screen.findByRole('link', { name: 'teacher.teachingProgress.openPlanning' });
+    expect(planning.getAttribute('href')).toContain('/teacher/teaching/planning?');
+    expect(planning.getAttribute('href')).toContain('class_id=2');
+    expect(planning.getAttribute('href')).toContain('offering_id=20');
+    expect(planning.getAttribute('href')).not.toContain('/teacher/teaching-progress');
   });
 
   it('hides delivery tabs when allowed_actions omit them', async () => {

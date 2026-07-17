@@ -1,8 +1,9 @@
 'use client';
 
 /**
- * Teacher chooses an alternative / postponed remaining item.
+ * Teacher chooses an alternative / postponed remaining item / choose postponed.
  * Reason required for select_alternative and postpone_item.
+ * choose_postponed: reason optional (Backend contract).
  * Does not register delivery — decision only.
  */
 
@@ -14,16 +15,26 @@ import type {
   TeachingRemainingItem,
 } from '@/types/teaching-delivery';
 
+export type TeachingNextItemDecisionDialogMode =
+  | 'select_alternative'
+  | 'postpone_item'
+  | 'choose_postponed';
+
 export type TeachingNextItemDecisionDialogProps = {
   open: boolean;
   classId: number;
   offeringId: number;
-  mode: 'select_alternative' | 'postpone_item';
+  mode: TeachingNextItemDecisionDialogMode;
   candidates: TeachingRemainingItem[];
   suggestedLineId?: number | null;
+  initialLineId?: number | null;
   onClose: () => void;
   onSuccess: () => void;
 };
+
+function reasonRequired(mode: TeachingNextItemDecisionDialogMode): boolean {
+  return mode === 'select_alternative' || mode === 'postpone_item';
+}
 
 export function TeachingNextItemDecisionDialog({
   open,
@@ -32,6 +43,7 @@ export function TeachingNextItemDecisionDialog({
   mode,
   candidates,
   suggestedLineId,
+  initialLineId,
   onClose,
   onSuccess,
 }: TeachingNextItemDecisionDialogProps) {
@@ -55,36 +67,37 @@ export function TeachingNextItemDecisionDialog({
     if (mode === 'select_alternative' && suggestedLineId && item.distribution_line_id === suggestedLineId) {
       return false;
     }
-    if (mode === 'postpone_item' && suggestedLineId && item.distribution_line_id !== suggestedLineId) {
-      // Postpone targets the suggested/current item by default; allow any remaining if no suggestion.
-      return true;
+    if (mode === 'choose_postponed') {
+      return Boolean(item.postponed);
     }
     return true;
   });
 
   useEffect(() => {
     if (!open) return;
-    setSelectedLineId(
-      mode === 'postpone_item' && suggestedLineId
-        ? String(suggestedLineId)
-        : eligible[0]
-          ? String(eligible[0].distribution_line_id)
-          : '',
-    );
+    const preferred =
+      initialLineId && eligible.some((item) => item.distribution_line_id === initialLineId)
+        ? String(initialLineId)
+        : mode === 'postpone_item' && suggestedLineId
+          ? String(suggestedLineId)
+          : eligible[0]
+            ? String(eligible[0].distribution_line_id)
+            : '';
+    setSelectedLineId(preferred);
     setReason('');
     setReasonError(null);
     setSubmitError(null);
     setLiveMessage('');
     const timer = window.setTimeout(() => firstFocusRef.current?.focus(), 0);
     return () => window.clearTimeout(timer);
-  }, [open, mode, suggestedLineId]);
+  }, [open, mode, suggestedLineId, initialLineId]);
 
   if (!open) return null;
 
   async function handleSubmit() {
     if (busy) return;
     const trimmed = reason.trim();
-    if (!trimmed) {
+    if (reasonRequired(mode) && !trimmed) {
       setReasonError(t('teacher.teachingProgress.decision.reasonRequired'));
       return;
     }
@@ -105,18 +118,33 @@ export function TeachingNextItemDecisionDialog({
       offering_id: offeringId,
       distribution_line_id: lineId,
       selected_distribution_line_id: lineId,
-      reason: trimmed,
+      suggested_distribution_line_id: suggestedLineId ?? undefined,
+      reason: trimmed || null,
     });
 
     setBusy(false);
     if (!res.success) {
-      setSubmitError(res.error?.message ?? t('errors.loadFailedRetry'));
+      const code = res.error?.code ?? '';
+      if (code === 'permission_denied' || code === 'forbidden') {
+        setSubmitError(t('teacher.teachingProgress.decision.forbidden'));
+      } else if (code.includes('conflict') || res.error?.message?.toLowerCase().includes('conflict')) {
+        setSubmitError(t('teacher.teachingProgress.decision.conflict'));
+      } else {
+        setSubmitError(res.error?.message ?? t('teacher.teachingProgress.decision.failed'));
+      }
       return;
     }
     setLiveMessage(t('teacher.teachingProgress.decision.saved'));
     onSuccess();
     onClose();
   }
+
+  const titleKey =
+    mode === 'postpone_item'
+      ? 'teacher.teachingProgress.decision.postponeTitle'
+      : mode === 'choose_postponed'
+        ? 'teacher.teachingProgress.decision.choosePostponedTitle'
+        : 'teacher.teachingProgress.decision.alternativeTitle';
 
   return (
     <div
@@ -132,11 +160,7 @@ export function TeachingNextItemDecisionDialog({
         aria-describedby={descId}
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 id={titleId}>
-          {mode === 'postpone_item'
-            ? t('teacher.teachingProgress.decision.postponeTitle')
-            : t('teacher.teachingProgress.decision.alternativeTitle')}
-        </h3>
+        <h3 id={titleId}>{t(titleKey)}</h3>
         <p id={descId} className="muted">
           {t('teacher.teachingProgress.decision.description')}
         </p>
@@ -174,7 +198,11 @@ export function TeachingNextItemDecisionDialog({
           </div>
 
           <div className="field">
-            <label htmlFor={reasonId}>{t('teacher.teachingProgress.decision.reasonLabel')}</label>
+            <label htmlFor={reasonId}>
+              {reasonRequired(mode)
+                ? t('teacher.teachingProgress.decision.reasonLabel')
+                : t('teacher.teachingProgress.decision.reasonOptional')}
+            </label>
             <textarea
               id={reasonId}
               className="textarea"

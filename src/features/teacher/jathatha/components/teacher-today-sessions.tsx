@@ -27,10 +27,14 @@ export function TeacherTodaySessions() {
   };
   useEffect(load, []);
   const state = { data, error, loading, initialLoading: loading && data === null, fetching: loading && data !== null, reload: load, meta: null };
+  const contextSession = data?.find((row) => row.class?.id && row.offering?.id) ?? data?.[0] ?? null;
 
   return (
     <>
-      <TeachingProgressTodaySnippet />
+      <TeachingProgressTodaySnippet
+        classId={contextSession?.class?.id}
+        offeringId={contextSession?.offering?.id}
+      />
       <TeacherSection title={t('teacher.jathatha.todaySessions')} action={<Link className="btn btn--ghost btn--sm" href="/teacher/timetable">{t('nav.timetable')}</Link>}>
         <ResourceView
           state={state}

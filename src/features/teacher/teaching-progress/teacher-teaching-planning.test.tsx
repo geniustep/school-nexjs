@@ -6,12 +6,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fetchSummary = vi.fn();
 const fetchNext = vi.fn();
+const fetchRemaining = vi.fn();
 const submitDecision = vi.fn();
+const routerReplace = vi.fn();
+const routerPush = vi.fn();
+let search = '';
 
 vi.mock('@/features/teacher/teaching-progress/api/teacher-curriculum-progress-api', () => ({
   fetchTeacherCurriculumProgressSummary: (...args: unknown[]) => fetchSummary(...args),
   fetchTeacherSuggestedNextItem: (...args: unknown[]) => fetchNext(...args),
+  fetchTeacherCurriculumRemaining: (...args: unknown[]) => fetchRemaining(...args),
   submitTeacherExecutionDecision: (...args: unknown[]) => submitDecision(...args),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: routerReplace, push: routerPush }),
+  useSearchParams: () => new URLSearchParams(search),
 }));
 
 vi.mock('@/features/academic-context', () => ({
@@ -124,11 +134,22 @@ function nextPayload(overrides: Record<string, unknown> = {}) {
         delivered_session_units: 0,
       },
     ],
-    postponed_items: [],
+    postponed_items: [
+      {
+        distribution_line_id: 103,
+        title: 'Postponed item',
+        sequence_order: 3,
+        postponed: true,
+        eligibility: true,
+        latest_postponement_reason: 'Absence',
+        remaining_units: 1,
+      },
+    ],
     allowed_actions: {
       accept_suggestion: true,
       select_alternative: true,
       postpone_item: true,
+      choose_postponed: true,
     },
     warnings: [],
     source: 'distribution_progress',
@@ -136,42 +157,79 @@ function nextPayload(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function remainingItems() {
+  return [
+    {
+      distribution_line_id: 101,
+      title: 'Partial item',
+      sequence_order: 1,
+      is_partial: true,
+      eligibility: true,
+      remaining_units: 0.5,
+      delivered_session_units: 0.5,
+    },
+    {
+      distribution_line_id: 102,
+      title: 'Alt item',
+      sequence_order: 2,
+      eligibility: true,
+      remaining_units: 1,
+      delivered_session_units: 0,
+    },
+    {
+      distribution_line_id: 103,
+      title: 'Postponed item',
+      sequence_order: 3,
+      postponed: true,
+      eligibility: true,
+      latest_postponement_reason: 'Absence',
+      remaining_units: 1,
+      delivered_session_units: 0,
+    },
+  ];
+}
+
 describe('TeacherTeachingPlanningPage', () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    search = '';
   });
 
   beforeEach(() => {
     fetchSummary.mockReset();
     fetchNext.mockReset();
+    fetchRemaining.mockReset();
     submitDecision.mockReset();
+    routerReplace.mockReset();
+    routerPush.mockReset();
   });
 
   it('asks for context before fetching', () => {
     render(<TeacherTeachingPlanningPage />);
     expect(screen.getByText('teacher.teachingProgress.selectContextTitle')).toBeTruthy();
     expect(fetchSummary).not.toHaveBeenCalled();
+    expect(fetchRemaining).not.toHaveBeenCalled();
   });
 
-  it('shows loading then active plan with suggestion', async () => {
-    const user = userEvent.setup();
+  it('hydrates context from query params and fetches remaining', async () => {
+    search = 'class_id=10&offering_id=20';
     fetchSummary.mockResolvedValue({ success: true, data: activeSummary() });
     fetchNext.mockResolvedValue({ success: true, data: nextPayload() });
+    fetchRemaining.mockResolvedValue({ success: true, data: remainingItems() });
 
     render(<TeacherTeachingPlanningPage />);
-    await user.click(screen.getByRole('button', { name: 'set-context' }));
 
     await waitFor(() => {
       expect(fetchSummary).toHaveBeenCalledWith(
         expect.objectContaining({ class_id: 10, offering_id: 20 }),
       );
+      expect(fetchRemaining).toHaveBeenCalledWith(
+        expect.objectContaining({ class_id: 10, offering_id: 20 }),
+      );
     });
     expect((await screen.findAllByText('Partial item')).length).toBeGreaterThan(0);
-    expect(
-      screen.getByText('teacher.teachingProgress.suggestionReasons.resume_partial_line'),
-    ).toBeTruthy();
-    expect(screen.getByText('teacher.teachingProgress.documentationGapsTitle')).toBeTruthy();
+    expect(screen.getByText(/Absence/)).toBeTruthy();
   });
 
   it('shows no-active-plan zero-state without claiming completion', async () => {
@@ -190,6 +248,7 @@ describe('TeacherTeachingPlanningPage', () => {
       success: false,
       error: { code: 'next_item_active_distribution_required', message: 'no dist' },
     });
+    fetchRemaining.mockResolvedValue({ success: true, data: [] });
 
     render(<TeacherTeachingPlanningPage />);
     await user.click(screen.getByRole('button', { name: 'set-context' }));
@@ -203,20 +262,77 @@ describe('TeacherTeachingPlanningPage', () => {
       success: false,
       error: { code: 'permission_denied', message: 'denied' },
     });
+    fetchRemaining.mockResolvedValue({ success: false, error: { code: 'permission_denied', message: 'denied' } });
+    fetchNext.mockResolvedValue({ success: false, error: { code: 'permission_denied', message: 'denied' } });
 
     render(<TeacherTeachingPlanningPage />);
     await user.click(screen.getByRole('button', { name: 'set-context' }));
     expect(await screen.findByText('teacher.teachingProgress.permissionDenied')).toBeTruthy();
   });
 
-  it('requires reason for alternative and invalidates after success', async () => {
-    const user = userEvent.setup();
+  it('accepts suggestion without reason and reloads', async () => {
+    search = 'class_id=10&offering_id=20';
     fetchSummary.mockResolvedValue({ success: true, data: activeSummary() });
     fetchNext.mockResolvedValue({ success: true, data: nextPayload() });
+    fetchRemaining.mockResolvedValue({ success: true, data: remainingItems() });
     submitDecision.mockResolvedValue({ success: true, data: nextPayload() });
 
     render(<TeacherTeachingPlanningPage />);
-    await user.click(screen.getByRole('button', { name: 'set-context' }));
+    await screen.findAllByText('Partial item');
+
+    const acceptButtons = screen.getAllByRole('button', {
+      name: 'teacher.teachingProgress.actions.acceptSuggestion',
+    });
+    await userEvent.click(acceptButtons[0]!);
+
+    await waitFor(() => {
+      expect(submitDecision).toHaveBeenCalledWith(
+        expect.objectContaining({
+          decision_type: 'accept_suggestion',
+          class_id: 10,
+          offering_id: 20,
+          distribution_line_id: 101,
+        }),
+      );
+    });
+    await waitFor(() => expect(fetchSummary).toHaveBeenCalledTimes(2));
+    expect(fetchRemaining).toHaveBeenCalledTimes(2);
+  });
+
+  it('chooses postponed item and keeps previous reason visible', async () => {
+    search = 'class_id=10&offering_id=20';
+    fetchSummary.mockResolvedValue({ success: true, data: activeSummary() });
+    fetchNext.mockResolvedValue({ success: true, data: nextPayload() });
+    fetchRemaining.mockResolvedValue({ success: true, data: remainingItems() });
+    submitDecision.mockResolvedValue({ success: true, data: nextPayload() });
+
+    render(<TeacherTeachingPlanningPage />);
+    await screen.findByText('Postponed item');
+    expect(screen.getByText(/Absence/)).toBeTruthy();
+
+    const chooseButtons = screen.getAllByRole('button', {
+      name: 'teacher.teachingProgress.actions.choosePostponed',
+    });
+    await userEvent.click(chooseButtons[0]!);
+
+    await waitFor(() => {
+      expect(submitDecision).toHaveBeenCalledWith(
+        expect.objectContaining({
+          decision_type: 'choose_postponed',
+        }),
+      );
+    });
+  });
+
+  it('requires reason for alternative and invalidates after success', async () => {
+    const user = userEvent.setup();
+    search = 'class_id=10&offering_id=20';
+    fetchSummary.mockResolvedValue({ success: true, data: activeSummary() });
+    fetchNext.mockResolvedValue({ success: true, data: nextPayload() });
+    fetchRemaining.mockResolvedValue({ success: true, data: remainingItems() });
+    submitDecision.mockResolvedValue({ success: true, data: nextPayload() });
+
+    render(<TeacherTeachingPlanningPage />);
     await screen.findAllByText('Partial item');
 
     await user.click(screen.getByRole('button', { name: 'teacher.teachingProgress.chooseOther' }));
@@ -249,43 +365,22 @@ describe('TeacherTeachingPlanningPage', () => {
     await waitFor(() => expect(fetchSummary).toHaveBeenCalledTimes(2));
   });
 
-  it('does not keep previous context numbers after context change', async () => {
+  it('updates URL when context changes', async () => {
     const user = userEvent.setup();
-    fetchSummary
-      .mockResolvedValueOnce({ success: true, data: activeSummary({ progress_percentage: 25 }) })
-      .mockResolvedValueOnce({
-        success: true,
-        data: activeSummary({
-          context: { class_id: 11, teaching_offering_id: 21, annual_distribution_id: 31 },
-          progress_percentage: 80,
-          suggested_next_item: {
-            distribution_line_id: 201,
-            title: 'Other class item',
-            sequence_order: 1,
-            eligibility: true,
-          },
-        }),
-      });
-    fetchNext
-      .mockResolvedValueOnce({ success: true, data: nextPayload() })
-      .mockResolvedValueOnce({
-        success: true,
-        data: nextPayload({
-          suggestion: {
-            distribution_line_id: 201,
-            title: 'Other class item',
-            sequence_order: 1,
-            eligibility: true,
-          },
-        }),
-      });
+    search = 'class_id=10&offering_id=20';
+    fetchSummary.mockResolvedValue({ success: true, data: activeSummary() });
+    fetchNext.mockResolvedValue({ success: true, data: nextPayload() });
+    fetchRemaining.mockResolvedValue({ success: true, data: remainingItems() });
 
     render(<TeacherTeachingPlanningPage />);
+    await screen.findAllByText('Partial item');
     await user.click(screen.getByRole('button', { name: 'set-context' }));
-    expect((await screen.findAllByText('Partial item')).length).toBeGreaterThan(0);
 
-    // Force reload path by clicking set-context again (same ids still triggers effect via state set).
-    await user.click(screen.getByRole('button', { name: 'set-context' }));
-    await waitFor(() => expect(fetchSummary.mock.calls.length).toBeGreaterThanOrEqual(2));
+    await waitFor(() => {
+      expect(routerReplace).toHaveBeenCalled();
+      const href = String(routerReplace.mock.calls.at(-1)?.[0] ?? '');
+      expect(href).toContain('class_id=11');
+      expect(href).toContain('offering_id=21');
+    });
   });
 });

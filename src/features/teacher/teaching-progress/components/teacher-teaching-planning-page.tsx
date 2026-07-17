@@ -4,12 +4,13 @@
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  * @design-status review-needed
  *
- * Teacher curriculum planning & progress — adopted extension of Teaching Workspace.
+ * Teacher curriculum planning & progress — operational program list (P0/P1).
  * Progress / remaining / suggestion are Backend SoT (Odoo 219).
  */
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/primitives';
 import { NumericText } from '@/components/ui/numeric-text';
 import {
@@ -26,7 +27,24 @@ import {
   resolveCurriculumPlanState,
 } from '@/features/teaching-progress/progress-plan-state';
 import { suggestionReasonMessageKey } from '@/features/teaching-progress/suggestion-reason';
+import {
+  mergeTeacherProgramItems,
+  type TeacherProgramItemView,
+} from '@/features/teaching-progress/merge-program-items';
+import {
+  buildTeacherPlanningHref,
+  parseTeacherPlanningQuery,
+} from '@/features/teaching-progress/planning-url';
+import {
+  getTeacherProgramItemPrimaryAction,
+  getTeacherProgramItemSecondaryActions,
+  type TeacherProgramPrimaryAction,
+  type TeacherProgramSecondaryAction,
+} from '@/features/teaching-progress/program-item-primary-action';
+import { submitTeacherExecutionDecision } from '@/features/teacher/teaching-progress/api/teacher-curriculum-progress-api';
 import { TeachingNextItemDecisionDialog } from '@/features/teacher/teaching-progress/components/teaching-next-item-decision-dialog';
+import { TeacherProgramItemActionsMenu } from '@/features/teacher/teaching-progress/components/teacher-program-item-actions-menu';
+import { TeacherProgramItemDetailsDialog } from '@/features/teacher/teaching-progress/components/teacher-program-item-details-dialog';
 import { useTeacherCurriculumProgress } from '@/features/teacher/teaching-progress/hooks/use-teacher-curriculum-progress';
 import {
   TeacherPageHeader,
@@ -55,9 +73,70 @@ function itemLabel(item: TeachingRemainingItem | null | undefined, dash: string)
   return item.title ?? item.name ?? dash;
 }
 
+function statusLabel(
+  item: TeacherProgramItemView,
+  t: (key: string) => string,
+): string {
+  if (item.completed) return t('teacher.teachingProgress.buckets.completed');
+  if (item.is_partial) return t('teacher.teachingProgress.buckets.partial');
+  if (item.postponed) return t('teacher.teachingProgress.buckets.deferred');
+  return t('teacher.teachingProgress.buckets.notStarted');
+}
+
 export function TeacherTeachingPlanningPage() {
   const t = useT();
-  const [selection, setSelection] = useState<AcademicContextSelection>(EMPTY_SELECTION);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlClassId = searchParams.get('class_id') ?? '';
+  const urlOfferingId = searchParams.get('offering_id') ?? '';
+  const urlAcademicYearId = searchParams.get('academic_year_id') ?? '';
+  const urlReturnTo = searchParams.get('return_to');
+  const parsed = parseTeacherPlanningQuery({
+    get: (name: string) => {
+      if (name === 'class_id') return urlClassId || null;
+      if (name === 'offering_id') return urlOfferingId || null;
+      if (name === 'academic_year_id') return urlAcademicYearId || null;
+      if (name === 'return_to') return urlReturnTo;
+      return null;
+    },
+  });
+
+  const [selection, setSelection] = useState<AcademicContextSelection>(() => ({
+    ...EMPTY_SELECTION,
+    classId: parsed.classId,
+    offeringId: parsed.offeringId,
+    academicYearId: parsed.academicYearId,
+  }));
+  const [hydratedFromUrl, setHydratedFromUrl] = useState(false);
+
+  useEffect(() => {
+    const next = parseTeacherPlanningQuery({
+      get: (name: string) => {
+        if (name === 'class_id') return urlClassId || null;
+        if (name === 'offering_id') return urlOfferingId || null;
+        if (name === 'academic_year_id') return urlAcademicYearId || null;
+        if (name === 'return_to') return urlReturnTo;
+        return null;
+      },
+    });
+    setSelection((prev) => {
+      if (
+        prev.classId === next.classId &&
+        prev.offeringId === next.offeringId &&
+        (next.academicYearId === '' || prev.academicYearId === next.academicYearId)
+      ) {
+        return prev;
+      }
+      return {
+        ...prev,
+        classId: next.classId,
+        offeringId: next.offeringId,
+        academicYearId: next.academicYearId || prev.academicYearId,
+      };
+    });
+    setHydratedFromUrl(true);
+  }, [urlClassId, urlOfferingId, urlAcademicYearId, urlReturnTo]);
+
   const contextReady = Boolean(selection.classId && selection.offeringId);
   const progress = useTeacherCurriculumProgress({
     classId: selection.classId,
@@ -66,9 +145,14 @@ export function TeacherTeachingPlanningPage() {
     enabled: contextReady,
   });
 
-  const [dialogMode, setDialogMode] = useState<'select_alternative' | 'postpone_item' | null>(
-    null,
-  );
+  const [dialogMode, setDialogMode] = useState<
+    'select_alternative' | 'postpone_item' | 'choose_postponed' | null
+  >(null);
+  const [dialogInitialLineId, setDialogInitialLineId] = useState<number | null>(null);
+  const [detailsItem, setDetailsItem] = useState<TeacherProgramItemView | null>(null);
+  const [decisionBusy, setDecisionBusy] = useState(false);
+  const [decisionLive, setDecisionLive] = useState('');
+  const [decisionError, setDecisionError] = useState<string | null>(null);
 
   const summary = progress.summary;
   const nextItem = progress.nextItem;
@@ -77,31 +161,153 @@ export function TeacherTeachingPlanningPage() {
   const suggestion = nextItem?.suggestion ?? summary?.suggested_next_item ?? null;
   const suggestionReason =
     nextItem?.suggestion_reason ?? summary?.suggestion_reason ?? null;
-  const candidates = nextItem?.candidates ?? [];
-  const programLines = useMemo(() => {
-    if (candidates.length > 0) return candidates;
-    return (summary?.lines ?? []).map((line) => ({
-      distribution_line_id: line.distribution_line?.id ?? line.id,
-      title: line.title ?? line.name,
-      name: line.name ?? line.title,
-      sequence_order: line.sequence_order,
-      remaining_units: line.remaining_units,
-      delivered_session_units: line.delivered_units,
-      completion_status: line.status,
-      completed: line.status === 'completed',
-      is_partial:
-        line.status === 'in_progress' ||
-        (Boolean(line.delivered_units) && (line.remaining_units ?? 0) > 0),
-      postponed: Boolean(line.delayed),
-      eligibility: line.status !== 'completed',
-    })) as TeachingRemainingItem[];
-  }, [candidates, summary?.lines]);
+  const allowedActions = nextItem?.allowed_actions ?? null;
+  const currentDecision = nextItem?.current_decision ?? nextItem?.decision ?? null;
+
+  const programLines = useMemo(
+    () =>
+      mergeTeacherProgramItems({
+        remaining: progress.remaining,
+        summaryLines: summary?.lines,
+        suggestionLineId: suggestion?.distribution_line_id ?? null,
+        postponedItems: nextItem?.postponed_items,
+      }),
+    [progress.remaining, summary?.lines, suggestion?.distribution_line_id, nextItem?.postponed_items],
+  );
+
+  const decisionCandidates = useMemo(() => {
+    if ((nextItem?.candidates?.length ?? 0) > 0) return nextItem!.candidates;
+    return programLines;
+  }, [nextItem, programLines]);
 
   const denied =
     progress.error?.code === 'permission_denied' || progress.error?.code === 'forbidden';
 
   const lastDelivery = summary?.last_confirmed_delivery ?? null;
   const undocumented = summary?.undocumented_past_sessions ?? 0;
+  const classIdNum = Number(selection.classId);
+  const offeringIdNum = Number(selection.offeringId);
+
+  function syncUrl(next: AcademicContextSelection) {
+    const href = buildTeacherPlanningHref({
+      classId: next.classId,
+      offeringId: next.offeringId,
+      academicYearId: next.academicYearId,
+      returnTo: parsed.returnTo,
+    });
+    router.replace(href, { scroll: false });
+  }
+
+  function handleSelectionChange(next: AcademicContextSelection) {
+    setSelection(next);
+    if (hydratedFromUrl) syncUrl(next);
+  }
+
+  async function runDecision(
+    decisionType: 'accept_suggestion' | 'choose_postponed',
+    lineId: number,
+  ) {
+    if (decisionBusy || !contextReady) return;
+    setDecisionBusy(true);
+    setDecisionError(null);
+    setDecisionLive('');
+    const res = await submitTeacherExecutionDecision({
+      decision_type: decisionType,
+      class_id: classIdNum,
+      offering_id: offeringIdNum,
+      distribution_line_id: lineId,
+      selected_distribution_line_id: lineId,
+      suggested_distribution_line_id: suggestion?.distribution_line_id ?? undefined,
+      reason: null,
+    });
+    setDecisionBusy(false);
+    if (!res.success) {
+      const code = res.error?.code ?? '';
+      if (code === 'permission_denied' || code === 'forbidden') {
+        setDecisionError(t('teacher.teachingProgress.decision.forbidden'));
+      } else if (code.includes('conflict') || code.includes('validation')) {
+        setDecisionError(t('teacher.teachingProgress.decision.conflict'));
+      } else {
+        setDecisionError(res.error?.message ?? t('teacher.teachingProgress.decision.failed'));
+      }
+      return;
+    }
+    setDecisionLive(t('teacher.teachingProgress.decision.saved'));
+    progress.reload();
+  }
+
+  function primaryFor(item: TeacherProgramItemView): TeacherProgramPrimaryAction {
+    return getTeacherProgramItemPrimaryAction({
+      item,
+      allowedActions,
+      classId: classIdNum,
+      offeringId: offeringIdNum,
+      currentDecision,
+    });
+  }
+
+  function handlePrimary(item: TeacherProgramItemView, primary: TeacherProgramPrimaryAction) {
+    if (primary.kind === 'view_details' || primary.kind === 'waiting_for_schedule') {
+      setDetailsItem(item);
+      return;
+    }
+    if (primary.decisionType === 'accept_suggestion') {
+      void runDecision('accept_suggestion', item.distribution_line_id);
+      return;
+    }
+    if (primary.decisionType === 'choose_postponed') {
+      void runDecision('choose_postponed', item.distribution_line_id);
+      return;
+    }
+    if (primary.href) {
+      router.push(primary.href);
+    }
+  }
+
+  function handleSecondary(item: TeacherProgramItemView, action: TeacherProgramSecondaryAction) {
+    if (action.openDetails) {
+      setDetailsItem(item);
+      return;
+    }
+    if (action.decisionType === 'accept_suggestion') {
+      void runDecision('accept_suggestion', item.distribution_line_id);
+      return;
+    }
+    if (action.decisionType === 'choose_postponed') {
+      void runDecision('choose_postponed', item.distribution_line_id);
+      return;
+    }
+    if (action.decisionType === 'select_alternative') {
+      setDialogInitialLineId(null);
+      setDialogMode('select_alternative');
+      return;
+    }
+    if (action.decisionType === 'postpone_item') {
+      setDialogInitialLineId(item.distribution_line_id);
+      setDialogMode('postpone_item');
+      return;
+    }
+    if (action.href) router.push(action.href);
+  }
+
+  const suggestionPrimary = suggestion
+    ? getTeacherProgramItemPrimaryAction({
+        item: {
+          ...suggestion,
+          is_suggested: true,
+        },
+        allowedActions,
+        classId: classIdNum,
+        offeringId: offeringIdNum,
+        currentDecision,
+      })
+    : null;
+
+  const showAcceptOnCard =
+    Boolean(suggestion) &&
+    allowedActions?.accept_suggestion &&
+    !suggestion?.completed &&
+    suggestionPrimary?.kind === 'accept_suggestion';
 
   return (
     <div className="teacher-workspace">
@@ -109,9 +315,16 @@ export function TeacherTeachingPlanningPage() {
         title={t('teacher.teachingProgress.planningTitle')}
         subtitle={t('teacher.teachingProgress.planningSubtitle')}
         actions={
-          <Link className="btn btn--ghost btn--sm" href="/teacher/dashboard">
-            {t('teacher.teachingProgress.goToday')}
-          </Link>
+          <span className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            {parsed.returnTo ? (
+              <Link className="btn btn--ghost btn--sm" href={parsed.returnTo}>
+                {t('teacher.teachingProgress.backToReturn')}
+              </Link>
+            ) : null}
+            <Link className="btn btn--ghost btn--sm" href="/teacher/dashboard">
+              {t('teacher.teachingProgress.goToday')}
+            </Link>
+          </span>
         }
       />
 
@@ -128,7 +341,7 @@ export function TeacherTeachingPlanningPage() {
           classBeforeSubject
           requiredFields={['class', 'offering']}
           selection={selection}
-          onSelectionChange={setSelection}
+          onSelectionChange={handleSelectionChange}
         />
       </TeacherWorkspaceCard>
 
@@ -209,6 +422,15 @@ export function TeacherTeachingPlanningPage() {
             </p>
           ) : null}
 
+          {decisionError ? (
+            <p className="alert alert--danger" role="alert">
+              {decisionError}
+            </p>
+          ) : null}
+          <div aria-live="polite" className="teacher-program-live">
+            {decisionLive}
+          </div>
+
           <div className="grid grid--2" style={{ gap: 16, marginBlockStart: 16 }}>
             <TeacherWorkspaceCard title={t('teacher.teachingProgress.lastConfirmedTitle')}>
               {lastDelivery ? (
@@ -253,11 +475,14 @@ export function TeacherTeachingPlanningPage() {
           <TeacherWorkspaceCard
             title={t('teacher.teachingProgress.suggestedNextTitle')}
             action={
-              suggestion && nextItem?.allowed_actions?.select_alternative !== false ? (
+              suggestion && allowedActions?.select_alternative !== false ? (
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm"
-                  onClick={() => setDialogMode('select_alternative')}
+                  onClick={() => {
+                    setDialogInitialLineId(null);
+                    setDialogMode('select_alternative');
+                  }}
                 >
                   {t('teacher.teachingProgress.chooseOther')}
                 </button>
@@ -286,17 +511,52 @@ export function TeacherTeachingPlanningPage() {
                     {t('teacher.teachingProgress.suggestionPostponedWarning')}
                   </p>
                 ) : null}
+                {suggestion.latest_postponement_reason ? (
+                  <p dir="auto">
+                    <span className="muted">{t('teacher.teachingProgress.postponementReason')}: </span>
+                    {suggestion.latest_postponement_reason}
+                  </p>
+                ) : null}
                 {suggestion.is_partial ? (
                   <Badge tone="amber">{t('teacher.teachingProgress.buckets.partial')}</Badge>
                 ) : null}
                 <div className="row" style={{ gap: 8, marginBlockStart: 12, flexWrap: 'wrap' }}>
-                  {nextItem?.allowed_actions?.postpone_item ? (
+                  {showAcceptOnCard ? (
+                    <button
+                      type="button"
+                      className="btn btn--primary btn--sm"
+                      disabled={decisionBusy}
+                      onClick={() =>
+                        void runDecision('accept_suggestion', suggestion.distribution_line_id)
+                      }
+                    >
+                      {decisionBusy
+                        ? t('common.submitting')
+                        : t('teacher.teachingProgress.actions.acceptSuggestion')}
+                    </button>
+                  ) : null}
+                  {allowedActions?.postpone_item ? (
                     <button
                       type="button"
                       className="btn btn--ghost btn--sm"
-                      onClick={() => setDialogMode('postpone_item')}
+                      onClick={() => {
+                        setDialogInitialLineId(suggestion.distribution_line_id);
+                        setDialogMode('postpone_item');
+                      }}
                     >
                       {t('teacher.teachingProgress.decision.postponeAction')}
+                    </button>
+                  ) : null}
+                  {suggestion.postponed && allowedActions?.choose_postponed ? (
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={decisionBusy}
+                      onClick={() =>
+                        void runDecision('choose_postponed', suggestion.distribution_line_id)
+                      }
+                    >
+                      {t('teacher.teachingProgress.actions.choosePostponed')}
                     </button>
                   ) : null}
                 </div>
@@ -309,7 +569,9 @@ export function TeacherTeachingPlanningPage() {
           </TeacherWorkspaceCard>
 
           <TeacherWorkspaceCard title={t('teacher.teachingProgress.programListTitle')}>
-            {programLines.length === 0 ? (
+            {progress.remainingError && programLines.length === 0 ? (
+              <ApiErrorView error={progress.remainingError} onRetry={progress.reload} />
+            ) : programLines.length === 0 ? (
               <p className="muted">{t('teacher.teachingProgress.emptyProgram')}</p>
             ) : (
               <div className="table-wrap">
@@ -322,25 +584,62 @@ export function TeacherTeachingPlanningPage() {
                       <th scope="col">{t('teacher.teachingProgress.columns.done')}</th>
                       <th scope="col">{t('teacher.teachingProgress.columns.remaining')}</th>
                       <th scope="col">{t('teacher.teachingProgress.columns.status')}</th>
+                      <th scope="col">{t('teacher.teachingProgress.columns.action')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {programLines.map((line) => {
-                      const statusText = line.completed
-                        ? t('teacher.teachingProgress.buckets.completed')
-                        : line.is_partial
-                          ? t('teacher.teachingProgress.buckets.partial')
-                          : line.postponed
-                            ? t('teacher.teachingProgress.buckets.deferred')
-                            : t('teacher.teachingProgress.buckets.notStarted');
+                      const primary = primaryFor(line);
+                      const secondary = getTeacherProgramItemSecondaryActions({
+                        item: line,
+                        allowedActions,
+                        classId: classIdNum,
+                        offeringId: offeringIdNum,
+                        currentDecision,
+                        primary,
+                      });
                       const plannedUnits =
                         (line.delivered_session_units ?? 0) + (line.remaining_units ?? 0);
+                      const interactive =
+                        primary.kind !== 'none' && primary.kind !== 'waiting_for_schedule';
                       return (
-                        <tr key={line.distribution_line_id}>
+                        <tr
+                          key={line.distribution_line_id}
+                          className={interactive ? 'teacher-program-row--interactive' : undefined}
+                          tabIndex={interactive ? 0 : undefined}
+                          onClick={() => {
+                            if (primary.kind === 'waiting_for_schedule') {
+                              setDetailsItem(line);
+                              return;
+                            }
+                            handlePrimary(line, primary);
+                          }}
+                          onKeyDown={(event) => {
+                            if (!interactive && primary.kind !== 'waiting_for_schedule') return;
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              if (primary.kind === 'waiting_for_schedule') setDetailsItem(line);
+                              else handlePrimary(line, primary);
+                            }
+                          }}
+                        >
                           <td>
                             <NumericText>{line.sequence_order ?? t('common.dash')}</NumericText>
                           </td>
-                          <td dir="auto">{itemLabel(line, t('common.dash'))}</td>
+                          <td dir="auto">
+                            <div>{itemLabel(line, t('common.dash'))}</div>
+                            {line.latest_postponement_reason ? (
+                              <div className="muted" style={{ fontSize: '0.85em' }} dir="auto">
+                                {t('teacher.teachingProgress.postponementReason')}:{' '}
+                                {line.latest_postponement_reason.length > 80
+                                  ? `${line.latest_postponement_reason.slice(0, 80)}…`
+                                  : line.latest_postponement_reason}
+                              </div>
+                            ) : null}
+                            {line.is_suggested ? (
+                              <Badge tone="blue">{t('teacher.teachingProgress.suggestedBadge')}</Badge>
+                            ) : null}
+                          </td>
                           <td>
                             <NumericText>
                               {plannedUnits > 0 ? plannedUnits : t('common.dash')}
@@ -365,14 +664,41 @@ export function TeacherTeachingPlanningPage() {
                                         : 'blue'
                                 }
                               >
-                                {statusText}
+                                {statusLabel(line, t)}
                               </Badge>
-                              {line.postponed ? (
-                                <Badge tone="slate">
-                                  {t('teacher.teachingProgress.buckets.deferred')}
-                                </Badge>
-                              ) : null}
                             </span>
+                          </td>
+                          <td onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                            <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                              {primary.kind === 'waiting_for_schedule' ? (
+                                <span className="muted">{t(primary.labelKey)}</span>
+                              ) : primary.href ? (
+                                <Link
+                                  className="btn btn--primary btn--sm"
+                                  href={primary.href}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {t(primary.labelKey)}
+                                </Link>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn btn--primary btn--sm"
+                                  disabled={decisionBusy}
+                                  onClick={() => handlePrimary(line, primary)}
+                                >
+                                  {decisionBusy &&
+                                  (primary.decisionType === 'accept_suggestion' ||
+                                    primary.decisionType === 'choose_postponed')
+                                    ? t('common.submitting')
+                                    : t(primary.labelKey)}
+                                </button>
+                              )}
+                              <TeacherProgramItemActionsMenu
+                                actions={secondary}
+                                onAction={(action) => handleSecondary(line, action)}
+                              />
+                            </div>
                           </td>
                         </tr>
                       );
@@ -391,12 +717,27 @@ export function TeacherTeachingPlanningPage() {
           mode={dialogMode}
           classId={Number(selection.classId)}
           offeringId={Number(selection.offeringId)}
-          candidates={candidates.length > 0 ? candidates : programLines}
+          candidates={
+            dialogMode === 'choose_postponed'
+              ? decisionCandidates.filter((c) => c.postponed)
+              : decisionCandidates
+          }
           suggestedLineId={suggestion?.distribution_line_id ?? null}
-          onClose={() => setDialogMode(null)}
+          initialLineId={dialogInitialLineId}
+          onClose={() => {
+            setDialogMode(null);
+            setDialogInitialLineId(null);
+          }}
           onSuccess={() => progress.reload()}
         />
       ) : null}
+
+      <TeacherProgramItemDetailsDialog
+        open={Boolean(detailsItem)}
+        item={detailsItem}
+        primary={detailsItem ? primaryFor(detailsItem) : null}
+        onClose={() => setDetailsItem(null)}
+      />
     </div>
   );
 }

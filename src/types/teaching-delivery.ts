@@ -428,6 +428,24 @@ export interface TeachingRemainingItem {
   eligibility?: boolean;
   blocked_reason?: string | null;
   suggested_rank?: number | null;
+  /**
+   * Optional operational targets when Backend includes them on remaining items.
+   * Never invent from distribution_line_id alone in the UI.
+   */
+  occurrence_id?: number | null;
+  session_occurrence_id?: number | null;
+  teacher_jathatha_id?: number | null;
+  actual_delivery_id?: number | null;
+  current_delivery_id?: number | null;
+  progress_line_id?: number | null;
+  journal_entry_id?: number | null;
+  jathatha_state?: TeacherJathathaState | null;
+  delivery_state?: ActualDeliveryState | null;
+  needs_documentation?: boolean;
+  create_correction?: boolean;
+  next_step?: string | null;
+  item_type?: string | null;
+  completion_percent?: number | null;
 }
 
 export type TeachingSuggestedNextItem = TeachingRemainingItem;

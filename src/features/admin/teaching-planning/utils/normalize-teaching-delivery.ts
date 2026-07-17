@@ -420,6 +420,20 @@ export function normalizeTeachingRemainingItem(raw: unknown): TeachingRemainingI
     eligibility: asBoolean(record.eligibility),
     blocked_reason: asString(record.blocked_reason) ?? null,
     suggested_rank: asNumber(record.suggested_rank) ?? null,
+    occurrence_id: asNumber(record.occurrence_id) ?? null,
+    session_occurrence_id: asNumber(record.session_occurrence_id) ?? null,
+    teacher_jathatha_id: asNumber(record.teacher_jathatha_id) ?? null,
+    actual_delivery_id: asNumber(record.actual_delivery_id) ?? null,
+    current_delivery_id: asNumber(record.current_delivery_id) ?? null,
+    progress_line_id: asNumber(record.progress_line_id) ?? null,
+    journal_entry_id: asNumber(record.journal_entry_id) ?? null,
+    jathatha_state: asString(record.jathatha_state) ?? null,
+    delivery_state: asString(record.delivery_state) ?? null,
+    needs_documentation: asBoolean(record.needs_documentation),
+    create_correction: asBoolean(record.create_correction),
+    next_step: asString(record.next_step) ?? null,
+    item_type: asString(record.item_type) ?? asString(record.session_type) ?? null,
+    completion_percent: asNumber(record.completion_percent) ?? null,
   };
 }
 

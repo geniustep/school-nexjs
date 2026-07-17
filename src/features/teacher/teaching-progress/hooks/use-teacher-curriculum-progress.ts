@@ -3,27 +3,31 @@
 /**
  * Single fetch coordinator for teacher curriculum progress.
  * Disabled until class (+ offering when required) is complete.
- * After decisions, callers call `reload()` to invalidate summary + next-item.
+ * After decisions, callers call `reload()` to invalidate summary + remaining + next-item.
  */
 
 import { useCallback, useEffect, useState } from 'react';
 import type { ApiErrorBody } from '@/types/api';
 import type {
   TeachingProgressSummary,
+  TeachingRemainingItem,
   TeachingTeacherNextItemPayload,
 } from '@/types/teaching-delivery';
 import {
   fetchTeacherCurriculumProgressSummary,
+  fetchTeacherCurriculumRemaining,
   fetchTeacherSuggestedNextItem,
   type CurriculumProgressContextQuery,
 } from '@/features/teacher/teaching-progress/api/teacher-curriculum-progress-api';
 
 export type TeacherCurriculumProgressState = {
   summary: TeachingProgressSummary | null;
+  remaining: TeachingRemainingItem[];
   nextItem: TeachingTeacherNextItemPayload | null;
   loading: boolean;
   fetching: boolean;
   error: ApiErrorBody | null;
+  remainingError: ApiErrorBody | null;
   contextKey: string | null;
   reload: () => void;
 };
@@ -37,10 +41,11 @@ function toContext(
   if (!classId || !Number.isFinite(classNum) || classNum <= 0) return null;
   const offeringNum = Number(offeringId);
   const yearNum = academicYearId ? Number(academicYearId) : NaN;
+  if (!offeringId || !Number.isFinite(offeringNum) || offeringNum <= 0) return null;
   return {
     class_id: classNum,
-    offering_id: Number.isFinite(offeringNum) && offeringNum > 0 ? offeringNum : undefined,
-    teaching_offering_id: Number.isFinite(offeringNum) && offeringNum > 0 ? offeringNum : undefined,
+    offering_id: offeringNum,
+    teaching_offering_id: offeringNum,
     academic_year_id: Number.isFinite(yearNum) && yearNum > 0 ? yearNum : undefined,
   };
 }
@@ -59,10 +64,12 @@ export function useTeacherCurriculumProgress(args: {
     : null;
 
   const [summary, setSummary] = useState<TeachingProgressSummary | null>(null);
+  const [remaining, setRemaining] = useState<TeachingRemainingItem[]>([]);
   const [nextItem, setNextItem] = useState<TeachingTeacherNextItemPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<ApiErrorBody | null>(null);
+  const [remainingError, setRemainingError] = useState<ApiErrorBody | null>(null);
   const [tick, setTick] = useState(0);
   const [resolvedKey, setResolvedKey] = useState<string | null>(null);
 
@@ -71,8 +78,10 @@ export function useTeacherCurriculumProgress(args: {
   useEffect(() => {
     if (!enabled || !ctx || !contextKey) {
       setSummary(null);
+      setRemaining([]);
       setNextItem(null);
       setError(null);
+      setRemainingError(null);
       setLoading(false);
       setFetching(false);
       setResolvedKey(null);
@@ -81,18 +90,26 @@ export function useTeacherCurriculumProgress(args: {
 
     let cancelled = false;
     setSummary(null);
+    setRemaining([]);
     setNextItem(null);
     setResolvedKey(null);
     setError(null);
+    setRemainingError(null);
     setLoading(true);
     setFetching(true);
 
     (async () => {
-      const summaryRes = await fetchTeacherCurriculumProgressSummary(ctx);
+      const [summaryRes, remainingRes, nextRes] = await Promise.all([
+        fetchTeacherCurriculumProgressSummary(ctx),
+        fetchTeacherCurriculumRemaining(ctx),
+        fetchTeacherSuggestedNextItem(ctx),
+      ]);
       if (cancelled) return;
+
       if (!summaryRes.success) {
         setError(summaryRes.error);
         setSummary(null);
+        setRemaining([]);
         setNextItem(null);
         setResolvedKey(contextKey);
         setLoading(false);
@@ -101,17 +118,24 @@ export function useTeacherCurriculumProgress(args: {
       }
       setSummary(summaryRes.data);
 
-      if (ctx.offering_id) {
-        const nextRes = await fetchTeacherSuggestedNextItem(ctx);
-        if (cancelled) return;
-        if (nextRes.success) {
-          setNextItem(nextRes.data);
-        } else if (
-          nextRes.error?.code &&
-          nextRes.error.code !== 'next_item_active_distribution_required'
-        ) {
-          setError(nextRes.error);
-        }
+      if (remainingRes.success) {
+        setRemaining(remainingRes.data);
+        setRemainingError(null);
+      } else {
+        setRemaining([]);
+        setRemainingError(remainingRes.error);
+      }
+
+      if (nextRes.success) {
+        setNextItem(nextRes.data);
+      } else if (
+        nextRes.error?.code &&
+        nextRes.error.code !== 'next_item_active_distribution_required'
+      ) {
+        setError(nextRes.error);
+        setNextItem(null);
+      } else {
+        setNextItem(null);
       }
 
       setResolvedKey(contextKey);
@@ -128,10 +152,12 @@ export function useTeacherCurriculumProgress(args: {
 
   return {
     summary: matches ? summary : null,
+    remaining: matches ? remaining : [],
     nextItem: matches ? nextItem : null,
     loading: Boolean(enabled && contextKey && !matches),
     fetching,
     error: matches ? error : null,
+    remainingError: matches ? remainingError : null,
     contextKey,
     reload,
   };

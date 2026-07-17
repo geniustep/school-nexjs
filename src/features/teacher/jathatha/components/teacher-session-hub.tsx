@@ -14,6 +14,7 @@ import { TeacherPageHeader, TeacherSegmentedTabs, TeacherWorkspaceCard } from '@
 import { fetchTeacherSessionOccurrence } from '@/features/teacher/jathatha/api/teacher-jathatha-api';
 import { JathathaContextStep } from '@/features/teacher/jathatha/components/jathatha-context-step';
 import { DeliveryContextStep } from '@/features/teacher/delivery/components/delivery-context-step';
+import { buildTeacherPlanningHref } from '@/features/teaching-progress/planning-url';
 import { useT } from '@/features/i18n/locale-context';
 import type { SessionOccurrenceDetail } from '@/types/jathatha';
 
@@ -120,7 +121,21 @@ export function TeacherSessionHub({ occurrenceId }: { occurrenceId: string }) {
       {tab === 'jathatha' && (data.current_jathatha_id ? <TeacherWorkspaceCard title={t('teacher.jathatha.title')}><p>{data.jathatha_summary}</p><Link className="btn btn--primary" href={`/teacher/jathathas/${data.current_jathatha_id}`}>{t('teacher.jathatha.open')}</Link></TeacherWorkspaceCard> : <JathathaContextStep occurrenceId={occurrenceId} />)}
       {tab === 'delivery' && (data.current_delivery_id ? <TeacherWorkspaceCard title={t('teacher.delivery.title')}><p>{data.delivery_summary}</p><Link className="btn btn--primary" href={`/teacher/actual-deliveries/${data.current_delivery_id}`}>{t('teacher.delivery.open')}</Link></TeacherWorkspaceCard> : <DeliveryContextStep occurrenceId={occurrenceId} />)}
       {tab === 'journal' && <TeacherWorkspaceCard title={t('teacher.classJournal.title')}>{data.current_journal_entry_id ? <Link className="btn btn--primary" href={`/teacher/class-journal/${data.current_journal_entry_id}`}>{t('teacher.classJournal.open')}</Link> : <p className="muted">{t('teacher.classJournal.empty')}</p>}</TeacherWorkspaceCard>}
-      {tab === 'progress' && <TeacherWorkspaceCard title={t('teacher.teachingProgress.title')}>{data.progress_summary && <p>{data.progress_summary}</p>}<Link className="btn btn--ghost btn--sm" href="/teacher/teaching-progress">{t('teacher.teachingProgress.open')}</Link></TeacherWorkspaceCard>}
+      {tab === 'progress' && (
+        <TeacherWorkspaceCard title={t('teacher.teachingProgress.title')}>
+          {data.progress_summary && <p>{data.progress_summary}</p>}
+          <Link
+            className="btn btn--ghost btn--sm"
+            href={buildTeacherPlanningHref({
+              classId: data.class?.id,
+              offeringId: data.offering?.id,
+              returnTo: `/teacher/sessions/${occurrenceId}?tab=progress`,
+            })}
+          >
+            {t('teacher.teachingProgress.openPlanning')}
+          </Link>
+        </TeacherWorkspaceCard>
+      )}
       {tab === 'attendance' && <TeacherWorkspaceCard title={t('academic.attendance')}><Link className="btn btn--primary" href={`/teacher/attendance${data.class?.id ? `?class=${data.class.id}` : ''}`}>{t('academic.takeAttendance')}</Link></TeacherWorkspaceCard>}
       {tab === 'homeworks' && <TeacherWorkspaceCard title={t('nav.homeworks')}><Link className="btn btn--primary" href={data.class?.id ? `/teacher/classes/${data.class.id}/homeworks` : '/teacher/homeworks'}>{t('nav.homeworks')}</Link></TeacherWorkspaceCard>}
     </div>
