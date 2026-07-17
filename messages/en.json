@@ -617,6 +617,24 @@
       "parents": "Parents",
       "announcement": "Announcements",
       "private": "Private"
+    },
+    "compose": {
+      "title": "Send a message",
+      "loading": "Preparing communication…",
+      "openStudentProfile": "Open student profile",
+      "openChannels": "Open channels",
+      "selectChannel": "Choose a communication channel",
+      "selectChannelPlaceholder": "Select a channel…",
+      "selectChannelHint": "Choose a channel before writing the message.",
+      "confirmChannelChange": "Changing channel will clear the current draft. Continue?",
+      "invalidStudentIdTitle": "Invalid student ID",
+      "invalidStudentIdDesc": "Open this page from a valid link that includes a student ID.",
+      "noLinkedGuardianUsers": "No guardian with a user account is linked to this student.",
+      "noRelatedChannels": "No communication channel is linked to this student or family.",
+      "noSafeFamilyChannel": "No private safe family channel is linked to this student.",
+      "emptyHint": "You can open the student profile or the channels list to continue.",
+      "cannotSendSelected": "You do not have permission to send a message in this channel.",
+      "cannotSendSelectedDesc": "The channel is visible, but sending is not allowed for your account."
     }
   },
   "announcements": {
@@ -1349,6 +1367,13 @@
         "massar": "Massar number",
         "student_code": "School number",
         "guardian_identity": "Guardian identity document"
+      },
+      "studentType": "Student",
+      "openProfileNamed": "Open profile for {name}",
+      "actions": {
+        "openProfile": "Open profile",
+        "payment": "Payment",
+        "message": "Message"
       }
     },
     "studentSearchPicker": {

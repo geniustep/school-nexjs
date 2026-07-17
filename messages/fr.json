@@ -617,6 +617,24 @@
       "parents": "Parents",
       "announcement": "Annonces",
       "private": "Privé"
+    },
+    "compose": {
+      "title": "Envoyer un message",
+      "loading": "Préparation de la messagerie…",
+      "openStudentProfile": "Ouvrir le dossier de l’élève",
+      "openChannels": "Ouvrir les canaux",
+      "selectChannel": "Choisir un canal",
+      "selectChannelPlaceholder": "Sélectionner un canal…",
+      "selectChannelHint": "Choisissez un canal avant d’écrire le message.",
+      "confirmChannelChange": "Changer de canal effacera le brouillon actuel. Continuer ?",
+      "invalidStudentIdTitle": "Identifiant élève invalide",
+      "invalidStudentIdDesc": "Ouvrez cette page via un lien valide contenant l’identifiant de l’élève.",
+      "noLinkedGuardianUsers": "Aucun responsable n’est associé à un compte utilisateur pour cet élève.",
+      "noRelatedChannels": "Aucun canal n’est associé à cet élève ou à sa famille.",
+      "noSafeFamilyChannel": "Aucun canal familial privé et sûr n’est associé à cet élève.",
+      "emptyHint": "Vous pouvez ouvrir le dossier de l’élève ou la liste des canaux.",
+      "cannotSendSelected": "Vous n’avez pas l’autorisation d’envoyer un message via ce canal.",
+      "cannotSendSelectedDesc": "Le canal est visible, mais l’envoi n’est pas autorisé pour votre compte."
     }
   },
   "announcements": {
@@ -1349,6 +1367,13 @@
         "massar": "Numéro Massar",
         "student_code": "Numéro scolaire",
         "guardian_identity": "Document d’identité du responsable"
+      },
+      "studentType": "Élève",
+      "openProfileNamed": "Ouvrir le dossier de {name}",
+      "actions": {
+        "openProfile": "Dossier",
+        "payment": "Paiement",
+        "message": "Message"
       }
     },
     "studentSearchPicker": {

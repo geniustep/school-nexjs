@@ -13,7 +13,6 @@ import { channelsEndpointsForRole } from '@/lib/api/channel-endpoints';
 import { ResourceView } from '@/components/states/resource';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
-import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { channelTypeLabel } from '@/lib/utils/labels';
@@ -21,18 +20,20 @@ import { formatDateTime } from '@/lib/utils/format';
 import type { Channel } from '@/types/channel';
 import type { Message } from '@/types/message';
 import type { ApiErrorBody } from '@/types/api';
+import { ChannelMessageComposer } from './channel-message-composer';
 
 const POLL_MS = 30000;
 
 export function ChannelChat({
   channelId,
   forceReadOnly = false,
+  composerAutofocus = false,
 }: {
   channelId: number;
   forceReadOnly?: boolean;
+  composerAutofocus?: boolean;
 }) {
   const t = useT();
-  const toast = useToast();
   const user = useSession();
   const ch = channelsEndpointsForRole(user.role);
   const isAdmin = user.role === 'admin';
@@ -45,8 +46,6 @@ export function ChannelChat({
   const [messages, setMessages] = useState<Message[]>([]);
   const [msgError, setMsgError] = useState<ApiErrorBody | null>(null);
   const [loadingMsgs, setLoadingMsgs] = useState(true);
-  const [body, setBody] = useState('');
-  const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   async function loadMessages(scroll = false) {
@@ -68,30 +67,12 @@ export function ChannelChat({
   }
 
   useEffect(() => {
+    setLoadingMsgs(true);
     loadMessages(true);
     const timer = setInterval(() => loadMessages(false), POLL_MS);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId]);
-
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const text = body.trim();
-    if (!text) return;
-    setSending(true);
-    const res = await api.post<Message>(ch.messages(channelId), {
-      body: text,
-    });
-    setSending(false);
-    if (res.success) {
-      setBody('');
-      await loadMessages(true);
-    } else if (res.error.code === 'permission_denied') {
-      toast.error(t('channels.permissionDenied'));
-    } else {
-      toast.error(res.error.message || t('channels.sendFailed'));
-    }
-  }
 
   return (
     <ResourceView state={channelState} loadingLabel={t('channels.loadingChannel')}>
@@ -150,31 +131,17 @@ export function ChannelChat({
             </div>
 
             {canSend ? (
-              <form className="chat__composer" onSubmit={send}>
-                <textarea
-                  className="textarea"
-                  rows={2}
-                  placeholder={t('channels.writeMessage')}
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      send(e);
-                    }
-                  }}
-                />
-                <button
-                  className="btn btn--primary"
-                  type="submit"
-                  disabled={sending || !body.trim()}
-                >
-                  {sending ? t('channels.sending') : t('channels.send')}
-                </button>
-              </form>
+              <ChannelMessageComposer
+                channelId={channelId}
+                canSend
+                autofocus={composerAutofocus}
+                onSent={() => loadMessages(true)}
+              />
             ) : (
               <div className="chat__readonly">
-                <span className="chat__readonly-icon" aria-hidden="true">&#128274;</span>
+                <span className="chat__readonly-icon" aria-hidden="true">
+                  &#128274;
+                </span>
                 {forceReadOnly ? t('channels.parentReadOnly') : t('channels.readOnlyChannel')}
               </div>
             )}
