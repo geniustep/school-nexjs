@@ -231,10 +231,13 @@ export function shouldBindActiveSchoolInBody(path: string, method: string): bool
 /**
  * Whether to inject active_school_id into the JSON body.
  * School is already forwarded as a query param for /admin/*; some Odoo
- * finance catalog writes reject active_school_id as an unsupported field.
+ * write endpoints reject active_school_id as an unsupported field
+ * (finance services catalog, student guardian relationship mutations).
  */
 export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   const pathname = normalizePolicyPath(path);
   if (/^\/admin\/finance\/services(?:\/|$)/.test(pathname)) return false;
+  // Student guardian link/create/update/end/remove — school stays on query only.
+  if (/^\/admin\/students\/[^/]+\/guardians(?:\/|$)/.test(pathname)) return false;
   return true;
 }

@@ -19,6 +19,7 @@ import {
   GuardianRelationshipForm,
   relationshipFormToCreatePayload,
   relationshipFormToLinkPersonPayload,
+  todayIsoDate,
   type RelationshipFormValues,
 } from './guardian-relationship-form';
 import { GuardianRelationshipImpactAlert } from './guardian-relationship-impact-alert';
@@ -168,7 +169,7 @@ export function GuardianAddDialog({
     setNewPersonDraft(null);
     setIsNewPersonFlow(false);
     setLinkResult(null);
-    setFormValues(DEFAULT_RELATIONSHIP_FORM);
+    setFormValues({ ...DEFAULT_RELATIONSHIP_FORM, date_start: todayIsoDate() });
     setFieldError(null);
     setIdentityConflictField(null);
     setIdentityConflictMatches([]);
@@ -191,9 +192,12 @@ export function GuardianAddDialog({
     setNewPersonDraft(null);
     setIsNewPersonFlow(false);
     setLinkResult(null);
+    // Fresh dialog role state — never inherit stale role or person metadata roles.
+    setFormValues({ ...DEFAULT_RELATIONSHIP_FORM, date_start: todayIsoDate() });
     setContactPatch(EMPTY_CONTACT_PATCH_DRAFT);
     setContactPatchTouched(EMPTY_CONTACT_PATCH_TOUCHED);
     setContactRequiredForced(false);
+    setPendingPrimaryConfirm(false);
     setStep('relationship');
     setFieldError(null);
   }
@@ -203,9 +207,11 @@ export function GuardianAddDialog({
     setSelectedPerson(null);
     setIsNewPersonFlow(true);
     setLinkResult(null);
+    setFormValues({ ...DEFAULT_RELATIONSHIP_FORM, date_start: todayIsoDate() });
     setContactPatch(EMPTY_CONTACT_PATCH_DRAFT);
     setContactPatchTouched(EMPTY_CONTACT_PATCH_TOUCHED);
     setContactRequiredForced(false);
+    setPendingPrimaryConfirm(false);
     setStep('relationship');
     setFieldError(null);
   }

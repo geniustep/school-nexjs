@@ -91,6 +91,17 @@ describe('F-NX-06 active school body binding', () => {
     expect(shouldInjectActiveSchoolIdInBody('/admin/finance/services/4083')).toBe(false);
     expect(shouldInjectActiveSchoolIdInBody('/admin/finance/fee-plans')).toBe(true);
   });
+
+  it('does not inject active_school_id into student guardian relationship bodies', () => {
+    expect(
+      shouldInjectActiveSchoolIdInBody('/admin/students/6855/guardians/3199/update'),
+    ).toBe(false);
+    expect(
+      shouldInjectActiveSchoolIdInBody('/admin/students/2081/guardians/link-person'),
+    ).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/students/2081/guardians')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/students/2081')).toBe(true);
+  });
 });
 
 describe('F-NX-12 mutation origin', () => {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
+import { resolveSelectedRelationshipType } from '../utils/guardian-relationship-payload';
 import { RELATIONSHIP_TYPE_CODES, relationshipTypeLabel } from '../utils/relationship-types';
 import type { RelationshipFormValues } from './guardian-relationship-form';
 
@@ -77,8 +78,15 @@ export function GuardianRelationshipFields({
           <select
             className="input"
             required
-            value={values.relationship_type}
-            onChange={(e) => patch({ relationship_type: e.target.value })}
+            value={
+              resolveSelectedRelationshipType(values.relationship_type) ??
+              RELATIONSHIP_TYPE_CODES[0]
+            }
+            onChange={(e) => {
+              const relationshipType = resolveSelectedRelationshipType(e.target.value);
+              if (!relationshipType) return;
+              patch({ relationship_type: relationshipType });
+            }}
           >
             {RELATIONSHIP_TYPE_CODES.map((code) => (
               <option key={code} value={code}>
