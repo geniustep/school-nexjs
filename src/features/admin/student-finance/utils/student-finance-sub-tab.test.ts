@@ -5,25 +5,28 @@ import {
 } from './student-finance-sub-tab';
 
 describe('parseStudentFinanceSubTab', () => {
-  it('keeps active finance sub-tabs', () => {
+  it('keeps the five active finance surfaces', () => {
     expect(STUDENT_FINANCE_SUB_TABS).toEqual([
       'overview',
       'agreements',
       'schedule',
       'collections',
-      'cheques',
       'historical',
     ]);
     expect(parseStudentFinanceSubTab('schedule')).toBe('schedule');
+    expect(parseStudentFinanceSubTab('collections')).toBe('collections');
   });
 
-  it('redirects removed fees, adjustments, and ledger tabs', () => {
+  it('redirects removed and merged finance sub-tabs', () => {
     expect(parseStudentFinanceSubTab('fees')).toBe('agreements');
     expect(parseStudentFinanceSubTab('adjustments')).toBe('agreements');
     expect(parseStudentFinanceSubTab('ledger')).toBe('historical');
+    expect(parseStudentFinanceSubTab('cheques')).toBe('collections');
   });
 
-  it('redirects legacy agreement section', () => {
+  it('redirects legacy agreement section and invalid values', () => {
     expect(parseStudentFinanceSubTab('agreement')).toBe('agreements');
+    expect(parseStudentFinanceSubTab('unknown')).toBe('overview');
+    expect(parseStudentFinanceSubTab(null)).toBe('overview');
   });
 });

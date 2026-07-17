@@ -7878,13 +7878,10 @@
         "subtabsScrollHint": "Faites défiler horizontalement pour voir les autres sections",
         "tabs": {
           "overview": "Vue financière",
-          "fees": "Frais et services",
           "agreements": "Accord financier",
           "schedule": "Échéancier",
           "collections": "Encaissements et reçus",
           "cheques": "Chèques",
-          "adjustments": "Ajustements",
-          "ledger": "Journal financier",
           "historical": "Historique des opérations financières"
         },
         "historical": {
@@ -8717,6 +8714,7 @@
           }
         },
         "cheques": {
+          "sectionDescription": "Chèques liés à cet élève dans les encaissements et reçus.",
           "summaryTitle": "Résumé des chèques",
           "emptyTitle": "Aucun chèque enregistré",
           "emptyDescription": "Les chèques liés à cet élève apparaîtront ici par statut.",

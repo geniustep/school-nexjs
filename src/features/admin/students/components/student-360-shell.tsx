@@ -109,15 +109,15 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   useEffect(() => {
     if (!details) return;
     if (isLegacyFinancialAgreementTab(tabParam) && showFinance) {
+      // Legacy main tab always lands on finance → agreements unless a sub-tab is explicit.
       const sectionParam = searchParams.get('section');
       const financeSubTab = parseStudentFinanceSubTab(
         searchParams.get('financeSubTab') ??
-          (sectionParam === LEGACY_FINANCE_AGREEMENT_SECTION ? 'agreements' : null),
+          (sectionParam === LEGACY_FINANCE_AGREEMENT_SECTION || !sectionParam
+            ? 'agreements'
+            : sectionParam),
       );
-      const target =
-        financeSubTab === 'overview'
-          ? `/admin/students/${studentId}?tab=finance`
-          : `/admin/students/${studentId}?tab=finance&financeSubTab=${financeSubTab}`;
+      const target = `/admin/students/${studentId}?tab=finance&financeSubTab=${financeSubTab}`;
       router.replace(target, { scroll: false });
       return;
     }

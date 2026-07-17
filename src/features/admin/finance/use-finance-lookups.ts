@@ -21,7 +21,7 @@ import type {
 import { buildConfirmedFeePlansQuery } from './fee-plan-assign-query';
 import { normalizeFeePlanLines } from '@/lib/utils/fee-plan-line-normalize';
 
-export function useFinanceReferenceData(): {
+export function useFinanceReferenceData(enabled = true): {
   data: FinanceReferenceData | null;
   journals: PaymentJournal[];
   academicYears: AcademicYearReference[];
@@ -29,7 +29,9 @@ export function useFinanceReferenceData(): {
   error: import('@/types/api').ApiErrorBody | null;
   reload: () => void;
 } {
-  const state = useAdminResource<FinanceReferenceData>(endpoints.admin.financeReferenceData);
+  const state = useAdminResource<FinanceReferenceData>(
+    enabled ? endpoints.admin.financeReferenceData : null,
+  );
   const data = state.data;
   const journals = useMemo(
     () =>

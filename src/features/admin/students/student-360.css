@@ -8183,6 +8183,16 @@ html[dir='rtl'] .student-finance-strip__marker {
   padding: 16px;
 }
 
+.student-finance-collections-cheques {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color, rgba(15, 23, 42, 0.08));
+}
+
+.student-finance-collections-cheques .student-finance-section {
+  margin-top: var(--space-3);
+}
+
 .student-finance-table-wrap {
   overflow-x: auto;
   margin-top: 4px;

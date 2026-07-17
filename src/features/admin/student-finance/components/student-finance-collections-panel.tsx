@@ -19,16 +19,18 @@ import { Student360SectionHeader } from '@/features/admin/students/components/st
 import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 import { FamilyCollectionContextSection } from './family-collection-context-section';
+import { StudentFinanceChequesPanel } from './student-finance-cheques-panel';
 
-export function StudentFinanceCollectionsPanel({
-  studentId,
-  workspace,
-  financialOverview,
-  financeRefreshSignal = 0,
-  canViewPayments,
-  canCollect,
-  onOpenCollection,
-}: StudentFinancePanelProps) {
+export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) {
+  const {
+    studentId,
+    workspace,
+    financialOverview,
+    financeRefreshSignal = 0,
+    canViewPayments,
+    canCollect,
+    onOpenCollection,
+  } = props;
   const t = useT();
   const { formatDate } = useFormat();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
@@ -140,6 +142,17 @@ export function StudentFinanceCollectionsPanel({
           <StudentReceiptsSection studentId={studentId} refreshSignal={financeRefreshSignal} />
         </Card>
       ) : null}
+
+      <section
+        className="student-finance-collections-cheques"
+        aria-label={t('admin.student360.financeWorkspace.tabs.cheques')}
+      >
+        <Student360SectionHeader
+          title={t('admin.student360.financeWorkspace.tabs.cheques')}
+          description={t('admin.student360.financeWorkspace.cheques.sectionDescription')}
+        />
+        <StudentFinanceChequesPanel {...props} />
+      </section>
 
       <CollectionDetailDrawer
         open={selectedCollectionId != null}

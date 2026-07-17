@@ -44,7 +44,10 @@ import { AgreementStateBadge } from './agreement-state-badge';
 import { ScheduleItemStateBadge } from './cheque-dual-badges';
 import { AgreementLineOperationalStateBadge } from './agreement-line-operational-state-badge';
 import { useFinancialAgreement } from '../hooks/use-financial-agreement';
-import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
+import {
+  useStudentFinanceTabState,
+  type StudentFinanceTabState,
+} from '../hooks/use-student-finance-tab-state';
 import type { AgreementScheduleItem, FinancialAgreementLine } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
 import { formatAgreementLineQuantityDisplay } from '../utils/agreement-line-quantity-edit';
@@ -111,6 +114,7 @@ export function StudentFinancialAgreementTab({
   onOpenGuardians,
   financialOverview,
   embedded = false,
+  embeddedTabState = null,
   showChangePlan = false,
   onOpenChangePlan,
   changePlanHint,
@@ -122,6 +126,8 @@ export function StudentFinancialAgreementTab({
   onOpenGuardians?: () => void;
   financialOverview?: StudentFinancialOverview | null;
   embedded?: boolean;
+  /** When embedded in the finance shell, reuse shell-owned bootstrap fetches. */
+  embeddedTabState?: StudentFinanceTabState | null;
   showChangePlan?: boolean;
   onOpenChangePlan?: () => void;
   changePlanHint?: string | null;
@@ -134,6 +140,8 @@ export function StudentFinancialAgreementTab({
   // panel. It only drives a clarifying callout — it never implies an agreement
   // was created.
   const regularizeRequested = searchParams.get('agreementAction') === 'regularize';
+  const useShellOwnedTabState = embedded && embeddedTabState != null;
+  const localTabState = useStudentFinanceTabState(studentId, details, !useShellOwnedTabState);
   const {
     refState,
     academicYears,
@@ -142,7 +150,7 @@ export function StudentFinancialAgreementTab({
     workspaceState,
     workspace,
     isRefreshing,
-  } = useStudentFinanceTabState(studentId, details);
+  } = useShellOwnedTabState ? embeddedTabState! : localTabState;
   const [showCreate, setShowCreate] = useState(false);
   const [showFromFees, setShowFromFees] = useState(false);
   const [showAssignFeePlan, setShowAssignFeePlan] = useState(false);

@@ -4,7 +4,6 @@ export type StudentFinanceSubTab =
   | 'agreements'
   | 'schedule'
   | 'collections'
-  | 'cheques'
   | 'historical';
 
 export const STUDENT_FINANCE_SUB_TABS: StudentFinanceSubTab[] = [
@@ -12,7 +11,6 @@ export const STUDENT_FINANCE_SUB_TABS: StudentFinanceSubTab[] = [
   'agreements',
   'schedule',
   'collections',
-  'cheques',
   'historical',
 ];
 
@@ -26,6 +24,7 @@ const LEGACY_SUB_TAB_REDIRECTS: Record<string, StudentFinanceSubTab> = {
   fees: 'agreements',
   adjustments: 'agreements',
   ledger: 'historical',
+  cheques: 'collections',
   [LEGACY_FINANCE_AGREEMENT_SECTION]: 'agreements',
 };
 

@@ -7859,13 +7859,10 @@
         "subtabsScrollHint": "Desplázate horizontalmente para ver más secciones",
         "tabs": {
           "overview": "Resumen financiero",
-          "fees": "Tasas y servicios",
           "agreements": "Acuerdo financiero",
           "schedule": "Calendario de pagos",
           "collections": "Cobros y recibos",
           "cheques": "Cheques",
-          "adjustments": "Ajustes",
-          "ledger": "Registro financiero",
           "historical": "Historial de operaciones financieras"
         },
         "historical": {
@@ -8698,6 +8695,7 @@
           }
         },
         "cheques": {
+          "sectionDescription": "Cheques vinculados a este alumno dentro de cobros y recibos.",
           "summaryTitle": "Resumen de cheques",
           "emptyTitle": "No hay cheques registrados",
           "emptyDescription": "Los cheques vinculados a este alumno aparecerán aquí por estado.",

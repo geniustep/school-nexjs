@@ -7859,13 +7859,10 @@
         "subtabsScrollHint": "Scroll horizontally to see more finance sections",
         "tabs": {
           "overview": "Financial overview",
-          "fees": "Fees & services",
           "agreements": "Financial agreement",
           "schedule": "Payment schedule",
           "collections": "Collections & receipts",
           "cheques": "Cheques",
-          "adjustments": "Adjustments",
-          "ledger": "Financial ledger",
           "historical": "Financial operations history"
         },
         "historical": {
@@ -8698,6 +8695,7 @@
           }
         },
         "cheques": {
+          "sectionDescription": "Cheques linked to this student within collections and receipts.",
           "summaryTitle": "Cheque summary",
           "emptyTitle": "No cheques recorded",
           "emptyDescription": "Cheques linked to this student will appear here by status.",

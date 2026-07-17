@@ -41,7 +41,6 @@ import { DraftAgreementFinanceBanner } from './draft-agreement-finance-banner';
 import { StudentFinanceOverviewPanel } from './student-finance-overview-panel';
 import { StudentFinanceSchedulePanel } from './student-finance-schedule-panel';
 import { StudentFinanceCollectionsPanel } from './student-finance-collections-panel';
-import { StudentFinanceChequesPanel } from './student-finance-cheques-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
 import { postAgreementAction } from '../api/finance-admin-api';
@@ -68,7 +67,7 @@ import { useToast } from '@/components/ui/toast';
 const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[] }[] = [
   { tabs: ['overview'] },
   { tabs: ['agreements', 'schedule'] },
-  { tabs: ['collections', 'cheques'] },
+  { tabs: ['collections'] },
   { tabs: ['historical'] },
 ];
 
@@ -77,7 +76,6 @@ const FINANCE_TAB_ICONS: Record<StudentFinanceSubTab, string> = {
   agreements: '✎',
   schedule: '▦',
   collections: '↗',
-  cheques: '☰',
   historical: '◷',
 };
 
@@ -110,6 +108,7 @@ export function StudentFinanceWorkspaceShell({
   const [changePlanMode, setChangePlanMode] = useState<ChangePlanMode | null>(null);
   const [billingAuthorityDialogOpen, setBillingAuthorityDialogOpen] = useState(false);
 
+  const financeTabState = useStudentFinanceTabState(studentId, details);
   const {
     refState,
     academicYears,
@@ -118,7 +117,7 @@ export function StudentFinanceWorkspaceShell({
     workspaceState,
     workspace,
     isRefreshing,
-  } = useStudentFinanceTabState(studentId, details);
+  } = financeTabState;
 
   const financialOverviewState = useStudentFinancialOverview(
     studentId,
@@ -237,7 +236,12 @@ export function StudentFinanceWorkspaceShell({
     const fromUrl = resolveInitialSubTab(searchParams);
     setSubTab((current) => (current === fromUrl ? current : fromUrl));
     // Rewrite removed sub-tab URLs (adjustments → agreements, ledger → historical).
-    if (rawSubTab === 'fees' || rawSubTab === 'adjustments' || rawSubTab === 'ledger') {
+    if (
+      rawSubTab === 'fees' ||
+      rawSubTab === 'adjustments' ||
+      rawSubTab === 'ledger' ||
+      rawSubTab === 'cheques'
+    ) {
       const base = `/admin/students/${studentId}?tab=finance`;
       const href = fromUrl === 'overview' ? base : `${base}&financeSubTab=${fromUrl}`;
       router.replace(href, { scroll: false });
@@ -326,7 +330,7 @@ export function StudentFinanceWorkspaceShell({
   );
 
   const sectionsWithoutEmptyGate: StudentFinanceSubTab[] = useMemo(() => {
-    const base: StudentFinanceSubTab[] = ['agreements', 'cheques', 'historical'];
+    const base: StudentFinanceSubTab[] = ['agreements', 'collections', 'historical'];
     if (financeSetupState.kind !== 'clean_no_finance' && financeSetupState.kind !== 'active_agreement') {
       return [...base, 'schedule', 'overview', 'collections'];
     }
@@ -607,6 +611,7 @@ export function StudentFinanceWorkspaceShell({
               financialOverview={financialOverviewState.data}
               onChanged={() => refreshFinanceData()}
               embedded
+              embeddedTabState={financeTabState}
               showChangePlan={changePlanVisibility.showChangePlan}
               onOpenChangePlan={() => setChangePlanMode('replace_if_unpaid')}
               changePlanHint={changePlanHint}
@@ -614,7 +619,6 @@ export function StudentFinanceWorkspaceShell({
           ) : null}
           {subTab === 'schedule' ? <StudentFinanceSchedulePanel {...sharedPanelProps} /> : null}
           {subTab === 'collections' ? <StudentFinanceCollectionsPanel {...sharedPanelProps} /> : null}
-          {subTab === 'cheques' ? <StudentFinanceChequesPanel {...sharedPanelProps} /> : null}
           {subTab === 'historical' ? (
             <StudentFinanceOperationsHistoryPanel workspace={workspace} />
           ) : null}

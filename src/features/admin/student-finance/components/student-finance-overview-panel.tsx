@@ -251,7 +251,7 @@ export function StudentFinanceOverviewPanel({
                 {t('admin.student360.financeWorkspace.metrics.chequeSummary')}
               </span>
               <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=cheques`}
+                href={`/admin/students/${studentId}?tab=finance&financeSubTab=collections`}
                 className="btn btn--ghost btn--sm"
               >
                 {t('common.view')}

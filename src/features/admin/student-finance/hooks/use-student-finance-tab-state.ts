@@ -13,8 +13,9 @@ import {
 export function useStudentFinanceTabState(
   studentId: number,
   details: StudentDetailsData,
+  enabled = true,
 ) {
-  const refState = useFinanceReferenceData();
+  const refState = useFinanceReferenceData(enabled);
   const academicYears = refState.academicYears;
   const [selectedYearId, setSelectedYearId] = useState('');
 
@@ -31,7 +32,7 @@ export function useStudentFinanceTabState(
   const workspaceState = useStudentFinanceWorkspace(
     studentId,
     workspaceQuery,
-    !!effectiveYearId,
+    enabled && !!effectiveYearId,
   );
 
   const workspace = workspaceState.data;
@@ -59,3 +60,5 @@ export function useStudentFinanceTabState(
     }),
   };
 }
+
+export type StudentFinanceTabState = ReturnType<typeof useStudentFinanceTabState>;
