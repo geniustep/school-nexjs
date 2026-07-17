@@ -617,6 +617,24 @@
       "parents": "أولياء الأمور",
       "announcement": "إعلانات",
       "private": "خاص"
+    },
+    "compose": {
+      "title": "إرسال رسالة",
+      "loading": "جاري تحضير رسالة التواصل…",
+      "openStudentProfile": "فتح ملف التلميذ",
+      "openChannels": "فتح القنوات",
+      "selectChannel": "اختيار قناة التواصل",
+      "selectChannelPlaceholder": "اختر قناة…",
+      "selectChannelHint": "اختر قناة قبل كتابة الرسالة.",
+      "confirmChannelChange": "تغيير القناة سيمسح نص الرسالة الحالي. هل تريد المتابعة؟",
+      "invalidStudentIdTitle": "معرّف التلميذ غير صالح",
+      "invalidStudentIdDesc": "افتح هذه الصفحة من رابط صحيح يحتوي على معرّف تلميذ.",
+      "noLinkedGuardianUsers": "لا يوجد ولي أمر مرتبط بحساب مستخدم لهذا التلميذ.",
+      "noRelatedChannels": "لا توجد قناة تواصل مرتبطة بهذا التلميذ أوأسرته.",
+      "noSafeFamilyChannel": "لا توجد قناة عائلية خاصة وآمنة مرتبطة بهذا التلميذ.",
+      "emptyHint": "يمكنك فتح ملف التلميذ أوقائمة القنوات للمتابعة.",
+      "cannotSendSelected": "لا تملك صلاحية إرسال رسالة عبر هذه القناة.",
+      "cannotSendSelectedDesc": "القناة مرئية لكن إرسال الرسائل غير مسموح لحسابك."
     }
   },
   "announcements": {
@@ -1248,6 +1266,13 @@
         "massar": "رقم مسار",
         "student_code": "الرقم المدرسي",
         "guardian_identity": "وثيقة هوية ولي الأمر"
+      },
+      "studentType": "تلميذ",
+      "openProfileNamed": "فتح ملف {name}",
+      "actions": {
+        "openProfile": "فتح الملف",
+        "payment": "الأداء",
+        "message": "رسالة"
       }
     },
     "studentSearchPicker": {

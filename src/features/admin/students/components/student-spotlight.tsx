@@ -7,24 +7,24 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Avatar } from '@/components/ui/primitives';
 import { IconSearch } from '@/components/icons/admin-icons';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { getStudentDisplayName } from '@/lib/utils/student';
 import { useStudentSearchQuery } from '../hooks/use-student-search-query';
-import {
-  studentClassLabel,
-  studentLevelLabel,
-} from '../utils/student-academic-labels';
 import { STUDENT_SEARCH_MIN_QUERY_LENGTH } from '../utils/student-search-query';
 import {
   buildStudentSpotlightDidYouMeanLabel,
+  canOpenStudentSpotlightMessage,
+  canOpenStudentSpotlightPayment,
+  canOpenStudentSpotlightProfile,
   isStudentSpotlightCloseKey,
   moveSpotlightActiveIndex,
-  studentSpotlightMatchedOnLabelKey,
+  studentSpotlightMessagePath,
   studentSpotlightNavigatePath,
+  studentSpotlightPaymentPath,
 } from '../utils/student-spotlight-utils';
 import type { StudentSearchHit } from '@/types/student-search';
+import { StudentSpotlightResultRow } from './student-spotlight-result-row';
 import './student-spotlight.css';
 
 export function StudentSpotlight({
@@ -36,6 +36,7 @@ export function StudentSpotlight({
 }) {
   const t = useT();
   const router = useRouter();
+  const user = useSession();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const [query, setQuery] = useState('');
@@ -43,6 +44,9 @@ export function StudentSpotlight({
   const { loading, error, results, suggestion } = useStudentSearchQuery(query);
   const trimmedQuery = query.trim();
   const didYouMeanParts = buildStudentSpotlightDidYouMeanLabel(t);
+  const showProfile = canOpenStudentSpotlightProfile(user);
+  const showPayment = canOpenStudentSpotlightPayment(user);
+  const showMessage = canOpenStudentSpotlightMessage(user);
 
   useEffect(() => {
     const timer = window.setTimeout(() => inputRef.current?.focus(), 0);
@@ -71,9 +75,21 @@ export function StudentSpotlight({
     }
   }, [activeIndex]);
 
-  function selectStudent(student: StudentSearchHit) {
+  function navigateAndClose(path: string) {
     onClose();
-    router.push(studentSpotlightNavigatePath(student.id));
+    router.push(path);
+  }
+
+  function selectStudent(student: StudentSearchHit) {
+    navigateAndClose(studentSpotlightNavigatePath(student.id));
+  }
+
+  function openPayment(student: StudentSearchHit) {
+    navigateAndClose(studentSpotlightPaymentPath(student.id));
+  }
+
+  function openMessage(student: StudentSearchHit) {
+    navigateAndClose(studentSpotlightMessagePath(student.id));
   }
 
   function applySuggestion(nextQuery: string) {
@@ -97,6 +113,10 @@ export function StudentSpotlight({
       return;
     }
     if (event.key === 'Enter' && activeIndex >= 0 && results[activeIndex]) {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest?.('[data-spotlight-action]')) {
+        return;
+      }
       event.preventDefault();
       selectStudent(results[activeIndex]);
     }
@@ -189,43 +209,22 @@ export function StudentSpotlight({
 
           {showResults ? (
             <ul ref={listRef} className="student-spotlight__list" role="listbox">
-              {results.map((student, index) => {
-                const name = getStudentDisplayName(student);
-                const classLabel = studentClassLabel(student.class);
-                const levelLabel = studentLevelLabel(student.level);
-                const academicLine = [classLabel, levelLabel]
-                  .filter((label) => label && label !== '—')
-                  .join(' · ');
-                const matchedOnKey = studentSpotlightMatchedOnLabelKey(student.matched_on);
-
-                return (
-                  <li key={student.id} role="presentation">
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={index === activeIndex}
-                      className={`student-spotlight__option${
-                        index === activeIndex ? ' student-spotlight__option--active' : ''
-                      }`}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => selectStudent(student)}
-                    >
-                      <Avatar name={name} />
-                      <span className="student-spotlight__option-main">
-                        <span className="student-spotlight__name" dir="auto">
-                          {name}
-                        </span>
-                        {academicLine ? (
-                          <span className="student-spotlight__meta">{academicLine}</span>
-                        ) : null}
-                      </span>
-                      {matchedOnKey ? (
-                        <span className="student-spotlight__match">{t(matchedOnKey)}</span>
-                      ) : null}
-                    </button>
-                  </li>
-                );
-              })}
+              {results.map((student, index) => (
+                <li key={student.id} role="presentation">
+                  <StudentSpotlightResultRow
+                    student={student}
+                    active={index === activeIndex}
+                    showProfile={showProfile}
+                    showPayment={showPayment}
+                    showMessage={showMessage}
+                    onHover={() => setActiveIndex(index)}
+                    onActivate={() => selectStudent(student)}
+                    onOpenProfile={() => selectStudent(student)}
+                    onOpenPayment={() => openPayment(student)}
+                    onOpenMessage={() => openMessage(student)}
+                  />
+                </li>
+              ))}
             </ul>
           ) : null}
         </div>
