@@ -104,6 +104,15 @@ describe('BFF route policy', () => {
     expect(assertBffRoutePolicy('/student/homeworks/9', 'GET').ok).toBe(true);
     expect(assertBffRoutePolicy('/me', 'GET').ok).toBe(true);
     expect(assertBffRoutePolicy('/channels/1/messages', 'POST').ok).toBe(true);
+    expect(assertBffRoutePolicy('/channels/1/my-pending-messages', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/channels/1/pending-messages/34/resubmit', 'POST').ok).toBe(true);
+    expect(assertBffRoutePolicy('/admin/communication/content', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/admin/communication/content/34/approve', 'POST').ok).toBe(true);
+    expect(assertBffRoutePolicy('/admin/channels/10/pending-messages', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/admin/channels/10/messages', 'GET').ok).toBe(true);
+    expect(
+      assertBffRoutePolicy('/admin/channels/10/pending-messages/34/resubmit', 'POST').ok,
+    ).toBe(true);
   });
 
   it('rejects unlisted paths, wrong methods, and ORM namespaces', () => {

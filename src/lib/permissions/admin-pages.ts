@@ -90,6 +90,7 @@ export const ADMIN_PAGE_PERMISSION: Record<string, Permission> = {
   '/admin/subjects': 'view_classes',
   '/admin/attendance': 'view_attendance',
   '/admin/channels': 'view_channels',
+  '/admin/communication': 'view_channels',
   '/admin/homeworks': 'view_homeworks',
   '/admin/resources': 'view_resources',
   '/admin/exams': 'view_exams',
@@ -119,6 +120,7 @@ export function permissionForAdminPath(pathname: string): Permission | null {
   }
   if (base.startsWith('/admin/attendance')) return 'view_attendance';
   if (base.startsWith('/admin/channels')) return 'view_channels';
+  if (base.startsWith('/admin/communication')) return 'view_channels';
   if (base.startsWith('/admin/homeworks')) return 'view_homeworks';
   if (base.startsWith('/admin/resources')) return 'view_resources';
   if (base.startsWith('/admin/timetable')) return 'view_timetable';

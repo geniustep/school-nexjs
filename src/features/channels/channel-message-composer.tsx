@@ -2,32 +2,35 @@
 
 /**
  * Shared channel message composer — single send mutation path for ChannelChat
- * and student-family compose workspace.
+ * and student-family compose workspace. Distinguishes direct publish vs pending_review.
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { api } from '@/lib/api/client';
-import { channelsEndpointsForRole } from '@/lib/api/channel-endpoints';
+import { sendChannelMessage } from '@/features/channels/api/send-channel-message';
+import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
 import { useSession } from '@/features/auth/session-context';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import type { Message } from '@/types/message';
+import type { SendChannelMessageOutcome } from '@/types/communication';
 
 export function ChannelMessageComposer({
   channelId,
   canSend,
   autofocus = false,
-  onSent,
+  onPublished,
+  onPending,
 }: {
   channelId: number;
   canSend: boolean;
   autofocus?: boolean;
-  onSent?: () => void | Promise<void>;
+  /** Called only when Backend returned a published school.message. */
+  onPublished?: (outcome: Extract<SendChannelMessageOutcome, { kind: 'published' }>) => void | Promise<void>;
+  /** Called when Backend returned HTTP 202 / pending_review. */
+  onPending?: (outcome: Extract<SendChannelMessageOutcome, { kind: 'pending' }>) => void | Promise<void>;
 }) {
   const t = useT();
   const toast = useToast();
   const user = useSession();
-  const ch = channelsEndpointsForRole(user.role);
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -45,22 +48,32 @@ export function ChannelMessageComposer({
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSend) return;
+    if (!canSend || sending) return;
     const text = body.trim();
     if (!text) return;
     setSending(true);
-    const res = await api.post<Message>(ch.messages(channelId), {
+    const result = await sendChannelMessage({
+      role: user.role,
+      channelId,
       body: text,
     });
     setSending(false);
-    if (res.success) {
-      setBody('');
-      await onSent?.();
-    } else if (res.error.code === 'permission_denied') {
-      toast.error(t('channels.permissionDenied'));
-    } else {
-      toast.error(res.error.message || t('channels.sendFailed'));
+
+    if (!result.ok) {
+      const key = communicationErrorMessageKey(result.error.code);
+      toast.error(key ? t(key) : result.error.message || t('channels.sendFailed'));
+      // Keep text on failure.
+      return;
     }
+
+    setBody('');
+    if (result.outcome.kind === 'pending') {
+      toast.success(t('channels.pendingSubmittedNotice'));
+      await onPending?.(result.outcome);
+      return;
+    }
+
+    await onPublished?.(result.outcome);
   }
 
   if (!canSend) {
@@ -83,6 +96,7 @@ export function ChannelMessageComposer({
         placeholder={t('channels.writeMessage')}
         value={body}
         aria-label={t('channels.writeMessage')}
+        disabled={sending}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {

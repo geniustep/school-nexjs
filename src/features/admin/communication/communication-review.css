@@ -1,0 +1,44 @@
+.communication-review__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 16px;
+}
+
+.communication-review__grid {
+  display: grid;
+  gap: 10px;
+}
+
+.communication-review__card {
+  display: grid;
+  gap: 8px;
+}
+
+.communication-review__nav-card {
+  margin-block-start: 16px;
+}
+
+.communication-review__section-title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.communication-review__body {
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.communication-review__audit {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 900px) {
+  .communication-review__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

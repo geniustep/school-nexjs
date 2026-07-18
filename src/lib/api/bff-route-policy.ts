@@ -45,6 +45,7 @@ export const BFF_ADMIN_FAMILIES = [
   'exam-results',
   'assessment',
   'channels',
+  'communication',
   'admissions',
 ] as const;
 
@@ -139,6 +140,7 @@ const BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES = new Set([
   'guardians',
   'parents',
   'channels',
+  'communication',
 ]);
 
 type MethodSet = readonly string[];
@@ -175,7 +177,10 @@ const ROUTE_RULES: RouteRule[] = [
   },
   {
     methods: ['GET', 'HEAD', 'POST'],
-    test: (p) => /^\/channels(?:\/[^/]+(?:\/messages)?)?$/.test(p),
+    test: (p) =>
+      /^\/channels(?:\/[^/]+(?:\/(?:messages|my-pending-messages|pending-messages\/[^/]+\/resubmit))?)?$/.test(
+        p,
+      ),
   },
   {
     methods: ['GET', 'HEAD'],

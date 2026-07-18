@@ -425,7 +425,29 @@ export const endpoints = {
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
+    channelPendingMessages: (id: number | string) => `/admin/channels/${id}/pending-messages`,
+    /** Backend 228 — admin author resubmit (changes_requested only). */
+    channelPendingMessageResubmit: (
+      channelId: number | string,
+      contentId: number | string,
+    ) => `/admin/channels/${channelId}/pending-messages/${contentId}/resubmit`,
     channelRecipientCandidates: '/admin/channels/recipient-candidates',
+
+    communicationContent: '/admin/communication/content',
+    communicationContentDetail: (id: number | string) => `/admin/communication/content/${id}`,
+    communicationContentApprove: (id: number | string) =>
+      `/admin/communication/content/${id}/approve`,
+    communicationContentRequestChanges: (id: number | string) =>
+      `/admin/communication/content/${id}/request-changes`,
+    communicationContentPublish: (id: number | string) =>
+      `/admin/communication/content/${id}/publish`,
+    communicationContentSchedule: (id: number | string) =>
+      `/admin/communication/content/${id}/schedule`,
+    communicationContentCancel: (id: number | string) =>
+      `/admin/communication/content/${id}/cancel`,
+    communicationContentAudit: (id: number | string) =>
+      `/admin/communication/content/${id}/audit`,
+    communicationApprovals: '/admin/communication/approvals',
 
     financeFeeTypes: '/admin/finance/fee-types',
     financeFeeType: (id: number | string) => `/admin/finance/fee-types/${id}`,
@@ -816,5 +838,9 @@ export const endpoints = {
     list: '/channels',
     detail: (channelId: number | string) => `/channels/${channelId}`,
     messages: (channelId: number | string) => `/channels/${channelId}/messages`,
+    myPendingMessages: (channelId: number | string) =>
+      `/channels/${channelId}/my-pending-messages`,
+    pendingMessageResubmit: (channelId: number | string, contentId: number | string) =>
+      `/channels/${channelId}/pending-messages/${contentId}/resubmit`,
   },
 } as const;

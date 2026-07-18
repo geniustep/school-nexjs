@@ -1,4 +1,4 @@
-// Message resources — mirrors API_REPORT.md §3.
+// Message resources — published school.message only (not pending communication content).
 
 import type { Role } from './user';
 import type { Ref } from './api';
@@ -18,10 +18,20 @@ export interface Message {
   is_pinned: boolean;
   is_important: boolean;
   created_at: string;
+  subject?: string | null;
+  message_type?: string | null;
+  direction?: string | null;
+  is_governed?: boolean | null;
+  reply_to_id?: number | null;
+  reply_to_message_id?: number | null;
+  attachment_count?: number | null;
+  published_at?: string | null;
+  is_read?: boolean | null;
 }
 
 export interface SendMessageRequest {
   body: string;
+  reply_to_message_id?: number;
 }
 
 // Announcement entry used by dashboards and parent/child announcements.

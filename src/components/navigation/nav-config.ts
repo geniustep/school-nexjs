@@ -207,7 +207,10 @@ function adminNav(user: CurrentUser): NavSection[] {
       groupId: 'communication',
       icon: '📣',
       titleKey: scopedNavTitle('nav.communication', 'nav.adminScopedCommunication', scopedLabels),
-      items: [{ labelKey: 'nav.channels', href: '/admin/channels', icon: '💬' }],
+      items: [
+        { labelKey: 'nav.communicationReview', href: '/admin/communication', icon: '☑️' },
+        { labelKey: 'nav.channels', href: '/admin/channels', icon: '💬' },
+      ],
     });
   }
 
@@ -358,6 +361,7 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_classes', href: '/admin/classes', labelKey: 'nav.classes' },
   { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.staffCenter' },
   { permission: 'view_attendance', href: '/admin/attendance', labelKey: 'nav.attendance' },
+  { permission: 'view_channels', href: '/admin/communication', labelKey: 'nav.communicationReview' },
   { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.channels' },
   { permission: 'view_homeworks', href: '/admin/homeworks', labelKey: 'nav.homework' },
   { permission: 'view_resources', href: '/admin/resources', labelKey: 'nav.resources' },
