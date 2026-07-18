@@ -1,0 +1,139 @@
+.tas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tas-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tas-tabs__btn {
+  border: 1px solid var(--border, #d0d5dd);
+  background: transparent;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.tas-tabs__btn.is-active {
+  background: var(--surface-muted, #f2f4f7);
+  font-weight: 600;
+}
+
+.tas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tas-list__item {
+  border-block-end: 1px solid var(--border, #e4e7ec);
+  padding-block-end: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tas-chip {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--text-muted, #475467);
+}
+
+.tas-hint,
+.tas-muted {
+  color: var(--text-muted, #667085);
+  font-size: 0.9rem;
+}
+
+.tas-matrix__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-block-end: 0.75rem;
+}
+
+.tas-matrix__confirm {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.tas-matrix__error {
+  color: var(--danger, #b42318);
+}
+
+.tas-matrix__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tas-matrix__table th,
+.tas-matrix__table td {
+  border: 1px solid var(--border, #e4e7ec);
+  padding: 0.35rem;
+  vertical-align: top;
+}
+
+.tas-matrix__sticky {
+  position: sticky;
+  inset-inline-start: 0;
+  background: var(--surface, #fff);
+  z-index: 1;
+  min-width: 8rem;
+}
+
+.tas-matrix__state {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted, #667085);
+  margin-block-start: 0.2rem;
+}
+
+.tas-matrix__desktop {
+  overflow-x: auto;
+}
+
+.tas-matrix__mobile {
+  display: none;
+}
+
+.tas-matrix__mobile-card {
+  border: 1px solid var(--border, #e4e7ec);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-block: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .tas-matrix__desktop {
+    display: none;
+  }
+
+  .tas-matrix__mobile {
+    display: block;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

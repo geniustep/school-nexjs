@@ -22,6 +22,7 @@ import {
   canSeeClassJournal,
   canSeeDidacticSequences,
   canSeeReferenceJathathas,
+  canSeeAssessmentSupportSummary,
   canSeeTeacherJathathaReview,
   canSeeTeachingProgress,
   canViewTeachingPlanning,
@@ -63,6 +64,7 @@ export function TeachingPlanningHubPage() {
     actualDeliveries: canSeeActualDeliveryReview(user),
     classJournal: canSeeClassJournal(user),
     progress: canSeeTeachingProgress(user),
+    assessmentSupport: canSeeAssessmentSupportSummary(user),
   };
 
   const visibleCards = TEACHING_PLANNING_HUB_CARDS.filter((card) =>

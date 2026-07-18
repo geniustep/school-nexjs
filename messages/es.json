@@ -1241,6 +1241,82 @@
       "todaySnippetDesc": "Revise el avance del programa y el siguiente elemento en la página de planificación.",
       "summaryRedirectDesc": "El resumen de avance está vinculado al contexto de clase y oferta.",
       "permissionDenied": "No tiene permiso para ver el avance de este contexto."
+    },
+    "teachingAssessmentSupport": {
+      "title": "Evaluación y apoyo",
+      "subtitle": "Observaciones de dominio, dificultades de aprendizaje y planes de apoyo",
+      "openFromPlanning": "Evaluación y apoyo",
+      "back": "Volver",
+      "toPlanning": "Planificación docente",
+      "needContextTitle": "Seleccione el contexto",
+      "needContextDesc": "Elija el año, la clase y la materia antes de cargar los datos.",
+      "tabsLabel": "Secciones de evaluación",
+      "tabs": {
+        "objectives": "Objetivos",
+        "matrix": "Matriz de dominio",
+        "difficulties": "Dificultades",
+        "decisions": "Decisiones de apoyo",
+        "groups": "Grupos de apoyo",
+        "plans": "Planes de apoyo",
+        "reassessments": "Reevaluación"
+      },
+      "objectives": {
+        "emptyTitle": "Sin objetivos de aprendizaje",
+        "emptyDesc": "No hay objetivos activos para este contexto."
+      },
+      "matrix": {
+        "title": "Matriz de dominio",
+        "caption": "Aprendices por objetivos con niveles de dominio",
+        "student": "Aprendiz",
+        "level": "Nivel de dominio",
+        "noObservation": "Sin observación",
+        "emptyTitle": "Matriz no disponible",
+        "emptyDesc": "Complete el contexto para cargar la matriz.",
+        "noScaleTitle": "Sin escala activa",
+        "noScaleDesc": "Pida a la administración activar una escala de dominio.",
+        "noStudentsTitle": "Sin aprendices",
+        "noStudentsDesc": "No hay aprendices asignados a esta clase.",
+        "confirmOnSave": "Confirmar observaciones al guardar",
+        "saving": "Guardando…",
+        "saveBatch": "Guardar lote ({count})",
+        "batchLimit": "Un lote no puede superar 500 filas.",
+        "saveSuccessLive": "Observaciones de dominio guardadas.",
+        "saveFailedLive": "Error al guardar las observaciones."
+      },
+      "difficulty": {
+        "manualHint": "La dificultad de aprendizaje se registra manualmente. Una nota baja no es un diagnóstico.",
+        "emptyTitle": "Sin dificultades",
+        "emptyDesc": "No hay registros de dificultad para este contexto."
+      },
+      "decision": {
+        "noProgressHint": "Una decisión de apoyo no cambia el progreso curricular.",
+        "emptyTitle": "Sin decisiones de apoyo",
+        "emptyDesc": "No hay decisiones de apoyo para este contexto."
+      },
+      "groups": {
+        "emptyTitle": "Sin grupos de apoyo",
+        "emptyDesc": "No hay grupos temporales para este contexto.",
+        "activeMembers": "Miembros activos"
+      },
+      "plans": {
+        "completionHint": "Un plan solo se completa tras la sincronización de entrega confirmada.",
+        "emptyTitle": "Sin planes de apoyo",
+        "emptyDesc": "No hay planes para este contexto.",
+        "openSession": "Abrir sesión",
+        "waitingSchedule": "En espera de programación de sesión"
+      },
+      "reassessment": {
+        "keepsOriginal": "La reevaluación conserva la observación original; nunca la sustituye.",
+        "emptyTitle": "Sin reevaluaciones",
+        "emptyDesc": "No hay reevaluaciones para este contexto.",
+        "originalId": "Observación original"
+      },
+      "errors": {
+        "forbidden": "No tiene permiso para esta acción.",
+        "validation": "Revise los valores introducidos.",
+        "correctionRequired": "Se requiere una corrección (sin edición silenciosa).",
+        "saveFailed": "No se pudo guardar. Inténtelo de nuevo."
+      }
     }
   },
   "actions": {
@@ -11865,7 +11941,9 @@
           "jathathaDesc": "Plantillas de referencia y revisión de jathathas docentes.",
           "deliveryTitle": "Entrega y seguimiento",
           "deliveryDesc": "Entrega confirmada, diario de clase y progreso docente."
-        }
+        },
+        "assessmentSupportTitle": "Evaluación y apoyo",
+        "assessmentSupportDesc": "Cobertura de dominio, dificultades y planes de apoyo agregados"
       },
       "columns": {
         "name": "Referencia",
@@ -12800,9 +12878,89 @@
           "delivered_title": "Título impartido",
           "deviation_reason": "Motivo de desviación"
         }
+      },
+      "assessmentSupport": {
+        "title": "Resumen de evaluación y apoyo",
+        "subtitle": "Indicadores agregados de dominio y apoyo sin nombres de aprendices",
+        "privacyHint": "Este resumen nunca incluye nombres, notas de observación ni listas de membresía.",
+        "summaryLabel": "Indicadores agregados",
+        "zeroTitle": "Sin distribución aún",
+        "zeroDesc": "Los ceros indican fuente vacía o no configurada — no un éxito pedagógico.",
+        "masteryDistribution": "Distribución de niveles de dominio",
+        "reassessmentOutcomes": "Resultados de reevaluación",
+        "individualTitle": "Detalle individual (restringido)",
+        "individualHint": "Cargue el detalle solo cuando sea necesario. Requiere capacidad aparte.",
+        "studentId": "Identificador del estudiante",
+        "loadDetail": "Cargar detalle",
+        "closeDetail": "Cerrar detalle",
+        "detailObservations": "Observaciones",
+        "toProgress": "Abrir progreso docente",
+        "metrics": {
+          "objectives": "Objetivos de aprendizaje",
+          "observations": "Observaciones",
+          "assessedStudents": "Aprendices evaluados",
+          "notAssessed": "No evaluados",
+          "difficulties": "Dificultades",
+          "openDecisions": "Decisiones de apoyo abiertas",
+          "activeGroups": "Grupos de apoyo activos",
+          "plannedSupport": "Apoyo planificado",
+          "deliveredSupport": "Apoyo impartido",
+          "reassessmentDue": "Reevaluación pendiente"
+        }
       }
     },
     "teachingPlanningHubDesc": "Referencias pedagógicas, ofertas docentes y readiness",
     "noActiveSchoolDesc": "Seleccione una escuela activa para continuar."
+  },
+  "teachingAssessmentSupport": {
+    "states": {
+      "draft": "Borrador",
+      "confirmed": "Confirmado",
+      "superseded": "Sustituido",
+      "voided": "Anulado",
+      "resolved": "Resuelto",
+      "planned": "Planificado",
+      "active": "Activo",
+      "completed": "Completado",
+      "cancelled": "Cancelado",
+      "unknown": "Estado desconocido"
+    },
+    "participation": {
+      "taken": "Participó",
+      "absent": "Ausente",
+      "absentJustified": "Ausente justificado",
+      "notAssessed": "No evaluado",
+      "exempted": "Exento",
+      "unknown": "Participación desconocida"
+    },
+    "decisionTypes": {
+      "individual": "Apoyo individual",
+      "group": "Apoyo grupal",
+      "monitor": "Seguimiento",
+      "focusedRemediation": "Remediación focalizada",
+      "enrichment": "Enriquecimiento",
+      "noAction": "Sin acción",
+      "unknown": "Tipo de decisión"
+    },
+    "planTypes": {
+      "support": "Apoyo",
+      "consolidation": "Consolidación",
+      "focusedRemediation": "Remediación focalizada",
+      "enrichment": "Enriquecimiento",
+      "synthesis": "Síntesis",
+      "unknown": "Tipo de plan"
+    },
+    "outcomes": {
+      "mastered": "Dominado",
+      "improvedNeedsFollowUp": "Mejoró — requiere seguimiento",
+      "needsFocusedRemediation": "Necesita apoyo focalizado",
+      "notAssessed": "No evaluado",
+      "unknown": "Resultado"
+    },
+    "trends": {
+      "improved": "Mejoró",
+      "stable": "Estable",
+      "needsFollowUp": "Requiere seguimiento"
+    }
   }
 }

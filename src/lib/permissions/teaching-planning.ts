@@ -25,6 +25,16 @@ export const TEACHING_DELIVERIES_VIEW_CAPABILITY = 'teaching.deliveries.view';
 export const TEACHING_DELIVERIES_REVIEW_CAPABILITY = 'teaching.deliveries.review';
 export const TEACHING_CLASS_JOURNAL_VIEW_CAPABILITY = 'teaching.class_journal.view';
 export const TEACHING_PROGRESS_VIEW_CAPABILITY = 'teaching.progress.view';
+/** Odoo 221 — Assessment Support admin aggregate (no PII). */
+export const TEACHING_ASSESSMENT_SUPPORT_ADMIN_SUMMARY_CAPABILITY =
+  'teaching.assessment_support.admin_summary';
+/** Odoo 221 — Individual learner detail (separate from summary). */
+export const TEACHING_SUPPORT_INDIVIDUAL_DETAIL_CAPABILITY =
+  'teaching.support.individual_detail';
+export const TEACHING_MASTERY_VIEW_CAPABILITY = 'teaching.mastery.view';
+export const TEACHING_SUPPORT_VIEW_CAPABILITY = 'teaching.support.view';
+export const TEACHING_ASSESSMENT_BOUNDARIES_VIEW_CAPABILITY =
+  'teaching.assessment_boundaries.view';
 
 const TEACHING_PLANNING_ACCESS_CAPABILITIES = [
   TEACHING_PLANNING_VIEW_CAPABILITY,
@@ -44,6 +54,11 @@ const TEACHING_PLANNING_ACCESS_CAPABILITIES = [
   TEACHING_DELIVERIES_REVIEW_CAPABILITY,
   TEACHING_CLASS_JOURNAL_VIEW_CAPABILITY,
   TEACHING_PROGRESS_VIEW_CAPABILITY,
+  TEACHING_ASSESSMENT_SUPPORT_ADMIN_SUMMARY_CAPABILITY,
+  TEACHING_SUPPORT_INDIVIDUAL_DETAIL_CAPABILITY,
+  TEACHING_MASTERY_VIEW_CAPABILITY,
+  TEACHING_SUPPORT_VIEW_CAPABILITY,
+  TEACHING_ASSESSMENT_BOUNDARIES_VIEW_CAPABILITY,
 ] as const;
 
 export function canViewTeachingPlanning(user: CurrentUser | null | undefined): boolean {
@@ -173,6 +188,23 @@ export function canSeeTeachingProgress(user: CurrentUser | null | undefined): bo
     TEACHING_PLANNING_VIEW_CAPABILITY,
     TEACHING_PROGRESS_VIEW_CAPABILITY,
   ]);
+}
+
+/** Reveal Admin Assessment Support aggregate summary hub card. */
+export function canSeeAssessmentSupportSummary(
+  user: CurrentUser | null | undefined,
+): boolean {
+  return hasAnyUserCapability(user, [
+    TEACHING_ASSESSMENT_SUPPORT_ADMIN_SUMMARY_CAPABILITY,
+    TEACHING_ASSESSMENT_BOUNDARIES_VIEW_CAPABILITY,
+  ]);
+}
+
+/** Individual learner assessment detail — separate capability from summary. */
+export function canSeeAssessmentSupportIndividualDetail(
+  user: CurrentUser | null | undefined,
+): boolean {
+  return hasUserCapability(user, TEACHING_SUPPORT_INDIVIDUAL_DETAIL_CAPABILITY);
 }
 
 export function isTeachingPlanningPath(pathname: string): boolean {

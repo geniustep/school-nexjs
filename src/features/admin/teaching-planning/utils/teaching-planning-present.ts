@@ -215,6 +215,7 @@ export const TEACHING_PLANNING_IMPLEMENTED_HREFS = [
   '/admin/teaching-planning/actual-deliveries',
   '/admin/teaching-planning/class-journal',
   '/admin/teaching-planning/progress',
+  '/admin/teaching-planning/assessment-support',
 ] as const;
 
 export type TeachingPlanningHubCapability =
@@ -226,7 +227,8 @@ export type TeachingPlanningHubCapability =
   | 'teacherJathathaReview'
   | 'actualDeliveries'
   | 'classJournal'
-  | 'progress';
+  | 'progress'
+  | 'assessmentSupport';
 
 /** Visual workflow groups on the teaching-planning hub. */
 export type TeachingPlanningHubSection = 'plan' | 'jathatha' | 'delivery';
@@ -330,6 +332,15 @@ export const TEACHING_PLANNING_HUB_CARDS = [
     titleKey: 'admin.teachingPlanning.hub.progressTitle',
     descKey: 'admin.teachingPlanning.hub.progressDesc',
     capability: 'progress' as const,
+    section: 'delivery' as const,
+    featured: false,
+  },
+  {
+    href: '/admin/teaching-planning/assessment-support',
+    icon: '🎯',
+    titleKey: 'admin.teachingPlanning.hub.assessmentSupportTitle',
+    descKey: 'admin.teachingPlanning.hub.assessmentSupportDesc',
+    capability: 'assessmentSupport' as const,
     section: 'delivery' as const,
     featured: false,
   },

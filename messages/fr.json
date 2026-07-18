@@ -1241,6 +1241,82 @@
       "todaySnippetDesc": "Consultez l’avancement du programme et le prochain élément depuis la page de planification.",
       "summaryRedirectDesc": "Le résumé d’avancement est désormais lié au contexte classe / parcours.",
       "permissionDenied": "Vous n’avez pas l’autorisation de voir l’avancement de ce contexte."
+    },
+    "teachingAssessmentSupport": {
+      "title": "Évaluation et soutien",
+      "subtitle": "Observations de maîtrise, difficultés d’apprentissage et plans de soutien",
+      "openFromPlanning": "Évaluation et soutien",
+      "back": "Retour",
+      "toPlanning": "Planification pédagogique",
+      "needContextTitle": "Sélectionner le contexte",
+      "needContextDesc": "Choisissez l’année, la classe et la matière avant de charger les données.",
+      "tabsLabel": "Sections d’évaluation",
+      "tabs": {
+        "objectives": "Objectifs",
+        "matrix": "Matrice de maîtrise",
+        "difficulties": "Difficultés",
+        "decisions": "Décisions de soutien",
+        "groups": "Groupes de soutien",
+        "plans": "Plans de soutien",
+        "reassessments": "Réévaluation"
+      },
+      "objectives": {
+        "emptyTitle": "Aucun objectif d’apprentissage",
+        "emptyDesc": "Aucun objectif actif pour ce contexte."
+      },
+      "matrix": {
+        "title": "Matrice de maîtrise",
+        "caption": "Apprenants par objectifs avec niveaux de maîtrise",
+        "student": "Apprenant",
+        "level": "Niveau de maîtrise",
+        "noObservation": "Sans observation",
+        "emptyTitle": "Matrice indisponible",
+        "emptyDesc": "Complétez le contexte pour charger la matrice.",
+        "noScaleTitle": "Aucune échelle active",
+        "noScaleDesc": "Demandez à l’administration d’activer une échelle de maîtrise.",
+        "noStudentsTitle": "Aucun apprenant",
+        "noStudentsDesc": "Aucun apprenant assigné pour cette classe.",
+        "confirmOnSave": "Confirmer les observations à l’enregistrement",
+        "saving": "Enregistrement…",
+        "saveBatch": "Enregistrer le lot ({count})",
+        "batchLimit": "Un lot ne peut pas dépasser 500 lignes.",
+        "saveSuccessLive": "Observations de maîtrise enregistrées.",
+        "saveFailedLive": "Échec de l’enregistrement des observations."
+      },
+      "difficulty": {
+        "manualHint": "La difficulté d’apprentissage est saisie manuellement. Une note basse n’est pas un diagnostic.",
+        "emptyTitle": "Aucune difficulté",
+        "emptyDesc": "Aucun enregistrement de difficulté pour ce contexte."
+      },
+      "decision": {
+        "noProgressHint": "Une décision de soutien ne modifie pas la progression du programme.",
+        "emptyTitle": "Aucune décision de soutien",
+        "emptyDesc": "Aucune décision de soutien pour ce contexte."
+      },
+      "groups": {
+        "emptyTitle": "Aucun groupe de soutien",
+        "emptyDesc": "Aucun groupe temporaire pour ce contexte.",
+        "activeMembers": "Membres actifs"
+      },
+      "plans": {
+        "completionHint": "Un plan n’est terminé qu’après synchronisation de la livraison confirmée.",
+        "emptyTitle": "Aucun plan de soutien",
+        "emptyDesc": "Aucun plan pour ce contexte.",
+        "openSession": "Ouvrir la séance",
+        "waitingSchedule": "En attente de planification de séance"
+      },
+      "reassessment": {
+        "keepsOriginal": "La réévaluation conserve l’observation d’origine ; elle ne la remplace jamais.",
+        "emptyTitle": "Aucune réévaluation",
+        "emptyDesc": "Aucune réévaluation pour ce contexte.",
+        "originalId": "Observation d’origine"
+      },
+      "errors": {
+        "forbidden": "Vous n’avez pas la permission pour cette action.",
+        "validation": "Vérifiez les valeurs saisies.",
+        "correctionRequired": "Une correction est requise (pas de modification silencieuse).",
+        "saveFailed": "Enregistrement impossible. Réessayez."
+      }
     }
   },
   "actions": {
@@ -11885,7 +11961,9 @@
           "jathathaDesc": "Modèles de référence et revue des jathathas enseignants.",
           "deliveryTitle": "Réalisation et suivi",
           "deliveryDesc": "Livraison confirmée, journal de classe et progression."
-        }
+        },
+        "assessmentSupportTitle": "Évaluation et soutien",
+        "assessmentSupportDesc": "Couverture de maîtrise, difficultés et plans de soutien (agrégés)"
       },
       "columns": {
         "name": "Référence",
@@ -12820,9 +12898,89 @@
           "delivered_title": "Titre livré",
           "deviation_reason": "Motif d’écart"
         }
+      },
+      "assessmentSupport": {
+        "title": "Vue d’ensemble évaluation et soutien",
+        "subtitle": "Indicateurs agrégés de maîtrise et de soutien sans noms d’apprenants",
+        "privacyHint": "Ce résumé n’inclut jamais les noms, notes d’observation ni listes d’appartenance.",
+        "summaryLabel": "Indicateurs agrégés",
+        "zeroTitle": "Pas encore de distribution",
+        "zeroDesc": "Des zéros indiquent une source vide ou non configurée — pas un succès pédagogique.",
+        "masteryDistribution": "Distribution des niveaux de maîtrise",
+        "reassessmentOutcomes": "Résultats de réévaluation",
+        "individualTitle": "Détail individuel (restreint)",
+        "individualHint": "Chargez le détail uniquement si nécessaire. Capacité distincte requise.",
+        "studentId": "Identifiant élève",
+        "loadDetail": "Charger le détail",
+        "closeDetail": "Fermer le détail",
+        "detailObservations": "Observations",
+        "toProgress": "Ouvrir la progression pédagogique",
+        "metrics": {
+          "objectives": "Objectifs d’apprentissage",
+          "observations": "Observations",
+          "assessedStudents": "Apprenants évalués",
+          "notAssessed": "Non évalués",
+          "difficulties": "Difficultés",
+          "openDecisions": "Décisions de soutien ouvertes",
+          "activeGroups": "Groupes de soutien actifs",
+          "plannedSupport": "Soutien planifié",
+          "deliveredSupport": "Soutien dispensé",
+          "reassessmentDue": "Réévaluation due"
+        }
       }
     },
     "teachingPlanningHubDesc": "Références pédagogiques, parcours d’enseignement et readiness",
     "noActiveSchoolDesc": "Sélectionnez une école active pour continuer."
+  },
+  "teachingAssessmentSupport": {
+    "states": {
+      "draft": "Brouillon",
+      "confirmed": "Confirmé",
+      "superseded": "Remplacé",
+      "voided": "Annulé",
+      "resolved": "Résolu",
+      "planned": "Planifié",
+      "active": "Actif",
+      "completed": "Terminé",
+      "cancelled": "Annulé",
+      "unknown": "Statut inconnu"
+    },
+    "participation": {
+      "taken": "A participé",
+      "absent": "Absent",
+      "absentJustified": "Absent (justifié)",
+      "notAssessed": "Non évalué",
+      "exempted": "Dispensé",
+      "unknown": "Participation inconnue"
+    },
+    "decisionTypes": {
+      "individual": "Soutien individuel",
+      "group": "Soutien de groupe",
+      "monitor": "Surveillance",
+      "focusedRemediation": "Remédiation ciblée",
+      "enrichment": "Enrichissement",
+      "noAction": "Aucune action",
+      "unknown": "Type de décision"
+    },
+    "planTypes": {
+      "support": "Soutien",
+      "consolidation": "Consolidation",
+      "focusedRemediation": "Remédiation ciblée",
+      "enrichment": "Enrichissement",
+      "synthesis": "Synthèse",
+      "unknown": "Type de plan"
+    },
+    "outcomes": {
+      "mastered": "Maîtrisé",
+      "improvedNeedsFollowUp": "Amélioré — suivi nécessaire",
+      "needsFocusedRemediation": "Besoin de soutien ciblé",
+      "notAssessed": "Non évalué",
+      "unknown": "Résultat"
+    },
+    "trends": {
+      "improved": "Amélioré",
+      "stable": "Stable",
+      "needsFollowUp": "Suivi nécessaire"
+    }
   }
 }

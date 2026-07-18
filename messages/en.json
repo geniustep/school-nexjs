@@ -1241,6 +1241,82 @@
       "todaySnippetDesc": "Review program progress and the suggested next item on the planning page.",
       "summaryRedirectDesc": "Progress summary is now tied to class and offering context.",
       "permissionDenied": "You do not have permission to view progress for this context."
+    },
+    "teachingAssessmentSupport": {
+      "title": "Assessment & support",
+      "subtitle": "Mastery observations, learning difficulties, and support plans for your assignments",
+      "openFromPlanning": "Assessment & support",
+      "back": "Back",
+      "toPlanning": "Teaching planning",
+      "needContextTitle": "Select context",
+      "needContextDesc": "Choose the academic year, class, and subject before loading assessment data.",
+      "tabsLabel": "Assessment sections",
+      "tabs": {
+        "objectives": "Objectives",
+        "matrix": "Mastery matrix",
+        "difficulties": "Difficulties",
+        "decisions": "Support decisions",
+        "groups": "Support groups",
+        "plans": "Support plans",
+        "reassessments": "Reassessment"
+      },
+      "objectives": {
+        "emptyTitle": "No learning objectives",
+        "emptyDesc": "No active learning objectives are available for this context."
+      },
+      "matrix": {
+        "title": "Mastery matrix",
+        "caption": "Learners by learning objectives with current mastery levels",
+        "student": "Learner",
+        "level": "Mastery level",
+        "noObservation": "No observation",
+        "emptyTitle": "Matrix unavailable",
+        "emptyDesc": "Complete the context to load the mastery matrix.",
+        "noScaleTitle": "No active mastery scale",
+        "noScaleDesc": "Ask administration to activate a mastery scale before recording observations.",
+        "noStudentsTitle": "No learners",
+        "noStudentsDesc": "No assigned learners were returned for this class context.",
+        "confirmOnSave": "Confirm observations on save",
+        "saving": "Saving…",
+        "saveBatch": "Save batch ({count})",
+        "batchLimit": "A batch cannot exceed 500 rows.",
+        "saveSuccessLive": "Mastery observations saved.",
+        "saveFailedLive": "Saving mastery observations failed."
+      },
+      "difficulty": {
+        "manualHint": "Learning difficulty is recorded manually. A lower score is not a diagnosis.",
+        "emptyTitle": "No difficulties recorded",
+        "emptyDesc": "No learning difficulty records for this context."
+      },
+      "decision": {
+        "noProgressHint": "A support decision does not change curriculum progress.",
+        "emptyTitle": "No support decisions",
+        "emptyDesc": "No support decisions for this context."
+      },
+      "groups": {
+        "emptyTitle": "No support groups",
+        "emptyDesc": "No temporary support groups for this context.",
+        "activeMembers": "Active members"
+      },
+      "plans": {
+        "completionHint": "A plan becomes completed only after confirmed delivery sync from the backend.",
+        "emptyTitle": "No support plans",
+        "emptyDesc": "No support plans for this context.",
+        "openSession": "Open session",
+        "waitingSchedule": "Waiting for session scheduling"
+      },
+      "reassessment": {
+        "keepsOriginal": "Reassessment keeps the original observation; it never replaces it.",
+        "emptyTitle": "No reassessments",
+        "emptyDesc": "No reassessments for this context.",
+        "originalId": "Original observation"
+      },
+      "errors": {
+        "forbidden": "You do not have permission for this assessment action.",
+        "validation": "Please check the entered values.",
+        "correctionRequired": "A correction is required instead of a silent edit.",
+        "saveFailed": "Could not save. Try again."
+      }
     }
   },
   "actions": {
@@ -11864,7 +11940,9 @@
           "jathathaDesc": "Reference templates and teacher jathatha review.",
           "deliveryTitle": "Delivery & follow-up",
           "deliveryDesc": "Confirmed delivery, class journal, and teaching progress."
-        }
+        },
+        "assessmentSupportTitle": "Assessment & support",
+        "assessmentSupportDesc": "Aggregate mastery coverage, difficulties, and support plans"
       },
       "columns": {
         "name": "Reference",
@@ -12799,9 +12877,89 @@
           "delivered_title": "Delivered title",
           "deviation_reason": "Deviation reason"
         }
+      },
+      "assessmentSupport": {
+        "title": "Assessment & support overview",
+        "subtitle": "Aggregate mastery and support indicators without individual learner names",
+        "privacyHint": "This summary never includes learner names, observation notes, or membership lists.",
+        "summaryLabel": "Aggregate indicators",
+        "zeroTitle": "No distribution yet",
+        "zeroDesc": "Zeros here mean the source is empty or not yet configured — not pedagogical success.",
+        "masteryDistribution": "Mastery level distribution",
+        "reassessmentOutcomes": "Reassessment outcomes",
+        "individualTitle": "Individual detail (restricted)",
+        "individualHint": "Load detail only when needed. Requires a separate capability.",
+        "studentId": "Student identifier",
+        "loadDetail": "Load detail",
+        "closeDetail": "Close detail",
+        "detailObservations": "Observations",
+        "toProgress": "Open teaching progress",
+        "metrics": {
+          "objectives": "Learning objectives",
+          "observations": "Observations",
+          "assessedStudents": "Assessed learners",
+          "notAssessed": "Not assessed",
+          "difficulties": "Difficulties",
+          "openDecisions": "Open support decisions",
+          "activeGroups": "Active support groups",
+          "plannedSupport": "Planned support",
+          "deliveredSupport": "Delivered support",
+          "reassessmentDue": "Reassessment due"
+        }
       }
     },
     "teachingPlanningHubDesc": "Pedagogical references, teaching offerings, and readiness",
     "noActiveSchoolDesc": "Select an active school to continue."
+  },
+  "teachingAssessmentSupport": {
+    "states": {
+      "draft": "Draft",
+      "confirmed": "Confirmed",
+      "superseded": "Superseded",
+      "voided": "Voided",
+      "resolved": "Resolved",
+      "planned": "Planned",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown status"
+    },
+    "participation": {
+      "taken": "Participated",
+      "absent": "Absent",
+      "absentJustified": "Absent (justified)",
+      "notAssessed": "Not assessed",
+      "exempted": "Exempted",
+      "unknown": "Participation unknown"
+    },
+    "decisionTypes": {
+      "individual": "Individual support",
+      "group": "Group support",
+      "monitor": "Monitor",
+      "focusedRemediation": "Focused remediation",
+      "enrichment": "Enrichment",
+      "noAction": "No action",
+      "unknown": "Decision type"
+    },
+    "planTypes": {
+      "support": "Support",
+      "consolidation": "Consolidation",
+      "focusedRemediation": "Focused remediation",
+      "enrichment": "Enrichment",
+      "synthesis": "Synthesis",
+      "unknown": "Plan type"
+    },
+    "outcomes": {
+      "mastered": "Mastered",
+      "improvedNeedsFollowUp": "Improved — needs follow-up",
+      "needsFocusedRemediation": "Needs focused support",
+      "notAssessed": "Not assessed",
+      "unknown": "Outcome"
+    },
+    "trends": {
+      "improved": "Improved",
+      "stable": "Stable",
+      "needsFollowUp": "Needs follow-up"
+    }
   }
 }

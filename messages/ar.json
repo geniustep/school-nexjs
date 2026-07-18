@@ -1241,6 +1241,82 @@
       "todaySnippetDesc": "راجع تقدم البرنامج والعنصر التالي المقترح من صفحة التخطيط.",
       "summaryRedirectDesc": "ملخص التقدم أصبح مرتبطًا بسياق القسم ومسار التدريس.",
       "permissionDenied": "ليست لديك صلاحية عرض تقدم هذا السياق."
+    },
+    "teachingAssessmentSupport": {
+      "title": "التقييم والدعم",
+      "subtitle": "أرصاد التمكن وصعوبات التعلم وخطط الدعم ضمن إسناداتك",
+      "openFromPlanning": "التقييم والدعم",
+      "back": "عودة",
+      "toPlanning": "تخطيط التدريس",
+      "needContextTitle": "حدد السياق",
+      "needContextDesc": "اختر السنة الدراسية والقسم والمادة قبل تحميل بيانات التقييم.",
+      "tabsLabel": "أقسام التقييم",
+      "tabs": {
+        "objectives": "أهداف التعلم",
+        "matrix": "مصفوفة التمكن",
+        "difficulties": "الصعوبات",
+        "decisions": "قرارات الدعم",
+        "groups": "مجموعات الدعم",
+        "plans": "خطط الدعم",
+        "reassessments": "إعادة التقييم"
+      },
+      "objectives": {
+        "emptyTitle": "لا توجد أهداف تعلم",
+        "emptyDesc": "لا توجد أهداف تعلم نشطة لهذا السياق."
+      },
+      "matrix": {
+        "title": "مصفوفة التمكن",
+        "caption": "المتعلمون حسب أهداف التعلم مع مستويات التمكن الحالية",
+        "student": "المتعلم",
+        "level": "مستوى التمكن",
+        "noObservation": "بدون رصد",
+        "emptyTitle": "المصفوفة غير متاحة",
+        "emptyDesc": "أكمل السياق لتحميل مصفوفة التمكن.",
+        "noScaleTitle": "لا يوجد سلم تمكن نشط",
+        "noScaleDesc": "اطلب من الإدارة تفعيل سلم تمكن قبل تسجيل الأرصاد.",
+        "noStudentsTitle": "لا يوجد متعلمون",
+        "noStudentsDesc": "لم يُرجع النظام متعلمين مسندين لهذا القسم.",
+        "confirmOnSave": "تأكيد الأرصاد عند الحفظ",
+        "saving": "جارٍ الحفظ…",
+        "saveBatch": "حفظ الدفعة ({count})",
+        "batchLimit": "لا يمكن أن تتجاوز الدفعة 500 صف.",
+        "saveSuccessLive": "تم حفظ أرصاد التمكن.",
+        "saveFailedLive": "فشل حفظ أرصاد التمكن."
+      },
+      "difficulty": {
+        "manualHint": "تُسجَّل صعوبة التعلم يدويًا. انخفاض النقطة ليس تشخيصًا.",
+        "emptyTitle": "لا توجد صعوبات مسجّلة",
+        "emptyDesc": "لا توجد سجلات صعوبة تعلم لهذا السياق."
+      },
+      "decision": {
+        "noProgressHint": "قرار الدعم لا يغيّر تقدم البرنامج الدراسي.",
+        "emptyTitle": "لا توجد قرارات دعم",
+        "emptyDesc": "لا توجد قرارات دعم لهذا السياق."
+      },
+      "groups": {
+        "emptyTitle": "لا توجد مجموعات دعم",
+        "emptyDesc": "لا توجد مجموعات دعم مؤقتة لهذا السياق.",
+        "activeMembers": "الأعضاء النشطون"
+      },
+      "plans": {
+        "completionHint": "تكتمل الخطة فقط بعد مزامنة التسليم المؤكد من الخادم.",
+        "emptyTitle": "لا توجد خطط دعم",
+        "emptyDesc": "لا توجد خطط دعم لهذا السياق.",
+        "openSession": "فتح الحصة",
+        "waitingSchedule": "في انتظار جدولة حصة"
+      },
+      "reassessment": {
+        "keepsOriginal": "إعادة التقييم تحافظ على الرصد الأصلي ولا تستبدله.",
+        "emptyTitle": "لا توجد إعادة تقييم",
+        "emptyDesc": "لا توجد إعادة تقييم لهذا السياق.",
+        "originalId": "الرصد الأصلي"
+      },
+      "errors": {
+        "forbidden": "ليست لديك صلاحية لهذا الإجراء.",
+        "validation": "تحقق من القيم المدخلة.",
+        "correctionRequired": "يلزم تصحيح بدل التعديل الصامت.",
+        "saveFailed": "تعذر الحفظ. أعد المحاولة."
+      }
     }
   },
   "actions": {
@@ -11934,7 +12010,9 @@
           "jathathaDesc": "قوالب المرجع ومراجعة جذاذات الأساتذة.",
           "deliveryTitle": "الإنجاز والمتابعة",
           "deliveryDesc": "التسليم المؤكد ودفتر القسم وتقدّم التدريس."
-        }
+        },
+        "assessmentSupportTitle": "التقييم والدعم",
+        "assessmentSupportDesc": "تغطية التمكن والصعوبات وخطط الدعم بشكل تجميعي"
       },
       "columns": {
         "name": "المرجع",
@@ -12869,9 +12947,89 @@
           "delivered_title": "عنوان المنفّذ",
           "deviation_reason": "سبب الانحراف"
         }
+      },
+      "assessmentSupport": {
+        "title": "نظرة عامة على التقييم والدعم",
+        "subtitle": "مؤشرات تجميعية للتمكن والدعم دون أسماء المتعلمين",
+        "privacyHint": "لا يتضمن هذا الملخص أسماء المتعلمين ولا نصوص الأرصاد ولا قوائم العضوية.",
+        "summaryLabel": "مؤشرات تجميعية",
+        "zeroTitle": "لا توزيع بعد",
+        "zeroDesc": "الأصفار هنا تعني أن المصدر فارغ أو غير مهيأ — وليست نجاحًا تربويًا.",
+        "masteryDistribution": "توزيع مستويات التمكن",
+        "reassessmentOutcomes": "نتائج إعادة التقييم",
+        "individualTitle": "تفاصيل فردية (مقيدة)",
+        "individualHint": "حمّل التفاصيل فقط عند الحاجة. تتطلب صلاحية منفصلة.",
+        "studentId": "معرّف المتعلم",
+        "loadDetail": "تحميل التفاصيل",
+        "closeDetail": "إغلاق التفاصيل",
+        "detailObservations": "الأرصاد",
+        "toProgress": "فتح تقدم التدريس",
+        "metrics": {
+          "objectives": "أهداف التعلم",
+          "observations": "الأرصاد",
+          "assessedStudents": "المتعلمون المُقيَّمون",
+          "notAssessed": "غير مُقيَّمين",
+          "difficulties": "الصعوبات",
+          "openDecisions": "قرارات دعم مفتوحة",
+          "activeGroups": "مجموعات دعم نشطة",
+          "plannedSupport": "دعم مخطط",
+          "deliveredSupport": "دعم مُنفَّذ",
+          "reassessmentDue": "إعادة تقييم مستحقة"
+        }
       }
     },
     "teachingPlanningHubDesc": "المراجع التربوية ومسارات التدريس والجاهزية",
     "noActiveSchoolDesc": "اختر مدرسة نشطة للمتابعة."
+  },
+  "teachingAssessmentSupport": {
+    "states": {
+      "draft": "مسودة",
+      "confirmed": "مؤكد",
+      "superseded": "مستبدل",
+      "voided": "ملغى",
+      "resolved": "محلول",
+      "planned": "مخطط",
+      "active": "نشط",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "unknown": "حالة غير معروفة"
+    },
+    "participation": {
+      "taken": "شارك",
+      "absent": "غائب",
+      "absentJustified": "غائب بعذر",
+      "notAssessed": "غير مُقيَّم",
+      "exempted": "معفى",
+      "unknown": "مشاركة غير معروفة"
+    },
+    "decisionTypes": {
+      "individual": "دعم فردي",
+      "group": "دعم جماعي",
+      "monitor": "متابعة",
+      "focusedRemediation": "دعم مركّز",
+      "enrichment": "إغناء",
+      "noAction": "بدون إجراء",
+      "unknown": "نوع القرار"
+    },
+    "planTypes": {
+      "support": "دعم",
+      "consolidation": "تثبيت",
+      "focusedRemediation": "دعم مركّز",
+      "enrichment": "إغناء",
+      "synthesis": "تركيب",
+      "unknown": "نوع الخطة"
+    },
+    "outcomes": {
+      "mastered": "متمكن",
+      "improvedNeedsFollowUp": "تحسن ويحتاج متابعة",
+      "needsFocusedRemediation": "يحتاج دعمًا مركّزًا",
+      "notAssessed": "غير مُقيَّم",
+      "unknown": "نتيجة"
+    },
+    "trends": {
+      "improved": "تحسن",
+      "stable": "ثابت",
+      "needsFollowUp": "يحتاج متابعة"
+    }
   }
 }

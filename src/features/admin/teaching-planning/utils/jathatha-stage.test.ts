@@ -265,8 +265,12 @@ describe('jathatha permissions and hub cards', () => {
     expect(hrefs).toContain('/admin/teaching-planning/actual-deliveries');
     expect(hrefs).toContain('/admin/teaching-planning/class-journal');
     expect(hrefs).toContain('/admin/teaching-planning/progress');
+    expect(hrefs).toContain('/admin/teaching-planning/assessment-support');
     expect(TEACHING_PLANNING_IMPLEMENTED_HREFS).toContain(
       '/admin/teaching-planning/reference-jathathas',
+    );
+    expect(TEACHING_PLANNING_IMPLEMENTED_HREFS).toContain(
+      '/admin/teaching-planning/assessment-support',
     );
     expect(teachingPlanningComingSoonHasLiveRoute()).toBe(false);
     expect(TEACHING_PLANNING_COMING_SOON_CARDS).toHaveLength(0);

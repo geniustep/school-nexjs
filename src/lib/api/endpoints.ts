@@ -252,6 +252,13 @@ export const endpoints = {
     teachingProgressLine: (id: number | string) => `/admin/teaching-progress-lines/${id}`,
     teachingProgressSummary: '/admin/teaching-progress-summary',
     teachingExecutionDecisions: '/admin/teaching/execution-decisions',
+    /** Odoo 221 Assessment Support (admin aggregate — no PII in summary). */
+    teachingAssessmentSupportSummary: '/admin/teaching/assessment-support/summary',
+    teachingAssessmentSupportStudent: (studentId: number | string) =>
+      `/admin/teaching/assessment-support/students/${studentId}`,
+    teachingLearningObjectivesAdmin: '/admin/teaching/learning-objectives',
+    teachingMasteryScalesAdmin: '/admin/teaching/mastery-scales',
+    teachingDifficultyCategoriesAdmin: '/admin/teaching/difficulty-categories',
 
     staff: '/admin/staff',
     staffMember: (id: number | string) => `/admin/staff/${id}`,
@@ -646,6 +653,33 @@ export const endpoints = {
     teachingSuggestedNextItem: '/teacher/teaching/suggested-next-item',
     teachingExecutionDecisions: '/teacher/teaching/execution-decisions',
     teachingExecutionDecision: '/teacher/teaching/decision',
+    /** Odoo 221 Assessment Support / Mastery / Remediation. */
+    teachingLearningObjectives: '/teacher/teaching/learning-objectives',
+    teachingLearningObjective: (id: number | string) =>
+      `/teacher/teaching/learning-objectives/${id}`,
+    teachingMasteryScale: '/teacher/teaching/mastery-scale',
+    teachingMasteryMatrix: '/teacher/teaching/mastery-matrix',
+    teachingMasteryMatrixBatch: '/teacher/teaching/mastery-matrix/batch',
+    teachingMasteryObservationConfirm: (id: number | string) =>
+      `/teacher/teaching/mastery-observations/${id}/confirm`,
+    teachingMasteryObservationCorrect: (id: number | string) =>
+      `/teacher/teaching/mastery-observations/${id}/correct`,
+    teachingDifficulties: '/teacher/teaching/difficulties',
+    teachingDifficultyAction: (id: number | string, action: string) =>
+      `/teacher/teaching/difficulties/${id}/${action}`,
+    teachingSupportDecisions: '/teacher/teaching/support-decisions',
+    teachingSupportDecisionAction: (id: number | string, action: string) =>
+      `/teacher/teaching/support-decisions/${id}/${action}`,
+    teachingSupportGroups: '/teacher/teaching/support-groups',
+    teachingSupportGroup: (id: number | string) => `/teacher/teaching/support-groups/${id}`,
+    teachingSupportGroupAction: (id: number | string, action: string) =>
+      `/teacher/teaching/support-groups/${id}/${action}`,
+    teachingSupportPlans: '/teacher/teaching/support-plans',
+    teachingSupportPlanAction: (id: number | string, action: string) =>
+      `/teacher/teaching/support-plans/${id}/${action}`,
+    teachingReassessments: '/teacher/teaching/reassessments',
+    teachingReassessmentAction: (id: number | string, action: string) =>
+      `/teacher/teaching/reassessments/${id}/${action}`,
   },
 
   attachments: {

@@ -31,6 +31,7 @@ import {
   mergeTeacherProgramItems,
   type TeacherProgramItemView,
 } from '@/features/teaching-progress/merge-program-items';
+import { buildTeacherAssessmentSupportHref } from '@/features/teaching-assessment-support/assessment-support-url';
 import {
   buildTeacherPlanningHref,
   parseTeacherPlanningQuery,
@@ -323,6 +324,17 @@ export function TeacherTeachingPlanningPage() {
             ) : null}
             <Link className="btn btn--ghost btn--sm" href="/teacher/dashboard">
               {t('teacher.teachingProgress.goToday')}
+            </Link>
+            <Link
+              className="btn btn--ghost btn--sm"
+              href={buildTeacherAssessmentSupportHref({
+                classId: selection.classId,
+                subjectId: selection.subjectId,
+                academicYearId: selection.academicYearId,
+                returnTo: '/teacher/teaching/planning',
+              })}
+            >
+              {t('teacher.teachingAssessmentSupport.openFromPlanning')}
             </Link>
           </span>
         }
