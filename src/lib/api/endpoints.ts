@@ -379,6 +379,7 @@ export const endpoints = {
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
+    channelRecipientCandidates: '/admin/channels/recipient-candidates',
 
     financeFeeTypes: '/admin/finance/fee-types',
     financeFeeType: (id: number | string) => `/admin/finance/fee-types/${id}`,

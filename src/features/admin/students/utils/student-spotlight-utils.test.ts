@@ -1,14 +1,36 @@
 import { describe, expect, it } from 'vitest';
+import type { CurrentUser } from '@/types/user';
 import {
   buildStudentSpotlightDidYouMeanLabel,
+  canOpenStudentSpotlightMessage,
+  canOpenStudentSpotlightPayment,
+  canOpenStudentSpotlightProfile,
   getStudentSpotlightShortcutAction,
   isStudentSpotlightCloseKey,
   isStudentSpotlightOpenShortcut,
   moveSpotlightActiveIndex,
   splitStudentSpotlightDidYouMeanLabel,
+  studentSpotlightAcademicLine,
+  studentSpotlightArabicName,
+  studentSpotlightIdentityTitle,
+  studentSpotlightLatinName,
   studentSpotlightMatchedOnLabelKey,
+  studentSpotlightMessagePath,
   studentSpotlightNavigatePath,
+  studentSpotlightPaymentPath,
 } from './student-spotlight-utils';
+
+function admin(permissions: string[]): CurrentUser {
+  return {
+    id: 1,
+    name: 'Admin',
+    email: 'a@test.ma',
+    role: 'admin',
+    admin_kind: 'admin_staff',
+    school: { id: 3, name: 'School' },
+    permissions: permissions as CurrentUser['permissions'],
+  } as CurrentUser;
+}
 
 describe('isStudentSpotlightOpenShortcut', () => {
   it('opens on Ctrl+K using physical KeyK code', () => {
@@ -76,6 +98,82 @@ describe('moveSpotlightActiveIndex', () => {
 describe('studentSpotlightNavigatePath', () => {
   it('builds the student 360 path for Enter navigation', () => {
     expect(studentSpotlightNavigatePath(42)).toBe('/admin/students/42');
+  });
+});
+
+describe('studentSpotlight action paths', () => {
+  it('builds payment and message routes with studentId only', () => {
+    expect(studentSpotlightPaymentPath(2081)).toBe(
+      '/admin/finance/collections/new?studentId=2081',
+    );
+    expect(studentSpotlightMessagePath(2081)).toBe(
+      '/admin/channels/compose?studentId=2081',
+    );
+    expect(studentSpotlightMessagePath(2081)).not.toMatch(/phone|email|name/i);
+  });
+});
+
+describe('studentSpotlight identity helpers', () => {
+  it('uses stored Arabic and Latin names without transliteration', () => {
+    expect(
+      studentSpotlightArabicName({
+        name_ar: 'أحمد مصطفى',
+        name: 'should-not-win',
+      }),
+    ).toBe('أحمد مصطفى');
+    expect(studentSpotlightLatinName({ name_latin: 'Ahmed Mostafa' })).toBe('Ahmed Mostafa');
+    expect(
+      studentSpotlightIdentityTitle({
+        name_ar: 'أحمد مصطفى',
+        name_latin: 'Ahmed Mostafa',
+      }),
+    ).toBe('أحمد مصطفى — Ahmed Mostafa');
+  });
+
+  it('omits dash when Latin name is missing', () => {
+    expect(studentSpotlightLatinName({ name_latin: '  ' })).toBeNull();
+    expect(studentSpotlightIdentityTitle({ name_ar: 'يوسف', name_latin: null })).toBe('يوسف');
+    expect(studentSpotlightIdentityTitle({ name_ar: 'يوسف', name_latin: null })).not.toContain('—');
+  });
+});
+
+describe('studentSpotlightAcademicLine', () => {
+  it('joins level, class, and code without broken separators', () => {
+    expect(
+      studentSpotlightAcademicLine({
+        level: { id: 1, name: 'CM1' },
+        class: { id: 2, name: 'P4A' },
+        code: 'STU-00124',
+      }),
+    ).toBe('CM1 · P4A · STU-00124');
+  });
+
+  it('omits missing parts without double separators', () => {
+    expect(
+      studentSpotlightAcademicLine({
+        level: { id: 1, name: 'CM1' },
+        class: null,
+        code: 'STU-00124',
+      }),
+    ).toBe('CM1 · STU-00124');
+    expect(
+      studentSpotlightAcademicLine({
+        level: null,
+        class: null,
+        code: null,
+      }),
+    ).toBe('');
+  });
+});
+
+describe('studentSpotlight action capabilities', () => {
+  it('gates profile, payment, and message without network calls', () => {
+    expect(canOpenStudentSpotlightProfile(admin(['view_students']))).toBe(true);
+    expect(canOpenStudentSpotlightProfile(admin([]))).toBe(false);
+    expect(canOpenStudentSpotlightPayment(admin(['finance.collect_payments']))).toBe(true);
+    expect(canOpenStudentSpotlightPayment(admin(['view_students']))).toBe(false);
+    expect(canOpenStudentSpotlightMessage(admin(['view_channels']))).toBe(true);
+    expect(canOpenStudentSpotlightMessage(admin(['view_students']))).toBe(false);
   });
 });
 

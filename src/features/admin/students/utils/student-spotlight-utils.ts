@@ -1,4 +1,11 @@
-import type { StudentSearchMatchedOn } from '@/types/student-search';
+import { channelComposeHref } from '@/features/channels/utils/parse-channel-compose-student-id';
+import { canOpenStudentCommunication } from '@/features/channels/utils/can-open-student-communication';
+import { canCollectPayments } from '@/lib/permissions/finance';
+import { hasPermission } from '@/lib/permissions/permissions';
+import { getStudentDisplayName } from '@/lib/utils/student';
+import type { StudentSearchHit, StudentSearchMatchedOn } from '@/types/student-search';
+import type { CurrentUser } from '@/types/user';
+import { studentClassLabel, studentLevelLabel } from './student-academic-labels';
 
 const MATCHED_ON_LABEL_KEYS: Record<StudentSearchMatchedOn, string> = {
   name: 'admin.spotlight.matchedOn.name',
@@ -33,6 +40,68 @@ export function isStudentSpotlightCloseKey(key: string): boolean {
 
 export function studentSpotlightNavigatePath(studentId: number): string {
   return `/admin/students/${studentId}`;
+}
+
+export function studentSpotlightPaymentPath(studentId: number): string {
+  return `/admin/finance/collections/new?studentId=${studentId}`;
+}
+
+export function studentSpotlightMessagePath(studentId: number): string {
+  return channelComposeHref(studentId);
+}
+
+export function canOpenStudentSpotlightProfile(user: CurrentUser | null): boolean {
+  return hasPermission(user, 'view_students');
+}
+
+export function canOpenStudentSpotlightPayment(user: CurrentUser | null): boolean {
+  return canCollectPayments(user);
+}
+
+export function canOpenStudentSpotlightMessage(user: CurrentUser | null): boolean {
+  return canOpenStudentCommunication(user);
+}
+
+/** Stored Arabic name only — never transliterate. Falls back to display name fields. */
+export function studentSpotlightArabicName(
+  student: Pick<StudentSearchHit, 'name_ar' | 'full_name' | 'name' | 'first_name' | 'last_name'>,
+): string {
+  const arabic = student.name_ar?.trim();
+  if (arabic) return arabic;
+  const display = getStudentDisplayName(student);
+  return display === '—' ? '' : display;
+}
+
+/** Stored Latin/French name only — never invent or transliterate. */
+export function studentSpotlightLatinName(
+  student: Pick<StudentSearchHit, 'name_latin'>,
+): string | null {
+  const latin = student.name_latin?.trim();
+  return latin ? latin : null;
+}
+
+export function studentSpotlightIdentityTitle(
+  student: Pick<
+    StudentSearchHit,
+    'name_ar' | 'name_latin' | 'full_name' | 'name' | 'first_name' | 'last_name'
+  >,
+): string {
+  const arabic = studentSpotlightArabicName(student);
+  const latin = studentSpotlightLatinName(student);
+  if (arabic && latin) return `${arabic} — ${latin}`;
+  return arabic || latin || '';
+}
+
+/** Level · Class · Code — omit missing parts and their separators. */
+export function studentSpotlightAcademicLine(
+  student: Pick<StudentSearchHit, 'level' | 'class' | 'code'>,
+): string {
+  const level = studentLevelLabel(student.level);
+  const classLabel = studentClassLabel(student.class);
+  const code = student.code?.trim() || '';
+  return [level !== '—' ? level : '', classLabel !== '—' ? classLabel : '', code]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 export function studentSpotlightMatchedOnLabelKey(
