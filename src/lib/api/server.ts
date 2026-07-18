@@ -13,6 +13,10 @@ import type { MeResponse, CurrentUser } from '@/types/user';
 import { normalizeMeUser } from '@/lib/auth/normalize-user';
 import { applyActiveSchoolToUser } from '@/lib/auth/active-school';
 import { isTenantSessionValid } from '@/lib/auth/tenant-guard';
+import {
+  activeRoleCacheKey,
+  type LegalActiveRole,
+} from '@/lib/auth/active-role-transport';
 
 async function sessionId(): Promise<string | null> {
   const store = await cookies();
@@ -22,12 +26,13 @@ async function sessionId(): Promise<string | null> {
   return sid;
 }
 
-async function fetchMeUser(): Promise<CurrentUser | null> {
+async function fetchMeUser(activeRole?: LegalActiveRole): Promise<CurrentUser | null> {
   const sid = await sessionId();
   if (!sid) return null;
   const result = await odooApiFetch<MeResponse>(endpoints.auth.me, {
     method: 'GET',
     sessionId: sid,
+    activeRole,
   });
   if (result.kind !== 'json' || !result.body.success) return null;
   return result.body.data.user;
@@ -115,10 +120,15 @@ export async function serverPost<T>(path: string, body?: unknown): Promise<ApiRe
 
 /**
  * Resolve the authenticated user, or null if there is no valid session.
- * This is the canonical server-side session check used by guards/layouts.
+ * `activeRole` is part of the React cache key so admin/teacher/undefined do not share entries.
+ * Callers that have request context (Flutter BFF) must pass the resolved role explicitly.
  */
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const raw = await fetchMeUser();
-  if (!raw) return null;
-  return applyActiveSchoolToUser(normalizeMeUser(raw));
-});
+export const getCurrentUser = cache(
+  async (activeRole?: LegalActiveRole): Promise<CurrentUser | null> => {
+    // `activeRole` is part of React cache's argument key (admin ≠ teacher ≠ undefined).
+    void activeRoleCacheKey(activeRole);
+    const raw = await fetchMeUser(activeRole);
+    if (!raw) return null;
+    return applyActiveSchoolToUser(normalizeMeUser(raw));
+  },
+);

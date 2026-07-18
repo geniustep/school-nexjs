@@ -31,6 +31,11 @@ import { getStoredTenantSlug, tenantBackendNotConfiguredResponse } from '@/lib/a
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { unsafeBffPathErrorBody } from '@/lib/api/safe-bff-path';
 import { getCurrentUser } from '@/lib/api/server';
+import {
+  activeRoleErrorBody,
+  resolveActiveRoleFromRequest,
+  type LegalActiveRole,
+} from '@/lib/auth/active-role-transport';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
 import { isOdooAdminRoleTeacherEndpointBlock } from '@/lib/auth/teacher-workspace-api';
@@ -98,6 +103,14 @@ async function handle(request: NextRequest, segments: string[]) {
     return NextResponse.json(unsafeBffPathErrorBody('invalid_path'), { status: 400 });
   }
 
+  const roleResolved = resolveActiveRoleFromRequest(request);
+  if (!roleResolved.ok) {
+    return NextResponse.json(activeRoleErrorBody(roleResolved.code, roleResolved.message), {
+      status: 400,
+    });
+  }
+  const activeRole: LegalActiveRole | undefined = roleResolved.role;
+
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
   const tenant = await getStoredTenantSlug();
@@ -105,12 +118,15 @@ async function handle(request: NextRequest, segments: string[]) {
 
   const query: Record<string, string> = {};
   request.nextUrl.searchParams.forEach((value, key) => {
+    // Canonical signal to Odoo is X-SSC-Active-Role via odooApiFetch options.
+    // Drop query active_role so we never send two potentially divergent signals.
+    if (key === 'active_role') return;
     query[key] = value;
   });
 
   let activeSchoolId: number | null | undefined;
   if (path.startsWith('/admin/') || shouldBindActiveSchoolInBody(path, method)) {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(activeRole);
     activeSchoolId = user?.active_school_id;
     if (path.startsWith('/admin/') && activeSchoolId) {
       query.active_school_id = String(activeSchoolId);
@@ -157,6 +173,7 @@ async function handle(request: NextRequest, segments: string[]) {
     query,
     body,
     formData,
+    activeRole,
   });
 
   if (result.kind === 'file') {
@@ -182,7 +199,7 @@ async function handle(request: NextRequest, segments: string[]) {
     result.status === 403 &&
     method === 'GET'
   ) {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(activeRole);
     const odooMessage =
       !result.body.success && result.body.error?.message ? result.body.error.message : '';
     if (

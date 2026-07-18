@@ -120,6 +120,12 @@ export interface OdooFetchOptions {
   body?: unknown;
   /** When set, body is forwarded as multipart/form-data (Content-Type with boundary is auto-set). */
   formData?: FormData;
+  /**
+   * Explicit active-role context for multi-role sessions (Flutter → BFF → Odoo).
+   * Callers must pass a legal role; ownership is verified by Odoo only.
+   * Never read from request globals here — pass explicitly per call.
+   */
+  activeRole?: string;
 }
 
 async function resolveOdooBaseUrl(opts: OdooFetchOptions): Promise<BackendBaseUrlResolution> {
@@ -197,12 +203,20 @@ export async function odooApiFetch<T = unknown>(
   const url = buildOdooApiUrl(baseUrl, config.apiPrefix, path, opts.query);
   const method = opts.method ?? 'GET';
 
+  const outboundHeaders: Record<string, string> = {
+    Cookie: `session_id=${opts.sessionId}`,
+  };
+  const role = typeof opts.activeRole === 'string' ? opts.activeRole.trim().toLowerCase() : '';
+  if (role) {
+    outboundHeaders['X-SSC-Active-Role'] = role;
+  }
+
   let res: Response;
   try {
     if (opts.formData) {
       res = await fetch(url, {
         method,
-        headers: { Cookie: `session_id=${opts.sessionId}` },
+        headers: outboundHeaders,
         cache: 'no-store',
         body: opts.formData,
       });
@@ -210,8 +224,8 @@ export async function odooApiFetch<T = unknown>(
       res = await fetch(url, {
         method,
         headers: {
+          ...outboundHeaders,
           'Content-Type': 'application/json',
-          Cookie: `session_id=${opts.sessionId}`,
         },
         cache: 'no-store',
         body:
