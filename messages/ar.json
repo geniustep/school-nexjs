@@ -1317,6 +1317,11 @@
         "correctionRequired": "يلزم تصحيح بدل التعديل الصامت.",
         "saveFailed": "تعذر الحفظ. أعد المحاولة."
       }
+    },
+    "teachingReviewPublication": {
+      "title": "المراجعة والنشر الرسمي",
+      "subtitle": "حالة المراجعة، طلبات التصحيح، النسخ الرسمية وحالة إغلاق الدورة.",
+      "openFromPlanning": "المراجعة والنشر الرسمي"
     }
   },
   "actions": {
@@ -12012,7 +12017,9 @@
           "deliveryDesc": "التسليم المؤكد ودفتر القسم وتقدّم التدريس."
         },
         "assessmentSupportTitle": "التقييم والدعم",
-        "assessmentSupportDesc": "تغطية التمكن والصعوبات وخطط الدعم بشكل تجميعي"
+        "assessmentSupportDesc": "تغطية التمكن والصعوبات وخطط الدعم بشكل تجميعي",
+        "reviewPublicationTitle": "المراجعة والنشر الرسمي",
+        "reviewPublicationDesc": "طابور المراجعة التربوية، النشر الرسمي، الأرشيف، التصدير وإغلاق الدورة."
       },
       "columns": {
         "name": "المرجع",
@@ -12976,6 +12983,10 @@
           "deliveredSupport": "دعم مُنفَّذ",
           "reassessmentDue": "إعادة تقييم مستحقة"
         }
+      },
+      "reviewPublication": {
+        "title": "المراجعة والنشر الرسمي",
+        "subtitle": "مراجعة الوثائق التربوية، المصادقة الرسمية، الطباعة، الأرشيف، التصدير وإغلاق الدورة."
       }
     },
     "teachingPlanningHubDesc": "المراجع التربوية ومسارات التدريس والجاهزية",
@@ -13030,6 +13041,242 @@
       "improved": "تحسن",
       "stable": "ثابت",
       "needsFollowUp": "يحتاج متابعة"
+    }
+  },
+  "teachingReviewPublication": {
+    "tabs": {
+      "label": "أقسام المراجعة والنشر",
+      "queue": "طابور المراجعة",
+      "publications": "المنشورات الرسمية",
+      "archive": "الأرشيف التربوي",
+      "exports": "التصدير",
+      "closure": "إغلاق الدورة"
+    },
+    "teacherTabs": {
+      "status": "حالة المراجعة / التصحيحات",
+      "publications": "منشوراتي الرسمية",
+      "print": "الطباعة والتحميل",
+      "closure": "حالة الدورة"
+    },
+    "filters": {
+      "label": "مرشحات",
+      "documentType": "نوع الوثيقة",
+      "reviewState": "حالة المراجعة",
+      "publicationStatus": "حالة النشر",
+      "exportFormat": "صيغة التصدير",
+      "locale": "اللغة",
+      "scopeType": "نطاق الإغلاق"
+    },
+    "counts": {
+      "pending": "بانتظار المراجعة",
+      "correction": "طلب تصحيح",
+      "reviewedNotPublished": "مراجعة بلا نشر رسمي",
+      "published": "منشور رسميًا"
+    },
+    "fields": {
+      "teacher": "الأستاذ المسؤول",
+      "class": "القسم",
+      "offering": "مسار التدريس",
+      "publicationNo": "رقم النشر",
+      "publicationStatus": "حالة النشر",
+      "correctionReason": "سبب طلب التصحيح",
+      "locales": "الملفات الرسمية",
+      "reason": "السبب",
+      "revision": "المراجعة",
+      "documentId": "معرّف الوثيقة",
+      "allowedAction": "الإجراء المسموح",
+      "closureState": "حالة الإغلاق"
+    },
+    "badges": {
+      "correctionRequired": "تصحيح مطلوب"
+    },
+    "actions": {
+      "markReviewed": "تعليم كمراجع",
+      "requestCorrection": "طلب تصحيح",
+      "approveOfficial": "مصادقة رسمية",
+      "viewVersions": "عرض النسخ",
+      "printDraftAr": "طباعة مسودة (عربية)",
+      "printDraftFr": "طباعة مسودة (فرنسية)",
+      "printOfficialAr": "طباعة رسمية (عربية)",
+      "printOfficialFr": "طباعة رسمية (فرنسية)",
+      "archive": "أرشفة",
+      "createExport": "إنشاء تصدير",
+      "refreshExport": "تحديث الحالة",
+      "downloadExport": "تحميل التصدير",
+      "loadPreview": "معاينة الإغلاق",
+      "close": "إغلاق الدورة",
+      "reclose": "إعادة الإغلاق",
+      "reopen": "إعادة الفتح",
+      "authorizeException": "تصحيح استثنائي",
+      "viewEvents": "أحداث الإغلاق",
+      "back": "رجوع",
+      "backToPlanning": "العودة إلى التخطيط التربوي"
+    },
+    "documentTypes": {
+      "teacherJathatha": "جذاذة الأستاذ",
+      "actualDelivery": "التدريس الفعلي",
+      "classJournal": "دفتر القسم",
+      "homework": "الواجبات",
+      "annualDistribution": "التوزيع السنوي",
+      "didacticSequence": "السلسلة الديداكتيكية",
+      "unknown": "وثيقة"
+    },
+    "reviewStates": {
+      "notReviewed": "غير مراجع",
+      "reviewed": "تمت المراجعة",
+      "correctionRequested": "طلب تصحيح",
+      "unknown": "حالة مراجعة"
+    },
+    "publicationStatuses": {
+      "approved": "معتمد",
+      "superseded": "مستبدل",
+      "archived": "مؤرشف",
+      "unknown": "حالة نشر"
+    },
+    "exportStatuses": {
+      "pending": "قيد الانتظار",
+      "processing": "قيد المعالجة",
+      "ready": "جاهز",
+      "failed": "فشل",
+      "expired": "منتهي الصلاحية",
+      "unknown": "حالة تصدير"
+    },
+    "exportFormats": {
+      "pdf": "PDF",
+      "csv": "CSV",
+      "zip": "ZIP",
+      "jsonAudit": "JSON للتدقيق",
+      "unknown": "صيغة"
+    },
+    "closureStates": {
+      "open": "مفتوحة",
+      "closing": "جارٍ الإغلاق",
+      "closed": "مغلقة",
+      "reopened": "معاد فتحها",
+      "unknown": "حالة إغلاق"
+    },
+    "closureScopes": {
+      "term": "إغلاق الدورة",
+      "academicYear": "إغلاق السنة الدراسية",
+      "unknown": "نطاق"
+    },
+    "locales": {
+      "ar": "العربية",
+      "fr": "الفرنسية",
+      "unknown": "لغة"
+    },
+    "print": {
+      "draftLabel": "مسودة — ليست نسخة رسمية"
+    },
+    "exports": {
+      "limitsHint": "حدود التصدير: ZIP حتى {zip} منشورًا، حجم أقصى {mb} ميغابايت، حتى {rows} صفًا، صلاحية {hours} ساعة."
+    },
+    "closure": {
+      "canClose": "قابل للإغلاق",
+      "legacyWarning": "إغلاق قديم بدون محضر إغلاق تربوي رسمي.",
+      "blocker": "عائق",
+      "warning": "تنبيه",
+      "acknowledgeWarnings": "أقرّ بالتنبيهات للمتابعة",
+      "termRequired": "اختر الدورة قبل معاينة إغلاق الدورة.",
+      "eventsTitle": "أحداث الإغلاق",
+      "exceptionsTitle": "التصحيحات الاستثنائية"
+    },
+    "versions": {
+      "title": "سجل النسخ الرسمية"
+    },
+    "teacher": {
+      "periodClosedReadonly": "الدورة مغلقة — العرض فقط. لا يمكن تعديل الوثائق التربوية.",
+      "noAdminActions": "لا تتوفر إجراءات إدارية (مصادقة، أرشفة، تصدير جماعي أو إغلاق) في مساحة الأستاذ."
+    },
+    "empty": {
+      "queueTitle": "لا وثائق بانتظار المراجعة",
+      "queueDesc": "لا يوجد حاليًا عناصر في طابور المراجعة التربوية لهذا السياق.",
+      "archiveTitle": "لا نتائج في الأرشيف",
+      "archiveDesc": "لا منشورات رسمية مطابقة للمرشحات الحالية.",
+      "publicationsTitle": "لا منشورات رسمية بعد",
+      "publicationsDesc": "لم تُنشأ بعد نسخة رسمية لهذه الوثائق.",
+      "exportsTitle": "لا تصدير بعد",
+      "exportsDesc": "أنشئ طلب تصدير بالصيغ المدعومة (PDF أو CSV أو ZIP أو JSON).",
+      "closureTitle": "لا سجل إغلاق",
+      "closureDesc": "لا يوجد محضر إغلاق تربوي لهذا السياق بعد.",
+      "noOfficialFile": "لا ملف رسمي لهذه اللغة",
+      "teacherStatusTitle": "اختر وثيقة لعرض الحالة",
+      "teacherStatusDesc": "افتح هذه الصفحة من وثيقة تخطيط أو حدّد نوع الوثيقة ومعرّفها في الرابط."
+    },
+    "dialogs": {
+      "markReviewedTitle": "تأكيد المراجعة",
+      "markReviewedBody": "هل تريد تعليم هذه الوثيقة كمراجعة؟",
+      "requestCorrectionTitle": "طلب تصحيح",
+      "approveTitle": "المصادقة الرسمية",
+      "approveBody": "ستُنشئ الخلفية نسخة رسمية غير قابلة للتعديل. لا يُبنى المحتوى في الواجهة.",
+      "alreadyPublished": "هذه الوثيقة منشورة رسميًا بالفعل.",
+      "archiveTitle": "أرشفة النشر الرسمي",
+      "closeTitle": "تأكيد إغلاق الدورة",
+      "closeBody": "هذا إجراء مؤثر: يمنع الكتابة التربوية في النطاق المحدد.",
+      "reopenTitle": "إعادة فتح الدورة",
+      "reopenBody": "ستصبح الكتابة ممكنة من جديد مع الاحتفاظ بسجل الإغلاق السابق.",
+      "exceptionTitle": "تصحيح استثنائي",
+      "exceptionBody": "تفويض لمرة واحدة لإجراء محمي أثناء الإغلاق. يتطلب سببًا إلزاميًا."
+    },
+    "live": {
+      "success": "تمت العملية بنجاح.",
+      "downloadReady": "بدأ التحميل.",
+      "approved": "تمت المصادقة الرسمية. رقم النشر:"
+    },
+    "errors": {
+      "generic": "تعذّر إتمام العملية.",
+      "reviewReasonRequired": "سبب طلب التصحيح إلزامي.",
+      "reviewTransitionInvalid": "Invalid review transition.",
+      "documentImmutable": "Document or official publication is immutable.",
+      "approvalRequired": "Review is required before official approval.",
+      "publicationSourceNotCurrent": "Publication source is not current.",
+      "publicationDocumentTypeInvalid": "Invalid publication document type.",
+      "publicationSourceChanged": "Publication source changed before approval.",
+      "publicationDuplicate": "Matching official publication already exists.",
+      "publicationRevisionInvalid": "Invalid source revision.",
+      "homeworkCorrectionRequired": "Homework correction is required first.",
+      "crossSchoolForbidden": "Cross-school access is forbidden.",
+      "publicationForbidden": "Publication access is forbidden.",
+      "restrictedDataForbidden": "Restricted data is forbidden here.",
+      "homeworkNotOwner": "Only the owning teacher can correct this homework.",
+      "draftPrintForbidden": "Draft print is forbidden.",
+      "officialPrintForbidden": "Official print is forbidden.",
+      "exportForbidden": "Export is forbidden.",
+      "archiveForbidden": "Archive is forbidden.",
+      "printLocaleInvalid": "Unsupported print locale.",
+      "printDocumentTypeInvalid": "Document type cannot be printed.",
+      "officialPublicationRequired": "Official publication is required.",
+      "officialSnapshotMissing": "Official snapshot is missing.",
+      "officialSnapshotIntegrityFailed": "Official snapshot integrity failed.",
+      "officialAttachmentIntegrityFailed": "Official attachment integrity failed.",
+      "exportTypeInvalid": "Export format is invalid or unavailable.",
+      "exportTooLarge": "Export exceeds the size limit.",
+      "exportRecordLimitExceeded": "Export exceeds the row limit.",
+      "exportNotReady": "Export is not ready for download.",
+      "exportExpired": "انتهت صلاحية التصدير.",
+      "periodScopeInvalid": "Invalid closure scope.",
+      "periodCrossSchoolForbidden": "Cross-school closure is forbidden.",
+      "periodCloseForbidden": "Period close is forbidden.",
+      "periodReopenForbidden": "Period reopen is forbidden.",
+      "periodAlreadyClosed": "Scope is already closed.",
+      "periodNotClosed": "Scope is not closed.",
+      "periodHardBlockers": "عوائق تمنع الإغلاق.",
+      "periodWarningsNotAcknowledged": "Warnings must be acknowledged.",
+      "periodPreviewChanged": "Closure preview changed before confirm.",
+      "periodClosingInProgress": "Closure is already in progress.",
+      "periodClosedWriteForbidden": "Writes are forbidden while the period is closed.",
+      "reopenReasonRequired": "سبب إعادة الفتح إلزامي.",
+      "closeReasonRequired": "سبب الإغلاق إلزامي.",
+      "exceptionalCorrectionForbidden": "Exceptional correction is forbidden.",
+      "exceptionReasonRequired": "Exception reason is required.",
+      "exceptionInvalid": "Exception authorization is invalid.",
+      "exceptionExpired": "Exception authorization expired.",
+      "exceptionAlreadyUsed": "Exception authorization already used.",
+      "legacyClosedWithoutSnapshot": "إغلاق قديم بدون محضر تربوي.",
+      "notFound": "Not found.",
+      "permissionDenied": "ليس لديك الصلاحية المطلوبة.",
+      "validation": "Invalid data.",
+      "pdfGenerationFailed": "PDF generation failed."
     }
   }
 }

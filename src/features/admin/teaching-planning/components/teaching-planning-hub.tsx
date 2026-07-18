@@ -25,6 +25,7 @@ import {
   canSeeAssessmentSupportSummary,
   canSeeTeacherJathathaReview,
   canSeeTeachingProgress,
+  canSeeTeachingReviewPublication,
   canViewTeachingPlanning,
 } from '@/lib/permissions/teaching-planning';
 import {
@@ -65,6 +66,7 @@ export function TeachingPlanningHubPage() {
     classJournal: canSeeClassJournal(user),
     progress: canSeeTeachingProgress(user),
     assessmentSupport: canSeeAssessmentSupportSummary(user),
+    reviewPublication: canSeeTeachingReviewPublication(user),
   };
 
   const visibleCards = TEACHING_PLANNING_HUB_CARDS.filter((card) =>

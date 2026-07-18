@@ -260,6 +260,44 @@ export const endpoints = {
     teachingMasteryScalesAdmin: '/admin/teaching/mastery-scales',
     teachingDifficultyCategoriesAdmin: '/admin/teaching/difficulty-categories',
 
+    /** Odoo 224 Teaching Stage 9 — review / publication / print / archive / export / closure. */
+    teachingReviewQueue: '/admin/teaching/review-queue',
+    teachingAdminDashboardFoundation: '/admin/teaching/admin-dashboard-foundation',
+    teachingDocumentMarkReviewed: (documentType: string, documentId: number | string) =>
+      `/admin/teaching/documents/${documentType}/${documentId}/mark-reviewed`,
+    teachingDocumentRequestChanges: (documentType: string, documentId: number | string) =>
+      `/admin/teaching/documents/${documentType}/${documentId}/request-changes`,
+    teachingDocumentApproveOfficial: (documentType: string, documentId: number | string) =>
+      `/admin/teaching/documents/${documentType}/${documentId}/approve-official`,
+    teachingDocumentVersions: (documentType: string, documentId: number | string) =>
+      `/admin/teaching/documents/${documentType}/${documentId}/versions`,
+    teachingDocumentDraftPrint: (documentType: string, documentId: number | string) =>
+      `/admin/teaching/documents/${documentType}/${documentId}/print/draft`,
+    teachingPublication: (publicationId: number | string) =>
+      `/admin/teaching/publications/${publicationId}`,
+    teachingPublicationArchive: (publicationId: number | string) =>
+      `/admin/teaching/publications/${publicationId}/archive`,
+    teachingPublicationOfficialPrint: (publicationId: number | string) =>
+      `/admin/teaching/publications/${publicationId}/print/official`,
+    teachingPublicationDownload: (publicationId: number | string) =>
+      `/admin/teaching/publications/${publicationId}/download`,
+    teachingArchive: '/admin/teaching/archive',
+    teachingExports: '/admin/teaching/exports',
+    teachingExport: (exportId: number | string) => `/admin/teaching/exports/${exportId}`,
+    teachingExportDownload: (exportId: number | string) =>
+      `/admin/teaching/exports/${exportId}/download`,
+    teachingPeriodClosures: '/admin/teaching/period-closures',
+    teachingPeriodClosurePreview: '/admin/teaching/period-closures/preview',
+    teachingPeriodClosureClose: '/admin/teaching/period-closures/close',
+    teachingPeriodClosure: (closureId: number | string) =>
+      `/admin/teaching/period-closures/${closureId}`,
+    teachingPeriodClosureReopen: (closureId: number | string) =>
+      `/admin/teaching/period-closures/${closureId}/reopen`,
+    teachingPeriodClosureEvents: (closureId: number | string) =>
+      `/admin/teaching/period-closures/${closureId}/events`,
+    teachingPeriodClosureExceptions: (closureId: number | string) =>
+      `/admin/teaching/period-closures/${closureId}/exceptions`,
+
     staff: '/admin/staff',
     staffMember: (id: number | string) => `/admin/staff/${id}`,
     staffEffectivePermissions: (id: number | string) =>
@@ -680,6 +718,20 @@ export const endpoints = {
     teachingReassessments: '/teacher/teaching/reassessments',
     teachingReassessmentAction: (id: number | string, action: string) =>
       `/teacher/teaching/reassessments/${id}/${action}`,
+
+    /** Odoo 224 Teaching Stage 9 — teacher review status / print / closure (read-focused). */
+    teachingDocumentReviewStatus: (documentType: string, documentId: number | string) =>
+      `/teacher/teaching/documents/${documentType}/${documentId}/review-status`,
+    teachingDocumentPublications: (documentType: string, documentId: number | string) =>
+      `/teacher/teaching/documents/${documentType}/${documentId}/publications`,
+    teachingDocumentDraftPrint: (documentType: string, documentId: number | string) =>
+      `/teacher/teaching/documents/${documentType}/${documentId}/print/draft`,
+    teachingPublications: '/teacher/teaching/publications',
+    teachingPublicationDownload: (publicationId: number | string) =>
+      `/teacher/teaching/publications/${publicationId}/download`,
+    teachingClosureStatus: '/teacher/teaching/closure-status',
+    homeworkCreateCorrection: (homeworkId: number | string) =>
+      `/teacher/homeworks/${homeworkId}/create-correction`,
   },
 
   attachments: {

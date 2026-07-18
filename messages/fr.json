@@ -1317,6 +1317,11 @@
         "correctionRequired": "Une correction est requise (pas de modification silencieuse).",
         "saveFailed": "Enregistrement impossible. Réessayez."
       }
+    },
+    "teachingReviewPublication": {
+      "title": "Révision et publication officielle",
+      "subtitle": "Statut de révision, demandes de correction, publications officielles et clôture.",
+      "openFromPlanning": "Révision et publication officielle"
     }
   },
   "actions": {
@@ -11963,7 +11968,9 @@
           "deliveryDesc": "Livraison confirmée, journal de classe et progression."
         },
         "assessmentSupportTitle": "Évaluation et soutien",
-        "assessmentSupportDesc": "Couverture de maîtrise, difficultés et plans de soutien (agrégés)"
+        "assessmentSupportDesc": "Couverture de maîtrise, difficultés et plans de soutien (agrégés)",
+        "reviewPublicationTitle": "Révision et publication officielle",
+        "reviewPublicationDesc": "File de révision pédagogique, publication officielle, archive, export et clôture."
       },
       "columns": {
         "name": "Référence",
@@ -12927,6 +12934,10 @@
           "deliveredSupport": "Soutien dispensé",
           "reassessmentDue": "Réévaluation due"
         }
+      },
+      "reviewPublication": {
+        "title": "Révision et publication officielle",
+        "subtitle": "Révision pédagogique, validation officielle, impression, archive, export et clôture."
       }
     },
     "teachingPlanningHubDesc": "Références pédagogiques, parcours d’enseignement et readiness",
@@ -12981,6 +12992,242 @@
       "improved": "Amélioré",
       "stable": "Stable",
       "needsFollowUp": "Suivi nécessaire"
+    }
+  },
+  "teachingReviewPublication": {
+    "tabs": {
+      "label": "Sections révision et publication",
+      "queue": "File de révision",
+      "publications": "Publications officielles",
+      "archive": "Archive pédagogique",
+      "exports": "Exports",
+      "closure": "Clôture de la période"
+    },
+    "teacherTabs": {
+      "status": "Statut / corrections requises",
+      "publications": "Mes publications officielles",
+      "print": "Impression / téléchargement",
+      "closure": "Statut de période"
+    },
+    "filters": {
+      "label": "Filters",
+      "documentType": "Document type",
+      "reviewState": "Review state",
+      "publicationStatus": "Publication status",
+      "exportFormat": "Export format",
+      "locale": "Locale",
+      "scopeType": "Closure scope"
+    },
+    "counts": {
+      "pending": "Pending review",
+      "correction": "Correction requested",
+      "reviewedNotPublished": "Reviewed not published",
+      "published": "Officially published"
+    },
+    "fields": {
+      "teacher": "Responsible teacher",
+      "class": "Class",
+      "offering": "Teaching offering",
+      "publicationNo": "Publication number",
+      "publicationStatus": "Publication status",
+      "correctionReason": "Correction reason",
+      "locales": "Official files",
+      "reason": "Reason",
+      "revision": "Revision",
+      "documentId": "Document ID",
+      "allowedAction": "Allowed action",
+      "closureState": "Closure state"
+    },
+    "badges": {
+      "correctionRequired": "Correction required"
+    },
+    "actions": {
+      "markReviewed": "Marquer comme révisé",
+      "requestCorrection": "Demander une correction",
+      "approveOfficial": "Validation officielle",
+      "viewVersions": "View versions",
+      "printDraftAr": "Draft print (AR)",
+      "printDraftFr": "Draft print (FR)",
+      "printOfficialAr": "Official print (AR)",
+      "printOfficialFr": "Official print (FR)",
+      "archive": "Archive",
+      "createExport": "Create export",
+      "refreshExport": "Refresh status",
+      "downloadExport": "Download export",
+      "loadPreview": "Load closure preview",
+      "close": "Clôturer la période",
+      "reclose": "Reclôturer",
+      "reopen": "Réouvrir",
+      "authorizeException": "Correction exceptionnelle",
+      "viewEvents": "Closure events",
+      "back": "Back",
+      "backToPlanning": "Retour à la planification"
+    },
+    "documentTypes": {
+      "teacherJathatha": "Teacher jathatha",
+      "actualDelivery": "Actual delivery",
+      "classJournal": "Class journal",
+      "homework": "Homework",
+      "annualDistribution": "Annual distribution",
+      "didacticSequence": "Didactic sequence",
+      "unknown": "Document"
+    },
+    "reviewStates": {
+      "notReviewed": "Not reviewed",
+      "reviewed": "Reviewed",
+      "correctionRequested": "Correction requested",
+      "unknown": "Review state"
+    },
+    "publicationStatuses": {
+      "approved": "Approved",
+      "superseded": "Superseded",
+      "archived": "Archived",
+      "unknown": "Status"
+    },
+    "exportStatuses": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "ready": "Ready",
+      "failed": "Failed",
+      "expired": "Expired",
+      "unknown": "Export status"
+    },
+    "exportFormats": {
+      "pdf": "PDF",
+      "csv": "CSV",
+      "zip": "ZIP",
+      "jsonAudit": "JSON audit",
+      "unknown": "Format"
+    },
+    "closureStates": {
+      "open": "Open",
+      "closing": "Closing",
+      "closed": "Closed",
+      "reopened": "Reopened",
+      "unknown": "State"
+    },
+    "closureScopes": {
+      "term": "Period closure",
+      "academicYear": "Academic year closure",
+      "unknown": "Scope"
+    },
+    "locales": {
+      "ar": "Arabic",
+      "fr": "French",
+      "unknown": "Locale"
+    },
+    "print": {
+      "draftLabel": "Brouillon — pas une version officielle"
+    },
+    "exports": {
+      "limitsHint": "Limites: ZIP max {zip} publications, {mb} Mo, {rows} lignes, expiration {hours} h."
+    },
+    "closure": {
+      "canClose": "Can close",
+      "legacyWarning": "Clôture héritée sans procès-verbal pédagogique officiel.",
+      "blocker": "Blocker",
+      "warning": "Warning",
+      "acknowledgeWarnings": "I acknowledge the warnings",
+      "termRequired": "Select a term before previewing term closure.",
+      "eventsTitle": "Closure events",
+      "exceptionsTitle": "Exceptional corrections"
+    },
+    "versions": {
+      "title": "Official version history"
+    },
+    "teacher": {
+      "periodClosedReadonly": "Période clôturée — consultation seule.",
+      "noAdminActions": "Admin actions (approve, archive, bulk export, close) are unavailable to teachers."
+    },
+    "empty": {
+      "queueTitle": "No documents awaiting review",
+      "queueDesc": "The pedagogical review queue is empty for this context.",
+      "archiveTitle": "No archive results",
+      "archiveDesc": "No official publications match the current filters.",
+      "publicationsTitle": "No official publications yet",
+      "publicationsDesc": "No official version has been created yet.",
+      "exportsTitle": "No export yet",
+      "exportsDesc": "Create an export using PDF, CSV, ZIP, or JSON audit.",
+      "closureTitle": "No closure record",
+      "closureDesc": "No teaching closure record exists for this context yet.",
+      "noOfficialFile": "No official file for this locale",
+      "teacherStatusTitle": "Select a document to view status",
+      "teacherStatusDesc": "Open from planning or provide document_type and document_id in the URL."
+    },
+    "dialogs": {
+      "markReviewedTitle": "Confirm review",
+      "markReviewedBody": "Mark this document as reviewed?",
+      "requestCorrectionTitle": "Request correction",
+      "approveTitle": "Official approval",
+      "approveBody": "The backend will create an immutable official publication. No client-side snapshot is built.",
+      "alreadyPublished": "This document is already officially published.",
+      "archiveTitle": "Archive official publication",
+      "closeTitle": "Confirm period closure",
+      "closeBody": "Destructive impact: pedagogical writes will be blocked for the selected scope.",
+      "reopenTitle": "Reopen period",
+      "reopenBody": "Writes become possible again while previous closure history is preserved.",
+      "exceptionTitle": "Exceptional correction",
+      "exceptionBody": "Single-use authorization during closure. Reason is mandatory."
+    },
+    "live": {
+      "success": "Operation completed successfully.",
+      "downloadReady": "Download started.",
+      "approved": "Officially approved. Publication number:"
+    },
+    "errors": {
+      "generic": "Impossible d'effectuer l'opération.",
+      "reviewReasonRequired": "Le motif de correction est obligatoire.",
+      "reviewTransitionInvalid": "Invalid review transition.",
+      "documentImmutable": "Document or official publication is immutable.",
+      "approvalRequired": "Review is required before official approval.",
+      "publicationSourceNotCurrent": "Publication source is not current.",
+      "publicationDocumentTypeInvalid": "Invalid publication document type.",
+      "publicationSourceChanged": "Publication source changed before approval.",
+      "publicationDuplicate": "Matching official publication already exists.",
+      "publicationRevisionInvalid": "Invalid source revision.",
+      "homeworkCorrectionRequired": "Homework correction is required first.",
+      "crossSchoolForbidden": "Cross-school access is forbidden.",
+      "publicationForbidden": "Publication access is forbidden.",
+      "restrictedDataForbidden": "Restricted data is forbidden here.",
+      "homeworkNotOwner": "Only the owning teacher can correct this homework.",
+      "draftPrintForbidden": "Draft print is forbidden.",
+      "officialPrintForbidden": "Official print is forbidden.",
+      "exportForbidden": "Export is forbidden.",
+      "archiveForbidden": "Archive is forbidden.",
+      "printLocaleInvalid": "Unsupported print locale.",
+      "printDocumentTypeInvalid": "Document type cannot be printed.",
+      "officialPublicationRequired": "Official publication is required.",
+      "officialSnapshotMissing": "Official snapshot is missing.",
+      "officialSnapshotIntegrityFailed": "Official snapshot integrity failed.",
+      "officialAttachmentIntegrityFailed": "Official attachment integrity failed.",
+      "exportTypeInvalid": "Export format is invalid or unavailable.",
+      "exportTooLarge": "Export exceeds the size limit.",
+      "exportRecordLimitExceeded": "Export exceeds the row limit.",
+      "exportNotReady": "Export is not ready for download.",
+      "exportExpired": "Export expiré.",
+      "periodScopeInvalid": "Invalid closure scope.",
+      "periodCrossSchoolForbidden": "Cross-school closure is forbidden.",
+      "periodCloseForbidden": "Period close is forbidden.",
+      "periodReopenForbidden": "Period reopen is forbidden.",
+      "periodAlreadyClosed": "Scope is already closed.",
+      "periodNotClosed": "Scope is not closed.",
+      "periodHardBlockers": "Blocages empêchent la clôture.",
+      "periodWarningsNotAcknowledged": "Warnings must be acknowledged.",
+      "periodPreviewChanged": "Closure preview changed before confirm.",
+      "periodClosingInProgress": "Closure is already in progress.",
+      "periodClosedWriteForbidden": "Writes are forbidden while the period is closed.",
+      "reopenReasonRequired": "Motif de réouverture obligatoire.",
+      "closeReasonRequired": "Motif de clôture obligatoire.",
+      "exceptionalCorrectionForbidden": "Exceptional correction is forbidden.",
+      "exceptionReasonRequired": "Exception reason is required.",
+      "exceptionInvalid": "Exception authorization is invalid.",
+      "exceptionExpired": "Exception authorization expired.",
+      "exceptionAlreadyUsed": "Exception authorization already used.",
+      "legacyClosedWithoutSnapshot": "Clôture héritée sans instantané.",
+      "notFound": "Not found.",
+      "permissionDenied": "Permission refusée.",
+      "validation": "Invalid data.",
+      "pdfGenerationFailed": "PDF generation failed."
     }
   }
 }

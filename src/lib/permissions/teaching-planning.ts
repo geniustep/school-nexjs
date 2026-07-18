@@ -36,6 +36,22 @@ export const TEACHING_SUPPORT_VIEW_CAPABILITY = 'teaching.support.view';
 export const TEACHING_ASSESSMENT_BOUNDARIES_VIEW_CAPABILITY =
   'teaching.assessment_boundaries.view';
 
+/** Odoo 224 — Teaching Stage 9 review / publication / closure. */
+export const TEACHING_ADMIN_DASHBOARD_VIEW_CAPABILITY = 'teaching.admin_dashboard.view';
+export const TEACHING_REVIEW_VIEW_CAPABILITY = 'teaching.review.view';
+export const TEACHING_REVIEW_MANAGE_CAPABILITY = 'teaching.review.manage';
+export const TEACHING_REVIEW_APPROVE_CAPABILITY = 'teaching.review.approve';
+export const TEACHING_OFFICIAL_PRINT_CAPABILITY = 'teaching.official_print';
+export const TEACHING_ARCHIVE_VIEW_CAPABILITY = 'teaching.archive.view';
+export const TEACHING_ARCHIVE_MANAGE_CAPABILITY = 'teaching.archive.manage';
+export const TEACHING_EXPORT_CAPABILITY = 'teaching.export';
+export const TEACHING_RESTRICTED_SUPPORT_EXPORT_CAPABILITY =
+  'teaching.restricted_support_export';
+export const TEACHING_PERIOD_CLOSE_CAPABILITY = 'teaching.period_close';
+export const TEACHING_PERIOD_REOPEN_CAPABILITY = 'teaching.period_reopen';
+export const TEACHING_PERIOD_EXCEPTIONAL_CORRECTION_CAPABILITY =
+  'teaching.period_exceptional_correction';
+
 const TEACHING_PLANNING_ACCESS_CAPABILITIES = [
   TEACHING_PLANNING_VIEW_CAPABILITY,
   TEACHING_OFFERINGS_MANAGE_CAPABILITY,
@@ -59,6 +75,17 @@ const TEACHING_PLANNING_ACCESS_CAPABILITIES = [
   TEACHING_MASTERY_VIEW_CAPABILITY,
   TEACHING_SUPPORT_VIEW_CAPABILITY,
   TEACHING_ASSESSMENT_BOUNDARIES_VIEW_CAPABILITY,
+  TEACHING_ADMIN_DASHBOARD_VIEW_CAPABILITY,
+  TEACHING_REVIEW_VIEW_CAPABILITY,
+  TEACHING_REVIEW_MANAGE_CAPABILITY,
+  TEACHING_REVIEW_APPROVE_CAPABILITY,
+  TEACHING_OFFICIAL_PRINT_CAPABILITY,
+  TEACHING_ARCHIVE_VIEW_CAPABILITY,
+  TEACHING_ARCHIVE_MANAGE_CAPABILITY,
+  TEACHING_EXPORT_CAPABILITY,
+  TEACHING_PERIOD_CLOSE_CAPABILITY,
+  TEACHING_PERIOD_REOPEN_CAPABILITY,
+  TEACHING_PERIOD_EXCEPTIONAL_CORRECTION_CAPABILITY,
 ] as const;
 
 export function canViewTeachingPlanning(user: CurrentUser | null | undefined): boolean {
@@ -205,6 +232,68 @@ export function canSeeAssessmentSupportIndividualDetail(
   user: CurrentUser | null | undefined,
 ): boolean {
   return hasUserCapability(user, TEACHING_SUPPORT_INDIVIDUAL_DETAIL_CAPABILITY);
+}
+
+/** Reveal Admin Stage 9 review / publication workspace hub card. */
+export function canSeeTeachingReviewPublication(
+  user: CurrentUser | null | undefined,
+): boolean {
+  return hasAnyUserCapability(user, [
+    TEACHING_REVIEW_VIEW_CAPABILITY,
+    TEACHING_ADMIN_DASHBOARD_VIEW_CAPABILITY,
+    TEACHING_ARCHIVE_VIEW_CAPABILITY,
+    TEACHING_PERIOD_CLOSE_CAPABILITY,
+  ]);
+}
+
+export function canViewTeachingReviewQueue(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_REVIEW_VIEW_CAPABILITY);
+}
+
+export function canManageTeachingReviews(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_REVIEW_MANAGE_CAPABILITY);
+}
+
+export function canApproveTeachingOfficialPublication(
+  user: CurrentUser | null | undefined,
+): boolean {
+  return hasUserCapability(user, TEACHING_REVIEW_APPROVE_CAPABILITY);
+}
+
+export function canOfficialPrintTeaching(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_OFFICIAL_PRINT_CAPABILITY);
+}
+
+export function canViewTeachingArchive(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_ARCHIVE_VIEW_CAPABILITY);
+}
+
+export function canManageTeachingArchive(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_ARCHIVE_MANAGE_CAPABILITY);
+}
+
+export function canExportTeaching(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_EXPORT_CAPABILITY);
+}
+
+export function canExportRestrictedTeachingSupport(
+  user: CurrentUser | null | undefined,
+): boolean {
+  return hasUserCapability(user, TEACHING_RESTRICTED_SUPPORT_EXPORT_CAPABILITY);
+}
+
+export function canCloseTeachingPeriod(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_PERIOD_CLOSE_CAPABILITY);
+}
+
+export function canReopenTeachingPeriod(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, TEACHING_PERIOD_REOPEN_CAPABILITY);
+}
+
+export function canAuthorizeTeachingPeriodException(
+  user: CurrentUser | null | undefined,
+): boolean {
+  return hasUserCapability(user, TEACHING_PERIOD_EXCEPTIONAL_CORRECTION_CAPABILITY);
 }
 
 export function isTeachingPlanningPath(pathname: string): boolean {

@@ -8,8 +8,11 @@ import {
   canManageDidacticSequences,
   canManageTeachingOfferings,
   canManageTeachingReferences,
+  canCloseTeachingPeriod,
+  canReopenTeachingPeriod,
   canSeeAnnualDistributions,
   canSeeDidacticSequences,
+  canSeeTeachingReviewPublication,
   canViewTeachingPlanning,
   isTeacherTeachingPlanningPath,
   isTeachingPlanningPath,
@@ -17,8 +20,11 @@ import {
   TEACHING_DISTRIBUTIONS_MANAGE_CAPABILITY,
   TEACHING_OFFERINGS_APPROVE_CAPABILITY,
   TEACHING_OFFERINGS_MANAGE_CAPABILITY,
+  TEACHING_PERIOD_CLOSE_CAPABILITY,
+  TEACHING_PERIOD_REOPEN_CAPABILITY,
   TEACHING_PLANNING_VIEW_CAPABILITY,
   TEACHING_REFERENCES_MANAGE_CAPABILITY,
+  TEACHING_REVIEW_VIEW_CAPABILITY,
   TEACHING_SEQUENCES_APPROVE_CAPABILITY,
   TEACHING_SEQUENCES_MANAGE_CAPABILITY,
 } from '@/lib/permissions/teaching-planning';
@@ -108,5 +114,13 @@ describe('teaching planning capabilities', () => {
     expect(isTeacherTeachingPlanningPath('/teacher/teaching-planning/sequences/8')).toBe(true);
     expect(isTeacherTeachingPlanningPath('/admin/teaching-planning')).toBe(false);
     expect(isTeachingPlanningPath('/teacher/teaching-planning/distributions/4')).toBe(false);
+  });
+
+  it('separates Stage 9 close vs reopen and reveals review hub from review.view', () => {
+    expect(canSeeTeachingReviewPublication(user([TEACHING_REVIEW_VIEW_CAPABILITY]))).toBe(true);
+    expect(canCloseTeachingPeriod(user([TEACHING_PERIOD_CLOSE_CAPABILITY]))).toBe(true);
+    expect(canReopenTeachingPeriod(user([TEACHING_PERIOD_CLOSE_CAPABILITY]))).toBe(false);
+    expect(canReopenTeachingPeriod(user([TEACHING_PERIOD_REOPEN_CAPABILITY]))).toBe(true);
+    expect(canViewTeachingPlanning(user([TEACHING_REVIEW_VIEW_CAPABILITY]))).toBe(true);
   });
 });

@@ -217,6 +217,7 @@ describe('hub cards', () => {
       '/admin/teaching-planning/class-journal',
       '/admin/teaching-planning/progress',
       '/admin/teaching-planning/assessment-support',
+      '/admin/teaching-planning/review-publication',
     ]);
     // Nothing remains coming-soon now that delivery/journal/progress are implemented.
     expect(teachingPlanningComingSoonHasLiveRoute()).toBe(false);

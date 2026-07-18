@@ -32,6 +32,7 @@ import {
   type TeacherProgramItemView,
 } from '@/features/teaching-progress/merge-program-items';
 import { buildTeacherAssessmentSupportHref } from '@/features/teaching-assessment-support/assessment-support-url';
+import { buildTeacherReviewPublicationHref } from '@/features/teaching-review-publication/review-publication-url';
 import {
   buildTeacherPlanningHref,
   parseTeacherPlanningQuery,
@@ -335,6 +336,15 @@ export function TeacherTeachingPlanningPage() {
               })}
             >
               {t('teacher.teachingAssessmentSupport.openFromPlanning')}
+            </Link>
+            <Link
+              className="btn btn--ghost btn--sm"
+              href={buildTeacherReviewPublicationHref({
+                academicYearId: selection.academicYearId,
+                returnTo: '/teacher/teaching/planning',
+              })}
+            >
+              {t('teacher.teachingReviewPublication.openFromPlanning')}
             </Link>
           </span>
         }
