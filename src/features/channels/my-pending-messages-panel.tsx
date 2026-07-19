@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { channelsEndpointsForRole } from '@/lib/api/channel-endpoints';
 import { useSession } from '@/features/auth/session-context';
@@ -11,12 +11,19 @@ import { useT } from '@/features/i18n/locale-context';
 import { formatDateTime } from '@/lib/utils/format';
 import { canResubmitPendingContent } from '@/features/channels/utils/can-resubmit-pending';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
+import { previewChannelMessageRecipients } from '@/features/channels/api/preview-channel-message-recipients';
+import { RecipientPreviewDialog } from '@/features/communication/components/recipient-preview-dialog';
+import { RecipientSummaryPanel } from '@/features/communication/components/recipient-summary-panel';
+import { normalizeRecipientSummary } from '@/features/communication/utils/normalize-recipient-summary';
 import {
   communicationStateMessageKey,
   stripHtmlPreview,
 } from '@/features/communication/utils/communication-labels';
 import type { ApiErrorBody } from '@/types/api';
-import type { CommunicationContent } from '@/types/communication';
+import type {
+  CommunicationContent,
+  CommunicationRecipientSummary,
+} from '@/types/communication';
 
 function contentBody(item: CommunicationContent): string {
   return (
@@ -45,6 +52,14 @@ export function MyPendingMessagesPanel({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editBody, setEditBody] = useState('');
   const [actingId, setActingId] = useState<number | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewSummary, setPreviewSummary] = useState<CommunicationRecipientSummary | null>(
+    null,
+  );
+  const [previewContentId, setPreviewContentId] = useState<number | null>(null);
+  const [previewBodyKey, setPreviewBodyKey] = useState<string | null>(null);
+  const [previewPhase, setPreviewPhase] = useState<'idle' | 'previewing' | 'submitting'>('idle');
+  const inFlightRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -71,21 +86,63 @@ export function MyPendingMessagesPanel({
     void load();
   }, [load, reloadToken]);
 
-  async function resubmit(item: CommunicationContent) {
+  async function requestResubmitPreview(item: CommunicationContent) {
     const text = editBody.trim();
-    if (!text || actingId != null) return;
+    if (!text || inFlightRef.current || actingId != null) return;
+    inFlightRef.current = true;
+    setPreviewPhase('previewing');
     setActingId(item.id);
-    const res = await api.post(endpoints.pendingMessageResubmit(channelId, item.id), {
+    const result = await previewChannelMessageRecipients({
+      role: user.role,
+      channelId,
       body: text,
     });
+    inFlightRef.current = false;
     setActingId(null);
+    if (!result.ok) {
+      setPreviewPhase('idle');
+      const key = communicationErrorMessageKey(result.error.code);
+      toast.error(key ? t(key) : result.error.message || t('channels.sendFailed'));
+      return;
+    }
+    setPreviewSummary(result.preview.recipient_summary);
+    setPreviewContentId(item.id);
+    setPreviewBodyKey(text);
+    setPreviewOpen(true);
+    setPreviewPhase('idle');
+  }
+
+  async function confirmResubmit() {
+    if (
+      previewContentId == null ||
+      previewBodyKey == null ||
+      inFlightRef.current ||
+      previewSummary?.can_submit === false
+    ) {
+      return;
+    }
+    const text = editBody.trim();
+    if (!text || text !== previewBodyKey) {
+      setPreviewOpen(false);
+      setPreviewSummary(null);
+      return;
+    }
+    inFlightRef.current = true;
+    setPreviewPhase('submitting');
+    setActingId(previewContentId);
+    const res = await api.post(endpoints.pendingMessageResubmit(channelId, previewContentId), {
+      body: text,
+    });
+    inFlightRef.current = false;
+    setActingId(null);
+    setPreviewPhase('idle');
     if (!res.success) {
       const key = communicationErrorMessageKey(res.error.code);
       toast.error(key ? t(key) : res.error.message || t('channels.sendFailed'));
-      // Keep edit text on failure.
       if (
         res.error.code === 'communication_message_audience_changed' ||
-        res.error.code === 'communication_invalid_transition'
+        res.error.code === 'communication_invalid_transition' ||
+        res.error.code === 'communication_recipient_audience_changed'
       ) {
         void load();
       }
@@ -94,6 +151,10 @@ export function MyPendingMessagesPanel({
     toast.success(t('channels.pendingResubmitSuccess'));
     setEditingId(null);
     setEditBody('');
+    setPreviewOpen(false);
+    setPreviewSummary(null);
+    setPreviewContentId(null);
+    setPreviewBodyKey(null);
     void load();
   }
 
@@ -128,6 +189,7 @@ export function MyPendingMessagesPanel({
           const audience = item.audience_summary?.label || t('common.dash');
           const preview = stripHtmlPreview(contentBody(item));
           const isEditing = editingId === item.id;
+          const frozenSummary = normalizeRecipientSummary(item.recipient_summary);
 
           return (
             <li key={`content-${item.id}`} className="channels-pending__card card card--pad">
@@ -149,6 +211,13 @@ export function MyPendingMessagesPanel({
               <div className="tiny faint">
                 {t('communication.audience')}: {audience}
               </div>
+              {frozenSummary ? (
+                <RecipientSummaryPanel
+                  summary={frozenSummary}
+                  presentation="frozen"
+                  compact
+                />
+              ) : null}
               {reason ? (
                 <div className="channels-pending__reason">
                   <strong className="tiny">{t('communication.changeRequestReason')}</strong>
@@ -166,25 +235,38 @@ export function MyPendingMessagesPanel({
                         rows={3}
                         value={editBody}
                         aria-label={t('channels.writeMessage')}
-                        onChange={(e) => setEditBody(e.target.value)}
+                        disabled={previewPhase !== 'idle' || actingId != null}
+                        onChange={(e) => {
+                          setEditBody(e.target.value);
+                          if (previewOpen) {
+                            setPreviewOpen(false);
+                            setPreviewSummary(null);
+                          }
+                        }}
                       />
                       <div className="row" style={{ gap: 8 }}>
                         <button
                           type="button"
                           className="btn btn--primary btn--sm"
-                          disabled={actingId === item.id || !editBody.trim()}
-                          onClick={() => void resubmit(item)}
+                          disabled={
+                            actingId === item.id ||
+                            !editBody.trim() ||
+                            previewPhase !== 'idle'
+                          }
+                          onClick={() => void requestResubmitPreview(item)}
                         >
-                          {actingId === item.id
-                            ? t('channels.sending')
+                          {actingId === item.id && previewPhase === 'previewing'
+                            ? t('communication.recipients.previewLoading')
                             : t('channels.pendingResubmit')}
                         </button>
                         <button
                           type="button"
                           className="btn btn--ghost btn--sm"
+                          disabled={previewPhase !== 'idle'}
                           onClick={() => {
                             setEditingId(null);
                             setEditBody('');
+                            setPreviewOpen(false);
                           }}
                         >
                           {t('common.cancel')}
@@ -209,6 +291,19 @@ export function MyPendingMessagesPanel({
           );
         })}
       </ul>
+      <RecipientPreviewDialog
+        open={previewOpen}
+        summary={previewSummary}
+        composeMode="submit"
+        loading={previewPhase === 'previewing'}
+        confirming={previewPhase === 'submitting'}
+        onConfirm={() => void confirmResubmit()}
+        onClose={() => {
+          if (previewPhase === 'submitting') return;
+          setPreviewOpen(false);
+          setPreviewSummary(null);
+        }}
+      />
     </section>
   );
 }

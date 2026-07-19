@@ -11,10 +11,12 @@ vi.mock('@/lib/api/client', () => ({
 
 import {
   fetchAdminChannelMessages,
+  previewAdminCommunicationContentRecipients,
+  previewStaffCommunicationContentRecipients,
   resubmitAdminChannelPendingMessage,
 } from './admin-communication-api';
 
-describe('admin communication API — Backend 228 paths', () => {
+describe('admin communication API — Backend 228/229 paths', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     apiMock.get.mockResolvedValue({ success: true, data: [], meta: {} });
@@ -53,5 +55,37 @@ describe('admin communication API — Backend 228 paths', () => {
       '/admin/channels/10/pending-messages/34/resubmit',
       { body: 'text' },
     );
+  });
+
+  it('POST admin content recipient-preview (not portal, not staff)', async () => {
+    apiMock.post.mockResolvedValue({
+      success: true,
+      data: { recipient_summary: { total_people_count: 4, can_submit: true } },
+      meta: {},
+    });
+    const result = await previewAdminCommunicationContentRecipients(34);
+    expect(apiMock.post).toHaveBeenCalledWith(
+      '/admin/communication/content/34/recipient-preview',
+      {},
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.preview.presentation).toBe('preview');
+      expect(result.preview.recipient_summary.total_people_count).toBe(4);
+    }
+  });
+
+  it('POST staff content recipient-preview path for contract reuse', async () => {
+    apiMock.post.mockResolvedValue({
+      success: true,
+      data: { total_people_count: 1 },
+      meta: {},
+    });
+    const result = await previewStaffCommunicationContentRecipients(12);
+    expect(apiMock.post).toHaveBeenCalledWith(
+      '/staff/communication/content/12/recipient-preview',
+      {},
+    );
+    expect(result.ok).toBe(true);
   });
 });

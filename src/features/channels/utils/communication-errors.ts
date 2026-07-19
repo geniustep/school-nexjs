@@ -19,6 +19,17 @@ export const COMMUNICATION_ERROR_MESSAGE_KEYS: Record<string, string> = {
   communication_content_approved_version_required: 'communication.errors.approvedVersionRequired',
   communication_content_cross_school_forbidden: 'communication.errors.crossSchoolForbidden',
   communication_cross_school_forbidden: 'communication.errors.crossSchoolForbidden',
+  /** B4 recipient resolution / snapshot errors */
+  communication_recipient_resolution_failed: 'communication.errors.recipientResolutionFailed',
+  communication_recipient_audience_empty: 'communication.errors.recipientAudienceEmpty',
+  communication_recipient_audience_unresolved: 'communication.errors.recipientAudienceUnresolved',
+  communication_recipient_snapshot_required: 'communication.errors.recipientSnapshotRequired',
+  communication_recipient_snapshot_mismatch: 'communication.errors.recipientSnapshotMismatch',
+  communication_recipient_snapshot_immutable: 'communication.errors.recipientSnapshotImmutable',
+  communication_recipient_cross_school_forbidden: 'communication.errors.recipientCrossSchoolForbidden',
+  communication_recipient_not_allowed: 'communication.errors.recipientNotAllowedB4',
+  communication_recipient_audience_changed: 'communication.errors.recipientAudienceChanged',
+  communication_recipient_expansion_forbidden: 'communication.errors.recipientExpansionForbidden',
   permission_denied: 'channels.permissionDenied',
   forbidden: 'channels.permissionDenied',
 };

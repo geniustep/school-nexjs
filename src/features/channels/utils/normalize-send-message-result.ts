@@ -1,5 +1,10 @@
 import type { PendingMessageSubmitResult, SendChannelMessageOutcome } from '@/types/communication';
 import type { Message, MessageSender } from '@/types/message';
+import {
+  normalizeOptionalBoolean,
+  normalizeRecipientCount,
+  normalizeRecipientSummary,
+} from '@/features/communication/utils/normalize-recipient-summary';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -83,6 +88,15 @@ export function normalizePendingMessageSubmitResult(
   const channelId = asNumber(row.channel_id);
   if (contentId == null || channelId == null) return null;
   const last = asRecord(row.last_decision);
+  const recipientSummary = normalizeRecipientSummary(row.recipient_summary);
+  const snapshotId =
+    normalizeRecipientCount(row.snapshot_id) ?? recipientSummary?.snapshot_id ?? null;
+  const snapshotFingerprint =
+    asString(row.snapshot_fingerprint) ?? recipientSummary?.snapshot_fingerprint ?? null;
+  const versionId =
+    normalizeRecipientCount(row.version_id) ?? recipientSummary?.version_id ?? null;
+  const audienceChanged = normalizeOptionalBoolean(row.audience_changed);
+
   return {
     pending_review: true,
     communication_content_id: contentId,
@@ -102,6 +116,11 @@ export function normalizePendingMessageSubmitResult(
       ? row.allowed_actions.filter((a): a is string => typeof a === 'string')
       : undefined,
     message: asString(row.message),
+    recipient_summary: recipientSummary,
+    snapshot_id: snapshotId,
+    snapshot_fingerprint: snapshotFingerprint,
+    version_id: versionId,
+    audience_changed: audienceChanged ?? recipientSummary?.audience_changed ?? null,
   };
 }
 

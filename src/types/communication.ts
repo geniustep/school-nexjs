@@ -1,9 +1,74 @@
 /**
- * Communication content + channel-message moderation — mirrors Odoo 18.0.1.0.227
- * (B1 content + B3 channel pending approval). Backend remains source of truth.
+ * Communication content + channel-message moderation — mirrors Odoo 18.0.1.0.229
+ * (B1–B3 + B4 recipient preview / immutable snapshot). Backend remains source of truth.
  */
 
 import type { Ref } from './api';
+
+/** Aggregated exclusion reason from Backend (no PII / no recipient lines). */
+export interface CommunicationRecipientExclusion {
+  code?: string | null;
+  reason?: string | null;
+  label?: string | null;
+  count?: number | null;
+}
+
+/**
+ * Backend recipient_summary — advisory on Preview, frozen on Submit/Detail.
+ * All counts/labels come from Odoo; clients must not recompute audience.
+ */
+export interface CommunicationRecipientSummary {
+  resolution_state?: string | null;
+  snapshot_id?: number | null;
+  snapshot_fingerprint?: string | null;
+  is_frozen?: boolean | null;
+  resolved_at?: string | null;
+  total_people_count?: number | null;
+  deliverable_user_count?: number | null;
+  student_count?: number | null;
+  guardian_count?: number | null;
+  staff_count?: number | null;
+  excluded_count?: number | null;
+  audience_labels?: string[] | null;
+  exclusion_summary?: CommunicationRecipientExclusion[] | null;
+  source_type?: string | null;
+  source_id?: number | null;
+  school_id?: number | null;
+  version_id?: number | null;
+  audience_changed?: boolean | null;
+  can_submit?: boolean | null;
+  blocking_reasons?: string[] | null;
+}
+
+/** Snapshot identity fields when Backend freezes an audience. */
+export interface CommunicationRecipientSnapshotRef {
+  snapshot_id?: number | null;
+  snapshot_fingerprint?: string | null;
+  version_id?: number | null;
+  is_frozen?: boolean | null;
+  resolved_at?: string | null;
+}
+
+/** POST …/recipient-preview — advisory only; never treat as final frozen truth. */
+export interface CommunicationRecipientPreviewResponse {
+  recipient_summary: CommunicationRecipientSummary;
+  /** Explicit presentation hint for UI (always advisory for Preview endpoints). */
+  presentation?: 'preview';
+}
+
+/**
+ * Fields commonly returned on Submit / Pending / Detail after freeze.
+ * Prefer Submit response over any prior Preview summary.
+ */
+export interface CommunicationSubmitResult {
+  recipient_summary?: CommunicationRecipientSummary | null;
+  snapshot_id?: number | null;
+  snapshot_fingerprint?: string | null;
+  version_id?: number | null;
+  communication_content_id?: number | null;
+  communication_state?: CommunicationContentState | null;
+  allowed_actions?: CommunicationAllowedAction[];
+}
 
 export const COMMUNICATION_CONTENT_STATES = [
   'draft',
@@ -141,6 +206,12 @@ export interface CommunicationContent {
   published_message_id?: number | null;
   moderation_required?: boolean | null;
   audience_recipient_count?: number | null;
+  /** B4 — frozen recipient summary when Backend returns it on detail/pending. */
+  recipient_summary?: CommunicationRecipientSummary | null;
+  snapshot_id?: number | null;
+  snapshot_fingerprint?: string | null;
+  version_id?: number | null;
+  audience_changed?: boolean | null;
   /** Detail-only */
   body?: string | null;
   attachments?: CommunicationAttachment[];
@@ -164,6 +235,12 @@ export interface PendingMessageSubmitResult {
   allowed_actions?: CommunicationAllowedAction[];
   /** Backend notice — may be English; UI prefers i18n. */
   message?: string | null;
+  /** B4 — final frozen summary from Submit (authoritative over Preview). */
+  recipient_summary?: CommunicationRecipientSummary | null;
+  snapshot_id?: number | null;
+  snapshot_fingerprint?: string | null;
+  version_id?: number | null;
+  audience_changed?: boolean | null;
 }
 
 export type SendChannelMessageOutcome =

@@ -182,6 +182,19 @@ const ROUTE_RULES: RouteRule[] = [
         p,
       ),
   },
+  /** B4 portal channel recipient preview — POST only (advisory, no write). */
+  {
+    methods: ['POST'],
+    test: (p) => /^\/channels\/[^/]+\/messages\/recipient-preview$/.test(p),
+  },
+  /**
+   * B4 staff communication content recipient preview only.
+   * Narrow allowlist — not a general /staff/* family.
+   */
+  {
+    methods: ['POST'],
+    test: (p) => /^\/staff\/communication\/content\/[^/]+\/recipient-preview$/.test(p),
+  },
   {
     methods: ['GET', 'HEAD'],
     test: (p) => /^\/attachments\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),

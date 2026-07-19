@@ -14,6 +14,7 @@ import {
   DefinitionList,
   InfoBanner,
 } from '@/components/ui/primitives';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { useToast } from '@/components/ui/toast';
@@ -31,6 +32,8 @@ import {
   resubmitAdminChannelPendingMessage,
   scheduleCommunicationContent,
 } from '@/features/communication/api/admin-communication-api';
+import { RecipientSummaryPanel } from '@/features/communication/components/recipient-summary-panel';
+import { normalizeRecipientSummary } from '@/features/communication/utils/normalize-recipient-summary';
 import {
   communicationContentTypeMessageKey,
   communicationStateMessageKey,
@@ -54,6 +57,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
   const [showResubmit, setShowResubmit] = useState(false);
   const [resubmitBody, setResubmitBody] = useState('');
   const [resubmitSubject, setResubmitSubject] = useState('');
+  const [confirmAction, setConfirmAction] = useState<'approve' | 'publish' | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -155,6 +159,17 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
   });
   const changeReason =
     item.changes_requested_reason || item.last_decision_reason || null;
+  const frozenSummary =
+    normalizeRecipientSummary(item.recipient_summary) ??
+    (item.snapshot_id != null || item.snapshot_fingerprint
+      ? normalizeRecipientSummary({
+          snapshot_id: item.snapshot_id,
+          snapshot_fingerprint: item.snapshot_fingerprint,
+          version_id: item.version_id,
+          audience_changed: item.audience_changed,
+          is_frozen: true,
+        })
+      : null);
 
   return (
     <div className="admin-workspace communication-review">
@@ -241,6 +256,17 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
         <div className="communication-review__body" dir="auto">
           {stripHtmlPreview(body, 4000) || t('common.dash')}
         </div>
+      </Card>
+
+      <Card>
+        <h2 className="communication-review__section-title">
+          {t('communication.recipients.frozenTitle')}
+        </h2>
+        <RecipientSummaryPanel
+          summary={frozenSummary}
+          presentation="frozen"
+          showAdminSnapshotRef
+        />
       </Card>
 
       {canAuthorResubmit ? (
@@ -343,7 +369,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             type="button"
             className="btn btn--primary btn--sm"
             disabled={acting}
-            onClick={() => void runAction(() => approveCommunicationContent(item.id))}
+            onClick={() => setConfirmAction('approve')}
           >
             {t('communication.actions.approve')}
           </button>
@@ -353,7 +379,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             type="button"
             className="btn btn--primary btn--sm"
             disabled={acting}
-            onClick={() => void runAction(() => publishCommunicationContent(item.id))}
+            onClick={() => setConfirmAction('publish')}
           >
             {t('communication.actions.publish')}
           </button>
@@ -418,6 +444,53 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           </ol>
         )}
       </Card>
+
+      <ConfirmationDialog
+        open={confirmAction != null}
+        title={
+          confirmAction === 'publish'
+            ? t('communication.recipients.confirmPublishTitle')
+            : t('communication.recipients.confirmApproveTitle')
+        }
+        body={
+          <div className="stack" style={{ gap: 10 }}>
+            <p className="tiny">
+              {confirmAction === 'publish'
+                ? t('communication.recipients.confirmPublishHint')
+                : t('communication.recipients.confirmApproveHint')}
+            </p>
+            <RecipientSummaryPanel
+              summary={frozenSummary}
+              presentation="frozen"
+              showAdminSnapshotRef
+              compact
+            />
+          </div>
+        }
+        confirmLabel={
+          confirmAction === 'publish'
+            ? t('communication.actions.publish')
+            : t('communication.actions.approve')
+        }
+        loading={acting}
+        size="wide"
+        onClose={() => {
+          if (!acting) setConfirmAction(null);
+        }}
+        onConfirm={async () => {
+          const action = confirmAction;
+          setConfirmAction(null);
+          if (action === 'approve') {
+            await runAction(() => approveCommunicationContent(item.id), {
+              successKey: 'communication.actionSuccess',
+            });
+          } else if (action === 'publish') {
+            await runAction(() => publishCommunicationContent(item.id), {
+              successKey: 'communication.actionSuccess',
+            });
+          }
+        }}
+      />
     </div>
   );
 }

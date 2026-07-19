@@ -2,8 +2,12 @@
 
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { ApiResponse, ListParams } from '@/types/api';
-import type { CommunicationContent } from '@/types/communication';
+import { normalizeRecipientPreviewResponse } from '@/features/communication/utils/normalize-recipient-summary';
+import type { ApiErrorBody, ApiResponse, ListParams } from '@/types/api';
+import type {
+  CommunicationContent,
+  CommunicationRecipientPreviewResponse,
+} from '@/types/communication';
 
 export function fetchCommunicationContentList(
   query?: ListParams,
@@ -102,4 +106,67 @@ export function resubmitAdminChannelPendingMessage(
       ? { subject: payload.subject }
       : {}),
   });
+}
+
+/**
+ * B4 — admin content recipient preview (advisory). Does not approve/publish/submit.
+ */
+export async function previewAdminCommunicationContentRecipients(
+  contentId: number | string,
+  body?: Record<string, unknown>,
+): Promise<
+  | { ok: true; preview: CommunicationRecipientPreviewResponse }
+  | { ok: false; error: ApiErrorBody }
+> {
+  const res = await api.post<unknown>(
+    endpoints.admin.communicationContentRecipientPreview(contentId),
+    body ?? {},
+  );
+  if (!res.success) {
+    return { ok: false, error: res.error };
+  }
+  const preview = normalizeRecipientPreviewResponse(res.data);
+  if (!preview) {
+    return {
+      ok: false,
+      error: {
+        code: 'server_error',
+        message: 'Unexpected server response.',
+        details: {},
+      },
+    };
+  }
+  return { ok: true, preview };
+}
+
+/**
+ * B4 — staff content recipient preview path (reusable for future staff UI).
+ * Teachers currently compose via portal channels; this endpoint is registered for contract reuse.
+ */
+export async function previewStaffCommunicationContentRecipients(
+  contentId: number | string,
+  body?: Record<string, unknown>,
+): Promise<
+  | { ok: true; preview: CommunicationRecipientPreviewResponse }
+  | { ok: false; error: ApiErrorBody }
+> {
+  const res = await api.post<unknown>(
+    endpoints.staff.communicationContentRecipientPreview(contentId),
+    body ?? {},
+  );
+  if (!res.success) {
+    return { ok: false, error: res.error };
+  }
+  const preview = normalizeRecipientPreviewResponse(res.data);
+  if (!preview) {
+    return {
+      ok: false,
+      error: {
+        code: 'server_error',
+        message: 'Unexpected server response.',
+        details: {},
+      },
+    };
+  }
+  return { ok: true, preview };
 }

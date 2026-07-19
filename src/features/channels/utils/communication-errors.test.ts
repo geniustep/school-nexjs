@@ -32,6 +32,30 @@ describe('communicationErrorMessageKey', () => {
     );
   });
 
+  it('maps B4 recipient snapshot error codes', () => {
+    expect(communicationErrorMessageKey('communication_recipient_resolution_failed')).toBe(
+      'communication.errors.recipientResolutionFailed',
+    );
+    expect(communicationErrorMessageKey('communication_recipient_audience_empty')).toBe(
+      'communication.errors.recipientAudienceEmpty',
+    );
+    expect(communicationErrorMessageKey('communication_recipient_snapshot_required')).toBe(
+      'communication.errors.recipientSnapshotRequired',
+    );
+    expect(communicationErrorMessageKey('communication_recipient_snapshot_mismatch')).toBe(
+      'communication.errors.recipientSnapshotMismatch',
+    );
+    expect(communicationErrorMessageKey('communication_recipient_snapshot_immutable')).toBe(
+      'communication.errors.recipientSnapshotImmutable',
+    );
+    expect(communicationErrorMessageKey('communication_recipient_audience_changed')).toBe(
+      'communication.errors.recipientAudienceChanged',
+    );
+    expect(communicationErrorMessageKey('communication_recipient_expansion_forbidden')).toBe(
+      'communication.errors.recipientExpansionForbidden',
+    );
+  });
+
   it('returns null for unknown codes', () => {
     expect(communicationErrorMessageKey('totally_unknown')).toBeNull();
   });

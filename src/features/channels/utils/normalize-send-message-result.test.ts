@@ -77,6 +77,32 @@ describe('normalize-send-message-result', () => {
     expect(outcome?.kind).toBe('pending');
   });
 
+  it('preserves B4 recipient_summary and snapshot fields on pending submit', () => {
+    const pending = normalizePendingMessageSubmitResult({
+      pending_review: true,
+      communication_content_id: 34,
+      channel_id: 10,
+      snapshot_id: 9,
+      snapshot_fingerprint: 'abcd',
+      version_id: 2,
+      audience_changed: true,
+      recipient_summary: {
+        total_people_count: 0,
+        is_frozen: true,
+        can_submit: true,
+        snapshot_id: 9,
+      },
+      allowed_actions: ['cancel'],
+    });
+    expect(pending?.snapshot_id).toBe(9);
+    expect(pending?.snapshot_fingerprint).toBe('abcd');
+    expect(pending?.version_id).toBe(2);
+    expect(pending?.audience_changed).toBe(true);
+    expect(pending?.recipient_summary?.total_people_count).toBe(0);
+    expect(pending?.recipient_summary?.is_frozen).toBe(true);
+    expect(pending?.communication_content_id).toBe(34);
+  });
+
   it('deduplicates published messages by Message id after refetch', () => {
     const a = {
       id: 7,

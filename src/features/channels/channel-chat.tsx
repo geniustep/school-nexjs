@@ -21,7 +21,7 @@ import type { Message } from '@/types/message';
 import type { ApiErrorBody } from '@/types/api';
 import { ChannelMessageComposer } from './channel-message-composer';
 import { MyPendingMessagesPanel } from './my-pending-messages-panel';
-import { channelAllowsCompose } from './utils/channel-composer-actions';
+import { channelAllowsCompose, channelComposeMode } from './utils/channel-composer-actions';
 import {
   mergePublishedMessages,
   normalizePublishedMessage,
@@ -182,6 +182,7 @@ export function ChannelChat({
               channelId={channelId}
               canSend
               autofocus={composerAutofocus}
+              composeMode={channelComposeMode(channel)}
               onPublished={async (outcome) => {
                 setMessages((prev) => mergePublishedMessages(prev, [outcome.message]));
                 requestAnimationFrame(() => {

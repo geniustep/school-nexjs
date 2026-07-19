@@ -113,6 +113,19 @@ describe('BFF route policy', () => {
     expect(
       assertBffRoutePolicy('/admin/channels/10/pending-messages/34/resubmit', 'POST').ok,
     ).toBe(true);
+    // B4 recipient-preview paths
+    expect(
+      assertBffRoutePolicy('/channels/1/messages/recipient-preview', 'POST').ok,
+    ).toBe(true);
+    expect(
+      assertBffRoutePolicy('/admin/channels/10/messages/recipient-preview', 'POST').ok,
+    ).toBe(true);
+    expect(
+      assertBffRoutePolicy('/admin/communication/content/34/recipient-preview', 'POST').ok,
+    ).toBe(true);
+    expect(
+      assertBffRoutePolicy('/staff/communication/content/34/recipient-preview', 'POST').ok,
+    ).toBe(true);
   });
 
   it('rejects unlisted paths, wrong methods, and ORM namespaces', () => {
@@ -122,5 +135,19 @@ describe('BFF route policy', () => {
     expect(hasDeniedBffNamespace('/admin/students/search_read')).toBe(true);
     expect(assertBffRoutePolicy('/admin/students/search_read', 'GET').ok).toBe(false);
     expect(assertBffRoutePolicy('/jsonrpc', 'POST').ok).toBe(false);
+    expect(assertBffRoutePolicy('/staff/communication/content/34/approve', 'POST').ok).toBe(
+      false,
+    );
+    expect(assertBffRoutePolicy('/channels/1/messages/recipient-preview', 'GET').ok).toBe(false);
+  });
+
+  it('rejects path traversal and encoded slash in B4 preview segments', () => {
+    expect(canonicalizeBffPathSegments(['channels', '..', 'admin']).ok).toBe(false);
+    expect(
+      canonicalizeBffPathSegments(['channels', '1', 'messages', 'recipient-preview', '%2f']).ok,
+    ).toBe(false);
+    expect(
+      canonicalizeBffPathSegments(['staff', 'communication', 'content', '%2e%2e', 'x']).ok,
+    ).toBe(false);
   });
 });

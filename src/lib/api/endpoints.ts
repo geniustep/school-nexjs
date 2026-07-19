@@ -432,6 +432,9 @@ export const endpoints = {
       contentId: number | string,
     ) => `/admin/channels/${channelId}/pending-messages/${contentId}/resubmit`,
     channelRecipientCandidates: '/admin/channels/recipient-candidates',
+    /** B4 — advisory recipient preview before admin channel send. */
+    channelMessageRecipientPreview: (id: number | string) =>
+      `/admin/channels/${id}/messages/recipient-preview`,
 
     communicationContent: '/admin/communication/content',
     communicationContentDetail: (id: number | string) => `/admin/communication/content/${id}`,
@@ -447,6 +450,9 @@ export const endpoints = {
       `/admin/communication/content/${id}/cancel`,
     communicationContentAudit: (id: number | string) =>
       `/admin/communication/content/${id}/audit`,
+    /** B4 — advisory recipient preview for admin communication content. */
+    communicationContentRecipientPreview: (id: number | string) =>
+      `/admin/communication/content/${id}/recipient-preview`,
     communicationApprovals: '/admin/communication/approvals',
 
     financeFeeTypes: '/admin/finance/fee-types',
@@ -838,9 +844,21 @@ export const endpoints = {
     list: '/channels',
     detail: (channelId: number | string) => `/channels/${channelId}`,
     messages: (channelId: number | string) => `/channels/${channelId}/messages`,
+    /** B4 — advisory recipient preview before portal/staff channel send. */
+    messageRecipientPreview: (channelId: number | string) =>
+      `/channels/${channelId}/messages/recipient-preview`,
     myPendingMessages: (channelId: number | string) =>
       `/channels/${channelId}/my-pending-messages`,
     pendingMessageResubmit: (channelId: number | string, contentId: number | string) =>
       `/channels/${channelId}/pending-messages/${contentId}/resubmit`,
+  },
+
+  /**
+   * Staff portal communication (teacher/staff role via /staff/… Backend paths).
+   * B4 content recipient preview — not the admin /admin/staff HR family.
+   */
+  staff: {
+    communicationContentRecipientPreview: (contentId: number | string) =>
+      `/staff/communication/content/${contentId}/recipient-preview`,
   },
 } as const;
