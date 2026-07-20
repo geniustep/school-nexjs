@@ -132,6 +132,19 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/academic-calendars',
     icon: '📆',
   });
+  pushIf(
+    academicItems,
+    canShowAdminNavPermission(user, 'view_classes') &&
+      canShowAdminNavPermission(user, 'view_teachers'),
+    {
+      labelKey: 'nav.teachingAssignments',
+      href: '/admin/teaching-assignments',
+      icon: '📎',
+      isActive: (pathname) =>
+        pathname === '/admin/teaching-assignments' ||
+        pathname.startsWith('/admin/teaching-assignments/'),
+    },
+  );
   pushIf(academicItems, canViewTeachingPlanning(user), {
     labelKey: 'nav.teachingPlanning',
     href: '/admin/teaching-planning',

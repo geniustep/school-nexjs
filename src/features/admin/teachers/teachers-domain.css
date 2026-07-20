@@ -1,0 +1,111 @@
+.teachers-list__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin-block-end: 12px;
+}
+
+.teachers-list__search {
+  flex: 1 1 220px;
+  min-inline-size: 180px;
+}
+
+.teachers-list__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 8px;
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--raqeem-primary, #243b6b);
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.teachers-list__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.teachers-list__refetch {
+  margin-block-end: 8px;
+}
+
+.teacher-domain-profile__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 8px 14px;
+}
+
+.teacher-domain-profile__tab {
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+  color: inherit;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-block-size: 40px;
+  cursor: pointer;
+}
+
+.teacher-domain-profile__tab:focus-visible {
+  outline: 2px solid var(--raqeem-secondary, #24a6a1);
+  outline-offset: 2px;
+}
+
+.teacher-domain-profile__tab--active {
+  border-color: var(--raqeem-primary, #243b6b);
+  background: var(--c-surface-2, #eef2f8);
+  font-weight: 600;
+}
+
+.teacher-domain-profile__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teacher-domain-profile__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.teacher-domain-profile__list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.teacher-lifecycle-dialog {
+  gap: 10px;
+}
+
+.teacher-lifecycle-dialog__name {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .teachers-list__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .teacher-domain-profile__tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-block-end: 4px;
+  }
+
+  .teacher-domain-profile__tab {
+    white-space: nowrap;
+  }
+}

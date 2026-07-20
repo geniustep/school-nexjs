@@ -139,7 +139,8 @@
     "settings": "Paramètres",
     "classResults": "Résultats des classes",
     "diagnosticAssessment": "Évaluation diagnostique",
-    "teachingPlanning": "Planification pédagogique"
+    "teachingPlanning": "Planification pédagogique",
+    "teachingAssignments": "Affectations pédagogiques"
   },
   "states": {
     "draft": "Brouillon",
@@ -12270,8 +12271,8 @@
         },
         "list": {
           "noData": {
-            "title": "Aucun parcours encore",
-            "description": "Créez un parcours pour un niveau, une matière, une langue et une année."
+            "title": "Aucun parcours d’enseignement actif pour les filtres actuels.",
+            "description": "Les parcours archivés peuvent rester masqués par défaut. L’archivage ne signifie pas une suppression."
           },
           "noMatch": {
             "title": "Aucun résultat",
@@ -13076,7 +13077,192 @@
       }
     },
     "teachingPlanningHubDesc": "Références pédagogiques, parcours d’enseignement et readiness",
-    "noActiveSchoolDesc": "Sélectionnez une école active pour continuer."
+    "noActiveSchoolDesc": "Sélectionnez une école active pour continuer.",
+    "teacherDomain": {
+      "contract": {
+        "incompatible": "Le contrat Teacher Domain n’est pas pleinement compatible — clés obligatoires manquantes."
+      },
+      "columns": {
+        "employment": "État professionnel",
+        "account": "État du compte",
+        "specialization": "Spécialisation principale",
+        "eligibleSubjects": "Matières éligibles",
+        "activeAssignments": "Affectations actives",
+        "plannedLoad": "Charge hebdomadaire planifiée",
+        "warnings": "Alertes"
+      },
+      "account": {
+        "none": "No account",
+        "active": "Active account",
+        "inactive": "Inactive account"
+      },
+      "list": {
+        "noMatchTitle": "No matching results",
+        "noMatchDesc": "Adjust filters or search terms.",
+        "subjectCount": "{count} subjects",
+        "warningCount": "{count} warnings",
+        "refetching": "Refreshing list…"
+      },
+      "filters": {
+        "reset": "Reset filters",
+        "searchPlaceholder": "Search by name or code…",
+        "state": "State",
+        "active": "Active",
+        "hasAssignments": "Has assignments",
+        "operationallyActive": "Operationally active",
+        "teacherId": "Teacher ID",
+        "all": "All"
+      },
+      "states": {
+        "active": "Active",
+        "terminated": "Terminated",
+        "archived": "Archived",
+        "suspended": "Suspended",
+        "ended": "Ended",
+        "cancelled": "Cancelled",
+        "underReview": "Under review",
+        "approved": "Approved"
+      },
+      "lifecycle": {
+        "terminate": "Terminate",
+        "terminateTitle": "Terminate teacher employment?",
+        "terminateWarning": "Employment will stop. Backend remains the final authority.",
+        "archive": "Archive",
+        "archiveShort": "Archive",
+        "archiveTitle": "Archive teacher profile?",
+        "archiveWarning": "Archiving does not delete the record.",
+        "reactivate": "Reactivate",
+        "reactivateTitle": "Reactivate teacher?",
+        "reactivateWarning": "Do not assume the account is reactivated unless Backend confirms it.",
+        "reason": "Reason",
+        "employmentEndDate": "Employment end date"
+      },
+      "toasts": {
+        "terminated": "Teacher employment terminated.",
+        "archived": "Teacher profile archived.",
+        "reactivated": "Teacher reactivated."
+      },
+      "tabs": {
+        "overview": "Overview",
+        "academic": "Profil académique",
+        "assignments": "Affectations pédagogiques",
+        "availability": "Availability",
+        "qualifications": "Qualifications",
+        "account": "Account / employment"
+      },
+      "detail": {
+        "tabsLabel": "Teacher profile sections",
+        "notFoundDesc": "Teacher profile was not found in the current school scope.",
+        "backToList": "Back to teachers",
+        "openAssignments": "Open assignments",
+        "assignmentsSummaryHint": "Summary comes from Backend. Full details are in the assignments list.",
+        "totalAssignments": "Total assignments"
+      },
+      "academic": {
+        "eligibilityTitle": "Academic eligibility",
+        "eligibilityBoundary": "Academic eligibility is not a teaching assignment.",
+        "editable": "Editable",
+        "readOnly": "Read only",
+        "manageable": "Manageable",
+        "specialization": "Specialization",
+        "eligibleSubjects": "Matières éligibles",
+        "eligibleLevels": "Eligible levels",
+        "teachingLanguages": "Teaching languages",
+        "coordination": "Coordination eligibility",
+        "headTeacher": "Head teacher",
+        "subjectCoordinator": "Subject coordinator",
+        "levelCoordinator": "Level coordinator",
+        "limitsTitle": "Reference workload limits",
+        "weeklyTarget": "Weekly hours target",
+        "weeklyMax": "Weekly hours max",
+        "maxContinuous": "Max continuous minutes",
+        "qualificationsTitle": "Qualifications",
+        "qualificationsEmpty": "No structured qualifications yet",
+        "availabilityTitle": "Availability",
+        "availabilityNotTimetable": "Academic availability is not a timetable.",
+        "availabilityEmpty": "No availability constraints recorded.",
+        "operationalTitle": "Operational derived data",
+        "operationalReadOnly": "Derived from assignments — read-only and never submitted as academic edits.",
+        "currentAssignments": "Current assignments (derived)",
+        "derivedWorkload": "Derived workload"
+      },
+      "assignments": {
+        "title": "Affectations pédagogiques",
+        "subtitle": "Gérer les affectations professeur–classe–matière–parcours.",
+        "openBoard": "Academic setup board",
+        "emptyTitle": "No teaching assignments",
+        "emptyDesc": "No assignments in the current scope.",
+        "noMatchTitle": "No matching results",
+        "noMatchDesc": "Adjust filters or search terms."
+      },
+      "assignmentColumns": {
+        "teacher": "Teacher",
+        "class": "Class",
+        "subject": "Subject",
+        "offering": "Teaching offering",
+        "year": "Academic year",
+        "role": "Role",
+        "state": "State",
+        "period": "Effective period"
+      },
+      "assignmentDetail": {
+        "identity": "Assignment identity",
+        "boundaries": "Contract boundaries",
+        "boundariesHint": "Assignment defines teacher, class, subject/offering, year and effectivity. It does not auto-create timetable slots."
+      },
+      "assignmentActions": {
+        "activate": "Activate",
+        "activateTitle": "Activate assignment?",
+        "activateWarning": "Backend will re-check eligibility and overlap.",
+        "suspend": "Suspend",
+        "suspendTitle": "Suspend assignment?",
+        "suspendWarning": "A suspended assignment does not generate future work.",
+        "resume": "Resume",
+        "resumeTitle": "Resume assignment?",
+        "resumeWarning": "Resume may fail on overlap or inactive offering.",
+        "end": "End",
+        "endTitle": "End assignment?",
+        "endWarning": "Termination reason is required.",
+        "cancel": "Cancel",
+        "cancelTitle": "Cancel assignment?",
+        "cancelWarning": "Cancellation reason is required by Backend.",
+        "effectiveTo": "Effective end date"
+      },
+      "assignmentToasts": {
+        "activate": "Assignment activated.",
+        "suspend": "Assignment suspended.",
+        "resume": "Assignment resumed.",
+        "end": "Assignment ended.",
+        "cancel": "Assignment cancelled."
+      },
+      "offerings": {
+        "emptyActiveTitle": "Aucun parcours d’enseignement actif pour les filtres actuels.",
+        "emptyActiveDesc": "Les parcours archivés peuvent rester masqués par défaut. L’archivage ne signifie pas une suppression."
+      },
+      "errors": {
+        "teacherNotFound": "Teacher profile not found.",
+        "teacherAccessDenied": "You do not have access to this teacher profile.",
+        "teacherInvalidState": "Teacher state does not allow this action.",
+        "archiveReasonRequired": "Archive reason is required.",
+        "terminateReasonRequired": "Termination reason is required.",
+        "academicAssignmentBoundary": "Academic eligibility cannot be mixed with teaching assignments.",
+        "assignmentNotFound": "Teaching assignment not found.",
+        "assignmentOverlap": "Assignment overlaps another assignment.",
+        "assignmentScopeMismatch": "Assignment scope mismatch.",
+        "assignmentDateInvalid": "Assignment effective dates are invalid.",
+        "assignmentOfferingMismatch": "Assignment does not match the teaching offering.",
+        "assignmentTerminationReasonRequired": "End/cancel reason is required.",
+        "offeringNotFound": "Teaching offering not found.",
+        "offeringOverlap": "Teaching offering overlaps another offering.",
+        "offeringScopeMismatch": "Teaching offering scope mismatch.",
+        "offeringInactive": "Teaching offering is inactive.",
+        "offeringArchived": "Teaching offering is archived and may be hidden by default.",
+        "capabilityRequired": "This action requires an additional capability.",
+        "invalidFilter": "Invalid filter.",
+        "invalidPagination": "Invalid pagination.",
+        "notFound": "Record not found."
+      }
+    }
   },
   "teachingAssessmentSupport": {
     "states": {

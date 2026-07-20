@@ -139,7 +139,8 @@
     "adminScopedFinance": "المالية (نطاق محدود)",
     "settings": "الإعدادات",
     "classResults": "نتائج الأقسام",
-    "teachingPlanning": "التخطيط التربوي"
+    "teachingPlanning": "التخطيط التربوي",
+    "teachingAssignments": "إسنادات التدريس"
   },
   "states": {
     "draft": "مسودة",
@@ -12319,8 +12320,8 @@
         },
         "list": {
           "noData": {
-            "title": "لا توجد مسارات بعد",
-            "description": "أنشئ مسار تدريس لمستوى ومادة ولغة وسنة."
+            "title": "لا توجد مسارات تدريس فعالة ضمن الفلاتر الحالية.",
+            "description": "قد توجد مسارات مؤرشفة مخفية افتراضيًا. الأرشفة لا تعني حذف السجل."
           },
           "noMatch": {
             "title": "لا توجد نتائج مطابقة",
@@ -13125,7 +13126,192 @@
       }
     },
     "teachingPlanningHubDesc": "المراجع التربوية ومسارات التدريس والجاهزية",
-    "noActiveSchoolDesc": "اختر مدرسة نشطة للمتابعة."
+    "noActiveSchoolDesc": "اختر مدرسة نشطة للمتابعة.",
+    "teacherDomain": {
+      "contract": {
+        "incompatible": "عقد Teacher Domain غير متوافق بالكامل — بعض المفاتيح الإلزامية ناقصة."
+      },
+      "columns": {
+        "employment": "الحالة المهنية",
+        "account": "حالة الحساب",
+        "specialization": "التخصص الأساسي",
+        "eligibleSubjects": "المواد المؤهل لها",
+        "activeAssignments": "الإسنادات الفعالة",
+        "plannedLoad": "الحمل الأسبوعي المخطط",
+        "warnings": "تحذيرات"
+      },
+      "account": {
+        "none": "بدون حساب",
+        "active": "حساب فعّال",
+        "inactive": "حساب غير فعّال"
+      },
+      "list": {
+        "noMatchTitle": "لا توجد نتائج مطابقة",
+        "noMatchDesc": "عدّل الفلاتر أو عبارة البحث.",
+        "subjectCount": "{count} مادة",
+        "warningCount": "{count} تحذير",
+        "refetching": "جاري تحديث القائمة…"
+      },
+      "filters": {
+        "reset": "إعادة تعيين الفلاتر",
+        "searchPlaceholder": "بحث بالاسم أو الرمز…",
+        "state": "الحالة",
+        "active": "نشط",
+        "hasAssignments": "لديه إسنادات",
+        "operationallyActive": "ساري تشغيليًا",
+        "teacherId": "معرف الأستاذ",
+        "all": "الكل"
+      },
+      "states": {
+        "active": "فعّال",
+        "terminated": "منتهٍ",
+        "archived": "مؤرشف",
+        "suspended": "موقوف",
+        "ended": "منتهٍ",
+        "cancelled": "ملغى",
+        "underReview": "قيد المراجعة",
+        "approved": "معتمد"
+      },
+      "lifecycle": {
+        "terminate": "إنهاء الخدمة",
+        "terminateTitle": "إنهاء خدمة الأستاذ؟",
+        "terminateWarning": "ستتوقف السريان المهني. Backend يبقى الحاجز النهائي.",
+        "archive": "أرشفة",
+        "archiveShort": "أرشفة",
+        "archiveTitle": "أرشفة ملف الأستاذ؟",
+        "archiveWarning": "الأرشفة لا تحذف السجل من النظام.",
+        "reactivate": "إعادة التفعيل",
+        "reactivateTitle": "إعادة تفعيل الأستاذ؟",
+        "reactivateWarning": "لا تُفترض إعادة تفعيل الحساب تلقائيًا إلا إذا أعادها Backend.",
+        "reason": "السبب",
+        "employmentEndDate": "تاريخ انتهاء الخدمة"
+      },
+      "toasts": {
+        "terminated": "تم إنهاء خدمة الأستاذ.",
+        "archived": "تمت أرشفة ملف الأستاذ.",
+        "reactivated": "تمت إعادة تفعيل الأستاذ."
+      },
+      "tabs": {
+        "overview": "نظرة عامة",
+        "academic": "الملف الأكاديمي",
+        "assignments": "إسنادات التدريس",
+        "availability": "التوفر",
+        "qualifications": "المؤهلات",
+        "account": "الحساب والتوظيف"
+      },
+      "detail": {
+        "tabsLabel": "أقسام ملف الأستاذ",
+        "notFoundDesc": "تعذر العثور على ملف الأستاذ ضمن نطاق المدرسة الحالية.",
+        "backToList": "العودة إلى لائحة الأساتذة",
+        "openAssignments": "فتح الإسنادات",
+        "assignmentsSummaryHint": "الملخص يعتمد على Backend. التفاصيل الكاملة في لائحة الإسنادات.",
+        "totalAssignments": "مجموع الإسنادات"
+      },
+      "academic": {
+        "eligibilityTitle": "الأهلية الأكاديمية",
+        "eligibilityBoundary": "الأهلية الأكاديمية لا تساوي إسناد التدريس.",
+        "editable": "قابل للتعديل",
+        "readOnly": "للقراءة فقط",
+        "manageable": "قابل للإدارة",
+        "specialization": "التخصص",
+        "eligibleSubjects": "المواد المؤهل لها",
+        "eligibleLevels": "المستويات المؤهل لها",
+        "teachingLanguages": "لغات التدريس",
+        "coordination": "أهلية التنسيق",
+        "headTeacher": "أستاذ رئيسي",
+        "subjectCoordinator": "منسق مادة",
+        "levelCoordinator": "منسق مستوى",
+        "limitsTitle": "حدود الحمل المرجعية",
+        "weeklyTarget": "الحمل الأسبوعي المستهدف",
+        "weeklyMax": "الحمل الأسبوعي الأقصى",
+        "maxContinuous": "أقصى دقائق متصلة",
+        "qualificationsTitle": "المؤهلات",
+        "qualificationsEmpty": "لا توجد مؤهلات مهيكلة بعد",
+        "availabilityTitle": "التوفر",
+        "availabilityNotTimetable": "التوفر الأكاديمي ليس جدول حصص.",
+        "availabilityEmpty": "لا توجد قيود توفر مسجّلة.",
+        "operationalTitle": "مشتقات تشغيلية",
+        "operationalReadOnly": "حقول مشتقة من الإسنادات — للقراءة فقط ولا تُرسل كتحرير أكاديمي.",
+        "currentAssignments": "الإسنادات الحالية (مشتقة)",
+        "derivedWorkload": "الحمل المشتق"
+      },
+      "assignments": {
+        "title": "إسنادات التدريس",
+        "subtitle": "إدارة إسناد الأستاذ إلى القسم والمادة ومسار التدريس.",
+        "openBoard": "لوحة الإعداد الأكاديمي",
+        "emptyTitle": "لا توجد إسنادات تدريس",
+        "emptyDesc": "لا توجد إسنادات ضمن النطاق الحالي.",
+        "noMatchTitle": "لا توجد نتائج مطابقة",
+        "noMatchDesc": "عدّل الفلاتر أو عبارة البحث."
+      },
+      "assignmentColumns": {
+        "teacher": "الأستاذ",
+        "class": "القسم",
+        "subject": "المادة",
+        "offering": "مسار تدريس المادة",
+        "year": "السنة الدراسية",
+        "role": "الدور",
+        "state": "الحالة",
+        "period": "فترة السريان"
+      },
+      "assignmentDetail": {
+        "identity": "هوية الإسناد",
+        "boundaries": "حدود العقد",
+        "boundariesHint": "الإسناد يحدد الأستاذ والقسم والمادة/المسار والسنة والسريان. لا يولّد جدول حصص تلقائيًا."
+      },
+      "assignmentActions": {
+        "activate": "تفعيل",
+        "activateTitle": "تفعيل الإسناد؟",
+        "activateWarning": "سيعيد Backend التحقق من الأهلية والتداخل.",
+        "suspend": "إيقاف",
+        "suspendTitle": "إيقاف الإسناد؟",
+        "suspendWarning": "الإسناد الموقوف لا يولّد عملًا مستقبليًا.",
+        "resume": "استئناف",
+        "resumeTitle": "استئناف الإسناد؟",
+        "resumeWarning": "قد يفشل الاستئناف عند وجود تداخل أو مسار غير فعّال.",
+        "end": "إنهاء",
+        "endTitle": "إنهاء الإسناد؟",
+        "endWarning": "سبب الإنهاء إلزامي.",
+        "cancel": "إلغاء",
+        "cancelTitle": "إلغاء الإسناد؟",
+        "cancelWarning": "سبب الإلغاء مطلوب من Backend.",
+        "effectiveTo": "تاريخ نهاية السريان"
+      },
+      "assignmentToasts": {
+        "activate": "تم تفعيل الإسناد.",
+        "suspend": "تم إيقاف الإسناد.",
+        "resume": "تم استئناف الإسناد.",
+        "end": "تم إنهاء الإسناد.",
+        "cancel": "تم إلغاء الإسناد."
+      },
+      "offerings": {
+        "emptyActiveTitle": "لا توجد مسارات تدريس فعالة ضمن الفلاتر الحالية.",
+        "emptyActiveDesc": "قد توجد مسارات مؤرشفة مخفية افتراضيًا. الأرشفة لا تعني حذف السجل."
+      },
+      "errors": {
+        "teacherNotFound": "ملف الأستاذ غير موجود.",
+        "teacherAccessDenied": "ليست لديك صلاحية الوصول إلى ملف الأستاذ.",
+        "teacherInvalidState": "حالة الأستاذ لا تسمح بهذه العملية.",
+        "archiveReasonRequired": "سبب الأرشفة إلزامي.",
+        "terminateReasonRequired": "سبب إنهاء الخدمة إلزامي.",
+        "academicAssignmentBoundary": "لا يمكن خلط الأهلية الأكاديمية مع إسناد التدريس.",
+        "assignmentNotFound": "إسناد التدريس غير موجود.",
+        "assignmentOverlap": "يوجد تداخل مع إسناد آخر.",
+        "assignmentScopeMismatch": "نطاق الإسناد غير متوافق.",
+        "assignmentDateInvalid": "تواريخ سريان الإسناد غير صالحة.",
+        "assignmentOfferingMismatch": "الإسناد غير متوافق مع مسار تدريس المادة.",
+        "assignmentTerminationReasonRequired": "سبب الإنهاء/الإلغاء إلزامي.",
+        "offeringNotFound": "مسار تدريس المادة غير موجود.",
+        "offeringOverlap": "يوجد تداخل مع مسار تدريس آخر.",
+        "offeringScopeMismatch": "نطاق مسار التدريس غير متوافق.",
+        "offeringInactive": "مسار التدريس غير فعّال.",
+        "offeringArchived": "مسار التدريس مؤرشف وقد يكون مخفيًا افتراضيًا.",
+        "capabilityRequired": "هذه العملية تتطلب صلاحية إضافية.",
+        "invalidFilter": "فلتر غير صالح.",
+        "invalidPagination": "ترقيم صفحات غير صالح.",
+        "notFound": "العنصر غير موجود."
+      }
+    }
   },
   "teachingAssessmentSupport": {
     "states": {

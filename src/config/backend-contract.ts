@@ -182,3 +182,25 @@ export const STUDENT_MULTI_SUBJECT_RESULTS_BACKEND_CONTRACT = {
 
 export type StudentMultiSubjectResultsBackendContract =
   typeof STUDENT_MULTI_SUBJECT_RESULTS_BACKEND_CONTRACT;
+
+/**
+ * Teacher Domain School API — profiles, academic eligibility, assignments, offerings.
+ * Live contract endpoint: GET /api/v1/admin/teacher-domain/contract
+ */
+export const TEACHER_DOMAIN_BACKEND_CONTRACT = {
+  contractId: 'SSC-API-2026.07.001',
+  frontendRelease: 'school-nextjs-teacher-domain-v2026.07.001',
+  backendModule: 'smart_school_connect',
+  backendMainCommit: null,
+  backendModuleVersion: '18.0.1.0.231',
+  minBackendVersion: null,
+  maxBackendVersion: null,
+  compatibleBackend:
+    'smart_school_connect Teacher Domain School API (contract teacher_domain_school_api / SSC-API-2026.07.001)',
+  apiPrefix: '/api/v1',
+  source: 'dev-release',
+  notes:
+    'Teacher Domain adoption for admin Next.js: /admin/teacher-domain/contract, /admin/teachers*, /admin/teachers/{id}/academic-profile, /admin/teaching-assignments*, /admin/teaching-offerings*. Backend-owned allowed_actions, tenant scope, and lifecycle transitions. No generic ORM. Archived offerings remain hidden under default active_test. Prior unrelated baseline doc SSC-API-2026.07.001 remains historical for main baseline; this metadata keys the Teacher Domain runtime contract of the same ID.',
+} as const;
+
+export type TeacherDomainBackendContract = typeof TEACHER_DOMAIN_BACKEND_CONTRACT;

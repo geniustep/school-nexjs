@@ -112,6 +112,11 @@ export const endpoints = {
     teacher: (id: number | string) => `/admin/teachers/${id}`,
     teacherUpdate: (id: number | string) => `/admin/teachers/${id}/update`,
     teacherArchive: (id: number | string) => `/admin/teachers/${id}/archive`,
+    /** Teacher Domain lifecycle — SSC-API-2026.07.001 */
+    teacherTerminate: (id: number | string) => `/admin/teachers/${id}/terminate`,
+    teacherReactivate: (id: number | string) => `/admin/teachers/${id}/reactivate`,
+    teacherAcademicProfile: (id: number | string) => `/admin/teachers/${id}/academic-profile`,
+    teacherDomainContract: '/admin/teacher-domain/contract',
     teachersImport: '/admin/teachers/import',
     teachersExport: '/admin/teachers/export',
 
@@ -157,6 +162,16 @@ export const endpoints = {
     teachingAssignmentUpdate: (id: number | string) =>
       `/admin/teaching-assignments/${id}/update`,
     teachingAssignmentSuggestions: '/admin/teaching-assignments/suggestions',
+    /** Teaching Assignment lifecycle — SSC-API-2026.07.001 */
+    teachingAssignmentActivate: (id: number | string) =>
+      `/admin/teaching-assignments/${id}/activate`,
+    teachingAssignmentSuspend: (id: number | string) =>
+      `/admin/teaching-assignments/${id}/suspend`,
+    teachingAssignmentResume: (id: number | string) =>
+      `/admin/teaching-assignments/${id}/resume`,
+    teachingAssignmentEnd: (id: number | string) => `/admin/teaching-assignments/${id}/end`,
+    teachingAssignmentCancel: (id: number | string) =>
+      `/admin/teaching-assignments/${id}/cancel`,
 
     teachingReferences: '/admin/teaching-references',
     teachingReference: (id: number | string) => `/admin/teaching-references/${id}`,
