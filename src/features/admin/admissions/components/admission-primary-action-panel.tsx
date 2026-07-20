@@ -228,6 +228,7 @@ export function AdmissionPrimaryActionPanel({
         admissionId={Number(admissionId)}
         applicationName={detail.student_name}
         open={closeOpen}
+        variant="delete"
         onClose={() => setCloseOpen(false)}
         onSuccess={() => onUpdated()}
       />
@@ -314,20 +315,24 @@ export function AdmissionPrimaryActionPanel({
           <div className="admission-primary-action-panel__main">
             <button
               type="button"
-              className="btn btn--primary"
+              className={primaryCode === 'close' ? 'btn btn--danger' : 'btn btn--primary'}
               disabled={busy}
               data-testid={
                 primaryCode === 'convert_to_student'
                   ? 'admission-convert-to-student-primary'
                   : primaryCode === 'change_status' || primaryCode === 'return_to_status'
                     ? 'admission-change-status-action'
-                    : 'admission-primary-action-button'
+                    : primaryCode === 'close'
+                      ? 'admission-delete-action'
+                      : 'admission-primary-action-button'
               }
               onClick={openPrimary}
             >
               {primaryCode === 'return_to_status'
                 ? t(modernActionLabelKey('change_status'))
-                : t(modernActionLabelKey(primaryCode))}
+                : primaryCode === 'close'
+                  ? t('admin.admissions.actions.delete')
+                  : t(modernActionLabelKey(primaryCode))}
             </button>
           </div>
         ) : (
@@ -370,8 +375,14 @@ export function AdmissionPrimaryActionPanel({
                     key={action.code}
                     type="button"
                     role="menuitem"
-                    className="admissions-row-actions__item"
+                    className={cn(
+                      'admissions-row-actions__item',
+                      action.code === 'close' && 'admissions-row-actions__item--danger',
+                    )}
                     disabled={busy}
+                    data-testid={
+                      action.code === 'close' ? 'admission-actions-delete' : undefined
+                    }
                     onClick={() => {
                       setMenuOpen(false);
                       if (action.code === 'log_contact') setFollowUpOpen(true);
@@ -392,7 +403,9 @@ export function AdmissionPrimaryActionPanel({
                   >
                     {action.code === 'return_to_status'
                       ? t(modernActionLabelKey('change_status'))
-                      : t(modernActionLabelKey(action.code))}
+                      : action.code === 'close'
+                        ? t('admin.admissions.actions.delete')
+                        : t(modernActionLabelKey(action.code))}
                   </button>
                 ))}
               </div>

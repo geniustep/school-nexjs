@@ -268,8 +268,8 @@ describe('AdmissionCloseDialog', () => {
   });
 });
 
-describe('AdmissionListActionsMenu — close opens dialog without mutation', () => {
-  it('does not call executeAdmissionAction when Close is chosen', async () => {
+describe('AdmissionListActionsMenu — delete opens dialog without mutation', () => {
+  it('does not call executeAdmissionAction when Delete is chosen', async () => {
     const user = userEvent.setup();
     render(
       <LocaleProvider>
@@ -287,10 +287,10 @@ describe('AdmissionListActionsMenu — close opens dialog without mutation', () 
     );
 
     await user.click(screen.getByTestId('admission-row-actions-trigger'));
-    const closeItem = await screen.findByTestId('admission-actions-close');
-    await user.click(closeItem);
+    const deleteItem = await screen.findByTestId('admission-actions-delete');
+    await user.click(deleteItem);
     expect(executeAdmissionAction).not.toHaveBeenCalled();
-    expect(await screen.findByTestId('admission-close-dialog')).toBeTruthy();
-    expect(screen.getByTestId('admission-close-dialog-name').textContent).toContain('سلمى');
+    expect(await screen.findByTestId('admission-delete-dialog')).toBeTruthy();
+    expect(screen.getByTestId('admission-delete-dialog-name').textContent).toContain('سلمى');
   });
 });

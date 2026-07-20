@@ -250,13 +250,15 @@ describe('admissions filters compliance matrix', () => {
       baseState({
         academicYearId: '2',
         cycleCode: 'primary',
+        cycleId: 2,
         levelId: '8',
         sourceId: '3',
         followStage: 'new',
       }),
     );
     expect(extra.academic_year_id).toBe(2);
-    expect(extra.requested_cycle_code).toBe('primary');
+    expect(extra.cycle_id).toBe(2);
+    expect(extra.level_id).toBe(8);
     expect(extra).not.toHaveProperty('application_status');
     expect(extra).not.toHaveProperty('processing_stage');
   });

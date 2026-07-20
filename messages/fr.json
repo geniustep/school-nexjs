@@ -4892,6 +4892,18 @@
         "actor": "Personnel",
         "at": "Date"
       },
+      "lastStatusReason": {
+        "label": "Dernière raison du statut",
+        "empty": "Aucune raison enregistrée",
+        "transition": "Passage de {from} à {to}",
+        "transitionWithNote": "Passage de {from} à {to} : {note}",
+        "phrases": {
+          "familyApproved": "Approbation de la famille pour l’inscription",
+          "acceptedAndFamilyApproved": "Accepté par l’école avec approbation familiale",
+          "decisionAccepted": "Décision d’acceptation",
+          "decisionAcceptedWithCondition": "Accepté sous conditions"
+        }
+      },
       "contactResults": {
         "reached": "Reached",
         "no_answer": "No answer",
@@ -4924,6 +4936,21 @@
         "notFound": "La demande d'admission est introuvable.",
         "networkError": "Impossible de fermer la demande. Vérifiez la connexion puis réessayez.",
         "unknownError": "Impossible de fermer la demande pour le moment."
+      },
+      "deleteDialog": {
+        "title": "Supprimer la demande d'admission",
+        "description": "La demande sera retirée du suivi actif et passera parmi les demandes fermées. Elle pourra être rouverte plus tard si nécessaire. La suppression définitive n'est pas encore disponible.",
+        "noteLabel": "Motif de suppression",
+        "notePlaceholder": "Indiquez le motif de suppression de la demande...",
+        "noteRequired": "Le motif de suppression est obligatoire.",
+        "confirm": "Confirmer la suppression",
+        "submitting": "Suppression de la demande…",
+        "success": "Demande d'admission retirée du suivi actif.",
+        "permissionDenied": "Vous n'avez pas l'autorisation de supprimer cette demande.",
+        "invalidState": "Cette demande ne peut pas être supprimée depuis son statut actuel.",
+        "notFound": "La demande d'admission est introuvable.",
+        "networkError": "Impossible de supprimer la demande. Vérifiez la connexion puis réessayez.",
+        "unknownError": "Impossible de supprimer la demande pour le moment."
       },
       "returnToStatusDialog": {
         "title": "Revenir à un statut antérieur",
@@ -5777,6 +5804,7 @@
         "convertToStudent": "Convertir en élève",
         "waitlist": "Liste d’attente",
         "close": "Fermer la demande",
+        "delete": "Supprimer la demande",
         "returnToStatus": "Revenir au statut",
         "addNote": "Ajouter une note",
         "recordAssessment": "Enregistrer une évaluation",
@@ -13101,17 +13129,31 @@
         "noMatchDesc": "Adjust filters or search terms.",
         "subjectCount": "{count} subjects",
         "warningCount": "{count} warnings",
-        "refetching": "Refreshing list…"
+        "refetching": "Refreshing list…",
+        "subtitleWithCount": "{total} enseignants dans votre périmètre"
       },
       "filters": {
-        "reset": "Reset filters",
-        "searchPlaceholder": "Search by name or code…",
-        "state": "State",
-        "active": "Active",
-        "hasAssignments": "Has assignments",
-        "operationallyActive": "Operationally active",
-        "teacherId": "Teacher ID",
-        "all": "All"
+        "reset": "Réinitialiser les filtres",
+        "clearSearch": "Effacer la recherche",
+        "search": "Recherche",
+        "searchPlaceholder": "Rechercher par nom ou code…",
+        "state": "État professionnel",
+        "active": "Fiche active",
+        "hasAssignments": "Affectations actives",
+        "operationallyActive": "Opérationnellement actif",
+        "teacherId": "ID enseignant",
+        "all": "Tous",
+        "allStates": "Tous les états",
+        "allActive": "Tous",
+        "allAssignments": "Toutes",
+        "activeYes": "Actives seulement",
+        "activeNo": "Inactives",
+        "assignmentsYes": "Avec affectations",
+        "assignmentsNo": "Sans affectations",
+        "chipSearch": "Recherche : {query}",
+        "chipState": "État professionnel : {state}",
+        "chipActive": "Fiche active : {value}",
+        "chipHasAssignments": "Affectations : {value}"
       },
       "states": {
         "active": "Active",

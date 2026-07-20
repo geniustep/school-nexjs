@@ -15,6 +15,11 @@ export function AdmissionCloseDialog({
   open,
   onClose,
   onSuccess,
+  /**
+   * `delete` = product copy for «حذف الطلب» (still Backend `close` — hard delete
+   * is not available on current Runtime).
+   */
+  variant = 'close',
 }: {
   admissionId: number;
   /** Student / application display name for confirmation context. */
@@ -22,6 +27,7 @@ export function AdmissionCloseDialog({
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  variant?: 'close' | 'delete';
 }) {
   const t = useT();
   const toast = useToast();
@@ -37,6 +43,8 @@ export function AdmissionCloseDialog({
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const i18nRoot =
+    variant === 'delete' ? 'admin.admissions.deleteDialog' : 'admin.admissions.closeDialog';
 
   useEffect(() => {
     setMounted(true);
@@ -74,7 +82,11 @@ export function AdmissionCloseDialog({
     const validationKey = validateClose({ note });
     if (validationKey) {
       setServerError(null);
-      setFieldError(t(validationKey));
+      const fieldKey =
+        variant === 'delete' && validationKey === 'admin.admissions.closeDialog.noteRequired'
+          ? 'admin.admissions.deleteDialog.noteRequired'
+          : validationKey;
+      setFieldError(t(fieldKey));
       textareaRef.current?.focus();
       return;
     }
@@ -98,18 +110,25 @@ export function AdmissionCloseDialog({
     submitGuardRef.current = false;
 
     if (res.success) {
-      toast.success(t('admin.admissions.closeDialog.success'));
+      toast.success(t(`${i18nRoot}.success`));
       onSuccess();
       onClose();
       return;
     }
 
     const mapped = mapAdmissionCloseActionError(res.error);
-    setServerError(t(mapped));
+    // Prefer delete-specific copy when the mapped key is under closeDialog.
+    if (variant === 'delete' && mapped.startsWith('admin.admissions.closeDialog.')) {
+      const suffix = mapped.slice('admin.admissions.closeDialog.'.length);
+      setServerError(t(`admin.admissions.deleteDialog.${suffix}`));
+    } else {
+      setServerError(t(mapped));
+    }
   }
 
   const displayName = applicationName?.trim() || null;
   const invalid = Boolean(fieldError);
+  const testId = variant === 'delete' ? 'admission-delete-dialog' : 'admission-close-dialog';
 
   return createPortal(
     <div
@@ -126,21 +145,26 @@ export function AdmissionCloseDialog({
         aria-labelledby={titleId}
         aria-describedby={descId}
         onClick={(e) => e.stopPropagation()}
-        data-testid="admission-close-dialog"
+        data-testid={testId}
+        data-variant={variant}
       >
-        <h2 id={titleId}>{t('admin.admissions.closeDialog.title')}</h2>
+        <h2 id={titleId}>{t(`${i18nRoot}.title`)}</h2>
         <p id={descId} className="muted">
-          {t('admin.admissions.closeDialog.description')}
+          {t(`${i18nRoot}.description`)}
         </p>
         {displayName ? (
-          <p className="admission-close-dialog__subject" dir="auto" data-testid="admission-close-dialog-name">
+          <p
+            className="admission-close-dialog__subject"
+            dir="auto"
+            data-testid={`${testId}-name`}
+          >
             {displayName}
           </p>
         ) : null}
 
         <form className="form-stack" onSubmit={(e) => void submit(e)} noValidate>
           <div className="field">
-            <label htmlFor={noteId}>{t('admin.admissions.closeDialog.noteLabel')}</label>
+            <label htmlFor={noteId}>{t(`${i18nRoot}.noteLabel`)}</label>
             <textarea
               ref={textareaRef}
               id={noteId}
@@ -150,8 +174,8 @@ export function AdmissionCloseDialog({
               aria-invalid={invalid || undefined}
               aria-describedby={invalid ? errorId : undefined}
               aria-required="true"
-              data-testid="admission-close-dialog-note"
-              placeholder={t('admin.admissions.closeDialog.notePlaceholder')}
+              data-testid={`${testId}-note`}
+              placeholder={t(`${i18nRoot}.notePlaceholder`)}
               disabled={submitting}
               onChange={(e) => {
                 setNote(e.target.value);
@@ -159,14 +183,23 @@ export function AdmissionCloseDialog({
               }}
             />
             {fieldError ? (
-              <p id={errorId} className="field-error" role="alert" data-testid="admission-close-dialog-field-error">
+              <p
+                id={errorId}
+                className="field-error"
+                role="alert"
+                data-testid={`${testId}-field-error`}
+              >
                 {fieldError}
               </p>
             ) : null}
           </div>
 
           {serverError ? (
-            <div className="alert alert--error" role="alert" data-testid="admission-close-dialog-server-error">
+            <div
+              className="alert alert--error"
+              role="alert"
+              data-testid={`${testId}-server-error`}
+            >
               {serverError}
             </div>
           ) : null}
@@ -177,20 +210,18 @@ export function AdmissionCloseDialog({
               className="btn btn--ghost"
               onClick={onClose}
               disabled={submitting}
-              data-testid="admission-close-dialog-cancel"
+              data-testid={`${testId}-cancel`}
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
-              className="btn btn--primary"
+              className={variant === 'delete' ? 'btn btn--danger' : 'btn btn--primary'}
               disabled={submitting}
               aria-busy={submitting || undefined}
-              data-testid="admission-close-dialog-confirm"
+              data-testid={`${testId}-confirm`}
             >
-              {submitting
-                ? t('admin.admissions.closeDialog.submitting')
-                : t('admin.admissions.closeDialog.confirm')}
+              {submitting ? t(`${i18nRoot}.submitting`) : t(`${i18nRoot}.confirm`)}
             </button>
           </div>
         </form>

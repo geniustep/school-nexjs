@@ -4892,6 +4892,18 @@
         "actor": "Personal",
         "at": "Fecha"
       },
+      "lastStatusReason": {
+        "label": "Último motivo del estado",
+        "empty": "No hay motivo registrado",
+        "transition": "Pasó de {from} a {to}",
+        "transitionWithNote": "Pasó de {from} a {to}: {note}",
+        "phrases": {
+          "familyApproved": "La familia aprobó la inscripción",
+          "acceptedAndFamilyApproved": "Aceptado por la escuela con aprobación familiar",
+          "decisionAccepted": "Decisión de aceptación",
+          "decisionAcceptedWithCondition": "Aceptado con condiciones"
+        }
+      },
       "contactResults": {
         "reached": "Reached",
         "no_answer": "No answer",
@@ -4924,6 +4936,21 @@
         "notFound": "No se encontró la solicitud de admisión.",
         "networkError": "No se pudo cerrar la solicitud. Compruebe la conexión e inténtelo de nuevo.",
         "unknownError": "No se pudo cerrar la solicitud en este momento."
+      },
+      "deleteDialog": {
+        "title": "Eliminar solicitud de admisión",
+        "description": "La solicitud se quitará del seguimiento activo y pasará a las cerradas. Se podrá reabrir más adelante si hace falta. La eliminación permanente aún no está disponible.",
+        "noteLabel": "Motivo de la eliminación",
+        "notePlaceholder": "Escriba el motivo de la eliminación de la solicitud...",
+        "noteRequired": "El motivo de la eliminación es obligatorio.",
+        "confirm": "Confirmar eliminación",
+        "submitting": "Eliminando la solicitud…",
+        "success": "Solicitud de admisión quitada del seguimiento activo.",
+        "permissionDenied": "No tiene permiso para eliminar esta solicitud.",
+        "invalidState": "No se puede eliminar la solicitud desde su estado actual.",
+        "notFound": "No se encontró la solicitud de admisión.",
+        "networkError": "No se pudo eliminar la solicitud. Compruebe la conexión e inténtelo de nuevo.",
+        "unknownError": "No se pudo eliminar la solicitud en este momento."
       },
       "returnToStatusDialog": {
         "title": "Volver a un estado anterior",
@@ -5777,6 +5804,7 @@
         "convertToStudent": "Convertir en alumno",
         "waitlist": "Lista de espera",
         "close": "Cerrar solicitud",
+        "delete": "Eliminar solicitud",
         "returnToStatus": "Devolver estado",
         "addNote": "Añadir nota",
         "recordAssessment": "Registrar evaluación",
@@ -13081,17 +13109,31 @@
         "noMatchDesc": "Adjust filters or search terms.",
         "subjectCount": "{count} subjects",
         "warningCount": "{count} warnings",
-        "refetching": "Refreshing list…"
+        "refetching": "Refreshing list…",
+        "subtitleWithCount": "{total} profesores en su ámbito"
       },
       "filters": {
-        "reset": "Reset filters",
-        "searchPlaceholder": "Search by name or code…",
-        "state": "State",
-        "active": "Active",
-        "hasAssignments": "Has assignments",
-        "operationallyActive": "Operationally active",
-        "teacherId": "Teacher ID",
-        "all": "All"
+        "reset": "Restablecer filtros",
+        "clearSearch": "Borrar búsqueda",
+        "search": "Buscar",
+        "searchPlaceholder": "Buscar por nombre o código…",
+        "state": "Estado profesional",
+        "active": "Registro activo",
+        "hasAssignments": "Asignaciones activas",
+        "operationallyActive": "Operativamente activo",
+        "teacherId": "ID del profesor",
+        "all": "Todos",
+        "allStates": "Todos los estados",
+        "allActive": "Todos",
+        "allAssignments": "Todas",
+        "activeYes": "Solo activos",
+        "activeNo": "Inactivos",
+        "assignmentsYes": "Con asignaciones",
+        "assignmentsNo": "Sin asignaciones",
+        "chipSearch": "Búsqueda: {query}",
+        "chipState": "Estado profesional: {state}",
+        "chipActive": "Registro activo: {value}",
+        "chipHasAssignments": "Asignaciones: {value}"
       },
       "states": {
         "active": "Active",

@@ -9,6 +9,7 @@ import {
 import {
   buildContextQuery,
   resetLevelIfIncompatibleWithCycle,
+  resolveAdmissionCycleId,
   parseWorkspaceListStateFromSearchParams,
   workspaceListStateToSearchParams,
   hasManualContextOrAdvancedFilters,
@@ -32,7 +33,7 @@ function detail(patch: Partial<AdmissionDetail> = {}): AdmissionDetail {
 }
 
 describe('track/level filter workspace helpers', () => {
-  it('sends requested_cycle_code and resets incompatible level', () => {
+  it('sends cycle_id + level_id and resets incompatible level', () => {
     const levels = [
       { id: 10, cycle: 'primary' },
       { id: 20, cycle: 'middle_school' },
@@ -47,13 +48,26 @@ describe('track/level filter workspace helpers', () => {
       postSub: 'awaiting',
       closedSub: 'rejected',
       cycleCode: 'primary',
+      cycleId: 2,
       levelId: '10',
       hideConverted: true,
       page: 1,
       view: 'kanban',
     });
-    expect(query.requested_cycle_code).toBe('primary');
-    expect(query.requested_level_id).toBe(10);
+    expect(query.cycle_id).toBe(2);
+    expect(query.level_id).toBe(10);
+    expect(query).not.toHaveProperty('requested_cycle_code');
+    expect(query).not.toHaveProperty('requested_level_id');
+  });
+
+  it('resolves cycle code to Backend cycle_id', () => {
+    const cycles = [
+      { id: 1, code: 'preschool', name: 'أولي' },
+      { id: 2, code: 'primary', name: 'ابتدائي' },
+    ];
+    expect(resolveAdmissionCycleId('primary', cycles)).toBe(2);
+    expect(resolveAdmissionCycleId('missing', cycles)).toBeUndefined();
+    expect(resolveAdmissionCycleId('primary', undefined)).toBeUndefined();
   });
 
   it('round-trips cycle in URL and counts it as a manual filter', () => {

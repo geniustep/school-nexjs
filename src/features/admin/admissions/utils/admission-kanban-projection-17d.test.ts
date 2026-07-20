@@ -53,7 +53,7 @@ function lightKanbanRaw(overrides: Record<string, unknown> = {}) {
 }
 
 describe('17D kanban projection=kanban', () => {
-  it('1-2. helper attaches projection=kanban and kanban hook uses it for all fetches', () => {
+  it('1-2. board uses full list query so status notes remain on cards', () => {
     const q = withKanbanListProjection({
       application_status: 'new',
       page: 1,
@@ -63,10 +63,11 @@ describe('17D kanban projection=kanban', () => {
     expect(isKanbanListProjection(q)).toBe(true);
 
     const hook = read('hooks/use-admissions-kanban-board.ts');
-    expect(hook).toContain('withKanbanListProjection');
-    // Four fetch sites: initial board, initial columns, loadMore board, loadMore column
-    expect(hook.match(/withKanbanListProjection\(/g)?.length).toBeGreaterThanOrEqual(4);
-    expect(hook).toContain('No silent fallback');
+    // Live projection=kanban omits last_action.note — board fetches full rows instead.
+    expect(hook).toContain('withKanbanBoardListQuery');
+    expect(hook.match(/withKanbanBoardListQuery\(/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(hook).toContain('last_action.note');
+    expect(hook).not.toContain('withKanbanListProjection');
   });
 
   it('3-7. Table/Detail/Dashboard/options/services paths do not send projection', () => {
@@ -233,14 +234,14 @@ describe('17D kanban projection=kanban', () => {
     expect(hook).not.toMatch(/invalid_admissions_projection[\s\S]{0,200}fetchAdmissions/);
   });
 
-  it('27-30. progressive settle + filters keep projection; no extra design requests', () => {
+  it('27-30. progressive settle + filters keep board query; no extra design requests', () => {
     const hook = read('hooks/use-admissions-kanban-board.ts');
     expect(hook).toContain('Progressive settle');
     expect(hook).toContain('settledCount === 1');
     expect(hook).toContain('ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE');
 
-    // Filters arrive via resolvedExtraQuery spread inside withKanbanListProjection
-    expect(hook).toMatch(/withKanbanListProjection\(\{[\s\S]*?\.\.\.resolvedExtraQuery/);
+    // Filters arrive via resolvedExtraQuery spread inside withKanbanBoardListQuery
+    expect(hook).toMatch(/withKanbanBoardListQuery\(\{[\s\S]*?\.\.\.resolvedExtraQuery/);
 
     const list = read('components/admissions-list-page.tsx');
     expect(list).toContain('secondaryFiltersEnabled');

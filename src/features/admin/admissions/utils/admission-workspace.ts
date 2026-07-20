@@ -119,9 +119,14 @@ export type AdmissionWorkspaceListState = {
   academicYearId?: string;
   /**
    * Academic cycle / track code from admissions options (`cycles[].code`).
-   * Cascades level options; sent as `requested_cycle_code` when set.
+   * Cascades level options; resolved to numeric `cycle_id` for list GET.
    */
   cycleCode?: string;
+  /**
+   * Numeric cycle id from admissions options (`cycles[].id`).
+   * Live Backend list filter honors `cycle_id`, not `requested_cycle_code`.
+   */
+  cycleId?: number;
   levelId?: string;
   /** @deprecated Stripped from URL/UI — kept optional for legacy helpers only. */
   sourceId?: string;
@@ -611,6 +616,7 @@ export function applyOperationalCard(
     search: undefined as string | undefined,
     academicYearId: undefined as string | undefined,
     cycleCode: undefined as string | undefined,
+    cycleId: undefined as number | undefined,
     levelId: undefined as string | undefined,
     sourceId: undefined as string | undefined,
   };
@@ -691,6 +697,20 @@ export function awaitingDecisionExcludesNew(): boolean {
   return !(statusesForWorkspace('awaiting_decision') as readonly string[]).includes('new');
 }
 
+/**
+ * Resolve options `cycles[].id` for a selected cycle code.
+ * Live list GET filters by `cycle_id` — code-only params are ignored.
+ */
+export function resolveAdmissionCycleId(
+  cycleCode: string | undefined,
+  cycles: Array<{ id?: number; code: string }> | undefined,
+): number | undefined {
+  const code = cycleCode?.trim();
+  if (!code || !cycles?.length) return undefined;
+  const id = cycles.find((cycle) => cycle.code === code)?.id;
+  return typeof id === 'number' && id > 0 ? id : undefined;
+}
+
 /** Context filters preserved across workspace / status-nav changes. */
 export function buildContextQuery(state: AdmissionWorkspaceListState): AdmissionWorkspaceQuery {
   const out: AdmissionWorkspaceQuery = {};
@@ -699,8 +719,12 @@ export function buildContextQuery(state: AdmissionWorkspaceListState): Admission
   if (!isStatusNavMode(state) && state.academicYearId) {
     out.academic_year_id = Number(state.academicYearId) || state.academicYearId;
   }
-  if (state.cycleCode?.trim()) out.requested_cycle_code = state.cycleCode.trim();
-  if (state.levelId) out.requested_level_id = Number(state.levelId) || state.levelId;
+  // Live Backend (school Runtime): honors `cycle_id` + `level_id`.
+  // `requested_cycle_code` / `requested_level_id` are ignored on list GET.
+  const cycleId =
+    typeof state.cycleId === 'number' && state.cycleId > 0 ? state.cycleId : undefined;
+  if (cycleId != null) out.cycle_id = cycleId;
+  if (state.levelId) out.level_id = Number(state.levelId) || state.levelId;
   if (!isStatusNavMode(state) && state.sourceId) {
     out.source_id = Number(state.sourceId) || state.sourceId;
   }

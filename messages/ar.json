@@ -5027,6 +5027,18 @@
         "actor": "الموظف",
         "at": "التاريخ"
       },
+      "lastStatusReason": {
+        "label": "آخر سبب للحالة",
+        "empty": "لا يوجد سبب مسجل",
+        "transition": "نقل من {from} إلى {to}",
+        "transitionWithNote": "نقل من {from} إلى {to}: {note}",
+        "phrases": {
+          "familyApproved": "موافقة الأسرة على التسجيل",
+          "acceptedAndFamilyApproved": "قبول المدرسة مع تسجيل موافقة الأسرة",
+          "decisionAccepted": "قرار القبول",
+          "decisionAcceptedWithCondition": "قبول بشروط"
+        }
+      },
       "contactResults": {
         "reached": "تم التواصل",
         "no_answer": "لا جواب",
@@ -5059,6 +5071,21 @@
         "notFound": "تعذر العثور على طلب التسجيل.",
         "networkError": "تعذر إغلاق الطلب. تحقق من الاتصال ثم أعد المحاولة.",
         "unknownError": "تعذر إغلاق الطلب حاليًا."
+      },
+      "deleteDialog": {
+        "title": "حذف طلب التسجيل",
+        "description": "سيُزال الطلب من المتابعة النشطة ويُنقل إلى الطلبات المغلقة. يمكن إعادة فتحه لاحقًا إن لزم. الحذف النهائي غير متاح حاليًا.",
+        "noteLabel": "سبب الحذف",
+        "notePlaceholder": "اكتب سبب حذف الطلب...",
+        "noteRequired": "سبب الحذف مطلوب.",
+        "confirm": "تأكيد الحذف",
+        "submitting": "جارٍ حذف الطلب…",
+        "success": "تم حذف طلب التسجيل من المتابعة النشطة.",
+        "permissionDenied": "ليست لديك صلاحية لحذف هذا الطلب.",
+        "invalidState": "لا يمكن حذف الطلب من حالته الحالية.",
+        "notFound": "تعذر العثور على طلب التسجيل.",
+        "networkError": "تعذر حذف الطلب. تحقق من الاتصال ثم أعد المحاولة.",
+        "unknownError": "تعذر حذف الطلب حاليًا."
       },
       "returnToStatusDialog": {
         "title": "إرجاع الحالة",
@@ -5990,6 +6017,7 @@
         "convertToStudent": "تحويل إلى تلميذ",
         "waitlist": "قائمة الانتظار",
         "close": "إغلاق الطلب",
+        "delete": "حذف الطلب",
         "returnToStatus": "إرجاع الحالة",
         "changeStatus": "تغيير الحالة",
         "addNote": "إضافة ملاحظة",
@@ -13150,17 +13178,31 @@
         "noMatchDesc": "عدّل الفلاتر أو عبارة البحث.",
         "subjectCount": "{count} مادة",
         "warningCount": "{count} تحذير",
-        "refetching": "جاري تحديث القائمة…"
+        "refetching": "جاري تحديث القائمة…",
+        "subtitleWithCount": "{total} أستاذ ضمن نطاقك"
       },
       "filters": {
         "reset": "إعادة تعيين الفلاتر",
+        "clearSearch": "مسح البحث",
+        "search": "بحث",
         "searchPlaceholder": "بحث بالاسم أو الرمز…",
-        "state": "الحالة",
-        "active": "نشط",
-        "hasAssignments": "لديه إسنادات",
+        "state": "الحالة المهنية",
+        "active": "السجل النشط",
+        "hasAssignments": "الإسنادات الفعالة",
         "operationallyActive": "ساري تشغيليًا",
         "teacherId": "معرف الأستاذ",
-        "all": "الكل"
+        "all": "الكل",
+        "allStates": "كل الحالات",
+        "allActive": "الكل",
+        "allAssignments": "الكل",
+        "activeYes": "نشط فقط",
+        "activeNo": "غير نشط",
+        "assignmentsYes": "لديه إسنادات",
+        "assignmentsNo": "بدون إسنادات",
+        "chipSearch": "بحث: {query}",
+        "chipState": "الحالة المهنية: {state}",
+        "chipActive": "السجل النشط: {value}",
+        "chipHasAssignments": "الإسنادات: {value}"
       },
       "states": {
         "active": "فعّال",

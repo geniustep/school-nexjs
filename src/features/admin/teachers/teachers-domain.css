@@ -1,3 +1,8 @@
+/**
+ * Shared Teacher Domain surfaces (assignments list, profile, lifecycle dialogs).
+ * Teachers list styles live in teachers-list.css.
+ */
+
 .teachers-list__filters {
   display: flex;
   flex-wrap: wrap;
@@ -6,33 +11,34 @@
   margin-block-end: 12px;
 }
 
+.teachers-list__filters > .field {
+  margin-block-end: 0;
+}
+
 .teachers-list__search {
   flex: 1 1 220px;
   min-inline-size: 180px;
 }
 
-.teachers-list__avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 32px;
-  block-size: 32px;
-  border-radius: 8px;
-  background: var(--c-surface-2, #eef2f8);
-  color: var(--raqeem-primary, #243b6b);
-  font-size: 12px;
-  font-weight: 700;
-  flex: 0 0 auto;
+.teachers-list__search input,
+.teachers-list__filters .field select,
+.teachers-list__filters .field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--radius-sm, 8px);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #0f172a);
 }
 
-.teachers-list__identity {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.teachers-list__refetch {
-  margin-block-end: 8px;
+.teachers-list__search input:focus,
+.teachers-list__filters .field select:focus,
+.teachers-list__filters .field input:focus {
+  outline: none;
+  border-color: var(--c-primary, var(--raqeem-primary, #243b6b));
+  box-shadow: 0 0 0 3px var(--c-primary-soft, rgb(36 59 107 / 0.12));
 }
 
 .teacher-domain-profile__tabs {

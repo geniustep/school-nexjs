@@ -375,15 +375,15 @@ export function AdmissionListActionsMenu({
             <button
               type="button"
               role="menuitem"
-              className="admissions-row-actions__item"
+              className="admissions-row-actions__item admissions-row-actions__item--danger"
               disabled={busy}
-              data-testid="admission-actions-close"
+              data-testid="admission-actions-delete"
               onClick={() => {
                 setOpen(false);
                 window.setTimeout(() => setCloseOpen(true), 0);
               }}
             >
-              {t(modernActionLabelKey('close'))}
+              {t('admin.admissions.actions.delete')}
             </button>
           ) : null}
 
@@ -499,6 +499,7 @@ export function AdmissionListActionsMenu({
           null
         }
         open={closeOpen}
+        variant="delete"
         onClose={() => {
           setCloseOpen(false);
           triggerRef.current?.focus();

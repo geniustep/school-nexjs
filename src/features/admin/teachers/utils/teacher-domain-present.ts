@@ -2,7 +2,66 @@ import type { TeacherSummary } from '@/types/teacher-domain';
 import { hasAllowedAction } from './teacher-domain-allowed-actions';
 
 export const TEACHER_DOMAIN_PAGE_SIZE = 20;
+/** Fetch window used when applying client-side list filters (Backend ignores those params today). */
+export const TEACHER_DOMAIN_FILTER_FETCH_SIZE = 200;
 export const TEACHER_DOMAIN_SEARCH_DEBOUNCE_MS = 400;
+
+export type TeacherListClientFilters = {
+  state?: string;
+  active?: string;
+  hasAssignments?: string;
+};
+
+export function teacherHasActiveAssignments(
+  teacher: Pick<TeacherSummary, 'assignment_summary'>,
+): boolean {
+  const summary = teacher.assignment_summary;
+  const count =
+    summary?.operational_count ?? summary?.active_count ?? summary?.total_count ?? 0;
+  return Number(count) > 0;
+}
+
+/**
+ * Client-side teacher list filters.
+ * Live Backend currently honors `search` only; `state` / `active` / `has_assignments`
+ * are applied here so the UI matches user intent on the fetched window.
+ */
+export function matchesTeacherListFilters(
+  teacher: TeacherSummary,
+  filters: TeacherListClientFilters,
+): boolean {
+  if (filters.state && teacherEmploymentState(teacher) !== filters.state) return false;
+
+  if (filters.active === 'true' && teacher.active !== true) return false;
+  if (filters.active === 'false' && teacher.active !== false) return false;
+
+  if (filters.hasAssignments === 'true' && !teacherHasActiveAssignments(teacher)) {
+    return false;
+  }
+  if (filters.hasAssignments === 'false' && teacherHasActiveAssignments(teacher)) {
+    return false;
+  }
+
+  return true;
+}
+
+export function filterTeacherSummaries(
+  teachers: TeacherSummary[],
+  filters: TeacherListClientFilters,
+): TeacherSummary[] {
+  if (!filters.state && !filters.active && !filters.hasAssignments) return teachers;
+  return teachers.filter((teacher) => matchesTeacherListFilters(teacher, filters));
+}
+
+export function paginateTeacherSummaries(
+  teachers: TeacherSummary[],
+  page: number,
+  pageSize: number = TEACHER_DOMAIN_PAGE_SIZE,
+): TeacherSummary[] {
+  const safePage = Math.max(1, page);
+  const start = (safePage - 1) * pageSize;
+  return teachers.slice(start, start + pageSize);
+}
 
 export function teacherDisplayName(teacher: Pick<TeacherSummary, 'name' | 'identity'>): string {
   return teacher.identity?.display_name?.trim() || teacher.name || '';

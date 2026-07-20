@@ -16,12 +16,16 @@ import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
+import { TeachersListFilters } from '@/features/admin/teachers/components/teachers-list-filters';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useTeacherDomainContract } from '@/features/admin/teachers/hooks/use-teacher-domain-contract';
 import {
+  TEACHER_DOMAIN_FILTER_FETCH_SIZE,
   TEACHER_DOMAIN_PAGE_SIZE,
   TEACHER_DOMAIN_SEARCH_DEBOUNCE_MS,
+  filterTeacherSummaries,
   formatPlannedLoad,
+  paginateTeacherSummaries,
   resolveTeacherListEmptyVariant,
   teacherAccountStateLabelKey,
   teacherDisplayName,
@@ -60,34 +64,66 @@ export function TeachersListPage() {
     action: LifecycleAction;
   }>({ teacher: null, action: null });
 
+  const hasClientFilters = Boolean(stateFilter || activeFilter || hasAssignments);
+
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, stateFilter, activeFilter, hasAssignments]);
 
   const query = useMemo(() => {
-    const next: Record<string, string | number> = {
-      page,
-      page_size: TEACHER_DOMAIN_PAGE_SIZE,
-    };
     const search = debouncedSearch.trim();
+    // Backend currently honors `search` only. When local filters are active, fetch a
+    // wider window and filter/paginate on the client so results match the selects.
+    const next: Record<string, string | number> = {
+      page: hasClientFilters ? 1 : page,
+      page_size: hasClientFilters ? TEACHER_DOMAIN_FILTER_FETCH_SIZE : TEACHER_DOMAIN_PAGE_SIZE,
+    };
     if (search) next.search = search;
-    if (stateFilter) next.state = stateFilter;
-    if (activeFilter) next.active = activeFilter;
-    if (hasAssignments) next.has_assignments = hasAssignments;
     return next;
-  }, [page, debouncedSearch, stateFilter, activeFilter, hasAssignments]);
+  }, [page, debouncedSearch, hasClientFilters]);
 
-  const state = useAdminResource<TeacherSummary[]>(endpoints.admin.teachers, query);
+  const state = useAdminResource<TeacherSummary[]>(endpoints.admin.teachers, query, {
+    keepPreviousData: false,
+  });
   const teachers = useMemo(
     () => normalizeTeacherSummaries(state.data ?? []),
     [state.data],
   );
-  const pg = state.meta?.pagination;
+  const filteredTeachers = useMemo(
+    () =>
+      filterTeacherSummaries(teachers, {
+        state: stateFilter,
+        active: activeFilter,
+        hasAssignments,
+      }),
+    [teachers, stateFilter, activeFilter, hasAssignments],
+  );
+  const serverPagination = state.meta?.pagination;
+  const filteredTotal = filteredTeachers.length;
+  const clientTotalPages = Math.max(1, Math.ceil(filteredTotal / TEACHER_DOMAIN_PAGE_SIZE) || 1);
+  const safePage = hasClientFilters
+    ? Math.min(Math.max(1, page), filteredTotal === 0 ? 1 : clientTotalPages)
+    : page;
+  const visibleTeachers = useMemo(
+    () =>
+      hasClientFilters
+        ? paginateTeacherSummaries(filteredTeachers, safePage, TEACHER_DOMAIN_PAGE_SIZE)
+        : filteredTeachers,
+    [filteredTeachers, hasClientFilters, safePage],
+  );
+  const pg = hasClientFilters
+    ? {
+        page: safePage,
+        total_pages: clientTotalPages,
+        total: filteredTotal,
+        page_size: TEACHER_DOMAIN_PAGE_SIZE,
+      }
+    : serverPagination;
   const hasActiveFilters = Boolean(
-    debouncedSearch.trim() || stateFilter || activeFilter || hasAssignments,
+    searchDraft.trim() || stateFilter || activeFilter || hasAssignments,
   );
   const emptyVariant = resolveTeacherListEmptyVariant({
-    total: pg?.total,
+    total: hasClientFilters ? filteredTotal : pg?.total,
     hasActiveFilters,
   });
 
@@ -96,6 +132,14 @@ export function TeachersListPage() {
     capability: 'manage_teachers',
   });
 
+  const resetFilters = () => {
+    setSearchDraft('');
+    setStateFilter('');
+    setActiveFilter('');
+    setHasAssignments('');
+    setPage(1);
+  };
+
   const listEmptyState =
     emptyVariant === 'noMatch' ? (
       <EmptyState
@@ -103,16 +147,7 @@ export function TeachersListPage() {
         title={t('admin.teacherDomain.list.noMatchTitle')}
         description={t('admin.teacherDomain.list.noMatchDesc')}
         action={
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => {
-              setSearchDraft('');
-              setStateFilter('');
-              setActiveFilter('');
-              setHasAssignments('');
-            }}
-          >
+          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
             {t('admin.teacherDomain.filters.reset')}
           </button>
         }
@@ -144,7 +179,7 @@ export function TeachersListPage() {
               <span className="teachers-list__avatar" aria-hidden="true">
                 {teacherInitials(name)}
               </span>
-              <div>
+              <div className="teachers-list__identity-text">
                 <strong className="teachers-list__name" dir="auto" title={name}>
                   {name}
                 </strong>
@@ -285,7 +320,9 @@ export function TeachersListPage() {
         subtitle={
           check && !check.ok
             ? t('admin.teacherDomain.contract.incompatible')
-            : t('admin.teachersListDesc')
+            : pg
+              ? t('admin.teacherDomain.list.subtitleWithCount', { total: pg.total })
+              : t('admin.teachersListDesc')
         }
         actions={
           <div className="teachers-list__header-actions">
@@ -304,79 +341,69 @@ export function TeachersListPage() {
         }
       />
 
-      <div className="teachers-list__filters" role="search">
-        <label className="field teachers-list__search">
-          <span className="sr-only">{t('common.search')}</span>
-          <input
-            type="search"
-            value={searchDraft}
-            onChange={(e) => setSearchDraft(e.target.value)}
-            placeholder={t('admin.teacherDomain.filters.searchPlaceholder')}
-            dir="auto"
-          />
-        </label>
-        <label className="field">
-          <span>{t('admin.teacherDomain.filters.state')}</span>
-          <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
-            <option value="">{t('admin.teacherDomain.filters.all')}</option>
-            <option value="active">{t('admin.teacherDomain.states.active')}</option>
-            <option value="terminated">{t('admin.teacherDomain.states.terminated')}</option>
-            <option value="archived">{t('admin.teacherDomain.states.archived')}</option>
-          </select>
-        </label>
-        <label className="field">
-          <span>{t('admin.teacherDomain.filters.active')}</span>
-          <select value={activeFilter} onChange={(e) => setActiveFilter(e.target.value)}>
-            <option value="">{t('admin.teacherDomain.filters.all')}</option>
-            <option value="true">{t('common.yes')}</option>
-            <option value="false">{t('common.no')}</option>
-          </select>
-        </label>
-        <label className="field">
-          <span>{t('admin.teacherDomain.filters.hasAssignments')}</span>
-          <select value={hasAssignments} onChange={(e) => setHasAssignments(e.target.value)}>
-            <option value="">{t('admin.teacherDomain.filters.all')}</option>
-            <option value="true">{t('common.yes')}</option>
-            <option value="false">{t('common.no')}</option>
-          </select>
-        </label>
-      </div>
+      <TeachersListFilters
+        search={searchDraft}
+        stateFilter={stateFilter}
+        activeFilter={activeFilter}
+        hasAssignments={hasAssignments}
+        hasActiveFilters={hasActiveFilters}
+        onSearchChange={setSearchDraft}
+        onSearchClear={() => setSearchDraft('')}
+        onStateFilterChange={setStateFilter}
+        onActiveFilterChange={setActiveFilter}
+        onHasAssignmentsChange={setHasAssignments}
+        onReset={resetFilters}
+      />
 
       {importOpen ? (
         <CsvImportPanel importPath={endpoints.admin.teachersImport} onDone={() => state.reload()} />
       ) : null}
 
-      <ResourceView
-        state={{ ...state, data: teachers }}
-        loadingLabel={t('common.loading')}
-        isEmpty={(rows) => rows.length === 0}
-        empty={listEmptyState}
+      {state.fetching && !state.initialLoading ? (
+        <p className="teachers-list__fetching-hint" aria-live="polite">
+          {t('admin.teacherDomain.list.refetching')}
+        </p>
+      ) : null}
+
+      <div
+        className={
+          state.fetching
+            ? 'teachers-list__results teachers-list__results--fetching'
+            : 'teachers-list__results'
+        }
+        aria-busy={state.fetching || undefined}
       >
-        {(rows) => (
-          <>
-            {state.fetching ? (
-              <p className="tiny muted teachers-list__refetch" aria-live="polite">
-                {t('admin.teacherDomain.list.refetching')}
-              </p>
-            ) : null}
-            <DataTable
-              columns={columns}
-              rows={rows}
-              rowKey={(teacher) => teacher.id}
-              onRowClick={(teacher) => router.push(`/admin/teachers/${teacher.id}`)}
-            />
-            {pg ? (
-              <Pagination
-                page={pg.page}
-                totalPages={pg.total_pages}
-                total={pg.total}
-                pageSize={TEACHER_DOMAIN_PAGE_SIZE}
-                onPage={setPage}
-              />
-            ) : null}
-          </>
-        )}
-      </ResourceView>
+        <ResourceView
+          state={{ ...state, data: visibleTeachers }}
+          loadingLabel={t('common.loading')}
+          isEmpty={() =>
+            hasClientFilters ? filteredTotal === 0 : (serverPagination?.total ?? teachers.length) === 0
+          }
+          empty={listEmptyState}
+        >
+          {(rows) => (
+            <>
+              <div className="teachers-list__table">
+                <DataTable
+                  columns={columns}
+                  rows={rows}
+                  rowKey={(teacher) => teacher.id}
+                  onRowClick={(teacher) => router.push(`/admin/teachers/${teacher.id}`)}
+                />
+              </div>
+              {pg && (hasClientFilters ? filteredTotal > 0 : true) ? (
+                <Pagination
+                  page={pg.page}
+                  totalPages={pg.total_pages}
+                  total={pg.total}
+                  pageSize={TEACHER_DOMAIN_PAGE_SIZE}
+                  onPage={setPage}
+                />
+              ) : null}
+            </>
+          )}
+        </ResourceView>
+      </div>
 
       <TeacherLifecycleDialogs
         teacher={lifecycle.teacher}

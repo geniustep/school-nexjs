@@ -28,6 +28,7 @@ import {
   parseWorkspaceListStateFromSearchParams,
   readAppliedWorkspaceFilter,
   resetLevelIfIncompatibleWithCycle,
+  resolveAdmissionCycleId,
   workspaceListStateToSearchParams,
   type AdmissionWorkspaceListState,
 } from '../utils/admission-workspace';
@@ -330,6 +331,26 @@ export function AdmissionsListPage() {
     return filterLevelsByCycle(allLevels, listState.cycleCode);
   }, [admissionOptions?.levels, listState.cycleCode]);
 
+  // URL restores cycle code only — resolve numeric cycle_id once options load
+  // so list/dashboard/kanban queries send the Backend-honored param.
+  useEffect(() => {
+    const cycleCode = listState.cycleCode?.trim();
+    if (!cycleCode) {
+      if (listState.cycleId != null) {
+        setListState((prev) =>
+          prev.cycleId == null ? prev : { ...prev, cycleId: undefined },
+        );
+      }
+      return;
+    }
+    const resolved = resolveAdmissionCycleId(cycleCode, admissionOptions?.cycles);
+    if (resolved != null && resolved !== listState.cycleId) {
+      setListState((prev) =>
+        prev.cycleId === resolved ? prev : { ...prev, cycleId: resolved },
+      );
+    }
+  }, [listState.cycleCode, listState.cycleId, admissionOptions?.cycles]);
+
   function patchListState(patch: Partial<AdmissionWorkspaceListState>) {
     setListState((prev) => ({ ...prev, ...patch }));
   }
@@ -352,6 +373,7 @@ export function AdmissionsListPage() {
           search: undefined,
           academicYearId: undefined,
           cycleCode: undefined,
+          cycleId: undefined,
           levelId: undefined,
           sourceId: undefined,
           stage: undefined,
@@ -368,10 +390,12 @@ export function AdmissionsListPage() {
   function handleTrackChange(nextCycleCode: string) {
     const cycleCode = nextCycleCode || undefined;
     const levels = admissionOptions?.levels ?? [];
+    const cycleId = resolveAdmissionCycleId(cycleCode, admissionOptions?.cycles);
     urlNavTriggerRef.current = 'user_academic_filter';
     setListState((prev) => ({
       ...prev,
       cycleCode,
+      cycleId,
       levelId: resetLevelIfIncompatibleWithCycle(prev.levelId, cycleCode, levels),
       page: 1,
     }));

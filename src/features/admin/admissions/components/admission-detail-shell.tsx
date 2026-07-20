@@ -43,6 +43,7 @@ import { AdmissionRequestedServicesSection } from './admission-requested-service
 import { AdmissionStudentConversionAction } from './admission-student-conversion-action';
 import { AdmissionModernStatusBadge } from './admission-modern-status-badge';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
+import { AdmissionLastStatusReason } from './admission-last-status-reason';
 import { OverviewEmptyValue } from './admission-overview-primitives';
 import { resolveAdmissionTerminalReasonPanel } from '../utils/admission-terminal-reason';
 import {
@@ -474,6 +475,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
                 </span>
                 <AdmissionLastActionSummary action={detail.last_action} showDetails />
               </div>
+              <AdmissionLastStatusReason record={detail} layout="block" empty />
             </div>
           ) : null}
 

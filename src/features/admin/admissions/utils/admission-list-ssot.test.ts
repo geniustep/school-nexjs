@@ -90,6 +90,7 @@ describe('admissions list SSOT query keys / gate', () => {
       academicYearId: '12',
       sourceId: '4',
       cycleCode: 'college',
+      cycleId: 3,
       levelId: '9',
     });
     // Context is cleared only when applying a KPI card — list boot keeps filters.
@@ -98,8 +99,8 @@ describe('admissions list SSOT query keys / gate', () => {
       search: 'ahmed',
       academic_year_id: 12,
       source_id: 4,
-      requested_cycle_code: 'college',
-      requested_level_id: 9,
+      cycle_id: 3,
+      level_id: 9,
       hide_registered: 1,
     });
     expect(dash).not.toHaveProperty('application_status');

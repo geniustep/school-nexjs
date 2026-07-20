@@ -1,18 +1,21 @@
 /**
- * Kanban list projection contract (Odoo `projection=kanban`).
- * Only Kanban column/board fetches may attach this — never Table/Detail/Dashboard.
+ * Kanban list query helpers.
+ *
+ * Live Backend `projection=kanban` omits `last_action.note`, which cards need for
+ * «آخر سبب للحالة». Board fetches therefore use the full list payload.
+ * Table/Detail/Dashboard must never send `projection=kanban`.
  */
 
 export const ADMISSIONS_KANBAN_PROJECTION = 'kanban' as const;
 
-/** Query identity fragment — must appear in Kanban request signatures. */
+/** @deprecated Kept for identity tests; board fetches no longer attach this. */
 export const ADMISSIONS_KANBAN_PROJECTION_QUERY = {
   projection: ADMISSIONS_KANBAN_PROJECTION,
 } as const;
 
 /**
+ * @deprecated Prefer `withKanbanBoardListQuery` — kanban projection drops status notes.
  * Merge `projection=kanban` into a list query without mutating the input.
- * Callers must not reuse the result for Table/Detail/Dashboard fetches.
  */
 export function withKanbanListProjection<T extends Record<string, unknown>>(
   query: T,
@@ -21,6 +24,16 @@ export function withKanbanListProjection<T extends Record<string, unknown>>(
     ...query,
     projection: ADMISSIONS_KANBAN_PROJECTION,
   };
+}
+
+/**
+ * Kanban board/column list query — full admission rows so `last_action.note`
+ * and terminal reasons remain available on cards.
+ */
+export function withKanbanBoardListQuery<T extends Record<string, unknown>>(query: T): T {
+  const { projection: _ignored, ...rest } = query as T & { projection?: unknown };
+  void _ignored;
+  return rest as T;
 }
 
 export function isKanbanListProjection(query: Record<string, unknown> | null | undefined): boolean {

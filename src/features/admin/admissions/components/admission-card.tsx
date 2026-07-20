@@ -17,6 +17,7 @@ import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions'
 import { resolveAdmissionTerminalReasonPanel } from '../utils/admission-terminal-reason';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
+import { AdmissionLastStatusReason } from './admission-last-status-reason';
 import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import type { AdmissionListItem } from '@/types/admission';
@@ -260,6 +261,8 @@ function AdmissionCardComponent({
       <div className="admission-card__last-action" data-testid="admission-card-last-action">
         <AdmissionLastActionSummary action={item.last_action} layout="card" />
       </div>
+
+      <AdmissionLastStatusReason record={item} layout="card" />
 
       <div
         className="admission-card__primary-next"

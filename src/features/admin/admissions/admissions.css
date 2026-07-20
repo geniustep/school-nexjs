@@ -4710,6 +4710,15 @@
   background: color-mix(in srgb, var(--c-blue-soft, #dbeafe) 70%, white);
 }
 
+.admissions-row-actions__item--danger {
+  color: var(--danger, #c0392b);
+}
+
+.admissions-row-actions__item--danger:hover,
+.admissions-row-actions__item--danger:focus-visible {
+  background: color-mix(in srgb, var(--danger, #c0392b) 10%, white);
+}
+
 .admissions-row-actions__submenu {
   display: flex;
   flex-direction: column;
@@ -5372,10 +5381,16 @@
   color: var(--c-muted, #64748b);
 }
 
-.admission-primary-action-panel .btn--danger {
+.admission-primary-action-panel .btn--danger,
+.confirmation-dialog .btn--danger {
   background: color-mix(in srgb, var(--danger, #c0392b) 90%, #7f1d1d);
   color: #fff;
   border-color: transparent;
+}
+
+.admission-primary-action-panel .btn--danger:disabled,
+.confirmation-dialog .btn--danger:disabled {
+  opacity: 0.6;
 }
 
 
@@ -6456,6 +6471,32 @@
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.3;
+}
+
+.admission-card--operational .admission-card__status-reason {
+  margin: 0;
+  min-width: 0;
+}
+
+.admission-card--operational .admission-card__status-reason-value {
+  margin: 0.12rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--c-text, #0f172a);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.admission-detail-aside-reason {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--c-text, #0f172a);
+  white-space: pre-wrap;
 }
 
 .admission-card--operational .admission-card__primary-next {

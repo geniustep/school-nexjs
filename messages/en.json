@@ -4894,6 +4894,18 @@
         "actor": "Staff",
         "at": "Date"
       },
+      "lastStatusReason": {
+        "label": "Last status reason",
+        "empty": "No reason recorded",
+        "transition": "Moved from {from} to {to}",
+        "transitionWithNote": "Moved from {from} to {to}: {note}",
+        "phrases": {
+          "familyApproved": "Family approved registration",
+          "acceptedAndFamilyApproved": "Accepted by school with family approval recorded",
+          "decisionAccepted": "Accepted decision",
+          "decisionAcceptedWithCondition": "Accepted with conditions"
+        }
+      },
       "contactResults": {
         "reached": "Reached",
         "no_answer": "No answer",
@@ -4926,6 +4938,21 @@
         "notFound": "The admission application could not be found.",
         "networkError": "Could not close the application. Check your connection and try again.",
         "unknownError": "Could not close the application right now."
+      },
+      "deleteDialog": {
+        "title": "Delete admission application",
+        "description": "The application will be removed from active follow-up and moved to closed applications. It can be reopened later if needed. Permanent deletion is not available yet.",
+        "noteLabel": "Reason for deletion",
+        "notePlaceholder": "Write the reason for deleting this application...",
+        "noteRequired": "A deletion reason is required.",
+        "confirm": "Confirm delete",
+        "submitting": "Deleting application…",
+        "success": "Admission application removed from active follow-up.",
+        "permissionDenied": "You do not have permission to delete this application.",
+        "invalidState": "This application cannot be deleted from its current status.",
+        "notFound": "The admission application could not be found.",
+        "networkError": "Could not delete the application. Check your connection and try again.",
+        "unknownError": "Could not delete the application right now."
       },
       "returnToStatusDialog": {
         "title": "Return to earlier status",
@@ -5809,6 +5836,7 @@
         "convertToStudent": "Convert to student",
         "waitlist": "Waitlist",
         "close": "Close application",
+        "delete": "Delete application",
         "returnToStatus": "Return status",
         "changeStatus": "Change status",
         "addNote": "Add note",
@@ -13080,17 +13108,31 @@
         "noMatchDesc": "Adjust filters or search terms.",
         "subjectCount": "{count} subjects",
         "warningCount": "{count} warnings",
-        "refetching": "Refreshing list…"
+        "refetching": "Refreshing list…",
+        "subtitleWithCount": "{total} teachers in your scope"
       },
       "filters": {
         "reset": "Reset filters",
+        "clearSearch": "Clear search",
+        "search": "Search",
         "searchPlaceholder": "Search by name or code…",
-        "state": "State",
-        "active": "Active",
-        "hasAssignments": "Has assignments",
+        "state": "Employment state",
+        "active": "Active record",
+        "hasAssignments": "Active assignments",
         "operationallyActive": "Operationally active",
         "teacherId": "Teacher ID",
-        "all": "All"
+        "all": "All",
+        "allStates": "All states",
+        "allActive": "All",
+        "allAssignments": "All",
+        "activeYes": "Active only",
+        "activeNo": "Inactive",
+        "assignmentsYes": "Has assignments",
+        "assignmentsNo": "No assignments",
+        "chipSearch": "Search: {query}",
+        "chipState": "Employment: {state}",
+        "chipActive": "Active record: {value}",
+        "chipHasAssignments": "Assignments: {value}"
       },
       "states": {
         "active": "Active",
