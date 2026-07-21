@@ -91,6 +91,65 @@
   align-items: center;
 }
 
+.teacher-domain-profile__cycles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-block: 10px 14px;
+}
+
+.teacher-domain-profile__cycles-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.teacher-domain-profile__cycles-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.teacher-domain-profile__cycle-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.teacher-domain-profile__cycle-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teacher-domain-profile__cycle-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.teacher-domain-profile__cycle-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 36px;
+  cursor: pointer;
+}
+
+.teacher-domain-profile__cycle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacher-domain-profile__cycle-error {
+  color: var(--c-danger, #b91c1c);
+}
+
 .teacher-lifecycle-dialog {
   gap: 10px;
 }

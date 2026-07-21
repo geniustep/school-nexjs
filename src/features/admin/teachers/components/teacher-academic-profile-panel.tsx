@@ -5,8 +5,13 @@
  * @design-status adopted
  */
 
+import { useEffect, useMemo, useState } from 'react';
 import { Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
+import { useToast } from '@/components/ui/toast';
+import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
+import { updateTeacherAcademicProfile } from '@/features/admin/teachers/api/teacher-domain-api';
 import { hasAllowedAction } from '@/features/admin/teachers/utils/teacher-domain-allowed-actions';
+import { mapTeacherDomainError } from '@/features/admin/teachers/utils/teacher-domain-errors';
 import { useT } from '@/features/i18n/locale-context';
 import type { TeacherAcademicProfile } from '@/types/teacher-domain';
 
@@ -18,23 +23,112 @@ function refNames(
   return refs.map((r) => r.name ?? String(r.id ?? '')).filter(Boolean).join(', ') || fallback;
 }
 
+function cycleIdsFromProfile(profile: TeacherAcademicProfile): number[] {
+  const cycles = profile.eligibility?.cycles ?? [];
+  return cycles
+    .map((cycle) => Number(cycle.id))
+    .filter((id) => Number.isFinite(id) && id > 0);
+}
+
+function cycleRefsFromProfile(
+  profile: TeacherAcademicProfile,
+): Array<{ id?: number; name?: string }> {
+  return profile.eligibility?.cycles ?? [];
+}
+
 export function TeacherAcademicProfilePanel({
   profile,
+  onProfileUpdated,
 }: {
   profile: TeacherAcademicProfile;
+  onProfileUpdated?: (next: TeacherAcademicProfile) => void;
 }) {
   const t = useT();
-  const eligibility = profile.eligibility;
-  const limits = profile.limits;
-  const canEdit = hasAllowedAction(profile.allowed_actions, 'edit_eligibility');
+  const toast = useToast();
+  const [displayProfile, setDisplayProfile] = useState(profile);
+
+  useEffect(() => {
+    setDisplayProfile(profile);
+  }, [profile]);
+
+  const eligibility = displayProfile.eligibility;
+  const limits = displayProfile.limits;
+  const canEdit = hasAllowedAction(displayProfile.allowed_actions, 'edit_eligibility');
   const canManageQualifications = hasAllowedAction(
-    profile.allowed_actions,
+    displayProfile.allowed_actions,
     'manage_qualifications',
   );
   const canManageAvailability = hasAllowedAction(
-    profile.allowed_actions,
+    displayProfile.allowed_actions,
     'manage_availability',
   );
+
+  const [editingCycles, setEditingCycles] = useState(false);
+  const [draftCycleIds, setDraftCycleIds] = useState<number[]>([]);
+  const [savingCycles, setSavingCycles] = useState(false);
+  const [cycleSaveError, setCycleSaveError] = useState<string | null>(null);
+
+  const cycleOptionsState = useLevelOptions(editingCycles, { include_enabled: 'true' });
+  const cycleOptions = cycleOptionsState.options?.cycles ?? [];
+
+  const currentCycleRefs = cycleRefsFromProfile(displayProfile);
+  const currentCycleIds = useMemo(
+    () => cycleIdsFromProfile(displayProfile),
+    [displayProfile],
+  );
+
+  const optionCatalog = useMemo(() => {
+    const map = new Map<number, { id: number; name: string }>();
+    for (const cycle of cycleOptions) {
+      map.set(cycle.id, { id: cycle.id, name: cycle.name });
+    }
+    for (const cycle of currentCycleRefs) {
+      const id = Number(cycle.id);
+      if (!Number.isFinite(id) || id <= 0 || map.has(id)) continue;
+      map.set(id, { id, name: cycle.name ?? String(id) });
+    }
+    return Array.from(map.values());
+  }, [cycleOptions, currentCycleRefs]);
+
+  function startCycleEdit() {
+    if (!canEdit || savingCycles) return;
+    setDraftCycleIds(currentCycleIds);
+    setCycleSaveError(null);
+    setEditingCycles(true);
+  }
+
+  function cancelCycleEdit() {
+    if (savingCycles) return;
+    setDraftCycleIds(currentCycleIds);
+    setCycleSaveError(null);
+    setEditingCycles(false);
+  }
+
+  function toggleCycle(id: number) {
+    if (savingCycles) return;
+    setDraftCycleIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  }
+
+  async function saveCycles() {
+    if (!canEdit || savingCycles) return;
+    setSavingCycles(true);
+    setCycleSaveError(null);
+    const res = await updateTeacherAcademicProfile(displayProfile.teacher_id, {
+      eligible_cycle_ids: draftCycleIds,
+    });
+    setSavingCycles(false);
+    if (!res.success) {
+      setCycleSaveError(mapTeacherDomainError(res.error, t));
+      toast.error(mapTeacherDomainError(res.error, t));
+      return;
+    }
+    setDisplayProfile(res.data);
+    onProfileUpdated?.(res.data);
+    setEditingCycles(false);
+    toast.success(t('admin.teacherDomain.academic.cyclesSaveSuccess'));
+  }
 
   return (
     <div className="teacher-domain-profile__stack">
@@ -50,6 +144,92 @@ export function TeacherAcademicProfilePanel({
           }
         />
         <p className="tiny muted">{t('admin.teacherDomain.academic.eligibilityBoundary')}</p>
+
+        <div className="teacher-domain-profile__cycles">
+          <div className="teacher-domain-profile__cycles-head">
+            <span className="teacher-domain-profile__cycles-label">
+              {t('admin.teacherDomain.academic.eligibleCycles')}
+            </span>
+            {canEdit && !editingCycles ? (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={startCycleEdit}
+              >
+                {t('common.edit')}
+              </button>
+            ) : null}
+          </div>
+
+          {editingCycles ? (
+            <div className="teacher-domain-profile__cycle-edit">
+              {cycleOptionsState.loading && cycleOptions.length === 0 ? (
+                <p className="tiny muted">{t('common.loading')}</p>
+              ) : optionCatalog.length === 0 ? (
+                <p className="tiny muted">
+                  {t('admin.teacherDomain.academic.cyclesOptionsEmpty')}
+                </p>
+              ) : (
+                <ul className="teacher-domain-profile__cycle-options" role="group">
+                  {optionCatalog.map((cycle) => {
+                    const checked = draftCycleIds.includes(cycle.id);
+                    return (
+                      <li key={cycle.id}>
+                        <label className="teacher-domain-profile__cycle-option">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={savingCycles}
+                            onChange={() => toggleCycle(cycle.id)}
+                          />
+                          <span dir="auto">{cycle.name}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+
+              {cycleSaveError ? (
+                <p className="tiny teacher-domain-profile__cycle-error" role="alert">
+                  {cycleSaveError}
+                </p>
+              ) : null}
+
+              <div className="teacher-domain-profile__cycle-actions">
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  disabled={savingCycles}
+                  onClick={() => void saveCycles()}
+                >
+                  {savingCycles ? t('common.saving') : t('common.save')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  disabled={savingCycles}
+                  onClick={cancelCycleEdit}
+                >
+                  {t('common.cancel')}
+                </button>
+              </div>
+            </div>
+          ) : currentCycleRefs.length === 0 ? (
+            <p className="muted tiny">
+              {t('admin.teacherDomain.academic.eligibleCyclesUnset')}
+            </p>
+          ) : (
+            <div className="teacher-domain-profile__cycle-badges">
+              {currentCycleRefs.map((cycle) => (
+                <Badge key={cycle.id ?? cycle.name} tone="slate">
+                  <span dir="auto">{cycle.name ?? String(cycle.id ?? '')}</span>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
         <DefinitionList
           items={[
             {
@@ -129,16 +309,16 @@ export function TeacherAcademicProfilePanel({
             ) : null
           }
         />
-        {(profile.qualifications ?? []).length === 0 ? (
+        {(displayProfile.qualifications ?? []).length === 0 ? (
           <p className="muted tiny">
             {t('admin.teacherDomain.academic.qualificationsEmpty')}
-            {profile.qualifications_summary?.legacy_qualification
-              ? ` — ${String(profile.qualifications_summary.legacy_qualification)}`
+            {displayProfile.qualifications_summary?.legacy_qualification
+              ? ` — ${String(displayProfile.qualifications_summary.legacy_qualification)}`
               : ''}
           </p>
         ) : (
           <ul className="teacher-domain-profile__list">
-            {(profile.qualifications ?? []).map((q, index) => (
+            {(displayProfile.qualifications ?? []).map((q, index) => (
               <li key={q.id ?? index} dir="auto">
                 <strong>{q.title || q.type || t('common.dash')}</strong>
                 <span className="muted">
@@ -162,11 +342,11 @@ export function TeacherAcademicProfilePanel({
           }
         />
         <p className="tiny muted">{t('admin.teacherDomain.academic.availabilityNotTimetable')}</p>
-        {(profile.availability ?? []).length === 0 ? (
+        {(displayProfile.availability ?? []).length === 0 ? (
           <p className="muted tiny">{t('admin.teacherDomain.academic.availabilityEmpty')}</p>
         ) : (
           <ul className="teacher-domain-profile__list">
-            {(profile.availability ?? []).map((slot, index) => {
+            {(displayProfile.availability ?? []).map((slot, index) => {
               const type = slot.availability_type || slot.type || t('common.dash');
               const start = slot.start || slot.start_time;
               const end = slot.end || slot.end_time;
@@ -197,18 +377,24 @@ export function TeacherAcademicProfilePanel({
             {
               label: t('admin.teacherDomain.academic.currentAssignments'),
               value: String(
-                profile.operational_derived?.current_assignments?.length ??
-                  profile.current_assignments?.length ??
+                displayProfile.operational_derived?.current_assignments?.length ??
+                  displayProfile.current_assignments?.length ??
                   0,
               ),
             },
             {
               label: t('admin.teacherDomain.academic.derivedWorkload'),
               value: String(
-                (profile.operational_derived?.derived_workload as { assigned_weekly_volume?: number })
-                  ?.assigned_weekly_volume ??
-                  (profile.derived_workload as { assigned_weekly_volume?: number })
-                    ?.assigned_weekly_volume ??
+                (
+                  displayProfile.operational_derived?.derived_workload as {
+                    assigned_weekly_volume?: number;
+                  }
+                )?.assigned_weekly_volume ??
+                  (
+                    displayProfile.derived_workload as {
+                      assigned_weekly_volume?: number;
+                    }
+                  )?.assigned_weekly_volume ??
                   t('common.dash'),
               ),
             },

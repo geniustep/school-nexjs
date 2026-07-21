@@ -298,7 +298,10 @@ export function TeacherProfilePage({ id }: { id: string }) {
                         onRetry={() => setTab(tab)}
                       />
                     ) : academic ? (
-                      <TeacherAcademicProfilePanel profile={academic} />
+                      <TeacherAcademicProfilePanel
+                        profile={academic}
+                        onProfileUpdated={setAcademic}
+                      />
                     ) : null
                   ) : null}
 

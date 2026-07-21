@@ -168,6 +168,44 @@ describe('teacher-domain-api', () => {
     );
   });
 
+  it('PATCHes eligible_cycle_ids as a partial academic update', async () => {
+    mockApi.patch.mockResolvedValueOnce({
+      success: true,
+      data: {
+        teacher_id: 9,
+        eligibility: {
+          cycles: [{ id: 1, name: 'Primary' }],
+          eligible_subjects: [{ id: 4, name: 'Math' }],
+        },
+      },
+      meta: {},
+    });
+    const res = await updateTeacherAcademicProfile(9, {
+      eligible_cycle_ids: [1, 2],
+    });
+    expect(mockApi.patch).toHaveBeenCalledWith(
+      endpoints.admin.teacherAcademicProfile(9),
+      { eligible_cycle_ids: [1, 2] },
+      undefined,
+    );
+    expect(res.success && res.data.eligibility?.cycles?.[0].id).toBe(1);
+    expect(res.success && res.data.eligibility?.eligible_subjects?.[0].name).toBe('Math');
+  });
+
+  it('PATCHes empty eligible_cycle_ids explicitly', async () => {
+    mockApi.patch.mockResolvedValueOnce({
+      success: true,
+      data: { teacher_id: 9, eligibility: { cycles: [] } },
+      meta: {},
+    });
+    await updateTeacherAcademicProfile(9, { eligible_cycle_ids: [] });
+    expect(mockApi.patch).toHaveBeenCalledWith(
+      endpoints.admin.teacherAcademicProfile(9),
+      { eligible_cycle_ids: [] },
+      undefined,
+    );
+  });
+
   it('parses assignment list/detail and maps end action', async () => {
     mockApi.get
       .mockResolvedValueOnce({

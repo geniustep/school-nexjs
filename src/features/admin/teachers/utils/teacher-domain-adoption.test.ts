@@ -51,6 +51,10 @@ describe('teacher-domain adoption gates', () => {
       );
     }
     expect(ar.admin.teacherDomain.academic.eligibleSubjects).toBe('المواد المؤهل لها');
+    expect(ar.admin.teacherDomain.academic.eligibleCycles).toBe('الأسلاك المؤهل لها');
+    expect(ar.admin.teacherDomain.academic.eligibleCyclesUnset).toBe(
+      'لم تُحدّد الأسلاك المؤهل لها بعد',
+    );
     expect(ar.admin.teachingPlanning.offerings.list.noData.title).toContain(
       'لا توجد مسارات تدريس فعالة',
     );
