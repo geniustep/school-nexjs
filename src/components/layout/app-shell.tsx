@@ -170,6 +170,11 @@ export function AppShell({
               </div>
             )}
 
+            {/* Desktop + drawer: labeled switcher in teacher/parent sidebar (topbar copy hidden via CSS). */}
+            <div className="sidebar__role-switcher" data-testid="role-switcher-sidebar">
+              <RoleSwitcher data-testid="role-switcher-sidebar-control" />
+            </div>
+
             <nav id="admin-sidebar-nav" className="sidebar__nav" aria-label={t('nav.main')}>
               {sections.map((section, i) => (
                 <div key={i}>
@@ -202,7 +207,6 @@ export function AppShell({
             )}
 
             <div className="sidebar__footer sidebar__footer--mobile">
-              <RoleSwitcher />
               <div className="sidebar__footer-field">
                 <span className="sidebar__footer-label">{t('common.language')}</span>
                 <LocaleSwitcher />
@@ -236,7 +240,10 @@ export function AppShell({
           <div className="topbar__right topbar__right--desktop">
             {isAdmin && <AdminStudentSpotlightTrigger variant="desktop" />}
             {isAdmin && <SchoolSwitcher hideLabel />}
-            <RoleSwitcher hideLabel className="role-switcher--topbar" />
+            {/* Admin desktop: labeled topbar. Teacher/parent: labeled control lives in sidebar only. */}
+            {isAdmin && (
+              <RoleSwitcher className="role-switcher--topbar" data-testid="role-switcher-topbar" />
+            )}
             <LocaleSwitcher compact />
             {!isTeacher && (
               <div className="user-chip">

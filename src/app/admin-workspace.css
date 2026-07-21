@@ -889,8 +889,49 @@
   margin-inline-end: 4px;
 }
 
+.role-switcher--topbar .role-switcher__label {
+  font-weight: 600;
+  color: var(--c-text, inherit);
+}
+
+.sidebar__role-switcher {
+  padding: 8px 12px 12px;
+  border-block-end: 1px solid var(--c-border, rgba(15, 23, 42, 0.08));
+}
+
+.sidebar__role-switcher:empty {
+  display: none;
+  padding: 0;
+  border: 0;
+}
+
+.sidebar__role-switcher .role-switcher {
+  width: 100%;
+  margin-inline-end: 0;
+}
+
+.sidebar__role-switcher .role-switcher__field {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.sidebar__role-switcher .role-switcher__select {
+  width: 100%;
+  max-width: none;
+}
+
+.sidebar__role-switcher .role-switcher__label {
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .role-switcher--topbar {
+    display: none;
+  }
+
+  /* Mobile drawer already has account-sheet switcher for admin; keep sidebar
+     switcher for teacher/parent drawer so the control is not sheet-only. */
+  .app-shell--admin .sidebar__role-switcher {
     display: none;
   }
 }

@@ -26,7 +26,10 @@ export default function ParentChildDetailPage({
 }) {
   const { id } = use(params);
   const t = useT();
-  const state = useResource<ChildSummary>(endpoints.parent.child(id));
+  // Do not keep a previously authorized child while the id changes (or after role switch).
+  const state = useResource<ChildSummary>(endpoints.parent.child(id), undefined, {
+    keepPreviousData: false,
+  });
 
   return (
     <>

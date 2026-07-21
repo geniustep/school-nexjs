@@ -15,9 +15,12 @@ function roleLabel(code: string, serverLabel: string | undefined, t: (k: string)
 export function RoleSwitcher({
   className,
   hideLabel = false,
+  /** Stable test/automation hook — one instance per visible surface. */
+  'data-testid': dataTestId = 'role-switcher',
 }: {
   className?: string;
   hideLabel?: boolean;
+  'data-testid'?: string;
 }) {
   const t = useT();
   const { activeRole, availableRoles, showSwitcher, switching, error, clearError, switchRole } =
@@ -25,16 +28,26 @@ export function RoleSwitcher({
 
   if (!showSwitcher) return null;
 
+  const activeOption = availableRoles.find(
+    (role) => role.code.trim().toLowerCase() === activeRole,
+  );
+  const activeDisplay = roleLabel(activeRole, activeOption?.label, t);
+
   return (
-    <div className={cn('role-switcher', hideLabel && 'role-switcher--no-label', className)}>
+    <div
+      className={cn('role-switcher', hideLabel && 'role-switcher--no-label', className)}
+      data-testid={dataTestId}
+      data-active-role={activeRole}
+    >
       <label className="role-switcher__field">
         {!hideLabel && <span className="role-switcher__label">{t('auth.activeRole')}</span>}
         <select
           className="input input--sm role-switcher__select"
           value={activeRole}
           disabled={switching}
-          aria-label={t('auth.activeRole')}
+          aria-label={`${t('auth.activeRole')}: ${activeDisplay}`}
           aria-busy={switching || undefined}
+          title={`${t('auth.activeRole')}: ${activeDisplay}`}
           onChange={(e) => {
             clearError();
             const next = e.target.value;

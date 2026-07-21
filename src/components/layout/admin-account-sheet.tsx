@@ -69,8 +69,8 @@ export function AdminAccountSheet({
           )}
 
           {shouldShowRoleSwitcher(user) && (
-            <div className="admin-account-sheet__field">
-              <RoleSwitcher />
+            <div className="admin-account-sheet__field" data-testid="role-switcher-account-sheet">
+              <RoleSwitcher data-testid="role-switcher-account-sheet-control" />
             </div>
           )}
 
