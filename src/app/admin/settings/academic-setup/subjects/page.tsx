@@ -7,6 +7,7 @@ import { AcademicPageHeader } from '@/features/admin/academic-setup/components/a
 import { AcademicSegmentedControl } from '@/features/admin/academic-setup/components/academic-segmented-control';
 import { ReferenceSubjectsDrawer } from '@/features/admin/academic-setup/components/reference-subjects-drawer';
 import { SubjectsLevelPanel } from '@/features/admin/academic-setup/components/subjects-level-panel';
+import { LevelEnablementDrawer } from '@/features/admin/subject-enablement/components/level-enablement-drawer';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { TracksPanel } from '@/features/admin/academic-setup/components/tracks-panel';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
@@ -34,6 +35,7 @@ export default function AcademicSetupSubjectsPage() {
   const canManage = canManageClasses(user);
 
   const [subjectsDrawerOpen, setSubjectsDrawerOpen] = useState(false);
+  const [enablementDrawerOpen, setEnablementDrawerOpen] = useState(false);
   const [drawerLevelId, setDrawerLevelId] = useState<number | null>(null);
   const enableAction = useDrawerActionParam('enable-subjects');
 
@@ -83,12 +85,23 @@ export default function AcademicSetupSubjectsPage() {
 
   function openSubjectsDrawer(levelId: number) {
     setDrawerLevelId(levelId);
+    setEnablementDrawerOpen(false);
     setSubjectsDrawerOpen(true);
+  }
+
+  function openEnablementDrawer(levelId: number) {
+    setDrawerLevelId(levelId);
+    setSubjectsDrawerOpen(false);
+    setEnablementDrawerOpen(true);
   }
 
   function closeSubjectsDrawer() {
     setSubjectsDrawerOpen(false);
     enableAction.dismissActionParam();
+  }
+
+  function closeEnablementDrawer() {
+    setEnablementDrawerOpen(false);
   }
 
   if (lists.initialLoading) {
@@ -112,8 +125,8 @@ export default function AcademicSetupSubjectsPage() {
   return (
     <>
       <AcademicPageHeader
-        title={t('admin.academicSetup.nav.subjects')}
-        subtitle={t('admin.academicSetup.subjectsPageSubtitle')}
+        title={t('admin.subjectEnablement.pageTitle')}
+        subtitle={t('admin.subjectEnablement.pageSubtitle')}
         stats={t('admin.academicSetup.subjectsPageStats', {
           subjects: subjectCount,
           levels: lists.levels.length,
@@ -138,6 +151,7 @@ export default function AcademicSetupSubjectsPage() {
             classes={lists.classes}
             canManage={canManage}
             onEnableSubjects={openSubjectsDrawer}
+            onManageEnablement={openEnablementDrawer}
             readinessIssues={readinessState.data?.issues ?? []}
           />
         ) : (
@@ -152,6 +166,18 @@ export default function AcademicSetupSubjectsPage() {
           onDataChanged={refreshAll}
         />
       )}
+
+      <LevelEnablementDrawer
+        open={enablementDrawerOpen && drawerLevel != null}
+        level={drawerLevel}
+        operationalSubjects={lists.subjects}
+        onClose={closeEnablementDrawer}
+        onOpenReferenceEnable={
+          canManage && drawerLevel
+            ? () => openSubjectsDrawer(drawerLevel.id)
+            : undefined
+        }
+      />
 
       <ReferenceSubjectsDrawer
         open={subjectsOpen && drawerLevel != null}

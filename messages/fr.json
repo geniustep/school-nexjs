@@ -3065,6 +3065,32 @@
         }
       }
     },
+    "subjectEnablement": {
+      "pageTitle": "Activation des matières par niveau",
+      "pageSubtitle": "Consultez les matières opérationnelles activées par niveau. L'enregistrement activer/désactiver attend le contrat Backend.",
+      "manageSubjectsAction": "Gérer les matières",
+      "manageLevelsAction": "Gérer les niveaux",
+      "manageLevelTitle": "Matières du niveau — {level}",
+      "manageLevelFallback": "Gérer les matières du niveau",
+      "manageSubjectLevelsTitle": "Niveaux de la matière — {subject}",
+      "manageSubjectLevelsFallback": "Gérer les niveaux de la matière",
+      "readOnlyTitle": "Lecture seule — écriture non disponible",
+      "readOnlyHint": "L'activation/désactivation opérationnelle par niveau n'est pas encore publiée dans Odoo. L'activation depuis le catalogue de référence reste disponible.",
+      "referenceEnableHint": "Active des matières depuis le catalogue de référence (référence → opérationnel).",
+      "searchPlaceholder": "Rechercher par nom ou code",
+      "levelCounts": "{enabled} activées · {notEnabled} non activées · {operational} opérationnelles",
+      "colSubject": "Matière",
+      "colCode": "Code",
+      "colStatus": "Statut",
+      "colSource": "Source",
+      "statusEnabled": "Activée",
+      "statusNotEnabled": "Non activée",
+      "sourceLevel": "Du niveau",
+      "sourceTrack": "De la filière",
+      "noOperationalSubjects": "Aucune matière opérationnelle n'a encore été créée pour cet établissement.",
+      "loadError": "Impossible de charger la matrice d'activation. Réessayez.",
+      "enabledLevelsCount": "{count} niveau(x) activé(s)"
+    },
     "academicSetup": {
       "title": "Configuration académique et équipe",
       "subtitle": "Organisez la structure académique, l'équipe et les affectations depuis un seul endroit.",

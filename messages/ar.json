@@ -3171,6 +3171,32 @@
         }
       }
     },
+    "subjectEnablement": {
+      "pageTitle": "تفعيل المواد حسب المستوى",
+      "pageSubtitle": "استعرض المواد التشغيلية المفعلة لكل مستوى. حفظ التفعيل/التعطيل ينتظر عقد Backend.",
+      "manageSubjectsAction": "تدبير المواد",
+      "manageLevelsAction": "تدبير المستويات",
+      "manageLevelTitle": "مواد المستوى — {level}",
+      "manageLevelFallback": "تدبير مواد المستوى",
+      "manageSubjectLevelsTitle": "مستويات المادة — {subject}",
+      "manageSubjectLevelsFallback": "تدبير مستويات المادة",
+      "readOnlyTitle": "عرض فقط — واجهة الكتابة غير متاحة بعد",
+      "readOnlyHint": "عقد تعطيل/تفعيل المواد التشغيلية حسب المستوى غير منشور في Odoo. يبقى تفعيل الكتالوج المرجعي متاحًا عبر «تفعيل مواد».",
+      "referenceEnableHint": "يفعّل موادًا من الكتالوج المرجعي (مرجع → تشغيلي).",
+      "searchPlaceholder": "بحث بالاسم أو الكود",
+      "levelCounts": "{enabled} مفعلة · {notEnabled} غير مفعلة · {operational} تشغيلية",
+      "colSubject": "المادة",
+      "colCode": "الكود",
+      "colStatus": "الحالة",
+      "colSource": "المصدر",
+      "statusEnabled": "مفعّلة",
+      "statusNotEnabled": "غير مفعلة",
+      "sourceLevel": "من المستوى",
+      "sourceTrack": "من الشعبة",
+      "noOperationalSubjects": "لم تُنشأ مواد تشغيلية لهذه المؤسسة بعد.",
+      "loadError": "تعذّر تحميل مصفوفة التفعيل. أعد المحاولة.",
+      "enabledLevelsCount": "{count} مستوى مفعّل"
+    },
     "academicSetup": {
       "title": "التنظيم الدراسي والأطر التربوية والإدارية",
       "subtitle": "نظّم البنية الدراسية والأطر التربوية والإدارية وتوزيع التدريس من مكان واحد.",

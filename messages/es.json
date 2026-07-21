@@ -3065,6 +3065,32 @@
         }
       }
     },
+    "subjectEnablement": {
+      "pageTitle": "Activación de asignaturas por nivel",
+      "pageSubtitle": "Revise las asignaturas operativas activadas por nivel. Guardar activar/desactivar espera el contrato Backend.",
+      "manageSubjectsAction": "Gestionar asignaturas",
+      "manageLevelsAction": "Gestionar niveles",
+      "manageLevelTitle": "Asignaturas del nivel — {level}",
+      "manageLevelFallback": "Gestionar asignaturas del nivel",
+      "manageSubjectLevelsTitle": "Niveles de la asignatura — {subject}",
+      "manageSubjectLevelsFallback": "Gestionar niveles de la asignatura",
+      "readOnlyTitle": "Solo lectura — escritura no disponible aún",
+      "readOnlyHint": "La activación/desactivación operativa por nivel aún no está publicada en Odoo. La activación desde el catálogo de referencia sigue disponible.",
+      "referenceEnableHint": "Activa asignaturas desde el catálogo de referencia (referencia → operativa).",
+      "searchPlaceholder": "Buscar por nombre o código",
+      "levelCounts": "{enabled} activadas · {notEnabled} no activadas · {operational} operativas",
+      "colSubject": "Asignatura",
+      "colCode": "Código",
+      "colStatus": "Estado",
+      "colSource": "Origen",
+      "statusEnabled": "Activada",
+      "statusNotEnabled": "No activada",
+      "sourceLevel": "Del nivel",
+      "sourceTrack": "Del itinerario",
+      "noOperationalSubjects": "Aún no se han creado asignaturas operativas para este centro.",
+      "loadError": "No se pudo cargar la matriz de activación. Inténtelo de nuevo.",
+      "enabledLevelsCount": "{count} niveles activados"
+    },
     "academicSetup": {
       "title": "Configuración académica y equipo",
       "subtitle": "Organice la estructura académica, el equipo y las asignaciones desde un solo lugar.",

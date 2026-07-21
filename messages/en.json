@@ -3065,6 +3065,32 @@
         }
       }
     },
+    "subjectEnablement": {
+      "pageTitle": "Subject enablement by level",
+      "pageSubtitle": "Review operational subjects enabled per level. Save enable/disable awaits the Backend contract.",
+      "manageSubjectsAction": "Manage subjects",
+      "manageLevelsAction": "Manage levels",
+      "manageLevelTitle": "Level subjects — {level}",
+      "manageLevelFallback": "Manage level subjects",
+      "manageSubjectLevelsTitle": "Subject levels — {subject}",
+      "manageSubjectLevelsFallback": "Manage subject levels",
+      "readOnlyTitle": "Read-only — write UI is not available yet",
+      "readOnlyHint": "Operational subject enable/disable by level is not published in Odoo yet. Reference-catalog enablement remains available via “Enable subjects”.",
+      "referenceEnableHint": "Enables subjects from the reference catalog (reference → operational).",
+      "searchPlaceholder": "Search by name or code",
+      "levelCounts": "{enabled} enabled · {notEnabled} not enabled · {operational} operational",
+      "colSubject": "Subject",
+      "colCode": "Code",
+      "colStatus": "Status",
+      "colSource": "Source",
+      "statusEnabled": "Enabled",
+      "statusNotEnabled": "Not enabled",
+      "sourceLevel": "From level",
+      "sourceTrack": "From track",
+      "noOperationalSubjects": "No operational subjects have been created for this school yet.",
+      "loadError": "Could not load the enablement matrix. Please try again.",
+      "enabledLevelsCount": "{count} enabled levels"
+    },
     "academicSetup": {
       "title": "Academic setup & staff",
       "subtitle": "Organise academic structure, staff and teaching assignments in one place.",
