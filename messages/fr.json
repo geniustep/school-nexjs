@@ -13514,6 +13514,71 @@
         "academicProfileScopeForbidden": "Profil académique hors du périmètre de l'école actuelle.",
         "academicLinkManageForbidden": "Vous n'êtes pas autorisé à modifier le profil académique.",
         "teacherArchivedImmutable": "Le profil académique d'un enseignant archivé est immuable."
+      },
+      "eligibleTeachers": {
+        "contextIncomplete": "Selectionnez l'annee, la classe et la matiere pour charger les enseignants eligibles.",
+        "loading": "Chargement des enseignants eligibles…",
+        "empty": "Aucun enseignant disponible pour cette affectation selon les criteres.",
+        "emptyHint": "Verifiez le profil academique, la periode d'affectation ou la disponibilite.",
+        "summaryLine": "Eligibles : {eligible} · Avec notes : {warning} · Derogation requise : {override} · Non eligibles : {ineligible}",
+        "weeklyLoad": "Charge hebdomadaire",
+        "weeklyMax": "Maximum hebdomadaire",
+        "remainingCapacity": "Capacite restante",
+        "limitUnspecified": "Non defini",
+        "availabilityLabel": "Disponibilite",
+        "availabilityNotChecked": "Disponibilite non verifiee",
+        "timetableNotChecked": "Conflit d'emploi du temps non verifie",
+        "timetableConflict": "Conflit d'emploi du temps",
+        "showIneligible": "Afficher les enseignants non eligibles",
+        "ineligibleSection": "Enseignants non eligibles",
+        "openAcademicProfile": "Ouvrir le profil academique",
+        "overrideHint": "Cet enseignant necessite une derogation administrative.",
+        "overrideReason": "Motif de derogation",
+        "overrideReasonRequired": "Le motif de derogation est obligatoire.",
+        "overrideAuditNote": "Cette derogation sera enregistree dans l'historique de l'affectation.",
+        "rechecked": "L'eligibilite a ete reevaluee ; veuillez revoir la selection.",
+        "states": {
+          "eligible": "Eligible",
+          "eligibleWithWarning": "Eligible avec notes",
+          "overrideRequired": "Derogation requise",
+          "notEligible": "Non eligible"
+        },
+        "availability": {
+          "available": "Disponible",
+          "unavailable": "Indisponible",
+          "partial": "Partielle",
+          "not_evaluated": "Non verifiee"
+        },
+        "reasons": {
+          "subjectUnspecified": "Eligibilite matiere non specifiee",
+          "subjectOutside": "Matiere hors eligibilite declaree",
+          "cycleUnspecified": "Eligibilite cycle non specifiee",
+          "cycleOutside": "Cycle hors eligibilite declaree",
+          "levelUnspecified": "Eligibilite niveau non specifiee",
+          "levelOutside": "Niveau hors eligibilite declaree",
+          "languageUnspecified": "Eligibilite langue non specifiee",
+          "languageOutside": "Langue hors eligibilite declaree",
+          "weeklyLimitUnspecified": "Limite hebdomadaire non definie",
+          "weeklyLimitExceeded": "Limite hebdomadaire depassee",
+          "weeklyTargetExceeded": "Cible hebdomadaire depassee",
+          "dailyLoadNotAvailable": "Controle de charge quotidienne indisponible",
+          "mandatoryUnavailable": "Indisponibilite obligatoire",
+          "teacherUnavailable": "Enseignant indisponible",
+          "duplicateAssignment": "Affectation en double",
+          "overlappingMain": "Chevauchement avec une affectation principale",
+          "timetableConflict": "Conflit d'emploi du temps",
+          "inactiveTeacher": "Enseignant inactif",
+          "archivedTeacher": "Enseignant archive",
+          "crossSchool": "Enseignant hors etablissement",
+          "availabilityNotEvaluated": "Disponibilite non evaluee"
+        },
+        "errors": {
+          "overrideRequired": "Cette affectation necessite une derogation et un motif.",
+          "overrideForbidden": "Vous n'avez pas la permission de deroger.",
+          "overrideReasonRequired": "Le motif de derogation est obligatoire.",
+          "hardBlock": "Ce blocage strict ne peut pas etre outrepasse.",
+          "candidateNotEligible": "L'enseignant selectionne n'est pas eligible."
+        }
       }
     }
   },

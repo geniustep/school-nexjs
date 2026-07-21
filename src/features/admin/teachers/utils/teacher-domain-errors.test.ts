@@ -30,6 +30,12 @@ describe('teacher-domain-errors', () => {
     expect(teacherDomainErrorKey('teacher_workload_limit_invalid')).toBe(
       'admin.teacherDomain.errors.workloadLimitInvalid',
     );
+    expect(teacherDomainErrorKey('teacher_assignment_override_required')).toBe(
+      'admin.teacherDomain.eligibleTeachers.errors.overrideRequired',
+    );
+    expect(teacherDomainErrorKey('teacher_assignment_hard_block')).toBe(
+      'admin.teacherDomain.eligibleTeachers.errors.hardBlock',
+    );
     expect(mapTeacherDomainError({ code: 'teacher_not_found', message: 'x' }, t)).toBe(
       'tr:admin.teacherDomain.errors.teacherNotFound',
     );

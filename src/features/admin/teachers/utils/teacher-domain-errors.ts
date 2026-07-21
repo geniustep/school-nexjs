@@ -43,6 +43,16 @@ const TEACHER_DOMAIN_ERROR_KEYS: Record<string, string> = {
   permission_denied: 'admin.pageForbidden',
   not_found: 'admin.teacherDomain.errors.notFound',
   unauthenticated: 'errors.sessionExpired',
+  teacher_assignment_override_required:
+    'admin.teacherDomain.eligibleTeachers.errors.overrideRequired',
+  teacher_assignment_override_forbidden:
+    'admin.teacherDomain.eligibleTeachers.errors.overrideForbidden',
+  teacher_assignment_override_reason_required:
+    'admin.teacherDomain.eligibleTeachers.errors.overrideReasonRequired',
+  teacher_assignment_hard_block:
+    'admin.teacherDomain.eligibleTeachers.errors.hardBlock',
+  teacher_assignment_candidate_not_eligible:
+    'admin.teacherDomain.eligibleTeachers.errors.candidateNotEligible',
 };
 
 export function teacherDomainErrorKey(code: string | undefined | null): string | null {

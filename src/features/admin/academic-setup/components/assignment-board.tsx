@@ -11,17 +11,21 @@ import {
   createTeachingAssignment,
   deleteTeachingAssignment,
   updateTeachingAssignment,
-  useTeachingAssignmentSuggestions,
   useTeachingAssignments,
 } from '../hooks/use-teaching-assignments';
 import { useSetupReadiness } from '../hooks/use-setup-readiness';
 import { filterAssignmentMissingIssues, filterIssuesByQuery } from '../utils/section-routes';
 import { mapAcademicSetupApiError, mapWarningCode } from '../utils/api-errors';
+import { mapTeacherDomainError } from '@/features/admin/teachers/utils/teacher-domain-errors';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { AssignmentByClass } from './assignment-by-class';
 import { AssignmentByTeacher } from './assignment-by-teacher';
 import { AssignmentBySubject } from './assignment-by-subject';
-import { AssignmentFormDrawer } from './assignment-form-drawer';
+import {
+  AssignmentFormDrawer,
+  type AssignmentFormCreatePayload,
+  type AssignmentFormUpdatePayload,
+} from './assignment-form-drawer';
 import { MissingAssignmentsDrawer } from './missing-assignments-drawer';
 
 export type AssignmentViewMode = 'class' | 'teacher' | 'subject';
@@ -56,7 +60,6 @@ export function AssignmentBoard({
 
   const { assignments, loading, error, reload } = useTeachingAssignments(query);
   const readinessState = useSetupReadiness();
-  const { fetchSuggestions, loading: suggestLoading } = useTeachingAssignmentSuggestions();
 
   const missingIssues = useMemo(() => {
     const all = filterAssignmentMissingIssues(readinessState.data?.issues ?? []);
@@ -68,18 +71,19 @@ export function AssignmentBoard({
     readinessState.reload();
   }, [reload, readinessState]);
 
-  async function handleCreate(payload: {
-    class_id: number;
-    subject_id: number;
-    teacher_id: number;
-    weekly_hours?: number;
-    role?: string;
-  }) {
+  function mapAssignmentMutationError(error: Parameters<typeof mapAcademicSetupApiError>[0]) {
+    const domain = mapTeacherDomainError(error, t);
+    if (domain && domain !== t('errors.generic')) return domain;
+    return mapAcademicSetupApiError(error, t, 'assignment');
+  }
+
+  async function handleCreate(payload: AssignmentFormCreatePayload) {
+    if (saving) return;
     setSaving(true);
     const res = await createTeachingAssignment(payload);
     setSaving(false);
     if (!res.success) {
-      toast.error(mapAcademicSetupApiError(res.error, t, 'assignment'));
+      toast.error(mapAssignmentMutationError(res.error));
       return;
     }
     res.data.warnings?.forEach((w) => toast.error(mapWarningCode(w.code, t)));
@@ -89,15 +93,13 @@ export function AssignmentBoard({
     invalidate();
   }
 
-  async function handleUpdate(
-    id: number,
-    payload: Partial<{ teacher_id: number; weekly_hours: number; role: string; active: boolean }>,
-  ) {
+  async function handleUpdate(id: number, payload: AssignmentFormUpdatePayload) {
+    if (saving) return;
     setSaving(true);
     const res = await updateTeachingAssignment(id, payload);
     setSaving(false);
     if (!res.success) {
-      toast.error(mapAcademicSetupApiError(res.error, t, 'assignment'));
+      toast.error(mapAssignmentMutationError(res.error));
       return;
     }
     res.data.warnings?.forEach((w) => toast.error(mapWarningCode(w.code, t)));
@@ -187,8 +189,7 @@ export function AssignmentBoard({
         assignment={editing}
         missingIssue={pickMissing}
         canManage={canManage}
-        saving={saving || suggestLoading}
-        fetchSuggestions={fetchSuggestions}
+        saving={saving}
         onCreate={handleCreate}
         onUpdate={handleUpdate}
         onDelete={handleDelete}
@@ -199,7 +200,6 @@ export function AssignmentBoard({
         onClose={() => setMissingOpen(false)}
         issues={missingIssues}
         canManage={canManage}
-        fetchSuggestions={fetchSuggestions}
         onPickIssue={(issue) => {
           setMissingOpen(false);
           setPickMissing(issue);

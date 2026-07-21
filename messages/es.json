@@ -13494,6 +13494,71 @@
         "academicProfileScopeForbidden": "El perfil académico está fuera del alcance de la escuela actual.",
         "academicLinkManageForbidden": "No tiene permiso para editar el perfil académico.",
         "teacherArchivedImmutable": "El perfil académico de un docente archivado no se puede editar."
+      },
+      "eligibleTeachers": {
+        "contextIncomplete": "Seleccione año, clase y materia para cargar docentes elegibles.",
+        "loading": "Cargando docentes elegibles…",
+        "empty": "No hay docente disponible para la asignacion con los criterios seleccionados.",
+        "emptyHint": "Revise el perfil academico, el periodo de asignacion o la disponibilidad.",
+        "summaryLine": "Elegibles: {eligible} · Con notas: {warning} · Requieren excepcion: {override} · No elegibles: {ineligible}",
+        "weeklyLoad": "Carga semanal",
+        "weeklyMax": "Maximo semanal",
+        "remainingCapacity": "Capacidad restante",
+        "limitUnspecified": "No definido",
+        "availabilityLabel": "Disponibilidad",
+        "availabilityNotChecked": "Disponibilidad no comprobada",
+        "timetableNotChecked": "Conflicto de horario no comprobado",
+        "timetableConflict": "Conflicto de horario",
+        "showIneligible": "Mostrar docentes no elegibles",
+        "ineligibleSection": "Docentes no elegibles",
+        "openAcademicProfile": "Abrir perfil academico del docente",
+        "overrideHint": "Este docente requiere una excepcion administrativa.",
+        "overrideReason": "Motivo de la excepcion",
+        "overrideReasonRequired": "El motivo de la excepcion es obligatorio.",
+        "overrideAuditNote": "Esta excepcion se registrara en el historial de la asignacion.",
+        "rechecked": "Se reevaluo la elegibilidad; revise la seleccion.",
+        "states": {
+          "eligible": "Elegible",
+          "eligibleWithWarning": "Elegible con notas",
+          "overrideRequired": "Requiere excepcion",
+          "notEligible": "No elegible"
+        },
+        "availability": {
+          "available": "Disponible",
+          "unavailable": "No disponible",
+          "partial": "Parcial",
+          "not_evaluated": "No comprobada"
+        },
+        "reasons": {
+          "subjectUnspecified": "Elegibilidad de materia no especificada",
+          "subjectOutside": "Materia fuera de la elegibilidad declarada",
+          "cycleUnspecified": "Elegibilidad de ciclo no especificada",
+          "cycleOutside": "Ciclo fuera de la elegibilidad declarada",
+          "levelUnspecified": "Elegibilidad de nivel no especificada",
+          "levelOutside": "Nivel fuera de la elegibilidad declarada",
+          "languageUnspecified": "Elegibilidad de idioma no especificada",
+          "languageOutside": "Idioma fuera de la elegibilidad declarada",
+          "weeklyLimitUnspecified": "Limite semanal no definido",
+          "weeklyLimitExceeded": "Limite semanal excedido",
+          "weeklyTargetExceeded": "Objetivo semanal excedido",
+          "dailyLoadNotAvailable": "Comprobacion de carga diaria no disponible",
+          "mandatoryUnavailable": "No disponible de forma obligatoria",
+          "teacherUnavailable": "Docente no disponible",
+          "duplicateAssignment": "Asignacion duplicada",
+          "overlappingMain": "Solapamiento con asignacion principal",
+          "timetableConflict": "Conflicto de horario",
+          "inactiveTeacher": "Docente inactivo",
+          "archivedTeacher": "Docente archivado",
+          "crossSchool": "Docente fuera del colegio actual",
+          "availabilityNotEvaluated": "Disponibilidad no evaluada"
+        },
+        "errors": {
+          "overrideRequired": "Esta asignacion requiere una excepcion administrativa y un motivo.",
+          "overrideForbidden": "No tiene permiso para excepcionar la elegibilidad.",
+          "overrideReasonRequired": "El motivo de la excepcion es obligatorio.",
+          "hardBlock": "Este bloqueo estricto no se puede excepcionar.",
+          "candidateNotEligible": "El docente seleccionado no es elegible."
+        }
       }
     }
   },

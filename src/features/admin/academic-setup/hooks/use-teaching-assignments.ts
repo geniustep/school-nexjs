@@ -53,8 +53,24 @@ export async function createTeachingAssignment(payload: {
   role?: string;
   notes?: string;
   teaching_offering_id?: number;
+  override?: true;
+  override_reason?: string;
 }) {
-  return api.post<TeachingAssignment>(endpoints.admin.teachingAssignments, payload);
+  const body: Record<string, unknown> = { ...payload };
+  delete body.can_assign;
+  delete body.eligible;
+  delete body.eligibility_state;
+  delete body.blocking_reasons;
+  delete body.warning_reasons;
+  delete body.informational_reasons;
+  delete body.override_rule_codes;
+  if (body.override !== true) {
+    delete body.override;
+    delete body.override_reason;
+  } else if (typeof body.override_reason === 'string') {
+    body.override_reason = body.override_reason.trim();
+  }
+  return api.post<TeachingAssignment>(endpoints.admin.teachingAssignments, body);
 }
 
 export async function updateTeachingAssignment(
@@ -66,9 +82,25 @@ export async function updateTeachingAssignment(
     notes: string;
     active: boolean;
     teaching_offering_id: number | null | false;
+    override: true;
+    override_reason: string;
   }>,
 ) {
-  return api.post<TeachingAssignment>(endpoints.admin.teachingAssignmentUpdate(id), payload);
+  const body: Record<string, unknown> = { ...payload };
+  delete body.can_assign;
+  delete body.eligible;
+  delete body.eligibility_state;
+  delete body.blocking_reasons;
+  delete body.warning_reasons;
+  delete body.informational_reasons;
+  delete body.override_rule_codes;
+  if (body.override !== true) {
+    delete body.override;
+    delete body.override_reason;
+  } else if (typeof body.override_reason === 'string') {
+    body.override_reason = body.override_reason.trim();
+  }
+  return api.post<TeachingAssignment>(endpoints.admin.teachingAssignmentUpdate(id), body);
 }
 
 export async function deleteTeachingAssignment(id: number) {

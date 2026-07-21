@@ -13493,6 +13493,71 @@
         "academicProfileScopeForbidden": "Academic profile is outside the current school scope.",
         "academicLinkManageForbidden": "You are not allowed to edit the academic profile.",
         "teacherArchivedImmutable": "Archived teacher academic profile cannot be edited."
+      },
+      "eligibleTeachers": {
+        "contextIncomplete": "Select year, class and subject to load eligible teachers.",
+        "loading": "Loading eligible teachers…",
+        "empty": "No teacher is available for assignment with the selected criteria.",
+        "emptyHint": "Review teacher academic profiles, assignment period, or availability.",
+        "summaryLine": "Eligible: {eligible} · With notes: {warning} · Override required: {override} · Not eligible: {ineligible}",
+        "weeklyLoad": "Weekly load",
+        "weeklyMax": "Weekly maximum",
+        "remainingCapacity": "Remaining capacity",
+        "limitUnspecified": "Unspecified",
+        "availabilityLabel": "Availability",
+        "availabilityNotChecked": "Availability not checked",
+        "timetableNotChecked": "Timetable conflict not checked",
+        "timetableConflict": "Timetable conflict",
+        "showIneligible": "Show ineligible teachers",
+        "ineligibleSection": "Ineligible teachers",
+        "openAcademicProfile": "Open teacher academic profile",
+        "overrideHint": "This teacher requires an administrative override before assignment.",
+        "overrideReason": "Override reason",
+        "overrideReasonRequired": "Override reason is required.",
+        "overrideAuditNote": "This override will be recorded on the assignment audit trail.",
+        "rechecked": "Teacher eligibility was re-evaluated; please review the selection.",
+        "states": {
+          "eligible": "Eligible",
+          "eligibleWithWarning": "Eligible with notes",
+          "overrideRequired": "Override required",
+          "notEligible": "Not eligible"
+        },
+        "availability": {
+          "available": "Available",
+          "unavailable": "Unavailable",
+          "partial": "Partial",
+          "not_evaluated": "Not checked"
+        },
+        "reasons": {
+          "subjectUnspecified": "Subject eligibility is unspecified",
+          "subjectOutside": "Subject is outside declared eligibility",
+          "cycleUnspecified": "Cycle eligibility is unspecified",
+          "cycleOutside": "Cycle is outside declared eligibility",
+          "levelUnspecified": "Level eligibility is unspecified",
+          "levelOutside": "Level is outside declared eligibility",
+          "languageUnspecified": "Teaching language eligibility is unspecified",
+          "languageOutside": "Teaching language is outside declared eligibility",
+          "weeklyLimitUnspecified": "Weekly limit is unspecified",
+          "weeklyLimitExceeded": "Weekly load limit exceeded",
+          "weeklyTargetExceeded": "Weekly load target exceeded",
+          "dailyLoadNotAvailable": "Daily load check is not available",
+          "mandatoryUnavailable": "Teacher is mandatorily unavailable",
+          "teacherUnavailable": "Teacher is unavailable",
+          "duplicateAssignment": "Duplicate assignment",
+          "overlappingMain": "Overlapping main assignment",
+          "timetableConflict": "Timetable conflict",
+          "inactiveTeacher": "Teacher is inactive",
+          "archivedTeacher": "Teacher is archived",
+          "crossSchool": "Teacher is outside the current school",
+          "availabilityNotEvaluated": "Availability was not evaluated"
+        },
+        "errors": {
+          "overrideRequired": "This assignment requires an administrative override and reason.",
+          "overrideForbidden": "You cannot override assignment eligibility.",
+          "overrideReasonRequired": "Override reason is required.",
+          "hardBlock": "This hard block cannot be overridden.",
+          "candidateNotEligible": "The selected teacher is not eligible for this assignment."
+        }
       }
     }
   },

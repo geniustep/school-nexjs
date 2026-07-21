@@ -94,18 +94,26 @@ vi.mock('@/features/academic-context/hooks/use-academic-context-options', async 
   };
 });
 
-vi.mock('@/features/admin/academic-setup/components/teacher-suggestion-list', () => ({
-  TeacherSuggestionList: ({
-    onConfirm,
-    selectedTeacherId,
+vi.mock('@/features/admin/teachers/components/eligible-teachers-picker', () => ({
+  EligibleTeachersPicker: ({
+    onChange,
   }: {
-    onConfirm?: () => void;
-    selectedTeacherId: number | null;
+    onChange: (next: { teacherId: number | null; override: boolean; overrideReason: string }) => void;
   }) => (
-    <button type="button" onClick={onConfirm} disabled={!selectedTeacherId}>
-      confirm-assignment
+    <button
+      type="button"
+      onClick={() => onChange({ teacherId: 3, override: false, overrideReason: '' })}
+    >
+      pick-eligible-teacher
     </button>
   ),
+  eligibleTeachersSelectionValid: (input: {
+    teacherId: number | null;
+    override: boolean;
+    overrideReason: string;
+  }) =>
+    input.teacherId != null &&
+    (!input.override || Boolean(input.overrideReason.trim())),
 }));
 
 vi.mock('@/features/admin/academic-setup/components/setup-drawer', () => ({
@@ -223,18 +231,6 @@ describe('Assignment form academic context', () => {
         } as never}
         canManage
         saving={false}
-        fetchSuggestions={async () => ({
-          class_id: 40,
-          subject_id: 11,
-          suggestions: [
-            {
-              teacher: { id: 3, name: 'Teacher' },
-              label: 'recommended',
-              eligible: true,
-              reasons: [],
-            },
-          ],
-        })}
         onCreate={onCreate}
         onUpdate={onUpdate}
         onDelete={vi.fn()}
@@ -251,11 +247,18 @@ describe('Assignment form academic context', () => {
     expect(screen.getByText('academicContext.hints.ambiguousOfferings')).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/res\.lang|endpoints\.admin\.subjects/);
 
-    await user.click(screen.getByText('confirm-assignment'));
+    const confirm = screen.getByRole('button', {
+      name: 'admin.academicSetup.confirmAssignment',
+    });
+    await user.click(confirm);
+    expect(onCreate).not.toHaveBeenCalled();
+
+    await user.click(screen.getByText('pick-eligible-teacher'));
+    await user.click(confirm);
     expect(onCreate).not.toHaveBeenCalled();
 
     await user.selectOptions(offering, '100');
-    await user.click(screen.getByText('confirm-assignment'));
+    await user.click(confirm);
     expect(onCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         class_id: 40,
@@ -277,11 +280,6 @@ describe('Assignment form academic context', () => {
         missingIssue={null}
         canManage
         saving={false}
-        fetchSuggestions={async () => ({
-          class_id: 40,
-          subject_id: 11,
-          suggestions: [],
-        })}
         onCreate={vi.fn()}
         onUpdate={onUpdate}
         onDelete={vi.fn()}

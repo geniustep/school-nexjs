@@ -24,6 +24,16 @@ const ASSIGNMENT_ERRORS: Record<string, string> = {
   class_subject_mismatch: 'admin.academicSetup.errors.classSubjectMismatch',
   teacher_workload_exceeded: 'admin.academicSetup.errors.teacherWorkloadExceeded',
   teacher_target_hours_exceeded: 'admin.academicSetup.errors.teacherTargetHoursExceeded',
+  teacher_assignment_override_required:
+    'admin.teacherDomain.eligibleTeachers.errors.overrideRequired',
+  teacher_assignment_override_forbidden:
+    'admin.teacherDomain.eligibleTeachers.errors.overrideForbidden',
+  teacher_assignment_override_reason_required:
+    'admin.teacherDomain.eligibleTeachers.errors.overrideReasonRequired',
+  teacher_assignment_hard_block:
+    'admin.teacherDomain.eligibleTeachers.errors.hardBlock',
+  teacher_assignment_candidate_not_eligible:
+    'admin.teacherDomain.eligibleTeachers.errors.candidateNotEligible',
 };
 
 const STAFF_ERRORS: Record<string, string> = {

@@ -540,3 +540,127 @@ export type AssignmentEndPayload = {
 export type AssignmentCancelPayload = {
   reason: string;
 };
+
+/** Teaching Assignment eligible-teachers contract (Odoo 238 / 1C). */
+export type TeachingAssignmentCandidateState =
+  | 'eligible'
+  | 'eligible_with_warning'
+  | 'override_required'
+  | 'not_eligible';
+
+export type TeachingAssignmentCandidateReasonSeverity =
+  | 'blocking'
+  | 'warning'
+  | 'informational'
+  | (string & {});
+
+export type TeachingAssignmentCandidateReason = {
+  code: string;
+  message?: string | null;
+  severity?: TeachingAssignmentCandidateReasonSeverity | null;
+  details?: Record<string, unknown> | null;
+};
+
+export type TeachingAssignmentEligibilityDimension = {
+  mode?: EligibilityDimensionMode | string | null;
+  status?: EligibilityDimensionMode | string | null;
+  matched?: boolean | null;
+  [key: string]: unknown;
+};
+
+export type TeachingAssignmentCandidateAllowedActions = {
+  can_assign?: boolean;
+  requires_override?: boolean;
+  can_override?: boolean;
+};
+
+export type TeachingAssignmentCandidate = {
+  teacher_id: number;
+  display_name?: string | null;
+  teacher_type?: string | null;
+  eligibility_state: TeachingAssignmentCandidateState;
+  eligible: boolean;
+  can_assign: boolean;
+  requires_override: boolean;
+  blocking_reasons: TeachingAssignmentCandidateReason[];
+  warning_reasons: TeachingAssignmentCandidateReason[];
+  override_reasons?: TeachingAssignmentCandidateReason[];
+  informational_reasons: TeachingAssignmentCandidateReason[];
+  eligibility_dimensions?: {
+    subject?: TeachingAssignmentEligibilityDimension;
+    cycle?: TeachingAssignmentEligibilityDimension;
+    level?: TeachingAssignmentEligibilityDimension;
+    teaching_language?: TeachingAssignmentEligibilityDimension;
+  };
+  current_weekly_load?: number | null;
+  maximum_weekly_load?: number | null;
+  target_weekly_load?: number | null;
+  remaining_weekly_capacity?: number | null;
+  availability_state?: string | null;
+  has_assignment_conflict?: boolean;
+  /** null = timetable check not executed */
+  has_timetable_conflict?: boolean | null;
+  role?: string | null;
+  allowed_actions?: TeachingAssignmentCandidateAllowedActions;
+};
+
+export type TeachingAssignmentCandidatesSummary = {
+  total_candidates: number;
+  eligible_count: number;
+  eligible_with_warning_count: number;
+  override_required_count: number;
+  not_eligible_count: number;
+};
+
+export type TeachingAssignmentCandidatesAllowedActions = {
+  can_view_candidates?: boolean;
+  can_create_assignment?: boolean;
+  can_override_assignment_eligibility?: boolean;
+  can_view_ineligible_candidates?: boolean;
+};
+
+export type TeachingAssignmentCandidatesQuery = {
+  class_id: number;
+  subject_id: number;
+  academic_year_id?: number;
+  teaching_offering_id?: number;
+  role?: string;
+  effective_from?: string;
+  effective_to?: string;
+  weekday?: string | number;
+  time_from?: string;
+  time_to?: string;
+  weekly_hours?: number;
+  include_ineligible?: boolean;
+  page?: number;
+  page_size?: number;
+};
+
+export type TeachingAssignmentCandidatesResponse = {
+  context?: Record<string, unknown>;
+  summary: TeachingAssignmentCandidatesSummary;
+  candidates: TeachingAssignmentCandidate[];
+  filters_applied?: Record<string, unknown>;
+  allowed_actions?: TeachingAssignmentCandidatesAllowedActions;
+  warnings?: ApiWarning[];
+  pagination?: PaginationMetadata;
+  contract?: ApiContractMetadata;
+};
+
+export type TeachingAssignmentOverridePayload = {
+  override?: true;
+  override_reason?: string;
+};
+
+export type TeachingAssignmentWritePayload = {
+  class_id?: number;
+  subject_id?: number;
+  teacher_id: number;
+  weekly_hours?: number;
+  role?: string;
+  notes?: string;
+  teaching_offering_id?: number | null;
+  academic_year_id?: number;
+  effective_from?: string;
+  effective_to?: string;
+} & TeachingAssignmentOverridePayload;

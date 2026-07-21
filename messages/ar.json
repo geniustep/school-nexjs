@@ -13576,6 +13576,71 @@
         "academicProfileScopeForbidden": "الملف الأكاديمي خارج نطاق المدرسة الحالية.",
         "academicLinkManageForbidden": "ليست لديك صلاحية تعديل الملف الأكاديمي.",
         "teacherArchivedImmutable": "لا يمكن تعديل الملف الأكاديمي لأستاذ مؤرشف."
+      },
+      "eligibleTeachers": {
+        "contextIncomplete": "اختر السنة والقسم والمادة لعرض الأساتذة المؤهلين.",
+        "loading": "جاري تحميل الأساتذة المؤهلين…",
+        "empty": "لا يوجد أستاذ متاح للإسناد وفق المعطيات المحددة.",
+        "emptyHint": "راجع الملف الأكاديمي للأساتذة أو فترة الإسناد أو التوفر.",
+        "summaryLine": "مؤهلون: {eligible} · مع ملاحظات: {warning} · يحتاجون استثناءً: {override} · غير مؤهلين: {ineligible}",
+        "weeklyLoad": "الحمل الأسبوعي",
+        "weeklyMax": "الحد الأسبوعي",
+        "remainingCapacity": "الطاقة المتبقية",
+        "limitUnspecified": "غير محدد",
+        "availabilityLabel": "التوفر",
+        "availabilityNotChecked": "لم يُفحص التوفر",
+        "timetableNotChecked": "لم يُفحص تعارض الزمن",
+        "timetableConflict": "تعارض في استعمال الزمن",
+        "showIneligible": "عرض الأساتذة غير المؤهلين",
+        "ineligibleSection": "أساتذة غير مؤهلين",
+        "openAcademicProfile": "فتح الملف الأكاديمي للأستاذ",
+        "overrideHint": "هذا الأستاذ يحتاج استثناءً إداريًا قبل الإسناد.",
+        "overrideReason": "سبب الاستثناء",
+        "overrideReasonRequired": "سبب الاستثناء إلزامي.",
+        "overrideAuditNote": "سيُسجل هذا الاستثناء في سجل الإسناد.",
+        "rechecked": "أُعيد تقييم أهلية الأستاذ؛ يرجى مراجعة الاختيار.",
+        "states": {
+          "eligible": "مؤهل",
+          "eligibleWithWarning": "مؤهل مع ملاحظات",
+          "overrideRequired": "يحتاج استثناءً إداريًا",
+          "notEligible": "غير مؤهل"
+        },
+        "availability": {
+          "available": "متاح",
+          "unavailable": "غير متاح",
+          "partial": "جزئي",
+          "not_evaluated": "لم يُفحص"
+        },
+        "reasons": {
+          "subjectUnspecified": "أهلية المادة غير محددة",
+          "subjectOutside": "المادة خارج الأهلية المصرح بها",
+          "cycleUnspecified": "أهلية السلك غير محددة",
+          "cycleOutside": "السلك خارج الأهلية المصرح بها",
+          "levelUnspecified": "أهلية المستوى غير محددة",
+          "levelOutside": "المستوى خارج الأهلية المصرح بها",
+          "languageUnspecified": "أهلية لغة التدريس غير محددة",
+          "languageOutside": "لغة التدريس خارج الأهلية المصرح بها",
+          "weeklyLimitUnspecified": "لم يُحدد الحد الأسبوعي",
+          "weeklyLimitExceeded": "تم تجاوز الحد الأسبوعي",
+          "weeklyTargetExceeded": "تم تجاوز الحمل الأسبوعي المستهدف",
+          "dailyLoadNotAvailable": "فحص الحمل اليومي غير متاح",
+          "mandatoryUnavailable": "الأستاذ غير متاح إلزاميًا",
+          "teacherUnavailable": "الأستاذ غير متاح",
+          "duplicateAssignment": "إسناد مكرر",
+          "overlappingMain": "تعارض مع إسناد رئيسي آخر",
+          "timetableConflict": "تعارض في استعمال الزمن",
+          "inactiveTeacher": "الأستاذ غير فعّال",
+          "archivedTeacher": "الأستاذ مؤرشف",
+          "crossSchool": "الأستاذ خارج المدرسة الحالية",
+          "availabilityNotEvaluated": "لم يُفحص التوفر"
+        },
+        "errors": {
+          "overrideRequired": "يتطلب هذا الإسناد استثناءً إداريًا وسببًا.",
+          "overrideForbidden": "ليست لديك صلاحية استثناء أهلية الإسناد.",
+          "overrideReasonRequired": "سبب الاستثناء إلزامي.",
+          "hardBlock": "لا يمكن تجاوز هذا المنع الإداري.",
+          "candidateNotEligible": "الأستاذ المختار غير مؤهل لهذا الإسناد."
+        }
       }
     }
   },

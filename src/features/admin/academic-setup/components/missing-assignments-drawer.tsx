@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
-import type { SetupReadinessIssue, TeachingAssignmentSuggestionsResponse } from '@/types/academic-setup';
+import type { SetupReadinessIssue } from '@/types/academic-setup';
+import { fetchTeachingAssignmentEligibleTeachers } from '@/features/admin/teachers/api/teaching-assignment-eligible-teachers-api';
+import type { AssignmentFormCreatePayload } from './assignment-form-drawer';
 import {
   readinessIssueDescription,
   readinessIssueTitle,
@@ -14,7 +16,6 @@ export function MissingAssignmentsDrawer({
   onClose,
   issues,
   canManage,
-  fetchSuggestions,
   onPickIssue,
   onConfirmCreate,
 }: {
@@ -22,20 +23,13 @@ export function MissingAssignmentsDrawer({
   onClose: () => void;
   issues: SetupReadinessIssue[];
   canManage: boolean;
-  fetchSuggestions: (classId: number, subjectId: number) => Promise<TeachingAssignmentSuggestionsResponse | null>;
   onPickIssue: (issue: SetupReadinessIssue) => void;
-  onConfirmCreate: (payload: {
-    class_id: number;
-    subject_id: number;
-    teacher_id: number;
-    weekly_hours?: number;
-    role?: string;
-  }) => void;
+  onConfirmCreate: (payload: AssignmentFormCreatePayload) => void;
 }) {
   const t = useT();
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  async function adoptTopSuggestion(issue: SetupReadinessIssue) {
+  async function adoptTopEligible(issue: SetupReadinessIssue) {
     const classId = Number(issue.target.query?.class_id);
     const subjectId = Number(issue.target.query?.subject_id);
     if (!classId || !subjectId) {
@@ -43,15 +37,28 @@ export function MissingAssignmentsDrawer({
       return;
     }
     setBusyId(issue.id);
-    const res = await fetchSuggestions(classId, subjectId);
-    const top = res?.suggestions?.find((s) => s.eligible && s.label === 'recommended')
-      ?? res?.suggestions?.find((s) => s.eligible);
+    const res = await fetchTeachingAssignmentEligibleTeachers({
+      class_id: classId,
+      subject_id: subjectId,
+      role: 'main',
+      weekly_hours: 2,
+    });
     setBusyId(null);
+    if (!res.success) {
+      onPickIssue(issue);
+      return;
+    }
+    const top = res.data.candidates.find(
+      (c) =>
+        c.eligibility_state === 'eligible' &&
+        c.can_assign === true &&
+        c.requires_override !== true,
+    );
     if (top) {
       onConfirmCreate({
         class_id: classId,
         subject_id: subjectId,
-        teacher_id: top.teacher.id,
+        teacher_id: top.teacher_id,
         weekly_hours: 2,
         role: 'main',
       });
@@ -67,30 +74,34 @@ export function MissingAssignmentsDrawer({
         {issues.map((issue) => {
           const description = readinessIssueDescription(issue, t);
           return (
-          <div key={issue.id} className="academic-setup-class-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-            <strong>{readinessIssueTitle(issue, t)}</strong>
-            {description && <span className="tiny muted">{description}</span>}
-            <div className="row mt-2" style={{ gap: 8 }}>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                disabled={!canManage || busyId === issue.id}
-                onClick={() => onPickIssue(issue)}
-              >
-                {t('admin.academicSetup.chooseTeacher')}
-              </button>
-              {canManage && (
+            <div
+              key={issue.id}
+              className="academic-setup-class-row"
+              style={{ flexDirection: 'column', alignItems: 'stretch' }}
+            >
+              <strong>{readinessIssueTitle(issue, t)}</strong>
+              {description && <span className="tiny muted">{description}</span>}
+              <div className="row mt-2" style={{ gap: 8 }}>
                 <button
                   type="button"
-                  className="btn btn--primary btn--sm"
-                  disabled={busyId === issue.id}
-                  onClick={() => adoptTopSuggestion(issue)}
+                  className="btn btn--ghost btn--sm"
+                  disabled={!canManage || busyId === issue.id}
+                  onClick={() => onPickIssue(issue)}
                 >
-                  {t('admin.academicSetup.adoptSuggestion')}
+                  {t('admin.academicSetup.chooseTeacher')}
                 </button>
-              )}
+                {canManage && (
+                  <button
+                    type="button"
+                    className="btn btn--primary btn--sm"
+                    disabled={busyId === issue.id}
+                    onClick={() => adoptTopEligible(issue)}
+                  >
+                    {t('admin.academicSetup.adoptSuggestion')}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
           );
         })}
       </div>

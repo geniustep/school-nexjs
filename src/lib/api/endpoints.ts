@@ -167,6 +167,7 @@ export const endpoints = {
     teachingAssignmentUpdate: (id: number | string) =>
       `/admin/teaching-assignments/${id}/update`,
     teachingAssignmentSuggestions: '/admin/teaching-assignments/suggestions',
+    teachingAssignmentEligibleTeachers: '/admin/teaching-assignments/eligible-teachers',
     /** Teaching Assignment lifecycle — SSC-API-2026.07.001 */
     teachingAssignmentActivate: (id: number | string) =>
       `/admin/teaching-assignments/${id}/activate`,
