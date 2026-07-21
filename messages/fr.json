@@ -3610,7 +3610,10 @@
         "level_without_subjects": "Niveaux sans matières",
         "level_supports_tracks_but_has_none": "Niveaux à filières sans filière active",
         "subject_without_eligible_teacher": "Matières sans enseignant éligible",
-        "subject_without_level_or_track": "Matières non liées à un niveau ou une filière"
+        "subject_without_level_or_track": "Matières non liées à un niveau ou une filière",
+        "teacher_without_subjects": "Enseignants sans matières",
+        "teaching_offering_missing": "Offres d'enseignement manquantes",
+        "subject_plan_missing_weekly_volume": "Plans de matières sans volume hebdomadaire"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -3708,6 +3711,14 @@
         "subject_without_level_or_track": {
           "title": "{subject} non liée à un niveau ou une filière",
           "description": "Cette matière n'est liée à aucun niveau ni filière."
+        },
+        "teaching_offering_missing": {
+          "title": "Offre d'enseignement manquante",
+          "description": "Aucune offre d'enseignement approuvée n'existe pour cette affectation."
+        },
+        "subject_plan_missing_weekly_volume": {
+          "title": "Plan de matière sans volume hebdomadaire",
+          "description": "Le plan de matière n'inclut pas le volume hebdomadaire requis."
         }
       },
       "staffDomainUnavailable": "Non disponible dans vos permissions",

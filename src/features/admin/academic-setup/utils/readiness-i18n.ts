@@ -22,41 +22,63 @@ function readinessIssueParams(issue: SetupReadinessIssue): Record<string, string
   };
 }
 
-function translateOrFallback(
-  t: TranslateFn,
-  key: string,
-  params: Record<string, string | number> | undefined,
-  fallback: string | undefined,
-): string {
-  const bare = t(key);
-  if (bare === key) return fallback ?? key;
-  return params ? t(key, params) : bare;
+function codeVariants(code: string): string[] {
+  const raw = String(code ?? '').trim();
+  if (!raw) return [];
+  const lower = raw.toLowerCase();
+  const upper = raw.toUpperCase();
+  return [...new Set([raw, lower, upper])];
+}
+
+function humanizeIssueCode(code: string): string {
+  return String(code ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Shared label for issue/quick-action codes — never leave raw snake_case when a translation exists. */
+export function setupIssueCodeLabel(code: string, t: TranslateFn): string {
+  for (const variant of codeVariants(code)) {
+    const quickKey = `admin.academicSetup.quickActionCodes.${variant}`;
+    const quick = t(quickKey);
+    if (quick !== quickKey) return quick;
+  }
+
+  for (const variant of codeVariants(code)) {
+    const titleKey = `admin.academicSetup.readinessIssues.${variant}.title`;
+    const title = t(titleKey);
+    if (title !== titleKey && !title.includes('{')) return title;
+  }
+
+  const fallback = humanizeIssueCode(code);
+  return fallback || code;
 }
 
 export function readinessIssueTitle(issue: SetupReadinessIssue, t: TranslateFn): string {
   const params = readinessIssueParams(issue);
-  return translateOrFallback(
-    t,
-    `admin.academicSetup.readinessIssues.${issue.code}.title`,
-    params,
-    issue.title,
-  );
+  for (const variant of codeVariants(issue.code)) {
+    const key = `admin.academicSetup.readinessIssues.${variant}.title`;
+    const bare = t(key);
+    if (bare !== key) return t(key, params);
+  }
+  return issue.title || setupIssueCodeLabel(issue.code, t);
 }
 
 export function readinessIssueDescription(issue: SetupReadinessIssue, t: TranslateFn): string | undefined {
   if (!issue.description) return undefined;
   const params = readinessIssueParams(issue);
-  return translateOrFallback(
-    t,
-    `admin.academicSetup.readinessIssues.${issue.code}.description`,
-    params,
-    issue.description,
-  );
+  for (const variant of codeVariants(issue.code)) {
+    const key = `admin.academicSetup.readinessIssues.${variant}.description`;
+    const bare = t(key);
+    if (bare !== key) return t(key, params);
+  }
+  return issue.description;
 }
 
 export function quickActionLabel(action: SetupQuickAction, t: TranslateFn): string {
-  const key = `admin.academicSetup.quickActionCodes.${action.code}`;
-  const label = t(key);
-  const text = label !== key ? label : action.code;
+  const text = setupIssueCodeLabel(action.code, t);
   return `${text} (${action.count})`;
 }

@@ -3743,7 +3743,10 @@
         "level_without_subjects": "مستويات بدون مواد",
         "level_supports_tracks_but_has_none": "مستويات بشعب دون مسارات مفعّلة",
         "subject_without_eligible_teacher": "مواد بدون أستاذ مؤهل",
-        "subject_without_level_or_track": "مواد غير مرتبطة بمستوى أو شعبة"
+        "subject_without_level_or_track": "مواد غير مرتبطة بمستوى أو شعبة",
+        "teacher_without_subjects": "أساتذة بدون مواد محددة",
+        "teaching_offering_missing": "عروض تدريس ناقصة",
+        "subject_plan_missing_weekly_volume": "خطط مواد بلا حجم أسبوعي"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -3841,6 +3844,14 @@
         "subject_without_level_or_track": {
           "title": "{subject} غير مرتبطة بمستوى أو شعبة",
           "description": "هذه المادة غير مرتبطة بمستوى دراسي أو شعبة."
+        },
+        "teaching_offering_missing": {
+          "title": "عرض تدريس ناقص",
+          "description": "لا يوجد عرض تدريس معتمد لهذا الإسناد."
+        },
+        "subject_plan_missing_weekly_volume": {
+          "title": "خطة مادة بلا حجم أسبوعي",
+          "description": "خطة المادة لا تتضمن الحجم الأسبوعي المطلوب."
         }
       },
       "staffDomainUnavailable": "غير متاح ضمن صلاحياتك",

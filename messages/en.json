@@ -3610,7 +3610,10 @@
         "level_without_subjects": "Levels without subjects",
         "level_supports_tracks_but_has_none": "Track levels without tracks",
         "subject_without_eligible_teacher": "Subjects without eligible teacher",
-        "subject_without_level_or_track": "Subjects not linked to level or track"
+        "subject_without_level_or_track": "Subjects not linked to level or track",
+        "teacher_without_subjects": "Teachers without subjects",
+        "teaching_offering_missing": "Missing teaching offerings",
+        "subject_plan_missing_weekly_volume": "Subject plans missing weekly volume"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -3708,6 +3711,14 @@
         "subject_without_level_or_track": {
           "title": "{subject} is not linked to a level or track",
           "description": "This subject is not linked to an educational level or track."
+        },
+        "teaching_offering_missing": {
+          "title": "Missing teaching offering",
+          "description": "No approved teaching offering exists for this assignment."
+        },
+        "subject_plan_missing_weekly_volume": {
+          "title": "Subject plan missing weekly volume",
+          "description": "The subject plan does not include the required weekly volume."
         }
       },
       "staffDomainUnavailable": "Not available within your permissions",

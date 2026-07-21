@@ -11,7 +11,7 @@ import {
 } from '@/components/icons/admin-icons';
 import { useT } from '@/features/i18n/locale-context';
 import type { SetupQuickAction } from '@/types/academic-setup';
-import { quickActionLabel } from '../utils/readiness-i18n';
+import { setupIssueCodeLabel } from '../utils/readiness-i18n';
 import { quickActionHref } from '../utils/section-routes';
 import { limitQuickActions } from '../utils/overview-present';
 
@@ -62,7 +62,9 @@ export function AcademicQuickActions({
               <QuickActionIcon code={action.code} />
             </span>
             <span className="academic-quick-actions__copy">
-              <span className="academic-quick-actions__label">{quickActionLabel(action, t)}</span>
+              <span className="academic-quick-actions__label">
+                {setupIssueCodeLabel(action.code, t)}
+              </span>
               {action.count > 0 && (
                 <span className="academic-quick-actions__count">{action.count}</span>
               )}

@@ -3610,7 +3610,10 @@
         "level_without_subjects": "Niveles sin materias",
         "level_supports_tracks_but_has_none": "Niveles con itinerarios sin itinerario activo",
         "subject_without_eligible_teacher": "Materias sin profesor elegible",
-        "subject_without_level_or_track": "Materias sin nivel o itinerario"
+        "subject_without_level_or_track": "Materias sin nivel o itinerario",
+        "teacher_without_subjects": "Profesores sin materias",
+        "teaching_offering_missing": "Ofertas docentes faltantes",
+        "subject_plan_missing_weekly_volume": "Planes de materia sin volumen semanal"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -3708,6 +3711,14 @@
         "subject_without_level_or_track": {
           "title": "{subject} no vinculada a nivel o itinerario",
           "description": "Esta materia no está vinculada a un nivel educativo ni a un itinerario."
+        },
+        "teaching_offering_missing": {
+          "title": "Oferta docente faltante",
+          "description": "No existe una oferta docente aprobada para esta asignación."
+        },
+        "subject_plan_missing_weekly_volume": {
+          "title": "Plan de materia sin volumen semanal",
+          "description": "El plan de la materia no incluye el volumen semanal requerido."
         }
       },
       "staffDomainUnavailable": "No disponible en sus permisos",

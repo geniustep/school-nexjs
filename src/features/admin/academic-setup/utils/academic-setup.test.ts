@@ -139,6 +139,17 @@ describe('readiness presentation', () => {
     expect(readinessStatusLabel('ready', t)).toBe('tr:admin.academicSetup.readinessStatus.ready');
   });
 
+  it('coerces leaked issue codes into readiness statuses', () => {
+    expect(readinessStatusLabel('assignment_missing', t, 15)).toBe(
+      'tr:admin.academicSetup.readinessStatus.blocked',
+    );
+    expect(readinessStatusLabel('assignment_missing', t)).toBe(
+      'tr:admin.academicSetup.readinessStatus.needs_attention',
+    );
+    expect(readinessTone('assignment_missing', 15)).toBe('red');
+    expect(readinessTone('SUBJECT_PLAN_MISSING_WEEKLY_VOLUME', 80)).toBe('amber');
+  });
+
   it('detects unavailable staff domain', () => {
     expect(isStaffDomainUnavailable({})).toBe(true);
     expect(isStaffDomainUnavailable({ staff: { score: 0, status: 'incomplete', summary: {} } })).toBe(false);
@@ -207,6 +218,18 @@ describe('readiness i18n', () => {
         tAr,
       ),
     ).toBe('مواد غير مرتبطة بمستوى أو شعبة (1)');
+    expect(
+      quickActionLabel(
+        { code: 'SUBJECT_PLAN_MISSING_WEEKLY_VOLUME', section: 'subjects', count: 1 },
+        tAr,
+      ),
+    ).toBe('خطط مواد بلا حجم أسبوعي (1)');
+    expect(
+      quickActionLabel(
+        { code: 'teaching_offering_missing', section: 'assignments', count: 15 },
+        tAr,
+      ),
+    ).toBe('عروض تدريس ناقصة (15)');
   });
 });
 

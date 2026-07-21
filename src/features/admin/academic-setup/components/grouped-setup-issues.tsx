@@ -5,6 +5,7 @@ import { useT } from '@/features/i18n/locale-context';
 import type { SetupReadinessIssue } from '@/types/academic-setup';
 import { IconAlertTriangle } from '@/components/icons/admin-icons';
 import { groupSetupIssues, issueGroupCtaKey } from '../utils/issue-grouping';
+import { setupIssueCodeLabel } from '../utils/readiness-i18n';
 
 export function GroupedSetupIssues({
   issues,
@@ -22,13 +23,12 @@ export function GroupedSetupIssues({
   return (
     <div className="academic-issues-groups">
       {groups.map((group) => {
-        const titleKey = `admin.academicSetup.quickActionCodes.${group.code}`;
-        const title = t(titleKey);
-        const label = title !== titleKey ? title : group.code;
+        const label = setupIssueCodeLabel(group.code, t);
         const samples = group.sampleNames.join('، ');
-        const more = group.count > group.sampleNames.length
-          ? t('admin.academicSetup.issueGroupAndMore')
-          : '';
+        const more =
+          group.count > group.sampleNames.length
+            ? t('admin.academicSetup.issueGroupAndMore')
+            : '';
 
         return (
           <Link
@@ -43,15 +43,16 @@ export function GroupedSetupIssues({
               <strong>
                 {t('admin.academicSetup.issueGroupCount', { count: group.count, label })}
               </strong>
-              {(samples || more) && (
+              {samples ? (
                 <span className="academic-issues-groups__samples">
                   {samples}
                   {more}
                 </span>
-              )}
+              ) : null}
             </span>
             <span className="academic-issues-groups__cta">
               {t(issueGroupCtaKey(group.code))}
+              <span aria-hidden> ‹</span>
             </span>
           </Link>
         );
