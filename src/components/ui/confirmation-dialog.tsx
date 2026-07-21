@@ -51,7 +51,7 @@ export function ConfirmationDialog({
     <div
       className="modal-backdrop"
       role="presentation"
-      onClick={closeOnBackdrop ? onClose : undefined}
+      onClick={closeOnBackdrop && !busy ? onClose : undefined}
     >
       <div
         className={`card modal-panel confirmation-dialog${panelSizeClass ? ` ${panelSizeClass}` : ''}`}
@@ -64,13 +64,20 @@ export function ConfirmationDialog({
         <div className="row confirmation-dialog__actions">
           <button
             type="button"
-            className={variant === 'danger' ? 'btn btn--sm' : 'btn btn--primary btn--sm'}
+            className={variant === 'danger' ? 'btn btn--danger btn--sm' : 'btn btn--primary btn--sm'}
             disabled={busy}
             onClick={() => void handleConfirm()}
           >
             {busy ? t('common.submitting') : (confirmLabel ?? t('common.confirm'))}
           </button>
-          <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={onClose}>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={busy}
+            onClick={() => {
+              if (!busy) onClose();
+            }}
+          >
             {cancelLabel ?? t('common.cancel')}
           </button>
         </div>

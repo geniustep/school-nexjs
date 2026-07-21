@@ -29,7 +29,9 @@ import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 import { AdmissionCloseDialog } from './admission-close-dialog';
+import { AdmissionSafeDeleteDialog } from './admission-safe-delete-dialog';
 import { AdmissionChangeStatusDialog } from './admission-change-status-dialog';
+import { admissionAllowsSafeDelete } from '../utils/admission-safe-delete';
 
 type DecisionAction =
   | 'accept'
@@ -61,6 +63,7 @@ export function AdmissionPrimaryActionPanel({
   const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [safeDeleteOpen, setSafeDeleteOpen] = useState(false);
   const [changeStatusOpen, setChangeStatusOpen] = useState(false);
   const [initialTarget, setInitialTarget] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -70,6 +73,7 @@ export function AdmissionPrimaryActionPanel({
   const registered = status === 'registered';
   const terminalReason = resolveAdmissionTerminalReasonPanel(detail);
   const primaryCode = resolveDetailPrimaryActionCode(detail);
+  const canSafeDelete = admissionAllowsSafeDelete(detail);
   const daily = filterDailyModernActions(detail.modern_allowed_actions);
   const canChangeStatus = canShowChangeStatusAction(detail);
   const statusTargets = normalizeAllowedStatusTargets(detail.allowed_status_targets);
@@ -82,6 +86,7 @@ export function AdmissionPrimaryActionPanel({
       action.code !== 'link_existing_student' &&
       action.code !== 'start_registration' &&
       action.code !== 'waitlist' &&
+      !(canSafeDelete && action.code === 'close') &&
       !(convertAllowed && action.code === 'convert_to_student') &&
       !(primaryCode === 'convert_to_student' && action.code === 'convert_to_student'),
   );
@@ -154,7 +159,8 @@ export function AdmissionPrimaryActionPanel({
       return;
     }
     if (primaryCode === 'close') {
-      setCloseOpen(true);
+      if (canSafeDelete) setSafeDeleteOpen(true);
+      else setCloseOpen(true);
       return;
     }
     if (primaryCode === 'change_status' || primaryCode === 'return_to_status') {
@@ -231,6 +237,14 @@ export function AdmissionPrimaryActionPanel({
         variant="delete"
         onClose={() => setCloseOpen(false)}
         onSuccess={() => onUpdated()}
+      />
+      <AdmissionSafeDeleteDialog
+        open={safeDeleteOpen}
+        admissionId={admissionId}
+        applicationLabel={detail.student_name || detail.reference || detail.name}
+        navigateOnSuccess
+        onClose={() => setSafeDeleteOpen(false)}
+        onConflictRefetch={(next) => onUpdated(next)}
       />
       <AdmissionChangeStatusDialog
         admissionId={Number(admissionId)}
@@ -322,17 +336,21 @@ export function AdmissionPrimaryActionPanel({
                   ? 'admission-convert-to-student-primary'
                   : primaryCode === 'change_status' || primaryCode === 'return_to_status'
                     ? 'admission-change-status-action'
-                    : primaryCode === 'close'
-                      ? 'admission-delete-action'
-                      : 'admission-primary-action-button'
+                    : primaryCode === 'close' && canSafeDelete
+                      ? 'admission-safe-delete-action'
+                      : primaryCode === 'close'
+                        ? 'admission-delete-action'
+                        : 'admission-primary-action-button'
               }
               onClick={openPrimary}
             >
               {primaryCode === 'return_to_status'
                 ? t(modernActionLabelKey('change_status'))
-                : primaryCode === 'close'
-                  ? t('admin.admissions.actions.delete')
-                  : t(modernActionLabelKey(primaryCode))}
+                : primaryCode === 'close' && canSafeDelete
+                  ? t('admin.admissions.safeDelete.action')
+                  : primaryCode === 'close'
+                    ? t('admin.admissions.actions.delete')
+                    : t(modernActionLabelKey(primaryCode))}
             </button>
           </div>
         ) : (
@@ -355,6 +373,18 @@ export function AdmissionPrimaryActionPanel({
 
         {changeStatusButton}
         {waitlistButton}
+
+        {canSafeDelete && primaryCode !== 'close' ? (
+          <button
+            type="button"
+            className="btn btn--danger btn--sm"
+            disabled={busy}
+            data-testid="admission-safe-delete-action"
+            onClick={() => setSafeDeleteOpen(true)}
+          >
+            {t('admin.admissions.safeDelete.action')}
+          </button>
+        ) : null}
 
         {secondary.length > 0 ? (
           <div className="admission-primary-action-panel__more">

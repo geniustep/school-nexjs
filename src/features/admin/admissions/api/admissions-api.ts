@@ -4,6 +4,7 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ApiResponse, ListParams } from '@/types/api';
 import type {
+  AdmissionDeleteResult,
   AdmissionDetail,
   AdmissionListItem,
   AdmissionPrefill,
@@ -124,6 +125,21 @@ export async function executeAdmissionAction(
       admissionId: id,
     });
     return { ...res, data: normalizeAdmissionDetail(res.data) };
+  }
+  return res;
+}
+
+/** Permanent DELETE — Odoo re-checks can_delete; never optimistic. */
+export async function deleteAdmission(
+  id: number | string,
+  query?: ListParams,
+): Promise<ApiResponse<AdmissionDeleteResult>> {
+  const res = await api.delete<AdmissionDeleteResult>(endpoints.admin.admission(id), query);
+  if (res.success) {
+    notifyAdmissionsQueriesInvalidated({
+      reason: 'delete',
+      admissionId: id,
+    });
   }
   return res;
 }

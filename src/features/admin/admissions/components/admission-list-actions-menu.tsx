@@ -31,7 +31,9 @@ import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 import { AdmissionCloseDialog } from './admission-close-dialog';
+import { AdmissionSafeDeleteDialog } from './admission-safe-delete-dialog';
 import { AdmissionChangeStatusDialog } from './admission-change-status-dialog';
+import { admissionAllowsSafeDelete } from '../utils/admission-safe-delete';
 
 type MenuCoords = { top: number; left: number };
 type DecisionAction =
@@ -75,6 +77,8 @@ export function AdmissionListActionsMenu({
   listItem?: {
     application_status?: string | null;
     student_name?: string | null;
+    reference?: string | null;
+    name?: string | null;
     primary_next_action?: AdmissionDetail['primary_next_action'];
     modern_allowed_actions?: AdmissionDetail['modern_allowed_actions'];
     exception_actions?: AdmissionDetail['exception_actions'];
@@ -83,6 +87,7 @@ export function AdmissionListActionsMenu({
     navigation?: AdmissionDetail['navigation'];
     student_id?: number | false | null;
     last_action?: AdmissionDetail['last_action'];
+    can_delete?: boolean | null;
   } | null;
   onUpdated?: (detail?: AdmissionDetail) => void;
   className?: string;
@@ -104,6 +109,7 @@ export function AdmissionListActionsMenu({
   const [decisionAction, setDecisionAction] = useState<DecisionAction | null>(null);
   const [reopenOpen, setReopenOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [safeDeleteOpen, setSafeDeleteOpen] = useState(false);
   const [changeStatusOpen, setChangeStatusOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -231,6 +237,8 @@ export function AdmissionListActionsMenu({
     (shouldShowConvertToStudentAction(seed ?? {}) || primaryCode === 'convert_to_student');
   const canReopen = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'reopen');
   const canClose = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'close');
+  // Prefer Odoo-confirmed detail; list/kanban projection may omit can_delete (fail-closed).
+  const canSafeDelete = admissionAllowsSafeDelete(detail) || admissionAllowsSafeDelete(listItem);
 
   const showPrimaryOnly =
     primaryCode &&
@@ -371,7 +379,21 @@ export function AdmissionListActionsMenu({
             </button>
           ) : null}
 
-          {canClose ? (
+          {canSafeDelete ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="admissions-row-actions__item admissions-row-actions__item--danger"
+              disabled={busy}
+              data-testid="admission-actions-safe-delete"
+              onClick={() => {
+                setOpen(false);
+                window.setTimeout(() => setSafeDeleteOpen(true), 0);
+              }}
+            >
+              {t('admin.admissions.safeDelete.action')}
+            </button>
+          ) : canClose ? (
             <button
               type="button"
               role="menuitem"
@@ -507,6 +529,31 @@ export function AdmissionListActionsMenu({
         onSuccess={() => {
           afterSuccess();
           void loadDetail();
+        }}
+      />
+      <AdmissionSafeDeleteDialog
+        open={safeDeleteOpen}
+        admissionId={admissionId}
+        applicationLabel={
+          detail?.student_name ||
+          listItem?.student_name ||
+          detail?.reference ||
+          listItem?.reference ||
+          detail?.name ||
+          listItem?.name ||
+          null
+        }
+        onClose={() => {
+          setSafeDeleteOpen(false);
+          triggerRef.current?.focus();
+        }}
+        onSuccess={() => {
+          afterSuccess();
+        }}
+        onConflictRefetch={(next) => {
+          if (next) setDetail(next);
+          else void loadDetail();
+          onUpdated?.(next);
         }}
       />
       <AdmissionChangeStatusDialog

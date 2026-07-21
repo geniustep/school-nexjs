@@ -35,6 +35,10 @@ import {
   normalizeModernAllowedActions,
 } from './admission-modern-actions';
 import {
+  normalizeAdmissionCanDelete,
+  normalizeAdmissionDeleteBlockReason,
+} from './admission-safe-delete';
+import {
   normalizeAdmissionRequestedServices,
   normalizeHasRequestedServices,
   normalizeRequestedServiceIds,
@@ -90,6 +94,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   exception_actions: ReturnType<typeof normalizeModernAllowedActions>;
   allowed_return_targets: string[];
   allowed_status_targets: string[];
+  can_delete: boolean;
+  delete_block_reason: string | false;
 } {
   const decision = normalizeAdmissionDecision(raw);
   const status_warnings = normalizeStatusWarnings(raw.status_warnings);
@@ -118,6 +124,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   const exception_actions = normalizeModernAllowedActions(raw.exception_actions);
   const allowed_return_targets = normalizeAllowedReturnTargets(raw.allowed_return_targets);
   const allowed_status_targets = normalizeAllowedStatusTargets(raw.allowed_status_targets);
+  const can_delete = normalizeAdmissionCanDelete(raw.can_delete);
+  const delete_block_reason = normalizeAdmissionDeleteBlockReason(raw.delete_block_reason);
 
   const workflowSource = asAdmissionWorkflowFields({
     ...raw,
@@ -170,6 +178,8 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
     exception_actions,
     allowed_return_targets,
     allowed_status_targets,
+    can_delete,
+    delete_block_reason,
     navigation: raw.navigation && typeof raw.navigation === 'object' ? raw.navigation : null,
     warnings: Array.isArray(raw.warnings) ? raw.warnings : [],
     blocking_reasons: Array.isArray(raw.blocking_reasons) ? raw.blocking_reasons : [],
@@ -246,6 +256,8 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
     navigation: normalized.navigation as AdmissionListItem['navigation'],
     warnings: normalized.warnings as AdmissionListItem['warnings'],
     blocking_reasons: normalized.blocking_reasons as AdmissionListItem['blocking_reasons'],
+    can_delete: normalized.can_delete,
+    delete_block_reason: normalized.delete_block_reason,
     requested_services: requested.requested_services,
     requested_service_ids: requested.requested_service_ids,
     has_requested_services: requested.has_requested_services,
@@ -289,6 +301,8 @@ export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDeta
     navigation: normalized.navigation as AdmissionDetail['navigation'],
     warnings: normalized.warnings as AdmissionDetail['warnings'],
     blocking_reasons: normalized.blocking_reasons as AdmissionDetail['blocking_reasons'],
+    can_delete: normalized.can_delete,
+    delete_block_reason: normalized.delete_block_reason,
     requested_services: requested.requested_services,
     requested_service_ids: requested.requested_service_ids,
     has_requested_services: requested.has_requested_services,

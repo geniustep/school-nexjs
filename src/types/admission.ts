@@ -410,6 +410,18 @@ export interface AdmissionListItem {
   /** Optional terminal reason fields — present on rejected/closed rows (incl. kanban projection). */
   rejection?: AdmissionRejection | null;
   lost_reason?: string | null;
+  /**
+   * Odoo authority for permanent DELETE — fail-closed when absent.
+   * Do not infer from application_status / student_id / admission.manage.
+   */
+  can_delete?: boolean;
+  delete_block_reason?: string | false | null;
+}
+
+/** Successful DELETE /admin/admissions/<id> envelope data. */
+export interface AdmissionDeleteResult {
+  deleted: true;
+  id: number;
 }
 
 /**
@@ -629,6 +641,12 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   navigation?: AdmissionNavigation | null;
   warnings?: Array<string | Record<string, unknown>> | null;
   blocking_reasons?: AdmissionBlockingReason[] | null;
+  /**
+   * Odoo authority for permanent DELETE — fail-closed when absent.
+   * Do not infer from application_status / student_id / admission.manage.
+   */
+  can_delete?: boolean;
+  delete_block_reason?: string | false | null;
   requested_services?: AdmissionRequestedService[] | null;
   requested_service_ids?: number[] | null;
   has_requested_services?: boolean | null;
