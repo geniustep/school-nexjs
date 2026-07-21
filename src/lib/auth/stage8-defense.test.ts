@@ -49,7 +49,15 @@ describe('F-NX-05/11/13 server permission helpers', () => {
       effective_permissions: ['view_timetable', 'view_exams'],
     });
     const links = adminAcademicHubLinksForUser(user);
-    expect(links.map((l) => l.permission).sort()).toEqual(['view_exams', 'view_timetable']);
+    // timetable + academic-calendars both key off view_timetable
+    expect(links.map((l) => l.href).sort()).toEqual([
+      '/admin/academic-calendars',
+      '/admin/exams',
+      '/admin/timetable',
+    ]);
+    expect(new Set(links.map((l) => l.permission))).toEqual(
+      new Set(['view_exams', 'view_timetable']),
+    );
   });
 
   it('school_access_suspended only when Backend flag is true', () => {
