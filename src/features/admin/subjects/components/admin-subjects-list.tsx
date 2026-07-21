@@ -402,6 +402,7 @@ export function AdminSubjectsList({
         subject={manageSubject}
         levels={levels}
         onClose={() => setManageSubject(null)}
+        onSaved={() => onImportDone?.()}
       />
     </div>
   );

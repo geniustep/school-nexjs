@@ -1,8 +1,10 @@
 import type { SubjectOptionsPayload } from '@/types/academic-subjects';
 import type { Level, Subject } from '@/types/class';
 import {
-  SUBJECT_LEVEL_ENABLEMENT_WRITE_AVAILABLE,
+  isSubjectLevelEnablementWriteAvailable,
   type SubjectEnabledLevelSummary,
+  type SubjectEnablementItem,
+  type SubjectEnablementMatrixPayload,
   type SubjectLevelEnablementMatrix,
   type SubjectLevelEnablementRow,
   type SubjectEnablementSource,
@@ -19,10 +21,87 @@ function warnDuplicate(id: number): void {
   }
 }
 
+function writeAvailableFor(canManage: boolean): boolean {
+  return isSubjectLevelEnablementWriteAvailable() && canManage;
+}
+
+/** Build UI matrix from Odoo 236 GET /admin/subjects/enablement payload. */
+export function buildMatrixFromEnablementPayload(
+  payload: SubjectEnablementMatrixPayload,
+  levelId: number,
+): SubjectLevelEnablementMatrix {
+  const level =
+    payload.levels.find((l) => l.id === levelId) ??
+    ({
+      id: levelId,
+      name: String(levelId),
+      code: '',
+    } as SubjectEnablementMatrixPayload['levels'][number]);
+
+  const itemsForLevel = payload.items.filter((item) => item.level?.id === levelId);
+  const enabledByOpId = new Map<number, SubjectEnablementItem>();
+  for (const item of itemsForLevel) {
+    const opId = Number(item.operational_subject_id);
+    if (!Number.isInteger(opId) || opId <= 0) continue;
+    if (enabledByOpId.has(opId)) {
+      warnDuplicate(opId);
+      continue;
+    }
+    enabledByOpId.set(opId, item);
+  }
+
+  const byId = new Map<number, SubjectLevelEnablementRow>();
+  for (const subject of payload.operational_subjects) {
+    if (subject.active === false) continue;
+    if (!Number.isInteger(subject.id) || subject.id <= 0) continue;
+    if (byId.has(subject.id)) {
+      warnDuplicate(subject.id);
+      continue;
+    }
+    const item = enabledByOpId.get(subject.id);
+    const enabled = item?.enabled === true && item?.is_active !== false;
+    byId.set(subject.id, {
+      operationalSubjectId: subject.id,
+      name: (subject.name || item?.subject?.name || subject.code || `#${subject.id}`).trim(),
+      code: (subject.code || item?.subject?.code || '').trim(),
+      status: enabled ? 'enabled' : 'not_enabled',
+      source: 'level',
+      refSubjectId: subject.ref_subject_id ?? item?.subject?.ref_subject_id ?? null,
+      active: true,
+      enabledRecordId: item?.enabled_record_id ?? null,
+      state: item?.state ?? (enabled ? 'enabled' : 'not_enabled'),
+      consumerSummary: item?.consumer_summary ?? null,
+      allowedActions: item?.allowed_actions ?? null,
+    });
+  }
+
+  const rows = [...byId.values()].sort(
+    (a, b) => a.name.localeCompare(b.name, 'ar') || a.code.localeCompare(b.code),
+  );
+  const enabled = rows.filter((r) => r.status === 'enabled').length;
+  const canManage = payload.permissions?.can_manage === true;
+  const canView = payload.permissions?.can_view === true || canManage;
+
+  return {
+    levelId: level.id,
+    levelName: level.name,
+    levelCode: level.code ?? '',
+    academicYearId: payload.academic_year?.id ?? null,
+    version: payload.version ?? null,
+    rows,
+    counts: {
+      operationalActive: rows.length,
+      enabled,
+      notEnabled: rows.length - enabled,
+    },
+    permissions: { canView, canManage },
+    writeAvailable: writeAvailableFor(canManage),
+  };
+}
+
 /**
- * Build a level enablement matrix from operational school subjects + options payload.
- * Options contribute enabled status (school_subject_id); catalog ref-only rows never
- * appear as matrix options.
+ * Legacy builder from operational school subjects + options payload.
+ * Kept for fallback/tests; write UI prefers `buildMatrixFromEnablementPayload`.
  */
 export function buildLevelEnablementMatrix(
   level: Pick<Level, 'id' | 'name' | 'code'>,
@@ -81,17 +160,20 @@ export function buildLevelEnablementMatrix(
     levelId: level.id,
     levelName: level.name,
     levelCode: level.code ?? '',
+    academicYearId: null,
+    version: null,
     rows,
     counts: {
       operationalActive: rows.length,
       enabled,
       notEnabled: rows.length - enabled,
     },
-    writeAvailable: SUBJECT_LEVEL_ENABLEMENT_WRITE_AVAILABLE,
+    permissions: { canView: true, canManage: false },
+    writeAvailable: false,
   };
 }
 
-/** Summaries for /admin/subjects cards from subject.level_ids (read-only hint). */
+/** Summaries for /admin/subjects cards from subject.level_ids (list hint). */
 export function buildSubjectEnabledLevelSummaries(
   subjects: Subject[],
   levels: Pick<Level, 'id' | 'code' | 'name'>[],
@@ -126,6 +208,40 @@ export function buildSubjectEnabledLevelSummaries(
   return out;
 }
 
+/** Summaries from enablement GET items (preferred when payload available). */
+export function buildSubjectEnabledLevelSummariesFromPayload(
+  payload: SubjectEnablementMatrixPayload,
+  levels: Pick<Level, 'id' | 'code' | 'name'>[],
+): Map<number, SubjectEnabledLevelSummary> {
+  const levelById = new Map(levels.map((l) => [l.id, l]));
+  const bySubject = new Map<number, Set<number>>();
+
+  for (const item of payload.items) {
+    if (!item.enabled || item.is_active === false) continue;
+    const opId = Number(item.operational_subject_id);
+    const levelId = Number(item.level?.id);
+    if (!Number.isInteger(opId) || opId <= 0) continue;
+    if (!Number.isInteger(levelId) || levelId <= 0) continue;
+    if (!bySubject.has(opId)) bySubject.set(opId, new Set());
+    bySubject.get(opId)!.add(levelId);
+  }
+
+  const out = new Map<number, SubjectEnabledLevelSummary>();
+  for (const [opId, levelIds] of bySubject) {
+    const enabledLevelIds = [...levelIds];
+    const enabledLevelCodes = enabledLevelIds
+      .map((id) => levelById.get(id)?.code || levelById.get(id)?.name || String(id))
+      .filter(Boolean);
+    out.set(opId, {
+      operationalSubjectId: opId,
+      enabledLevelIds,
+      enabledLevelCodes,
+      enabledCount: enabledLevelIds.length,
+    });
+  }
+  return out;
+}
+
 export function filterEnablementRows(
   rows: SubjectLevelEnablementRow[],
   search: string,
@@ -144,4 +260,10 @@ export function matrixContainsCode(
 ): boolean {
   const needle = code.trim().toUpperCase();
   return matrix.rows.some((r) => r.code.trim().toUpperCase() === needle);
+}
+
+/** Labels for summary lists — always include code beside name. */
+export function formatSubjectLabel(row: Pick<SubjectLevelEnablementRow, 'name' | 'code'>): string {
+  const code = row.code?.trim();
+  return code ? `${row.name} (${code})` : row.name;
 }

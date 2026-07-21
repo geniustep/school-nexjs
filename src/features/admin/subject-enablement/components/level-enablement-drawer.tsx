@@ -1,10 +1,14 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level, Subject } from '@/types/class';
 import { useLevelEnablementMatrix } from '../hooks/use-level-enablement-matrix';
-import { LevelEnablementMatrixPanel } from './level-enablement-matrix-panel';
+import {
+  confirmDiscardEnablementDraft,
+  LevelEnablementMatrixPanel,
+} from './level-enablement-matrix-panel';
 
 export function LevelEnablementDrawer({
   open,
@@ -12,6 +16,7 @@ export function LevelEnablementDrawer({
   operationalSubjects,
   onClose,
   onOpenReferenceEnable,
+  onSaved,
 }: {
   open: boolean;
   level: Level | null;
@@ -19,25 +24,38 @@ export function LevelEnablementDrawer({
   onClose: () => void;
   /** Existing catalog enable flow (POST /admin/subjects/enable). */
   onOpenReferenceEnable?: () => void;
+  onSaved?: () => void;
 }) {
   const t = useT();
+  const [dirty, setDirty] = useState(false);
   const { matrix, loading, error, reload } = useLevelEnablementMatrix(
     open ? level : null,
     operationalSubjects,
     open,
   );
 
+  useEffect(() => {
+    if (!open) setDirty(false);
+  }, [open]);
+
+  const requestClose = useCallback(() => {
+    if (!confirmDiscardEnablementDraft(dirty, t)) return;
+    onClose();
+  }, [dirty, onClose, t]);
+
   const title = level
     ? t('admin.subjectEnablement.manageLevelTitle', { level: level.name })
     : t('admin.subjectEnablement.manageLevelFallback');
 
   return (
-    <SetupDrawer open={open} title={title} onClose={onClose}>
+    <SetupDrawer open={open} title={title} onClose={requestClose}>
       <LevelEnablementMatrixPanel
         matrix={matrix}
         loading={loading}
         error={error}
         onRetry={reload}
+        onSaved={onSaved}
+        onDirtyChange={setDirty}
       />
       {onOpenReferenceEnable ? (
         <div className="row" style={{ gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
@@ -48,7 +66,7 @@ export function LevelEnablementDrawer({
         </div>
       ) : null}
       <div className="row" style={{ gap: 8, marginTop: 16 }}>
-        <button type="button" className="btn btn--ghost" onClick={onClose}>
+        <button type="button" className="btn btn--ghost" onClick={requestClose}>
           {t('common.close')}
         </button>
       </div>

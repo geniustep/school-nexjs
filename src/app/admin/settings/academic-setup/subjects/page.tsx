@@ -172,6 +172,7 @@ export default function AcademicSetupSubjectsPage() {
         level={drawerLevel}
         operationalSubjects={lists.subjects}
         onClose={closeEnablementDrawer}
+        onSaved={refreshAll}
         onOpenReferenceEnable={
           canManage && drawerLevel
             ? () => openSubjectsDrawer(drawerLevel.id)

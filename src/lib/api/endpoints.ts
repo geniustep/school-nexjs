@@ -141,6 +141,10 @@ export const endpoints = {
     subjects: '/admin/subjects',
     subjectsOptions: '/admin/subjects/options',
     subjectsEnable: '/admin/subjects/enable',
+    /** Odoo 236 — school.enabled.subject matrix (GET). */
+    subjectsEnablement: '/admin/subjects/enablement',
+    /** Odoo 236 — bulk enable/disable operational subjects for a level (POST). */
+    subjectsEnablementUpdate: '/admin/subjects/enablement/update',
     subject: (id: number | string) => `/admin/subjects/${id}`,
     subjectUpdate: (id: number | string) => `/admin/subjects/${id}/update`,
     subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,
