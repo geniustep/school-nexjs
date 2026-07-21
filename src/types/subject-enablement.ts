@@ -15,8 +15,9 @@
  */
 export function isSubjectLevelEnablementWriteAvailable(): boolean {
   if (process.env.VERCEL_ENV === 'production') return false;
-  if (process.env.NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE === '0') return false;
-  return process.env.NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE === '1';
+  const raw = (process.env.NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE ?? '').trim().toLowerCase();
+  if (raw === '0' || raw === 'false' || raw === 'off') return false;
+  return raw === '1' || raw === 'true' || raw === 'on';
 }
 
 /** @deprecated Prefer `isSubjectLevelEnablementWriteAvailable()` — kept for N4-I tests. */

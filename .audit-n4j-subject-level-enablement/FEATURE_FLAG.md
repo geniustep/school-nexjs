@@ -4,8 +4,8 @@
 |------|--------|
 | Name | `NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE` |
 | Default | unset / off |
-| Enable (isolated test) | `NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE=1` |
-| Explicit off | `NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE=0` |
+| Enable (isolated test) | `NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE=1` or `true` or `on` |
+| Explicit off | `0` / `false` / `off` |
 | Production | Always forced off when `VERCEL_ENV=production` |
 
 ## Why production stays off
