@@ -57,6 +57,37 @@ describe('teacher-domain-normalize', () => {
     expect(profile?.allowed_actions).toEqual({ view: true, edit_eligibility: true });
   });
 
+  it('normalizes 238 completeness / dimensions / mismatch without coercion', () => {
+    const profile = normalizeAcademicProfile({
+      teacher_id: 7,
+      eligibility_dimensions: {
+        subjects: { mode: 'unspecified', count: 0 },
+        cycles: { mode: 'specified', count: 2 },
+      },
+      academic_completeness: {
+        state: 'partial',
+        blocks_assignment: false,
+        weekly_limit_specified: false,
+      },
+      completeness_warnings: [{ code: 'subjects_unspecified' }],
+      assignment_mismatch_summary: {
+        count: 1,
+        warnings: [{ assignment_id: 5, reason_code: 'assignment_subject_outside_declared_eligibility' }],
+      },
+      limits: { weekly_hours_target: null, weekly_hours_max: null },
+      allowed_actions: {
+        can_edit_academic_profile: true,
+        edit_eligibility: false,
+      },
+    });
+    expect(profile?.eligibility_dimensions?.subjects?.mode).toBe('unspecified');
+    expect(profile?.academic_completeness?.blocks_assignment).toBe(false);
+    expect(profile?.completeness_warnings?.[0].code).toBe('subjects_unspecified');
+    expect(profile?.assignment_mismatch_summary?.count).toBe(1);
+    expect(profile?.limits?.weekly_hours_target).toBeNull();
+    expect(profile?.allowed_actions).toEqual({ can_edit_academic_profile: true });
+  });
+
   it('unwraps assignment detail item envelope', () => {
     const detail = normalizeAssignmentDetail({
       item: { id: 3, state: 'active', allowed_actions: { suspend: true } },

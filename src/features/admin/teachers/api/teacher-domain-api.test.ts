@@ -206,6 +206,138 @@ describe('teacher-domain-api', () => {
     );
   });
 
+  it('parses academic profile 238 additive fields without inventing values', async () => {
+    mockApi.get.mockResolvedValueOnce({
+      success: true,
+      data: {
+        teacher_id: 9,
+        specialization: 'Physics',
+        teacher_type: 'permanent',
+        eligibility: {
+          subjects: [],
+          eligible_subjects: [],
+          cycles: [],
+          levels: [],
+          teaching_languages: [],
+        },
+        eligibility_dimensions: {
+          subjects: { mode: 'unspecified', count: 0 },
+          cycles: { mode: 'unspecified', count: 0 },
+          levels: { mode: 'unspecified', count: 0 },
+          teaching_languages: { mode: 'unspecified', count: 0 },
+        },
+        academic_completeness: {
+          state: 'unconfigured',
+          blocks_assignment: false,
+          weekly_limit_specified: false,
+        },
+        completeness_warnings: [{ code: 'subjects_unspecified' }],
+        assignment_mismatch_summary: { count: 0, warnings: [] },
+        limits: {
+          weekly_hours_target: null,
+          weekly_hours_max: null,
+          daily_hours_max: null,
+          max_continuous_minutes: null,
+        },
+        allowed_actions: {
+          view: true,
+          can_view: true,
+          edit_eligibility: true,
+          can_edit_academic_profile: true,
+        },
+      },
+      meta: {},
+    });
+    const res = await fetchTeacherAcademicProfile(9);
+    expect(res.success).toBe(true);
+    if (!res.success) return;
+    expect(res.data.academic_completeness?.state).toBe('unconfigured');
+    expect(res.data.academic_completeness?.blocks_assignment).toBe(false);
+    expect(res.data.eligibility_dimensions?.subjects?.mode).toBe('unspecified');
+    expect(res.data.completeness_warnings?.[0].code).toBe('subjects_unspecified');
+    expect(res.data.assignment_mismatch_summary?.count).toBe(0);
+    expect(res.data.limits?.weekly_hours_target).toBeNull();
+    expect(res.data.allowed_actions).toMatchObject({
+      edit_eligibility: true,
+      can_edit_academic_profile: true,
+    });
+  });
+
+  it('PATCHes partial eligible_subject_ids / eligible_level_ids / teaching_language_ids', async () => {
+    mockApi.patch
+      .mockResolvedValueOnce({
+        success: true,
+        data: { teacher_id: 9, eligibility: { eligible_subjects: [] } },
+        meta: {},
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { teacher_id: 9, eligibility: { levels: [{ id: 2, name: 'L2' }] } },
+        meta: {},
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: { teacher_id: 9, eligibility: { teaching_languages: [] } },
+        meta: {},
+      });
+
+    await updateTeacherAcademicProfile(9, { eligible_subject_ids: [] });
+    await updateTeacherAcademicProfile(9, { eligible_level_ids: [2] });
+    await updateTeacherAcademicProfile(9, { teaching_language_ids: [] });
+
+    expect(mockApi.patch).toHaveBeenNthCalledWith(
+      1,
+      endpoints.admin.teacherAcademicProfile(9),
+      { eligible_subject_ids: [] },
+      undefined,
+    );
+    expect(mockApi.patch).toHaveBeenNthCalledWith(
+      2,
+      endpoints.admin.teacherAcademicProfile(9),
+      { eligible_level_ids: [2] },
+      undefined,
+    );
+    expect(mockApi.patch).toHaveBeenNthCalledWith(
+      3,
+      endpoints.admin.teacherAcademicProfile(9),
+      { teaching_language_ids: [] },
+      undefined,
+    );
+  });
+
+  it('PATCHes null workload limits without coercing to zero', async () => {
+    mockApi.patch.mockResolvedValueOnce({
+      success: true,
+      data: {
+        teacher_id: 9,
+        limits: {
+          weekly_hours_target: null,
+          weekly_hours_max: null,
+          daily_hours_max: null,
+          max_continuous_minutes: null,
+        },
+      },
+      meta: {},
+    });
+    const res = await updateTeacherAcademicProfile(9, {
+      weekly_hours_target: null,
+      weekly_hours_max: null,
+      daily_hours_max: null,
+      max_continuous_minutes: null,
+    });
+    expect(mockApi.patch).toHaveBeenCalledWith(
+      endpoints.admin.teacherAcademicProfile(9),
+      {
+        weekly_hours_target: null,
+        weekly_hours_max: null,
+        daily_hours_max: null,
+        max_continuous_minutes: null,
+      },
+      undefined,
+    );
+    expect(res.success && res.data.limits?.weekly_hours_target).toBeNull();
+  });
+
   it('parses assignment list/detail and maps end action', async () => {
     mockApi.get
       .mockResolvedValueOnce({

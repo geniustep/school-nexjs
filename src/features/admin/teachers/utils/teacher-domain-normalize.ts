@@ -118,9 +118,33 @@ export function normalizeAcademicProfile(raw: unknown): TeacherAcademicProfile |
   const row = raw as TeacherAcademicProfile;
   const teacherId = Number(row.teacher_id);
   if (!Number.isFinite(teacherId)) return null;
+
+  const eligibilityDimensions =
+    row.eligibility_dimensions ?? row.eligibility?.eligibility_dimensions ?? undefined;
+  const completenessWarnings = asArray(
+    row.completeness_warnings,
+  ) as TeacherAcademicProfile['completeness_warnings'];
+  const mismatch = row.assignment_mismatch_summary;
+  const assignmentMismatchSummary: TeacherAcademicProfile['assignment_mismatch_summary'] =
+    mismatch && typeof mismatch === 'object'
+      ? {
+          count: Number(mismatch.count) || 0,
+          warnings: asArray(mismatch.warnings) as NonNullable<
+            TeacherAcademicProfile['assignment_mismatch_summary']
+          >['warnings'],
+          mutates_assignment: mismatch.mutates_assignment,
+          source: mismatch.source,
+        }
+      : mismatch === null
+        ? null
+        : undefined;
+
   return {
     ...row,
     teacher_id: teacherId,
+    eligibility_dimensions: eligibilityDimensions,
+    completeness_warnings: completenessWarnings,
+    assignment_mismatch_summary: assignmentMismatchSummary,
     qualifications: asArray(row.qualifications),
     availability: asArray(row.availability),
     current_assignments: asArray(row.current_assignments),

@@ -18,6 +18,18 @@ describe('teacher-domain-errors', () => {
     expect(teacherDomainErrorKey('offering_archived')).toBe(
       'admin.teacherDomain.errors.offeringArchived',
     );
+    expect(teacherDomainErrorKey('teacher_academic_level_cycle_mismatch')).toBe(
+      'admin.teacherDomain.errors.academicLevelCycleMismatch',
+    );
+    expect(teacherDomainErrorKey('teacher_eligibility_invalid')).toBe(
+      'admin.teacherDomain.errors.eligibilityInvalid',
+    );
+    expect(teacherDomainErrorKey('teacher_language_invalid')).toBe(
+      'admin.teacherDomain.errors.languageInvalid',
+    );
+    expect(teacherDomainErrorKey('teacher_workload_limit_invalid')).toBe(
+      'admin.teacherDomain.errors.workloadLimitInvalid',
+    );
     expect(mapTeacherDomainError({ code: 'teacher_not_found', message: 'x' }, t)).toBe(
       'tr:admin.teacherDomain.errors.teacherNotFound',
     );

@@ -20,3 +20,19 @@ export function hasAllowedAction(
 ): boolean {
   return normalizeAllowedActions(raw)[action] === true;
 }
+
+/** Backend may expose either edit_eligibility or can_edit_academic_profile (238 aliases). */
+export function canEditAcademicProfile(
+  raw: AllowedActionsMap | string[] | undefined | null,
+): boolean {
+  const actions = normalizeAllowedActions(raw);
+  return actions.edit_eligibility === true || actions.can_edit_academic_profile === true;
+}
+
+export function canEditAcademicLimits(
+  raw: AllowedActionsMap | string[] | undefined | null,
+): boolean {
+  const actions = normalizeAllowedActions(raw);
+  if (actions.edit_limits === true) return true;
+  return canEditAcademicProfile(actions);
+}

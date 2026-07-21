@@ -10,6 +10,16 @@ const TEACHER_DOMAIN_ERROR_KEYS: Record<string, string> = {
     'admin.teacherDomain.errors.terminateReasonRequired',
   teacher_academic_assignment_boundary:
     'admin.teacherDomain.errors.academicAssignmentBoundary',
+  teacher_academic_level_cycle_mismatch:
+    'admin.teacherDomain.errors.academicLevelCycleMismatch',
+  teacher_eligibility_invalid: 'admin.teacherDomain.errors.eligibilityInvalid',
+  teacher_language_invalid: 'admin.teacherDomain.errors.languageInvalid',
+  teacher_workload_limit_invalid: 'admin.teacherDomain.errors.workloadLimitInvalid',
+  teacher_academic_profile_scope_forbidden:
+    'admin.teacherDomain.errors.academicProfileScopeForbidden',
+  teacher_academic_link_manage_forbidden:
+    'admin.teacherDomain.errors.academicLinkManageForbidden',
+  teacher_archived_immutable: 'admin.teacherDomain.errors.teacherArchivedImmutable',
   assignment_not_found: 'admin.teacherDomain.errors.assignmentNotFound',
   teaching_assignment_not_found: 'admin.teacherDomain.errors.assignmentNotFound',
   assignment_overlap: 'admin.teacherDomain.errors.assignmentOverlap',

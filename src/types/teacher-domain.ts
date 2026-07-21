@@ -163,13 +163,71 @@ export type TeacherDetail = TeacherSummary & {
 
 export type AcademicProfileAllowedAction =
   | 'view'
+  | 'can_view'
   | 'edit_eligibility'
+  | 'can_edit_academic_profile'
   | 'edit_limits'
   | 'manage_qualifications'
+  | 'can_manage_qualifications'
   | 'manage_availability'
+  | 'can_manage_availability'
   | 'verify_qualification'
   | 'manage_assignments'
   | (string & {});
+
+export type EligibilityDimensionMode = 'specified' | 'unspecified';
+
+export type EligibilityDimensionSummary = {
+  mode: EligibilityDimensionMode;
+  count: number;
+  /** Compat alias for `mode`. */
+  status?: EligibilityDimensionMode;
+};
+
+export type TeacherEligibilityDimensions = {
+  subjects?: EligibilityDimensionSummary;
+  cycles?: EligibilityDimensionSummary;
+  levels?: EligibilityDimensionSummary;
+  teaching_languages?: EligibilityDimensionSummary;
+};
+
+export type AcademicCompletenessState = 'unconfigured' | 'partial' | 'complete';
+
+export type AcademicCompleteness = {
+  state: AcademicCompletenessState;
+  subjects_specified?: boolean;
+  stage_or_level_specified?: boolean;
+  teaching_languages_specified?: boolean;
+  weekly_limit_specified?: boolean;
+  /** Backend source of truth — currently always false in 238. */
+  blocks_assignment: boolean;
+};
+
+export type AcademicCompletenessWarning = {
+  code: string;
+  message?: string;
+  completeness_state?: AcademicCompletenessState;
+};
+
+export type AssignmentMismatchWarning = {
+  assignment_id?: number | null;
+  reason_code?: string | null;
+  reason_codes?: string[];
+  issues?: string[];
+  hard_block?: boolean;
+  mutates_assignment?: boolean;
+  code?: string | null;
+  message?: string | null;
+};
+
+export type AssignmentMismatchSummary = {
+  count: number;
+  warnings: AssignmentMismatchWarning[];
+  mutates_assignment?: boolean;
+  source?: string | null;
+};
+
+export type TeacherAcademicProfileAllowedActions = AllowedActionsMap;
 
 export type TeacherQualification = {
   id?: number;
@@ -208,22 +266,43 @@ export type TeacherAvailabilitySlot = {
   [key: string]: unknown;
 };
 
+export type TeacherEligibleSubjectRef = Ref & {
+  code?: string | null;
+  active?: boolean;
+  school_id?: number | null;
+  ref_subject?: Ref | null;
+};
+
+export type TeacherEligibleLevelRef = Ref & {
+  school_id?: number | null;
+  active?: boolean;
+  ref_level_id?: number | null;
+  cycle_id?: number | null;
+};
+
+export type TeacherEligibleLanguageRef = Ref & {
+  code?: string | null;
+};
+
 export type TeacherAcademicEligibility = {
-  subjects?: Ref[];
-  eligible_subjects?: Ref[];
-  subjects_status?: string | null;
+  subjects?: TeacherEligibleSubjectRef[];
+  eligible_subjects?: TeacherEligibleSubjectRef[];
+  subjects_status?: EligibilityDimensionMode | string | null;
   subjects_role?: string | null;
   specialization?: string | null;
   cycles?: Ref[];
-  cycles_status?: string | null;
-  levels?: Ref[];
-  levels_status?: string | null;
-  teaching_languages?: Ref[];
-  teaching_languages_status?: string | null;
+  cycles_status?: EligibilityDimensionMode | string | null;
+  levels?: TeacherEligibleLevelRef[];
+  levels_status?: EligibilityDimensionMode | string | null;
+  teaching_languages?: TeacherEligibleLanguageRef[];
+  teaching_languages_status?: EligibilityDimensionMode | string | null;
   teacher_type?: string | null;
   eligible_as_head_teacher?: boolean;
   eligible_as_subject_coordinator?: boolean;
   eligible_as_level_coordinator?: boolean;
+  eligibility_dimensions?: TeacherEligibilityDimensions;
+  empty_list_means?: string | null;
+  unspecified_means_ineligible?: boolean;
 };
 
 export type TeacherWorkloadLimits = {
@@ -233,8 +312,12 @@ export type TeacherWorkloadLimits = {
   daily_hours_max?: number | null;
   max_continuous_minutes?: number | null;
   prefer_compact_schedule?: boolean;
+  weekly_limit_status?: EligibilityDimensionMode | string | null;
+  daily_limit_status?: EligibilityDimensionMode | string | null;
+  continuous_limit_status?: EligibilityDimensionMode | string | null;
   is_assignment_volume?: boolean;
   is_timetable_capacity?: boolean;
+  is_current_load?: boolean;
 };
 
 export type TeacherOperationalDerived = {
@@ -249,6 +332,9 @@ export type TeacherOperationalDerived = {
 export type TeacherAcademicProfile = {
   is_teacher?: boolean;
   teacher_id: number;
+  /** Top-level additive fields (238) — also mirrored under eligibility when present. */
+  specialization?: string | null;
+  teacher_type?: string | null;
   contract?: ApiContractMetadata & {
     model?: string;
     parallel_academic_profile_model?: boolean;
@@ -259,6 +345,9 @@ export type TeacherAcademicProfile = {
     does_not_answer?: string[];
   };
   eligibility?: TeacherAcademicEligibility;
+  eligibility_dimensions?: TeacherEligibilityDimensions;
+  academic_completeness?: AcademicCompleteness | null;
+  completeness_warnings?: AcademicCompletenessWarning[];
   limits?: TeacherWorkloadLimits;
   availability?: TeacherAvailabilitySlot[];
   availability_summary?: Record<string, unknown>;
@@ -268,9 +357,10 @@ export type TeacherAcademicProfile = {
   current_assignments?: TeacherAssignmentSummary[];
   derived_workload?: Record<string, unknown>;
   operational_derived?: TeacherOperationalDerived;
+  assignment_mismatch_summary?: AssignmentMismatchSummary | null;
   eligibility_warnings?: ApiWarning[];
   availability_conflicts?: ApiWarning[];
-  allowed_actions?: AllowedActionsMap | AcademicProfileAllowedAction[];
+  allowed_actions?: TeacherAcademicProfileAllowedActions | AcademicProfileAllowedAction[];
   warnings?: ApiWarning[];
 };
 

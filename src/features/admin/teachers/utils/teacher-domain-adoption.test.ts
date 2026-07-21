@@ -50,11 +50,20 @@ describe('teacher-domain adoption gates', () => {
         /فعال|active|actif|activos/i,
       );
     }
-    expect(ar.admin.teacherDomain.academic.eligibleSubjects).toBe('المواد المؤهل لها');
+    expect(ar.admin.teacherDomain.academic.eligibleSubjects).toBe('المواد المؤهل لتدريسها');
     expect(ar.admin.teacherDomain.academic.eligibleCycles).toBe('الأسلاك المؤهل لها');
     expect(ar.admin.teacherDomain.academic.eligibleCyclesUnset).toBe(
       'لم تُحدّد الأسلاك المؤهل لها بعد',
     );
+    expect(ar.admin.teacherDomain.academic.summaryTitle).toBe('ملخص الملف الأكاديمي');
+    expect(ar.admin.teacherDomain.academic.completeness.partial).toBe('مكتمل جزئيًا');
+    expect(ar.admin.teacherDomain.academic.eligibleSubjectsUnset).toBe(
+      'لم تُحدّد المواد المؤهل لتدريسها بعد',
+    );
+    expect(ar.admin.teacherDomain.errors.academicLevelCycleMismatch).toContain('الأسلاك');
+    expect(en.admin.teacherDomain.academic.completeness.complete).toBeTruthy();
+    expect(fr.admin.teacherDomain.academic.mismatchTitle).toBeTruthy();
+    expect(es.admin.teacherDomain.academic.rolesTitle).toBeTruthy();
     expect(ar.admin.teachingPlanning.offerings.list.noData.title).toContain(
       'لا توجد مسارات تدريس فعالة',
     );
