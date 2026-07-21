@@ -1,4 +1,5 @@
 import type { ReferenceSubjectOption, SubjectOptionsPayload } from '@/types/academic-subjects';
+import type { Subject } from '@/types/class';
 import { sortReferenceSubjects } from './subject-options';
 
 /** Operational school.subject option for class create/edit. */
@@ -6,7 +7,7 @@ export type ClassLevelSubjectOption = {
   id: number;
   name: string;
   code: string;
-  refSubjectId: number;
+  refSubjectId: number | null;
 };
 
 export type ClassLegacySubject = {
@@ -136,4 +137,62 @@ export function dedupeOperationalSubjectOptions(
     map.set(option.id, option);
   }
   return [...map.values()];
+}
+
+type SchoolSubjectLike = Pick<Subject, 'id' | 'name'> & {
+  code?: string | null;
+  level_id?: number | null;
+  level_ids?: number[];
+  active?: boolean;
+  ref_subject_id?: number | null;
+};
+
+/**
+ * Merge national enabled options with school-local subjects that belong to the level
+ * (via level_ids / level.subjects), so class edit can attach institution subjects too.
+ */
+export function mergeSchoolSubjectsIntoClassOptions(
+  options: ClassLevelSubjectOption[],
+  schoolSubjects: SchoolSubjectLike[],
+  levelId: number,
+  levelSubjectIds: Iterable<number> = [],
+): ClassLevelSubjectOption[] {
+  if (!Number.isInteger(levelId) || levelId <= 0) {
+    return dedupeOperationalSubjectOptions(options);
+  }
+
+  const map = new Map<number, ClassLevelSubjectOption>();
+  for (const option of dedupeOperationalSubjectOptions(options)) {
+    map.set(option.id, option);
+  }
+
+  const onLevel = new Set(
+    [...levelSubjectIds].filter((id) => Number.isInteger(id) && id > 0),
+  );
+
+  for (const subject of schoolSubjects) {
+    if (subject.active === false) continue;
+    if (!Number.isInteger(subject.id) || subject.id <= 0) continue;
+    if (map.has(subject.id)) continue;
+
+    const levelIds =
+      Array.isArray(subject.level_ids) && subject.level_ids.length > 0
+        ? subject.level_ids
+        : subject.level_id != null
+          ? [subject.level_id]
+          : [];
+    const belongs = levelIds.includes(levelId) || onLevel.has(subject.id);
+    if (!belongs) continue;
+
+    map.set(subject.id, {
+      id: subject.id,
+      name: subject.name?.trim() || subject.code?.trim() || `#${subject.id}`,
+      code: subject.code?.trim() || '',
+      refSubjectId: subject.ref_subject_id ?? null,
+    });
+  }
+
+  return [...map.values()].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+  );
 }

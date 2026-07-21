@@ -29,6 +29,9 @@ export interface Subject {
   optional?: boolean;
   sequence?: number;
   weekly_hours?: number | null;
+  legacy_coefficient?: number | null;
+  assessment_coefficient?: number | null;
+  exam_coefficient?: number | null;
   assignments_count?: number;
   active?: boolean;
 }

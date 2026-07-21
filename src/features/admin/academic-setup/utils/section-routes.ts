@@ -6,7 +6,7 @@ export const SETUP_SECTION_ROUTES: Record<string, string> = {
   classes: '/admin/settings/academic-setup/classes',
   levels: '/admin/settings/academic-setup/classes',
   teachers: '/admin/settings/academic-setup/teachers',
-  tracks: '/admin/settings/academic-setup/subjects',
+  tracks: '/admin/settings/academic-setup/subjects?tab=tracks',
   staff: '/admin/settings/academic-setup/staff',
   subjects: '/admin/settings/academic-setup/subjects',
   terms: '/admin/settings/academic-setup/terms',
@@ -16,15 +16,18 @@ export function setupSectionHref(
   section: SetupIssueSection | string,
   query?: Record<string, string | number | boolean | undefined | null>,
 ): string {
-  const base = SETUP_SECTION_ROUTES[section] ?? '/admin/settings/academic-setup';
-  if (!query) return base;
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value === undefined || value === null || value === '') continue;
-    params.set(key, String(value));
+  const raw = SETUP_SECTION_ROUTES[section] ?? '/admin/settings/academic-setup';
+  const qIndex = raw.indexOf('?');
+  const pathname = qIndex >= 0 ? raw.slice(0, qIndex) : raw;
+  const params = new URLSearchParams(qIndex >= 0 ? raw.slice(qIndex + 1) : '');
+  if (query) {
+    for (const [key, value] of Object.entries(query)) {
+      if (value === undefined || value === null || value === '') continue;
+      params.set(key, String(value));
+    }
   }
   const qs = params.toString();
-  return qs ? `${base}?${qs}` : base;
+  return qs ? `${pathname}?${qs}` : pathname;
 }
 
 export function issueTargetHref(issue: Pick<SetupReadinessIssue, 'target'>): string {

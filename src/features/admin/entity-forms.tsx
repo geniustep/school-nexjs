@@ -10,10 +10,12 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { buildClassPayload, mapClassApiError, resolveAcademicYearId } from '@/features/admin/class-form-utils';
 import { ClassSubjectsField } from '@/features/admin/academic-setup/components/class-subjects-field';
+import { CreateSchoolSubjectDrawer } from '@/features/admin/academic-setup/components/create-school-subject-drawer';
 import { useSubjectOptions } from '@/features/admin/academic-setup/hooks/use-subject-options';
 import {
   extractLevelEnabledOperationalSubjects,
   incompatibleNewSubjectIds,
+  mergeSchoolSubjectsIntoClassOptions,
   partitionClassSubjectSelection,
   resolveClassSubjectIdsForSave,
 } from '@/features/admin/academic-setup/utils/class-level-subjects';
@@ -38,7 +40,7 @@ import {
 } from '@/features/admin/parents/utils/identity-document';
 import type { GuardianDuplicateMatch } from '@/types/student-360';
 import type { Ref } from '@/types/api';
-import type { SchoolClass } from '@/types/class';
+import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { Student } from '@/types/student';
 import type { Parent } from '@/types/parent';
 import type { Teacher } from '@/types/teacher';
@@ -47,6 +49,7 @@ import { TeacherSetupForm } from '@/features/admin/academic-setup/components/tea
 import { canManageTeachingAssignments } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
 import { StudentForm } from '@/features/admin/students/components/student-form';
+import { CreateSchoolSubjectForm } from '@/features/admin/subjects/components/create-school-subject-form';
 import { useRouter } from 'next/navigation';
 import '@/features/admin/parents/components/parent-profile.css';
 
@@ -317,7 +320,10 @@ export function ClassForm({
 }) {
   const t = useT();
   const toast = useToast();
-  const levelsState = useResource<Ref[]>(endpoints.admin.levels);
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const schoolSubjectsState = useAdminResource<Subject[]>(endpoints.admin.subjects, {
+    page_size: 500,
+  });
   const trackOptionsState = useAdminResource<TrackOptions>(endpoints.admin.trackOptions);
   const teachersState = useResource<Teacher[]>(endpoints.admin.teachers, { page_size: 200 });
   const [saving, setSaving] = useState(false);
@@ -337,6 +343,7 @@ export function ClassForm({
   const [subjectIds, setSubjectIds] = useState<number[]>(initialSubjectIds);
   const [subjectsTouched, setSubjectsTouched] = useState(false);
   const [reconcileSubjectsAfterLevelChange, setReconcileSubjectsAfterLevelChange] = useState(false);
+  const [createSubjectOpen, setCreateSubjectOpen] = useState(false);
 
   const legacyCatalog = useMemo(
     () =>
@@ -360,18 +367,47 @@ export function ClassForm({
   const tracksForLevel = tracksState.data ?? [];
   const parsedLevelId = levelId ? Number(levelId) : null;
   const parsedTrackId = trackId.trim() ? Number(trackId) : null;
+  const levelDetailState = useAdminResource<Level>(
+    parsedLevelId != null && Number.isFinite(parsedLevelId)
+      ? endpoints.admin.level(parsedLevelId)
+      : null,
+  );
   const subjectOptionsState = useSubjectOptions(
     parsedLevelId != null && Number.isFinite(parsedLevelId) ? parsedLevelId : null,
     levelSupportsTracks ? parsedTrackId : null,
   );
-  const levelSubjectOptions = useMemo(
-    () => extractLevelEnabledOperationalSubjects(subjectOptionsState.options),
-    [subjectOptionsState.options],
-  );
+  const levelSubjectOptions = useMemo(() => {
+    const fromRef = extractLevelEnabledOperationalSubjects(subjectOptionsState.options);
+    if (parsedLevelId == null || !Number.isFinite(parsedLevelId)) return fromRef;
+    const levelSubjects = levelDetailState.data?.subjects ?? [];
+    return mergeSchoolSubjectsIntoClassOptions(
+      fromRef,
+      [...levelSubjects, ...(schoolSubjectsState.data ?? [])],
+      parsedLevelId,
+      levelSubjects.map((s) => s.id),
+    );
+  }, [
+    subjectOptionsState.options,
+    parsedLevelId,
+    levelDetailState.data?.subjects,
+    schoolSubjectsState.data,
+  ]);
+  const subjectsFieldLoading =
+    subjectOptionsState.loading ||
+    schoolSubjectsState.loading ||
+    (parsedLevelId != null && levelDetailState.loading);
   const { legacy: legacySubjects } = useMemo(
     () => partitionClassSubjectSelection(subjectIds, levelSubjectOptions, legacyCatalog),
     [subjectIds, levelSubjectOptions, legacyCatalog],
   );
+
+  function handleSubjectCreated(subjectId: number) {
+    schoolSubjectsState.reload();
+    levelDetailState.reload();
+    subjectOptionsState.reload();
+    setSubjectsTouched(true);
+    setSubjectIds((prev) => (prev.includes(subjectId) ? prev : [...prev, subjectId]));
+  }
 
   useEffect(() => {
     if (!reconcileSubjectsAfterLevelChange || subjectOptionsState.loading) return;
@@ -466,86 +502,101 @@ export function ClassForm({
   }
 
   return (
-    <FormShell saving={saving} onSubmit={submit} onCancel={onCancel}>
-      <Field label={t('admin.className')}>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
-      </Field>
-      <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-        <Field label={t('nav.levels')}>
-          <select className="input" value={levelId} onChange={(e) => handleLevelChange(e.target.value)} required>
-            <option value="">{t('admin.selectLevel')}</option>
-            {(levelsState.data ?? []).map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
-          </select>
+    <>
+      <FormShell saving={saving} onSubmit={submit} onCancel={onCancel}>
+        <Field label={t('admin.className')}>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
         </Field>
-        {levelSupportsTracks && (
-          <Field label={t('admin.academicSetup.classTrackLabel')}>
-            <select
-              className="input"
-              value={trackId}
-              onChange={(e) => handleTrackChange(e.target.value)}
-            >
-              <option value="">{t('common.dash')}</option>
-              {tracksForLevel.map((tr) => (
-                <option key={tr.id} value={tr.id}>{tr.name}</option>
+        <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+          <Field label={t('nav.levels')}>
+            <select className="input" value={levelId} onChange={(e) => handleLevelChange(e.target.value)} required>
+              <option value="">{t('admin.selectLevel')}</option>
+              {(levelsState.data ?? []).map((l) => (
+                <option key={l.id} value={l.id}>{l.name}</option>
               ))}
             </select>
-            {cls && (
-              <span className="tiny muted block mt-2">
-                {t('admin.academicSetup.trackChangeHint')}
-              </span>
-            )}
           </Field>
-        )}
-        <Field label={t('admin.academicYearIdOptional')}>
-          <input
-            className="input"
-            type="number"
-            min={1}
-            value={academicYearId}
-            onChange={(e) => setAcademicYearId(e.target.value)}
-            placeholder={t('admin.academicYearOptionalHint')}
-          />
-        </Field>
-        <Field label={t('admin.capacity')}>
-          <input className="input" type="number" min={0} value={capacity} onChange={(e) => setCapacity(e.target.value)} />
-        </Field>
-        <Field label={t('academic.room')}>
-          <input className="input" value={room} onChange={(e) => setRoom(e.target.value)} />
-        </Field>
-      </div>
-      <Field label={t('nav.teachers')}>
-        <div className="col" style={{ gap: 6, maxHeight: 160, overflow: 'auto' }}>
-          {(teachersState.data ?? []).map((te) => (
-            <label key={te.id} className="row" style={{ gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={teacherIds.includes(te.id)}
-                onChange={() => toggleId(te.id, teacherIds, setTeacherIds)}
-              />
-              <span>{te.name}</span>
-            </label>
-          ))}
+          {levelSupportsTracks && (
+            <Field label={t('admin.academicSetup.classTrackLabel')}>
+              <select
+                className="input"
+                value={trackId}
+                onChange={(e) => handleTrackChange(e.target.value)}
+              >
+                <option value="">{t('common.dash')}</option>
+                {tracksForLevel.map((tr) => (
+                  <option key={tr.id} value={tr.id}>{tr.name}</option>
+                ))}
+              </select>
+              {cls && (
+                <span className="tiny muted block mt-2">
+                  {t('admin.academicSetup.trackChangeHint')}
+                </span>
+              )}
+            </Field>
+          )}
+          <Field label={t('admin.academicYearIdOptional')}>
+            <input
+              className="input"
+              type="number"
+              min={1}
+              value={academicYearId}
+              onChange={(e) => setAcademicYearId(e.target.value)}
+              placeholder={t('admin.academicYearOptionalHint')}
+            />
+          </Field>
+          <Field label={t('admin.capacity')}>
+            <input className="input" type="number" min={0} value={capacity} onChange={(e) => setCapacity(e.target.value)} />
+          </Field>
+          <Field label={t('academic.room')}>
+            <input className="input" value={room} onChange={(e) => setRoom(e.target.value)} />
+          </Field>
         </div>
-      </Field>
-      <Field label={t('nav.subjects')}>
-        {!parsedLevelId ? (
-          <span className="tiny muted">{t('admin.selectLevel')}</span>
-        ) : (
-          <ClassSubjectsField
-            t={t}
-            loading={subjectOptionsState.loading}
-            error={subjectOptionsState.error}
-            options={levelSubjectOptions}
-            legacy={legacySubjects}
-            selectedIds={subjectIds}
-            onToggle={toggleSubjectId}
-            onRetry={subjectOptionsState.reload}
-          />
-        )}
-      </Field>
-    </FormShell>
+        <Field label={t('nav.teachers')}>
+          <div className="col" style={{ gap: 6, maxHeight: 160, overflow: 'auto' }}>
+            {(teachersState.data ?? []).map((te) => (
+              <label key={te.id} className="row" style={{ gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={teacherIds.includes(te.id)}
+                  onChange={() => toggleId(te.id, teacherIds, setTeacherIds)}
+                />
+                <span>{te.name}</span>
+              </label>
+            ))}
+          </div>
+        </Field>
+        <Field label={t('nav.subjects')}>
+          {!parsedLevelId ? (
+            <span className="tiny muted">{t('admin.selectLevel')}</span>
+          ) : (
+            <ClassSubjectsField
+              t={t}
+              loading={subjectsFieldLoading}
+              error={subjectOptionsState.error}
+              options={levelSubjectOptions}
+              legacy={legacySubjects}
+              selectedIds={subjectIds}
+              onToggle={toggleSubjectId}
+              onRetry={() => {
+                subjectOptionsState.reload();
+                schoolSubjectsState.reload();
+                levelDetailState.reload();
+              }}
+              canAddSubject
+              onAddSubject={() => setCreateSubjectOpen(true)}
+            />
+          )}
+        </Field>
+      </FormShell>
+      <CreateSchoolSubjectDrawer
+        open={createSubjectOpen}
+        levels={levelsState.data ?? []}
+        defaultLevelIds={parsedLevelId != null ? [parsedLevelId] : []}
+        onClose={() => setCreateSubjectOpen(false)}
+        onSaved={handleSubjectCreated}
+      />
+    </>
   );
 }
 
@@ -628,8 +679,15 @@ export interface SubjectDetail {
   category?: string | null;
   credit_hours?: number;
   status?: string;
+  weekly_hours?: number | null;
+  assessment_coefficient?: number | null;
+  legacy_coefficient?: number | null;
+  exam_coefficient?: number | null;
+  ref_subject_id?: number | null;
+  level_ids?: number[];
 }
 
+/** Same fields as create — delegates to CreateSchoolSubjectForm. */
 export function SubjectForm({
   subject,
   onSaved,
@@ -639,60 +697,11 @@ export function SubjectForm({
   onSaved: (id: number) => void;
   onCancel: () => void;
 }) {
-  const t = useT();
-  const toast = useToast();
-  const [saving, setSaving] = useState(false);
-  const [name, setName] = useState(subject?.name ?? '');
-  const [code, setCode] = useState(subject?.code ?? '');
-  const [sequence, setSequence] = useState(String(subject?.sequence ?? 10));
-  const [category, setCategory] = useState(subject?.category ?? 'other');
-  const [creditHours, setCreditHours] = useState(String(subject?.credit_hours ?? 1));
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) {
-      toast.error(t('errors.validationFailed'));
-      return;
-    }
-    const payload = {
-      name: name.trim(),
-      code: code.trim() || undefined,
-      sequence: Number(sequence) || 10,
-      category,
-      credit_hours: Number(creditHours) || 1,
-    };
-    setSaving(true);
-    const res = subject
-      ? await api.post(endpoints.admin.subjectUpdate(subject.id), payload)
-      : await api.post(endpoints.admin.subjects, payload);
-    setSaving(false);
-    if (res.success && res.data) {
-      toast.success(t('admin.saveSuccess'));
-      onSaved((res.data as SubjectDetail).id);
-    } else if (!res.success) {
-      toast.error(res.error.message);
-    }
-  }
-
   return (
-    <FormShell saving={saving} onSubmit={submit} onCancel={onCancel}>
-      <Field label={t('admin.subjectName')}>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
-      </Field>
-      <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-        <Field label={t('admin.code')}>
-          <input className="input" value={code} onChange={(e) => setCode(e.target.value)} />
-        </Field>
-        <Field label={t('admin.sequence')}>
-          <input className="input" type="number" value={sequence} onChange={(e) => setSequence(e.target.value)} />
-        </Field>
-        <Field label={t('academic.type')}>
-          <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} />
-        </Field>
-        <Field label={t('admin.creditHours')}>
-          <input className="input" type="number" step="0.5" value={creditHours} onChange={(e) => setCreditHours(e.target.value)} />
-        </Field>
-      </div>
-    </FormShell>
+    <CreateSchoolSubjectForm
+      subject={subject ?? null}
+      onSaved={onSaved}
+      onCancel={onCancel}
+    />
   );
 }

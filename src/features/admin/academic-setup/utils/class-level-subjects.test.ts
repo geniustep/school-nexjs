@@ -5,6 +5,7 @@ import {
   extractLevelEnabledOperationalSubjects,
   incompatibleNewSubjectIds,
   isEnabledOperationalReference,
+  mergeSchoolSubjectsIntoClassOptions,
   partitionClassSubjectSelection,
   resolveClassSubjectIdsForSave,
 } from './class-level-subjects';
@@ -252,5 +253,40 @@ describe('partition / save / level change helpers', () => {
       ]),
     ).toHaveLength(1);
     warn.mockRestore();
+  });
+});
+
+describe('mergeSchoolSubjectsIntoClassOptions', () => {
+  it('adds school-local subjects linked to the level', () => {
+    const out = mergeSchoolSubjectsIntoClassOptions(
+      [{ id: 10, name: 'Math', code: 'MATH', refSubjectId: 1 }],
+      [
+        { id: 20, name: 'نشاط', code: 'ACT', level_ids: [3], ref_subject_id: null },
+        { id: 21, name: 'أخرى', code: 'OTH', level_ids: [9] },
+      ],
+      3,
+    );
+    expect(out.map((s) => s.id).sort()).toEqual([10, 20]);
+    expect(out.find((s) => s.id === 20)?.refSubjectId).toBeNull();
+  });
+
+  it('includes subjects present on level.subjects even without level_ids', () => {
+    const out = mergeSchoolSubjectsIntoClassOptions(
+      [],
+      [{ id: 33, name: 'محلية', code: 'LOC' }],
+      5,
+      [33],
+    );
+    expect(out).toEqual([{ id: 33, name: 'محلية', code: 'LOC', refSubjectId: null }]);
+  });
+
+  it('does not duplicate national operational options', () => {
+    const out = mergeSchoolSubjectsIntoClassOptions(
+      [{ id: 10, name: 'Math', code: 'MATH', refSubjectId: 1 }],
+      [{ id: 10, name: 'Math renamed', code: 'MATH', level_ids: [3] }],
+      3,
+    );
+    expect(out).toHaveLength(1);
+    expect(out[0]?.name).toBe('Math');
   });
 });

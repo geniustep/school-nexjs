@@ -5,7 +5,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { ResourceView } from '@/components/states/resource';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
-import { SubjectForm, type SubjectDetail } from '@/features/admin/entity-forms';
+import type { SubjectDetail } from '@/features/admin/entity-forms';
 import { countSubjectsByName } from '@/features/admin/academic-setup/utils/subject-display';
 import { canManageSubjects } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
@@ -13,6 +13,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, Subject } from '@/types/class';
+import { CreateSchoolSubjectForm } from './create-school-subject-form';
 import {
   buildLevelsByIdFromLevels,
   buildSubjectRowMeta,
@@ -48,13 +49,16 @@ function mergeSubject(detail: SubjectDetail, fromList?: Subject): Subject {
     name: detail.name,
     code: detail.code ?? fromList?.code,
     level_id: fromList?.level_id,
-    level_ids: fromList?.level_ids,
+    level_ids: detail.level_ids ?? fromList?.level_ids,
     track_id: fromList?.track_id,
+    ref_subject_id: detail.ref_subject_id ?? fromList?.ref_subject_id,
     source: fromList?.source,
     required: fromList?.required,
     optional: fromList?.optional,
     sequence: detail.sequence ?? fromList?.sequence,
-    weekly_hours: fromList?.weekly_hours,
+    weekly_hours: detail.weekly_hours ?? fromList?.weekly_hours,
+    assessment_coefficient: detail.assessment_coefficient ?? fromList?.assessment_coefficient,
+    legacy_coefficient: detail.legacy_coefficient ?? fromList?.legacy_coefficient,
     assignments_count: fromList?.assignments_count,
     active: fromList?.active,
   };
@@ -201,8 +205,27 @@ export function AdminSubjectDetailShell({ subjectId }: { subjectId: string }) {
 
             {editing ? (
               <section className="admin-subjects-detail-panel card">
-                <SubjectForm
-                  subject={view.detail}
+                <CreateSchoolSubjectForm
+                  embedded
+                  levels={levelsState.data ?? []}
+                  subject={{
+                    id: view.detail.id,
+                    name: view.detail.name,
+                    code: view.detail.code ?? view.subject.code,
+                    weekly_hours:
+                      view.detail.weekly_hours ?? view.subject.weekly_hours ?? null,
+                    assessment_coefficient:
+                      view.detail.assessment_coefficient ??
+                      view.subject.assessment_coefficient ??
+                      null,
+                    legacy_coefficient:
+                      view.detail.legacy_coefficient ??
+                      view.subject.legacy_coefficient ??
+                      null,
+                    level_ids: view.detail.level_ids ?? view.subject.level_ids ?? [],
+                    ref_subject_id:
+                      view.detail.ref_subject_id ?? view.subject.ref_subject_id ?? null,
+                  }}
                   onSaved={() => {
                     setEditing(false);
                     combinedState.reload();
@@ -226,6 +249,17 @@ export function AdminSubjectDetailShell({ subjectId }: { subjectId: string }) {
                     </span>
                     <span className="admin-subjects-stat__value">{view.detail.credit_hours ?? t('common.dash')}</span>
                     <span className="admin-subjects-stat__label">{t('admin.subjectsList.detailCreditHours')}</span>
+                  </div>
+                  <div className="admin-subjects-stat">
+                    <span className="admin-subjects-stat__icon" aria-hidden="true">
+                      ×
+                    </span>
+                    <span className="admin-subjects-stat__value">
+                      {view.detail.assessment_coefficient ??
+                        view.detail.legacy_coefficient ??
+                        t('common.dash')}
+                    </span>
+                    <span className="admin-subjects-stat__label">{t('academic.coefficient')}</span>
                   </div>
                   <div className="admin-subjects-stat">
                     <span className="admin-subjects-stat__icon" aria-hidden="true">

@@ -4,8 +4,14 @@ import { setupSectionHref } from './section-routes';
 describe('subjects deep link integration', () => {
   it('builds tracks tab route with level_id query', () => {
     expect(
-      setupSectionHref('tracks', { tab: 'tracks', level_id: 42 }),
+      setupSectionHref('tracks', { level_id: 42 }),
     ).toBe('/admin/settings/academic-setup/subjects?tab=tracks&level_id=42');
+  });
+
+  it('builds subjects route with level_id query', () => {
+    expect(setupSectionHref('subjects', { level_id: 7 })).toBe(
+      '/admin/settings/academic-setup/subjects?level_id=7',
+    );
   });
 
   it('builds classes route with level query', () => {

@@ -4,7 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/ui/primitives';
-import { SubjectForm } from '@/features/admin/entity-forms';
+import { CreateSchoolSubjectForm } from '@/features/admin/subjects/components/create-school-subject-form';
 import { AdminSubjectDetailShell } from '@/features/admin/subjects/components/admin-subject-detail-shell';
 import { useT } from '@/features/i18n/locale-context';
 
@@ -21,7 +21,7 @@ export default function AdminSubjectDetailPage({ params }: { params: Promise<{ i
           ‹ {t('nav.subjects')}
         </Link>
         <PageHeader title={t('admin.addSubject')} />
-        <SubjectForm
+        <CreateSchoolSubjectForm
           onSaved={(sid) => router.push(`/admin/subjects/${sid}`)}
           onCancel={() => router.push('/admin/subjects')}
         />

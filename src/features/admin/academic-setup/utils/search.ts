@@ -62,7 +62,7 @@ export function globalSetupSearch(
         entityId: subject.id,
         label: subject.name,
         href: '/admin/settings/academic-setup/subjects',
-        query: { subject_id: String(subject.id) },
+        query: { tab: 'subjects', subject_id: String(subject.id) },
       });
     }
   }

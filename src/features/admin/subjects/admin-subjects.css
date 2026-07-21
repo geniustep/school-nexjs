@@ -588,6 +588,56 @@
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 
+.admin-create-subject-form__levels {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+}
+
+.admin-create-subject-form__levels legend {
+  padding-inline: 4px;
+}
+
+.admin-create-subject-form__level-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+  max-block-size: 280px;
+  overflow: auto;
+}
+
+.admin-create-subject-form__level-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.admin-create-subject-form__level-row:hover {
+  background: color-mix(in srgb, var(--c-primary, #0d9488) 6%, transparent);
+}
+
+.admin-create-subject-form__enable {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: color-mix(in srgb, var(--c-primary, #0d9488) 5%, transparent);
+}
+
+.admin-create-subject-form__enable input {
+  margin-block-start: 3px;
+}
+
 @media (max-width: 900px) {
   .admin-subjects-detail-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

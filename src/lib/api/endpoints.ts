@@ -145,6 +145,7 @@ export const endpoints = {
     subjectsEnablement: '/admin/subjects/enablement',
     /** Odoo 236 — bulk enable/disable operational subjects for a level (POST). */
     subjectsEnablementUpdate: '/admin/subjects/enablement/update',
+    subjectsPlanUpdate: '/admin/subjects/plan/update',
     subject: (id: number | string) => `/admin/subjects/${id}`,
     subjectUpdate: (id: number | string) => `/admin/subjects/${id}/update`,
     subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,

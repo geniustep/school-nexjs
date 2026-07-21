@@ -18,6 +18,7 @@ import { buildSubjectEnabledLevelSummaries } from '@/features/admin/subject-enab
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { canManageSubjects } from '@/lib/permissions/academic-setup';
 import type { Level, Subject } from '@/types/class';
 import type { SubjectEnabledLevelSummary } from '@/types/subject-enablement';
 import {
@@ -158,6 +159,7 @@ export function AdminSubjectsList({
 }) {
   const t = useT();
   const user = useSession();
+  const canManage = canManageSubjects(user);
   const [importOpen, setImportOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState<SubjectTier | ''>('');
@@ -358,6 +360,13 @@ export function AdminSubjectsList({
             icon="📖"
             title={t('admin.subjectsList.noData.title')}
             description={t('admin.subjectsList.noData.description')}
+            action={
+              canManage ? (
+                <Link href="/admin/subjects/new" className="btn btn--primary btn--sm">
+                  {t('admin.addSubject')}
+                </Link>
+              ) : undefined
+            }
           />
         )
       ) : (

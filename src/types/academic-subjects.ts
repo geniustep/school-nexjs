@@ -17,6 +17,14 @@ export interface ReferenceSubjectOption {
     weekly_hours?: number | null;
     session_duration?: number | null;
   };
+  legacy_coefficient?: number | null;
+  assessment_coefficient?: number | null;
+  exam_coefficient?: number | null;
+  plan?: {
+    legacy_coefficient?: number | null;
+    assessment_coefficient?: number | null;
+    exam_coefficient?: number | null;
+  } | null;
 }
 
 export interface SubjectOptionsLevel {

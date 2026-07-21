@@ -1,8 +1,9 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { ClassLegacySubject, ClassLevelSubjectOption } from '../utils/class-level-subjects';
 
-type Translate = (key: string) => string;
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
 export function ClassSubjectsField({
   t,
@@ -13,6 +14,8 @@ export function ClassSubjectsField({
   selectedIds,
   onToggle,
   onRetry,
+  onAddSubject,
+  canAddSubject = false,
 }: {
   t: Translate;
   loading: boolean;
@@ -22,11 +25,25 @@ export function ClassSubjectsField({
   selectedIds: number[];
   onToggle: (id: number) => void;
   onRetry: () => void;
+  onAddSubject?: () => void;
+  canAddSubject?: boolean;
 }) {
+  const addAction: ReactNode =
+    canAddSubject && onAddSubject ? (
+      <button type="button" className="btn btn--secondary btn--sm" onClick={onAddSubject}>
+        {t('admin.academicSetup.classAddSubject')}
+      </button>
+    ) : null;
+
   return (
     <div className="col" style={{ gap: 8 }}>
       {legacy.length > 0 && (
-        <div className="col" style={{ gap: 6 }} role="group" aria-label={t('admin.academicSetup.classLegacySubjectsLabel')}>
+        <div
+          className="col"
+          style={{ gap: 6 }}
+          role="group"
+          aria-label={t('admin.academicSetup.classLegacySubjectsLabel')}
+        >
           <span className="tiny muted">{t('admin.academicSetup.classLegacySubjectsLabel')}</span>
           {legacy.map((subject) => (
             <label key={`legacy-${subject.id}`} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
@@ -68,28 +85,41 @@ export function ClassSubjectsField({
           </button>
         </div>
       ) : options.length === 0 ? (
-        <div className="col" style={{ gap: 4 }}>
+        <div className="col" style={{ gap: 8 }}>
           <span>{t('admin.academicSetup.noSubjectsForLevel')}</span>
           <span className="tiny muted">{t('admin.academicSetup.classLevelSubjectsEmptyHint')}</span>
+          {addAction}
         </div>
       ) : (
-        <div className="col" style={{ gap: 6, maxHeight: 160, overflow: 'auto' }}>
-          {options.map((subject) => (
-            <label key={subject.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(subject.id)}
-                onChange={() => onToggle(subject.id)}
-              />
-              <span className="col" style={{ gap: 2 }}>
-                <span>{subject.name}</span>
-                <span className="tiny muted mono" dir="ltr">
-                  {subject.code}
+        <>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <span className="tiny muted">
+              {t('admin.academicSetup.classSubjectsSelectedCount', {
+                count: selectedIds.length,
+              })}
+            </span>
+            {addAction}
+          </div>
+          <div className="col" style={{ gap: 6, maxHeight: 220, overflow: 'auto' }}>
+            {options.map((subject) => (
+              <label key={subject.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(subject.id)}
+                  onChange={() => onToggle(subject.id)}
+                />
+                <span className="col" style={{ gap: 2 }}>
+                  <span>{subject.name}</span>
+                  {subject.code ? (
+                    <span className="tiny muted mono" dir="ltr">
+                      {subject.code}
+                    </span>
+                  ) : null}
                 </span>
-              </span>
-            </label>
-          ))}
-        </div>
+              </label>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
