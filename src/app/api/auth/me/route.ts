@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server';
 import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
 import { jsonMeFromSession } from '@/lib/auth/me-response';
+import { getActiveRoleCookie } from '@/lib/auth/active-role-preference';
 import {
   activeRoleErrorBody,
   resolveActiveRoleFromRequest,
@@ -15,12 +16,14 @@ export async function GET(request: Request) {
   const tenantGuard = await guardTenantFromRequest(request);
   if (!tenantGuard.ok) return tenantGuard.response;
 
-  const resolved = resolveActiveRoleFromRequest(request);
-  if (!resolved.ok) {
-    return NextResponse.json(activeRoleErrorBody(resolved.code, resolved.message), {
+  const fromRequest = resolveActiveRoleFromRequest(request);
+  if (!fromRequest.ok) {
+    return NextResponse.json(activeRoleErrorBody(fromRequest.code, fromRequest.message), {
       status: 400,
     });
   }
+  const activeRole =
+    fromRequest.role ?? (await getActiveRoleCookie()) ?? undefined;
 
-  return jsonMeFromSession({ activeRole: resolved.role });
+  return jsonMeFromSession({ activeRole });
 }

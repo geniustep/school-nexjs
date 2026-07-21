@@ -1,14 +1,7 @@
-// Teacher workspace routing — Smart Staff teachers may arrive with role=admin + teacher_id.
+// Teacher workspace routing — driven by Odoo-confirmed active_role when present.
 
+import { resolveEffectiveRole } from '@/lib/auth/active-role-workspace';
 import type { AdminBinding, CurrentUser } from '@/types/user';
-
-const ADMIN_MANAGEMENT_KINDS = new Set([
-  'project_manager',
-  'school_manager',
-  'general_supervisor',
-  'legacy_admin',
-  'super_admin',
-]);
 
 function resolveTeacherProfileIdFromBindings(bindings?: AdminBinding[]): number | null {
   if (!bindings?.length) return null;
@@ -46,13 +39,13 @@ export function hasLinkedTeacherProfile(
   return resolveTeacherId(user) != null;
 }
 
-/** True when the account should use /teacher/* (not admin Staff Center). */
+/**
+ * True when the confirmed active role is teacher.
+ * Does not force teacher from admin_kind / teacher_id alone.
+ */
 export function shouldUseTeacherWorkspace(user: CurrentUser | null): boolean {
   if (!user) return false;
-  if (user.role === 'teacher') return true;
-  if (user.role !== 'admin') return false;
-  if (user.admin_kind && ADMIN_MANAGEMENT_KINDS.has(user.admin_kind)) return false;
-  return hasLinkedTeacherProfile(user);
+  return resolveEffectiveRole(user) === 'teacher';
 }
 
 export function teacherProfilePath(_user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role'>): string {

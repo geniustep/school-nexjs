@@ -16,6 +16,7 @@ import { AdminSidebarHost } from '@/components/navigation/admin-sidebar-host';
 import { Avatar } from '@/components/ui/primitives';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
+import { RoleSwitcher } from '@/components/auth/role-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
 import { isMultiSchoolAdmin, isAdminKind } from '@/lib/admin/admin-ux';
@@ -26,6 +27,7 @@ import { IconMenu } from '@/components/icons/admin-icons';
 import { AdminAccountSheet } from '@/components/layout/admin-account-sheet';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { resolveEffectiveRole } from '@/lib/auth/active-role-workspace';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import {
   AdminStudentSpotlightHost,
@@ -33,13 +35,16 @@ import {
 } from '@/features/admin/students/components/admin-student-spotlight-host';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
-  if (shouldUseTeacherWorkspace(user)) return t('roles.teacher');
-  if (user.role === 'admin' && user.admin_kind) {
+  const effective = resolveEffectiveRole(user);
+  if (effective === 'teacher') return t('roles.teacher');
+  if (effective === 'parent') return t('roles.parent');
+  if (effective === 'student') return t('roles.student');
+  if (effective === 'admin' && user.admin_kind) {
     const kindKey = `roles.adminKind.${user.admin_kind}`;
     const kindLabel = t(kindKey);
     if (kindLabel !== kindKey) return kindLabel;
   }
-  return t(`roles.${user.role}`);
+  return t(`roles.${effective}`);
 }
 
 function scopeDescription(user: CurrentUser, t: (k: string) => string): string | null {
@@ -197,6 +202,7 @@ export function AppShell({
             )}
 
             <div className="sidebar__footer sidebar__footer--mobile">
+              <RoleSwitcher />
               <div className="sidebar__footer-field">
                 <span className="sidebar__footer-label">{t('common.language')}</span>
                 <LocaleSwitcher />
@@ -229,7 +235,8 @@ export function AppShell({
           </div>
           <div className="topbar__right topbar__right--desktop">
             {isAdmin && <AdminStudentSpotlightTrigger variant="desktop" />}
-            {isAdmin && <SchoolSwitcher />}
+            {isAdmin && <SchoolSwitcher hideLabel />}
+            <RoleSwitcher hideLabel className="role-switcher--topbar" />
             <LocaleSwitcher compact />
             {!isTeacher && (
               <div className="user-chip">
@@ -242,17 +249,15 @@ export function AppShell({
             )}
             <SignOutButton loggingOut={loggingOut} onClick={logout} size="sm" />
           </div>
-          {!isTeacher && (
-            <div className="topbar__right topbar__right--mobile">
-              {isAdmin && <AdminStudentSpotlightTrigger variant="mobile" />}
-              <AdminAccountSheet
-                user={user}
-                roleLabel={roleLabel}
-                loggingOut={loggingOut}
-                onLogout={logout}
-              />
-            </div>
-          )}
+          <div className="topbar__right topbar__right--mobile">
+            {isAdmin && <AdminStudentSpotlightTrigger variant="mobile" />}
+            <AdminAccountSheet
+              user={user}
+              roleLabel={roleLabel}
+              loggingOut={loggingOut}
+              onLogout={logout}
+            />
+          </div>
         </header>
         <main className={cn('content', isAdmin && 'content--admin')}>{children}</main>
       </div>

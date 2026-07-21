@@ -12,6 +12,7 @@ import type { ApiResponse, ListParams } from '@/types/api';
 import type { MeResponse, CurrentUser } from '@/types/user';
 import { normalizeMeUser } from '@/lib/auth/normalize-user';
 import { applyActiveSchoolToUser } from '@/lib/auth/active-school';
+import { getActiveRoleCookie } from '@/lib/auth/active-role-preference';
 import { isTenantSessionValid } from '@/lib/auth/tenant-guard';
 import {
   activeRoleCacheKey,
@@ -24,6 +25,13 @@ async function sessionId(): Promise<string | null> {
   if (!sid) return null;
   if (!(await isTenantSessionValid())) return null;
   return sid;
+}
+
+async function resolveServerActiveRole(
+  explicit?: LegalActiveRole,
+): Promise<LegalActiveRole | undefined> {
+  if (explicit) return explicit;
+  return (await getActiveRoleCookie()) ?? undefined;
 }
 
 async function fetchMeUser(activeRole?: LegalActiveRole): Promise<CurrentUser | null> {
@@ -56,11 +64,13 @@ export async function serverGet<T>(
   query?: ListParams,
 ): Promise<ApiResponse<T>> {
   const sid = await sessionId();
+  const activeRole = await resolveServerActiveRole();
   const mergedQuery = await mergeAdminQuery(path, query);
   const result = await odooApiFetch<T>(path, {
     method: 'GET',
     sessionId: sid,
     query: mergedQuery,
+    activeRole,
   });
   if (result.kind === 'file') {
     return {
@@ -75,12 +85,14 @@ export async function serverGet<T>(
 /** Low-level server PUT returning the full envelope. */
 export async function serverPut<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
   const sid = await sessionId();
+  const activeRole = await resolveServerActiveRole();
   const mergedQuery = await mergeAdminQuery(path, undefined);
   const result = await odooApiFetch<T>(path, {
     method: 'PUT',
     sessionId: sid,
     query: mergedQuery,
     body,
+    activeRole,
   });
   if (result.kind === 'file') {
     return {
@@ -95,6 +107,7 @@ export async function serverPut<T>(path: string, body?: unknown): Promise<ApiRes
 /** Low-level server POST returning the full envelope. */
 export async function serverPost<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
   const sid = await sessionId();
+  const activeRole = await resolveServerActiveRole();
   let mergedBody = body;
   if (path.startsWith('/admin/') && body && typeof body === 'object' && !Array.isArray(body)) {
     const user = await getCurrentUser();
@@ -107,6 +120,7 @@ export async function serverPost<T>(path: string, body?: unknown): Promise<ApiRe
     method: 'POST',
     sessionId: sid,
     body: mergedBody,
+    activeRole,
   });
   if (result.kind === 'file') {
     return {
@@ -120,14 +134,15 @@ export async function serverPost<T>(path: string, body?: unknown): Promise<ApiRe
 
 /**
  * Resolve the authenticated user, or null if there is no valid session.
- * `activeRole` is part of the React cache key so admin/teacher/undefined do not share entries.
- * Callers that have request context (Flutter BFF) must pass the resolved role explicitly.
+ * When `activeRole` is omitted, the httpOnly `scc_active_role` preference is used.
+ * Explicit callers (BFF header) must pass the resolved role so cache entries stay isolated.
  */
 export const getCurrentUser = cache(
   async (activeRole?: LegalActiveRole): Promise<CurrentUser | null> => {
-    // `activeRole` is part of React cache's argument key (admin ≠ teacher ≠ undefined).
-    void activeRoleCacheKey(activeRole);
-    const raw = await fetchMeUser(activeRole);
+    const role = await resolveServerActiveRole(activeRole);
+    // Cache key includes the effective role (cookie or explicit).
+    void activeRoleCacheKey(role);
+    const raw = await fetchMeUser(role);
     if (!raw) return null;
     return applyActiveSchoolToUser(normalizeMeUser(raw));
   },

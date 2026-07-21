@@ -582,6 +582,14 @@
       "welcome": "Bienvenido al espacio de su centro escolar",
       "secureNote": "Acceso seguro al espacio escolar según su rol",
       "academicYear": "Curso escolar {year}"
+    },
+    "activeRole": "Rol activo",
+    "activeRoleMarker": "activo",
+    "switchingRole": "Cambiando de rol…",
+    "roleSwitchErrors": {
+      "role_not_available": "Este rol no está disponible para su cuenta. Se mantuvo su rol actual.",
+      "role_switch_failed": "No se pudo cambiar de rol. Inténtelo de nuevo.",
+      "invalid_active_role": "Rol no válido."
     }
   },
   "channels": {

@@ -1,11 +1,11 @@
 // Role → home route mapping and post-login redirect logic.
 // API_REPORT.md "AFTER LOGIN REDIRECT".
 
-import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import { resolveEffectiveRole } from '@/lib/auth/active-role-workspace';
 import type { CurrentUser, Role } from '@/types/user';
 
 export const ROLE_HOME: Record<Role, string> = {
-  admin: '/admin',
+  admin: '/admin/dashboard',
   teacher: '/teacher/dashboard',
   parent: '/parent/dashboard',
   student: '/student/dashboard',
@@ -15,10 +15,9 @@ export function homeForRole(role: Role): string {
   return ROLE_HOME[role] ?? '/login';
 }
 
-/** Post-login home — Smart Staff teachers with role=admin still land in /teacher. */
+/** Post-login / post-switch home from Odoo-confirmed active role. */
 export function homeForUser(user: CurrentUser): string {
-  if (shouldUseTeacherWorkspace(user)) return ROLE_HOME.teacher;
-  return homeForRole(user.role);
+  return homeForRole(resolveEffectiveRole(user));
 }
 
 /** The top-level path segment that a role is allowed to access. */

@@ -12,6 +12,14 @@ import {
   activeSchoolCookieOptions,
   getActiveSchoolCookie,
 } from '@/lib/auth/active-school';
+import {
+  activeRoleCookieOptions,
+} from '@/lib/auth/active-role-preference';
+import {
+  isLegalActiveRole,
+  isMultiRoleUser,
+  normalizeRoleCode,
+} from '@/lib/auth/active-role-workspace';
 import { setTenantCookie } from '@/lib/auth/tenant-guard';
 import { normalizeMeUser, resolveActiveSchoolId } from '@/lib/auth/normalize-user';
 import { resolveTenantFromRequest, resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
@@ -144,5 +152,22 @@ export async function POST(request: Request) {
       });
     }
   }
+
+  // Persist Odoo-confirmed default active role for multi-role sessions (refresh-safe).
+  const loginActiveRole = normalizeRoleCode(normalized.active_role ?? normalized.role);
+  if (isMultiRoleUser(normalized) && loginActiveRole && isLegalActiveRole(loginActiveRole)) {
+    response.cookies.set(
+      config.activeRoleCookieName,
+      loginActiveRole,
+      activeRoleCookieOptions(),
+    );
+  } else {
+    response.cookies.set(config.activeRoleCookieName, '', {
+      httpOnly: true,
+      path: '/',
+      maxAge: 0,
+    });
+  }
+
   return response;
 }

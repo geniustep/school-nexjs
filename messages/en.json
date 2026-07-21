@@ -582,6 +582,14 @@
       "welcome": "Welcome to your school workspace",
       "secureNote": "Secure sign-in to your role-based school space",
       "academicYear": "Academic year {year}"
+    },
+    "activeRole": "Active role",
+    "activeRoleMarker": "active",
+    "switchingRole": "Switching role…",
+    "roleSwitchErrors": {
+      "role_not_available": "This role is not available for your account. Your current role was kept.",
+      "role_switch_failed": "Could not switch role. Please try again.",
+      "invalid_active_role": "Invalid role."
     }
   },
   "channels": {

@@ -582,6 +582,14 @@
       "welcome": "مرحبًا بكم في فضاء مدرستكم",
       "secureNote": "ولوج آمن إلى فضاء المدرسة حسب الصلاحيات",
       "academicYear": "السنة الدراسية {year}"
+    },
+    "activeRole": "الدور النشط",
+    "activeRoleMarker": "نشط",
+    "switchingRole": "جارٍ تبديل الدور…",
+    "roleSwitchErrors": {
+      "role_not_available": "هذا الدور غير متاح لحسابك. تم الإبقاء على دورك الحالي.",
+      "role_switch_failed": "تعذّر تبديل الدور. حاول مرة أخرى.",
+      "invalid_active_role": "دور غير صالح."
     }
   },
   "channels": {

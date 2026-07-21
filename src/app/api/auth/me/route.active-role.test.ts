@@ -16,6 +16,10 @@ vi.mock('@/lib/api/server', () => ({
   getCurrentUser: (...args: unknown[]) => getCurrentUserMock(...args),
 }));
 
+vi.mock('@/lib/auth/active-role-preference', () => ({
+  getActiveRoleCookie: vi.fn(async () => null),
+}));
+
 import { GET } from './route';
 
 const meUser = {

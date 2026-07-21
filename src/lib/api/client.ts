@@ -5,6 +5,7 @@
 // session id and never call Odoo directly.
 
 import type { ApiResponse, ListParams } from '@/types/api';
+import { clientActiveRoleHeaders } from '@/lib/auth/active-role-client';
 import { sanitizeClientApiErrorMessage } from '@/lib/utils/user-facing-error';
 
 const PROXY_BASE = '/api/odoo';
@@ -19,6 +20,14 @@ function buildUrl(path: string, query?: ListParams): string {
   }
   const qs = sp.toString();
   return qs ? `${url}?${qs}` : url;
+}
+
+function proxyHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    Accept: 'application/json',
+    ...clientActiveRoleHeaders(),
+    ...extra,
+  };
 }
 
 async function parse<T>(res: Response): Promise<ApiResponse<T>> {
@@ -98,7 +107,7 @@ export const api = {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'GET',
-        headers: { Accept: 'application/json' },
+        headers: proxyHeaders(),
         credentials: 'same-origin',
         cache: 'no-store',
       });
@@ -120,7 +129,7 @@ export const api = {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: proxyHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'same-origin',
         cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
@@ -143,7 +152,7 @@ export const api = {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: proxyHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'same-origin',
         cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
@@ -166,7 +175,7 @@ export const api = {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: proxyHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'same-origin',
         cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
@@ -190,7 +199,7 @@ export const api = {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'POST',
-        headers: { Accept: 'application/json' },
+        headers: proxyHeaders(),
         credentials: 'same-origin',
         cache: 'no-store',
         body: formData,
@@ -213,7 +222,7 @@ export const api = {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'DELETE',
-        headers: { Accept: 'application/json' },
+        headers: proxyHeaders(),
         credentials: 'same-origin',
         cache: 'no-store',
       });
@@ -260,6 +269,9 @@ export const authApi = {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
       /* ignore */
+    } finally {
+      const { setClientActiveRole } = await import('@/lib/auth/active-role-client');
+      setClientActiveRole(null);
     }
   },
 };

@@ -5,6 +5,7 @@ import {
   activeRoleErrorBody,
   readActiveRoleHeader,
   resolveActiveRoleFromRequest,
+  resolveActiveRoleFromRequestOrCookie,
   resolveActiveRoleTransport,
 } from './active-role-transport';
 
@@ -130,6 +131,26 @@ describe('resolveActiveRoleFromRequest', () => {
       headers: { [ACTIVE_ROLE_HEADER]: 'teacher' },
     });
     expect(resolveActiveRoleFromRequest(req).ok).toBe(false);
+  });
+});
+
+describe('resolveActiveRoleFromRequestOrCookie', () => {
+  it('prefers request header over cookie', () => {
+    const req = new Request('https://app.example/api/auth/me', {
+      headers: { 'X-SSC-Active-Role': 'teacher' },
+    });
+    expect(resolveActiveRoleFromRequestOrCookie(req, 'admin')).toEqual({
+      ok: true,
+      role: 'teacher',
+    });
+  });
+
+  it('falls back to cookie when request has no role', () => {
+    const req = new Request('https://app.example/api/auth/me');
+    expect(resolveActiveRoleFromRequestOrCookie(req, 'parent')).toEqual({
+      ok: true,
+      role: 'parent',
+    });
   });
 });
 

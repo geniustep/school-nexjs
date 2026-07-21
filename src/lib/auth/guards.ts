@@ -5,7 +5,7 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/api/server';
-import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import { resolveEffectiveRole } from '@/lib/auth/active-role-workspace';
 import { homeForUser } from '@/lib/routes/role-routes';
 import type { CurrentUser, Role } from '@/types/user';
 
@@ -17,18 +17,13 @@ export async function requireUser(): Promise<CurrentUser> {
 }
 
 /**
- * Require a specific role. If authenticated but wrong role, send the user to
- * their own portal home rather than leaking another portal.
+ * Require a specific portal role matching the Odoo-confirmed active role.
+ * Wrong portal → redirect to the user's own workspace home.
  */
 export async function requireRole(role: Role): Promise<CurrentUser> {
   const user = await requireUser();
-  if (role === 'teacher') {
-    if (shouldUseTeacherWorkspace(user)) return user;
+  if (resolveEffectiveRole(user) !== role) {
     redirect(homeForUser(user));
   }
-  if (role === 'admin' && shouldUseTeacherWorkspace(user)) {
-    redirect(homeForUser(user));
-  }
-  if (user.role !== role) redirect(homeForUser(user));
   return user;
 }

@@ -25,37 +25,75 @@ describe('shouldUseTeacherWorkspace', () => {
     expect(shouldUseTeacherWorkspace(user({ id: 1, role: 'teacher' }))).toBe(true);
   });
 
-  it('returns true for Smart Staff admin_staff with teacher_id', () => {
-    expect(
-      shouldUseTeacherWorkspace(
-        user({ id: 4706, role: 'admin', admin_kind: 'admin_staff', teacher_id: 1306, is_teacher: true }),
-      ),
-    ).toBe(true);
-  });
-
-  it('returns true for admin_staff with teacher profile binding in bindings', () => {
+  it('returns true when active_role is teacher even for school_manager', () => {
     expect(
       shouldUseTeacherWorkspace(
         user({
-          id: 4905,
-          role: 'admin',
-          admin_kind: 'admin_staff',
-          is_teacher: true,
-          bindings: [{ school_id: 3, teacher_profile_id: 1473 }],
+          id: 2,
+          role: 'teacher',
+          active_role: 'teacher',
+          admin_kind: 'school_manager',
+          available_roles: [
+            { code: 'admin', label: 'مدير' },
+            { code: 'teacher', label: 'أستاذة' },
+          ],
         }),
       ),
     ).toBe(true);
   });
 
-  it('returns false for school manager even with teacher_id', () => {
+  it('returns false for admin_staff with teacher_id when active_role is admin', () => {
     expect(
       shouldUseTeacherWorkspace(
-        user({ id: 2, role: 'admin', admin_kind: 'school_manager', teacher_id: 1306 }),
+        user({
+          id: 4706,
+          role: 'admin',
+          active_role: 'admin',
+          admin_kind: 'admin_staff',
+          teacher_id: 1306,
+          is_teacher: true,
+          available_roles: [
+            { code: 'admin', label: 'مدير' },
+            { code: 'teacher', label: 'أستاذة' },
+          ],
+        }),
       ),
     ).toBe(false);
   });
 
-  it('returns false for admin_staff with roles including teacher but no teacher_id', () => {
+  it('returns true for admin_staff when active_role is teacher', () => {
+    expect(
+      shouldUseTeacherWorkspace(
+        user({
+          id: 4706,
+          role: 'teacher',
+          active_role: 'teacher',
+          teacher_id: 1306,
+          is_teacher: true,
+          available_roles: [
+            { code: 'admin', label: 'مدير' },
+            { code: 'teacher', label: 'أستاذة' },
+          ],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false for school manager with active_role admin', () => {
+    expect(
+      shouldUseTeacherWorkspace(
+        user({
+          id: 2,
+          role: 'admin',
+          active_role: 'admin',
+          admin_kind: 'school_manager',
+          teacher_id: 1306,
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false for admin_staff with roles including teacher but active_role admin', () => {
     expect(
       shouldUseTeacherWorkspace(
         user({
@@ -69,7 +107,7 @@ describe('shouldUseTeacherWorkspace', () => {
     ).toBe(false);
   });
 
-  it('returns false for RCO admin_staff without teacher profile binding', () => {
+  it('returns false for RCO admin_staff without teacher active_role', () => {
     expect(
       shouldUseTeacherWorkspace(
         user({
@@ -77,6 +115,7 @@ describe('shouldUseTeacherWorkspace', () => {
           role: 'admin',
           admin_kind: 'admin_staff',
           roles: ['admin', 'teacher'],
+          active_role: 'admin',
           creation_template_code: 'registration_collections_officer',
           is_teacher: false,
         }),
@@ -105,38 +144,46 @@ describe('shouldUseTeacherWorkspace', () => {
 });
 
 describe('homeForUser', () => {
-  it('routes Smart Staff teacher to /teacher/dashboard', () => {
+  it('routes confirmed teacher active_role to /teacher/dashboard', () => {
     expect(
       homeForUser(
-        user({ id: 4706, role: 'admin', admin_kind: 'admin_staff', teacher_id: 1306, is_teacher: true }),
+        user({
+          id: 4706,
+          role: 'teacher',
+          active_role: 'teacher',
+          admin_kind: 'admin_staff',
+          teacher_id: 1306,
+          is_teacher: true,
+        }),
       ),
     ).toBe('/teacher/dashboard');
   });
 
-  it('routes linked Smart Staff teacher with teacher_id to /teacher/dashboard', () => {
+  it('routes admin_staff with active_role admin to /admin/dashboard', () => {
     expect(
       homeForUser(
         user({
           id: 4905,
           role: 'admin',
+          active_role: 'admin',
           admin_kind: 'admin_staff',
           teacher_id: 1473,
           is_teacher: true,
           roles: ['admin', 'teacher'],
         }),
       ),
-    ).toBe('/teacher/dashboard');
+    ).toBe('/admin/dashboard');
   });
 
-  it('routes dual-role admin_staff without teacher_id to /admin', () => {
+  it('routes dual-role admin_staff without teacher_id to /admin/dashboard', () => {
     expect(
       homeForUser(
         user({ id: 4905, role: 'admin', admin_kind: 'admin_staff', roles: ['admin', 'teacher'] }),
       ),
-    ).toBe('/admin');
+    ).toBe('/admin/dashboard');
   });
 
-  it('routes RCO admin_staff to /admin', () => {
+  it('routes RCO admin_staff to /admin/dashboard', () => {
     expect(
       homeForUser(
         user({
@@ -147,18 +194,19 @@ describe('homeForUser', () => {
           creation_template_code: 'registration_collections_officer',
         }),
       ),
-    ).toBe('/admin');
+    ).toBe('/admin/dashboard');
   });
 });
 
 describe('navForUser', () => {
-  it('does not show teacher nav for RCO admin_staff without teacher_id', () => {
+  it('does not show teacher nav for RCO admin_staff without teacher active_role', () => {
     const sections = navForUser(
       user({
         id: 5065,
         role: 'admin',
         admin_kind: 'admin_staff',
         roles: ['admin', 'teacher'],
+        active_role: 'admin',
         creation_template_code: 'registration_collections_officer',
         permissions: ['view_students'],
       }),
@@ -167,11 +215,12 @@ describe('navForUser', () => {
     expect(hrefs.some((href) => href.startsWith('/teacher'))).toBe(false);
   });
 
-  it('shows teacher nav for linked Smart Staff teacher', () => {
+  it('shows teacher nav for confirmed teacher active_role', () => {
     const sections = navForUser(
       user({
         id: 4905,
-        role: 'admin',
+        role: 'teacher',
+        active_role: 'teacher',
         admin_kind: 'admin_staff',
         teacher_id: 1473,
         is_teacher: true,
@@ -223,7 +272,8 @@ describe('hasLinkedTeacherProfile', () => {
 describe('privacy helpers', () => {
   const teacherUser = user({
     id: 4706,
-    role: 'admin',
+    role: 'teacher',
+    active_role: 'teacher',
     admin_kind: 'admin_staff',
     teacher_id: 1306,
     is_teacher: true,
@@ -232,6 +282,7 @@ describe('privacy helpers', () => {
   const rcoStaff = user({
     id: 5065,
     role: 'admin',
+    active_role: 'admin',
     admin_kind: 'admin_staff',
     roles: ['admin', 'teacher'],
     creation_template_code: 'registration_collections_officer',
@@ -239,7 +290,7 @@ describe('privacy helpers', () => {
 
   it('hides staff admin fields for teacher viewing own staff record', () => {
     expect(canViewStaffAdminPrivateFields(teacherUser, 4706)).toBe(false);
-    expect(canViewStaffAdminPrivateFields(teacherUser, 999)).toBe(true);
+    expect(canViewStaffAdminPrivateFields(teacherUser, 999)).toBe(false);
   });
 
   it('allows staff admin fields for RCO viewing own staff record', () => {
@@ -248,6 +299,6 @@ describe('privacy helpers', () => {
 
   it('hides teacher admin fields for teacher viewing own teacher profile', () => {
     expect(canViewTeacherAdminPrivateFields(teacherUser, 1306)).toBe(false);
-    expect(canViewTeacherAdminPrivateFields(teacherUser, 999)).toBe(true);
+    expect(canViewTeacherAdminPrivateFields(teacherUser, 999)).toBe(false);
   });
 });

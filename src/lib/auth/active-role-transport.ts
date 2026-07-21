@@ -100,6 +100,25 @@ export function resolveActiveRoleFromRequest(request: {
   return resolveActiveRoleTransport({ headerValue, queryValue });
 }
 
+/**
+ * Resolve request transport first; when absent, fall back to a cookie preference.
+ * Never invents a second concurrent role when header/query already resolved one.
+ */
+export function resolveActiveRoleFromRequestOrCookie(
+  request: {
+    headers: Headers;
+    nextUrl?: { searchParams: URLSearchParams };
+    url?: string;
+  },
+  cookieRole: LegalActiveRole | null | undefined,
+): ActiveRoleResolveResult {
+  const fromRequest = resolveActiveRoleFromRequest(request);
+  if (!fromRequest.ok) return fromRequest;
+  if (fromRequest.role) return fromRequest;
+  if (cookieRole) return { ok: true, role: cookieRole };
+  return { ok: true, role: undefined };
+}
+
 export function activeRoleErrorBody(code: ActiveRoleResolveErrorCode, message: string) {
   return {
     success: false as const,

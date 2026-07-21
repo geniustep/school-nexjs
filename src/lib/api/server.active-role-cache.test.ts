@@ -7,6 +7,7 @@ vi.mock('server-only', () => ({}));
 vi.mock('@/lib/config', () => ({
   config: {
     sessionCookieName: 'scc_session',
+    activeRoleCookieName: 'scc_active_role',
     apiPrefix: '/api/v1',
     odooBaseUrl: 'https://odoo.test',
   },

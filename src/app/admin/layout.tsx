@@ -1,8 +1,5 @@
-import { redirect } from 'next/navigation';
-import { requireUser } from '@/lib/auth/guards';
+import { requireRole } from '@/lib/auth/guards';
 import { isSchoolAccessSuspended } from '@/lib/auth/admin-access-status';
-import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
-import { homeForUser } from '@/lib/routes/role-routes';
 import { PortalLayout } from '@/components/layout/portal-layout';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { Card } from '@/components/ui/primitives';
@@ -22,9 +19,7 @@ function SuspendedAdminNotice() {
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
-  if (shouldUseTeacherWorkspace(user)) redirect(homeForUser(user));
-  if (user.role !== 'admin') redirect(homeForUser(user));
+  const user = await requireRole('admin');
 
   // Optional /me field when Backend exposes it — otherwise Odoo 403 remains authority.
   if (isSchoolAccessSuspended(user)) {

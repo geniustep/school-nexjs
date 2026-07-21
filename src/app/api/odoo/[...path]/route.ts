@@ -36,6 +36,7 @@ import {
   resolveActiveRoleFromRequest,
   type LegalActiveRole,
 } from '@/lib/auth/active-role-transport';
+import { getActiveRoleCookie } from '@/lib/auth/active-role-preference';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
 import { isOdooAdminRoleTeacherEndpointBlock } from '@/lib/auth/teacher-workspace-api';
@@ -109,7 +110,8 @@ async function handle(request: NextRequest, segments: string[]) {
       status: 400,
     });
   }
-  const activeRole: LegalActiveRole | undefined = roleResolved.role;
+  const activeRole: LegalActiveRole | undefined =
+    roleResolved.role ?? (await getActiveRoleCookie()) ?? undefined;
 
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;

@@ -22,6 +22,7 @@ export function clearAuthCookies(response: NextResponse): void {
   response.cookies.set(config.sessionCookieName, '', base);
   response.cookies.set(config.tenantCookieName, '', base);
   response.cookies.set(config.activeSchoolCookieName, '', base);
+  response.cookies.set(config.activeRoleCookieName, '', base);
 }
 
 export function setTenantCookie(response: NextResponse, tenant: string): void {

@@ -6,8 +6,13 @@ import { MobileBottomSheet } from '@/components/ui/mobile-bottom-sheet';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
+import { RoleSwitcher } from '@/components/auth/role-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
+import {
+  resolveEffectiveRole,
+  shouldShowRoleSwitcher,
+} from '@/lib/auth/active-role-workspace';
 import type { CurrentUser } from '@/types/user';
 
 export function AdminAccountSheet({
@@ -56,10 +61,16 @@ export function AdminAccountSheet({
             </div>
           </div>
 
-          {user.role === 'admin' && (
+          {resolveEffectiveRole(user) === 'admin' && (
             <div className="admin-account-sheet__field">
               <span className="admin-account-sheet__label">{t('admin.activeSchool')}</span>
               <SchoolSwitcher />
+            </div>
+          )}
+
+          {shouldShowRoleSwitcher(user) && (
+            <div className="admin-account-sheet__field">
+              <RoleSwitcher />
             </div>
           )}
 

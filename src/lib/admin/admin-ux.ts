@@ -1,6 +1,7 @@
 // Admin UX helpers — landing, navigation, and multi-school context by admin_kind.
 // Does not change backend contracts; complements permissions[] from /me.
 
+import { resolveEffectiveRole } from '@/lib/auth/active-role-workspace';
 import { resolveSchoolIds } from '@/lib/auth/normalize-user';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { ADMIN_NAV_BY_PERMISSION } from '@/components/navigation/nav-config';
@@ -58,7 +59,7 @@ export function isMultiSchoolAdmin(user: CurrentUser | null): boolean {
 }
 
 export function shouldShowSchoolSwitcher(user: CurrentUser | null): boolean {
-  return !!user && user.role === 'admin' && isMultiSchoolAdmin(user);
+  return !!user && resolveEffectiveRole(user) === 'admin' && isMultiSchoolAdmin(user);
 }
 
 export function isAdminKind(user: CurrentUser | null, kind: AdminKind): boolean {

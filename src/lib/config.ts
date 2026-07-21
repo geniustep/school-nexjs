@@ -17,6 +17,8 @@ export const config = {
   /** httpOnly cookie binding the session to the resolved tenant (Odoo db). */
   tenantCookieName: process.env.TENANT_COOKIE_NAME ?? 'scc_tenant',
   activeSchoolCookieName: process.env.ACTIVE_SCHOOL_COOKIE_NAME ?? 'scc_active_school',
+  /** httpOnly cookie remembering the last confirmed multi-role active role. */
+  activeRoleCookieName: process.env.ACTIVE_ROLE_COOKIE_NAME ?? 'scc_active_role',
   /** Odoo's own session cookie name. */
   odooSessionCookieName: 'session_id',
 };
