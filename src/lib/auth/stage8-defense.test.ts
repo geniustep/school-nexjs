@@ -102,6 +102,11 @@ describe('F-NX-06 active school body binding', () => {
     expect(shouldInjectActiveSchoolIdInBody('/admin/students/2081/guardians')).toBe(false);
     expect(shouldInjectActiveSchoolIdInBody('/admin/students/2081')).toBe(true);
   });
+
+  it('does not inject active_school_id into subject enablement update body', () => {
+    expect(shouldInjectActiveSchoolIdInBody('/admin/subjects/enablement/update')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/subjects/enable')).toBe(true);
+  });
 });
 
 describe('F-NX-12 mutation origin', () => {

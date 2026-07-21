@@ -13,10 +13,13 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { countSubjectsByName } from '@/features/admin/academic-setup/utils/subject-display';
+import { SubjectLevelsEnablementDrawer } from '@/features/admin/subject-enablement/components/subject-levels-enablement-drawer';
+import { buildSubjectEnabledLevelSummaries } from '@/features/admin/subject-enablement/utils/build-enablement-matrix';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, Subject } from '@/types/class';
+import type { SubjectEnabledLevelSummary } from '@/types/subject-enablement';
 import {
   buildLevelsByIdFromLevels,
   buildSubjectRowMeta,
@@ -52,71 +55,95 @@ function tierTitle(tier: SubjectTier, t: ReturnType<typeof useT>): string {
 function SubjectCard({
   subject,
   meta,
+  enablement,
+  onManageLevels,
 }: {
   subject: Subject;
   meta: ReturnType<typeof buildSubjectRowMeta>;
+  enablement?: SubjectEnabledLevelSummary;
+  onManageLevels: (subject: Subject) => void;
 }) {
   const t = useT();
   const tierVisual = TIER_VISUAL[meta.tier];
+  const enabledCount = enablement?.enabledCount ?? 0;
+  const levelCodes = enablement?.enabledLevelCodes ?? [];
 
   return (
-    <Link href={`/admin/subjects/${subject.id}`} className="admin-subjects-card">
-      <div className="admin-subjects-card__head">
-        <div className="admin-subjects-card__title-wrap">
-          <h3 className="admin-subjects-card__name" dir="auto" title={meta.displayName}>
-            {meta.displayName}
-          </h3>
-          {meta.isDuplicateName ? (
-            <span className="admin-subjects-card__dup-hint">{t('admin.subjectsList.duplicateHint')}</span>
+    <div className="admin-subjects-card-wrap col" style={{ gap: 8 }}>
+      <Link href={`/admin/subjects/${subject.id}`} className="admin-subjects-card">
+        <div className="admin-subjects-card__head">
+          <div className="admin-subjects-card__title-wrap">
+            <h3 className="admin-subjects-card__name" dir="auto" title={meta.displayName}>
+              {meta.displayName}
+            </h3>
+            {meta.isDuplicateName ? (
+              <span className="admin-subjects-card__dup-hint">{t('admin.subjectsList.duplicateHint')}</span>
+            ) : null}
+          </div>
+          <span
+            className="admin-subjects-card__tier"
+            style={{ '--tier-accent': tierVisual.accent } as CSSProperties}
+          >
+            {tierTitle(meta.tier, t)}
+          </span>
+        </div>
+
+        <p className="admin-subjects-card__code mono" dir="ltr">
+          {subject.code?.trim() || t('common.dash')}
+        </p>
+
+        <div className="admin-subjects-card__meta">
+          <span className="admin-subjects-card__tag">
+            {t('admin.subjectEnablement.enabledLevelsCount', { count: enabledCount })}
+          </span>
+          {levelCodes.length > 0 ? (
+            <span className="admin-subjects-card__tag admin-subjects-card__tag--muted mono" dir="ltr">
+              {levelCodes.slice(0, 4).join(' · ')}
+              {levelCodes.length > 4 ? '…' : ''}
+            </span>
+          ) : null}
+          {meta.levelLabels.length > 0 ? (
+            <span className="admin-subjects-card__tag">
+              {t('admin.subjectsList.levelLabel')}: {meta.levelLabels.join(' · ')}
+            </span>
+          ) : null}
+          {meta.sourceLabel ? (
+            <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">{meta.sourceLabel}</span>
+          ) : null}
+          {subject.required ? (
+            <span className="admin-subjects-card__tag admin-subjects-card__tag--required">
+              {t('admin.academicSetup.guided.badgeRequired')}
+            </span>
+          ) : null}
+          {subject.optional ? (
+            <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">
+              {t('admin.academicSetup.guided.badgeOptional')}
+            </span>
+          ) : null}
+          {subject.weekly_hours != null && subject.weekly_hours > 0 ? (
+            <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">
+              {t('admin.academicSetup.guided.weeklySessions', { count: subject.weekly_hours })}
+            </span>
+          ) : null}
+          {(subject.assignments_count ?? 0) > 0 ? (
+            <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">
+              {t('admin.subjectsList.assignmentsCount', { count: subject.assignments_count ?? 0 })}
+            </span>
           ) : null}
         </div>
-        <span
-          className="admin-subjects-card__tier"
-          style={{ '--tier-accent': tierVisual.accent } as CSSProperties}
-        >
-          {tierTitle(meta.tier, t)}
+
+        <span className="admin-subjects-card__arrow" aria-hidden="true">
+          →
         </span>
-      </div>
-
-      <p className="admin-subjects-card__code mono" dir="ltr">
-        {subject.code?.trim() || t('common.dash')}
-      </p>
-
-      <div className="admin-subjects-card__meta">
-        {meta.levelLabels.length > 0 ? (
-          <span className="admin-subjects-card__tag">
-            {t('admin.subjectsList.levelLabel')}: {meta.levelLabels.join(' · ')}
-          </span>
-        ) : null}
-        {meta.sourceLabel ? (
-          <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">{meta.sourceLabel}</span>
-        ) : null}
-        {subject.required ? (
-          <span className="admin-subjects-card__tag admin-subjects-card__tag--required">
-            {t('admin.academicSetup.guided.badgeRequired')}
-          </span>
-        ) : null}
-        {subject.optional ? (
-          <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">
-            {t('admin.academicSetup.guided.badgeOptional')}
-          </span>
-        ) : null}
-        {subject.weekly_hours != null && subject.weekly_hours > 0 ? (
-          <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">
-            {t('admin.academicSetup.guided.weeklySessions', { count: subject.weekly_hours })}
-          </span>
-        ) : null}
-        {(subject.assignments_count ?? 0) > 0 ? (
-          <span className="admin-subjects-card__tag admin-subjects-card__tag--muted">
-            {t('admin.subjectsList.assignmentsCount', { count: subject.assignments_count ?? 0 })}
-          </span>
-        ) : null}
-      </div>
-
-      <span className="admin-subjects-card__arrow" aria-hidden="true">
-        →
-      </span>
-    </Link>
+      </Link>
+      <button
+        type="button"
+        className="btn btn--ghost btn--sm"
+        onClick={() => onManageLevels(subject)}
+      >
+        {t('admin.subjectEnablement.manageLevelsAction')}
+      </button>
+    </div>
   );
 }
 
@@ -134,6 +161,7 @@ export function AdminSubjectsList({
   const [importOpen, setImportOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState<SubjectTier | ''>('');
+  const [manageSubject, setManageSubject] = useState<Subject | null>(null);
   const debouncedSearch = useDebouncedValue(search, 250);
 
   const levelsById = useMemo(
@@ -146,6 +174,10 @@ export function AdminSubjectsList({
 
   const nameCounts = useMemo(() => countSubjectsByName(subjects), [subjects]);
   const overview = useMemo(() => computeSubjectsOverview(subjects), [subjects]);
+  const enablementBySubject = useMemo(
+    () => buildSubjectEnabledLevelSummaries(subjects, levels),
+    [subjects, levels],
+  );
 
   const filtered = useMemo(
     () => filterSubjectsForList(subjects, levelsById, debouncedSearch, tierFilter),
@@ -355,6 +387,8 @@ export function AdminSubjectsList({
                     key={subject.id}
                     subject={subject}
                     meta={buildSubjectRowMeta(subject, levelsById, nameCounts, t)}
+                    enablement={enablementBySubject.get(subject.id)}
+                    onManageLevels={setManageSubject}
                   />
                 ))}
               </div>
@@ -362,6 +396,14 @@ export function AdminSubjectsList({
           );
         })
       )}
+
+      <SubjectLevelsEnablementDrawer
+        open={manageSubject != null}
+        subject={manageSubject}
+        levels={levels}
+        onClose={() => setManageSubject(null)}
+        onSaved={() => onImportDone?.()}
+      />
     </div>
   );
 }

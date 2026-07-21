@@ -32,6 +32,7 @@ export function SubjectsLevelPanel({
   classes,
   canManage,
   onEnableSubjects,
+  onManageEnablement,
   readinessIssues = [],
 }: {
   levels: Level[];
@@ -39,6 +40,8 @@ export function SubjectsLevelPanel({
   classes: SchoolClass[];
   canManage: boolean;
   onEnableSubjects: (levelId: number) => void;
+  /** Read-only enablement matrix (write awaits Odoo contract). */
+  onManageEnablement?: (levelId: number) => void;
   readinessIssues?: SetupReadinessIssue[];
 }) {
   const t = useT();
@@ -114,14 +117,27 @@ export function SubjectsLevelPanel({
           </div>
         )}
 
-        {canManage && activeLevel && (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm academic-subjects-panel__enable-btn"
-            onClick={() => onEnableSubjects(activeLevel.id)}
-          >
-            {t('admin.academicSetup.enableSubjects')}
-          </button>
+        {activeLevel && (
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            {onManageEnablement ? (
+              <button
+                type="button"
+                className="btn btn--secondary btn--sm"
+                onClick={() => onManageEnablement(activeLevel.id)}
+              >
+                {t('admin.subjectEnablement.manageSubjectsAction')}
+              </button>
+            ) : null}
+            {canManage ? (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm academic-subjects-panel__enable-btn"
+                onClick={() => onEnableSubjects(activeLevel.id)}
+              >
+                {t('admin.academicSetup.enableSubjects')}
+              </button>
+            ) : null}
+          </div>
         )}
       </div>
 
