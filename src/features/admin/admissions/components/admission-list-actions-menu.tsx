@@ -258,198 +258,201 @@ export function AdmissionListActionsMenu({
       }
       onClick={(e) => e.stopPropagation()}
     >
-      {loading && !detail ? (
+      {/* Seed present → menu only; no seed → loading alone, then menu. Never both. */}
+      {loading && !detail && !listItem ? (
         <div className="admissions-row-actions__item muted">{t('common.loading')}</div>
-      ) : null}
+      ) : (
+        <>
+          {registered || studentNav?.href ? (
+            studentNav?.href ? (
+              <Link
+                href={studentNav.href}
+                role="menuitem"
+                className="admissions-row-actions__item"
+                data-testid="admission-actions-open-student"
+                onClick={() => setOpen(false)}
+              >
+                {t('admin.admissions.registration.openStudentProfile')}
+              </Link>
+            ) : null
+          ) : null}
 
-      {registered || studentNav?.href ? (
-        studentNav?.href ? (
+          {!registered && modern ? (
+            <>
+              {showPrimaryOnly && primaryCode === 'log_contact' ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-log-contact"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setFollowUpOpen(true), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('log_contact'))}
+                </button>
+              ) : null}
+
+              {canLogContact && primaryCode !== 'log_contact' ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-log-contact"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setFollowUpOpen(true), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('log_contact'))}
+                </button>
+              ) : null}
+
+              {canAccept ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-accept"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setDecisionAction('accept'), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('accept'))}
+                </button>
+              ) : null}
+
+              {canReject ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-reject"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setDecisionAction('reject'), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('reject'))}
+                </button>
+              ) : null}
+
+              {canFamily ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-family-approval"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setDecisionAction('record_family_approval'), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('record_family_approval'))}
+                </button>
+              ) : null}
+
+              {canCombined ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-accept-and-family"
+                  disabled={busy}
+                  onClick={() => void runSimpleAction('accept_and_record_family_approval')}
+                >
+                  {t(modernActionLabelKey('accept_and_record_family_approval'))}
+                </button>
+              ) : null}
+
+              {canConvert || primaryCode === 'convert_to_student' ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-convert"
+                  disabled={busy}
+                  onClick={() => void runSimpleAction('convert_to_student')}
+                >
+                  {t(modernActionLabelKey('convert_to_student'))}
+                </button>
+              ) : null}
+
+              {canSafeDelete ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item admissions-row-actions__item--danger"
+                  disabled={busy}
+                  data-testid="admission-actions-safe-delete"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setSafeDeleteOpen(true), 0);
+                  }}
+                >
+                  {t('admin.admissions.safeDelete.action')}
+                </button>
+              ) : canClose ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item admissions-row-actions__item--danger"
+                  disabled={busy}
+                  data-testid="admission-actions-delete"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setCloseOpen(true), 0);
+                  }}
+                >
+                  {t('admin.admissions.actions.delete')}
+                </button>
+              ) : null}
+
+              {canChangeStatus ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  disabled={busy}
+                  data-testid="admission-actions-change-status"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setChangeStatusOpen(true), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('change_status'))}
+                </button>
+              ) : null}
+
+              {canReopen ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="admissions-row-actions__item"
+                  data-testid="admission-actions-reopen"
+                  onClick={() => {
+                    setOpen(false);
+                    window.setTimeout(() => setReopenOpen(true), 0);
+                  }}
+                >
+                  {t(modernActionLabelKey('reopen'))}
+                </button>
+              ) : null}
+            </>
+          ) : null}
+
           <Link
-            href={studentNav.href}
+            href={`/admin/admissions/${admissionId}`}
             role="menuitem"
             className="admissions-row-actions__item"
-            data-testid="admission-actions-open-student"
             onClick={() => setOpen(false)}
           >
-            {t('admin.admissions.registration.openStudentProfile')}
+            {t('admin.admissions.selection.openDetail')}
           </Link>
-        ) : null
-      ) : null}
-
-      {!registered && modern ? (
-        <>
-          {showPrimaryOnly && primaryCode === 'log_contact' ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-log-contact"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setFollowUpOpen(true), 0);
-              }}
-            >
-              {t(modernActionLabelKey('log_contact'))}
-            </button>
-          ) : null}
-
-          {canLogContact && primaryCode !== 'log_contact' ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-log-contact"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setFollowUpOpen(true), 0);
-              }}
-            >
-              {t(modernActionLabelKey('log_contact'))}
-            </button>
-          ) : null}
-
-          {canAccept ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-accept"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setDecisionAction('accept'), 0);
-              }}
-            >
-              {t(modernActionLabelKey('accept'))}
-            </button>
-          ) : null}
-
-          {canReject ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-reject"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setDecisionAction('reject'), 0);
-              }}
-            >
-              {t(modernActionLabelKey('reject'))}
-            </button>
-          ) : null}
-
-          {canFamily ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-family-approval"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setDecisionAction('record_family_approval'), 0);
-              }}
-            >
-              {t(modernActionLabelKey('record_family_approval'))}
-            </button>
-          ) : null}
-
-          {canCombined ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-accept-and-family"
-              disabled={busy}
-              onClick={() => void runSimpleAction('accept_and_record_family_approval')}
-            >
-              {t(modernActionLabelKey('accept_and_record_family_approval'))}
-            </button>
-          ) : null}
-
-          {canConvert || primaryCode === 'convert_to_student' ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-convert"
-              disabled={busy}
-              onClick={() => void runSimpleAction('convert_to_student')}
-            >
-              {t(modernActionLabelKey('convert_to_student'))}
-            </button>
-          ) : null}
-
-          {canSafeDelete ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item admissions-row-actions__item--danger"
-              disabled={busy}
-              data-testid="admission-actions-safe-delete"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setSafeDeleteOpen(true), 0);
-              }}
-            >
-              {t('admin.admissions.safeDelete.action')}
-            </button>
-          ) : canClose ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item admissions-row-actions__item--danger"
-              disabled={busy}
-              data-testid="admission-actions-delete"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setCloseOpen(true), 0);
-              }}
-            >
-              {t('admin.admissions.actions.delete')}
-            </button>
-          ) : null}
-
-          {canChangeStatus ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              disabled={busy}
-              data-testid="admission-actions-change-status"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setChangeStatusOpen(true), 0);
-              }}
-            >
-              {t(modernActionLabelKey('change_status'))}
-            </button>
-          ) : null}
-
-          {canReopen ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              data-testid="admission-actions-reopen"
-              onClick={() => {
-                setOpen(false);
-                window.setTimeout(() => setReopenOpen(true), 0);
-              }}
-            >
-              {t(modernActionLabelKey('reopen'))}
-            </button>
-          ) : null}
         </>
-      ) : null}
-
-      <Link
-        href={`/admin/admissions/${admissionId}`}
-        role="menuitem"
-        className="admissions-row-actions__item"
-        onClick={() => setOpen(false)}
-      >
-        {t('admin.admissions.selection.openDetail')}
-      </Link>
+      )}
     </div>
   ) : null;
 
