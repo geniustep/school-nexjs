@@ -15,7 +15,10 @@
 | Worktree | `D:/app/dev-worktrees/n4j-subject-level-enablement-write` |
 | Branch | `feat/n4j-subject-level-enablement-write` |
 | Base (N4-I) | `8d051875d25da6c0043e506ac6fb1934d752351f` |
-| Parent of base | `d99e1a5c5e2abce35259e0a967c367d2ed77ac6e` |
+| Candidate HEAD | `6c3c945e2d871127039a7e981ccf49c5f1b7a556` |
+| Parent | `8d051875d25da6c0043e506ac6fb1934d752351f` |
+| Tree | `f7ef0264f19dba6df42cd1febffad103ed92c24e` |
+| Remote | `origin/feat/n4j-subject-level-enablement-write` |
 | Parallel WT | `D:/app/school-nexjs` left dirty — untouched |
 
 ## 2. عقد Odoo 236
