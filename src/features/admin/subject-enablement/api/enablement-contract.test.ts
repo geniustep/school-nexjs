@@ -381,8 +381,14 @@ describe('subject level enablement contract (Odoo 236)', () => {
     );
   });
 
-  it('write flag forced off in Vercel production', () => {
-    vi.stubEnv('NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE', '1');
+  it('write flag defaults on and stays available in Vercel production', () => {
+    vi.stubEnv('NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE', '');
+    vi.stubEnv('VERCEL_ENV', 'production');
+    expect(isSubjectLevelEnablementWriteAvailable()).toBe(true);
+  });
+
+  it('write flag can be explicitly opted out', () => {
+    vi.stubEnv('NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE', 'off');
     vi.stubEnv('VERCEL_ENV', 'production');
     expect(isSubjectLevelEnablementWriteAvailable()).toBe(false);
   });

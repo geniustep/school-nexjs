@@ -7,17 +7,17 @@
  * Env / build-time write gate.
  *
  * - Name: `NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE`
- * - Default: off (unset or any value other than `1`)
- * - Enable isolated testing: set `NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE=1`
- *   on local/dev/preview only
- * - Always forced off when `VERCEL_ENV=production` until Odoo 236 is released
- *   on the target tenant (nibras still on 234 as of this stage)
+ * - Default: on (unset) — all four production tenants are on Odoo 236
+ * - Explicit opt-out: `0` / `false` / `off`
+ * - Explicit opt-in: `1` / `true` / `on`
+ * - Mutations remain gated by server `can_manage` + active-role; this flag only
+ *   controls whether the UI exposes write controls.
  */
 export function isSubjectLevelEnablementWriteAvailable(): boolean {
-  if (process.env.VERCEL_ENV === 'production') return false;
   const raw = (process.env.NEXT_PUBLIC_SUBJECT_LEVEL_ENABLEMENT_WRITE ?? '').trim().toLowerCase();
   if (raw === '0' || raw === 'false' || raw === 'off') return false;
-  return raw === '1' || raw === 'true' || raw === 'on';
+  if (raw === '' || raw === '1' || raw === 'true' || raw === 'on') return true;
+  return false;
 }
 
 /** @deprecated Prefer `isSubjectLevelEnablementWriteAvailable()` — kept for N4-I tests. */
