@@ -8,8 +8,7 @@ import { ClassesPageHero } from '@/features/admin/academic-setup/components/clas
 import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
 import { BatchClassDrawer } from '@/features/admin/academic-setup/components/batch-class-drawer';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
-import { LevelsByCycleList } from '@/features/admin/academic-setup/components/levels-by-cycle-list';
-import { LevelsToolbar } from '@/features/admin/academic-setup/components/levels-toolbar';
+import { ClassesLevelPanel } from '@/features/admin/academic-setup/components/classes-level-panel';
 import { ReferenceLevelsDrawer } from '@/features/admin/academic-setup/components/reference-levels-drawer';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
@@ -17,7 +16,6 @@ import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { useTrackOptions } from '@/features/admin/academic-setup/hooks/use-tracks';
 import { refreshAcademicSetupData } from '@/features/admin/academic-setup/utils/academic-setup-data-refresh';
-import { filterLevelGroups, type LevelFilterMode } from '@/features/admin/academic-setup/utils/level-filters';
 import { buildLevelGroups, groupSubjectsByLevel } from '@/features/admin/academic-setup/utils/summary';
 import { parseNumericFilter } from '@/features/admin/academic-setup/utils/search';
 import { canManageClasses } from '@/lib/permissions/academic-setup';
@@ -67,11 +65,9 @@ export default function AcademicSetupClassesPage() {
   }, [trackOptionsState.options?.levels]);
 
   const filterLevelId = parseNumericFilter(searchParams, 'level');
-  const filterClassId = parseNumericFilter(searchParams, 'class_id') ?? parseNumericFilter(searchParams, 'class');
-  const searchQuery = searchParams.get('q') ?? '';
-  const filterMode = (searchParams.get('filter') as LevelFilterMode) || 'all';
-  const cycleRaw = searchParams.get('cycle');
-  const cycleId = cycleRaw ? Number(cycleRaw) : null;
+  const filterClassId =
+    parseNumericFilter(searchParams, 'class_id') ??
+    parseNumericFilter(searchParams, 'class');
 
   const { openFromAction, dismissActionParam } = useDrawerActionParam('add');
   const levelsAction = useDrawerActionParam('add-levels');
@@ -109,19 +105,6 @@ export default function AcademicSetupClassesPage() {
 
   const createMode = drawer?.mode === 'create' || openFromAction;
   const levelsOpen = levelsDrawerOpen || levelsAction.openFromAction;
-
-  const filteredGroups = useMemo(() => {
-    let groups = filterLevelGroups(levelGroups, {
-      search: searchQuery,
-      filter: filterMode,
-      cycleId: Number.isFinite(cycleId) ? cycleId : null,
-      trackLevelIds,
-    });
-    if (filterLevelId) {
-      groups = groups.filter((g) => g.id === filterLevelId);
-    }
-    return groups;
-  }, [levelGroups, searchQuery, filterMode, cycleId, trackLevelIds, filterLevelId]);
 
   const totalStudents = useMemo(
     () => levelGroups.reduce((sum, g) => sum + g.studentCount, 0),
@@ -226,14 +209,15 @@ export default function AcademicSetupClassesPage() {
         subtitle={t('admin.academicSetup.classesPageSubtitle')}
         statChips={statChips}
         actions={headerActions}
-        toolbar={<LevelsToolbar groups={levelGroups} />}
       />
 
       {nextClassLevelId && (
         <div className="academic-setup-next-step__card" role="status">
           <div>
             <strong>{t('admin.academicSetup.guided.nextStepCreateClasses')}</strong>
-            <p className="tiny muted mt-2">{t('admin.academicSetup.guided.nextStepCreateClassesDesc')}</p>
+            <p className="tiny muted mt-2">
+              {t('admin.academicSetup.guided.nextStepCreateClassesDesc')}
+            </p>
           </div>
           <button
             type="button"
@@ -249,14 +233,14 @@ export default function AcademicSetupClassesPage() {
       )}
 
       <div className="academic-setup-classes-surface">
-        <LevelsByCycleList
-          groups={filteredGroups}
-          searchQuery={searchQuery}
-          focusLevelId={filterLevelId}
-          selectedClassId={filterClassId}
+        <ClassesLevelPanel
+          groups={levelGroups}
           canManage={canManage}
           trackLevels={trackOptionsState.options?.levels ?? []}
           subjectCountsByLevel={subjectCountsByLevel}
+          trackLevelIds={trackLevelIds}
+          focusLevelId={filterLevelId}
+          selectedClassId={filterClassId}
           onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
           onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
           onLevelRemoved={refreshAll}
