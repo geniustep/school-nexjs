@@ -15,6 +15,8 @@ export interface ClassFormInput {
   room: string;
   teacherIds: number[];
   subjectIds: number[];
+  /** When false/undefined, subject_ids are omitted so unrelated edits cannot wipe links. */
+  subjectsTouched?: boolean;
   creating?: boolean;
 }
 
@@ -47,8 +49,10 @@ export function buildClassPayload(input: ClassFormInput): Record<string, unknown
   const teachers = input.teacherIds.filter((id) => Number.isInteger(id) && id > 0);
   if (teachers.length > 0) payload.teacher_ids = teachers;
 
-  const subjects = input.subjectIds.filter((id) => Number.isInteger(id) && id > 0);
-  if (subjects.length > 0) payload.subject_ids = subjects;
+  if (input.subjectsTouched) {
+    // Explicit: [] clears class subject overrides; omission means "leave unchanged".
+    payload.subject_ids = input.subjectIds.filter((id) => Number.isInteger(id) && id > 0);
+  }
 
   if (input.creating) payload.active = true;
 

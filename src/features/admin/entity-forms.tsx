@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -9,6 +9,14 @@ import { Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { buildClassPayload, mapClassApiError, resolveAcademicYearId } from '@/features/admin/class-form-utils';
+import { ClassSubjectsField } from '@/features/admin/academic-setup/components/class-subjects-field';
+import { useSubjectOptions } from '@/features/admin/academic-setup/hooks/use-subject-options';
+import {
+  extractLevelEnabledOperationalSubjects,
+  incompatibleNewSubjectIds,
+  partitionClassSubjectSelection,
+  resolveClassSubjectIdsForSave,
+} from '@/features/admin/academic-setup/utils/class-level-subjects';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { mapAccountApiError } from '@/lib/account/account-errors';
@@ -312,7 +320,6 @@ export function ClassForm({
   const levelsState = useResource<Ref[]>(endpoints.admin.levels);
   const trackOptionsState = useAdminResource<TrackOptions>(endpoints.admin.trackOptions);
   const teachersState = useResource<Teacher[]>(endpoints.admin.teachers, { page_size: 200 });
-  const subjectsState = useResource<Ref[]>(endpoints.admin.subjects);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(cls?.name ?? '');
   const [levelId, setLevelId] = useState(String(cls?.level_id ?? cls?.level?.id ?? ''));
@@ -323,8 +330,22 @@ export function ClassForm({
   const [teacherIds, setTeacherIds] = useState<number[]>(
     cls?.teacher_ids ?? cls?.teachers?.map((te) => te.id) ?? [],
   );
-  const [subjectIds, setSubjectIds] = useState<number[]>(
-    cls?.subject_ids ?? cls?.subjects?.map((s) => s.id) ?? [],
+  const initialSubjectIds = useMemo(
+    () => cls?.subject_ids ?? cls?.subjects?.map((s) => s.id) ?? [],
+    [cls],
+  );
+  const [subjectIds, setSubjectIds] = useState<number[]>(initialSubjectIds);
+  const [subjectsTouched, setSubjectsTouched] = useState(false);
+  const [reconcileSubjectsAfterLevelChange, setReconcileSubjectsAfterLevelChange] = useState(false);
+
+  const legacyCatalog = useMemo(
+    () =>
+      (cls?.subjects ?? []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        code: s.code ?? null,
+      })),
+    [cls?.subjects],
   );
 
   const trackLevels = useMemo(
@@ -337,8 +358,51 @@ export function ClassForm({
     levelId ? { level_id: Number(levelId), limit: 200 } : undefined,
   );
   const tracksForLevel = tracksState.data ?? [];
+  const parsedLevelId = levelId ? Number(levelId) : null;
+  const parsedTrackId = trackId.trim() ? Number(trackId) : null;
+  const subjectOptionsState = useSubjectOptions(
+    parsedLevelId != null && Number.isFinite(parsedLevelId) ? parsedLevelId : null,
+    levelSupportsTracks ? parsedTrackId : null,
+  );
+  const levelSubjectOptions = useMemo(
+    () => extractLevelEnabledOperationalSubjects(subjectOptionsState.options),
+    [subjectOptionsState.options],
+  );
+  const { legacy: legacySubjects } = useMemo(
+    () => partitionClassSubjectSelection(subjectIds, levelSubjectOptions, legacyCatalog),
+    [subjectIds, levelSubjectOptions, legacyCatalog],
+  );
+
+  useEffect(() => {
+    if (!reconcileSubjectsAfterLevelChange || subjectOptionsState.loading) return;
+    if (subjectOptionsState.error) {
+      // Keep current selection on fetch failure — never wipe silently.
+      setReconcileSubjectsAfterLevelChange(false);
+      return;
+    }
+    const toClear = incompatibleNewSubjectIds(subjectIds, levelSubjectOptions, initialSubjectIds);
+    if (toClear.length > 0) {
+      if (!window.confirm(t('admin.academicSetup.levelSubjectsClearConfirm'))) {
+        setReconcileSubjectsAfterLevelChange(false);
+        return;
+      }
+      const clearSet = new Set(toClear);
+      setSubjectIds((prev) => prev.filter((id) => !clearSet.has(id)));
+      setSubjectsTouched(true);
+    }
+    setReconcileSubjectsAfterLevelChange(false);
+  }, [
+    reconcileSubjectsAfterLevelChange,
+    subjectOptionsState.loading,
+    subjectOptionsState.error,
+    subjectIds,
+    levelSubjectOptions,
+    initialSubjectIds,
+    t,
+  ]);
 
   function handleLevelChange(nextLevelId: string) {
+    if (nextLevelId === levelId) return;
     if (trackId && nextLevelId !== levelId) {
       const hadTrack = trackId.trim().length > 0;
       if (hadTrack && cls && !window.confirm(t('admin.academicSetup.trackClearConfirm'))) {
@@ -347,6 +411,7 @@ export function ClassForm({
       setTrackId('');
     }
     setLevelId(nextLevelId);
+    setReconcileSubjectsAfterLevelChange(true);
   }
 
   function handleTrackChange(nextTrackId: string) {
@@ -354,10 +419,16 @@ export function ClassForm({
       return;
     }
     setTrackId(nextTrackId);
+    setReconcileSubjectsAfterLevelChange(true);
   }
 
   function toggleId(id: number, list: number[], set: (v: number[]) => void) {
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  }
+
+  function toggleSubjectId(id: number) {
+    setSubjectsTouched(true);
+    setSubjectIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
   async function submit(e: React.FormEvent) {
@@ -366,6 +437,9 @@ export function ClassForm({
       toast.error(t('errors.validationFailed'));
       return;
     }
+    const safeSubjectIds = subjectsTouched
+      ? resolveClassSubjectIdsForSave(subjectIds, levelSubjectOptions, initialSubjectIds)
+      : subjectIds;
     const payload = buildClassPayload({
       name,
       levelId,
@@ -374,7 +448,8 @@ export function ClassForm({
       capacity,
       room,
       teacherIds,
-      subjectIds,
+      subjectIds: safeSubjectIds,
+      subjectsTouched,
       creating: !cls,
     });
     setSaving(true);
@@ -455,18 +530,20 @@ export function ClassForm({
         </div>
       </Field>
       <Field label={t('nav.subjects')}>
-        <div className="col" style={{ gap: 6, maxHeight: 160, overflow: 'auto' }}>
-          {(subjectsState.data ?? []).map((s) => (
-            <label key={s.id} className="row" style={{ gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={subjectIds.includes(s.id)}
-                onChange={() => toggleId(s.id, subjectIds, setSubjectIds)}
-              />
-              <span>{s.name}</span>
-            </label>
-          ))}
-        </div>
+        {!parsedLevelId ? (
+          <span className="tiny muted">{t('admin.selectLevel')}</span>
+        ) : (
+          <ClassSubjectsField
+            t={t}
+            loading={subjectOptionsState.loading}
+            error={subjectOptionsState.error}
+            options={levelSubjectOptions}
+            legacy={legacySubjects}
+            selectedIds={subjectIds}
+            onToggle={toggleSubjectId}
+            onRetry={subjectOptionsState.reload}
+          />
+        )}
       </Field>
     </FormShell>
   );
