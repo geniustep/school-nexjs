@@ -223,4 +223,33 @@ describe('teacher-interventions P0', () => {
     const codes = deriveTeacherInterventions(teacher).map((i) => i.code);
     expect(codes).toEqual(['ACCOUNT_INACTIVE_OR_MISSING']);
   });
+
+  it('composition counts follow the manually filtered set, not the raw window', () => {
+    const activeNoAssign = teacherStub({
+      id: 20,
+      employment: { state: 'active', active: true },
+      assignment_summary: { operational_count: 0 },
+      account: { has_linked_user: true, user_active: true },
+      academic_profile_summary: { academic_completeness: 'complete' },
+    });
+    const archivedNoAssign = teacherStub({
+      id: 21,
+      active: false,
+      status: 'archived',
+      employment: { state: 'archived', active: false },
+      assignment_summary: { operational_count: 0 },
+      account: { has_linked_user: true, user_active: true },
+      academic_profile_summary: { academic_completeness: 'complete' },
+    });
+    const rawWindow = [activeNoAssign, archivedNoAssign];
+    const manualActiveOnly = rawWindow.filter(
+      (row) => row.employment?.state === 'active' && row.active !== false,
+    );
+    expect(countTeacherInterventions(rawWindow).noAssignment).toBe(1);
+    expect(countTeacherInterventions(manualActiveOnly).noAssignment).toBe(1);
+    expect(countTeacherInterventions(manualActiveOnly).needsIntervention).toBe(1);
+    // Archived teacher must not inflate no-assignment composition after an
+    // active-only manual filter (card click applies preset on that same set).
+    expect(manualActiveOnly.map((row) => row.id)).toEqual([20]);
+  });
 });

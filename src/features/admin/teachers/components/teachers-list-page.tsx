@@ -118,9 +118,12 @@ export function TeachersListPage() {
     [manuallyFiltered, operationalPreset],
   );
 
+  // Card composition counts follow the rows available after independent manual
+  // filters (and before the operational preset), so the number matches what the
+  // user can still reach when clicking a card without a silent mismatch.
   const interventionCounts = useMemo(
-    () => countTeacherInterventions(teachers),
-    [teachers],
+    () => countTeacherInterventions(manuallyFiltered),
+    [manuallyFiltered],
   );
 
   const serverPagination = state.meta?.pagination;
