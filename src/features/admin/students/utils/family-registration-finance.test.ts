@@ -4,6 +4,8 @@ import {
   buildFamilyFinanceDraftsFromRegistration,
   familyFinanceOutcomeSummary,
   includedFinanceDraftsReady,
+  reopenFamilyFinanceSetup,
+  resolveFamilyFinanceDraftsForSetup,
   shouldOfferFamilyFinanceFailedRetry,
   type FamilyChildFinanceDraft,
 } from './family-registration-finance-state';
@@ -415,5 +417,78 @@ describe('family finance helpers', () => {
     ]);
     expect(ready.map((d) => d.localId)).toEqual(['ok']);
     expect(notReady.map((d) => d.localId)).toEqual(['bad']);
+  });
+});
+
+describe('family finance hardening helpers', () => {
+  it('reopens setup without clearing prior results or lock', () => {
+    const reopened = reopenFamilyFinanceSetup({
+      phase: 'completed',
+      lockedAgainstFullResubmit: true,
+      results: [
+        {
+          localId: 'c1',
+          studentId: 101,
+          displayName: 'يوسف',
+          status: 'succeeded',
+          agreementId: 9,
+          canRetrySafely: false,
+        },
+      ],
+    });
+    expect(reopened.phase).toBe('idle');
+    expect(reopened.lockedAgainstFullResubmit).toBe(true);
+    expect(reopened.results[0].status).toBe('succeeded');
+  });
+
+  it('preserves customized finance drafts when returning to setup for same cohort', () => {
+    const existing = [
+      draft({
+        localId: 'a',
+        studentId: 11,
+        hasLocalCustomization: true,
+        financeState: baseFinanceState({
+          planDiscount: { enabled: true, type: 'percent', value: '15', reason: '' },
+          customizePlan: true,
+          customizationReason: 'scholarship',
+        }),
+      }),
+    ];
+    const resolved = resolveFamilyFinanceDraftsForSetup({
+      existingDrafts: existing,
+      results: [
+        {
+          localId: 'a',
+          displayName: 'يوسف',
+          status: 'succeeded',
+          studentId: 11,
+          canRetrySafely: false,
+        },
+      ],
+      childrenByLocalId: new Map([['a', { academicYearId: '9', levelId: '3' }]]),
+      billingResponsibleLabel: 'أحمد',
+    });
+    expect(resolved[0].financeState?.planDiscount.value).toBe('15');
+    expect(resolved[0].hasLocalCustomization).toBe(true);
+    expect(resolved[0].studentId).toBe(11);
+  });
+
+  it('rejects negative percent discount before clamp', () => {
+    const result = validateFamilyFinanceDrafts(
+      [
+        draft({
+          financeState: baseFinanceState({
+            customizePlan: true,
+            customizationReason: 'scholarship',
+            planDiscount: { enabled: true, type: 'percent', value: '-5', reason: '' },
+          }),
+        }),
+      ],
+      t,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.byLocalId.c1.discount).toBeTruthy();
+    }
   });
 });

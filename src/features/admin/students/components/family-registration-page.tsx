@@ -76,8 +76,9 @@ import {
   shouldOfferFamilyFailedRetry,
 } from '../utils/family-registration-submit';
 import {
-  buildFamilyFinanceDraftsFromRegistration,
   emptyFamilyFinanceSubmitState,
+  reopenFamilyFinanceSetup,
+  resolveFamilyFinanceDraftsForSetup,
   type FamilyChildFinanceDraft,
   type FamilyFinanceSubmitState,
 } from '../utils/family-registration-finance-state';
@@ -235,14 +236,19 @@ export function FamilyRegistrationPage() {
         },
       ]),
     );
-    setFinanceDrafts(
-      buildFamilyFinanceDraftsFromRegistration({
+    setFinanceDrafts((prev) =>
+      resolveFamilyFinanceDraftsForSetup({
+        existingDrafts: prev,
         results: submitState.results,
         childrenByLocalId,
         billingResponsibleLabel: resolveBillingResponsibleLabel(),
       }),
     );
-    setFinanceSubmitState(emptyFamilyFinanceSubmitState());
+    setStep('finance');
+  }
+
+  function backToFinanceSetup() {
+    setFinanceSubmitState((prev) => reopenFamilyFinanceSetup(prev));
     setStep('finance');
   }
 
@@ -940,7 +946,7 @@ export function FamilyRegistrationPage() {
           onDraftsChange={setFinanceDrafts}
           onSubmitStateChange={setFinanceSubmitState}
           onBackToRegistrationResult={() => setStep('result')}
-          onBackToSetup={() => setStep('finance')}
+          onBackToSetup={backToFinanceSetup}
           onCompleted={() => setStep('finance_result')}
         />
       ) : null}

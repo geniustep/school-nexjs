@@ -112,7 +112,11 @@ export function FamilyRegistrationFinancePanel({
   mode: 'finance' | 'finance_result';
   drafts: FamilyChildFinanceDraft[];
   submitState: FamilyFinanceSubmitState;
-  onDraftsChange: (next: FamilyChildFinanceDraft[]) => void;
+  onDraftsChange: (
+    next:
+      | FamilyChildFinanceDraft[]
+      | ((prev: FamilyChildFinanceDraft[]) => FamilyChildFinanceDraft[]),
+  ) => void;
   onSubmitStateChange: (next: FamilyFinanceSubmitState) => void;
   onBackToRegistrationResult: () => void;
   onBackToSetup: () => void;
@@ -129,6 +133,10 @@ export function FamilyRegistrationFinancePanel({
   const [sharedConfirmOpen, setSharedConfirmOpen] = useState(false);
   const [sharedSourceLocalId, setSharedSourceLocalId] = useState<string | null>(null);
   const previewsStartedRef = useRef(false);
+
+  const draftsRef = useRef(drafts);
+  draftsRef.current = drafts;
+  const previewRequestIdRef = useRef(0);
 
   const submitting = submitState.phase === 'submitting' || submittingRef.current;
   const outcome = familyFinanceOutcomeSummary(submitState.results);
@@ -148,19 +156,34 @@ export function FamilyRegistrationFinancePanel({
     submitting || (submitState.lockedAgainstFullResubmit && !canCreateRemaining);
 
   useEffect(() => {
-    if (mode !== 'finance' || previewsStartedRef.current || drafts.length === 0) return;
+    if (mode !== 'finance') return;
+    const needsPreview = draftsRef.current.some(
+      (d) => d.preview == null && !d.previewLoading && !d.previewErrorMessage,
+    );
+    if (!needsPreview && previewsStartedRef.current) return;
+    if (draftsRef.current.length === 0) return;
     previewsStartedRef.current = true;
 
     let cancelled = false;
+    const requestId = ++previewRequestIdRef.current;
+    const initialDrafts = draftsRef.current;
 
     async function loadPreviews() {
-      onDraftsChange(
-        drafts.map((d) => ({ ...d, previewLoading: true, preview: null })),
+      onDraftsChange((prev) =>
+        prev.map((d) =>
+          d.preview == null
+            ? { ...d, previewLoading: true, preview: null }
+            : d,
+        ),
       );
 
-      const nextDrafts: FamilyChildFinanceDraft[] = [];
-      for (const draft of drafts) {
-        if (cancelled) return;
+      const nextByLocalId = new Map<string, FamilyChildFinanceDraft>();
+      for (const draft of initialDrafts) {
+        if (cancelled || requestId !== previewRequestIdRef.current) return;
+        if (draft.preview != null) {
+          nextByLocalId.set(draft.localId, draft);
+          continue;
+        }
         try {
           const res = await previewStudentFinancePlan(draft.studentId, {
             ...(draft.academicYearId != null
@@ -168,62 +191,91 @@ export function FamilyRegistrationFinancePanel({
               : {}),
           });
           const classified = classifyAssignPlanPreview(res);
-          nextDrafts.push(applyPreviewToFamilyFinanceDraft(draft, classified));
+          nextByLocalId.set(
+            draft.localId,
+            applyPreviewToFamilyFinanceDraft(draft, classified),
+          );
         } catch {
-          nextDrafts.push({
+          nextByLocalId.set(draft.localId, {
             ...draft,
             previewLoading: false,
-            preview: { kind: 'error', message: 'network_error' },
+            preview: { kind: 'error', message: t(tk('errors.previewNetwork')) },
             previewErrorMessage: t(tk('errors.previewNetwork')),
           });
         }
-        if (!cancelled) {
-          onDraftsChange([...nextDrafts, ...drafts.slice(nextDrafts.length).map((d) => ({
-            ...d,
-            previewLoading: true,
-          }))]);
+        if (!cancelled && requestId === previewRequestIdRef.current) {
+          onDraftsChange((prev) =>
+            prev.map((d) => {
+              const loaded = nextByLocalId.get(d.localId);
+              if (loaded) return loaded;
+              if (d.preview == null) return { ...d, previewLoading: true };
+              return d;
+            }),
+          );
         }
       }
-      if (!cancelled) onDraftsChange(nextDrafts);
     }
 
     void loadPreviews();
     return () => {
       cancelled = true;
     };
-    // Intentionally run once when entering finance setup with the initial drafts.
+    // Load missing previews when entering finance setup.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   function patchActiveFinance(patch: Partial<StudentCreateFinanceFormState>) {
     if (!activeDraft) return;
-    onDraftsChange(
-      patchFamilyFinanceDraft(drafts, activeDraft.localId, {
+    onDraftsChange((prev) =>
+      patchFamilyFinanceDraft(prev, activeDraft.localId, {
         hasLocalCustomization: true,
-        financeState: activeDraft.financeState
-          ? { ...activeDraft.financeState, ...patch }
-          : null,
+        financeState: (() => {
+          const current = prev.find((d) => d.localId === activeDraft.localId);
+          return current?.financeState
+            ? { ...current.financeState, ...patch }
+            : null;
+        })(),
       }),
     );
     setFieldErrors(null);
   }
 
   async function reloadPreview(localId: string, feePlanId?: number) {
-    const draft = drafts.find((d) => d.localId === localId);
+    const draft = draftsRef.current.find((d) => d.localId === localId);
     if (!draft) return;
-    onDraftsChange(
-      patchFamilyFinanceDraft(drafts, localId, { previewLoading: true }),
+    const requestId = ++previewRequestIdRef.current;
+    onDraftsChange((prev) =>
+      patchFamilyFinanceDraft(prev, localId, { previewLoading: true }),
     );
-    const res = await previewStudentFinancePlan(draft.studentId, {
-      ...(draft.academicYearId != null ? { academic_year_id: draft.academicYearId } : {}),
-      ...(feePlanId != null ? { fee_plan_id: feePlanId } : {}),
-    });
-    const classified = classifyAssignPlanPreview(res);
-    onDraftsChange(
-      drafts.map((d) =>
-        d.localId === localId ? applyPreviewToFamilyFinanceDraft(d, classified) : d,
-      ),
-    );
+    try {
+      const res = await previewStudentFinancePlan(draft.studentId, {
+        ...(draft.academicYearId != null
+          ? { academic_year_id: draft.academicYearId }
+          : {}),
+        ...(feePlanId != null ? { fee_plan_id: feePlanId } : {}),
+      });
+      if (requestId !== previewRequestIdRef.current) return;
+      const classified = classifyAssignPlanPreview(res);
+      onDraftsChange((prev) =>
+        prev.map((d) =>
+          d.localId === localId ? applyPreviewToFamilyFinanceDraft(d, classified) : d,
+        ),
+      );
+    } catch {
+      if (requestId !== previewRequestIdRef.current) return;
+      onDraftsChange((prev) =>
+        prev.map((d) =>
+          d.localId === localId
+            ? {
+                ...d,
+                previewLoading: false,
+                preview: { kind: 'error', message: t(tk('errors.previewNetwork')) },
+                previewErrorMessage: t(tk('errors.previewNetwork')),
+              }
+            : d,
+        ),
+      );
+    }
   }
 
   function requestApplyShared() {
@@ -245,22 +297,28 @@ export function FamilyRegistrationFinancePanel({
   function applyShared(overwriteCustomized: boolean) {
     const sourceLocalId = sharedSourceLocalId ?? activeDraft?.localId;
     if (!sourceLocalId) return;
-    const outcomeApply = applySharedFinanceSettings({
-      drafts,
-      sourceLocalId,
-      targetLocalIds: drafts.map((d) => d.localId),
-      overwriteCustomized,
+    onDraftsChange((prev) => {
+      const outcomeApply = applySharedFinanceSettings({
+        drafts: prev,
+        sourceLocalId,
+        targetLocalIds: prev.map((d) => d.localId),
+        overwriteCustomized,
+      });
+      if (outcomeApply.appliedLocalIds.length > 0) {
+        queueMicrotask(() =>
+          toast.success(
+            t(tk('toast.sharedApplied'), { count: outcomeApply.appliedLocalIds.length }),
+          ),
+        );
+      }
+      if (outcomeApply.skipped.length > 0) {
+        queueMicrotask(() =>
+          toast.error(t(tk('toast.sharedSkipped'), { count: outcomeApply.skipped.length })),
+        );
+      }
+      return outcomeApply.drafts;
     });
-    onDraftsChange(outcomeApply.drafts);
     setSharedConfirmOpen(false);
-    if (outcomeApply.appliedLocalIds.length > 0) {
-      toast.success(
-        t(tk('toast.sharedApplied'), { count: outcomeApply.appliedLocalIds.length }),
-      );
-    }
-    if (outcomeApply.skipped.length > 0) {
-      toast.error(t(tk('toast.sharedSkipped'), { count: outcomeApply.skipped.length }));
-    }
   }
 
   async function handleConfirmCreate(options?: { retryFailedOnly?: boolean }) {
@@ -328,7 +386,7 @@ export function FamilyRegistrationFinancePanel({
     }
   }
 
-  if (mode === 'finance_result' || submitState.phase === 'completed') {
+  if (mode === 'finance_result') {
     return (
       <StudentCreateStyledSection
         icon="review"
@@ -475,9 +533,9 @@ export function FamilyRegistrationFinancePanel({
                   checked={activeDraft.included}
                   disabled={submitting}
                   onChange={(e) =>
-                    onDraftsChange(
+                    onDraftsChange((prev) =>
                       setFamilyFinanceDraftIncluded(
-                        drafts,
+                        prev,
                         activeDraft.localId,
                         e.target.checked,
                       ),
@@ -564,7 +622,13 @@ export function FamilyRegistrationFinancePanel({
             {!activeDraft.previewLoading &&
             activeDraft.preview?.kind === 'error' ? (
               <div className="family-registration-finance__notice" role="alert">
-                <p>{activeDraft.preview.message ?? t(tk('errors.previewRequired'))}</p>
+                <p>
+                  {activeDraft.previewErrorMessage ||
+                    (activeDraft.preview.message &&
+                    activeDraft.preview.message !== 'network_error'
+                      ? activeDraft.preview.message
+                      : t(tk('errors.previewNetwork')))}
+                </p>
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm"

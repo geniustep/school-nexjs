@@ -30,6 +30,12 @@ function validateFinanceCustomization(
       errors.discount = t('admin.student360.create.finance.discountType');
       return errors;
     }
+    const rawValue = financeState.planDiscount.value.trim().replace(',', '.');
+    const rawNumber = rawValue === '' ? NaN : Number(rawValue);
+    if (!Number.isFinite(rawNumber) || rawNumber < 0) {
+      errors.discount = t('admin.student360.familyRegistration.finance.errors.invalidDiscount');
+      return errors;
+    }
     const value = parseDiscountPayloadValue(
       financeState.planDiscount.type,
       financeState.planDiscount.value,
@@ -38,7 +44,7 @@ function validateFinanceCustomization(
       errors.discount = t('admin.student360.familyRegistration.finance.errors.invalidDiscount');
       return errors;
     }
-    if (financeState.planDiscount.type === 'percent' && value > 100) {
+    if (financeState.planDiscount.type === 'percent' && (rawNumber > 100 || value > 100)) {
       errors.discount = t('admin.student360.create.finance.errors.percentTooHigh');
       return errors;
     }

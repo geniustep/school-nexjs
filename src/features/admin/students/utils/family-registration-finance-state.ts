@@ -273,6 +273,61 @@ export function shouldOfferFamilyFinanceFailedRetry(
   return results.some((r) => r.status === 'failed' && r.canRetrySafely);
 }
 
+export function reopenFamilyFinanceSetup(
+  state: FamilyFinanceSubmitState,
+): FamilyFinanceSubmitState {
+  return {
+    ...state,
+    phase: 'idle',
+  };
+}
+
+/**
+ * Reuses existing finance drafts when returning to setup for the same succeeded
+ * students; otherwise builds a fresh draft list from registration results.
+ */
+export function resolveFamilyFinanceDraftsForSetup(input: {
+  existingDrafts: FamilyChildFinanceDraft[];
+  results: FamilyChildSubmitResult[];
+  childrenByLocalId: Map<
+    string,
+    { academicYearId: string; levelId: string; displayName?: string }
+  >;
+  billingResponsibleLabel: string;
+}): FamilyChildFinanceDraft[] {
+  const fresh = buildFamilyFinanceDraftsFromRegistration({
+    results: input.results,
+    childrenByLocalId: input.childrenByLocalId,
+    billingResponsibleLabel: input.billingResponsibleLabel,
+  });
+  if (input.existingDrafts.length === 0) return fresh;
+
+  const existingByLocalId = new Map(
+    input.existingDrafts.map((draft) => [draft.localId, draft]),
+  );
+  const sameCohort =
+    fresh.length === input.existingDrafts.length &&
+    fresh.every((draft) => {
+      const existing = existingByLocalId.get(draft.localId);
+      return existing != null && existing.studentId === draft.studentId;
+    });
+
+  if (!sameCohort) return fresh;
+
+  return fresh.map((draft) => {
+    const existing = existingByLocalId.get(draft.localId);
+    if (!existing) return draft;
+    return {
+      ...existing,
+      displayName: draft.displayName,
+      academicYearId: draft.academicYearId,
+      levelId: draft.levelId,
+      billingResponsibleLabel: draft.billingResponsibleLabel,
+      // Keep preview/financeState/customization/inclusion from prior setup.
+    };
+  });
+}
+
 export function includedFinanceDraftsReady(
   drafts: FamilyChildFinanceDraft[],
 ): { ready: FamilyChildFinanceDraft[]; notReady: FamilyChildFinanceDraft[] } {
