@@ -75,6 +75,7 @@ import {
   runFamilyRegistrationSubmit,
   shouldOfferFamilyFailedRetry,
 } from '../utils/family-registration-submit';
+import { FamilyBatchIdempotencyRegistry } from '../utils/family-registration-idempotency';
 import {
   emptyFamilyFinanceSubmitState,
   reopenFamilyFinanceSetup,
@@ -88,6 +89,7 @@ import type {
   StudentCreateBillingFormState,
   StudentCreateGuardianEntry,
 } from '@/types/student-enrollment-finance';
+import type { BatchRegistrationResponse } from '@/types/student-batch-registration';
 import { StudentCreateBillingStep } from './student-create-billing-step';
 import { StudentCreateStyledSection } from './student-create-section-header';
 import { FamilyRegistrationStepper } from './family-registration-steps';
@@ -104,6 +106,7 @@ export function FamilyRegistrationPage() {
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const options = optionsState.options;
   const today = useMemo(() => todayIsoDate(), []);
+  const batchIdempotencyRef = useRef(new FamilyBatchIdempotencyRegistry());
 
   const [step, setStep] = useState<FamilyRegistrationWizardStep>('guardians');
   const [form, setForm] = useState<FamilyRegistrationFormState>(() =>
@@ -380,15 +383,17 @@ export function FamilyRegistrationPage() {
       onlyLocalIds,
       priorResults: options?.retryFailedOnly ? submitState.results : undefined,
       resolvedGuardianEntries: resolvedGuardianEntries ?? undefined,
-      postStudent: (payload) => api.post(endpoints.admin.students, payload),
-      fetchStudentDetails: (studentId) =>
-        api.get(endpoints.admin.student(studentId), {
-          active_school_id: resolvedSchoolId ?? undefined,
-        }),
+      idempotency: batchIdempotencyRef.current,
+      postBatch: (payload) =>
+        api.post<BatchRegistrationResponse>(
+          endpoints.admin.studentsBatchRegistration,
+          payload,
+        ),
       mapErrorMessage: (error) =>
         error
           ? mapStudentApiError(error, t).message
           : t('admin.student360.familyRegistration.toast.failure'),
+      t,
       onProgress: (next) => setSubmitState(next),
     });
 
@@ -832,7 +837,7 @@ export function FamilyRegistrationPage() {
               </ul>
             </section>
             <p className="family-registration__mode-note" role="note">
-              {t('admin.student360.familyRegistration.sequentialNote')}
+              {t('admin.student360.familyRegistration.batchNote')}
             </p>
           </div>
         </StudentCreateStyledSection>
@@ -844,11 +849,48 @@ export function FamilyRegistrationPage() {
           title={t('admin.student360.familyRegistration.resultTitle')}
           lead={t(`admin.student360.familyRegistration.resultLead.${outcome.kind}`)}
         >
+          <dl
+            className="family-registration__batch-summary"
+            data-testid="family-registration-batch-summary"
+          >
+            <div>
+              <dt>{t('admin.student360.familyRegistration.batchSummary.requested')}</dt>
+              <dd>{submitState.results.length}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.student360.familyRegistration.batchSummary.succeeded')}</dt>
+              <dd>{outcome.succeeded}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.student360.familyRegistration.batchSummary.failed')}</dt>
+              <dd>{outcome.failed + outcome.ambiguous + outcome.blocked}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.student360.familyRegistration.batchSummary.status')}</dt>
+              <dd>
+                {t(
+                  `admin.student360.familyRegistration.batchStatus.${
+                    submitState.batchStatus === 'completed' ||
+                    submitState.batchStatus === 'partially_completed' ||
+                    submitState.batchStatus === 'failed'
+                      ? submitState.batchStatus
+                      : outcome.kind === 'full_success'
+                        ? 'completed'
+                        : outcome.kind === 'partial_success'
+                          ? 'partially_completed'
+                          : 'failed'
+                  }`,
+                )}
+              </dd>
+            </div>
+          </dl>
+
           <ul className="family-registration__results" data-testid="family-registration-results">
             {submitState.results.map((result) => (
               <li
                 key={result.localId}
                 data-status={result.status}
+                data-replayed={result.replayed ? 'true' : undefined}
                 className="family-registration__result-item"
               >
                 <div>
@@ -857,6 +899,17 @@ export function FamilyRegistrationPage() {
                     {t(`admin.student360.familyRegistration.status.${result.status}`)}
                   </span>
                 </div>
+                {result.replayed ? (
+                  <p className="student-create-form__notice" role="status">
+                    {t('admin.student360.familyRegistration.replayedNotice')}
+                  </p>
+                ) : null}
+                {result.studentReference ? (
+                  <p className="mono tiny" dir="ltr">
+                    {t('admin.student360.familyRegistration.studentReference')}:{' '}
+                    {result.studentReference}
+                  </p>
+                ) : null}
                 {result.errorMessage &&
                 result.errorMessage !== 'guardians_unresolved' &&
                 result.errorMessage !== 'stopped_after_failure' &&
@@ -882,6 +935,15 @@ export function FamilyRegistrationPage() {
                     {t('admin.student360.familyRegistration.openStudent')}
                   </Link>
                 ) : null}
+                {result.status === 'failed' && result.canRetrySafely ? (
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => setStep('children')}
+                  >
+                    {t('admin.student360.familyRegistration.editFailedChild')}
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -892,6 +954,7 @@ export function FamilyRegistrationPage() {
                 type="button"
                 className="btn btn--primary"
                 disabled={submitting}
+                data-testid="family-registration-retry-failed"
                 onClick={() => void handleSubmitFamily({ retryFailedOnly: true })}
               >
                 {t('admin.student360.familyRegistration.retryFailed')}
@@ -913,6 +976,7 @@ export function FamilyRegistrationPage() {
                   type="button"
                   className="btn btn--ghost"
                   onClick={() => {
+                    batchIdempotencyRef.current.reset();
                     setForm(emptyFamilyRegistrationFormState(today));
                     setSubmitState(emptyFamilyRegistrationSubmitState());
                     setFinanceDrafts([]);
@@ -985,7 +1049,7 @@ export function FamilyRegistrationPage() {
             >
               {submitting
                 ? t('admin.student360.familyRegistration.submitting')
-                : t('admin.student360.familyRegistration.confirmRegister')}
+                : t('admin.student360.familyRegistration.confirmBatchRegister')}
             </button>
           </>
         ) : null}

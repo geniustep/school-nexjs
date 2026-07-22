@@ -42,10 +42,16 @@ export interface FamilyChildSubmitResult {
   displayName: string;
   status: FamilyChildSubmitStatus;
   studentId?: number;
+  /** School / student reference from batch response when provided. */
+  studentReference?: string | null;
+  /** True when Odoo returned a previously completed create for this child key. */
+  replayed?: boolean;
   errorMessage?: string;
   errorCode?: string;
   /** True only when a clear API error response was received (not network ambiguity). */
   canRetrySafely: boolean;
+  /** Aggregate batch status when available. */
+  batchStatus?: 'completed' | 'partially_completed' | 'failed' | string;
 }
 
 export interface FamilyRegistrationSubmitState {
@@ -53,6 +59,10 @@ export interface FamilyRegistrationSubmitState {
   results: FamilyChildSubmitResult[];
   /** Prevents accidental full re-submit after any successful create. */
   lockedAgainstFullResubmit: boolean;
+  /** Last batch idempotency key used for this draft attempt. */
+  batchIdempotencyKey?: string | null;
+  /** Aggregate status from the last batch response. */
+  batchStatus?: 'completed' | 'partially_completed' | 'failed' | string | null;
 }
 
 export interface FamilyRegistrationFormState {

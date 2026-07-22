@@ -24,6 +24,8 @@ export const endpoints = {
     schoolBranding: '/admin/school-branding',
 
     students: '/admin/students',
+    /** Multi-child family registration (REGISTRATION-FINANCE-3D1/3D2). */
+    studentsBatchRegistration: '/admin/students/batch-registration',
     studentsOptions: '/admin/students/options',
     studentsFinancialServiceCounts: '/admin/students/financial-service-counts',
     student: (id: number | string) => `/admin/students/${id}`,

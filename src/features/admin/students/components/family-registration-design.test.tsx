@@ -53,8 +53,9 @@ describe('family registration design contract', () => {
   it('keeps family registration i18n keys without hardcoded journey titles in ar messages', () => {
     const family = ar.admin.student360.familyRegistration;
     expect(family.pageTitle).toBe('تسجيل أسرة كاملة');
-    expect(family.confirmRegister).toContain('تأكيد');
-    expect(family.sequentialNote).toContain('نجاح جزئي');
+    expect(family.confirmBatchRegister).toContain('اعتماد');
+    expect(family.batchNote).toContain('طلب واحد');
+    expect(family.batchStatus.partially_completed).toContain('جزئيًا');
     expect(family.errors.ambiguousFailure).toContain('إعادة محاولة');
     expect(family.continueToFinance).toContain('الوضعية المالية');
     expect(family.finance.planNotPaymentNote).toContain('أداء');

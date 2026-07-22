@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { BatchRegistrationRequest } from '@/types/student-batch-registration';
 import {
   addFamilyRegistrationChild,
   emptyFamilyRegistrationFormState,
@@ -20,6 +21,7 @@ import {
   runFamilyRegistrationSubmit,
   shouldOfferFamilyFailedRetry,
 } from './family-registration-submit';
+import { FamilyBatchIdempotencyRegistry } from './family-registration-idempotency';
 import type { StudentCreateGuardianEntry } from '@/types/student-enrollment-finance';
 
 const t = (key: string) => key;
@@ -202,8 +204,8 @@ describe('resolve guardians after first create', () => {
   });
 });
 
-describe('family sequential submit safety', () => {
-  it('registers multiple children with one shared existing guardian', async () => {
+describe('family batch submit', () => {
+  it('registers multiple children in one batch request with a shared existing guardian', async () => {
     const form = seedFamilyWithOneGuardianAndChild();
     form.billing.guardianSourceMode = 'existing';
     form.billing.linkedGuardianId = 55;
@@ -220,18 +222,43 @@ describe('family sequential submit safety', () => {
       },
     ];
 
-    const posts: StudentCreatePayloadLike[] = [];
+    const idempotency = new FamilyBatchIdempotencyRegistry();
+    const posts: BatchRegistrationRequest[] = [];
     const state = await runFamilyRegistrationSubmit({
       form,
       schoolId: 1,
-      postStudent: async (payload) => {
-        posts.push(payload as StudentCreatePayloadLike);
+      idempotency,
+      t,
+      postBatch: async (payload) => {
+        posts.push(payload);
         return {
           success: true,
           data: {
-            id: posts.length === 1 ? 201 : 202,
-            guardian_relationships: [
-              { guardian_id: 55, guardian: { id: 55, name: 'أحمد العلوي' } },
+            idempotency_key: payload.idempotency_key,
+            status: 'completed',
+            requested_count: 2,
+            succeeded_count: 2,
+            failed_count: 0,
+            guardians_resolved: [{ client_guardian_key: 'existing-55', guardian_id: 55 }],
+            children: [
+              {
+                client_child_id: form.children[0].localId,
+                status: 'succeeded',
+                student_id: 201,
+                student_reference: 'ST-201',
+                replayed: false,
+                error: null,
+                retryable: false,
+              },
+              {
+                client_child_id: 'child-2',
+                status: 'succeeded',
+                student_id: 202,
+                student_reference: 'ST-202',
+                replayed: false,
+                error: null,
+                retryable: false,
+              },
             ],
           },
           meta: {},
@@ -240,14 +267,18 @@ describe('family sequential submit safety', () => {
       mapErrorMessage: () => 'error',
     });
 
-    expect(posts).toHaveLength(2);
-    expect(posts[0].guardian_relationships?.[0]).toMatchObject({ guardian_id: 55 });
-    expect(posts[1].guardian_relationships?.[0]).toMatchObject({ guardian_id: 55 });
+    expect(posts).toHaveLength(1);
+    expect(posts[0].guardians).toHaveLength(1);
+    expect(posts[0].guardians[0]).toMatchObject({ guardian_id: 55 });
+    expect(posts[0].children).toHaveLength(2);
+    expect(JSON.stringify(posts[0])).not.toMatch(/"school_id"\s*:/);
+    expect(JSON.stringify(posts[0])).not.toMatch(/"family_id"\s*:/);
     expect(familySubmitOutcomeSummary(state.results).kind).toBe('full_success');
     expect(state.lockedAgainstFullResubmit).toBe(true);
+    expect(state.batchStatus).toBe('completed');
   });
 
-  it('converts new guardian to existing after first child succeeds', async () => {
+  it('sends a new shared guardian once and maps client_guardian_key on both children', async () => {
     const form = seedFamilyWithOneGuardianAndChild();
     form.children = [
       form.children[0],
@@ -261,24 +292,32 @@ describe('family sequential submit safety', () => {
         },
       },
     ];
-
-    const posts: Array<{ guardian?: unknown; guardian_id?: number }> = [];
+    const idempotency = new FamilyBatchIdempotencyRegistry();
+    const posts: BatchRegistrationRequest[] = [];
     await runFamilyRegistrationSubmit({
       form,
       schoolId: 1,
-      postStudent: async (payload) => {
-        const rel = payload.guardian_relationships?.[0] as {
-          guardian?: unknown;
-          guardian_id?: number;
-        };
-        posts.push(rel);
+      idempotency,
+      t,
+      postBatch: async (payload) => {
+        posts.push(payload);
         return {
           success: true,
           data: {
-            id: posts.length === 1 ? 301 : 302,
-            guardian_relationships: [
-              { guardian_id: 88, guardian: { id: 88, name: 'أحمد العلوي' } },
-            ],
+            idempotency_key: payload.idempotency_key,
+            status: 'completed',
+            requested_count: 2,
+            succeeded_count: 2,
+            failed_count: 0,
+            guardians_resolved: [{ client_guardian_key: 'new-primary', guardian_id: 88 }],
+            children: payload.children.map((child, index) => ({
+              client_child_id: child.client_child_id,
+              status: 'succeeded',
+              student_id: 300 + index,
+              replayed: false,
+              error: null,
+              retryable: false,
+            })),
           },
           meta: {},
         };
@@ -286,16 +325,20 @@ describe('family sequential submit safety', () => {
       mapErrorMessage: () => 'error',
     });
 
-    expect(posts[0].guardian).toBeTruthy();
-    expect(posts[0].guardian_id).toBeUndefined();
-    expect(posts[1].guardian_id).toBe(88);
-    expect(posts[1].guardian).toBeUndefined();
+    expect(posts[0].guardians).toHaveLength(1);
+    expect(posts[0].guardians[0]).toMatchObject({
+      client_guardian_key: 'new-primary',
+      guardian: { name: 'أحمد العلوي' },
+    });
+    expect(posts[0].children[0].guardian_relationships[0].client_guardian_key).toBe('new-primary');
+    expect(posts[0].children[1].guardian_relationships[0].client_guardian_key).toBe('new-primary');
   });
 
-  it('exposes partial failure and allows safe retry only for failed children', async () => {
+  it('exposes partial failure and retries only failed children with stable keys', async () => {
     const form = seedFamilyWithOneGuardianAndChild();
     form.billing.guardianSourceMode = 'existing';
     form.billing.linkedGuardianId = 9;
+    const firstId = form.children[0].localId;
     form.children = [
       form.children[0],
       {
@@ -309,48 +352,109 @@ describe('family sequential submit safety', () => {
       },
     ];
 
-    let calls = 0;
-    const state = await runFamilyRegistrationSubmit({
+    const idempotency = new FamilyBatchIdempotencyRegistry();
+    const first = await runFamilyRegistrationSubmit({
       form,
       schoolId: 1,
-      postStudent: async () => {
-        calls += 1;
-        if (calls === 1) {
-          return {
-            success: true,
-            data: {
-              id: 401,
-              guardian_relationships: [{ guardian_id: 9, guardian: { id: 9, name: 'أحمد' } }],
+      idempotency,
+      t,
+      postBatch: async (payload) => ({
+        success: true,
+        data: {
+          idempotency_key: payload.idempotency_key,
+          status: 'partially_completed',
+          requested_count: 2,
+          succeeded_count: 1,
+          failed_count: 1,
+          children: [
+            {
+              client_child_id: firstId,
+              status: 'succeeded',
+              student_id: 401,
+              replayed: false,
+              error: null,
+              retryable: false,
             },
-            meta: {},
-          };
-        }
-        return {
-          success: false,
-          error: { code: 'validation_error', message: 'massar duplicate' },
-          meta: {},
-        };
-      },
+            {
+              client_child_id: 'child-2',
+              status: 'failed',
+              student_id: null,
+              error: { code: 'duplicate_student', message: 'massar duplicate', client_child_id: 'child-2' },
+              retryable: true,
+            },
+          ],
+        },
+        meta: {},
+      }),
       mapErrorMessage: (error) => error?.message ?? 'error',
     });
 
-    expect(familySubmitOutcomeSummary(state.results).kind).toBe('partial_success');
-    expect(state.results[0].status).toBe('succeeded');
-    expect(state.results[1].status).toBe('failed');
-    expect(state.results[1].canRetrySafely).toBe(true);
-    expect(shouldOfferFamilyFailedRetry(state.results)).toBe(true);
-    expect(state.lockedAgainstFullResubmit).toBe(true);
+    expect(familySubmitOutcomeSummary(first.results).kind).toBe('partial_success');
+    expect(first.results[0].status).toBe('succeeded');
+    expect(first.results[1].status).toBe('failed');
+    expect(first.results[1].canRetrySafely).toBe(true);
+    expect(shouldOfferFamilyFailedRetry(first.results)).toBe(true);
+
+    const childKey = idempotency.currentChildKey('child-2');
+    const batchKey = idempotency.currentBatchKey();
+    const retryPosts: BatchRegistrationRequest[] = [];
+    const retry = await runFamilyRegistrationSubmit({
+      form,
+      schoolId: 1,
+      idempotency,
+      t,
+      onlyLocalIds: ['child-2'],
+      priorResults: first.results,
+      postBatch: async (payload) => {
+        retryPosts.push(payload);
+        return {
+          success: true,
+          data: {
+            idempotency_key: payload.idempotency_key,
+            status: 'completed',
+            requested_count: 1,
+            succeeded_count: 1,
+            failed_count: 0,
+            children: [
+              {
+                client_child_id: 'child-2',
+                status: 'succeeded',
+                student_id: 402,
+                replayed: false,
+                error: null,
+                retryable: false,
+              },
+            ],
+          },
+          meta: {},
+        };
+      },
+      mapErrorMessage: () => 'error',
+    });
+
+    expect(retryPosts).toHaveLength(1);
+    expect(retryPosts[0].children).toHaveLength(1);
+    expect(retryPosts[0].children[0].client_child_id).toBe('child-2');
+    expect(retryPosts[0].children[0].idempotency_key).toBe(childKey);
+    expect(retryPosts[0].idempotency_key).toBe(batchKey);
+    expect(retry.results.find((r) => r.localId === firstId)?.status).toBe('succeeded');
+    expect(retry.results.find((r) => r.localId === 'child-2')?.status).toBe('succeeded');
   });
 
-  it('marks ambiguous network failure and does not offer dangerous retry', async () => {
+  it('marks ambiguous network failure and keeps keys for a safe later attempt', async () => {
     const form = seedFamilyWithOneGuardianAndChild();
     form.billing.guardianSourceMode = 'existing';
     form.billing.linkedGuardianId = 9;
+    const idempotency = new FamilyBatchIdempotencyRegistry();
+    const before = idempotency.ensureBatchKey();
+    const childKey = idempotency.ensureChildKey(form.children[0].localId);
 
     const state = await runFamilyRegistrationSubmit({
       form,
       schoolId: 1,
-      postStudent: async () => {
+      idempotency,
+      t,
+      postBatch: async () => {
         throw new Error('network down');
       },
       mapErrorMessage: () => 'network',
@@ -359,38 +463,47 @@ describe('family sequential submit safety', () => {
     expect(state.results[0].status).toBe('ambiguous');
     expect(state.results[0].canRetrySafely).toBe(false);
     expect(shouldOfferFamilyFailedRetry(state.results)).toBe(false);
+    expect(idempotency.currentBatchKey()).toBe(before);
+    expect(idempotency.currentChildKey(form.children[0].localId)).toBe(childKey);
   });
 
-  it('blocks remaining children when new guardians cannot be resolved', async () => {
+  it('treats replayed child as success without offering resubmit', async () => {
     const form = seedFamilyWithOneGuardianAndChild();
-    form.children = [
-      form.children[0],
-      {
-        ...form.children[0],
-        localId: 'child-2',
-        profile: {
-          ...form.children[0].profile,
-          firstName: 'إياد',
-          lastName: 'العلوي',
-        },
-      },
-    ];
-
+    form.billing.guardianSourceMode = 'existing';
+    form.billing.linkedGuardianId = 9;
+    const idempotency = new FamilyBatchIdempotencyRegistry();
     const state = await runFamilyRegistrationSubmit({
       form,
       schoolId: 1,
-      postStudent: async () => ({
+      idempotency,
+      t,
+      postBatch: async (payload) => ({
         success: true,
-        // No guardian ids in response — cannot safely continue with nested new guardians.
-        data: { id: 501 },
+        data: {
+          idempotency_key: payload.idempotency_key,
+          status: 'completed',
+          requested_count: 1,
+          succeeded_count: 1,
+          failed_count: 0,
+          replayed: true,
+          children: [
+            {
+              client_child_id: form.children[0].localId,
+              status: 'succeeded',
+              student_id: 777,
+              replayed: true,
+              error: null,
+              retryable: false,
+            },
+          ],
+        },
         meta: {},
       }),
       mapErrorMessage: () => 'error',
     });
-
     expect(state.results[0].status).toBe('succeeded');
-    expect(state.results[1].status).toBe('blocked');
-    expect(state.results[1].errorCode).toBe('guardians_unresolved');
+    expect(state.results[0].replayed).toBe(true);
+    expect(state.lockedAgainstFullResubmit).toBe(true);
   });
 
   it('summary flags missing billing responsible when multiple guardians', () => {
@@ -406,14 +519,97 @@ describe('family sequential submit safety', () => {
       },
     ];
     form.billing.billingGuardianEntryKey = null;
-    // Make primary complete as existing too for summary collect
     form.billing.guardianSourceMode = 'existing';
     form.billing.linkedGuardianId = 1;
     const summary = summarizeFamilyRegistration(form);
     expect(summary.missingBillingGuardian).toBe(true);
   });
-});
 
-type StudentCreatePayloadLike = {
-  guardian_relationships?: Array<{ guardian_id?: number; guardian?: unknown }>;
-};
+  it('keeps missing_capability as a per-child failure without wiping the form draft keys', async () => {
+    const form = seedFamilyWithOneGuardianAndChild();
+    form.billing.guardianSourceMode = 'existing';
+    form.billing.linkedGuardianId = 9;
+    const firstId = form.children[0].localId;
+    form.children = [
+      form.children[0],
+      {
+        ...form.children[0],
+        localId: 'child-2',
+        profile: { ...form.children[0].profile, firstName: 'مريم', lastName: 'العلوي' },
+      },
+    ];
+    const idempotency = new FamilyBatchIdempotencyRegistry();
+    const batchKey = idempotency.ensureBatchKey();
+    const state = await runFamilyRegistrationSubmit({
+      form,
+      schoolId: 1,
+      idempotency,
+      t,
+      postBatch: async (payload) => ({
+        success: true,
+        data: {
+          idempotency_key: payload.idempotency_key,
+          status: 'partially_completed',
+          requested_count: 2,
+          succeeded_count: 1,
+          failed_count: 1,
+          children: [
+            {
+              client_child_id: firstId,
+              status: 'succeeded',
+              student_id: 501,
+              replayed: false,
+              error: null,
+              retryable: false,
+            },
+            {
+              client_child_id: 'child-2',
+              status: 'failed',
+              student_id: null,
+              error: {
+                code: 'missing_capability',
+                message: 'finance.assign_plan',
+                client_child_id: 'child-2',
+              },
+              retryable: false,
+            },
+          ],
+        },
+        meta: {},
+      }),
+      mapErrorMessage: (error) => error?.message ?? 'error',
+    });
+    expect(state.results[1].errorCode).toBe('missing_capability');
+    expect(state.results[1].canRetrySafely).toBe(false);
+    expect(idempotency.currentBatchKey()).toBe(batchKey);
+    expect(form.children).toHaveLength(2);
+  });
+
+  it('surfaces transport-level idempotency conflict without regenerating keys', async () => {
+    const form = seedFamilyWithOneGuardianAndChild();
+    form.billing.guardianSourceMode = 'existing';
+    form.billing.linkedGuardianId = 9;
+    const idempotency = new FamilyBatchIdempotencyRegistry();
+    const batchKey = idempotency.ensureBatchKey();
+    const childKey = idempotency.ensureChildKey(form.children[0].localId);
+    const state = await runFamilyRegistrationSubmit({
+      form,
+      schoolId: 1,
+      idempotency,
+      t,
+      postBatch: async () => ({
+        success: false,
+        error: {
+          code: 'idempotency_conflict',
+          message: 'conflict',
+        },
+        meta: {},
+      }),
+      mapErrorMessage: (error) => error?.message ?? 'error',
+    });
+    expect(state.results[0].status).toBe('failed');
+    expect(state.results[0].canRetrySafely).toBe(false);
+    expect(idempotency.currentBatchKey()).toBe(batchKey);
+    expect(idempotency.currentChildKey(form.children[0].localId)).toBe(childKey);
+  });
+});
