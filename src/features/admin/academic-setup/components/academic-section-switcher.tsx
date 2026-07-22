@@ -43,13 +43,14 @@ export function AcademicSectionSwitcher() {
         ‹ {t('admin.settings.backToSettings')}
       </Link>
 
-      <div className="academic-section-switcher__desktop">
+      <div className="academic-section-switcher__track" role="list">
         {items.map((item) => {
           const active = item.href === activeItem?.href;
           return (
             <Link
               key={item.href}
               href={item.href}
+              role="listitem"
               className={cn('academic-setup-nav__link', active && 'academic-setup-nav__link--active')}
               aria-current={active ? 'page' : undefined}
             >

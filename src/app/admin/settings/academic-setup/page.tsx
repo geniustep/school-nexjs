@@ -8,6 +8,7 @@ import { GuidedFlowJourney } from '@/features/admin/academic-setup/components/gu
 import { GroupedSetupIssues } from '@/features/admin/academic-setup/components/grouped-setup-issues';
 import { AcademicQuickActions } from '@/features/admin/academic-setup/components/academic-quick-actions';
 import { AutoSetupCtaBanner } from '@/features/admin/academic-setup/components/auto-setup-cta-banner';
+import { SetupDomainCards } from '@/features/admin/academic-setup/components/setup-summary-card';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { useTrackOptions } from '@/features/admin/academic-setup/hooks/use-tracks';
@@ -73,19 +74,20 @@ export default function AcademicSetupOverviewPage() {
 
   if (loading) {
     return (
-      <>
+      <div className="academic-overview">
         <div className="academic-overview-hero academic-overview-hero--skeleton" aria-busy="true">
           <div className="academic-setup-skeleton academic-setup-skeleton--title" />
           <div className="academic-setup-skeleton academic-setup-skeleton--bar" />
+          <div className="academic-setup-skeleton academic-setup-skeleton--bar" style={{ width: '70%' }} />
         </div>
         <LoadingState label={t('common.loading')} />
-      </>
+      </div>
     );
   }
 
   if (error || !readinessState.data) {
     return (
-      <>
+      <div className="academic-overview">
         <div className="academic-overview-hero">
           <h1 className="academic-overview-hero__title">{t('admin.academicSetup.title')}</h1>
         </div>
@@ -97,7 +99,7 @@ export default function AcademicSetupOverviewPage() {
             trackOptionsState.reload();
           }}
         />
-      </>
+      </div>
     );
   }
 
@@ -106,7 +108,7 @@ export default function AcademicSetupOverviewPage() {
   const quickActions = data.quick_actions ?? [];
 
   return (
-    <>
+    <div className="academic-overview">
       <AcademicSetupHero
         data={data}
         nextStep={nextStep}
@@ -115,12 +117,26 @@ export default function AcademicSetupOverviewPage() {
 
       {showAutoSetupCta && <AutoSetupCtaBanner available />}
 
+      <section className="academic-overview-domains" aria-labelledby="academic-domains-title">
+        <div className="academic-overview-section__head">
+          <h2 id="academic-domains-title" className="admin-section__title">
+            {t('admin.academicSetup.readinessTitle')}
+          </h2>
+          <p className="academic-overview-section__desc">
+            {t('admin.academicSetup.subtitle')}
+          </p>
+        </div>
+        <SetupDomainCards data={data} />
+      </section>
+
       <GuidedFlowJourney steps={steps} />
 
       {allIssues.length > 0 && (
         <section ref={issuesSectionRef} className="academic-issues-groups-section">
-          <div className="academic-issues-groups-section__head">
-            <h2 className="admin-section__title">{t('admin.alerts')}</h2>
+          <div className="academic-overview-section__head academic-issues-groups-section__head">
+            <div>
+              <h2 className="admin-section__title">{t('admin.alerts')}</h2>
+            </div>
             <button
               type="button"
               className="btn btn--ghost btn--sm"
@@ -138,19 +154,23 @@ export default function AcademicSetupOverviewPage() {
 
       {quickActions.length > 0 && (
         <section className="academic-quick-actions-section">
-          <h2 className="admin-section__title">{t('admin.academicSetup.quickActionsTitle')}</h2>
+          <div className="academic-overview-section__head">
+            <h2 className="admin-section__title">{t('admin.academicSetup.quickActionsTitle')}</h2>
+          </div>
           <AcademicQuickActions actions={quickActions} limit={4} />
         </section>
       )}
 
       {data.readiness.ready_for_timetable_setup && (
         <div className="academic-setup-gap-banner academic-setup-gap-banner--success">
-          <p>{t('admin.academicSetup.readyForTimetable')}</p>
-          <Link href="/admin/timetable" className="btn btn--ghost btn--sm mt-2">
+          <div className="academic-setup-gap-banner__copy">
+            <strong>{t('admin.academicSetup.readyForTimetable')}</strong>
+          </div>
+          <Link href="/admin/timetable" className="btn btn--primary btn--sm">
             {t('admin.academicSetup.guided.openTimetable')}
           </Link>
         </div>
       )}
-    </>
+    </div>
   );
 }

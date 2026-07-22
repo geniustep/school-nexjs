@@ -6,7 +6,7 @@ export function AcademicSetupShell({ children }: { children: React.ReactNode }) 
   return (
     <div className="academic-setup admin-workspace">
       <AcademicSetupNav />
-      {children}
+      <div className="academic-setup__main">{children}</div>
     </div>
   );
 }
