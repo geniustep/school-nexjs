@@ -992,7 +992,7 @@ export function EnrollmentIntakeGuardianFields({
   const fields = (
     <>
       {!isAdmissionEdit ? (
-        <CreateField label={t('admin.admissions.fields.guardianName')}>
+        <CreateField field="guardianName" label={t('admin.admissions.fields.guardianName')}>
           <input
             className="input"
             value={values.guardianName}
@@ -1003,7 +1003,7 @@ export function EnrollmentIntakeGuardianFields({
           />
         </CreateField>
       ) : null}
-      <CreateField label={t('admin.admissions.fields.guardianPhone')}>
+      <CreateField field="guardianPhone" label={t('admin.admissions.fields.guardianPhone')}>
         <input
           className="input"
           dir="ltr"
@@ -1014,7 +1014,7 @@ export function EnrollmentIntakeGuardianFields({
           aria-disabled={profileDisabled || undefined}
         />
       </CreateField>
-      <CreateField label={t('admin.admissions.fields.relationship')}>
+      <CreateField field="guardianRelationship" label={t('admin.admissions.fields.relationship')}>
         {guardian.relationshipLoadFailed ? (
           <p className="student-create-field__hint">{t('admin.admissions.create.relationshipLoadError')}</p>
         ) : (
@@ -1037,7 +1037,7 @@ export function EnrollmentIntakeGuardianFields({
         )}
       </CreateField>
       {!isAdmissionEdit ? (
-        <CreateField label={t('admin.admissions.fields.guardianEmail')} error={undefined}>
+        <CreateField field="guardianEmail" label={t('admin.admissions.fields.guardianEmail')} error={undefined}>
           <input
             className="input"
             type="email"

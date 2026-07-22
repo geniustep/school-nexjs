@@ -71,25 +71,26 @@ export function StudentCreateAdditionalGuardianCard({
           type="button"
           className="btn btn--ghost btn--sm"
           onClick={() => onRemove(entry.entryKey)}
+          aria-label={t('admin.student360.create.billing.removeAdditionalGuardian')}
         >
           {t('admin.student360.create.billing.removeAdditionalGuardian')}
         </button>
       </header>
 
-      <div className="student-create-additional-guardian-card__mode">
-        <button
-          type="button"
-          className={`btn btn--sm${sourceMode === 'new' ? ' btn--primary' : ' btn--ghost'}`}
-          onClick={() => onSourceModeChange(entry.entryKey, 'new')}
-        >
-          {t('admin.student360.create.billing.guardianSourceNewTitle')}
-        </button>
+      <div className="student-create-additional-guardian-card__mode" role="group" aria-label={t('admin.student360.create.billing.guardianSourceChooseTitle')}>
         <button
           type="button"
           className={`btn btn--sm${sourceMode === 'existing' ? ' btn--primary' : ' btn--ghost'}`}
           onClick={() => onSourceModeChange(entry.entryKey, 'existing')}
         >
-          {t('admin.student360.create.billing.guardianSourceExistingPendingTitle')}
+          {t('admin.student360.create.billing.guardianSourceExistingLabel')}
+        </button>
+        <button
+          type="button"
+          className={`btn btn--sm${sourceMode === 'new' ? ' btn--primary' : ' btn--ghost'}`}
+          onClick={() => onSourceModeChange(entry.entryKey, 'new')}
+        >
+          {t('admin.student360.create.billing.guardianSourceNewLabel')}
         </button>
       </div>
 

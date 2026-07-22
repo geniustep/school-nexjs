@@ -128,27 +128,13 @@ export function StudentCreateGuardianSourcePanel({
     <div className="student-create-guardian-source student-create-form__cell student-create-form__cell--full">
       <fieldset className="student-create-guardian-source__picker">
         <legend className="student-create-guardian-source__legend">
-          {t('admin.student360.guardianSourceTitle')}
+          {t('admin.student360.create.billing.guardianSourceChooseTitle')}
         </legend>
         <div
           className="student-create-guardian-source__modes"
           role="radiogroup"
-          aria-label={t('admin.student360.guardianSourceTitle')}
+          aria-label={t('admin.student360.create.billing.guardianSourceChooseTitle')}
         >
-          <label
-            className={`student-create-guardian-source__mode${sourceMode === 'new' ? ' student-create-guardian-source__mode--active' : ''}`}
-          >
-            <input
-              type="radio"
-              name="student-create-guardian-source"
-              value="new"
-              checked={sourceMode === 'new'}
-              onChange={() => selectMode('new')}
-            />
-            <span className="student-create-guardian-source__mode-label">
-              {t('admin.student360.guardianSourceNew')}
-            </span>
-          </label>
           <label
             className={`student-create-guardian-source__mode${sourceMode === 'existing' ? ' student-create-guardian-source__mode--active' : ''}`}
           >
@@ -160,7 +146,21 @@ export function StudentCreateGuardianSourcePanel({
               onChange={() => selectMode('existing')}
             />
             <span className="student-create-guardian-source__mode-label">
-              {t('admin.student360.guardianSourceExisting')}
+              {t('admin.student360.create.billing.guardianSourceExistingLabel')}
+            </span>
+          </label>
+          <label
+            className={`student-create-guardian-source__mode${sourceMode === 'new' ? ' student-create-guardian-source__mode--active' : ''}`}
+          >
+            <input
+              type="radio"
+              name="student-create-guardian-source"
+              value="new"
+              checked={sourceMode === 'new'}
+              onChange={() => selectMode('new')}
+            />
+            <span className="student-create-guardian-source__mode-label">
+              {t('admin.student360.create.billing.guardianSourceNewLabel')}
             </span>
           </label>
         </div>
@@ -218,8 +218,8 @@ export function StudentCreateGuardianSourcePanel({
             boxVariant === 'matches' ||
             boxVariant === 'searching' ||
             (isExistingMode && boxVariant === 'idle')
-              ? t('admin.student360.guardianSourceExisting')
-              : t('admin.student360.guardianSourceNew')}
+              ? t('admin.student360.create.billing.guardianSourceExistingLabel')
+              : t('admin.student360.create.billing.guardianSourceNewLabel')}
           </span>
           <p className="student-create-guardian-source__box-title">
             {boxVariant === 'linked'

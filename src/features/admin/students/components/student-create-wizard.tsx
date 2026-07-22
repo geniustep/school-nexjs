@@ -198,6 +198,8 @@ export function StudentCreateForm({
   const lastFeePlanIdRef = useRef<number | null>(null);
   const admissionPrefillHadClassRef = useRef(Boolean(initialProfilePatch?.classId?.trim()));
   const skipGuardianLinkClearRef = useRef(false);
+  const profileOptionsInitRef = useRef(false);
+  const profilePrefillAppliedRef = useRef(false);
   const [linkedGuardianPerson, setLinkedGuardianPerson] = useState<PersonSearchResult | null>(null);
   const [linkedGuardianPersonsByEntryKey, setLinkedGuardianPersonsByEntryKey] = useState<
     Record<string, PersonSearchResult>
@@ -205,49 +207,63 @@ export function StudentCreateForm({
 
   useEffect(() => {
     if (optionsState.loading) return;
-    const base = defaultStudentProfileFormState(options);
-    let merged: StudentProfileFormState = initialProfilePatch
-      ? { ...base, ...initialProfilePatch }
-      : base;
 
-    const defaultNationalityId = resolveDefaultNationalityId(options?.nationalities);
-    if (!merged.nationalityId.trim() && defaultNationalityId) {
-      merged = { ...merged, nationalityId: defaultNationalityId };
-    }
-
-    if (!merged.admissionDate.trim()) {
-      merged = { ...merged, admissionDate: todayIsoDate() };
-    }
-
-    if (!merged.academicYearId.trim()) {
-      merged = {
-        ...merged,
-        academicYearId: resolveDefaultAcademicYearId(options?.academicYears ?? []),
-      };
-    }
-
-    if (!merged.actualJoinDate.trim() && merged.admissionDate.trim()) {
-      merged = { ...merged, actualJoinDate: merged.admissionDate };
-    }
-
-    if (!merged.emergencyRelationship.trim()) {
-      merged = { ...merged, emergencyRelationship: 'father' };
-    }
-
-    if (merged.levelId && !merged.cycleId && options?.levels?.length) {
-      const level = options.levels.find((item) => String(item.id) === merged.levelId);
-      const refLevels = levelOptionsState.options?.reference_levels ?? [];
-      const cycles = levelOptionsState.options?.cycles ?? [];
-      if (level && refLevels.length && cycles.length) {
-        const cycleByCode = buildReferenceLevelCycleMap(refLevels);
-        const cycleId = resolveStudentLevelCycleId(level, cycleByCode, cycles);
-        if (cycleId != null) {
-          merged = { ...merged, cycleId: String(cycleId) };
+    function applySoftCreateDefaults(prev: StudentProfileFormState): StudentProfileFormState {
+      let merged = prev;
+      const defaultNationalityId = resolveDefaultNationalityId(options?.nationalities);
+      if (!merged.nationalityId.trim() && defaultNationalityId) {
+        merged = { ...merged, nationalityId: defaultNationalityId };
+      }
+      if (!merged.admissionDate.trim()) {
+        merged = { ...merged, admissionDate: todayIsoDate() };
+      }
+      if (!merged.academicYearId.trim()) {
+        merged = {
+          ...merged,
+          academicYearId: resolveDefaultAcademicYearId(options?.academicYears ?? []),
+        };
+      }
+      if (!merged.actualJoinDate.trim() && merged.admissionDate.trim()) {
+        merged = { ...merged, actualJoinDate: merged.admissionDate };
+      }
+      if (!merged.emergencyRelationship.trim()) {
+        merged = { ...merged, emergencyRelationship: 'father' };
+      }
+      if (merged.levelId && !merged.cycleId && options?.levels?.length) {
+        const level = options.levels.find((item) => String(item.id) === merged.levelId);
+        const refLevels = levelOptionsState.options?.reference_levels ?? [];
+        const cycles = levelOptionsState.options?.cycles ?? [];
+        if (level && refLevels.length && cycles.length) {
+          const cycleByCode = buildReferenceLevelCycleMap(refLevels);
+          const cycleId = resolveStudentLevelCycleId(level, cycleByCode, cycles);
+          if (cycleId != null) {
+            merged = { ...merged, cycleId: String(cycleId) };
+          }
         }
       }
+      return merged;
     }
 
-    setState(merged);
+    setState((prev) => {
+      // Hard reset only on first options readiness. Later option refreshes must not wipe
+      // in-progress registration fields (identity / guardians contact) after step navigation.
+      if (!profileOptionsInitRef.current) {
+        profileOptionsInitRef.current = true;
+        const base = defaultStudentProfileFormState(options);
+        let merged: StudentProfileFormState = initialProfilePatch
+          ? { ...base, ...initialProfilePatch }
+          : base;
+        if (initialProfilePatch) profilePrefillAppliedRef.current = true;
+        return applySoftCreateDefaults(merged);
+      }
+
+      if (initialProfilePatch && !profilePrefillAppliedRef.current) {
+        profilePrefillAppliedRef.current = true;
+        return applySoftCreateDefaults({ ...prev, ...initialProfilePatch });
+      }
+
+      return applySoftCreateDefaults(prev);
+    });
   }, [optionsState.loading, options, initialProfilePatch, levelOptionsState.options]);
 
   const resolvedSchoolId = useMemo(() => {
@@ -994,6 +1010,52 @@ export function StudentCreateForm({
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function focusGuardianStepError(errors: BillingResponsibilityFieldErrors) {
+    if (!formRef.current) return;
+    const fieldOrder = [
+      errors.guardianRequired ? 'guardianName' : null,
+      errors.billingResponsibilitySelection ? 'billingResponsibilitySelection' : null,
+      errors.billingGuardianSelection ? 'billingGuardianSelection' : null,
+      errors.billingStudentConfirmed ? 'billingStudentConfirmed' : null,
+      errors.billingStudentReason ? 'billingStudentReason' : null,
+    ].filter(Boolean) as string[];
+
+    for (const key of fieldOrder) {
+      if (key === 'guardianName') {
+        const host = formRef.current.querySelector<HTMLElement>('[data-field="guardianName"]');
+        const control = host?.querySelector<HTMLElement>(
+          'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        );
+        const el = control ?? host;
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+      if (key === 'billingGuardianSelection') {
+        const radio = formRef.current.querySelector<HTMLElement>(
+          'input[name="student-create-billing-guardian"]',
+        );
+        if (radio) {
+          radio.focus();
+          radio.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+      if (key === 'billingResponsibilitySelection') {
+        const select = formRef.current.querySelector<HTMLElement>(
+          '.student-create-guardian-billing select',
+        );
+        if (select) {
+          select.focus();
+          select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+    }
+  }
+
   function financePrerequisiteMessage(
     reason: ReturnType<typeof getStudentCreateFinanceBlockReason>,
     context: 'step' | 'save',
@@ -1086,16 +1148,18 @@ export function StudentCreateForm({
       const billingValidation = validateBillingResponsibilityForm(billingState, t);
       const guardianValidation = validateStudentCreateGuardianContract(state, billingState, t);
       if (!billingValidation.valid || !guardianValidation.valid) {
-        setBillingErrors({
+        const nextErrors = {
           ...billingValidation.errors,
           ...guardianValidation.errors,
-        });
+        };
+        setBillingErrors(nextErrors);
         toast.error(
           billingValidation.message ??
             guardianValidation.message ??
             t('errors.validationFailed'),
         );
         if (current !== 'billing') setStep('billing');
+        focusGuardianStepError(nextErrors);
         return false;
       }
       setBillingErrors({});
