@@ -161,6 +161,9 @@ export const endpoints = {
       `/admin/academic-years/${academicYearId}/terms`,
     academicYearTermsInitialize: (academicYearId: number | string) =>
       `/admin/academic-years/${academicYearId}/terms/initialize`,
+    /** Draft term edit — Odoo PATCH /admin/academic-setup/terms/<term_id> */
+    academicSetupTerm: (termId: number | string) =>
+      `/admin/academic-setup/terms/${termId}`,
 
     teachingAssignments: '/admin/teaching-assignments',
     teachingAssignment: (id: number | string) => `/admin/teaching-assignments/${id}`,

@@ -11,6 +11,7 @@ export {
   fetchTeacherAcademicContextOptions,
   fetchAcademicYearTerms,
   initializeAcademicYearTerms,
+  updateAcademicTerm,
 } from './api/academic-context-api';
 export {
   EMPTY_ACADEMIC_CONTEXT_SELECTION,

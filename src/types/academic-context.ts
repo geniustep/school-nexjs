@@ -2,6 +2,7 @@
  * Academic Context options + Academic Terms — School API v1 contracts.
  * GET /admin|teacher/academic-context/options
  * GET|POST /admin/academic-years/{id}/terms[/initialize]
+ * PATCH /admin/academic-setup/terms/{term_id} (draft edit; Odoo d30f67e)
  */
 
 export type AcademicContextScope =
@@ -257,6 +258,14 @@ export interface AcademicTermsInitializeResult {
   readiness?: AcademicContextReadiness | null;
   warnings?: AcademicContextWarning[];
 }
+
+/** Partial PATCH body for draft term edit — only these keys may be sent. */
+export type UpdateAcademicTermInput = {
+  name?: string;
+  code?: string;
+  date_start?: string;
+  date_end?: string;
+};
 
 /** Selection values controlled by the shared Academic Context UI. */
 export interface AcademicContextSelection {

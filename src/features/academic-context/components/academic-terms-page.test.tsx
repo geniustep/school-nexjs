@@ -6,12 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fetchTerms = vi.fn();
 const initializeTerms = vi.fn();
+const updateTerm = vi.fn();
 const toast = { success: vi.fn(), error: vi.fn() };
 const sessionUser = vi.fn();
 
 vi.mock('@/features/academic-context/api/academic-context-api', () => ({
   fetchAcademicYearTerms: (...args: unknown[]) => fetchTerms(...args),
   initializeAcademicYearTerms: (...args: unknown[]) => initializeTerms(...args),
+  updateAcademicTerm: (...args: unknown[]) => updateTerm(...args),
 }));
 
 vi.mock('@/features/admin/finance/use-finance-lookups', () => ({
@@ -35,33 +37,44 @@ vi.mock('@/features/i18n/locale-context', () => ({
 
 import { AcademicTermsPage } from '@/features/academic-context/components/academic-terms-page';
 
-const T1 = {
+const DRAFT = {
   id: 31,
   name: 'الدورة الأولى',
   code: 'T1',
   sequence: 1,
   date_start: '2026-09-01',
   date_end: '2027-01-15',
-  state: 'active',
+  state: 'draft',
   active: true,
+  allowed_actions: { edit: true },
   academic_year: { id: 1, name: '2026-2027' },
 };
-const T2 = {
+
+const ACTIVE = {
+  ...DRAFT,
   id: 32,
   name: 'الدورة الثانية',
   code: 'T2',
-  sequence: 2,
+  state: 'active',
+  allowed_actions: { edit: false },
   date_start: '2027-01-16',
   date_end: '2027-06-30',
-  state: 'active',
-  active: true,
-  academic_year: { id: 1, name: '2026-2027' },
+};
+
+const COMPLETED = {
+  ...DRAFT,
+  id: 33,
+  name: 'دورة منتهية',
+  code: 'T0',
+  state: 'completed',
+  allowed_actions: { edit: false },
 };
 
 afterEach(() => {
   cleanup();
   fetchTerms.mockReset();
   initializeTerms.mockReset();
+  updateTerm.mockReset();
   toast.success.mockReset();
   toast.error.mockReset();
 });
@@ -74,19 +87,307 @@ beforeEach(() => {
   });
   fetchTerms.mockResolvedValue({
     success: true,
-    data: { terms: [T1, T2], allowed_actions: { initialize: false } },
+    data: { terms: [DRAFT, ACTIVE], allowed_actions: { initialize: false } },
     meta: {},
   });
 });
 
-describe('AcademicTermsPage screen', () => {
-  it('lists T1/T2 as returned by Backend without rename and hides Initialize', async () => {
+describe('AcademicTermsPage draft edit', () => {
+  it('shows edit for draft with manage + allowed_actions.edit=true', async () => {
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('الدورة الأولى')).toBeTruthy());
+    expect(screen.getAllByText('academicContext.terms.edit').length).toBe(1);
+  });
+
+  it('hides edit when allowed_actions.edit=false', async () => {
+    fetchTerms.mockResolvedValue({
+      success: true,
+      data: {
+        terms: [{ ...DRAFT, allowed_actions: { edit: false } }],
+        allowed_actions: { initialize: false },
+      },
+      meta: {},
+    });
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('الدورة الأولى')).toBeTruthy());
+    expect(screen.queryByText('academicContext.terms.edit')).toBeNull();
+  });
+
+  it('hides edit for active and completed terms', async () => {
+    fetchTerms.mockResolvedValue({
+      success: true,
+      data: { terms: [ACTIVE, COMPLETED], allowed_actions: { initialize: false } },
+      meta: {},
+    });
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('الدورة الثانية')).toBeTruthy());
+    expect(screen.queryByText('academicContext.terms.edit')).toBeNull();
+  });
+
+  it('hides edit without academic.terms.manage', async () => {
+    sessionUser.mockReturnValue({
+      role: 'admin',
+      effective_capabilities: ['academic.context.view'],
+      permissions: ['view_classes'],
+    });
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('الدورة الأولى')).toBeTruthy());
+    expect(screen.queryByText('academicContext.terms.edit')).toBeNull();
+  });
+
+  it('opens form with current values and only the four editable fields', async () => {
+    const user = userEvent.setup();
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+
+    expect(screen.getByText('academicContext.terms.editTitle')).toBeTruthy();
+    expect((screen.getByLabelText('academicContext.terms.editName') as HTMLInputElement).value).toBe(
+      'الدورة الأولى',
+    );
+    expect((screen.getByLabelText('academicContext.terms.editCode') as HTMLInputElement).value).toBe(
+      'T1',
+    );
+    expect(
+      (screen.getByLabelText('academicContext.terms.editDateStart') as HTMLInputElement).value,
+    ).toBe('2026-09-01');
+    expect(
+      (screen.getByLabelText('academicContext.terms.editDateEnd') as HTMLInputElement).value,
+    ).toBe('2027-01-15');
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.querySelectorAll('input').length).toBe(4);
+    expect(dialog.querySelector('input[name="state"]')).toBeNull();
+    expect(dialog.querySelector('input[name="school_id"]')).toBeNull();
+    expect(dialog.querySelector('input[name="academic_year_id"]')).toBeNull();
+    expect(dialog.querySelector('input[name="active"]')).toBeNull();
+  });
+
+  it('rejects blank name after trim', async () => {
+    const user = userEvent.setup();
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const nameInput = screen.getByLabelText('academicContext.terms.editName');
+    await user.clear(nameInput);
+    await user.type(nameInput, '   ');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      'academicContext.terms.editNameRequired',
+    );
+    expect(updateTerm).not.toHaveBeenCalled();
+  });
+
+  it('rejects blank code after trim', async () => {
+    const user = userEvent.setup();
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const codeInput = screen.getByLabelText('academicContext.terms.editCode');
+    await user.clear(codeInput);
+    await user.type(codeInput, '  ');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      'academicContext.terms.editCodeRequired',
+    );
+    expect(updateTerm).not.toHaveBeenCalled();
+  });
+
+  it('rejects missing dates and equal/inverted ranges', async () => {
+    const user = userEvent.setup();
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+
+    const start = screen.getByLabelText('academicContext.terms.editDateStart');
+    const end = screen.getByLabelText('academicContext.terms.editDateEnd');
+
+    await user.clear(start);
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      'academicContext.terms.editDateStartRequired',
+    );
+
+    await user.type(start, '2026-09-01');
+    await user.clear(end);
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      'academicContext.terms.editDateEndRequired',
+    );
+
+    await user.type(end, '2026-09-01');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      'academicContext.errors.term_dates_invalid',
+    );
+
+    await user.clear(end);
+    await user.type(end, '2026-08-01');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+    expect(screen.getByRole('alert').textContent).toContain(
+      'academicContext.errors.term_dates_invalid',
+    );
+    expect(updateTerm).not.toHaveBeenCalled();
+  });
+
+  it('PATCHes allowed fields only and updates row from server response', async () => {
+    const user = userEvent.setup();
+    updateTerm.mockResolvedValue({
+      success: true,
+      data: {
+        ...DRAFT,
+        name: 'دورة محدثة',
+        allowed_actions: { edit: true },
+      },
+      meta: {},
+    });
+
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const nameInput = screen.getByLabelText('academicContext.terms.editName');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'دورة محدثة');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+
+    await waitFor(() => expect(updateTerm).toHaveBeenCalledTimes(1));
+    expect(updateTerm.mock.calls[0][0]).toBe(31);
+    expect(updateTerm.mock.calls[0][1]).toEqual({ name: 'دورة محدثة' });
+    expect(updateTerm.mock.calls[0][1]).not.toHaveProperty('state');
+    expect(updateTerm.mock.calls[0][1]).not.toHaveProperty('school_id');
+    expect(updateTerm.mock.calls[0][1]).not.toHaveProperty('academic_year_id');
+    expect(updateTerm.mock.calls[0][1]).not.toHaveProperty('active');
+
+    await waitFor(() => expect(screen.getByText('دورة محدثة')).toBeTruthy());
+    expect(screen.queryByText('academicContext.terms.editTitle')).toBeNull();
+    expect(toast.success).toHaveBeenCalledWith('academicContext.terms.editSuccess');
+  });
+
+  it('prevents duplicate submit while saving', async () => {
+    const user = userEvent.setup();
+    let resolveUpdate: ((value: unknown) => void) | undefined;
+    updateTerm.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        }),
+    );
+
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const nameInput = screen.getByLabelText('academicContext.terms.editName');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'اسم جديد');
+
+    const saveBtn = screen.getByText('academicContext.terms.saveEdit');
+    await user.click(saveBtn);
+    await waitFor(() => expect(updateTerm).toHaveBeenCalledTimes(1));
+    const busyBtn = screen.getByRole('button', { name: 'common.submitting' }) as HTMLButtonElement;
+    expect(busyBtn.disabled).toBe(true);
+    await user.click(busyBtn);
+    expect(updateTerm).toHaveBeenCalledTimes(1);
+
+    resolveUpdate?.({
+      success: true,
+      data: { ...DRAFT, name: 'اسم جديد', allowed_actions: { edit: true } },
+      meta: {},
+    });
+    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+  });
+
+  it.each([
+    ['term_edit_not_allowed'],
+    ['term_not_found'],
+    ['term_dates_invalid'],
+    ['term_dates_outside_academic_year'],
+    ['term_dates_overlap'],
+    ['term_code_conflict'],
+    ['unknown_failure'],
+  ])('keeps dialog open and values on API error %s', async (code) => {
+    const user = userEvent.setup();
+    updateTerm.mockResolvedValue({
+      success: false,
+      error: { code, message: 'fail', details: { status: code === 'term_code_conflict' ? 409 : 422 } },
+      meta: {},
+    });
+
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const nameInput = screen.getByLabelText('academicContext.terms.editName') as HTMLInputElement;
+    await user.clear(nameInput);
+    await user.type(nameInput, 'قيمة محفوظة');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+    expect(screen.getByText('academicContext.terms.editTitle')).toBeTruthy();
+    expect(nameInput.value).toBe('قيمة محفوظة');
+    expect(toast.success).not.toHaveBeenCalled();
+
+    const expectedKey =
+      code === 'unknown_failure'
+        ? 'academicContext.errors.term_edit_failed'
+        : `academicContext.errors.${code}`;
+    expect(screen.getByRole('alert').textContent).toContain(expectedKey);
+  });
+
+  it('does not change initialize flow when terms already exist', async () => {
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('الدورة الأولى')).toBeTruthy());
+    expect(screen.queryByText('academicContext.terms.initialize')).toBeNull();
+    expect(initializeTerms).not.toHaveBeenCalled();
+  });
+
+  it('draft fallback without allowed_actions still requires capability', async () => {
+    fetchTerms.mockResolvedValue({
+      success: true,
+      data: {
+        terms: [{ ...DRAFT, allowed_actions: undefined }],
+        allowed_actions: { initialize: false },
+      },
+      meta: {},
+    });
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+
+    cleanup();
+    sessionUser.mockReturnValue({
+      role: 'admin',
+      effective_capabilities: ['academic.context.view'],
+      permissions: ['view_classes'],
+    });
+    fetchTerms.mockResolvedValue({
+      success: true,
+      data: {
+        terms: [{ ...DRAFT, allowed_actions: undefined }],
+        allowed_actions: { initialize: false },
+      },
+      meta: {},
+    });
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('الدورة الأولى')).toBeTruthy());
+    expect(screen.queryByText('academicContext.terms.edit')).toBeNull();
+  });
+});
+
+describe('AcademicTermsPage initialize (unchanged)', () => {
+  it('lists T1/T2 as returned by Backend and hides Initialize when terms exist', async () => {
+    fetchTerms.mockResolvedValue({
+      success: true,
+      data: {
+        terms: [
+          { ...ACTIVE, id: 31, code: 'T1', name: 'الدورة الأولى' },
+          { ...ACTIVE, id: 32, code: 'T2', name: 'الدورة الثانية' },
+        ],
+        allowed_actions: { initialize: false },
+      },
+      meta: {},
+    });
     render(<AcademicTermsPage />);
     await waitFor(() => expect(screen.getByText('الدورة الأولى')).toBeTruthy());
     expect(screen.getByText('T1')).toBeTruthy();
     expect(screen.getByText('T2')).toBeTruthy();
-    expect(screen.getByText('الدورة الثانية')).toBeTruthy();
-    expect(document.body.textContent).not.toMatch(/term_1|term_2/);
     expect(screen.queryByText('academicContext.terms.initialize')).toBeNull();
   });
 
@@ -100,108 +401,5 @@ describe('AcademicTermsPage screen', () => {
     await waitFor(() =>
       expect(screen.getByText('academicContext.terms.initialize')).toBeTruthy(),
     );
-
-    cleanup();
-    sessionUser.mockReturnValue({
-      role: 'admin',
-      effective_capabilities: ['academic.context.view'],
-      permissions: ['view_classes'],
-    });
-    fetchTerms.mockResolvedValue({
-      success: true,
-      data: { terms: [], allowed_actions: { initialize: true } },
-      meta: {},
-    });
-    render(<AcademicTermsPage />);
-    await waitFor(() => expect(screen.getByText('academicContext.terms.empty')).toBeTruthy());
-    expect(screen.queryByText('academicContext.terms.initialize')).toBeNull();
-  });
-
-  it('requires explicit dates and prevents double submit without inventing defaults', async () => {
-    const user = userEvent.setup();
-    fetchTerms.mockResolvedValue({
-      success: true,
-      data: { terms: [], allowed_actions: { initialize: true } },
-      meta: {},
-    });
-    initializeTerms.mockResolvedValue({
-      success: true,
-      data: { terms: [T1, T2] },
-      meta: {},
-    });
-
-    render(<AcademicTermsPage />);
-    await waitFor(() =>
-      expect(screen.getByText('academicContext.terms.initialize')).toBeTruthy(),
-    );
-    await user.click(screen.getByText('academicContext.terms.initialize'));
-    expect(screen.getByText('academicContext.terms.datesRequiredExplicit')).toBeTruthy();
-
-    // No default date values invented
-    const dateInputs = document.querySelectorAll('input[type="date"]');
-    dateInputs.forEach((input) => {
-      expect((input as HTMLInputElement).value).toBe('');
-    });
-
-    await user.click(screen.getByText('academicContext.terms.initializeSubmit'));
-    expect(toast.error).toHaveBeenCalled();
-    expect(initializeTerms).not.toHaveBeenCalled();
-
-    await user.type(screen.getByLabelText(/term1Start/i), '2026-09-01');
-    // labels are translation keys; fill by order
-    const dates = Array.from(document.querySelectorAll('input[type="date"]')) as HTMLInputElement[];
-    await user.clear(dates[0]);
-    await user.type(dates[0], '2026-09-01');
-    await user.type(dates[1], '2027-01-15');
-    await user.type(dates[2], '2027-01-16');
-    await user.type(dates[3], '2027-06-30');
-
-    await user.click(screen.getByText('academicContext.terms.initializeSubmit'));
-    await waitFor(() => expect(initializeTerms).toHaveBeenCalledTimes(1));
-    expect(initializeTerms.mock.calls[0][1]).toMatchObject({
-      term_1_date_start: '2026-09-01',
-      term_1_date_end: '2027-01-15',
-      term_2_date_start: '2027-01-16',
-      term_2_date_end: '2027-06-30',
-    });
-  });
-
-  it('shows permission denied without terms capability/view', () => {
-    sessionUser.mockReturnValue({
-      role: 'admin',
-      effective_capabilities: [],
-      permissions: [],
-    });
-    render(<AcademicTermsPage />);
-    expect(screen.getByText('admin.pageForbidden')).toBeTruthy();
-  });
-
-  it('surfaces conflict errors without optimistic insertion', async () => {
-    const user = userEvent.setup();
-    fetchTerms.mockResolvedValue({
-      success: true,
-      data: { terms: [], allowed_actions: { initialize: true } },
-      meta: {},
-    });
-    initializeTerms.mockResolvedValue({
-      success: false,
-      error: { code: 'terms_configuration_conflict', message: 'conflict' },
-      meta: {},
-    });
-    render(<AcademicTermsPage />);
-    await waitFor(() =>
-      expect(screen.getByText('academicContext.terms.initialize')).toBeTruthy(),
-    );
-    await user.click(screen.getByText('academicContext.terms.initialize'));
-    const dates = Array.from(document.querySelectorAll('input[type="date"]')) as HTMLInputElement[];
-    await user.type(dates[0], '2026-09-01');
-    await user.type(dates[1], '2027-01-15');
-    await user.type(dates[2], '2027-01-16');
-    await user.type(dates[3], '2027-06-30');
-    await user.click(screen.getByText('academicContext.terms.initializeSubmit'));
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toMatch(/terms_configuration_conflict|conflict/),
-    );
-    expect(screen.queryByText('T1')).toBeNull();
   });
 });

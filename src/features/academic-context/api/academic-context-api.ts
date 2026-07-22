@@ -4,15 +4,39 @@ import type { ApiResponse, ListParams } from '@/types/api';
 import type {
   AcademicContextOptionsQuery,
   AcademicContextOptionsResponse,
+  AcademicTermOption,
   AcademicTermsInitializePayload,
   AcademicTermsInitializeResult,
   AcademicTermsListResponse,
+  UpdateAcademicTermInput,
 } from '@/types/academic-context';
 import {
   normalizeAcademicContextOptions,
   normalizeAcademicTermsList,
   normalizeAcademicTermOption,
 } from '../utils/normalize-academic-context';
+
+const TERM_UPDATE_ALLOWED_KEYS = new Set([
+  'name',
+  'code',
+  'date_start',
+  'date_end',
+]);
+
+/** Strip anything outside the draft-edit contract before PATCH. */
+export function sanitizeTermUpdatePayload(
+  payload: UpdateAcademicTermInput,
+): UpdateAcademicTermInput | null {
+  const sanitized: UpdateAcademicTermInput = {};
+  for (const key of TERM_UPDATE_ALLOWED_KEYS) {
+    const value = payload[key as keyof UpdateAcademicTermInput];
+    if (typeof value === 'string') {
+      sanitized[key as keyof UpdateAcademicTermInput] = value;
+    }
+  }
+  if (Object.keys(sanitized).length === 0) return null;
+  return sanitized;
+}
 
 function toQuery(params?: AcademicContextOptionsQuery): ListParams | undefined {
   if (!params) return undefined;
@@ -117,6 +141,44 @@ export async function initializeAcademicYearTerms(
       warnings: list.warnings,
     },
   };
+}
+
+export async function updateAcademicTerm(
+  termId: number | string,
+  payload: UpdateAcademicTermInput,
+  query?: ListParams,
+): Promise<ApiResponse<AcademicTermOption>> {
+  const body = sanitizeTermUpdatePayload(payload);
+  if (!body) {
+    return {
+      success: false,
+      error: {
+        code: 'invalid_term_field',
+        message: 'Term update payload is empty or contains no allowed fields.',
+        details: {},
+      },
+      meta: {},
+    };
+  }
+  const res = await api.patch<unknown>(
+    endpoints.admin.academicSetupTerm(termId),
+    body,
+    query,
+  );
+  if (!res.success) return res as ApiResponse<AcademicTermOption>;
+  const term = normalizeAcademicTermOption(res.data);
+  if (!term) {
+    return {
+      success: false,
+      error: {
+        code: 'server_error',
+        message: 'Unexpected term payload from server.',
+        details: {},
+      },
+      meta: res.meta ?? {},
+    };
+  }
+  return { ...res, data: term };
 }
 
 export async function fetchAcademicTermsForYear(

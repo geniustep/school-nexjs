@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Academic Terms management — year-scoped list + optional initialize.
+ * Academic Terms management — year-scoped list, initialize, and draft edit.
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  */
 
@@ -9,8 +9,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fetchAcademicYearTerms,
   initializeAcademicYearTerms,
+  updateAcademicTerm,
 } from '@/features/academic-context/api/academic-context-api';
 import { formatTermOptionLabel } from '@/features/academic-context/utils/academic-context-display';
+import {
+  buildTermUpdatePayload,
+  validateTermEditForm,
+  type TermEditFormValues,
+} from '@/features/academic-context/utils/build-term-update-payload';
+import { resolveAcademicTermEditErrorMessage } from '@/features/academic-context/utils/term-edit-errors';
+import { canShowEditAcademicTerm } from '@/features/academic-context/utils/term-editability';
 import { useSession } from '@/features/auth/session-context';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
@@ -24,6 +32,13 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
 import type { AcademicTermOption } from '@/types/academic-context';
+
+const EMPTY_EDIT_FORM: TermEditFormValues = {
+  name: '',
+  code: '',
+  date_start: '',
+  date_end: '',
+};
 
 export function AcademicTermsPage() {
   const t = useT();
@@ -47,6 +62,11 @@ export function AcademicTermsPage() {
   const [term2Start, setTerm2Start] = useState('');
   const [term2End, setTerm2End] = useState('');
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
+
+  const [editTerm, setEditTerm] = useState<AcademicTermOption | null>(null);
+  const [editForm, setEditForm] = useState<TermEditFormValues>(EMPTY_EDIT_FORM);
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const loadTerms = useCallback(async () => {
     if (!yearId) {
@@ -83,12 +103,77 @@ export function AcademicTermsPage() {
     Boolean(yearId) &&
     (allowedActions.initialize !== false);
 
+  function openEditDialog(term: AcademicTermOption) {
+    setEditTerm(term);
+    setEditForm({
+      name: term.name ?? '',
+      code: term.code ?? '',
+      date_start: term.date_start ?? '',
+      date_end: term.date_end ?? '',
+    });
+    setEditError(null);
+  }
+
+  function closeEditDialog() {
+    if (editSubmitting) return;
+    setEditTerm(null);
+    setEditForm(EMPTY_EDIT_FORM);
+    setEditError(null);
+  }
+
+  async function handleEditSave() {
+    if (!editTerm || editSubmitting) return;
+
+    const validation = validateTermEditForm(editForm);
+    if (validation) {
+      const validationKey =
+        validation === 'name_required'
+          ? 'academicContext.terms.editNameRequired'
+          : validation === 'code_required'
+            ? 'academicContext.terms.editCodeRequired'
+            : validation === 'date_start_required'
+              ? 'academicContext.terms.editDateStartRequired'
+              : validation === 'date_end_required'
+                ? 'academicContext.terms.editDateEndRequired'
+                : 'academicContext.errors.term_dates_invalid';
+      setEditError(t(validationKey));
+      return;
+    }
+
+    const payload = buildTermUpdatePayload(editTerm, editForm);
+    if (!payload) {
+      setEditError(t('academicContext.terms.editNoChanges'));
+      return;
+    }
+
+    setEditSubmitting(true);
+    setEditError(null);
+    const res = await updateAcademicTerm(editTerm.id, payload);
+    setEditSubmitting(false);
+
+    if (!res.success) {
+      setEditError(resolveAcademicTermEditErrorMessage(res.error.code, t));
+      return;
+    }
+
+    setTerms((prev) =>
+      prev.map((row) => (row.id === res.data.id ? res.data : row)),
+    );
+    toast.success(t('academicContext.terms.editSuccess'));
+    setEditTerm(null);
+    setEditForm(EMPTY_EDIT_FORM);
+    setEditError(null);
+  }
+
   const columns: Column<AcademicTermOption>[] = useMemo(
     () => [
       {
         key: 'year',
         header: t('academicContext.fields.academicYear'),
-        render: (row) => row.academic_year?.name ?? yearOptions.find((y) => String(y.id) === yearId)?.name ?? '—',
+        render: (row) =>
+          row.academic_year?.name ??
+          yearOptions.find((y) => String(y.id) === yearId)?.name ??
+          '—',
       },
       {
         key: 'name',
@@ -98,9 +183,7 @@ export function AcademicTermsPage() {
       {
         key: 'code',
         header: t('academicContext.terms.code'),
-        render: (row) => (
-          <span dir="ltr">{row.code ?? '—'}</span>
-        ),
+        render: (row) => <span dir="ltr">{row.code ?? '—'}</span>,
       },
       {
         key: 'sequence',
@@ -127,8 +210,22 @@ export function AcademicTermsPage() {
         render: (row) =>
           row.active === false ? t('common.no') : t('common.yes'),
       },
+      {
+        key: 'actions',
+        header: t('common.actions'),
+        render: (row) =>
+          canShowEditAcademicTerm(row, canManage) ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => openEditDialog(row)}
+            >
+              {t('academicContext.terms.edit')}
+            </button>
+          ) : null,
+      },
     ],
-    [t, yearId, yearOptions],
+    [t, yearId, yearOptions, canManage],
   );
 
   async function handleInitialize() {
@@ -259,7 +356,6 @@ export function AcademicTermsPage() {
         />
       )}
 
-      {/* Preview of codes as returned (e.g. T1/T2) — no rename */}
       {terms.length > 0 ? (
         <p className="muted tiny" dir="auto">
           {terms.map((term) => formatTermOptionLabel(term)).join(' · ')}
@@ -358,6 +454,84 @@ export function AcademicTermsPage() {
               <br />
               2: {term2Name || '—'} {term2Start || '…'} → {term2End || '…'}
             </div>
+          </div>
+        }
+      />
+
+      <ConfirmationDialog
+        open={Boolean(editTerm)}
+        title={t('academicContext.terms.editTitle')}
+        size="form"
+        closeOnBackdrop={!editSubmitting}
+        loading={editSubmitting}
+        confirmLabel={t('academicContext.terms.saveEdit')}
+        onConfirm={() => void handleEditSave()}
+        onClose={closeEditDialog}
+        body={
+          <div className="grid grid--form">
+            {editError ? (
+              <p role="alert" className="academic-context-filters__error">
+                {editError}
+              </p>
+            ) : null}
+            <label className="field">
+              <span>{t('academicContext.terms.editName')}</span>
+              <input
+                className="input"
+                name="term_name"
+                value={editForm.name}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, name: e.target.value }))
+                }
+                disabled={editSubmitting}
+                required
+                aria-label={t('academicContext.terms.editName')}
+              />
+            </label>
+            <label className="field">
+              <span>{t('academicContext.terms.editCode')}</span>
+              <input
+                className="input"
+                name="term_code"
+                value={editForm.code}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, code: e.target.value }))
+                }
+                disabled={editSubmitting}
+                required
+                aria-label={t('academicContext.terms.editCode')}
+              />
+            </label>
+            <label className="field">
+              <span>{t('academicContext.terms.editDateStart')}</span>
+              <input
+                className="input"
+                type="date"
+                name="term_date_start"
+                value={editForm.date_start}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, date_start: e.target.value }))
+                }
+                disabled={editSubmitting}
+                required
+                aria-label={t('academicContext.terms.editDateStart')}
+              />
+            </label>
+            <label className="field">
+              <span>{t('academicContext.terms.editDateEnd')}</span>
+              <input
+                className="input"
+                type="date"
+                name="term_date_end"
+                value={editForm.date_end}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, date_end: e.target.value }))
+                }
+                disabled={editSubmitting}
+                required
+                aria-label={t('academicContext.terms.editDateEnd')}
+              />
+            </label>
           </div>
         }
       />
