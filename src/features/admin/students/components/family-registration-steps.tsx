@@ -3,12 +3,14 @@
 import { useT } from '@/features/i18n/locale-context';
 import type { FamilyRegistrationWizardStep } from '../utils/family-registration-state';
 
-const STEP_ORDER: FamilyRegistrationWizardStep[] = [
+const REGISTRATION_STEPS: FamilyRegistrationWizardStep[] = [
   'guardians',
   'children',
   'review',
   'result',
 ];
+
+const FINANCE_STEPS: FamilyRegistrationWizardStep[] = ['finance', 'finance_result'];
 
 export function FamilyRegistrationStepper({
   activeStep,
@@ -16,11 +18,18 @@ export function FamilyRegistrationStepper({
   activeStep: FamilyRegistrationWizardStep;
 }) {
   const t = useT();
+  const inFinance = activeStep === 'finance' || activeStep === 'finance_result';
+  const STEP_ORDER = inFinance
+    ? [...REGISTRATION_STEPS, ...FINANCE_STEPS]
+    : REGISTRATION_STEPS;
+
   const labels: Record<FamilyRegistrationWizardStep, string> = {
     guardians: t('admin.student360.familyRegistration.steps.guardians'),
     children: t('admin.student360.familyRegistration.steps.children'),
     review: t('admin.student360.familyRegistration.steps.review'),
     result: t('admin.student360.familyRegistration.steps.result'),
+    finance: t('admin.student360.familyRegistration.steps.finance'),
+    finance_result: t('admin.student360.familyRegistration.steps.financeResult'),
   };
   const activeIndex = STEP_ORDER.indexOf(activeStep);
   const progress =

@@ -44,11 +44,20 @@ describe('family registration design contract', () => {
     expect(link.getAttribute('href')).toBe('/admin/students/family/new');
   });
 
+  it('exposes finance step labels after registration when on finance step', () => {
+    render(<FamilyRegistrationStepper activeStep="finance" />);
+    expect(screen.getByText('الوضعية المالية')).toBeTruthy();
+    expect(screen.getByText('نتيجة الخطط المالية')).toBeTruthy();
+  });
+
   it('keeps family registration i18n keys without hardcoded journey titles in ar messages', () => {
     const family = ar.admin.student360.familyRegistration;
     expect(family.pageTitle).toBe('تسجيل أسرة كاملة');
     expect(family.confirmRegister).toContain('تأكيد');
     expect(family.sequentialNote).toContain('نجاح جزئي');
     expect(family.errors.ambiguousFailure).toContain('إعادة محاولة');
+    expect(family.continueToFinance).toContain('الوضعية المالية');
+    expect(family.finance.planNotPaymentNote).toContain('أداء');
+    expect(family.finance.status.succeeded).toContain('الخطة');
   });
 });

@@ -15648,3 +15648,128 @@ html[dir='rtl'] .student-finance-strip__marker {
     width: 100%;
   }
 }
+
+.family-registration-finance__layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.family-registration-finance__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.family-registration-finance__tab {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  border: 1px solid var(--border, #d7dde5);
+  background: transparent;
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  text-align: start;
+}
+
+.family-registration-finance__tab--active {
+  border-color: var(--color-primary, #1f4b7a);
+  background: color-mix(in srgb, var(--color-primary, #1f4b7a) 8%, white);
+}
+
+.family-registration-finance__panel {
+  display: grid;
+  gap: 0.85rem;
+  border-top: 1px solid var(--border, #e5e9ef);
+  padding-top: 0.85rem;
+}
+
+.family-registration-finance__panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.family-registration-finance__panel-head h3 {
+  margin: 0;
+}
+
+.family-registration-finance__summary {
+  margin: 0;
+}
+
+.family-registration-finance__notice,
+.family-registration-finance__confirm {
+  border: 1px solid var(--border, #d7dde5);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.family-registration-finance__candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.family-registration-finance__shared-actions {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.family-registration-finance__compact-summaries {
+  margin-top: 1rem;
+}
+
+.family-registration-finance__compact-summaries h4 {
+  margin: 0 0 0.5rem;
+}
+
+.family-registration-finance__compact-summaries ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.family-registration-finance__compact-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border, #e5e9ef);
+  background: transparent;
+  border-radius: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  cursor: pointer;
+  text-align: start;
+}
+
+.family-registration-finance__result-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (min-width: 768px) {
+  .family-registration-finance__layout {
+    grid-template-columns: minmax(10rem, 14rem) 1fr;
+    align-items: start;
+  }
+
+  .family-registration-finance__tabs {
+    flex-direction: column;
+  }
+}

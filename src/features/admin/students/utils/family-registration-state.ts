@@ -16,7 +16,9 @@ export type FamilyRegistrationWizardStep =
   | 'guardians'
   | 'children'
   | 'review'
-  | 'result';
+  | 'result'
+  | 'finance'
+  | 'finance_result';
 
 export type FamilyChildSubmitStatus =
   | 'pending'

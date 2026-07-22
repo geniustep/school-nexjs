@@ -75,6 +75,12 @@ import {
   runFamilyRegistrationSubmit,
   shouldOfferFamilyFailedRetry,
 } from '../utils/family-registration-submit';
+import {
+  buildFamilyFinanceDraftsFromRegistration,
+  emptyFamilyFinanceSubmitState,
+  type FamilyChildFinanceDraft,
+  type FamilyFinanceSubmitState,
+} from '../utils/family-registration-finance-state';
 import { applyResolvedGuardiansToFamilyForm } from '../utils/family-registration-apply-resolved';
 import type { PersonSearchResult, RelationshipType } from '@/types/student-360';
 import type {
@@ -84,6 +90,7 @@ import type {
 import { StudentCreateBillingStep } from './student-create-billing-step';
 import { StudentCreateStyledSection } from './student-create-section-header';
 import { FamilyRegistrationStepper } from './family-registration-steps';
+import { FamilyRegistrationFinancePanel } from './family-registration-finance-panel';
 import { relationshipTypeLabel, RELATIONSHIP_TYPE_CODES } from '../utils/relationship-types';
 import '../student-360.css';
 
@@ -107,6 +114,10 @@ export function FamilyRegistrationPage() {
   >({});
   const [submitState, setSubmitState] = useState<FamilyRegistrationSubmitState>(() =>
     emptyFamilyRegistrationSubmitState(),
+  );
+  const [financeDrafts, setFinanceDrafts] = useState<FamilyChildFinanceDraft[]>([]);
+  const [financeSubmitState, setFinanceSubmitState] = useState<FamilyFinanceSubmitState>(() =>
+    emptyFamilyFinanceSubmitState(),
   );
   const [resolvedGuardianEntries, setResolvedGuardianEntries] = useState<
     StudentCreateGuardianEntry[] | null
@@ -204,6 +215,36 @@ export function FamilyRegistrationPage() {
   const summary = useMemo(() => summarizeFamilyRegistration(form), [form]);
   const outcome = familySubmitOutcomeSummary(submitState.results);
   const submitting = submitState.phase === 'submitting' || submittingRef.current;
+
+  function resolveBillingResponsibleLabel(): string {
+    if (summary.billingMode === 'student') {
+      return t('admin.student360.create.billingResponsibility.partnerStudent');
+    }
+    if (summary.billingGuardianName) return summary.billingGuardianName;
+    return t('admin.student360.familyRegistration.billingMissing');
+  }
+
+  function goToFinanceSetup() {
+    const childrenByLocalId = new Map(
+      form.children.map((child) => [
+        child.localId,
+        {
+          academicYearId: child.profile.academicYearId,
+          levelId: child.profile.levelId,
+          displayName: childDisplayName(child.profile),
+        },
+      ]),
+    );
+    setFinanceDrafts(
+      buildFamilyFinanceDraftsFromRegistration({
+        results: submitState.results,
+        childrenByLocalId,
+        billingResponsibleLabel: resolveBillingResponsibleLabel(),
+      }),
+    );
+    setFinanceSubmitState(emptyFamilyFinanceSubmitState());
+    setStep('finance');
+  }
 
   function handleIntakePatch(patch: EnrollmentIntakePatch) {
     setForm((prev) => ({
@@ -852,6 +893,13 @@ export function FamilyRegistrationPage() {
             ) : null}
             {outcome.kind === 'full_success' || outcome.succeeded > 0 ? (
               <>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={goToFinanceSetup}
+                >
+                  {t('admin.student360.familyRegistration.continueToFinance')}
+                </button>
                 <Link href="/admin/students" className="btn btn--secondary">
                   {t('admin.student360.familyRegistration.backToList')}
                 </Link>
@@ -861,6 +909,8 @@ export function FamilyRegistrationPage() {
                   onClick={() => {
                     setForm(emptyFamilyRegistrationFormState(today));
                     setSubmitState(emptyFamilyRegistrationSubmitState());
+                    setFinanceDrafts([]);
+                    setFinanceSubmitState(emptyFamilyFinanceSubmitState());
                     setResolvedGuardianEntries(null);
                     setStep('guardians');
                   }}
@@ -880,6 +930,19 @@ export function FamilyRegistrationPage() {
             ) : null}
           </div>
         </StudentCreateStyledSection>
+      ) : null}
+
+      {step === 'finance' || step === 'finance_result' ? (
+        <FamilyRegistrationFinancePanel
+          mode={step === 'finance_result' ? 'finance_result' : 'finance'}
+          drafts={financeDrafts}
+          submitState={financeSubmitState}
+          onDraftsChange={setFinanceDrafts}
+          onSubmitStateChange={setFinanceSubmitState}
+          onBackToRegistrationResult={() => setStep('result')}
+          onBackToSetup={() => setStep('finance')}
+          onCompleted={() => setStep('finance_result')}
+        />
       ) : null}
 
       <div className="student-create-form__actions family-registration__actions">
