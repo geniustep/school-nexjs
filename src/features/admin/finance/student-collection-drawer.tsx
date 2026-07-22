@@ -30,7 +30,7 @@ export function StudentCollectionDrawer({
   billingPartnerId?: number;
   financialOverview?: StudentFinancialOverview | null;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (collection: PaymentCollection) => void;
   onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
 }) {
   const t = useT();
@@ -51,7 +51,7 @@ export function StudentCollectionDrawer({
     }
     handledCollectionIdRef.current = collection.id;
     toast.success(t('admin.finance.collectionWorkflow.refreshSuccessToast'));
-    onSuccess();
+    onSuccess(collection);
     if (collection.payment_method === 'cheque' || collection.payment_method === 'check') {
       toast.show(t('admin.finance.collectionWorkflow.chequePendingNote'), 'info');
     }

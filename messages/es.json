@@ -9302,6 +9302,25 @@
         "monthlyInstallmentCount": "Monthly installment count"
       },
       "searchByNamePhoneIdentity": "Buscar por nombre, teléfono, correo o documento de identidad",
+      "registrationCollection": {
+        "collectAction": "Registrar cobro",
+        "resolving": "Cargando el contexto financiero…",
+        "optionalHint": "El cobro es opcional. Puede finalizar el registro sin registrar ningún pago.",
+        "openFinance": "Abrir la situación financiera",
+        "openReceipt": "Abrir el recibo",
+        "openCollection": "Abrir el cobro",
+        "cancelledKeepRegistration": "El registro se completó y no se registró ningún cobro.",
+        "failedKeepRegistration": "El registro se completó, pero no se pudo registrar el cobro. Puede intentarlo más tarde desde la situación financiera.",
+        "successBody": "Cobro registrado correctamente.",
+        "receiptUnavailable": "Cobro registrado correctamente, pero el recibo no está disponible ahora.",
+        "retryReceipt": "Reintentar abrir el recibo o el cobro",
+        "unavailable": {
+          "no_students": "No hay ningún alumno registrado con éxito disponible para el cobro.",
+          "billing_unresolved": "La responsabilidad de facturación no está resuelta. Revise la situación financiera antes de cobrar.",
+          "collection_blocked": "El cobro no está disponible para este expediente ahora. Revise la situación financiera.",
+          "context_unresolved": "No se pudo determinar de forma segura la cuenta de facturación oficial. Abra la situación financiera para continuar."
+        }
+      },
       "familyRegistration": {
         "pageTitle": "Registro de una familia completa",
         "pageDesc": "Introduzca los tutores una sola vez, añada uno o más alumnos de la misma familia y revise el resumen antes del registro.",

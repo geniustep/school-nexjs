@@ -105,6 +105,7 @@ import { StudentCreateBillingStep } from './student-create-billing-step';
 import { StudentCreateStyledSection } from './student-create-section-header';
 import { FamilyRegistrationStepper } from './family-registration-steps';
 import { FamilyRegistrationFinancePanel } from './family-registration-finance-panel';
+import { RegistrationPostCreateCollectionEntry } from './registration-post-create-collection-entry';
 import { relationshipTypeLabel, RELATIONSHIP_TYPE_CODES } from '../utils/relationship-types';
 import '../student-360.css';
 
@@ -245,6 +246,24 @@ function FamilyRegistrationWizard() {
   const usedGuardianIds = collectUsedGuardianIds(form.guardianHost, form.billing);
   const summary = useMemo(() => summarizeFamilyRegistration(form), [form]);
   const outcome = familySubmitOutcomeSummary(submitState.results);
+  const succeededCollectionStudents = useMemo(
+    () =>
+      submitState.results.filter(
+        (row) => row.status === 'succeeded' && typeof row.studentId === 'number' && row.studentId > 0,
+      ),
+    [submitState.results],
+  );
+  const succeededCollectionStudentIds = useMemo(
+    () => succeededCollectionStudents.map((row) => row.studentId as number),
+    [succeededCollectionStudents],
+  );
+  const succeededCollectionStudentNames = useMemo(() => {
+    const map: Record<number, string> = {};
+    for (const row of succeededCollectionStudents) {
+      if (row.studentId) map[row.studentId] = row.displayName;
+    }
+    return map;
+  }, [succeededCollectionStudents]);
   const submitting = submitState.phase === 'submitting' || submittingRef.current;
 
   function resolveBillingResponsibleLabel(): string {
@@ -1014,6 +1033,10 @@ function FamilyRegistrationWizard() {
             ) : null}
             {outcome.kind === 'full_success' || outcome.succeeded > 0 ? (
               <>
+                <RegistrationPostCreateCollectionEntry
+                  succeededStudentIds={succeededCollectionStudentIds}
+                  studentNameById={succeededCollectionStudentNames}
+                />
                 <button
                   type="button"
                   className="btn btn--primary"

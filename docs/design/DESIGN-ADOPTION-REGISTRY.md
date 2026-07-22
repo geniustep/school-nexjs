@@ -159,6 +159,7 @@ Finance Safe Surfaces: COMPLETE
 | Student Fees Gateway | `/admin/finance/student-fees` | DEFER_PARALLEL_WORK | Not adopted |
 | Family registration access + result states | `/admin/students/family/new` | REVIEW-NEEDED | REG_FIN_RBAC_TERMS_1 — local `students.create` gate + partial-success clarity; payment-during-registration out of scope |
 | Family finance summary refetch | Student 360 family summary | REVIEW-NEEDED | REG_FIN_RBAC_TERMS_1 — keepPreviousData refetch; full Student 360 finance still unreviewed |
+| Optional collection after registration | create/family result surfaces | REVIEW-NEEDED | REG_FIN_PAYMENT_ENTRY_2 — optional official collection via Student/FamilyCollectionDrawer after success only; independent of registration mutation; does not adopt Finance Workspace; Odoo/Flutter out of scope |
 
 ---
 

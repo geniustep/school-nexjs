@@ -19,6 +19,7 @@ export function FamilyCollectionDrawer({
   prefilledStudentId,
   prefilledStudentName,
   entrySource,
+  navigateToReceiptOnSuccess = true,
   onClose,
   onSuccess,
 }: {
@@ -31,6 +32,8 @@ export function FamilyCollectionDrawer({
   prefilledStudentId?: number;
   prefilledStudentName?: string;
   entrySource?: 'student360';
+  /** When false, keep the caller page mounted and let it render the official receipt link. */
+  navigateToReceiptOnSuccess?: boolean;
   onClose: () => void;
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
 }) {
@@ -52,7 +55,7 @@ export function FamilyCollectionDrawer({
     toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
     onSuccess?.(result);
     const receiptId = result.receipt_id ?? result.receipts[0]?.id ?? null;
-    if (receiptId) {
+    if (navigateToReceiptOnSuccess && receiptId) {
       router.push(`/admin/finance/receipts/${receiptId}`);
     }
     onClose();

@@ -1483,6 +1483,8 @@ export function StudentCreateForm({
         financeActivation: payload.finance ? activation : undefined,
         agreementState,
         billingUnresolved,
+        collectionAllowed: billingOutcome.collectionAllowed,
+        billingPartnerId: billingOutcome.metadata?.billing_partner_id ?? null,
       });
       setPendingSaveOutcome({ id, mode, outcome });
       setStep('result');

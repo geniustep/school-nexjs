@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
+import { RegistrationPostCreateCollectionEntry } from './registration-post-create-collection-entry';
 import { StudentCreateStyledSection } from './student-create-section-header';
 
 export interface StudentCreateResultModel {
@@ -10,6 +12,8 @@ export interface StudentCreateResultModel {
   financeActivation?: 'draft' | 'activate';
   agreementState?: string | null;
   billingUnresolved?: boolean;
+  collectionAllowed?: boolean | null;
+  billingPartnerId?: number | null;
 }
 
 export function StudentCreateResultSection({
@@ -67,6 +71,13 @@ export function StudentCreateResultSection({
         ) : null}
       </div>
 
+      <RegistrationPostCreateCollectionEntry
+        succeededStudentIds={[result.studentId]}
+        billingUnresolved={Boolean(result.billingUnresolved)}
+        collectionAllowed={result.collectionAllowed ?? null}
+        billingPartnerIdHint={result.billingPartnerId ?? null}
+      />
+
       <div className="student-create-form__actions student-create-result__actions">
         <button
           type="button"
@@ -76,6 +87,13 @@ export function StudentCreateResultSection({
         >
           {t('admin.student360.create.result.openStudent360')}
         </button>
+        <Link
+          href={`/admin/students/${result.studentId}?tab=finance`}
+          className="btn btn--secondary"
+          data-testid="student-create-open-finance"
+        >
+          {t('admin.student360.registrationCollection.openFinance')}
+        </Link>
         <button
           type="button"
           className="btn btn--secondary"

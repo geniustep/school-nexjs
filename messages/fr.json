@@ -9321,6 +9321,25 @@
         "monthlyInstallmentCount": "Monthly installment count"
       },
       "searchByNamePhoneIdentity": "Rechercher par nom, téléphone, e-mail ou document d’identité",
+      "registrationCollection": {
+        "collectAction": "Enregistrer un encaissement",
+        "resolving": "Chargement du contexte financier…",
+        "optionalHint": "L’encaissement est facultatif. Vous pouvez terminer l’inscription sans enregistrer de règlement.",
+        "openFinance": "Ouvrir la situation financière",
+        "openReceipt": "Ouvrir le reçu",
+        "openCollection": "Ouvrir l’encaissement",
+        "cancelledKeepRegistration": "Inscription réussie, aucun encaissement n’a été enregistré.",
+        "failedKeepRegistration": "Inscription réussie, mais l’encaissement n’a pas pu être enregistré. Vous pourrez réessayer depuis la situation financière.",
+        "successBody": "Encaissement enregistré avec succès.",
+        "receiptUnavailable": "Encaissement enregistré avec succès, mais le reçu est indisponible pour le moment.",
+        "retryReceipt": "Réessayer d’ouvrir le reçu ou l’encaissement",
+        "unavailable": {
+          "no_students": "Aucun élève inscrit avec succès n’est disponible pour l’encaissement.",
+          "billing_unresolved": "Le responsable du règlement n’est pas résolu. Consultez la situation financière avant d’encaisser.",
+          "collection_blocked": "L’encaissement n’est pas disponible pour ce dossier actuellement. Consultez la situation financière.",
+          "context_unresolved": "Le compte de facturation officiel n’a pas pu être déterminé en toute sécurité. Ouvrez la situation financière pour continuer."
+        }
+      },
       "familyRegistration": {
         "pageTitle": "Inscription d’une famille complète",
         "pageDesc": "Saisissez les tuteurs une seule fois, ajoutez un ou plusieurs élèves pour la même famille, puis vérifiez le résumé avant l’inscription.",

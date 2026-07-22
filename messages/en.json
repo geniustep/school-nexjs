@@ -9302,6 +9302,25 @@
         "monthlyInstallmentCount": "Monthly installment count"
       },
       "searchByNamePhoneIdentity": "Search by name, phone, email, or identity document",
+      "registrationCollection": {
+        "collectAction": "Record collection",
+        "resolving": "Loading financial context…",
+        "optionalHint": "Collection is optional. You can finish registration without recording a payment.",
+        "openFinance": "Open financial position",
+        "openReceipt": "Open receipt",
+        "openCollection": "Open collection",
+        "cancelledKeepRegistration": "Registration succeeded and no collection was recorded.",
+        "failedKeepRegistration": "Registration succeeded, but collection could not be recorded. You can try later from the financial position.",
+        "successBody": "Collection recorded successfully.",
+        "receiptUnavailable": "Collection recorded successfully, but the receipt is unavailable right now.",
+        "retryReceipt": "Retry opening the receipt or collection",
+        "unavailable": {
+          "no_students": "No successfully registered student is available for collection.",
+          "billing_unresolved": "Billing responsibility is unresolved. Review the financial position before collecting.",
+          "collection_blocked": "Collection is not available for this file right now. Review the financial position.",
+          "context_unresolved": "The official billing account could not be resolved safely. Open the financial position to continue."
+        }
+      },
       "familyRegistration": {
         "pageTitle": "Register a full family",
         "pageDesc": "Enter guardians once, add one or more students for the same family, then review the summary before registration.",

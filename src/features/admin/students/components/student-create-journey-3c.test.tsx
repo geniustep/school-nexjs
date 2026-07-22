@@ -23,6 +23,30 @@ import { mapStudentApiError } from '@/features/admin/students/utils/student-api-
 
 afterEach(() => cleanup());
 
+vi.mock('@/features/auth/session-context', () => ({
+  useSession: () => ({
+    id: 1,
+    name: 'Tester',
+    email: 't@example.com',
+    role: 'admin',
+    permissions: [],
+    effective_permissions: [],
+    effective_capabilities: [],
+    school: null,
+  }),
+}));
+
+vi.mock('@/features/admin/student-finance/hooks/use-student-family-finance', () => ({
+  useStudentFamilyFinanceSummary: () => ({
+    data: null,
+    loading: false,
+    error: null,
+    reload: vi.fn(),
+    initialLoading: false,
+    fetching: false,
+  }),
+}));
+
 vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string, params?: Record<string, string | number>) => {
     const map: Record<string, string> = {
@@ -45,6 +69,7 @@ vi.mock('@/features/i18n/locale-context', () => ({
       'admin.student360.create.result.openStudent360': 'فتح ملف التلميذ (Student 360)',
       'admin.student360.create.result.createAnother': 'تسجيل تلميذ آخر',
       'admin.student360.create.result.backToList': 'العودة إلى لائحة التلاميذ',
+      'admin.student360.registrationCollection.openFinance': 'فتح الوضعية المالية',
       'admin.student360.create.review.title': 'المراجعة النهائية',
       'admin.student360.create.reviewStepLead': 'راجع قبل الاعتماد',
       'admin.student360.create.review.stageStudent': 'ملخص التلميذ',
