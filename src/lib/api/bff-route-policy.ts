@@ -269,5 +269,8 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   // Odoo 236 subject enablement update — strict body allowlist (no active_school_id).
   // School scope remains on the query string + session.
   if (/^\/admin\/subjects\/enablement\/update$/.test(pathname)) return false;
+  // Draft term PATCH — Odoo rejects unknown body keys (active_school_id).
+  // Tenant scope remains on query string + session cookies.
+  if (/^\/admin\/academic-setup\/terms\/[^/]+$/.test(pathname)) return false;
   return true;
 }

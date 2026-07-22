@@ -115,6 +115,12 @@ describe('F-NX-06 active school body binding', () => {
     expect(shouldInjectActiveSchoolIdInBody('/admin/subjects/enablement/update')).toBe(false);
     expect(shouldInjectActiveSchoolIdInBody('/admin/subjects/enable')).toBe(true);
   });
+
+  it('does not inject active_school_id into academic-setup draft term PATCH body', () => {
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-setup/terms/31')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-setup/terms')).toBe(true);
+    expect(shouldBindActiveSchoolInBody('/admin/academic-setup/terms/31', 'PATCH')).toBe(true);
+  });
 });
 
 describe('F-NX-12 mutation origin', () => {
