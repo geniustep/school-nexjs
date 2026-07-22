@@ -232,10 +232,22 @@ export default function AdminStudentsPage() {
                 importOpen={importOpen}
                 onToggleImport={() => setImportOpen((v) => !v)}
                 extra={
-                  canImportStudents ? (
-                    <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
-                      {t('admin.studentImport.openImport')}
-                    </Link>
+                  canImportStudents || canAddStudent ? (
+                    <>
+                      {canAddStudent ? (
+                        <Link
+                          href="/admin/students/family/new"
+                          className="btn btn--ghost btn--sm"
+                        >
+                          {t('admin.student360.familyRegistration.entryFromList')}
+                        </Link>
+                      ) : null}
+                      {canImportStudents ? (
+                        <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
+                          {t('admin.studentImport.openImport')}
+                        </Link>
+                      ) : null}
+                    </>
                   ) : null
                 }
               />

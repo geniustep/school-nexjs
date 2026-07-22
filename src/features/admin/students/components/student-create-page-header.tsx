@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import {
   buildStudentCreatePageTitleParts,
@@ -30,6 +31,11 @@ export function StudentCreatePageHeader({ state }: { state: StudentProfileFormSt
         </p>
       ) : null}
       <p className="student-create-page__desc">{t('admin.student360.create.pageDesc')}</p>
+      <p className="student-create-page__family-link">
+        <Link href="/admin/students/family/new">
+          {t('admin.student360.familyRegistration.entryFromCreate')}
+        </Link>
+      </p>
     </header>
   );
 }

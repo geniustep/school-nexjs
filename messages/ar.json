@@ -9471,7 +9471,74 @@
       "feePlansWorkspace": {
         "monthlyInstallmentCount": "عدد الدفعات الشهرية"
       },
-      "searchByNamePhoneIdentity": "ابحث بالاسم أو الهاتف أو البريد أو وثيقة الهوية"
+      "searchByNamePhoneIdentity": "ابحث بالاسم أو الهاتف أو البريد أو وثيقة الهوية",
+      "familyRegistration": {
+        "pageTitle": "تسجيل أسرة كاملة",
+        "pageDesc": "أدخل أولياء الأمر مرة واحدة، ثم أضف تلميذًا أو أكثر لنفس الأسرة، وراجع الملخص قبل التسجيل.",
+        "sequentialNote": "يُسجَّل كل تلميذ بطلب مستقل. عند وقوع نجاح جزئي تُعرض نتيجة كل تلميذ بوضوح دون إخفاء.",
+        "stepperAria": "خطوات تسجيل الأسرة",
+        "steps": {
+          "guardians": "الأولياء والمسؤول عن الأداء",
+          "children": "الأبناء",
+          "review": "مراجعة الأسرة",
+          "result": "نتيجة التسجيل"
+        },
+        "childrenTitle": "تلاميذ الأسرة",
+        "childrenLead": "أضف بيانات كل تلميذ. تُعاد استعمال بيانات الأولياء والمسؤول عن الأداء لجميع الأبناء.",
+        "childHeading": "التلميذ {index}",
+        "addChild": "إضافة تلميذ آخر",
+        "removeChild": "إزالة",
+        "relationshipsTitle": "صلة كل ولي بهذا التلميذ",
+        "reviewTitle": "ملخص الأسرة قبل التسجيل",
+        "reviewLead": "تحقق من الأولياء والأبناء والعلاقات والمسؤول عن الأداء قبل التأكيد.",
+        "reviewGuardians": "أولياء الأمر",
+        "reviewBilling": "المسؤول عن الأداء",
+        "reviewChildren": "الأبناء والعلاقات",
+        "billingMissing": "لم يُحدَّد المسؤول عن الأداء",
+        "existingGuardian": "موجود",
+        "newGuardian": "جديد",
+        "confirmRegister": "تأكيد تسجيل الأسرة",
+        "submitting": "جارٍ تسجيل الأسرة…",
+        "continueToChildren": "متابعة إلى الأبناء",
+        "continueToReview": "مراجعة وتسجيل الأسرة",
+        "singleStudentInstead": "تسجيل تلميذ واحد بدلًا من ذلك",
+        "resultTitle": "نتيجة تسجيل الأسرة",
+        "resultLead": {
+          "idle": "لم يبدأ التسجيل بعد.",
+          "in_progress": "جارٍ تسجيل التلاميذ واحدًا تلو الآخر.",
+          "full_success": "اكتمل تسجيل جميع تلاميذ الأسرة بنجاح.",
+          "partial_success": "نجح تسجيل بعض التلاميذ وفشل البعض. راجع النتائج أدناه.",
+          "full_failure": "لم يُسجَّل أي تلميذ. يمكنك العودة للمراجعة بعد تصحيح البيانات."
+        },
+        "status": {
+          "pending": "لم يبدأ",
+          "queued": "في الانتظار",
+          "submitting": "جارٍ التسجيل",
+          "succeeded": "نجح",
+          "failed": "فشل",
+          "ambiguous": "غير مؤكد",
+          "blocked": "موقوف"
+        },
+        "openStudent": "فتح ملف التلميذ",
+        "retryFailed": "إعادة محاولة التلاميذ الفاشلين فقط",
+        "backToList": "العودة إلى لائحة التلاميذ",
+        "backToReview": "العودة إلى المراجعة",
+        "registerAnotherFamily": "تسجيل أسرة أخرى",
+        "toast": {
+          "fullSuccess": "تم تسجيل جميع تلاميذ الأسرة بنجاح.",
+          "partialSuccess": "اكتمل التسجيل جزئيًا. راجع نتيجة كل تلميذ.",
+          "failure": "تعذر إكمال تسجيل الأسرة."
+        },
+        "errors": {
+          "generic": "تحقق من بيانات الأسرة قبل المتابعة.",
+          "childrenRequired": "أضف تلميذًا واحدًا على الأقل.",
+          "childIncomplete": "بيانات التلميذ «{name}» غير مكتملة.",
+          "guardiansUnresolved": "تعذر ربط الأولياء الجدد بأمان بعد نجاح التلميذ الأول. أكمل الباقي يدويًا من ملف التلميذ أو ابحث عن الولي الموجود.",
+          "ambiguousFailure": "لم يُؤكد نجاح الطلب أو فشله. تحقق من لائحة التلاميذ قبل أي إعادة محاولة لتجنب التكرار."
+        },
+        "entryFromList": "تسجيل أسرة كاملة",
+        "entryFromCreate": "تسجيل أسرة كاملة (عدة أبناء)"
+      }
     },
     "academicYearIdOptional": "معرّف السنة الدراسية (اختياري)",
     "academicYearOptionalHint": "اتركه فارغًا إن لم تكن متأكدًا",

@@ -15476,3 +15476,175 @@ html[dir='rtl'] .student-finance-strip__marker {
   gap: 10px;
   margin-bottom: 10px;
 }
+
+/* -- Family registration (multi-child sequential create) -- */
+.family-registration__mode-note {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #fff7ed 70%, var(--bg, #fff));
+  color: var(--text-muted, #64748b);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.family-registration__children {
+  display: grid;
+  gap: 16px;
+}
+
+.family-registration__child-card {
+  padding: 16px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-1, #fafbfc) 65%, var(--bg, #fff));
+}
+
+.family-registration__child-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.family-registration__child-card-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.family-registration__children-actions {
+  margin-top: 12px;
+}
+
+.family-registration__relationships {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border-subtle, #f1f5f9);
+}
+
+.family-registration__relationships h4 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.family-registration__relationships ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.family-registration__relationships label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.875rem;
+}
+
+.family-registration__relationships select {
+  max-width: 280px;
+}
+
+.family-registration__review {
+  display: grid;
+  gap: 16px;
+}
+
+.family-registration__review h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.family-registration__review ul {
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+
+.family-registration__alert {
+  color: var(--c-red, #dc2626);
+  font-size: 0.875rem;
+}
+
+.family-registration__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.family-registration__result-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--bg, #fff);
+}
+
+.family-registration__result-item[data-status='succeeded'] {
+  border-color: color-mix(in srgb, var(--c-green, #16a34a) 35%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #f0fdf4 55%, var(--bg, #fff));
+}
+
+.family-registration__result-item[data-status='failed'],
+.family-registration__result-item[data-status='ambiguous'],
+.family-registration__result-item[data-status='blocked'] {
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 30%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #fef2f2 45%, var(--bg, #fff));
+}
+
+.family-registration__result-item[data-status='submitting'],
+.family-registration__result-item[data-status='queued'] {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 28%, var(--c-border, #e2e8f0));
+}
+
+.family-registration__result-item > div {
+  display: grid;
+  gap: 2px;
+}
+
+.family-registration__result-item span {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #64748b);
+}
+
+.family-registration__result-actions,
+.family-registration__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.student-create-page__family-link {
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+}
+
+.student-create-page__family-link a {
+  color: var(--c-primary, #2563eb);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .family-registration__child-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .family-registration__actions {
+    justify-content: stretch;
+  }
+
+  .family-registration__actions .btn {
+    width: 100%;
+  }
+}
