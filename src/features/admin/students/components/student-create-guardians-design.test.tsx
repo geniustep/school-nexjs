@@ -164,7 +164,11 @@ function renderBillingStep(options?: {
   onBillingChange?: (patch: Record<string, unknown>) => void;
 }) {
   const intakeValues = emptyIntake(options?.intake);
-  const billingState = options?.billing ?? defaultStudentCreateBillingFormState();
+  const billingState = options?.billing ?? {
+    ...defaultStudentCreateBillingFormState(),
+    guardianSourceMode: 'new' as const,
+    responsibilitySelection: 'guardian' as const,
+  };
   const onAddAdditionalGuardian = options?.onAddAdditionalGuardian ?? vi.fn();
   const onIntakePatch = options?.onIntakePatch ?? vi.fn();
   const onBillingChange = options?.onBillingChange ?? vi.fn();
@@ -390,7 +394,11 @@ describe('guardian contract preservation', () => {
       emergencyRelationship: 'mother',
       guardianEmail: 'f@example.com',
     };
-    const billing = defaultStudentCreateBillingFormState();
+    const billing = {
+      ...defaultStudentCreateBillingFormState(),
+      guardianSourceMode: 'new' as const,
+      responsibilitySelection: 'guardian' as const,
+    };
     const primary = derivePrimaryStudentCreateGuardianEntry(profile, billing);
     expect(primary).toMatchObject({
       kind: 'new',

@@ -25,6 +25,17 @@ function profileWithGuardian(overrides: Partial<ReturnType<typeof defaultStudent
   };
 }
 
+function billingWithNewGuardian(
+  overrides: Partial<ReturnType<typeof defaultStudentCreateBillingFormState>> = {},
+) {
+  return {
+    ...defaultStudentCreateBillingFormState(),
+    guardianSourceMode: 'new' as const,
+    responsibilitySelection: 'guardian' as const,
+    ...overrides,
+  };
+}
+
 describe('student create guardian atomic payload', () => {
   it('existing guardian uses guardian_id, not partner_id', () => {
     expect(
@@ -41,6 +52,7 @@ describe('student create guardian atomic payload', () => {
       {
         ...defaultStudentCreateBillingFormState(),
         guardianSourceMode: 'existing',
+        responsibilitySelection: 'guardian',
         linkedGuardianId: 701,
       },
     );
@@ -62,7 +74,7 @@ describe('student create guardian atomic payload', () => {
     const payload = applyStudentCreateGuardianAtomicContractToPayload(
       buildStudentCreatePayload(profileWithGuardian(), null, { deferGuardianContact: true }),
       profileWithGuardian(),
-      defaultStudentCreateBillingFormState(),
+      billingWithNewGuardian(),
     );
 
     expect(payload.guardian_relationships).toEqual([
@@ -84,27 +96,21 @@ describe('student create guardian atomic payload', () => {
   });
 
   it('one guardian guardian billing auto-selects financial flag without billing_guardian_id for new guardian', () => {
-    const entries = collectStudentCreateGuardianEntries(
-      profileWithGuardian(),
-      defaultStudentCreateBillingFormState(),
-    );
-    const billingKey = resolveBillingGuardianEntryKey(entries, defaultStudentCreateBillingFormState());
+    const billing = billingWithNewGuardian();
+    const entries = collectStudentCreateGuardianEntries(profileWithGuardian(), billing);
+    const billingKey = resolveBillingGuardianEntryKey(entries, billing);
     expect(billingKey).toBe('new-primary');
     expect(buildStudentCreateGuardianRelationships(entries, billingKey)[0]).toMatchObject({
       is_financial_responsible: true,
     });
-    expect(
-      buildStudentCreateBillingResponsibilityRequest(
-        defaultStudentCreateBillingFormState(),
-        entries,
-        billingKey,
-      ),
-    ).toEqual({ mode: 'guardian' });
+    expect(buildStudentCreateBillingResponsibilityRequest(billing, entries, billingKey)).toEqual({
+      mode: 'guardian',
+    });
   });
 
   it('multiple guardians require explicit billing selection', () => {
     const billingState = {
-      ...defaultStudentCreateBillingFormState(),
+      ...billingWithNewGuardian(),
       guardianEntries: [
         {
           kind: 'existing' as const,
@@ -145,7 +151,7 @@ describe('student create guardian atomic payload', () => {
 
   it('primary contact is not auto billing guardian when another entry is selected', () => {
     const billingState = {
-      ...defaultStudentCreateBillingFormState(),
+      ...billingWithNewGuardian(),
       billingGuardianEntryKey: 'existing-702',
       guardianEntries: [
         {
@@ -174,7 +180,7 @@ describe('student create guardian atomic payload', () => {
   it('guardian billing without guardian blocks submit', () => {
     const result = validateStudentCreateGuardianContract(
       defaultStudentProfileFormState(null),
-      defaultStudentCreateBillingFormState(),
+      billingWithNewGuardian(),
       t,
     );
     expect(result.valid).toBe(false);
@@ -196,11 +202,9 @@ describe('student create guardian atomic payload', () => {
   });
 
   it('omits provision_access unless explicitly requested', () => {
-    const entries = collectStudentCreateGuardianEntries(
-      profileWithGuardian(),
-      defaultStudentCreateBillingFormState(),
-    );
-    const billingKey = resolveBillingGuardianEntryKey(entries, defaultStudentCreateBillingFormState());
+    const billing = billingWithNewGuardian();
+    const entries = collectStudentCreateGuardianEntries(profileWithGuardian(), billing);
+    const billingKey = resolveBillingGuardianEntryKey(entries, billing);
     const withoutProvision = buildStudentCreateGuardianRelationships(entries, billingKey);
     expect(withoutProvision[0]).not.toHaveProperty('provision_access');
 
@@ -214,10 +218,9 @@ describe('student create guardian atomic payload', () => {
     const payload = applyStudentCreateGuardianAtomicContractToPayload(
       buildStudentCreatePayload(profileWithGuardian(), null, { deferGuardianContact: true }),
       profileWithGuardian(),
-      {
-        ...defaultStudentCreateBillingFormState(),
+      billingWithNewGuardian({
         provisionAccessByEntryKey: { 'new-primary': true },
-      },
+      }),
     );
     expect(payload.guardian_relationships?.[0]).toMatchObject({ provision_access: true });
   });
@@ -231,6 +234,7 @@ describe('post-201 duplicate link guard', () => {
       {
         ...defaultStudentCreateBillingFormState(),
         guardianSourceMode: 'existing',
+        responsibilitySelection: 'guardian',
         linkedGuardianId: 701,
       },
     );

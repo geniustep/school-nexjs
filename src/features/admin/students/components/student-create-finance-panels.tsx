@@ -345,11 +345,13 @@ export function StudentCreateFinanceCustomization({
   financeState,
   previewError,
   onFinanceChange,
+  canManageDiscounts = true,
 }: {
   suggest: FeePlanSuggestResult;
   financeState: StudentCreateFinanceFormState;
   previewError: string | null;
   onFinanceChange: (patch: Partial<StudentCreateFinanceFormState>) => void;
+  canManageDiscounts?: boolean;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -364,7 +366,11 @@ export function StudentCreateFinanceCustomization({
   const lastDue = selectedPeriods[selectedPeriods.length - 1]?.due_date;
   const oneTimeLineRecords = Object.entries(financeState.oneTimeLines);
   const planLines = suggest.plan_lines ?? [];
-  const availableModes = useMemo(() => resolveFinanceCustomizationModes(suggest), [suggest]);
+  const availableModes = useMemo(() => {
+    const modes = resolveFinanceCustomizationModes(suggest);
+    if (canManageDiscounts) return modes;
+    return modes.filter((mode) => mode !== 'plan_discount' && mode !== 'line_discounts');
+  }, [suggest, canManageDiscounts]);
   const [selectedMode, setSelectedMode] = useState<FinanceCustomizationMode | null>(null);
 
   useEffect(() => {

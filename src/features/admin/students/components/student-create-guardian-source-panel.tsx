@@ -25,6 +25,7 @@ export function StudentCreateGuardianSourcePanel({
   onSourceModeChange,
   onLinkExisting,
   onClearLink,
+  allowCreateNewGuardian = true,
 }: {
   intakeValues: Pick<EnrollmentIntakeValues, 'guardianName' | 'guardianPhone' | 'guardianEmail'>;
   sourceMode: StudentCreateGuardianSourceMode;
@@ -33,6 +34,8 @@ export function StudentCreateGuardianSourcePanel({
   onSourceModeChange: (mode: StudentCreateGuardianSourceMode) => void;
   onLinkExisting: (person: PersonSearchResult) => void;
   onClearLink: () => void;
+  /** When false, hide/disable «ولي جديد» — employee may only link an existing guardian. */
+  allowCreateNewGuardian?: boolean;
 }) {
   const t = useT();
   const { activeSchoolId } = useAdminSession();
@@ -109,6 +112,7 @@ export function StudentCreateGuardianSourcePanel({
 
   function selectMode(mode: StudentCreateGuardianSourceMode) {
     if (mode === sourceMode) return;
+    if (mode === 'new' && !allowCreateNewGuardian) return;
     setSearchName('');
     setSearchPhone('');
     setCandidates([]);
@@ -149,20 +153,26 @@ export function StudentCreateGuardianSourcePanel({
               {t('admin.student360.create.billing.guardianSourceExistingLabel')}
             </span>
           </label>
-          <label
-            className={`student-create-guardian-source__mode${sourceMode === 'new' ? ' student-create-guardian-source__mode--active' : ''}`}
-          >
-            <input
-              type="radio"
-              name="student-create-guardian-source"
-              value="new"
-              checked={sourceMode === 'new'}
-              onChange={() => selectMode('new')}
-            />
-            <span className="student-create-guardian-source__mode-label">
-              {t('admin.student360.create.billing.guardianSourceNewLabel')}
-            </span>
-          </label>
+          {allowCreateNewGuardian ? (
+            <label
+              className={`student-create-guardian-source__mode${sourceMode === 'new' ? ' student-create-guardian-source__mode--active' : ''}`}
+            >
+              <input
+                type="radio"
+                name="student-create-guardian-source"
+                value="new"
+                checked={sourceMode === 'new'}
+                onChange={() => selectMode('new')}
+              />
+              <span className="student-create-guardian-source__mode-label">
+                {t('admin.student360.create.billing.guardianSourceNewLabel')}
+              </span>
+            </label>
+          ) : (
+            <p className="student-create-field__hint" role="status">
+              {t('admin.student360.create.billing.guardianCreateForbiddenHint')}
+            </p>
+          )}
         </div>
       </fieldset>
 

@@ -18,10 +18,11 @@ export type BillingResponsibilityFieldErrors = {
 
 export function defaultStudentCreateBillingFormState(): StudentCreateBillingFormState {
   return {
-    responsibilitySelection: 'guardian',
+    // Explicit selection required unless a single eligible guardian is auto-applied in the UI.
+    responsibilitySelection: 'needs_selection',
     studentBillingConfirmed: false,
     studentBillingReason: '',
-    guardianSourceMode: 'new',
+    guardianSourceMode: 'existing',
     linkedGuardianId: null,
     billingGuardianEntryKey: null,
     guardianEntries: [],

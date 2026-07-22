@@ -86,6 +86,8 @@ describe('multi-guardian payload adapter', () => {
     const additionalKey = 'additional-second';
     const billingState = {
       ...defaultStudentCreateBillingFormState(),
+      guardianSourceMode: 'new' as const,
+      responsibilitySelection: 'guardian' as const,
       billingGuardianEntryKey: additionalKey,
       guardianEntries: [
         {
@@ -123,6 +125,8 @@ describe('multi-guardian payload adapter', () => {
   it('sends existing + new guardians with billing_guardian_id for existing additional guardian', () => {
     const billingState = {
       ...defaultStudentCreateBillingFormState(),
+      guardianSourceMode: 'new' as const,
+      responsibilitySelection: 'guardian' as const,
       billingGuardianEntryKey: 'existing-702',
       guardianEntries: [
         entryFromLinkedExistingGuardian('existing-702', 702, 'Hassan', 'father'),
@@ -147,6 +151,8 @@ describe('multi-guardian payload adapter', () => {
   it('omits incomplete additional guardians from atomic payload', () => {
     const billingState = {
       ...defaultStudentCreateBillingFormState(),
+      guardianSourceMode: 'new' as const,
+      responsibilitySelection: 'guardian' as const,
       guardianEntries: [createEmptyAdditionalGuardianEntry()],
     };
     const payload = applyStudentCreateGuardianAtomicContractToPayload(
@@ -161,6 +167,8 @@ describe('multi-guardian payload adapter', () => {
     const additionalKey = 'additional-second';
     const billingState = {
       ...defaultStudentCreateBillingFormState(),
+      guardianSourceMode: 'new' as const,
+      responsibilitySelection: 'guardian' as const,
       guardianEntries: [
         {
           kind: 'new' as const,

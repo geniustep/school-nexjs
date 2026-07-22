@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
 import { useAdmissionOptions } from '@/features/admin/admissions/hooks/use-admission-options';
@@ -71,7 +72,10 @@ import {
   resolveStudentCreateAgreementState,
   type StudentCreateFinanceActivationMode,
 } from '../utils/student-create-finance-activation';
-import { resolveStudentCreateFinanceStepGate } from '../utils/student-create-finance-skip';
+import {
+  isOptionalFinanceGateStatus,
+  resolveStudentCreateFinanceStepGate,
+} from '../utils/student-create-finance-skip';
 import {
   resolveStudentCreateIdentifierCheckErrors,
   validateStudentCreateIdentifierDuplicateChecks,
@@ -84,6 +88,10 @@ import { StudentCreateBillingStep } from './student-create-billing-step';
 import type { PersonSearchResult } from '@/types/student-360';
 import { StudentCreateFeePlanSection } from './student-create-fee-plan-section';
 import { StudentCreateReviewSection } from './student-create-review-section';
+import {
+  StudentCreateResultSection,
+  type StudentCreateResultModel,
+} from './student-create-result-section';
 import type { BillingResponsibilityMetadata } from '@/types/billing-responsibility';
 import {
   defaultStudentCreateBillingFormState,
@@ -91,6 +99,7 @@ import {
   validateBillingResponsibilityForm,
   type BillingResponsibilityFieldErrors,
 } from '../utils/student-create-billing-responsibility';
+import { resolveBillingResponsibilityAutoPatch } from '../utils/student-create-billing-auto-select';
 import {
   applyStudentCreateGuardianAtomicContractToPayload,
   collectStudentCreateGuardianEntries,
@@ -108,6 +117,11 @@ import {
   persistStudentCreateGuardianOnboarding,
 } from '../utils/resolve-guardian-account-presentation';
 import { resolvePostCreateBillingOutcome } from '../utils/resolve-post-create-billing-outcome';
+import {
+  canOfferCreateAgreementActivationUi,
+  resolveStudentCreateJourneyCapabilities,
+  shouldForceSkipFinanceOnCreate,
+} from '../utils/student-create-journey-rbac';
 import type {
   StudentCreateBillingFormState,
   StudentCreateFinanceFormState,
@@ -123,7 +137,13 @@ export interface StudentCreateSaveOutcome {
   collectionAllowed?: boolean | null;
   billingResponsibilityUnresolved?: boolean;
 }
-export type StudentCreateWizardStep = 'identity' | 'billing' | 'enrollment' | 'finance' | 'review';
+export type StudentCreateWizardStep =
+  | 'identity'
+  | 'billing'
+  | 'enrollment'
+  | 'finance'
+  | 'review'
+  | 'result';
 
 const STEP_ORDER: StudentCreateWizardStep[] = [
   'identity',
@@ -165,7 +185,13 @@ export function StudentCreateForm({
 }) {
   const t = useT();
   const toast = useToast();
+  const user = useSession();
   const { activeSchoolId } = useAdminSession();
+  const journeyCapabilities = useMemo(
+    () => resolveStudentCreateJourneyCapabilities(user),
+    [user],
+  );
+  const forceSkipFinance = shouldForceSkipFinanceOnCreate(journeyCapabilities);
   const optionsState = useStudentOptions();
   const admissionOptionsState = useAdmissionOptions();
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
@@ -186,13 +212,20 @@ export function StudentCreateForm({
   const [fieldErrors, setFieldErrors] = useState<StudentProfileFieldErrors>({});
   const [financeError, setFinanceError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const submitInFlightRef = useRef(false);
   const [saveMode, setSaveMode] = useState<StudentCreateSaveMode>('setup');
   const [financeActivationMode, setFinanceActivationMode] =
     useState<StudentCreateFinanceActivationMode>('draft');
   const [classClearedNotice, setClassClearedNotice] = useState(false);
   const [cycleChangedNotice, setCycleChangedNotice] = useState(false);
   const [planChangeWarning, setPlanChangeWarning] = useState(false);
-  const [skipFinance, setSkipFinance] = useState(false);
+  const [skipFinance, setSkipFinance] = useState(forceSkipFinance);
+  const [createResult, setCreateResult] = useState<StudentCreateResultModel | null>(null);
+  const [pendingSaveOutcome, setPendingSaveOutcome] = useState<{
+    id: number;
+    mode: StudentCreateSaveMode;
+    outcome?: StudentCreateSaveOutcome;
+  } | null>(null);
   const financeTouchedRef = useRef(false);
   const lastSuggestFingerprintRef = useRef('');
   const lastFeePlanIdRef = useRef<number | null>(null);
@@ -938,7 +971,7 @@ export function StudentCreateForm({
   }
 
   function applyIdentifierDuplicateValidation(
-    current: StudentCreateWizardStep,
+    current: Exclude<StudentCreateWizardStep, 'result'>,
     checks = identifierChecksState.checks,
   ): boolean {
     const result = validateStudentCreateIdentifierDuplicateChecks({
@@ -959,7 +992,7 @@ export function StudentCreateForm({
   }
 
   function validateIdentifierDuplicateChecks(
-    current: StudentCreateWizardStep,
+    current: Exclude<StudentCreateWizardStep, 'result'>,
     checks = identifierChecksState.checks,
   ): boolean {
     return applyIdentifierDuplicateValidation(current, checks);
@@ -997,6 +1030,33 @@ export function StudentCreateForm({
     () => collectStudentCreateGuardianEntries(state, billingState),
     [state, billingState],
   );
+
+  useEffect(() => {
+    if (forceSkipFinance && !skipFinance) {
+      setSkipFinance(true);
+      setFinanceError(null);
+    }
+  }, [forceSkipFinance, skipFinance]);
+
+  useEffect(() => {
+    if (!journeyCapabilities.canCreateNewGuardian && billingState.guardianSourceMode === 'new') {
+      setBillingState((prev) => ({
+        ...prev,
+        guardianSourceMode: 'existing',
+        linkedGuardianId: null,
+        billingGuardianEntryKey: null,
+      }));
+      setLinkedGuardianPerson(null);
+    }
+  }, [journeyCapabilities.canCreateNewGuardian, billingState.guardianSourceMode]);
+
+  useEffect(() => {
+    setBillingState((prev) => {
+      const patch = resolveBillingResponsibilityAutoPatch(guardianEntriesForBilling, prev);
+      if (!patch) return prev;
+      return { ...prev, ...patch };
+    });
+  }, [guardianEntriesForBilling]);
 
   function focusFirstError(errors: StudentProfileFieldErrors) {
     const firstKey = FIELD_ORDER.find((key) => errors[key]);
@@ -1137,7 +1197,7 @@ export function StudentCreateForm({
   }
 
   function validateStep(
-    current: StudentCreateWizardStep,
+    current: Exclude<StudentCreateWizardStep, 'result'>,
     identifierChecks = identifierChecksState.checks,
   ): boolean {
     if (!validateIdentifierDuplicateChecks(current, identifierChecks)) {
@@ -1230,15 +1290,10 @@ export function StudentCreateForm({
         toast.error(t('admin.student360.create.finance.loading'));
         return false;
       }
-      if (gate.status === 'blocked') {
-        const message = resolveNoDefaultFeePlanMessage(suggestState.error, t);
-        setFinanceError(message);
-        toast.error(message);
-        return false;
-      }
-      if (gate.status === 'no_plan') {
-        toast.error(t('admin.student360.create.finance.required'));
-        return false;
+      // Plan is optional: blocked / missing plans do not prevent registration.
+      if (isOptionalFinanceGateStatus(gate.status)) {
+        setFinanceError(null);
+        return true;
       }
       if (!validateFinanceStep()) return false;
     }
@@ -1247,6 +1302,7 @@ export function StudentCreateForm({
   }
 
   async function goNext() {
+    if (step === 'result') return;
     const current = step;
     const flushed = await identifierChecksState.flushChecks();
     if (!applyIdentifierDuplicateValidation(current, flushed.checks)) {
@@ -1258,6 +1314,7 @@ export function StudentCreateForm({
   }
 
   function goBack() {
+    if (step === 'result') return;
     const prev = STEP_ORDER[stepIndex(step) - 1];
     if (prev) setStep(prev);
   }
@@ -1266,6 +1323,8 @@ export function StudentCreateForm({
     mode: StudentCreateSaveMode,
     activation: StudentCreateFinanceActivationMode = 'draft',
   ) {
+    if (submitInFlightRef.current || saving) return;
+
     const flushed = await identifierChecksState.flushChecks();
     if (!applyIdentifierDuplicateValidation('review', flushed.checks)) {
       return;
@@ -1285,7 +1344,11 @@ export function StudentCreateForm({
       return;
     }
 
-    const attachFinance = !skipFinance && Boolean(suggestState.suggest);
+    const effectiveSkipFinance = skipFinance || forceSkipFinance;
+    const attachFinance =
+      !effectiveSkipFinance &&
+      journeyCapabilities.canAssignFeePlan &&
+      Boolean(suggestState.suggest);
 
     if (attachFinance) {
       const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
@@ -1297,22 +1360,26 @@ export function StudentCreateForm({
 
     if (activation === 'activate' && attachFinance) {
       if (
-        !canOfferFinanceAgreementActivation({
-          suggest: suggestState.suggest,
-          financeBlocked,
-          state,
-          schoolId: resolvedSchoolId,
-          financeState,
-          previewLoading: previewState.loading,
-          previewError: previewState.error,
-          preview: previewState.preview,
-        })
+        !canOfferCreateAgreementActivationUi(
+          journeyCapabilities,
+          canOfferFinanceAgreementActivation({
+            suggest: suggestState.suggest,
+            financeBlocked,
+            state,
+            schoolId: resolvedSchoolId,
+            financeState,
+            previewLoading: previewState.loading,
+            previewError: previewState.error,
+            preview: previewState.preview,
+          }),
+        )
       ) {
         validateFinanceStep();
         return;
       }
     }
 
+    submitInFlightRef.current = true;
     setSaveMode(mode);
     setFinanceActivationMode(activation);
     setSaving(true);
@@ -1337,11 +1404,13 @@ export function StudentCreateForm({
 
     if (payload.finance && payload.academic?.academic_year_id == null) {
       applyFinancePrerequisiteFailure('academic_year', 'save');
+      submitInFlightRef.current = false;
       setSaving(false);
       return;
     }
     if (payload.finance && payload.academic?.class_id == null) {
       applyFinancePrerequisiteFailure('class', 'save');
+      submitInFlightRef.current = false;
       setSaving(false);
       return;
     }
@@ -1353,6 +1422,12 @@ export function StudentCreateForm({
           ? (res.data as Record<string, unknown>)
           : null;
       const id = data && 'id' in data ? Number(data.id) : 0;
+      const studentCode =
+        data && typeof data.code === 'string'
+          ? data.code
+          : data && typeof data.school_number === 'string'
+            ? data.school_number
+            : null;
 
       const initialBillingOutcome = parseBillingResponsibilityOutcome(data);
 
@@ -1365,6 +1440,7 @@ export function StudentCreateForm({
       const billingOutcome = billingResolution.finalOutcome;
       const billingUnresolved = billingResolution.billingResponsibilityUnresolved;
 
+      submitInFlightRef.current = false;
       setSaving(false);
       const agreementState = resolveStudentCreateAgreementState(
         data as { id?: number; agreement_state?: string; finance?: { agreement_state?: string } },
@@ -1392,16 +1468,28 @@ export function StudentCreateForm({
         persistStudentCreateGuardianOnboarding(id, createdGuardianAccounts);
       }
 
-      onSaved(id, mode, {
+      const outcome: StudentCreateSaveOutcome = {
         financeActivation: payload.finance ? activation : undefined,
         agreementState,
         billingResponsibility: billingOutcome.metadata,
         collectionAllowed: billingOutcome.collectionAllowed,
         billingResponsibilityUnresolved: billingUnresolved,
+      };
+
+      setCreateResult({
+        studentId: id,
+        studentCode,
+        financeAttached: Boolean(payload.finance),
+        financeActivation: payload.finance ? activation : undefined,
+        agreementState,
+        billingUnresolved,
       });
+      setPendingSaveOutcome({ id, mode, outcome });
+      setStep('result');
       return;
     }
 
+    submitInFlightRef.current = false;
     setSaving(false);
 
       if (!res.success) {
@@ -1451,6 +1539,8 @@ export function StudentCreateForm({
   }
 
   const onLastStep = step === 'review';
+  const onResultStep = step === 'result';
+  const effectiveSkipFinance = skipFinance || forceSkipFinance;
   const financeBlockReason =
     levelSelected && Boolean(suggestState.suggest)
       ? getStudentCreateFinanceBlockReason(state, resolvedSchoolId)
@@ -1468,31 +1558,60 @@ export function StudentCreateForm({
     identifierChecksState.checks.massarCode.status === 'duplicate' ||
     displayFieldErrors.massarCode === t('admin.student360.errors.duplicateMassar');
 
-  const canActivateFinanceAgreement =
-    !skipFinance &&
-    canOfferFinanceAgreementActivation({
-      suggest: suggestState.suggest,
-      financeBlocked,
-      state,
-      schoolId: resolvedSchoolId,
-      financeState,
-      previewLoading: previewState.loading,
-      previewError: previewState.error,
-      preview: previewState.preview,
-    });
+  const canActivateFinanceAgreement = canOfferCreateAgreementActivationUi(
+    journeyCapabilities,
+    !effectiveSkipFinance &&
+      canOfferFinanceAgreementActivation({
+        suggest: suggestState.suggest,
+        financeBlocked,
+        state,
+        schoolId: resolvedSchoolId,
+        financeState,
+        previewLoading: previewState.loading,
+        previewError: previewState.error,
+        preview: previewState.preview,
+      }),
+  );
 
   const saveDisabled =
     saving ||
-    (!skipFinance && (financeBlocked || financePrerequisitesMissing)) ||
+    submitInFlightRef.current ||
+    (!effectiveSkipFinance &&
+      Boolean(suggestState.suggest) &&
+      financePrerequisitesMissing) ||
     massarDuplicate ||
     identifierChecksState.identifierChecksBlockProgress;
+
+  function handleOpenStudent360() {
+    if (!pendingSaveOutcome) return;
+    onSaved(pendingSaveOutcome.id, pendingSaveOutcome.mode, pendingSaveOutcome.outcome);
+  }
+
+  function handleCreateAnother() {
+    window.location.assign('/admin/students/new');
+  }
+
+  function handleBackToList() {
+    onCancel();
+  }
 
   return (
     <>
       <StudentCreatePageHeader state={state} />
       <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
       {admissionBanner ? <StudentCreatePrefillBanner banner={admissionBanner} /> : null}
-      <StudentCreateStepper activeStep={step} />
+      {!onResultStep ? (
+        <StudentCreateStepper
+          activeStep={
+            (STEP_ORDER.includes(step) ? step : 'review') as
+              | 'identity'
+              | 'billing'
+              | 'enrollment'
+              | 'finance'
+              | 'review'
+          }
+        />
+      ) : null}
 
       {step === 'identity' ? (
         <StudentCreateStyledSection
@@ -1543,6 +1662,8 @@ export function StudentCreateForm({
           onRemoveAdditionalGuardian={handleRemoveAdditionalGuardian}
           usedGuardianIds={usedGuardianIds}
           linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
+          allowCreateNewGuardian={journeyCapabilities.canCreateNewGuardian}
+          canManageBillingProfile={journeyCapabilities.canManageBillingProfile}
           guardian={{
             relationships: admissionOptionsState.options?.relationships ?? [],
             relationshipsLoading: admissionOptionsState.loading,
@@ -1624,17 +1745,24 @@ export function StudentCreateForm({
 
       {step === 'finance' ? (
         <div className="student-create-finance-flow">
-          {financeError && !skipFinance ? (
+          {financeError && !effectiveSkipFinance ? (
             <p className="student-create-form__notice student-create-finance-flow__alert" role="alert">
               {financeError}
+            </p>
+          ) : null}
+          {!journeyCapabilities.canAssignFeePlan ? (
+            <p className="student-create-form__notice" role="status">
+              {t('admin.student360.create.finance.assignForbiddenHint')}
             </p>
           ) : null}
           <div className="student-create-finance-skip-card">
             <label className="student-create-form__checkbox">
               <input
                 type="checkbox"
-                checked={skipFinance}
+                checked={effectiveSkipFinance}
+                disabled={forceSkipFinance || saving}
                 onChange={(e) => {
+                  if (forceSkipFinance) return;
                   const checked = e.target.checked;
                   setSkipFinance(checked);
                   if (checked) setFinanceError(null);
@@ -1648,7 +1776,7 @@ export function StudentCreateForm({
               </span>
             </label>
           </div>
-          {skipFinance ? (
+          {effectiveSkipFinance ? (
             <p className="student-create-form__notice student-create-finance-flow__skipped" role="status">
               {t('admin.student360.create.finance.skipFinanceActive')}
             </p>
@@ -1667,6 +1795,7 @@ export function StudentCreateForm({
               previewError={previewState.error}
               onFinanceChange={patchFinance}
               onSelectPlan={handleSelectFeePlan}
+              canManageDiscounts={journeyCapabilities.canManageDiscounts}
               onSkipFinance={() => {
                 setSkipFinance(true);
                 setFinanceError(null);
@@ -1691,21 +1820,31 @@ export function StudentCreateForm({
             linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
             guardianEntries={guardianEntriesForBilling.filter(isCompleteStudentCreateGuardianEntry)}
             billingGuardianEntryKey={billingState.billingGuardianEntryKey}
-            suggest={skipFinance ? null : suggestState.suggest}
+            suggest={effectiveSkipFinance ? null : suggestState.suggest}
             financeState={financeState}
             preview={previewState.preview}
             previewLoading={previewState.loading}
             previewError={previewState.error}
-            financeBlocked={!skipFinance && financeBlocked}
-            financeSkipped={skipFinance}
+            financeBlocked={!effectiveSkipFinance && financeBlocked}
+            financeSkipped={effectiveSkipFinance}
             massarDuplicate={massarDuplicate}
-            classMissingForFinance={!skipFinance && classMissingForFinance}
+            classMissingForFinance={!effectiveSkipFinance && classMissingForFinance}
             enrollmentClassLabel={enrollmentClassLabel}
             schoolId={resolvedSchoolId}
           />
         </div>
       ) : null}
 
+      {onResultStep && createResult ? (
+        <StudentCreateResultSection
+          result={createResult}
+          onOpenStudent360={handleOpenStudent360}
+          onCreateAnother={handleCreateAnother}
+          onBackToList={handleBackToList}
+        />
+      ) : null}
+
+      {!onResultStep ? (
       <div className="student-create-form__actions">
         {stepIndex(step) > 0 ? (
           <button type="button" className="btn btn--ghost" disabled={saving} onClick={goBack}>
@@ -1724,58 +1863,29 @@ export function StudentCreateForm({
           </button>
         ) : (
           <>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={saveDisabled}
+              data-testid="student-create-confirm"
+              onClick={() => void submit('setup', 'draft')}
+            >
+              {saving && financeActivationMode === 'draft'
+                ? t('admin.student360.create.saving')
+                : t('admin.student360.create.confirmRegistration')}
+            </button>
             {canActivateFinanceAgreement ? (
-              <p className="student-create-form__notice student-create-form__finance-activation-hint">
-                {t('admin.student360.create.financeActivation.activateHint')}
-              </p>
+              <button
+                type="button"
+                className="btn btn--secondary"
+                disabled={saveDisabled}
+                onClick={() => void submit('setup', 'activate')}
+              >
+                {saving && financeActivationMode === 'activate'
+                  ? t('admin.student360.create.financeActivation.savingActivate')
+                  : t('admin.student360.create.financeActivation.createAndActivate')}
+              </button>
             ) : null}
-            {canActivateFinanceAgreement ? (
-              <>
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  disabled={saveDisabled}
-                  onClick={() => void submit('setup', 'activate')}
-                >
-                  {saving && financeActivationMode === 'activate'
-                    ? t('admin.student360.create.financeActivation.savingActivate')
-                    : t('admin.student360.create.financeActivation.createAndActivate')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary"
-                  disabled={saveDisabled}
-                  onClick={() => void submit('list', 'draft')}
-                >
-                  {saving && financeActivationMode === 'draft' && saveMode === 'list'
-                    ? t('admin.student360.create.saving')
-                    : t('admin.student360.create.financeActivation.saveDraft')}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  disabled={saveDisabled}
-                  onClick={() => void submit('setup', 'draft')}
-                >
-                  {saving && saveMode === 'setup' && financeActivationMode === 'draft'
-                    ? t('admin.student360.create.saving')
-                    : t('admin.student360.create.saveAndSetup')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--secondary"
-                  disabled={saveDisabled}
-                  onClick={() => void submit('list', 'draft')}
-                >
-                  {saving && saveMode === 'list' && financeActivationMode === 'draft'
-                    ? t('admin.student360.create.saving')
-                    : t('admin.student360.create.saveOnly')}
-                </button>
-              </>
-            )}
           </>
         )}
 
@@ -1783,6 +1893,7 @@ export function StudentCreateForm({
           {t('common.cancel')}
         </button>
       </div>
+      ) : null}
     </form>
     </>
   );

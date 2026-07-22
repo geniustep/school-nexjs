@@ -3,7 +3,9 @@
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentCreateWizardStep } from './student-create-wizard';
 
-const STEP_ORDER: StudentCreateWizardStep[] = [
+type StudentCreateProgressStep = Exclude<StudentCreateWizardStep, 'result'>;
+
+const STEP_ORDER: StudentCreateProgressStep[] = [
   'identity',
   'billing',
   'enrollment',
@@ -11,9 +13,9 @@ const STEP_ORDER: StudentCreateWizardStep[] = [
   'review',
 ];
 
-export function StudentCreateStepper({ activeStep }: { activeStep: StudentCreateWizardStep }) {
+export function StudentCreateStepper({ activeStep }: { activeStep: StudentCreateProgressStep }) {
   const t = useT();
-  const labels: Record<StudentCreateWizardStep, string> = {
+  const labels: Record<StudentCreateProgressStep, string> = {
     identity: t('admin.student360.create.steps.identity'),
     billing: t('admin.student360.create.steps.billing'),
     enrollment: t('admin.student360.create.steps.enrollment'),

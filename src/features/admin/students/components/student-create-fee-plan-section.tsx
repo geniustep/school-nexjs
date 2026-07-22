@@ -182,6 +182,7 @@ export function StudentCreateFeePlanSection({
   onSelectPlan,
   onSkipFinance,
   onRetry,
+  canManageDiscounts = true,
 }: {
   suggest: FeePlanSuggestResult | null;
   loading: boolean;
@@ -198,6 +199,7 @@ export function StudentCreateFeePlanSection({
   onSelectPlan: (planId: number) => void;
   onSkipFinance?: () => void;
   onRetry?: () => void;
+  canManageDiscounts?: boolean;
 }) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -552,6 +554,7 @@ export function StudentCreateFeePlanSection({
             financeState={financeState}
             previewError={previewError}
             onFinanceChange={onFinanceChange}
+            canManageDiscounts={canManageDiscounts}
           />
         ) : null}
       </div>

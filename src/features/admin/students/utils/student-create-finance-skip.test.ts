@@ -3,6 +3,7 @@ import type { FeePlanSuggestResult } from '@/types/student-enrollment-finance';
 import { defaultStudentCreateFinanceFormState } from './student-enrollment-finance';
 import { buildStudentCreatePayload, defaultStudentProfileFormState } from './student-profile';
 import {
+  isOptionalFinanceGateStatus,
   resolveStudentCreateFinanceStepGate,
   shouldAttachFinanceOnCreate,
 } from './student-create-finance-skip';
@@ -72,7 +73,7 @@ describe('resolveStudentCreateFinanceStepGate — admission_id without finance p
     expect(gate.attachFinance).toBe(false);
   });
 
-  it('without skip, a missing plan still blocks progress (no silent create)', () => {
+  it('without skip, a missing plan is optional and does not attach finance', () => {
     const gate = resolveStudentCreateFinanceStepGate({
       skipFinance: false,
       levelSelected: true,
@@ -82,6 +83,22 @@ describe('resolveStudentCreateFinanceStepGate — admission_id without finance p
       prerequisiteReason: 'ok',
     });
     expect(gate.status).toBe('no_plan');
+    expect(gate.attachFinance).toBe(false);
+    expect(isOptionalFinanceGateStatus(gate.status)).toBe(true);
+  });
+
+  it('blocked / no-default plan remains optional for registration', () => {
+    const gate = resolveStudentCreateFinanceStepGate({
+      skipFinance: false,
+      levelSelected: true,
+      suggestLoading: false,
+      financeBlocked: true,
+      suggest: null,
+      prerequisiteReason: 'ok',
+    });
+    expect(gate.status).toBe('blocked');
+    expect(gate.attachFinance).toBe(false);
+    expect(isOptionalFinanceGateStatus(gate.status)).toBe(true);
   });
 });
 

@@ -64,6 +64,8 @@ export function StudentCreateBillingStep({
   usedGuardianIds,
   linkedGuardianPersonsByEntryKey,
   guardian,
+  allowCreateNewGuardian = true,
+  canManageBillingProfile = true,
 }: {
   billingState: StudentCreateBillingFormState;
   billingErrors?: BillingResponsibilityFieldErrors;
@@ -89,6 +91,8 @@ export function StudentCreateBillingStep({
   usedGuardianIds: Set<number>;
   linkedGuardianPersonsByEntryKey: Record<string, PersonSearchResult>;
   guardian: EnrollmentIntakeGuardianOptions;
+  allowCreateNewGuardian?: boolean;
+  canManageBillingProfile?: boolean;
 }) {
   const t = useT();
   const guardianName = intakeValues.guardianName.trim();
@@ -149,6 +153,7 @@ export function StudentCreateBillingStep({
           onSourceModeChange={onGuardianSourceModeChange}
           onLinkExisting={onLinkExistingGuardian}
           onClearLink={onClearLinkedGuardian}
+          allowCreateNewGuardian={allowCreateNewGuardian}
         />
 
         <EnrollmentIntakeGuardianFields
@@ -190,6 +195,11 @@ export function StudentCreateBillingStep({
         title={t('admin.student360.create.billingResponsibility.title')}
         lead={t('admin.student360.create.billingResponsibility.lead')}
       >
+        {!canManageBillingProfile ? (
+          <p className="student-create-form__notice" role="status">
+            {t('admin.student360.create.billingResponsibility.viewOnlyHint')}
+          </p>
+        ) : null}
         <div className="student-create-form__grid student-create-guardian-billing">
           <div className="student-create-form__cell student-create-form__cell--half">
             <label className="student-create-field">
@@ -200,6 +210,7 @@ export function StudentCreateBillingStep({
                 className="input"
                 value={billingState.responsibilitySelection}
                 onChange={(e) => handleResponsibilityChange(e.target.value)}
+                disabled={!canManageBillingProfile}
                 aria-invalid={billingErrors?.billingResponsibilitySelection ? true : undefined}
               >
                 <option value="needs_selection">
@@ -232,16 +243,23 @@ export function StudentCreateBillingStep({
           ) : null}
           {guardianBillingMode && !multipleGuardians && billingGuardianOptions.length === 1 ? (
             <div className="student-create-form__cell student-create-form__cell--full">
-              <p className="student-create-guardian-billing__link" role="status">
-                {guardianName
-                  ? t('admin.student360.create.billing.guardianBillingLinked', { name: guardianName })
-                  : t('admin.student360.create.billingResponsibility.guardianRequiredHint')}
+              <p
+                className="student-create-guardian-billing__link"
+                role="status"
+                data-testid="billing-auto-single-guardian"
+              >
+                {t('admin.student360.create.billingResponsibility.autoSingleGuardian', {
+                  name:
+                    guardianName ||
+                    guardianEntryLabel(billingGuardianOptions[0]) ||
+                    t('common.dash'),
+                })}
               </p>
             </div>
           ) : null}
           {guardianBillingMode && multipleGuardians ? (
             <div className="student-create-form__cell student-create-form__cell--full">
-              <fieldset className="student-create-guardians-billing-choice">
+              <fieldset className="student-create-guardians-billing-choice" disabled={!canManageBillingProfile}>
                 <legend className="student-create-field__label">
                   {t('admin.student360.create.billingResponsibility.billingGuardianLabel')}
                 </legend>
@@ -293,7 +311,11 @@ export function StudentCreateBillingStep({
                       name: guardianEntryLabel(selectedBillingGuardian),
                     })}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="student-create-field__error" role="status">
+                    {t('admin.student360.create.billingResponsibility.explicitChoiceRequired')}
+                  </span>
+                )}
               </fieldset>
             </div>
           ) : null}

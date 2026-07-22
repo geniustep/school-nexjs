@@ -24,9 +24,8 @@ export interface StudentCreateFinanceStepGate {
  * Decides whether the finance step lets the user proceed and whether a finance
  * payload should be attached when creating the student.
  *
- * When `skipFinance` is chosen the step is always passable and never attaches a
- * finance payload, so a student can be created from an admission without a plan.
- * Otherwise the original (plan-required) behaviour is preserved.
+ * Fee plans are fully optional: skip / missing / blocked plans never prevent
+ * student registration. When a plan is present and not skipped, attach it.
  */
 export function resolveStudentCreateFinanceStepGate(input: {
   skipFinance: boolean;
@@ -48,9 +47,17 @@ export function resolveStudentCreateFinanceStepGate(input: {
   }
   if (!input.levelSelected) return { status: 'select_level', attachFinance: false };
   if (input.suggestLoading) return { status: 'loading', attachFinance: false };
+  // Missing or blocked plans are optional — registration may continue without finance.
   if (input.financeBlocked) return { status: 'blocked', attachFinance: false };
   if (!input.suggest) return { status: 'no_plan', attachFinance: false };
   return { status: 'ok', attachFinance: true };
+}
+
+/** Whether the finance gate status allows advancing without attaching a plan. */
+export function isOptionalFinanceGateStatus(
+  status: StudentCreateFinanceStepGateStatus,
+): boolean {
+  return status === 'skip' || status === 'no_plan' || status === 'blocked';
 }
 
 /**
