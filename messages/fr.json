@@ -10901,7 +10901,11 @@
         "invalidInstallmentSchedule": "L'échéancier du plan est invalide.",
         "validationError": "Les données envoyées sont invalides.",
         "forbidden": "Vous n'avez pas la permission d'affecter ce plan.",
-        "notFound": "Élève ou plan introuvable."
+        "notFound": "Élève ou plan introuvable.",
+        "idempotencyConflict": "L'opération n'a pas pu aboutir car les données du plan ont changé pendant la nouvelle tentative. Mettez à jour les informations puis réessayez.",
+        "idempotencyInProgress": "La même opération est encore en cours. Attendez un instant puis vérifiez à nouveau.",
+        "idempotencyKeyInvalid": "L'opération n'a pas pu aboutir en raison d'une erreur technique. Réessayez plus tard.",
+        "idempotencyKeyMismatch": "L'opération n'a pas pu aboutir en raison d'une erreur technique. Réessayez plus tard."
       },
       "assignFlow": {
         "pageTitle": "Appliquer un plan de frais aux élèves",

@@ -10882,7 +10882,11 @@
         "invalidInstallmentSchedule": "The plan installment schedule is invalid.",
         "validationError": "The submitted data is invalid.",
         "forbidden": "You do not have permission to assign this plan.",
-        "notFound": "Student or plan not found."
+        "notFound": "Student or plan not found.",
+        "idempotencyConflict": "The plan could not be completed because the plan data changed during retry. Update the details and try again.",
+        "idempotencyInProgress": "The same operation is still processing. Wait a moment, then check again.",
+        "idempotencyKeyInvalid": "The operation could not be completed due to a technical error. Please try again later.",
+        "idempotencyKeyMismatch": "The operation could not be completed due to a technical error. Please try again later."
       },
       "assignFlow": {
         "pageTitle": "Apply fee plan to students",

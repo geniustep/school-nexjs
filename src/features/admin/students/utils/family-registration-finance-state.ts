@@ -270,7 +270,10 @@ export function familyFinanceOutcomeSummary(results: FamilyChildFinanceSubmitRes
 export function shouldOfferFamilyFinanceFailedRetry(
   results: FamilyChildFinanceSubmitResult[],
 ): boolean {
-  return results.some((r) => r.status === 'failed' && r.canRetrySafely);
+  return results.some(
+    (r) =>
+      (r.status === 'failed' || r.status === 'ambiguous') && r.canRetrySafely,
+  );
 }
 
 export function reopenFamilyFinanceSetup(

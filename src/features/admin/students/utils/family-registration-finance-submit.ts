@@ -4,6 +4,13 @@ import { buildAssignPlanBody } from '@/features/admin/student-finance/api/assign
 import { classifyAssignPlanPreview } from '@/features/admin/student-finance/utils/normalize-assign-plan-preview';
 import { isAlreadyAssignedAssignError } from '@/features/admin/finance/fee-plan-assign-errors';
 import {
+  AssignPlanIdempotencyRegistry,
+  buildAssignPlanAttemptFingerprint,
+  classifyAssignPlanIdempotencyOutcome,
+  shouldClearAssignPlanIdempotencyKey,
+  withAssignPlanIdempotencyKey,
+} from '@/features/admin/student-finance/utils/assign-plan-idempotency';
+import {
   type FamilyChildFinanceDraft,
   type FamilyChildFinanceSubmitResult,
   type FamilyFinanceSubmitState,
@@ -63,7 +70,11 @@ function isAmbiguousTransportFailure(res: ApiResponse<unknown>): boolean {
     code === 'invalid_fee_plan' ||
     code === 'student_not_eligible' ||
     code === 'billing_partner_ambiguous' ||
-    code === 'billing_partner_invalid'
+    code === 'billing_partner_invalid' ||
+    code === 'assign_plan_idempotency_conflict' ||
+    code === 'assign_plan_idempotency_in_progress' ||
+    code === 'assign_plan_idempotency_key_invalid' ||
+    code === 'assign_plan_idempotency_key_mismatch'
   ) {
     return false;
   }
@@ -96,12 +107,15 @@ export interface FamilyFinanceSubmitResult extends FamilyFinanceSubmitState {}
 /**
  * Sequential per-student plan assignment. Not family-atomic.
  * Skips excluded children and treats existing active plans as an independent outcome.
+ * Reuses a stable idempotency_key per logical attempt when a registry is provided.
  */
 export async function runFamilyFinancePlansSubmit(options: {
   drafts: FamilyChildFinanceDraft[];
   assignPlan: FamilyFinanceAssignFn;
   /** Optional re-preview before assign to catch race conflicts. */
   previewPlan?: FamilyFinancePreviewFn;
+  /** Retains keys across retries for the same logical attempt. */
+  idempotencyRegistry?: AssignPlanIdempotencyRegistry;
   onlyLocalIds?: string[];
   priorResults?: FamilyChildFinanceSubmitResult[];
   mapErrorMessage: (error: ApiErrorBody | undefined) => string;
@@ -111,6 +125,7 @@ export async function runFamilyFinancePlansSubmit(options: {
     drafts,
     assignPlan,
     previewPlan,
+    idempotencyRegistry,
     onlyLocalIds,
     priorResults,
     mapErrorMessage,
@@ -207,7 +222,7 @@ export async function runFamilyFinancePlansSubmit(options: {
         results[index] = {
           ...results[index],
           status: 'ambiguous',
-          canRetrySafely: false,
+          canRetrySafely: true,
           errorCode: 'network_error',
           errorMessage: 'network_error',
         };
@@ -271,14 +286,26 @@ export async function runFamilyFinancePlansSubmit(options: {
       continue;
     }
 
+    let requestBody = body;
+    if (idempotencyRegistry) {
+      const fingerprint = buildAssignPlanAttemptFingerprint(draft.studentId, body);
+      const key = idempotencyRegistry.ensureKey(
+        draft.studentId,
+        fingerprint,
+        draft.localId,
+      );
+      requestBody = withAssignPlanIdempotencyKey(body, key);
+    }
+
     let res: ApiResponse<unknown>;
     try {
-      res = await assignPlan(draft.studentId, body);
+      res = await assignPlan(draft.studentId, requestBody);
     } catch {
       results[index] = {
         ...results[index],
         status: 'ambiguous',
-        canRetrySafely: false,
+        // Same logical attempt / key retained — safe to re-check with registry.
+        canRetrySafely: true,
         errorCode: 'network_error',
         errorMessage: 'network_error',
       };
@@ -297,6 +324,11 @@ export async function runFamilyFinancePlansSubmit(options: {
       break;
     }
 
+    const idempotencyOutcome = classifyAssignPlanIdempotencyOutcome(res);
+    if (shouldClearAssignPlanIdempotencyKey(idempotencyOutcome)) {
+      idempotencyRegistry?.clear(draft.studentId, draft.localId);
+    }
+
     if (res.success) {
       results[index] = {
         ...results[index],
@@ -310,10 +342,39 @@ export async function runFamilyFinancePlansSubmit(options: {
       continue;
     }
 
+    if (idempotencyOutcome.kind === 'in_progress') {
+      results[index] = {
+        ...results[index],
+        status: 'failed',
+        canRetrySafely: true,
+        errorCode: 'assign_plan_idempotency_in_progress',
+        errorMessage: mapErrorMessage(getError(res)),
+      };
+      emit('submitting', lockedAgainstFullResubmit);
+      continue;
+    }
+
+    if (
+      idempotencyOutcome.kind === 'payload_conflict' ||
+      idempotencyOutcome.kind === 'invalid_key' ||
+      idempotencyOutcome.kind === 'key_mismatch'
+    ) {
+      results[index] = {
+        ...results[index],
+        status: 'failed',
+        canRetrySafely: false,
+        errorCode: String(getError(res)?.code ?? 'error'),
+        errorMessage: mapErrorMessage(getError(res)),
+      };
+      emit('submitting', lockedAgainstFullResubmit);
+      continue;
+    }
+
     if (
       isAlreadyAssignedAssignError(getError(res)?.code, getError(res)?.message) ||
       classifyAssignPlanPreview(res).kind === 'active_agreement_exists'
     ) {
+      idempotencyRegistry?.clear(draft.studentId, draft.localId);
       results[index] = {
         ...results[index],
         status: 'already_active',
@@ -330,7 +391,7 @@ export async function runFamilyFinancePlansSubmit(options: {
       results[index] = {
         ...results[index],
         status: 'ambiguous',
-        canRetrySafely: false,
+        canRetrySafely: true,
         errorCode: String(getError(res)?.code ?? 'network_error'),
         errorMessage: mapErrorMessage(getError(res)),
       };

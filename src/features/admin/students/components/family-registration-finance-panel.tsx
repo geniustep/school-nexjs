@@ -9,6 +9,7 @@ import {
   assignStudentFinancePlan,
   previewStudentFinancePlan,
 } from '@/features/admin/student-finance/api/assign-plan-api';
+import { AssignPlanIdempotencyRegistry } from '@/features/admin/student-finance/utils/assign-plan-idempotency';
 import { classifyAssignPlanPreview } from '@/features/admin/student-finance/utils/normalize-assign-plan-preview';
 import { resolveAssignErrorMessage } from '@/features/admin/finance/fee-plan-assign-errors';
 import {
@@ -125,6 +126,7 @@ export function FamilyRegistrationFinancePanel({
   const t = useT();
   const toast = useToast();
   const submittingRef = useRef(false);
+  const idempotencyRegistryRef = useRef(new AssignPlanIdempotencyRegistry());
   const [activeLocalId, setActiveLocalId] = useState<string | null>(
     drafts[0]?.localId ?? null,
   );
@@ -142,15 +144,22 @@ export function FamilyRegistrationFinancePanel({
   const outcome = familyFinanceOutcomeSummary(submitState.results);
   const activeDraft =
     drafts.find((d) => d.localId === activeLocalId) ?? drafts[0] ?? null;
+  const canRetryFinanceResult = (prior: {
+    status: string;
+    canRetrySafely: boolean;
+  }): boolean =>
+    (prior.status === 'failed' || prior.status === 'ambiguous') && prior.canRetrySafely;
+
+  const isFinanceResultComplete = (status: string): boolean =>
+    status === 'succeeded' || status === 'already_active';
+
   const canCreateRemaining = drafts.some((draft) => {
     if (!draft.included) return false;
     const prior = submitState.results.find((r) => r.localId === draft.localId);
     if (!prior) return true;
-    return (
-      prior.status !== 'succeeded' &&
-      prior.status !== 'already_active' &&
-      prior.status !== 'ambiguous'
-    );
+    if (isFinanceResultComplete(prior.status)) return false;
+    if (canRetryFinanceResult(prior)) return true;
+    return prior.status !== 'ambiguous';
   });
   const createDisabled =
     submitting || (submitState.lockedAgainstFullResubmit && !canCreateRemaining);
@@ -341,19 +350,17 @@ export function FamilyRegistrationFinancePanel({
 
     const retryIds = options?.retryFailedOnly
       ? submitState.results
-          .filter((r) => r.status === 'failed' && r.canRetrySafely)
+          .filter((r) => canRetryFinanceResult(r))
           .map((r) => r.localId)
       : submitState.lockedAgainstFullResubmit
         ? drafts
             .filter((draft) => {
               if (!draft.included) return false;
               const prior = submitState.results.find((r) => r.localId === draft.localId);
-              return (
-                !prior ||
-                (prior.status !== 'succeeded' &&
-                  prior.status !== 'already_active' &&
-                  prior.status !== 'ambiguous')
-              );
+              if (!prior) return true;
+              if (isFinanceResultComplete(prior.status)) return false;
+              if (canRetryFinanceResult(prior)) return true;
+              return prior.status !== 'ambiguous';
             })
             .map((d) => d.localId)
         : undefined;
@@ -365,6 +372,7 @@ export function FamilyRegistrationFinancePanel({
         options?.retryFailedOnly || submitState.lockedAgainstFullResubmit
           ? submitState.results
           : undefined,
+      idempotencyRegistry: idempotencyRegistryRef.current,
       previewPlan: (studentId, body) => previewStudentFinancePlan(studentId, body),
       assignPlan: (studentId, body) => assignStudentFinancePlan(studentId, body),
       mapErrorMessage: (error) =>

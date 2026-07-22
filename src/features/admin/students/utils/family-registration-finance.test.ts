@@ -332,7 +332,7 @@ describe('family finance sequential submit', () => {
     expect(result.results[1].status).toBe('skipped');
   });
 
-  it('treats network throw as ambiguous and blocks remaining without safe retry', async () => {
+  it('treats network throw as ambiguous and allows safe re-check with retained attempt', async () => {
     const drafts = [
       draft({ localId: 'c1', studentId: 101 }),
       draft({ localId: 'c2', studentId: 202 }),
@@ -346,9 +346,95 @@ describe('family finance sequential submit', () => {
       mapErrorMessage: () => 'x',
     });
     expect(result.results[0].status).toBe('ambiguous');
-    expect(result.results[0].canRetrySafely).toBe(false);
+    expect(result.results[0].canRetrySafely).toBe(true);
     expect(result.results[1].status).toBe('blocked');
-    expect(shouldOfferFamilyFinanceFailedRetry(result.results)).toBe(false);
+    expect(shouldOfferFamilyFinanceFailedRetry(result.results)).toBe(true);
+  });
+
+  it('attaches a stable idempotency_key across retry for the same child payload', async () => {
+    const { AssignPlanIdempotencyRegistry } = await import(
+      '@/features/admin/student-finance/utils/assign-plan-idempotency'
+    );
+    const registry = new AssignPlanIdempotencyRegistry();
+    const drafts = [draft({ localId: 'c1', studentId: 101 })];
+    const keys: string[] = [];
+    const assignPlan = vi.fn(async (_studentId: number, body: { idempotency_key?: string }) => {
+      keys.push(String(body.idempotency_key ?? ''));
+      return errResponse('timeout', 'timeout');
+    });
+
+    const first = await runFamilyFinancePlansSubmit({
+      drafts,
+      assignPlan,
+      idempotencyRegistry: registry,
+      mapErrorMessage: (e) => e?.message ?? '',
+    });
+    expect(first.results[0].status).toBe('ambiguous');
+    expect(first.results[0].canRetrySafely).toBe(true);
+
+    await runFamilyFinancePlansSubmit({
+      drafts,
+      assignPlan,
+      idempotencyRegistry: registry,
+      onlyLocalIds: ['c1'],
+      priorResults: first.results,
+      mapErrorMessage: (e) => e?.message ?? '',
+    });
+
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).toMatch(/^assign-plan-101-/);
+    expect(keys[0]).toBe(keys[1]);
+  });
+
+  it('treats idempotent replay as success and clears the attempt key', async () => {
+    const { AssignPlanIdempotencyRegistry } = await import(
+      '@/features/admin/student-finance/utils/assign-plan-idempotency'
+    );
+    const registry = new AssignPlanIdempotencyRegistry();
+    const result = await runFamilyFinancePlansSubmit({
+      drafts: [draft({ localId: 'c1', studentId: 101 })],
+      assignPlan: async () =>
+        okResponse({ agreement_id: 77, idempotent_replay: true }),
+      idempotencyRegistry: registry,
+      mapErrorMessage: () => 'x',
+    });
+    expect(result.results[0].status).toBe('succeeded');
+    expect(result.results[0].agreementId).toBe(77);
+    expect(registry.currentKey(101, 'c1')).toBeNull();
+  });
+
+  it('keeps the key on in-progress and clears it on payload conflict', async () => {
+    const { AssignPlanIdempotencyRegistry } = await import(
+      '@/features/admin/student-finance/utils/assign-plan-idempotency'
+    );
+    const registry = new AssignPlanIdempotencyRegistry();
+    const drafts = [draft({ localId: 'c1', studentId: 101 })];
+
+    const inProgress = await runFamilyFinancePlansSubmit({
+      drafts,
+      assignPlan: async () =>
+        errResponse('assign_plan_idempotency_in_progress', 'busy'),
+      idempotencyRegistry: registry,
+      mapErrorMessage: (e) => e?.message ?? '',
+    });
+    expect(inProgress.results[0].status).toBe('failed');
+    expect(inProgress.results[0].canRetrySafely).toBe(true);
+    const kept = registry.currentKey(101, 'c1');
+    expect(kept).toMatch(/^assign-plan-101-/);
+
+    const conflict = await runFamilyFinancePlansSubmit({
+      drafts,
+      assignPlan: async () =>
+        errResponse('assign_plan_idempotency_conflict', 'conflict'),
+      idempotencyRegistry: registry,
+      onlyLocalIds: ['c1'],
+      priorResults: inProgress.results,
+      mapErrorMessage: (e) => e?.message ?? '',
+    });
+    expect(conflict.results[0].status).toBe('failed');
+    expect(conflict.results[0].canRetrySafely).toBe(false);
+    expect(conflict.results[0].errorCode).toBe('assign_plan_idempotency_conflict');
+    expect(registry.currentKey(101, 'c1')).toBeNull();
   });
 
   it('detects fee_plan_already_assigned as already_active conflict', async () => {

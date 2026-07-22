@@ -1,11 +1,15 @@
 import type { FinanceSetupStateKind } from '@/features/admin/student-finance/utils/resolve-finance-setup-state';
 import { resolveAlreadyAssignedErrorKey } from '@/features/admin/student-finance/utils/resolve-finance-setup-state';
+import { assignPlanIdempotencyErrorMessageKey } from '@/features/admin/student-finance/utils/assign-plan-idempotency';
 
 /** Map assign-fee-plan API error codes to i18n keys under admin.finance.assignErrors. */
 export function feePlanAssignErrorMessageKey(
   code: string | undefined,
   setupKind?: FinanceSetupStateKind | null,
 ): string | null {
+  const idempotencyKey = assignPlanIdempotencyErrorMessageKey(code);
+  if (idempotencyKey) return idempotencyKey;
+
   switch (code) {
     case 'invalid_fee_plan':
       return 'admin.finance.assignErrors.invalidFeePlan';

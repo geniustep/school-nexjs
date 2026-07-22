@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { LoadingState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
@@ -29,6 +29,13 @@ import {
   previewStudentFinancePlan,
 } from '../api/assign-plan-api';
 import { classifyAssignPlanPreview } from '../utils/normalize-assign-plan-preview';
+import {
+  AssignPlanIdempotencySession,
+  buildAssignPlanAttemptFingerprint,
+  classifyAssignPlanIdempotencyOutcome,
+  shouldClearAssignPlanIdempotencyKey,
+  withAssignPlanIdempotencyKey,
+} from '../utils/assign-plan-idempotency';
 import {
   isAlreadyAssignedAssignError,
   resolveAssignErrorMessage,
@@ -355,6 +362,9 @@ export function AssignFinancePlanPanel({
   const [financeState, setFinanceState] = useState<StudentCreateFinanceFormState | null>(null);
   const [inlineAssignError, setInlineAssignError] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
+  const assignInFlightRef = useRef(false);
+  const idempotencySessionRef = useRef(new AssignPlanIdempotencySession());
+  const successToastShownRef = useRef(false);
 
   const assignPlanSafe = setupState.canSafelyAssignPlan;
   const academicYearNum =
@@ -372,6 +382,8 @@ export function AssignFinancePlanPanel({
       setPreviewLoading(true);
       setState(null);
       resetActionState();
+      idempotencySessionRef.current.reset();
+      successToastShownRef.current = false;
       const res = await previewStudentFinancePlan(studentId, {
         ...(academicYearNum != null ? { academic_year_id: academicYearNum } : {}),
         ...(feePlanId != null ? { fee_plan_id: feePlanId } : {}),
@@ -405,6 +417,9 @@ export function AssignFinancePlanPanel({
     setState(null);
     setShowVerification(false);
     resetActionState();
+    idempotencySessionRef.current.reset();
+    successToastShownRef.current = false;
+    assignInFlightRef.current = false;
   }
 
   function navigateFromDrawer(action?: () => void) {
@@ -414,43 +429,77 @@ export function AssignFinancePlanPanel({
 
   async function handleAssign() {
     if (!assignPlanSafe) return;
+    if (assignInFlightRef.current || assignLoading) return;
     if (state?.kind !== 'ready' || state.plan.feePlanId == null) return;
     const suggest = state.plan.suggestSnapshot;
+    const body = buildAssignPlanBody({
+      feePlanId: state.plan.feePlanId,
+      academicYearId: state.plan.academicYearId ?? academicYearNum,
+      financeState,
+      suggestPeriods: suggest?.suggested_periods,
+    });
+    const fingerprint = buildAssignPlanAttemptFingerprint(studentId, body);
+    const idempotencyKey = idempotencySessionRef.current.ensureKey(studentId, fingerprint);
+    const requestBody = withAssignPlanIdempotencyKey(body, idempotencyKey);
+
+    assignInFlightRef.current = true;
     setAssignLoading(true);
     setInlineAssignError(null);
-    const res = await assignStudentFinancePlan(
-      studentId,
-      buildAssignPlanBody({
-        feePlanId: state.plan.feePlanId,
-        academicYearId: state.plan.academicYearId ?? academicYearNum,
-        financeState,
-        suggestPeriods: suggest?.suggested_periods,
-      }),
-    );
+    const res = await assignStudentFinancePlan(studentId, requestBody);
     setAssignLoading(false);
+    assignInFlightRef.current = false;
     setShowVerification(false);
-    if (!res.success) {
-      const reclassified = classifyAssignPlanPreview(res);
-      if (reclassified.kind !== 'error') {
-        setState(reclassified);
-        return;
+
+    const idempotencyOutcome = classifyAssignPlanIdempotencyOutcome(res);
+    if (shouldClearAssignPlanIdempotencyKey(idempotencyOutcome)) {
+      idempotencySessionRef.current.reset();
+    }
+
+    if (res.success) {
+      if (!successToastShownRef.current) {
+        toast.success(t(tk('assignSuccess')));
+        successToastShownRef.current = true;
       }
-      const message = resolveAssignErrorMessage(
-        res.error.code,
-        res.error.message,
-        t,
-        setupState.kind,
+      closePanel();
+      onAssigned();
+      return;
+    }
+
+    if (idempotencyOutcome.kind === 'in_progress') {
+      setInlineAssignError(
+        resolveAssignErrorMessage(res.error.code, res.error.message, t, setupState.kind),
       );
-      if (isAlreadyAssignedAssignError(res.error.code, res.error.message)) {
-        setInlineAssignError(message);
-        return;
-      }
+      return;
+    }
+
+    if (
+      idempotencyOutcome.kind === 'payload_conflict' ||
+      idempotencyOutcome.kind === 'invalid_key' ||
+      idempotencyOutcome.kind === 'key_mismatch'
+    ) {
+      setInlineAssignError(
+        resolveAssignErrorMessage(res.error.code, res.error.message, t, setupState.kind),
+      );
+      return;
+    }
+
+    const reclassified = classifyAssignPlanPreview(res);
+    if (reclassified.kind !== 'error') {
+      setState(reclassified);
+      return;
+    }
+    const message = resolveAssignErrorMessage(
+      res.error.code,
+      res.error.message,
+      t,
+      setupState.kind,
+    );
+    if (isAlreadyAssignedAssignError(res.error.code, res.error.message)) {
+      idempotencySessionRef.current.reset();
       setInlineAssignError(message);
       return;
     }
-    toast.success(t(tk('assignSuccess')));
-    closePanel();
-    onAssigned();
+    setInlineAssignError(message);
   }
 
   if (setupState.kind !== 'clean_no_finance') {

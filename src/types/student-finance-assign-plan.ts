@@ -30,6 +30,11 @@ export interface StudentFinanceAssignPlanBody {
   discounts?: StudentCreateFinanceDiscountPayload[];
   one_time_lines?: StudentCreateFinanceOneTimeLinePayload[];
   selected_optional_line_ids?: number[];
+  /**
+   * Logical-attempt key (Odoo 2F1+). Optional for backward compatibility with
+   * unupgraded runtimes; Next.js journeys always send it after 2F2.
+   */
+  idempotency_key?: string;
 }
 
 /** Normalized, UI-friendly view of a successful plan preview. */

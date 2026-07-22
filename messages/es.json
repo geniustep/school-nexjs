@@ -10882,7 +10882,11 @@
         "invalidInstallmentSchedule": "El calendario de plazos del plan no es válido.",
         "validationError": "Los datos enviados no son válidos.",
         "forbidden": "No tiene permiso para asignar este plan.",
-        "notFound": "Alumno o plan no encontrado."
+        "notFound": "Alumno o plan no encontrado.",
+        "idempotencyConflict": "No se pudo completar la operación porque los datos del plan cambiaron durante el reintento. Actualice los datos e inténtelo de nuevo.",
+        "idempotencyInProgress": "La misma operación sigue en curso. Espere un momento y vuelva a comprobar.",
+        "idempotencyKeyInvalid": "No se pudo completar la operación por un error técnico. Inténtelo más tarde.",
+        "idempotencyKeyMismatch": "No se pudo completar la operación por un error técnico. Inténtelo más tarde."
       },
       "assignFlow": {
         "pageTitle": "Aplicar plan de cuotas a alumnos",
