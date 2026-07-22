@@ -85,6 +85,8 @@ export type TeacherAcademicProfileSummary = {
   availability_count?: number;
   weekly_hours_target?: number | null;
   weekly_hours_max?: number | null;
+  /** List enrichment from Teacher Domain — unconfigured | partial | complete */
+  academic_completeness?: AcademicCompletenessState | string | null;
 };
 
 export type TeacherAssignmentSummaryCounts = {

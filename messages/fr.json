@@ -13262,7 +13262,9 @@
         "eligibleSubjects": "Matières éligibles",
         "activeAssignments": "Affectations actives",
         "plannedLoad": "Charge hebdomadaire planifiée",
-        "warnings": "Alertes"
+        "weeklyTarget": "Objectif hebdomadaire de référence",
+        "warnings": "Alertes",
+        "intervention": "Intervention requise"
       },
       "account": {
         "none": "No account",
@@ -13299,6 +13301,48 @@
         "chipState": "État professionnel : {state}",
         "chipActive": "Fiche active : {value}",
         "chipHasAssignments": "Affectations : {value}"
+      },
+      "presets": {
+        "groupLabel": "Vues opérationnelles prêtes",
+        "all": "Tous",
+        "needs_intervention": "Nécessitent mon action",
+        "no_assignment": "Sans affectation",
+        "inactive_account": "Comptes inactifs",
+        "incomplete_academic_profile": "Profils académiques incomplets",
+        "chip": "Vue : {value}"
+      },
+      "summary": {
+        "regionLabel": "Résumé opérationnel des enseignants",
+        "total": "Total",
+        "noAssignment": "Sans affectation",
+        "inactiveAccount": "Compte inactif",
+        "incompleteAcademic": "Profil académique incomplet",
+        "needsIntervention": "Nécessitent mon action",
+        "scopeSchool": "Total dans le périmètre",
+        "scopeFull": "Dans tous les résultats chargés",
+        "scopeLoadedWindow": "Dans les {count} premiers résultats",
+        "scopePage": "Dans la page actuelle ({count})",
+        "cardAriaTotal": "{label} : {value}. Total du périmètre école.",
+        "cardAriaComposed": "{label} : {value}. {scope}."
+      },
+      "interventions": {
+        "none": "Aucune intervention requise",
+        "moreReasons": "+{count}",
+        "noAssignment": "Sans affectation opérationnelle",
+        "inactiveAccount": "Compte inutilisable",
+        "incompleteAcademic": "Profil académique incomplet",
+        "rowWarnings": "Alerte opérationnelle active",
+        "priority": {
+          "P1": "Priorité haute",
+          "P2": "Priorité moyenne",
+          "P3": "Priorité basse"
+        },
+        "actions": {
+          "openAssignments": "Ouvrir les affectations",
+          "setupAccount": "Configurer le compte",
+          "completeProfile": "Compléter le profil",
+          "viewDetails": "Voir les détails"
+        }
       },
       "states": {
         "active": "Active",

@@ -13242,7 +13242,9 @@
         "eligibleSubjects": "Materias elegibles",
         "activeAssignments": "Asignaciones activas",
         "plannedLoad": "Carga semanal planificada",
-        "warnings": "Avisos"
+        "weeklyTarget": "Objetivo semanal de referencia",
+        "warnings": "Avisos",
+        "intervention": "Intervención requerida"
       },
       "account": {
         "none": "No account",
@@ -13279,6 +13281,48 @@
         "chipState": "Estado profesional: {state}",
         "chipActive": "Registro activo: {value}",
         "chipHasAssignments": "Asignaciones: {value}"
+      },
+      "presets": {
+        "groupLabel": "Vistas operativas listas",
+        "all": "Todos",
+        "needs_intervention": "Requieren mi acción",
+        "no_assignment": "Sin asignación",
+        "inactive_account": "Cuentas inactivas",
+        "incomplete_academic_profile": "Perfiles académicos incompletos",
+        "chip": "Vista: {value}"
+      },
+      "summary": {
+        "regionLabel": "Resumen operativo de docentes",
+        "total": "Total",
+        "noAssignment": "Sin asignación",
+        "inactiveAccount": "Cuenta inactiva",
+        "incompleteAcademic": "Perfil académico incompleto",
+        "needsIntervention": "Requieren mi acción",
+        "scopeSchool": "Total del alcance escolar",
+        "scopeFull": "Dentro de todos los resultados cargados",
+        "scopeLoadedWindow": "Dentro de los primeros {count} resultados",
+        "scopePage": "Dentro de la página actual ({count})",
+        "cardAriaTotal": "{label}: {value}. Total del alcance escolar.",
+        "cardAriaComposed": "{label}: {value}. {scope}."
+      },
+      "interventions": {
+        "none": "No se requiere intervención",
+        "moreReasons": "+{count}",
+        "noAssignment": "Sin asignación operativa",
+        "inactiveAccount": "Cuenta no utilizable",
+        "incompleteAcademic": "Perfil académico incompleto",
+        "rowWarnings": "Aviso operativo activo",
+        "priority": {
+          "P1": "Prioridad alta",
+          "P2": "Prioridad media",
+          "P3": "Prioridad baja"
+        },
+        "actions": {
+          "openAssignments": "Abrir asignaciones",
+          "setupAccount": "Configurar cuenta",
+          "completeProfile": "Completar perfil",
+          "viewDetails": "Ver detalles"
+        }
       },
       "states": {
         "active": "Active",

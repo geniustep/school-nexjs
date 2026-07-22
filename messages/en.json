@@ -13241,7 +13241,9 @@
         "eligibleSubjects": "Eligible subjects",
         "activeAssignments": "Active assignments",
         "plannedLoad": "Planned weekly load",
-        "warnings": "Warnings"
+        "weeklyTarget": "Reference weekly target",
+        "warnings": "Warnings",
+        "intervention": "Required intervention"
       },
       "account": {
         "none": "No account",
@@ -13278,6 +13280,48 @@
         "chipState": "Employment: {state}",
         "chipActive": "Active record: {value}",
         "chipHasAssignments": "Assignments: {value}"
+      },
+      "presets": {
+        "groupLabel": "Operational presets",
+        "all": "All",
+        "needs_intervention": "Need my action",
+        "no_assignment": "Without assignment",
+        "inactive_account": "Inactive accounts",
+        "incomplete_academic_profile": "Incomplete academic profiles",
+        "chip": "View: {value}"
+      },
+      "summary": {
+        "regionLabel": "Teachers operational summary",
+        "total": "Total",
+        "noAssignment": "Without assignment",
+        "inactiveAccount": "Inactive account",
+        "incompleteAcademic": "Incomplete academic profile",
+        "needsIntervention": "Need my action",
+        "scopeSchool": "School-scope total",
+        "scopeFull": "Within all loaded results",
+        "scopeLoadedWindow": "Within the first {count} results",
+        "scopePage": "Within the current page ({count})",
+        "cardAriaTotal": "{label}: {value}. School-scope total.",
+        "cardAriaComposed": "{label}: {value}. {scope}."
+      },
+      "interventions": {
+        "none": "No action required",
+        "moreReasons": "+{count}",
+        "noAssignment": "No operational assignment",
+        "inactiveAccount": "Account not usable",
+        "incompleteAcademic": "Incomplete academic profile",
+        "rowWarnings": "Active operational warning",
+        "priority": {
+          "P1": "High priority",
+          "P2": "Medium priority",
+          "P3": "Low priority"
+        },
+        "actions": {
+          "openAssignments": "Open assignments",
+          "setupAccount": "Set up account",
+          "completeProfile": "Complete profile",
+          "viewDetails": "View details"
+        }
       },
       "states": {
         "active": "Active",

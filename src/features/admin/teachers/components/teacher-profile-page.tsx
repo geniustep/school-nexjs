@@ -7,7 +7,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState, ErrorState } from '@/components/states/states';
 import { Badge, Card, DefinitionList, PageHeader, SectionHead } from '@/components/ui/primitives';
@@ -58,13 +58,21 @@ const TABS: ProfileTab[] = [
   'account',
 ];
 
+function resolveInitialTab(raw: string | null): ProfileTab {
+  if (raw && (TABS as string[]).includes(raw)) return raw as ProfileTab;
+  return 'overview';
+}
+
 export function TeacherProfilePage({ id }: { id: string }) {
   const t = useT();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sessionUser = useSession();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const [tab, setTab] = useState<ProfileTab>('overview');
+  const [tab, setTab] = useState<ProfileTab>(() =>
+    resolveInitialTab(searchParams.get('tab')),
+  );
   const [lifecycle, setLifecycle] = useState<LifecycleAction>(null);
   const [academic, setAcademic] = useState<TeacherAcademicProfile | null>(null);
   const [academicError, setAcademicError] = useState<string | null>(null);

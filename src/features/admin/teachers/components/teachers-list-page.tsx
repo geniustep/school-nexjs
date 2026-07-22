@@ -17,6 +17,11 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
 import { TeachersListFilters } from '@/features/admin/teachers/components/teachers-list-filters';
+import { TeachersListInterventionCell } from '@/features/admin/teachers/components/teachers-list-intervention-cell';
+import {
+  TeachersListSummaryCards,
+  type TeachersListSummaryCardId,
+} from '@/features/admin/teachers/components/teachers-list-summary-cards';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useTeacherDomainContract } from '@/features/admin/teachers/hooks/use-teacher-domain-contract';
 import {
@@ -32,10 +37,15 @@ import {
   teacherEmploymentState,
   teacherInitials,
   teacherPrimaryActions,
-  teacherWarningCount,
 } from '@/features/admin/teachers/utils/teacher-domain-present';
 import { hasAllowedAction } from '@/features/admin/teachers/utils/teacher-domain-allowed-actions';
 import { normalizeTeacherSummaries } from '@/features/admin/teachers/utils/teacher-domain-normalize';
+import {
+  countTeacherInterventions,
+  filterTeachersByOperationalPreset,
+  presetFromSummaryCard,
+  type TeacherOperationalPreset,
+} from '@/features/admin/teachers/utils/teacher-interventions';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -58,38 +68,42 @@ export function TeachersListPage() {
   const [stateFilter, setStateFilter] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [hasAssignments, setHasAssignments] = useState('');
+  const [operationalPreset, setOperationalPreset] = useState<TeacherOperationalPreset>('all');
   const [importOpen, setImportOpen] = useState(false);
   const [lifecycle, setLifecycle] = useState<{
     teacher: TeacherSummary | null;
     action: LifecycleAction;
   }>({ teacher: null, action: null });
 
-  const hasClientFilters = Boolean(stateFilter || activeFilter || hasAssignments);
+  const hasManualClientFilters = Boolean(stateFilter || activeFilter || hasAssignments);
+  const hasOperationalPreset = operationalPreset !== 'all';
+  const useCompositionWindow = hasManualClientFilters || hasOperationalPreset;
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, stateFilter, activeFilter, hasAssignments]);
+  }, [debouncedSearch, stateFilter, activeFilter, hasAssignments, operationalPreset]);
 
   const query = useMemo(() => {
     const search = debouncedSearch.trim();
-    // Backend currently honors `search` only. When local filters are active, fetch a
-    // wider window and filter/paginate on the client so results match the selects.
     const next: Record<string, string | number> = {
-      page: hasClientFilters ? 1 : page,
-      page_size: hasClientFilters ? TEACHER_DOMAIN_FILTER_FETCH_SIZE : TEACHER_DOMAIN_PAGE_SIZE,
+      page: useCompositionWindow ? 1 : page,
+      page_size: useCompositionWindow
+        ? TEACHER_DOMAIN_FILTER_FETCH_SIZE
+        : TEACHER_DOMAIN_PAGE_SIZE,
     };
     if (search) next.search = search;
     return next;
-  }, [page, debouncedSearch, hasClientFilters]);
+  }, [page, debouncedSearch, useCompositionWindow]);
 
   const state = useAdminResource<TeacherSummary[]>(endpoints.admin.teachers, query, {
-    keepPreviousData: false,
+    keepPreviousData: true,
   });
   const teachers = useMemo(
     () => normalizeTeacherSummaries(state.data ?? []),
     [state.data],
   );
-  const filteredTeachers = useMemo(
+
+  const manuallyFiltered = useMemo(
     () =>
       filterTeacherSummaries(teachers, {
         state: stateFilter,
@@ -98,20 +112,38 @@ export function TeachersListPage() {
       }),
     [teachers, stateFilter, activeFilter, hasAssignments],
   );
+
+  const filteredTeachers = useMemo(
+    () => filterTeachersByOperationalPreset(manuallyFiltered, operationalPreset),
+    [manuallyFiltered, operationalPreset],
+  );
+
+  const interventionCounts = useMemo(
+    () => countTeacherInterventions(teachers),
+    [teachers],
+  );
+
   const serverPagination = state.meta?.pagination;
+  const schoolTotal = serverPagination?.total ?? null;
+  const compositionScope = useMemo(() => {
+    if (schoolTotal != null && teachers.length >= schoolTotal) return 'full' as const;
+    if (useCompositionWindow) return 'loaded_window' as const;
+    return 'page' as const;
+  }, [schoolTotal, teachers.length, useCompositionWindow]);
+
   const filteredTotal = filteredTeachers.length;
   const clientTotalPages = Math.max(1, Math.ceil(filteredTotal / TEACHER_DOMAIN_PAGE_SIZE) || 1);
-  const safePage = hasClientFilters
+  const safePage = useCompositionWindow
     ? Math.min(Math.max(1, page), filteredTotal === 0 ? 1 : clientTotalPages)
     : page;
   const visibleTeachers = useMemo(
     () =>
-      hasClientFilters
+      useCompositionWindow
         ? paginateTeacherSummaries(filteredTeachers, safePage, TEACHER_DOMAIN_PAGE_SIZE)
         : filteredTeachers,
-    [filteredTeachers, hasClientFilters, safePage],
+    [filteredTeachers, useCompositionWindow, safePage],
   );
-  const pg = hasClientFilters
+  const pg = useCompositionWindow
     ? {
         page: safePage,
         total_pages: clientTotalPages,
@@ -119,11 +151,16 @@ export function TeachersListPage() {
         page_size: TEACHER_DOMAIN_PAGE_SIZE,
       }
     : serverPagination;
+
   const hasActiveFilters = Boolean(
-    searchDraft.trim() || stateFilter || activeFilter || hasAssignments,
+    searchDraft.trim() ||
+      stateFilter ||
+      activeFilter ||
+      hasAssignments ||
+      operationalPreset !== 'all',
   );
   const emptyVariant = resolveTeacherListEmptyVariant({
-    total: hasClientFilters ? filteredTotal : pg?.total,
+    total: useCompositionWindow ? filteredTotal : pg?.total,
     hasActiveFilters,
   });
 
@@ -137,6 +174,39 @@ export function TeachersListPage() {
     setStateFilter('');
     setActiveFilter('');
     setHasAssignments('');
+    setOperationalPreset('all');
+    setPage(1);
+  };
+
+  const applyOperationalPreset = (preset: TeacherOperationalPreset) => {
+    setOperationalPreset(preset);
+    // Avoid silent conflict with the legacy hasAssignments select when using
+    // the operational_count-based no_assignment preset.
+    if (preset === 'no_assignment') {
+      setHasAssignments('');
+    }
+    setPage(1);
+  };
+
+  const onSummaryCardSelect = (card: TeachersListSummaryCardId) => {
+    applyOperationalPreset(presetFromSummaryCard(card));
+  };
+
+  const onHasAssignmentsChange = (value: string) => {
+    setHasAssignments(value);
+    if (operationalPreset === 'no_assignment' && value !== '') {
+      setOperationalPreset('all');
+    }
+    setPage(1);
+  };
+
+  const onStateFilterChange = (value: string) => {
+    setStateFilter(value);
+    setPage(1);
+  };
+
+  const onActiveFilterChange = (value: string) => {
+    setActiveFilter(value);
     setPage(1);
   };
 
@@ -203,6 +273,7 @@ export function TeachersListPage() {
       {
         key: 'account',
         header: t('admin.teacherDomain.columns.account'),
+        className: 'teachers-list__academic-col',
         render: (teacher) => (
           <span className="teachers-list__meta" dir="auto">
             {t(teacherAccountStateLabelKey(teacher))}
@@ -220,25 +291,6 @@ export function TeachersListPage() {
         ),
       },
       {
-        key: 'eligibleSubjects',
-        header: t('admin.teacherDomain.columns.eligibleSubjects'),
-        className: 'teachers-list__academic-col',
-        render: (teacher) => {
-          const count = teacher.academic_profile_summary?.subject_eligibility_count;
-          const names = (teacher.subjects ?? []).map((s) => s.name).join(', ');
-          const label =
-            names ||
-            (count != null
-              ? t('admin.teacherDomain.list.subjectCount', { count })
-              : t('common.dash'));
-          return (
-            <span className="teachers-list__academic" dir="auto" title={label}>
-              {label}
-            </span>
-          );
-        },
-      },
-      {
         key: 'assignments',
         header: t('admin.teacherDomain.columns.activeAssignments'),
         render: (teacher) => (
@@ -250,29 +302,23 @@ export function TeachersListPage() {
         ),
       },
       {
-        key: 'load',
-        header: t('admin.teacherDomain.columns.plannedLoad'),
+        key: 'loadTarget',
+        header: t('admin.teacherDomain.columns.weeklyTarget'),
+        className: 'teachers-list__academic-col',
         render: (teacher) => (
           <span className="teachers-list__meta" dir="ltr">
             {formatPlannedLoad(
-              teacher.assignment_summary?.planned_weekly_load ?? teacher.weekly_hours_target,
+              teacher.academic_profile_summary?.weekly_hours_target ??
+                teacher.weekly_hours_target,
               t('common.dash'),
             )}
           </span>
         ),
       },
       {
-        key: 'warnings',
-        header: t('admin.teacherDomain.columns.warnings'),
-        render: (teacher) => {
-          const count = teacherWarningCount(teacher);
-          if (!count) return <span className="muted">{t('common.dash')}</span>;
-          return (
-            <Badge tone="amber">
-              {t('admin.teacherDomain.list.warningCount', { count })}
-            </Badge>
-          );
-        },
+        key: 'intervention',
+        header: t('admin.teacherDomain.columns.intervention'),
+        render: (teacher) => <TeachersListInterventionCell teacher={teacher} />,
       },
       {
         key: 'actions',
@@ -320,8 +366,8 @@ export function TeachersListPage() {
         subtitle={
           check && !check.ok
             ? t('admin.teacherDomain.contract.incompatible')
-            : pg
-              ? t('admin.teacherDomain.list.subtitleWithCount', { total: pg.total })
+            : schoolTotal != null
+              ? t('admin.teacherDomain.list.subtitleWithCount', { total: schoolTotal })
               : t('admin.teachersListDesc')
         }
         actions={
@@ -341,17 +387,30 @@ export function TeachersListPage() {
         }
       />
 
+      <TeachersListSummaryCards
+        totalSchool={schoolTotal}
+        counts={interventionCounts}
+        compositionScope={compositionScope}
+        loadedCount={teachers.length}
+        windowSize={TEACHER_DOMAIN_FILTER_FETCH_SIZE}
+        activePreset={operationalPreset}
+        disabled={state.initialLoading}
+        onSelect={onSummaryCardSelect}
+      />
+
       <TeachersListFilters
         search={searchDraft}
         stateFilter={stateFilter}
         activeFilter={activeFilter}
         hasAssignments={hasAssignments}
+        operationalPreset={operationalPreset}
         hasActiveFilters={hasActiveFilters}
         onSearchChange={setSearchDraft}
         onSearchClear={() => setSearchDraft('')}
-        onStateFilterChange={setStateFilter}
-        onActiveFilterChange={setActiveFilter}
-        onHasAssignmentsChange={setHasAssignments}
+        onStateFilterChange={onStateFilterChange}
+        onActiveFilterChange={onActiveFilterChange}
+        onHasAssignmentsChange={onHasAssignmentsChange}
+        onOperationalPresetChange={applyOperationalPreset}
         onReset={resetFilters}
       />
 
@@ -377,7 +436,9 @@ export function TeachersListPage() {
           state={{ ...state, data: visibleTeachers }}
           loadingLabel={t('common.loading')}
           isEmpty={() =>
-            hasClientFilters ? filteredTotal === 0 : (serverPagination?.total ?? teachers.length) === 0
+            useCompositionWindow
+              ? filteredTotal === 0
+              : (serverPagination?.total ?? teachers.length) === 0
           }
           empty={listEmptyState}
         >
@@ -391,7 +452,7 @@ export function TeachersListPage() {
                   onRowClick={(teacher) => router.push(`/admin/teachers/${teacher.id}`)}
                 />
               </div>
-              {pg && (hasClientFilters ? filteredTotal > 0 : true) ? (
+              {pg && (useCompositionWindow ? filteredTotal > 0 : true) ? (
                 <Pagination
                   page={pg.page}
                   totalPages={pg.total_pages}

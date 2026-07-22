@@ -6994,18 +6994,31 @@
       },
       "guardianAfterCreateHint": "بعد حفظ التلميذ، يمكنك إضافة أولياء الأمر من تبويب «أولياء الأمر».",
       "create": {
+        "pageTitle": "تسجيل تلميذ جديد",
         "pageTitleNamed": "إضافة التلميذ {name}",
-        "pageDesc": "أدخل بيانات التلميذ والتسجيل الدراسي والخطة المالية المقترحة قبل الحفظ النهائي.",
-        "identityStepLead": "جميع حقول الهوية معروضة — أكمل ما ينطبق على التلميذ.",
+        "pageDesc": "أدخل بيانات التلميذ الأساسية، ثم أكمل مراحل التسجيل.",
+        "identityStepLead": "أكمل بيانات التلميذ الأساسية، ثم ما ينطبق منها.",
         "enrollmentStepLead": "حدّد السنة والسلك والمستوى والقسم، ثم أكمل بيانات القبول وولي الأمر.",
         "prefillClassUnavailable": "القسم الموجود في طلب التسجيل غير متاح لهذه المؤسسة. اختر قسمًا صالحًا.",
         "financeStepLead": "راجع الخطة المقترحة وعدّلها عند الحاجة قبل الحفظ.",
         "reviewStepLead": "تحقق من صحة البيانات قبل إنشاء التلميذ.",
         "additionalInfo": "معلومات إضافية",
-        "firstNameAr": "الاسم الشخصي (عربي)",
-        "lastNameAr": "الاسم العائلي (عربي)",
-        "firstNameLatin": "الاسم الشخصي (فرنسي)",
-        "lastNameLatin": "الاسم العائلي (فرنسي)",
+        "groups": {
+          "basic": "البيانات الأساسية",
+          "latinNames": "الاسم باللاتينية",
+          "previousPath": "المسار الدراسي السابق",
+          "address": "عنوان الإقامة",
+          "registrationInfo": "معلومات التسجيل"
+        },
+        "stepStatus": {
+          "current": "المرحلة الحالية",
+          "done": "مكتملة",
+          "upcoming": "متبقية"
+        },
+        "firstNameAr": "الاسم الشخصي بالعربية",
+        "lastNameAr": "الاسم العائلي بالعربية",
+        "firstNameLatin": "الاسم الشخصي باللاتينية",
+        "lastNameLatin": "الاسم العائلي باللاتينية",
         "fullNamePreview": "الاسم الكامل",
         "internalCodeHint": "اتركه فارغًا ليولّده النظام تلقائيًا.",
         "schoolNumberOptionalHint": "اختياري — يمكن إكماله لاحقًا من ملف التلميذ.",
@@ -7061,18 +7074,18 @@
           "classRequiredBeforeFinance": "يجب اختيار القسم قبل إعداد الخطة المالية.",
           "classOptionalWithoutFinanceHint": "يمكنك إنشاء التلميذ الآن دون خطة مالية إذا لم يتم تحديد القسم بعد. أما إعداد الخطة المالية فيتطلب اختيار القسم.",
           "classRequiredForFinanceSave": "يجب اختيار القسم قبل حفظ الخطة المالية.",
-          "checkingMassar": "جارٍ التحقق من رقم مسar…",
+          "checkingMassar": "جارٍ التحقق من رقم مسار…",
           "checkingSchoolNumber": "جارٍ التحقق من الرقم المدرسي…",
           "checkingCode": "جارٍ التحقق من الرمز الداخلي…",
           "identifierCheckFailed": "تعذّر التحقق من المعرّف. أعد المحاولة."
         },
-        "stepperAria": "خطوات إنشاء التلميذ",
+        "stepperAria": "خطوات تسجيل التلميذ",
         "steps": {
           "identity": "بيانات التلميذ",
-          "billing": "ولي الأمر",
-          "enrollment": "التسجيل الدراسي",
-          "finance": "الخطة المالية",
-          "review": "المراجعة النهائية"
+          "billing": "أولياء الأمر",
+          "enrollment": "التمدرس",
+          "finance": "الخطة المالية والأداء",
+          "review": "المراجعة والتسجيل"
         },
         "billing": {
           "title": "ولي الأمر والإخوة",
@@ -13324,7 +13337,9 @@
         "eligibleSubjects": "المواد المؤهل لها",
         "activeAssignments": "الإسنادات الفعالة",
         "plannedLoad": "الحمل الأسبوعي المخطط",
-        "warnings": "تحذيرات"
+        "weeklyTarget": "الهدف الأسبوعي المرجعي",
+        "warnings": "تحذيرات",
+        "intervention": "التدخل المطلوب"
       },
       "account": {
         "none": "بدون حساب",
@@ -13361,6 +13376,48 @@
         "chipState": "الحالة المهنية: {state}",
         "chipActive": "السجل النشط: {value}",
         "chipHasAssignments": "الإسنادات: {value}"
+      },
+      "presets": {
+        "groupLabel": "عروض تشغيلية جاهزة",
+        "all": "الكل",
+        "needs_intervention": "يحتاجون تدخلي",
+        "no_assignment": "دون إسناد",
+        "inactive_account": "حسابات غير مفعّلة",
+        "incomplete_academic_profile": "ملفات أكاديمية غير مكتملة",
+        "chip": "العرض: {value}"
+      },
+      "summary": {
+        "regionLabel": "ملخص تشغيلي للأساتذة",
+        "total": "المجموع",
+        "noAssignment": "دون إسناد",
+        "inactiveAccount": "حساب غير مفعّل",
+        "incompleteAcademic": "ملف أكاديمي غير مكتمل",
+        "needsIntervention": "يحتاجون تدخلي",
+        "scopeSchool": "إجمالي ضمن النطاق",
+        "scopeFull": "ضمن كل النتائج المحمّلة",
+        "scopeLoadedWindow": "ضمن أول {count} نتيجة",
+        "scopePage": "ضمن الصفحة الحالية ({count})",
+        "cardAriaTotal": "{label}: {value}. إجمالي المدرسة ضمن النطاق.",
+        "cardAriaComposed": "{label}: {value}. {scope}."
+      },
+      "interventions": {
+        "none": "لا تدخل مطلوب",
+        "moreReasons": "+{count}",
+        "noAssignment": "بدون إسناد تشغيلي",
+        "inactiveAccount": "حساب غير صالح للاستعمال",
+        "incompleteAcademic": "ملف أكاديمي غير مكتمل",
+        "rowWarnings": "تحذير تشغيلي قائم",
+        "priority": {
+          "P1": "أولوية عالية",
+          "P2": "أولوية متوسطة",
+          "P3": "أولوية منخفضة"
+        },
+        "actions": {
+          "openAssignments": "فتح الإسنادات",
+          "setupAccount": "إعداد الحساب",
+          "completeProfile": "استكمال الملف",
+          "viewDetails": "عرض التفاصيل"
+        }
       },
       "states": {
         "active": "فعّال",

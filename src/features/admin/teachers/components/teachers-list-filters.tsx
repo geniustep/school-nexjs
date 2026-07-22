@@ -6,33 +6,46 @@
  */
 
 import { TeachersListSearchField } from '@/features/admin/teachers/components/teachers-list-search-field';
+import type { TeacherOperationalPreset } from '@/features/admin/teachers/utils/teacher-interventions';
 import { useT } from '@/features/i18n/locale-context';
 
 const EMPLOYMENT_STATES = ['active', 'terminated', 'archived'] as const;
+
+const PRESETS: TeacherOperationalPreset[] = [
+  'all',
+  'needs_intervention',
+  'no_assignment',
+  'inactive_account',
+  'incomplete_academic_profile',
+];
 
 export function TeachersListFilters({
   search,
   stateFilter,
   activeFilter,
   hasAssignments,
+  operationalPreset,
   hasActiveFilters,
   onSearchChange,
   onSearchClear,
   onStateFilterChange,
   onActiveFilterChange,
   onHasAssignmentsChange,
+  onOperationalPresetChange,
   onReset,
 }: {
   search: string;
   stateFilter: string;
   activeFilter: string;
   hasAssignments: string;
+  operationalPreset: TeacherOperationalPreset;
   hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
   onSearchClear: () => void;
   onStateFilterChange: (value: string) => void;
   onActiveFilterChange: (value: string) => void;
   onHasAssignmentsChange: (value: string) => void;
+  onOperationalPresetChange: (value: TeacherOperationalPreset) => void;
   onReset: () => void;
 }) {
   const t = useT();
@@ -59,6 +72,31 @@ export function TeachersListFilters({
 
   return (
     <div className="teachers-list-filters" role="search">
+      <div
+        className="teachers-list-filters__presets"
+        role="group"
+        aria-label={t('admin.teacherDomain.presets.groupLabel')}
+      >
+        {PRESETS.map((preset) => {
+          const active = operationalPreset === preset;
+          return (
+            <button
+              key={preset}
+              type="button"
+              className={
+                active
+                  ? 'teachers-list-filters__preset teachers-list-filters__preset--active'
+                  : 'teachers-list-filters__preset'
+              }
+              aria-pressed={active}
+              onClick={() => onOperationalPresetChange(preset)}
+            >
+              {t(`admin.teacherDomain.presets.${preset}`)}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="teachers-list-filters__primary">
         <div className="teachers-list-filters__field teachers-list-filters__field--search">
           <span className="teachers-list-filters__label">
@@ -132,6 +170,18 @@ export function TeachersListFilters({
 
       {hasActiveFilters ? (
         <div className="teachers-list-filters__chips" aria-live="polite">
+          {operationalPreset !== 'all' ? (
+            <button
+              type="button"
+              className="teachers-list-filters__chip teachers-list-filters__chip--action"
+              onClick={() => onOperationalPresetChange('all')}
+            >
+              {t('admin.teacherDomain.presets.chip', {
+                value: t(`admin.teacherDomain.presets.${operationalPreset}`),
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
           {search.trim() ? (
             <button
               type="button"
