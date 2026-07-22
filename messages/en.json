@@ -9344,6 +9344,7 @@
           "partial_success": "Registration completed partially. Review the results below.",
           "full_failure": "Registration could not be completed. You can return to review after correcting the data."
         },
+        "partialSuccessNote": "Some children were registered successfully and others could not be registered. Retry only the failed children; successfully registered children will not be resubmitted.",
         "batchSummary": {
           "requested": "Children requested",
           "succeeded": "Succeeded",
@@ -9368,6 +9369,7 @@
           "blocked": "Blocked"
         },
         "openStudent": "Open student file",
+        "openFinance": "Open financial position",
         "retryFailed": "Retry children who could not be registered",
         "backToList": "Back to students list",
         "backToReview": "Back to review",

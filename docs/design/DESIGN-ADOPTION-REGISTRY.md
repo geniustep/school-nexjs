@@ -157,6 +157,8 @@ Finance Safe Surfaces: COMPLETE
 | Agreements list shell | `/admin/finance/agreements` | ADOPTED | Cluster 5 — list chrome only; detail / amendments remain outside adopted scope |
 | Finance Hub | `/admin/finance` | LOW_PRIORITY_ACCEPTABLE | Not adopted |
 | Student Fees Gateway | `/admin/finance/student-fees` | DEFER_PARALLEL_WORK | Not adopted |
+| Family registration access + result states | `/admin/students/family/new` | REVIEW-NEEDED | REG_FIN_RBAC_TERMS_1 — local `students.create` gate + partial-success clarity; payment-during-registration out of scope |
+| Family finance summary refetch | Student 360 family summary | REVIEW-NEEDED | REG_FIN_RBAC_TERMS_1 — keepPreviousData refetch; full Student 360 finance still unreviewed |
 
 ---
 

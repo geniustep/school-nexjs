@@ -22,6 +22,10 @@ import {
 
 export interface FamilyFinanceResourceState<T> {
   loading: boolean;
+  /** True only on the first fetch when no previous data exists yet. */
+  initialLoading: boolean;
+  /** True when refetching while previous data is still shown. */
+  fetching: boolean;
   data: T | null;
   error: ApiErrorBody | null;
   reload: () => void;
@@ -60,6 +64,7 @@ function useStudentFamilyResource<T>(
     let active = true;
     setLoading(true);
     setError(null);
+    // Keep previous rows during refetch (same default as useResource keepPreviousData).
 
     const query: Record<string, string | number> = {};
     if (activeSchoolId != null) query.active_school_id = activeSchoolId;
@@ -68,8 +73,9 @@ function useStudentFamilyResource<T>(
       .then((res) => {
         if (!active) return;
         if (!res.success) {
-          setData(null);
           setError(res.error);
+          // Preserve stale data on refetch failure so the UI does not flash empty.
+          setData((prev) => prev);
           return;
         }
         setData(normalizer(res.data));
@@ -77,8 +83,8 @@ function useStudentFamilyResource<T>(
       })
       .catch(() => {
         if (!active) return;
-        setData(null);
         setError({ code: 'network_error', message: 'Network error' });
+        setData((prev) => prev);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -89,7 +95,14 @@ function useStudentFamilyResource<T>(
     };
   }, [studentId, enabled, activeSchoolId, nonce, fetcher, normalizer]);
 
-  return { loading, data, error, reload };
+  return {
+    loading,
+    initialLoading: loading && data === null,
+    fetching: loading && data !== null,
+    data,
+    error,
+    reload,
+  };
 }
 
 const normalizeSummary = (raw: unknown) => normalizeFamilyFinanceSummary(raw);

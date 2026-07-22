@@ -9344,6 +9344,7 @@
           "partial_success": "El registro se completó parcialmente. Revise los resultados abajo.",
           "full_failure": "No se pudo completar el registro. Puede volver a la revisión tras corregir los datos."
         },
+        "partialSuccessNote": "Algunos hijos se registraron correctamente y otros no. Reintente solo los no registrados; los ya registrados no se volverán a enviar.",
         "batchSummary": {
           "requested": "Hijos solicitados",
           "succeeded": "Correctos",
@@ -9368,6 +9369,7 @@
           "blocked": "Bloqueado"
         },
         "openStudent": "Abrir el expediente del alumno",
+        "openFinance": "Abrir la situación financiera",
         "retryFailed": "Reintentar los hijos no registrados",
         "backToList": "Volver a la lista de alumnos",
         "backToReview": "Volver a la revisión",

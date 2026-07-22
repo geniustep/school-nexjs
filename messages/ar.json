@@ -7939,9 +7939,9 @@
         "noLines": "لم تُضف أي خدمة بعد.",
         "noLinesDesc": "أضف خدمات من الكتالوج لبناء الاتفاق.",
         "scheduleTitle": "جدول الأقساط",
-        "currentScheduleTitle": "الدفعات الحالية",
-        "historicalScheduleTitle": "السجل التاريخي للدفعات",
-        "historicalScheduleDescription": "هذه الدفعات محفوظة لأغراض التتبع والتدقيق ولا تدخل في المبلغ الحالي المستحق.",
+        "currentScheduleTitle": "الأقساط الحالية",
+        "historicalScheduleTitle": "السجل التاريخي للأقساط",
+        "historicalScheduleDescription": "هذه الأقساط محفوظة لأغراض التتبع والتدقيق ولا تدخل في المبلغ الحالي المستحق.",
         "historicalScheduleMeta": "{count} قسطًا تاريخيًا",
         "historicalScheduleCount": "عدد الأقساط التاريخية",
         "historicalScheduleTotal": "إجمالي الجدول التاريخي",
@@ -8005,8 +8005,8 @@
             "reduce_total_only": "تخفيض إجمالي الاتفاق فقط",
             "spread_proportionally": "توزيع نسبي على الرسوم",
             "apply_to_selected_fee": "تطبيق على رسم محدد",
-            "apply_to_future_installments": "تطبيق على الدفعات القادمة",
-            "apply_to_last_installments": "تطبيق على الدفعات الأخيرة"
+            "apply_to_future_installments": "تطبيق على الأقساط القادمة",
+            "apply_to_last_installments": "تطبيق على الأقساط الأخيرة"
           }
         },
         "enrollmentCustomizations": {
@@ -8323,7 +8323,7 @@
         "openPaymentSchedule": "فتح جدول الأقساط"
       },
       "familyFinance": {
-        "title": "مالية الأسرة",
+        "title": "الوضعية المالية للأسرة",
         "description": "ملخص موحد لكل التلاميذ المرتبطين بنفس حساب المسؤول عن الأداء.",
         "accountName": "اسم ولي الأمر / الحساب الأسري",
         "childrenCount": "عدد الأبناء",
@@ -8369,9 +8369,9 @@
           "other": "أخرى"
         },
         "errors": {
-          "loadFailed": "تعذر تحميل مالية الأسرة حاليًا.",
-          "notResolved": "لا يمكن عرض مالية الأسرة لأن ملف الأداء غير مكتمل لهذا التلميذ.",
-          "forbidden": "لا تملك صلاحية عرض مالية الأسرة.",
+          "loadFailed": "تعذر تحميل الوضعية المالية للأسرة حاليًا.",
+          "notResolved": "لا يمكن عرض الوضعية المالية للأسرة لأن ملف الأداء غير مكتمل لهذا التلميذ.",
+          "forbidden": "لا تملك صلاحية عرض الوضعية المالية للأسرة.",
           "notFound": "لم يتم العثور على التلميذ أو الأسرة."
         },
         "planContext": {
@@ -8438,7 +8438,7 @@
         "emptyTitle": "لم تُنشأ مستحقات مالية بعد.",
         "emptyDescription": "عند تفعيل اتفاق مالي أو إنشاء رسوم، ستظهر الأقساط والأرصدة هنا.",
         "totalDue": "إجمالي المستحق",
-        "confirmedPaid": "المحصل فعليًا",
+        "confirmedPaid": "المؤدى المؤكد",
         "pendingCheques": "شيكات قيد التحصيل",
         "remaining": "المتبقي",
         "uncovered": "غير المغطى",
@@ -8616,9 +8616,9 @@
         "other": "أخرى"
       },
       "financeWorkspace": {
-        "pageTitle": "الملف المالي",
+        "pageTitle": "الوضعية المالية",
         "pageDescription": "نظرة موحدة على الرسوم وجدول الأقساط والتحصيلات والاتفاقات الخاصة.",
-        "tabsAria": "تبويبات الملف المالي",
+        "tabsAria": "تبويبات الوضعية المالية",
         "subtabsScrollHint": "مرّر أفقيًا لعرض باقي أقسام المالية",
         "tabs": {
           "overview": "نظرة مالية",
@@ -9550,9 +9550,10 @@
           "idle": "لم يبدأ التسجيل بعد.",
           "in_progress": "جارٍ تسجيل تلاميذ الأسرة.",
           "full_success": "اكتمل تسجيل جميع تلاميذ الأسرة بنجاح.",
-          "partial_success": "اكتمل التسجيل جزئيًا. راجع النتائج أدناه.",
+          "partial_success": "اكتمل التسجيل جزئيًا. راجع الناجحين والمتعذر تسجيلهم أدناه.",
           "full_failure": "تعذر التسجيل. يمكنك العودة للمراجعة بعد تصحيح البيانات."
         },
+        "partialSuccessNote": "نجح تسجيل بعض الأبناء وتعذر تسجيل آخرين. أعد محاولة المتعذر تسجيلهم فقط؛ لن يُعاد إرسال من نجح تسجيلهم.",
         "batchSummary": {
           "requested": "عدد الأبناء المطلوب تسجيلهم",
           "succeeded": "عدد الناجحين",
@@ -9577,7 +9578,8 @@
           "blocked": "موقوف"
         },
         "openStudent": "فتح ملف التلميذ",
-        "retryFailed": "إعادة محاولة الأبناء المتعذر تسجيلهم",
+        "openFinance": "فتح الوضعية المالية",
+        "retryFailed": "إعادة محاولة الأبناء المتعذر تسجيلهم فقط",
         "backToList": "العودة إلى لائحة التلاميذ",
         "backToReview": "العودة إلى المراجعة",
         "registerAnotherFamily": "تسجيل أسرة أخرى",
@@ -10014,7 +10016,7 @@
           "reference": "المرجع",
           "studentCount": "عدد التلاميذ",
           "totalDue": "إجمالي المستحق",
-          "confirmedPaid": "المسدد على الأقساط",
+          "confirmedPaid": "المؤدى على الأقساط",
           "remaining": "المتبقي",
           "overdue": "المتأخر",
           "pendingCheque": "شيكات معلقة",
@@ -10024,13 +10026,13 @@
         },
         "metrics": {
           "totalDue": "إجمالي المستحق",
-          "confirmedPaid": "المسدد على الأقساط",
+          "confirmedPaid": "المؤدى على الأقساط",
           "remaining": "المتبقي",
           "overdue": "المتأخر",
           "pendingCheque": "الشيكات المعلقة",
           "confirmedCollections": "التحصيلات المؤكدة",
           "unallocated": "غير الموزع",
-          "collectionsHint": "قد تختلف عن المسدد على الأقساط",
+          "collectionsHint": "قد تختلف عن المؤدى على الأقساط",
           "unallocatedHint": "مبالغ مقبوضة لم تُخصص بعد للأقساط"
         },
         "students": {
@@ -11064,8 +11066,8 @@
         "successToast": "تم تسجيل التحصيل.",
         "viewCollection": "عرض التحصيل",
         "viewCollectionDetails": "عرض تفاصيل التحصيل",
-        "chequePendingNote": "تم تسجيل الشيك كأداء قيد التحصيل. لن يُحتسب ضمن المحصل فعليًا حتى تأكيد تحصيله.",
-        "refreshSuccessToast": "تم تسجيل عملية الأداء وتحديث الملف المالي.",
+        "chequePendingNote": "تم تسجيل الشيك كأداء قيد التحصيل. لن يُحتسب ضمن المؤدى المؤكد حتى تأكيد تحصيله.",
+        "refreshSuccessToast": "تم تسجيل عملية الأداء وتحديث الوضعية المالية.",
         "chequeDatesHelp": "تاريخ الاستلام ≠ التاريخ المكتوب على الشيك ≠ تاريخ الاستحقاق.",
         "chequeBranch": "الفرع",
         "chequeDrawer": "محرر الشيك",

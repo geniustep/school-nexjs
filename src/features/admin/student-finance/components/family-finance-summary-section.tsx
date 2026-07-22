@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status review-needed
+ * Scope closed in REG_FIN_RBAC_TERMS_1: keepPreviousData refetch behavior and
+ * Arabic title terms for family financial position. Full Student 360 finance
+ * adoption and payment-during-registration remain out of scope.
+ */
+
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { DataTable, type Column } from '@/components/tables/data-table';
@@ -226,13 +234,23 @@ function FamilyFinanceChildrenTable({
 function FamilyFinanceErrorState({
   error,
   onRetry,
+  compact = false,
 }: {
   error: ApiErrorBody;
   onRetry?: () => void;
+  compact?: boolean;
 }) {
   const t = useT();
   return (
-    <div className="student-finance-family-error" role="alert">
+    <div
+      className={
+        compact
+          ? 'student-finance-family-error student-finance-family-error--inline'
+          : 'student-finance-family-error'
+      }
+      role="alert"
+      data-testid="family-finance-summary-error"
+    >
       <p>{t(familyFinanceErrorMessageKey(error.code))}</p>
       {onRetry ? (
         <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
@@ -251,7 +269,7 @@ export function FamilyFinanceSummarySection({
   refreshSignal?: number;
 }) {
   const t = useT();
-  const { loading, data, error, reload } = useStudentFamilyFinanceSummary(
+  const { initialLoading, fetching, data, error, reload } = useStudentFamilyFinanceSummary(
     studentId,
     true,
     refreshSignal,
@@ -263,15 +281,17 @@ export function FamilyFinanceSummarySection({
     t('common.dash');
   const familyId = data?.family_id ?? data?.billing_partner_id;
 
-  if (loading && !data) {
+  if (initialLoading) {
     return (
-      <Card className="student-finance-section">
-        <StudentSectionSkeleton rows={2} />
-      </Card>
+      <div data-testid="family-finance-summary-loading">
+        <Card className="student-finance-section">
+          <StudentSectionSkeleton rows={2} />
+        </Card>
+      </div>
     );
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <Card className="student-finance-section">
         <Student360SectionHeader title={t('admin.student360.familyFinance.title')} />
@@ -295,49 +315,55 @@ export function FamilyFinanceSummarySection({
     ) : null;
 
   return (
-    <Card className="student-finance-section student-finance-family-summary">
-      <Student360SectionHeader
-        title={t('admin.student360.familyFinance.title')}
-        description={t('admin.student360.familyFinance.description')}
-        action={headerAction}
-      />
-      <dl className="detail-list student-finance-family-meta">
-        <div>
-          <dt>{t('admin.student360.familyFinance.accountName')}</dt>
-          <dd dir="auto">{accountName}</dd>
-        </div>
-        <div>
-          <dt>{t('admin.student360.familyFinance.childrenCount')}</dt>
-          <dd>{data.student_count ?? data.children.length}</dd>
-        </div>
-      </dl>
-      <FamilyFinanceSummaryMetrics summary={data} currency={data.currency} />
-      <FamilyNextDueBlock
-        presentation={resolveFamilyNextDuePresentation({
-          currentStudentId: studentId,
-          next_due_scope: data.next_due_scope,
-          next_due_student_id: data.next_due_student_id,
-          next_due_date: data.next_due_date,
-          next_due_amount: data.next_due_amount,
-          children: data.children,
-        })}
-        currency={data.currency}
-      />
-      <h4 className="student-finance-family-children-title">
-        {childrenView.hasOtherSiblings
-          ? t('admin.student360.familyFinance.linkedChildrenTitle')
-          : t('admin.student360.familyFinance.linkedStudentsTitle')}
-      </h4>
-      <FamilyFinanceChildrenTable
-        children={data.children}
-        currentStudentId={studentId}
-        currency={data.currency}
-      />
-      {childrenView.showOnlyCurrentNote ? (
-        <p className="muted tiny student-finance-family-no-siblings">
-          {t('admin.student360.familyFinance.noOtherSiblings')}
-        </p>
-      ) : null}
-    </Card>
+    <div
+      data-testid="family-finance-summary"
+      data-fetching={fetching ? 'true' : undefined}
+    >
+      <Card className="student-finance-section student-finance-family-summary">
+        <Student360SectionHeader
+          title={t('admin.student360.familyFinance.title')}
+          description={t('admin.student360.familyFinance.description')}
+          action={headerAction}
+        />
+        {error ? <FamilyFinanceErrorState error={error} onRetry={reload} compact /> : null}
+        <dl className="detail-list student-finance-family-meta">
+          <div>
+            <dt>{t('admin.student360.familyFinance.accountName')}</dt>
+            <dd dir="auto">{accountName}</dd>
+          </div>
+          <div>
+            <dt>{t('admin.student360.familyFinance.childrenCount')}</dt>
+            <dd>{data.student_count ?? data.children.length}</dd>
+          </div>
+        </dl>
+        <FamilyFinanceSummaryMetrics summary={data} currency={data.currency} />
+        <FamilyNextDueBlock
+          presentation={resolveFamilyNextDuePresentation({
+            currentStudentId: studentId,
+            next_due_scope: data.next_due_scope,
+            next_due_student_id: data.next_due_student_id,
+            next_due_date: data.next_due_date,
+            next_due_amount: data.next_due_amount,
+            children: data.children,
+          })}
+          currency={data.currency}
+        />
+        <h4 className="student-finance-family-children-title">
+          {childrenView.hasOtherSiblings
+            ? t('admin.student360.familyFinance.linkedChildrenTitle')
+            : t('admin.student360.familyFinance.linkedStudentsTitle')}
+        </h4>
+        <FamilyFinanceChildrenTable
+          children={data.children}
+          currentStudentId={studentId}
+          currency={data.currency}
+        />
+        {childrenView.showOnlyCurrentNote ? (
+          <p className="muted tiny student-finance-family-no-siblings">
+            {t('admin.student360.familyFinance.noOtherSiblings')}
+          </p>
+        ) : null}
+      </Card>
+    </div>
   );
 }

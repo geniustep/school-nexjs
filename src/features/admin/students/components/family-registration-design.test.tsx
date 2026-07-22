@@ -56,9 +56,24 @@ describe('family registration design contract', () => {
     expect(family.confirmBatchRegister).toContain('اعتماد');
     expect(family.batchNote).toContain('طلب واحد');
     expect(family.batchStatus.partially_completed).toContain('جزئيًا');
+    expect(family.partialSuccessNote).toContain('لن يُعاد إرسال');
+    expect(family.retryFailed).toContain('فقط');
+    expect(family.openFinance).toContain('الوضعية المالية');
     expect(family.errors.ambiguousFailure).toContain('إعادة محاولة');
     expect(family.continueToFinance).toContain('الوضعية المالية');
     expect(family.finance.planNotPaymentNote).toContain('أداء');
     expect(family.finance.status.succeeded).toContain('الخطة');
+  });
+
+  it('uses adopted Arabic finance journey terms on targeted surfaces', () => {
+    expect(ar.admin.student360.familyFinance.title).toBe('الوضعية المالية للأسرة');
+    expect(ar.admin.student360.financeWorkspace.pageTitle).toBe('الوضعية المالية');
+    expect(ar.admin.student360.financeOps.confirmedPaid).toBe('المؤدى المؤكد');
+    expect(ar.admin.student360.financialAgreement.currentScheduleTitle).toBe('الأقساط الحالية');
+    expect(ar.admin.finance.billingAccounts.metrics.confirmedPaid).toBe('المؤدى على الأقساط');
+    expect(ar.admin.finance.collectionWorkflow.chequePendingNote).toContain('المؤدى المؤكد');
+    expect(ar.admin.student360.financeOps.confirmedPaid).not.toContain('المحصل فعليًا');
+    expect(ar.admin.finance.billingAccounts.metrics.confirmedPaid).not.toContain('المسدد');
+    expect(ar.admin.student360.financialAgreement.currentScheduleTitle).not.toContain('الدفعات');
   });
 });

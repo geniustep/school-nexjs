@@ -1,11 +1,21 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status review-needed
+ * Scope closed in REG_FIN_RBAC_TERMS_1: local students.create gate, partial-success
+ * result clarity, Arabic journey terms. Payment-during-registration remains out of scope.
+ * Finance plan step and QuickPaymentDrawer remain unreviewed.
+ */
+
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { PermissionDeniedState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionOptions } from '@/features/admin/admissions/hooks/use-admission-options';
 import {
@@ -23,6 +33,7 @@ import {
 } from '@/features/admin/enrollment-intake/mappers';
 import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
+import { canCreateStudents } from '@/lib/permissions/academic-capabilities';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { mapStudentApiError } from '../utils/student-api-errors';
 import {
@@ -97,7 +108,23 @@ import { FamilyRegistrationFinancePanel } from './family-registration-finance-pa
 import { relationshipTypeLabel, RELATIONSHIP_TYPE_CODES } from '../utils/relationship-types';
 import '../student-360.css';
 
+/** Route gate: options/submit hooks mount only when `students.create` is granted. */
 export function FamilyRegistrationPage() {
+  const t = useT();
+  const user = useSession();
+
+  if (!canCreateStudents(user)) {
+    return (
+      <div className="student-create-page" data-testid="family-registration-denied">
+        <PermissionDeniedState description={t('admin.pageForbidden')} />
+      </div>
+    );
+  }
+
+  return <FamilyRegistrationWizard />;
+}
+
+function FamilyRegistrationWizard() {
   const t = useT();
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
@@ -849,9 +876,24 @@ export function FamilyRegistrationPage() {
           title={t('admin.student360.familyRegistration.resultTitle')}
           lead={t(`admin.student360.familyRegistration.resultLead.${outcome.kind}`)}
         >
+          <div
+            className="family-registration__outcome-banner"
+            data-testid="family-registration-outcome"
+            data-outcome={outcome.kind}
+            role="status"
+          >
+            {outcome.kind === 'partial_success' ? (
+              <p className="student-create-form__notice">
+                {t('admin.student360.familyRegistration.partialSuccessNote')}
+              </p>
+            ) : null}
+          </div>
+
           <dl
             className="family-registration__batch-summary"
             data-testid="family-registration-batch-summary"
+            data-succeeded={outcome.succeeded}
+            data-failed={outcome.failed + outcome.ambiguous + outcome.blocked}
           >
             <div>
               <dt>{t('admin.student360.familyRegistration.batchSummary.requested')}</dt>
@@ -927,23 +969,33 @@ export function FamilyRegistrationPage() {
                     {t('admin.student360.familyRegistration.errors.ambiguousFailure')}
                   </p>
                 ) : null}
-                {result.studentId ? (
-                  <Link
-                    href={`/admin/students/${result.studentId}`}
-                    className="btn btn--ghost btn--sm"
-                  >
-                    {t('admin.student360.familyRegistration.openStudent')}
-                  </Link>
-                ) : null}
-                {result.status === 'failed' && result.canRetrySafely ? (
-                  <button
-                    type="button"
-                    className="btn btn--ghost btn--sm"
-                    onClick={() => setStep('children')}
-                  >
-                    {t('admin.student360.familyRegistration.editFailedChild')}
-                  </button>
-                ) : null}
+                <div className="family-registration__result-links">
+                  {result.studentId ? (
+                    <>
+                      <Link
+                        href={`/admin/students/${result.studentId}`}
+                        className="btn btn--ghost btn--sm"
+                      >
+                        {t('admin.student360.familyRegistration.openStudent')}
+                      </Link>
+                      <Link
+                        href={`/admin/students/${result.studentId}?tab=finance`}
+                        className="btn btn--ghost btn--sm"
+                      >
+                        {t('admin.student360.familyRegistration.openFinance')}
+                      </Link>
+                    </>
+                  ) : null}
+                  {result.status === 'failed' && result.canRetrySafely ? (
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      onClick={() => setStep('children')}
+                    >
+                      {t('admin.student360.familyRegistration.editFailedChild')}
+                    </button>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>

@@ -9363,6 +9363,7 @@
           "partial_success": "Inscription partiellement terminée. Consultez les résultats ci-dessous.",
           "full_failure": "L’inscription a échoué. Vous pouvez revenir à la revue après correction des données."
         },
+        "partialSuccessNote": "Certains enfants ont été inscrits avec succès et d’autres non. Relancez uniquement les enfants non inscrits ; les enfants déjà inscrits ne seront pas renvoyés.",
         "batchSummary": {
           "requested": "Nombre d’enfants à inscrire",
           "succeeded": "Réussis",
@@ -9387,6 +9388,7 @@
           "blocked": "Bloqué"
         },
         "openStudent": "Ouvrir le dossier de l’élève",
+        "openFinance": "Ouvrir la situation financière",
         "retryFailed": "Relancer les enfants non inscrits",
         "backToList": "Retour à la liste des élèves",
         "backToReview": "Retour à la revue",
