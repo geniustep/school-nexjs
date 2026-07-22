@@ -79,16 +79,18 @@ export function StudentCreateSectionHeader({
   lead,
 }: {
   icon: StudentCreateSectionIcon;
-  title: string;
+  title?: string;
   lead?: string;
 }) {
+  if (!title && !lead) return null;
+
   return (
     <header className="student-create-form__section-header">
       <div className="student-create-form__section-icon" aria-hidden="true">
         <SectionIcon type={icon} />
       </div>
       <div>
-        <h2 className="student-create-form__section-title">{title}</h2>
+        {title ? <h2 className="student-create-form__section-title">{title}</h2> : null}
         {lead ? <p className="student-create-form__section-lead">{lead}</p> : null}
       </div>
     </header>
@@ -103,7 +105,7 @@ export function StudentCreateStyledSection({
   className,
 }: {
   icon: StudentCreateSectionIcon;
-  title: string;
+  title?: string;
   lead?: string;
   children: React.ReactNode;
   className?: string;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Children, cloneElement, isValidElement, useEffect, useMemo, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { SiblingsFormFields } from '@/features/admin/admissions/components/siblings-form-fields';
 import { StudentNationalitySelect } from '@/features/admin/students/components/student-form-fields';
@@ -39,14 +39,40 @@ function CreateField({
       : layout === 'half'
         ? 'student-create-form__cell student-create-form__cell--half'
         : 'student-create-form__cell';
+  const hintId = field && hint ? `intake-hint-${field}` : undefined;
+  const errorId = field && error ? `intake-error-${field}` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+
+  let control = children;
+  if (describedBy || error) {
+    try {
+      const child = Children.only(children);
+      if (isValidElement(child)) {
+        control = cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+          ...(error ? { 'aria-invalid': true } : {}),
+          ...(describedBy ? { 'aria-describedby': describedBy } : {}),
+        });
+      }
+    } catch {
+      control = children;
+    }
+  }
 
   return (
     <div className={cellClass} {...(field ? { 'data-field': field } : {})}>
       <label className="student-create-field">
         <span className="student-create-field__label">{label}</span>
-        {children}
-        {hint ? <span className="student-create-field__hint">{hint}</span> : null}
-        {error ? <span className="student-create-field__error">{error}</span> : null}
+        {control}
+        {hint ? (
+          <span className="student-create-field__hint" id={hintId}>
+            {hint}
+          </span>
+        ) : null}
+        {error ? (
+          <span className="student-create-field__error" id={errorId} role="alert">
+            {error}
+          </span>
+        ) : null}
       </label>
     </div>
   );
@@ -168,11 +194,193 @@ export function EnrollmentIntakeIdentityFields({
     !isStudentCreate && (intakeContext === 'admissionCreate' || intakeContext === 'familyChild');
   const fullNameAr = [values.firstNameAr.trim(), values.lastNameAr.trim()].filter(Boolean).join(' ');
   const fullNameFr = [values.firstNameFr.trim(), values.lastNameFr.trim()].filter(Boolean).join(' ');
+  const hasLatinValues = Boolean(values.firstNameFr.trim() || values.lastNameFr.trim());
+  const [latinOpen, setLatinOpen] = useState(hasLatinValues);
   const localizedGenders = useMemo(
     () => localizeStudentGenderOptions(genders, t),
     [genders, t],
   );
   const birthDateMax = useMemo(() => todayIsoDate(), []);
+
+  useEffect(() => {
+    if (hasLatinValues) setLatinOpen(true);
+  }, [hasLatinValues]);
+
+  if (isStudentCreate) {
+    return (
+      <div className="student-create-identity student-create-identity--create">
+        <CreateFieldGroup title={t('admin.student360.create.groups.basic')} icon="أ">
+          <CreateField
+            field="firstName"
+            label={t('admin.student360.create.firstNameAr')}
+            error={errors.firstNameAr}
+          >
+            <input
+              className="input"
+              value={values.firstNameAr}
+              onChange={(e) => onPatch({ firstNameAr: e.target.value })}
+              autoComplete="off"
+              required={namesRequired}
+            />
+          </CreateField>
+          <CreateField
+            field="lastName"
+            label={t('admin.student360.create.lastNameAr')}
+            error={errors.lastNameAr}
+          >
+            <input
+              className="input"
+              value={values.lastNameAr}
+              onChange={(e) => onPatch({ lastNameAr: e.target.value })}
+              autoComplete="off"
+              required={namesRequired}
+            />
+          </CreateField>
+          <CreateField label={t('admin.gender')}>
+            <select
+              className="input"
+              value={values.gender}
+              onChange={(e) => onPatch({ gender: e.target.value })}
+              disabled={optionsLoading}
+            >
+              <option value="">{t('common.dash')}</option>
+              {localizedGenders.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </CreateField>
+          <CreateField
+            field="dateOfBirth"
+            label={t('admin.dateOfBirth')}
+            error={errors.birthDate}
+          >
+            <DatePickerInput
+              value={values.birthDate}
+              onChange={(birthDate) => onPatch({ birthDate })}
+              max={birthDateMax}
+              presets={false}
+            />
+          </CreateField>
+          <CreateField label={t('admin.student360.birthPlace')}>
+            <input
+              className="input"
+              value={values.birthPlace}
+              onChange={(e) => onPatch({ birthPlace: e.target.value })}
+            />
+          </CreateField>
+          <CreateField label={t('admin.student360.nationality')}>
+            <StudentNationalitySelect
+              value={values.nationalityId}
+              options={nationalities}
+              disabled={optionsLoading}
+              onChange={(nationalityId) => onPatch({ nationalityId })}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+
+        <details
+          className="student-create-form__latin-details"
+          open={latinOpen}
+          onToggle={(event) => {
+            setLatinOpen((event.currentTarget as HTMLDetailsElement).open);
+          }}
+        >
+          <summary className="student-create-form__latin-summary">
+            <span className="student-create-form__latin-summary-title">
+              {t('admin.student360.create.groups.latinNames')}
+            </span>
+            <span className="student-create-form__latin-summary-hint" aria-hidden="true">
+              {latinOpen ? '−' : '+'}
+            </span>
+          </summary>
+          <div className="student-create-form__grid student-create-form__latin-grid">
+            <CreateField label={t('admin.student360.create.firstNameLatin')}>
+              <input
+                className="input"
+                value={values.firstNameFr}
+                onChange={(e) => onPatch({ firstNameFr: e.target.value })}
+                dir="ltr"
+                autoComplete="off"
+              />
+            </CreateField>
+            <CreateField label={t('admin.student360.create.lastNameLatin')}>
+              <input
+                className="input"
+                value={values.lastNameFr}
+                onChange={(e) => onPatch({ lastNameFr: e.target.value })}
+                dir="ltr"
+                autoComplete="off"
+              />
+            </CreateField>
+          </div>
+        </details>
+
+        <CreateFieldGroup title={t('admin.student360.create.groups.previousPath')} icon="#">
+          <CreateField
+            field="massarCode"
+            label={t('admin.massarCode')}
+            error={errors.massarCode}
+            hint={fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
+          >
+            <input
+              className="input"
+              value={values.massarCode}
+              onChange={(e) => onPatch({ massarCode: e.target.value })}
+              onBlur={() => {
+                const normalized = normalizeMassarCodeInput(values.massarCode);
+                if (normalized !== values.massarCode) onPatch({ massarCode: normalized });
+              }}
+              dir="ltr"
+              autoComplete="off"
+            />
+          </CreateField>
+          <CreateField label={t('admin.student360.admissionData.previousSchool')}>
+            <input
+              className="input"
+              value={values.previousSchool}
+              onChange={(e) => onPatch({ previousSchool: e.target.value })}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+
+        <CreateFieldGroup title={t('admin.student360.create.groups.address')} icon="⌂">
+          <CreateField layout="full" label={t('admin.student360.admissionData.residenceAddress')}>
+            <input
+              className="input"
+              value={values.residenceAddress}
+              onChange={(e) => onPatch({ residenceAddress: e.target.value })}
+              placeholder={t('admin.enrollmentIntake.residenceAddressHint')}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+
+        <CreateFieldGroup title={t('admin.student360.create.groups.registrationInfo')} icon="ت">
+          <CreateField
+            label={t('admin.admissionDate')}
+            hint={t('admin.student360.create.admissionDateHint')}
+          >
+            <DatePickerInput
+              value={values.admissionDate}
+              onChange={(admissionDate) => onPatch({ admissionDate })}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+
+        <CreateFieldGroup title={t('admin.student360.create.additionalInfo')} icon="✎">
+          <CreateField layout="full" label={t('admin.enrollmentIntake.admissionNotes')}>
+            <textarea
+              className="input"
+              rows={2}
+              value={values.admissionNotes}
+              onChange={(e) => onPatch({ admissionNotes: e.target.value })}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+      </div>
+    );
+  }
 
   return (
     <div className="student-create-identity">
@@ -233,7 +441,7 @@ export function EnrollmentIntakeIdentityFields({
             ) : null}
             {fullNameFr ? (
               <div className="student-create-form__name-preview-row">
-                <span className="student-create-form__name-preview-tag">FR</span>
+                <span className="student-create-form__name-preview-tag">لاتيني</span>
                 <span className="student-create-form__name-preview-value" dir="ltr">
                   {fullNameFr}
                 </span>
@@ -296,71 +504,6 @@ export function EnrollmentIntakeIdentityFields({
           </>
         ) : null}
       </CreateFieldGroup>
-      ) : null}
-
-      {isStudentCreate ? (
-        <CreateFieldGroup title={t('admin.enrollmentIntake.groups.address')} icon="⌂">
-          <CreateField layout="full" label={t('admin.student360.admissionData.residenceAddress')}>
-            <input
-              className="input"
-              value={values.residenceAddress}
-              onChange={(e) => onPatch({ residenceAddress: e.target.value })}
-              placeholder={t('admin.enrollmentIntake.residenceAddressHint')}
-            />
-          </CreateField>
-        </CreateFieldGroup>
-      ) : null}
-
-      {isStudentCreate ? (
-        <CreateFieldGroup title={t('admin.enrollmentIntake.groups.admissionContext')} icon="◇">
-          <CreateField
-            label={t('admin.admissionDate')}
-            hint={t('admin.student360.create.admissionDateHint')}
-          >
-            <DatePickerInput
-              value={values.admissionDate}
-              onChange={(admissionDate) => onPatch({ admissionDate })}
-            />
-          </CreateField>
-          <CreateField
-            field="massarCode"
-            label={t('admin.massarCode')}
-            error={errors.massarCode}
-            hint={fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
-          >
-            <input
-              className="input"
-              value={values.massarCode}
-              onChange={(e) => onPatch({ massarCode: e.target.value })}
-              onBlur={() => {
-                const normalized = normalizeMassarCodeInput(values.massarCode);
-                if (normalized !== values.massarCode) onPatch({ massarCode: normalized });
-              }}
-              dir="ltr"
-              autoComplete="off"
-            />
-          </CreateField>
-          <CreateField label={t('admin.student360.admissionData.previousSchool')}>
-            <input
-              className="input"
-              value={values.previousSchool}
-              onChange={(e) => onPatch({ previousSchool: e.target.value })}
-            />
-          </CreateField>
-        </CreateFieldGroup>
-      ) : null}
-
-      {isStudentCreate ? (
-        <CreateFieldGroup title={t('admin.student360.create.additionalInfo')} icon="✎">
-          <CreateField layout="full" label={t('admin.enrollmentIntake.admissionNotes')}>
-            <textarea
-              className="input"
-              rows={2}
-              value={values.admissionNotes}
-              onChange={(e) => onPatch({ admissionNotes: e.target.value })}
-            />
-          </CreateField>
-        </CreateFieldGroup>
       ) : null}
 
       {!isStudentCreate && !isAdmissionEdit && !isFamilyChild ? (

@@ -47,7 +47,7 @@
     "class": "القسم",
     "datePicker": {
       "selectDate": "اختر تاريخًا",
-      "placeholder": "jj/mm/aaaa",
+      "placeholder": "يوم/شهر/سنة",
       "openCalendar": "فتح التقويم",
       "invalidDate": "تاريخ غير صالح",
       "today": "اليوم",

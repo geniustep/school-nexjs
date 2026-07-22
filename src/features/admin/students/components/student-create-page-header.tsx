@@ -14,25 +14,22 @@ export function StudentCreatePageHeader({ state }: { state: StudentProfileFormSt
     [state.firstName, state.lastName, state.firstNameLatin, state.lastNameLatin],
   );
 
-  const displayName = ar || latin;
+  const secondaryName = ar || latin;
 
   return (
     <header className="student-create-page__header">
-      <h1 className="student-create-page__title">
-        {hasName ? (
-          <>
-            {t('admin.student360.create.pageTitleNamed', { name: displayName })}
-            {showLatin ? (
-              <span className="student-create-page__title-latin" dir="ltr">
-                {' '}
-                {latin}
-              </span>
-            ) : null}
-          </>
-        ) : (
-          t('admin.addStudent')
-        )}
-      </h1>
+      <h1 className="student-create-page__title">{t('admin.student360.create.pageTitle')}</h1>
+      {hasName && secondaryName ? (
+        <p className="student-create-page__subtitle" dir="auto">
+          <span className="student-create-page__subtitle-name">{secondaryName}</span>
+          {showLatin && latin ? (
+            <span className="student-create-page__title-latin" dir="ltr">
+              {latin}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
+      <p className="student-create-page__desc">{t('admin.student360.create.pageDesc')}</p>
     </header>
   );
 }

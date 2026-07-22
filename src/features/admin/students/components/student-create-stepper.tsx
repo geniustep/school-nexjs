@@ -35,6 +35,7 @@ export function StudentCreateStepper({ activeStep }: { activeStep: StudentCreate
         aria-valuenow={activeIndex + 1}
         aria-valuemin={1}
         aria-valuemax={STEP_ORDER.length}
+        aria-label={t('admin.student360.create.stepperAria')}
       >
         <div
           className="student-create-steps__progress-fill"
@@ -45,24 +46,55 @@ export function StudentCreateStepper({ activeStep }: { activeStep: StudentCreate
         {STEP_ORDER.map((step, index) => {
           const active = step === activeStep;
           const done = index < activeIndex;
+          const statusLabel = active
+            ? t('admin.student360.create.stepStatus.current')
+            : done
+              ? t('admin.student360.create.stepStatus.done')
+              : t('admin.student360.create.stepStatus.upcoming');
+          const ariaLabel = `${index + 1}. ${labels[step]} — ${statusLabel}`;
+
           return (
             <li
               key={step}
               className="student-create-steps__item"
               data-active={active || undefined}
               data-done={done || undefined}
+              data-upcoming={!active && !done ? true : undefined}
               aria-current={active ? 'step' : undefined}
+              aria-label={ariaLabel}
             >
               <span className="student-create-steps__index" aria-hidden="true">
                 {done ? (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
                   index + 1
                 )}
               </span>
-              <span className="student-create-steps__label">{labels[step]}</span>
+              <span className="student-create-steps__label" aria-hidden="true">
+                {labels[step]}
+              </span>
+              <span className="student-create-steps__status" aria-hidden="true">
+                {done ? (
+                  <span className="student-create-steps__status-mark" title={statusLabel}>
+                    ✓
+                  </span>
+                ) : active ? (
+                  <span className="student-create-steps__status-dot" title={statusLabel} />
+                ) : (
+                  <span className="student-create-steps__status-idle" title={statusLabel} />
+                )}
+              </span>
             </li>
           );
         })}

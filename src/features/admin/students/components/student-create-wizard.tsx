@@ -985,7 +985,11 @@ export function StudentCreateForm({
   function focusFirstError(errors: StudentProfileFieldErrors) {
     const firstKey = FIELD_ORDER.find((key) => errors[key]);
     if (!firstKey || !formRef.current) return;
-    const el = formRef.current.querySelector<HTMLElement>(`[data-field="${firstKey}"]`);
+    const host = formRef.current.querySelector<HTMLElement>(`[data-field="${firstKey}"]`);
+    const control = host?.querySelector<HTMLElement>(
+      'input:not([type="hidden"]), select, textarea, button, [tabindex]:not([tabindex="-1"])',
+    );
+    const el = control ?? host;
     el?.focus();
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -1429,9 +1433,8 @@ export function StudentCreateForm({
       {step === 'identity' ? (
         <StudentCreateStyledSection
           icon="identity"
-          title={t('admin.student360.sections.identity')}
           lead={t('admin.student360.create.identityStepLead')}
-          className="student-create-form__section--identity"
+          className="student-create-form__section--identity student-create-form__section--identity-quiet"
         >
           <EnrollmentIntakeIdentityFields
             values={intakeValues}
