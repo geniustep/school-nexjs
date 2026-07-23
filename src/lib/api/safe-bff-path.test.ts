@@ -131,6 +131,7 @@ describe('BFF route policy', () => {
   it('rejects unlisted paths, wrong methods, and ORM namespaces', () => {
     expect(assertBffRoutePolicy('/admin/academic-setup/terms/31', 'PATCH').ok).toBe(true);
     expect(assertBffRoutePolicy('/admin/academic-years/1/terms', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/admin/academic-years/1/terms', 'POST').ok).toBe(true);
     expect(assertBffRoutePolicy('/admin/unknown-family/x', 'GET').ok).toBe(false);
     expect(assertBffRoutePolicy('/me', 'POST').ok).toBe(false);
     expect(assertBffRoutePolicy('/web/dataset', 'GET').ok).toBe(false);

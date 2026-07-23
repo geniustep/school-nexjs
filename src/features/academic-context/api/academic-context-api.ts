@@ -8,6 +8,7 @@ import type {
   AcademicTermsInitializePayload,
   AcademicTermsInitializeResult,
   AcademicTermsListResponse,
+  CreateAcademicTermInput,
   UpdateAcademicTermInput,
 } from '@/types/academic-context';
 import {
@@ -23,7 +24,7 @@ const TERM_UPDATE_ALLOWED_KEYS = new Set([
   'date_end',
 ]);
 
-/** Strip anything outside the draft-edit contract before PATCH. */
+/** Strip anything outside the term-edit contract before PATCH. */
 export function sanitizeTermUpdatePayload(
   payload: UpdateAcademicTermInput,
 ): UpdateAcademicTermInput | null {
@@ -35,6 +36,53 @@ export function sanitizeTermUpdatePayload(
     }
   }
   if (Object.keys(sanitized).length === 0) return null;
+  return sanitized;
+}
+
+const TERM_CREATE_ALLOWED_KEYS = new Set([
+  'name',
+  'code',
+  'date_start',
+  'date_end',
+  'sequence',
+  'description',
+  'state',
+]);
+
+export function sanitizeTermCreatePayload(
+  payload: CreateAcademicTermInput,
+): CreateAcademicTermInput | null {
+  const name = typeof payload.name === 'string' ? payload.name.trim() : '';
+  const code = typeof payload.code === 'string' ? payload.code.trim() : '';
+  const date_start = typeof payload.date_start === 'string' ? payload.date_start : '';
+  const date_end = typeof payload.date_end === 'string' ? payload.date_end : '';
+  if (!name || !code || !date_start || !date_end) return null;
+
+  const sanitized: CreateAcademicTermInput = {
+    name,
+    code,
+    date_start,
+    date_end,
+  };
+  if (typeof payload.sequence === 'number' && Number.isFinite(payload.sequence)) {
+    sanitized.sequence = payload.sequence;
+  }
+  if (typeof payload.description === 'string') {
+    sanitized.description = payload.description;
+  }
+  if (
+    payload.state === 'draft' ||
+    payload.state === 'active' ||
+    payload.state === 'done'
+  ) {
+    sanitized.state = payload.state;
+  }
+  // Reject unknown keys by reconstruction only from allowlist.
+  for (const key of Object.keys(payload)) {
+    if (!TERM_CREATE_ALLOWED_KEYS.has(key)) {
+      return null;
+    }
+  }
   return sanitized;
 }
 
@@ -141,6 +189,44 @@ export async function initializeAcademicYearTerms(
       warnings: list.warnings,
     },
   };
+}
+
+export async function createAcademicTerm(
+  academicYearId: number | string,
+  payload: CreateAcademicTermInput,
+  query?: ListParams,
+): Promise<ApiResponse<AcademicTermOption>> {
+  const body = sanitizeTermCreatePayload(payload);
+  if (!body) {
+    return {
+      success: false,
+      error: {
+        code: 'invalid_term_field',
+        message: 'Term create payload is incomplete or contains unsupported fields.',
+        details: {},
+      },
+      meta: {},
+    };
+  }
+  const res = await api.post<unknown>(
+    endpoints.admin.academicYearTerms(academicYearId),
+    body,
+    query,
+  );
+  if (!res.success) return res as ApiResponse<AcademicTermOption>;
+  const term = normalizeAcademicTermOption(res.data);
+  if (!term) {
+    return {
+      success: false,
+      error: {
+        code: 'server_error',
+        message: 'Unexpected term payload from server.',
+        details: {},
+      },
+      meta: res.meta ?? {},
+    };
+  }
+  return { ...res, data: term };
 }
 
 export async function updateAcademicTerm(

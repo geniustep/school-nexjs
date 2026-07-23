@@ -10,6 +10,7 @@ export {
   fetchAdminAcademicContextOptions,
   fetchTeacherAcademicContextOptions,
   fetchAcademicYearTerms,
+  createAcademicTerm,
   initializeAcademicYearTerms,
   updateAcademicTerm,
 } from './api/academic-context-api';

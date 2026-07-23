@@ -411,8 +411,8 @@
     },
     "subjectAmbiguous": "Plusieurs offres pédagogiques ({count}) existent pour cette matière",
     "terms": {
-      "title": "Périodes",
-      "description": "Configurer les périodes académiques pour l'année sélectionnée",
+      "title": "Périodes académiques",
+      "description": "Consulter, ajouter et modifier les périodes académiques, y compris les dates confirmées.",
       "code": "Code",
       "sequence": "Ordre",
       "dates": "Dates",
@@ -424,7 +424,7 @@
       "initializeYearReadonly": "Année scolaire",
       "datesRequiredExplicit": "Les dates des périodes doivent être définies explicitement",
       "empty": "Aucune période pour le moment",
-      "emptyManageHint": "Initialisez les périodes pour cette année scolaire pour continuer",
+      "emptyManageHint": "Ajoutez une période ou initialisez les périodes standards pour cette année.",
       "emptyReadonlyHint": "Aucune période n’est configurée pour cette année scolaire",
       "term1Name": "Nom de la période 1",
       "term1Start": "Début de la période 1",
@@ -445,7 +445,14 @@
       "editCodeRequired": "Le code de la période est requis",
       "editDateStartRequired": "La date de début est requise",
       "editDateEndRequired": "La date de fin est requise",
-      "editNoChanges": "Aucune modification à enregistrer"
+      "editNoChanges": "Aucune modification à enregistrer",
+      "create": "Ajouter une période",
+      "createTitle": "Ajouter une période académique",
+      "createSubmit": "Créer la période",
+      "createSuccess": "Période créée avec succès",
+      "stateDraft": "Brouillon",
+      "stateActive": "Confirmée",
+      "stateDone": "Terminée"
     },
     "errors": {
       "academic_context_school_mismatch": "Le contexte académique ne correspond pas à l’établissement actif",
@@ -460,7 +467,7 @@
       "academic_year_not_found": "Année scolaire introuvable",
       "academic_year_school_mismatch": "L’année scolaire n’appartient pas à l’établissement actif",
       "term_not_found": "Cette période n’est plus disponible",
-      "term_edit_not_allowed": "Cette période ne peut plus être modifiée après activation",
+      "term_edit_not_allowed": "Cette période ne peut pas être modifiée dans son état actuel",
       "invalid_term_field": "La requête contient un champ non modifiable",
       "invalid_term_name": "Le nom de la période est invalide",
       "invalid_term_code": "Le code de la période est invalide",
@@ -3268,7 +3275,7 @@
         "teachers": "Enseignants",
         "staff": "Personnel",
         "assignments": "Affectations pédagogiques",
-        "terms": "Périodes"
+        "terms": "Périodes académiques"
       },
       "cards": {
         "classes": "Niveaux et classes",
@@ -9813,6 +9820,7 @@
           "installmentLabel": "Échéance #{id}",
           "studentTotal": "Total élève",
           "successToast": "Paiement familial reçu et réparti.",
+          "receiptPendingHint": "Paiement reçu. Ouvrez le reçu depuis le détail de l'opération pour l'imprimer.",
           "replaceSuggestionConfirm": "Remplacer la répartition actuelle par la suggestion ?",
           "backToEdit": "Retour à l'édition",
           "headerSummaryTitle": "Résumé du paiement",
@@ -9849,7 +9857,8 @@
             "missing_fields": "Complétez l'année scolaire, le journal et le mode de paiement.",
             "cash_session_blocked": "Ouvrez ou rejoignez une session de caisse pour confirmer ce paiement.",
             "invalid_amount": "Saisissez un montant valide supérieur à zéro.",
-            "invalid_allocations": "Corrigez la répartition avant de confirmer."
+            "invalid_allocations": "Corrigez la répartition avant de confirmer.",
+            "payment_reference_required": "Saisissez la référence de virement avant de confirmer."
           },
           "installmentStateChanged": "L'état d'une échéance a changé et elle n'est plus encaissable. La répartition a été actualisée — vérifiez le montant puis confirmez à nouveau.",
           "smartSummary": {

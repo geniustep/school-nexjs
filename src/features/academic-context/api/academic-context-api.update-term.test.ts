@@ -1,20 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const patch = vi.fn();
+const post = vi.fn();
 
 vi.mock('@/lib/api/client', () => ({
   api: {
     get: vi.fn(),
-    post: vi.fn(),
+    post: (...args: unknown[]) => post(...args),
     patch: (...args: unknown[]) => patch(...args),
   },
 }));
 
 import {
+  createAcademicTerm,
+  sanitizeTermCreatePayload,
   sanitizeTermUpdatePayload,
   updateAcademicTerm,
 } from '@/features/academic-context/api/academic-context-api';
 import { endpoints } from '@/lib/api/endpoints';
+import type { CreateAcademicTermInput } from '@/types/academic-context';
 
 describe('sanitizeTermUpdatePayload', () => {
   it('keeps only allowed keys', () => {
@@ -125,5 +129,77 @@ describe('updateAcademicTerm', () => {
     expect(patch).not.toHaveBeenCalled();
     expect(res.success).toBe(false);
     if (!res.success) expect(res.error.code).toBe('invalid_term_field');
+  });
+});
+
+describe('createAcademicTerm', () => {
+  beforeEach(() => {
+    post.mockReset();
+  });
+
+  it('rejects forbidden keys and POSTs clean payload to year terms path', async () => {
+    const dirty = Object.assign(
+      {
+        name: 'New',
+        code: 'TX',
+        date_start: '2026-09-01',
+        date_end: '2026-12-31',
+      },
+      { school_id: 5 },
+    ) as CreateAcademicTermInput;
+    expect(sanitizeTermCreatePayload(dirty)).toBeNull();
+
+    const rejected = await createAcademicTerm(12, dirty);
+    expect(rejected.success).toBe(false);
+    expect(post).not.toHaveBeenCalled();
+
+    post.mockResolvedValue({
+      success: true,
+      data: {
+        id: 99,
+        name: 'New',
+        code: 'TX',
+        date_start: '2026-09-01',
+        date_end: '2026-12-31',
+        state: 'draft',
+      },
+      meta: {},
+    });
+
+    const ok = await createAcademicTerm(12, {
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+    });
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post.mock.calls[0][0]).toBe(endpoints.admin.academicYearTerms(12));
+    expect(post.mock.calls[0][1]).toEqual({
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+    });
+    expect(ok.success).toBe(true);
+  });
+
+  it('preserves create API errors without fake success', async () => {
+    post.mockResolvedValue({
+      success: false,
+      error: {
+        code: 'term_dates_invalid',
+        message: 'invalid',
+        details: { status: 422 },
+      },
+      meta: {},
+    });
+    const res = await createAcademicTerm(12, {
+      name: 'New',
+      code: 'TX',
+      date_start: '2027-01-01',
+      date_end: '2026-01-01',
+    });
+    expect(res.success).toBe(false);
+    if (!res.success) expect(res.error.code).toBe('term_dates_invalid');
   });
 });

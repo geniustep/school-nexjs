@@ -411,8 +411,8 @@
     },
     "subjectAmbiguous": "توجد عدة عروض تعليمية ({count}) لهذه المادة",
     "terms": {
-      "title": "الدورات",
-      "description": "تهيئة الدورات الدراسية للسنة المحددة",
+      "title": "الدورات الدراسية",
+      "description": "عرض وإضافة وتعديل الدورات الدراسية للسنة المحددة، بما في ذلك تواريخ الدورة المؤكدة.",
       "code": "الرمز",
       "sequence": "الترتيب",
       "dates": "التواريخ",
@@ -424,7 +424,7 @@
       "initializeYearReadonly": "السنة الدراسية",
       "datesRequiredExplicit": "تواريخ الدورات يجب أن تُحدد صراحة",
       "empty": "لا توجد دورات بعد",
-      "emptyManageHint": "قم بتهيئة الدورات لهذه السنة الدراسية للمتابعة",
+      "emptyManageHint": "أضف دورة جديدة أو هيّئ الدورات القياسية لهذه السنة الدراسية.",
       "emptyReadonlyHint": "لا توجد دورات مهيأة لهذه السنة الدراسية",
       "term1Name": "اسم الدورة 1",
       "term1Start": "بداية الدورة 1",
@@ -445,7 +445,14 @@
       "editCodeRequired": "رمز الدورة مطلوب",
       "editDateStartRequired": "تاريخ البداية مطلوب",
       "editDateEndRequired": "تاريخ النهاية مطلوب",
-      "editNoChanges": "لا توجد تغييرات للحفظ"
+      "editNoChanges": "لا توجد تغييرات للحفظ",
+      "create": "إضافة دورة",
+      "createTitle": "إضافة دورة دراسية",
+      "createSubmit": "إنشاء الدورة",
+      "createSuccess": "تم إنشاء الدورة بنجاح",
+      "stateDraft": "مسودة",
+      "stateActive": "مؤكدة",
+      "stateDone": "منتهية"
     },
     "errors": {
       "academic_context_school_mismatch": "السياق الدراسي لا يطابق المدرسة النشطة",
@@ -460,7 +467,7 @@
       "academic_year_not_found": "السنة الدراسية غير موجودة",
       "academic_year_school_mismatch": "السنة الدراسية لا تنتمي إلى المدرسة النشطة",
       "term_not_found": "لم تعد هذه الدورة متاحة",
-      "term_edit_not_allowed": "لا يمكن تعديل هذه الدورة بعد تفعيلها",
+      "term_edit_not_allowed": "لا يمكن تعديل هذه الدورة في حالتها الحالية",
       "invalid_term_field": "يتضمن الطلب حقلًا غير مسموح بتعديله",
       "invalid_term_name": "اسم الدورة غير صالح",
       "invalid_term_code": "رمز الدورة غير صالح",
@@ -3374,7 +3381,7 @@
         "teachers": "الأساتذة",
         "staff": "الموظفون الإداريون",
         "assignments": "توزيع التدريس",
-        "terms": "الدورات"
+        "terms": "الدورات الدراسية"
       },
       "cards": {
         "classes": "المستويات والأقسام",
@@ -10003,6 +10010,7 @@
           "installmentLabel": "قسط #{id}",
           "studentTotal": "إجمالي التلميذ",
           "successToast": "تم استلام عملية الأداء وتوزيعها على الأسرة.",
+          "receiptPendingHint": "تم استلام الأداء. افتح الوصل من تفاصيل العملية للطباعة.",
           "replaceSuggestionConfirm": "هل تريد استبدال التوزيع الحالي بالاقتراح؟",
           "backToEdit": "العودة للتعديل",
           "headerSummaryTitle": "ملخص عملية الأداء",
@@ -10039,7 +10047,8 @@
             "missing_fields": "أكمل السنة الدراسية ودفتر التحصيل ووسيلة الأداء.",
             "cash_session_blocked": "افتح أو انضم لجلسة صندوق لتأكيد عملية الأداء هذه.",
             "invalid_amount": "أدخل مبلغًا صالحًا أكبر من صفر.",
-            "invalid_allocations": "صحّح التوزيع قبل التأكيد."
+            "invalid_allocations": "صحّح التوزيع قبل التأكيد.",
+            "payment_reference_required": "أدخل رقم التحويل أو المرجع البنكي قبل التأكيد."
           },
           "installmentStateChanged": "تغيرت حالة أحد الأقساط ولم يعد متاحًا للتحصيل. تم تحديث التوزيع، راجع المبلغ ثم أعد التأكيد.",
           "smartSummary": {

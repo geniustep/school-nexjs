@@ -259,12 +259,24 @@ export interface AcademicTermsInitializeResult {
   warnings?: AcademicContextWarning[];
 }
 
-/** Partial PATCH body for draft term edit — only these keys may be sent. */
+/** Partial PATCH body for term edit — only these keys may be sent. */
 export type UpdateAcademicTermInput = {
   name?: string;
   code?: string;
   date_start?: string;
   date_end?: string;
+};
+
+/** POST body for creating one academic term under a year. */
+export type CreateAcademicTermInput = {
+  name: string;
+  code: string;
+  date_start: string;
+  date_end: string;
+  sequence?: number;
+  description?: string | null;
+  /** Defaults to draft on the backend when omitted. */
+  state?: 'draft' | 'active' | 'done';
 };
 
 /** Selection values controlled by the shared Academic Context UI. */
