@@ -948,6 +948,9 @@ export interface FamilyBatchApplicationSummary {
   reference?: string | null;
   student_name: string;
   state: AdmissionState | string;
+  application_status?: AdmissionApplicationStatus | string | null;
+  modern_allowed_actions?: AdmissionModernAllowedAction[] | null;
+  primary_next_action?: AdmissionNextAction | string | null;
   admission_workspace?:
     | 'follow_up'
     | 'awaiting_decision'
@@ -977,6 +980,10 @@ export interface FamilyBatchApplicationSummary {
   status_warnings?: AdmissionStatusWarningCode[] | null;
   offer_state?: AdmissionOfferState | false | null;
   converted_at?: string | false | null;
+  /** Optional Backend eligibility hint for selective conversion (when present). */
+  conversion_eligible?: boolean | null;
+  conversion_blocker?: string | null;
+  conversion_ineligible_reason?: string | null;
 }
 
 /** POST /admin/admissions/family-batches — create response envelope data */
@@ -1022,6 +1029,49 @@ export interface FamilyBatchDetail {
   allowed_actions?: FamilyBatchAllowedActions | null;
   application_count: number;
   applications: FamilyBatchApplicationSummary[];
+}
+
+/** POST /admin/admissions/family-batches/{batch_id}/convert-to-students */
+export type FamilyBatchConvertApplicationResultStatus =
+  | 'succeeded'
+  | 'replayed'
+  | 'already_registered'
+  | 'ineligible'
+  | 'failed'
+  | string;
+
+export type FamilyBatchConvertBatchStatus =
+  | 'completed'
+  | 'partially_completed'
+  | 'failed'
+  | string;
+
+export interface FamilyBatchConvertApplicationResult {
+  application_id: number;
+  status: FamilyBatchConvertApplicationResultStatus;
+  student_id?: number | null;
+  code?: string | null;
+  message?: string | null;
+  replayed?: boolean | null;
+  error?: { code?: string | null; message?: string | null } | string | null;
+}
+
+export interface FamilyBatchConvertToStudentsPayload {
+  idempotency_key: string;
+  application_ids: number[];
+}
+
+export interface FamilyBatchConvertToStudentsResult {
+  batch_id: number;
+  idempotency_key?: string | null;
+  status: FamilyBatchConvertBatchStatus;
+  requested_count?: number | null;
+  succeeded_count?: number | null;
+  replayed_count?: number | null;
+  already_registered_count?: number | null;
+  failed_count?: number | null;
+  applications: FamilyBatchConvertApplicationResult[];
+  replayed?: boolean | null;
 }
 
 /** PATCH /admin/admissions/family-batches/<batch_id>/guardians — full replacement. */

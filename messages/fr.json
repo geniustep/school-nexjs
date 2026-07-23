@@ -5572,7 +5572,55 @@
         "childrenInBatchSection": "Enfants de la demande familiale",
         "siblingsInfoInFamilyTab": "Demande familiale : les champs « frères et sœurs » individuels sont masqués ici. Les enfants liés apparaissent dans l’onglet Famille.",
         "openFamilyChildren": "Voir les enfants de la demande",
-        "currentChild": "Actuel"
+        "currentChild": "Actuel",
+        "selectiveConversion": {
+          "title": "Convertir les demandes sélectionnées en élèves",
+          "lead": "Sélectionnez uniquement les enfants éligibles. Une seule requête collective est envoyée ; aucun encaissement automatique n’est créé.",
+          "empty": "Aucune demande enfant dans ce lot familial.",
+          "noEligible": "Aucune demande n’est actuellement éligible à la conversion.",
+          "selectAllEligible": "Sélectionner tous les éligibles",
+          "clearSelection": "Effacer la sélection",
+          "selectedCount": "Sélectionnés : {count}",
+          "convertSelected": "Convertir les demandes sélectionnées en élèves ({count})",
+          "converting": "Conversion en cours…",
+          "openStudent": "Ouvrir le dossier élève",
+          "confirmTitle": "Confirmer la conversion en élèves",
+          "confirmAction": "Confirmer la conversion",
+          "confirmLead": "Des dossiers élèves seront créés uniquement pour les demandes sélectionnées ({count}).",
+          "confirmUnselected": "Les enfants non sélectionnés ne changeront pas et pourront être convertis plus tard s’ils deviennent éligibles.",
+          "confirmNoFinance": "Cette opération ne crée aucun encaissement ni paiement automatique.",
+          "confirmPartialPossible": "Certaines demandes peuvent réussir tandis que d’autres échouent dans la même opération.",
+          "retrySameAttempt": "Réessayer la même tentative",
+          "eligibility": {
+            "eligible": "Prêt pour la conversion",
+            "alreadyRegistered": "Déjà inscrit",
+            "ineligible": "Non éligible à la conversion",
+            "notReady": "Pas prêt pour la conversion",
+            "converting": "Conversion en cours"
+          },
+          "summary": {
+            "completed": "Toutes les demandes sélectionnées ont été converties ({succeeded}/{requested}).",
+            "partiallyCompleted": "Conversion partielle : {succeeded} réussies et {failed} en échec sur {requested}.",
+            "failed": "Aucune des demandes sélectionnées n’a été convertie.",
+            "replayed": "Le résultat d’une tentative précédente a été rejoué en toute sécurité sans doublon."
+          },
+          "appStatus": {
+            "succeeded": "Dossier élève créé",
+            "replayed": "Résultat précédent rejoué",
+            "alreadyRegistered": "Déjà inscrit",
+            "ineligible": "Non éligible à la conversion",
+            "failed": "Conversion impossible"
+          },
+          "errors": {
+            "validation": "Les données de conversion sont invalides.",
+            "unauthenticated": "Session expirée. Connectez-vous puis réessayez.",
+            "forbidden": "Vous n’avez pas l’autorisation d’exécuter cette conversion.",
+            "notFound": "Le lot familial est introuvable.",
+            "idempotencyConflict": "Conflit de clé d’idempotence. Arrêtez et vérifiez l’état des demandes avant une nouvelle tentative.",
+            "networkUncertainty": "Impossible de confirmer le résultat à cause d’un problème réseau. L’opération a peut-être été exécutée — réessayez la même tentative.",
+            "failed": "Impossible de convertir les demandes sélectionnées."
+          }
+        }
       },
       "guardians": {
         "sectionTitle": "Responsables liés à la demande",

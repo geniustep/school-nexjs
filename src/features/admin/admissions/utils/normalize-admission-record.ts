@@ -336,6 +336,9 @@ export function normalizeFamilyBatchApplication(
     registration_readiness: normalized.registration_readiness,
     registration_requirements: normalized.registration_requirements,
     next_action: normalized.next_action,
+    application_status: normalized.application_status,
+    modern_allowed_actions: normalized.modern_allowed_actions,
+    primary_next_action: normalized.primary_next_action,
   };
 }
 

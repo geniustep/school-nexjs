@@ -655,7 +655,11 @@ export const endpoints = {
       `/admin/admissions/family-batches/${batchId}`,
     admissionFamilyBatchGuardians: (batchId: number | string) =>
       `/admin/admissions/family-batches/${batchId}/guardians`,
+    /** Selective convert applications → students (Odoo 18.0.1.0.242+). */
+    admissionFamilyBatchConvertToStudents: (batchId: number | string) =>
+      `/admin/admissions/family-batches/${batchId}/convert-to-students`,
   },
+
 
   teacher: {
     dashboard: '/teacher/dashboard',

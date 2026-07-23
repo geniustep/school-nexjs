@@ -5604,7 +5604,55 @@
         "childrenInBatchSection": "Children in this family application",
         "siblingsInfoInFamilyTab": "This is a family application. Individual sibling fields are hidden here — related children appear in the Family tab.",
         "openFamilyChildren": "View family children",
-        "currentChild": "Current"
+        "currentChild": "Current",
+        "selectiveConversion": {
+          "title": "Convert selected applications to students",
+          "lead": "Select only eligible children. One collective conversion request is sent; no automatic collection is created.",
+          "empty": "No child applications in this family batch.",
+          "noEligible": "No application is currently eligible for conversion.",
+          "selectAllEligible": "Select all eligible",
+          "clearSelection": "Clear selection",
+          "selectedCount": "Selected: {count}",
+          "convertSelected": "Convert selected applications to students ({count})",
+          "converting": "Converting…",
+          "openStudent": "Open student file",
+          "confirmTitle": "Confirm conversion to students",
+          "confirmAction": "Confirm conversion",
+          "confirmLead": "Student files will be created only for the selected applications ({count}).",
+          "confirmUnselected": "Unselected children will not change and can be converted later when eligible.",
+          "confirmNoFinance": "This action does not create any automatic collection or payment.",
+          "confirmPartialPossible": "Some applications may succeed while others fail in the same operation.",
+          "retrySameAttempt": "Retry the same attempt",
+          "eligibility": {
+            "eligible": "Ready to convert",
+            "alreadyRegistered": "Already registered",
+            "ineligible": "Not eligible to convert",
+            "notReady": "Not ready to convert",
+            "converting": "Conversion in progress"
+          },
+          "summary": {
+            "completed": "All selected applications were converted ({succeeded}/{requested}).",
+            "partiallyCompleted": "Conversion completed partially: {succeeded} succeeded and {failed} did not, out of {requested}.",
+            "failed": "None of the selected applications were converted.",
+            "replayed": "A previous attempt result was safely replayed without creating duplicates."
+          },
+          "appStatus": {
+            "succeeded": "Student file created",
+            "replayed": "Previous result replayed",
+            "alreadyRegistered": "Already registered",
+            "ineligible": "Not eligible to convert",
+            "failed": "Conversion failed"
+          },
+          "errors": {
+            "validation": "Conversion request data is invalid.",
+            "unauthenticated": "Your session expired. Sign in and try again.",
+            "forbidden": "You are not allowed to run this conversion.",
+            "notFound": "The family batch could not be found.",
+            "idempotencyConflict": "Idempotency key conflict. Stop and review application status before a new attempt.",
+            "networkUncertainty": "Could not confirm the conversion result due to a network issue. The operation may have run — retry the same attempt.",
+            "failed": "Could not convert the selected applications."
+          }
+        }
       },
       "guardians": {
         "sectionTitle": "Guardians on this request",

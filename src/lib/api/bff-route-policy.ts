@@ -272,5 +272,10 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   // Draft term PATCH — Odoo rejects unknown body keys (active_school_id).
   // Tenant scope remains on query string + session cookies.
   if (/^\/admin\/academic-setup\/terms\/[^/]+$/.test(pathname)) return false;
+  // Selective family conversion — body is idempotency_key + application_ids only.
+  // School scope remains on the query string + session.
+  if (/^\/admin\/admissions\/family-batches\/[^/]+\/convert-to-students$/.test(pathname)) {
+    return false;
+  }
   return true;
 }

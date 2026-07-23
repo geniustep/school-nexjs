@@ -1,10 +1,13 @@
 'use client';
 
 import { endpoints } from '@/lib/api/endpoints';
+import { clientActiveRoleHeaders } from '@/lib/auth/active-role-client';
 import { sanitizeClientApiErrorMessage } from '@/lib/utils/user-facing-error';
 import type { ApiResponse, ListParams } from '@/types/api';
 import type {
   CreateFamilyBatchPayload,
+  FamilyBatchConvertToStudentsPayload,
+  FamilyBatchConvertToStudentsResult,
   FamilyBatchCreateResponse,
   FamilyBatchDetail,
   PatchFamilyBatchGuardiansPayload,
@@ -13,8 +16,11 @@ import {
   normalizeFamilyBatchCreateData,
   normalizeFamilyBatchDetail,
 } from '../utils/family-admission-normalize';
+import { normalizeFamilyBatchConvertResult } from '../utils/family-batch-selective-conversion-errors';
+import { sortConvertApplicationIds } from '../utils/family-batch-selective-conversion-idempotency';
 
 const PROXY_BASE = '/api/odoo';
+const CONVERT_BFF_BASE = '/api/admin/admissions/family-batches';
 
 function buildUrl(path: string, query?: ListParams): string {
   const clean = path.startsWith('/') ? path : `/${path}`;
@@ -26,6 +32,14 @@ function buildUrl(path: string, query?: ListParams): string {
   }
   const qs = sp.toString();
   return qs ? `${url}?${qs}` : url;
+}
+
+function proxyHeaders(extra?: Record<string, string>): Record<string, string> {
+  return {
+    Accept: 'application/json',
+    ...clientActiveRoleHeaders(),
+    ...extra,
+  };
 }
 
 async function parseWithStatus<T>(res: Response): Promise<{
@@ -122,7 +136,7 @@ export async function createFamilyBatch(
   try {
     const res = await fetch(buildUrl(endpoints.admin.admissionFamilyBatches, query), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: proxyHeaders({ 'Content-Type': 'application/json' }),
       credentials: 'same-origin',
       cache: 'no-store',
       body: JSON.stringify(payload),
@@ -161,7 +175,7 @@ export async function fetchFamilyBatchDetail(
   try {
     const res = await fetch(buildUrl(endpoints.admin.admissionFamilyBatch(batchId), query), {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers: proxyHeaders(),
       credentials: 'same-origin',
       cache: 'no-store',
     });
@@ -200,7 +214,7 @@ export async function patchFamilyBatchGuardians(
       buildUrl(endpoints.admin.admissionFamilyBatchGuardians(batchId), query),
       {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: proxyHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'same-origin',
         cache: 'no-store',
         body: JSON.stringify(payload),
@@ -223,6 +237,58 @@ export async function patchFamilyBatchGuardians(
         details: {},
       },
       meta: {},
+    };
+  }
+}
+
+/**
+ * POST dedicated BFF → Odoo family-batches/{id}/convert-to-students
+ * Single collective request — never loops individual convert endpoints.
+ */
+export async function convertFamilyBatchApplicationsToStudents(
+  batchId: number | string,
+  payload: FamilyBatchConvertToStudentsPayload,
+): Promise<{
+  response: ApiResponse<FamilyBatchConvertToStudentsResult>;
+  httpStatus: number;
+}> {
+  const body: FamilyBatchConvertToStudentsPayload = {
+    idempotency_key: payload.idempotency_key,
+    application_ids: sortConvertApplicationIds(payload.application_ids),
+  };
+
+  try {
+    const res = await fetch(`${CONVERT_BFF_BASE}/${batchId}/convert-to-students`, {
+      method: 'POST',
+      headers: proxyHeaders({ 'Content-Type': 'application/json' }),
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body: JSON.stringify(body),
+    });
+    const parsed = await parseWithStatus<FamilyBatchConvertToStudentsResult>(res);
+    if (parsed.response.success && parsed.response.data) {
+      const normalized = normalizeFamilyBatchConvertResult(parsed.response.data);
+      return {
+        ...parsed,
+        response: {
+          ...parsed.response,
+          data: normalized ?? parsed.response.data,
+        },
+      };
+    }
+    return parsed;
+  } catch {
+    return {
+      httpStatus: 0,
+      response: {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: { status: 0 },
+        },
+        meta: {},
+      },
     };
   }
 }

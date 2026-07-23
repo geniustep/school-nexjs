@@ -5572,7 +5572,55 @@
         "childrenInBatchSection": "Niños de la solicitud familiar",
         "siblingsInfoInFamilyTab": "Esta es una solicitud familiar. Los campos individuales de hermanos se ocultan aquí; los niños vinculados aparecen en la pestaña Familia.",
         "openFamilyChildren": "Ver niños de la solicitud",
-        "currentChild": "Actual"
+        "currentChild": "Actual",
+        "selectiveConversion": {
+          "title": "Convertir solicitudes seleccionadas en alumnos",
+          "lead": "Seleccione solo los hijos elegibles. Se envía una sola solicitud colectiva; no se crea ningún cobro automático.",
+          "empty": "No hay solicitudes de hijos en este lote familiar.",
+          "noEligible": "Ninguna solicitud es elegible para conversión ahora.",
+          "selectAllEligible": "Seleccionar todos los elegibles",
+          "clearSelection": "Borrar selección",
+          "selectedCount": "Seleccionados: {count}",
+          "convertSelected": "Convertir solicitudes seleccionadas en alumnos ({count})",
+          "converting": "Convirtiendo…",
+          "openStudent": "Abrir ficha del alumno",
+          "confirmTitle": "Confirmar conversión a alumnos",
+          "confirmAction": "Confirmar conversión",
+          "confirmLead": "Se crearán fichas de alumnos solo para las solicitudes seleccionadas ({count}).",
+          "confirmUnselected": "Los hijos no seleccionados no cambiarán y podrán convertirse más adelante si son elegibles.",
+          "confirmNoFinance": "Esta operación no crea ningún cobro ni pago automático.",
+          "confirmPartialPossible": "Algunas solicitudes pueden tener éxito y otras fallar en la misma operación.",
+          "retrySameAttempt": "Reintentar el mismo intento",
+          "eligibility": {
+            "eligible": "Listo para convertir",
+            "alreadyRegistered": "Ya registrado",
+            "ineligible": "No elegible para conversión",
+            "notReady": "No listo para convertir",
+            "converting": "Conversión en curso"
+          },
+          "summary": {
+            "completed": "Todas las solicitudes seleccionadas se convirtieron ({succeeded}/{requested}).",
+            "partiallyCompleted": "Conversión parcial: {succeeded} correctas y {failed} fallidas de {requested}.",
+            "failed": "Ninguna de las solicitudes seleccionadas se convirtió.",
+            "replayed": "Se reenvió de forma segura el resultado de un intento anterior sin duplicados."
+          },
+          "appStatus": {
+            "succeeded": "Ficha de alumno creada",
+            "replayed": "Resultado anterior reenviado",
+            "alreadyRegistered": "Ya registrado",
+            "ineligible": "No elegible para conversión",
+            "failed": "No se pudo convertir"
+          },
+          "errors": {
+            "validation": "Los datos de conversión no son válidos.",
+            "unauthenticated": "La sesión expiró. Inicie sesión e inténtelo de nuevo.",
+            "forbidden": "No tiene permiso para ejecutar esta conversión.",
+            "notFound": "No se encontró el lote familiar.",
+            "idempotencyConflict": "Conflicto de clave de idempotencia. Deténgase y revise el estado antes de un nuevo intento.",
+            "networkUncertainty": "No se pudo confirmar el resultado por un problema de red. La operación pudo haberse ejecutado — reintente el mismo intento.",
+            "failed": "No se pudieron convertir las solicitudes seleccionadas."
+          }
+        }
       },
       "guardians": {
         "sectionTitle": "Tutores vinculados a la solicitud",

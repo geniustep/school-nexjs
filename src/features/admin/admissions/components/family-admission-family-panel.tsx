@@ -17,6 +17,7 @@ import { canEditFamilyBatchGuardians } from '../utils/family-batch-guardians-edi
 import { resolveFamilyBatchMixedSummary } from '../utils/admission-status-display';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { FamilyBatchGuardiansEditDialog } from './family-batch-guardians-edit-dialog';
+import { FamilyBatchSelectiveConversionPanel } from './family-batch-selective-conversion-panel';
 import { resolveAdmissionPrimaryAction } from '../utils/admission-primary-action';
 import {
   assessmentProgressLabelKey,
@@ -295,6 +296,15 @@ export function FamilyAdmissionFamilyPanel({
               })}
             </ul>
           </div>
+
+          <FamilyBatchSelectiveConversionPanel
+            batchId={batchId}
+            applications={orderedApplications}
+            onConverted={() => {
+              onBatchUpdated?.();
+              reloadBatch();
+            }}
+          />
 
           <FamilyBatchGuardiansEditDialog
             open={editOpen}
