@@ -9858,7 +9858,9 @@
             "cash_session_blocked": "Ouvrez ou rejoignez une session de caisse pour confirmer ce paiement.",
             "invalid_amount": "Saisissez un montant valide supérieur à zéro.",
             "invalid_allocations": "Corrigez la répartition avant de confirmer.",
-            "payment_reference_required": "Saisissez la référence de virement avant de confirmer."
+            "payment_reference_required": "Saisissez la référence de virement avant de confirmer.",
+            "allocation_mode_required": "Choisissez comment traiter le montant avant de continuer.",
+            "empty_allocations": "Sélectionnez au moins une échéance et saisissez un montant supérieur à zéro."
           },
           "installmentStateChanged": "L'état d'une échéance a changé et elle n'est plus encaissable. La répartition a été actualisée — vérifiez le montant puis confirmez à nouveau.",
           "smartSummary": {
@@ -9895,7 +9897,18 @@
               "allocated": "Montant affecté"
             }
           },
-          "backendPreviewTitle": "Aperçu serveur de la répartition"
+          "backendPreviewTitle": "Aperçu serveur de la répartition",
+          "dispositionMode": {
+            "title": "Traitement du montant d'encaissement",
+            "allocate": "Répartir le montant sur les échéances",
+            "allocateHint": "Associe le montant aux échéances sélectionnées.",
+            "leaveAsCredit": "Conserver le montant en crédit familial",
+            "leaveAsCreditHint": "Conserve le montant sur le compte familial pour une utilisation ultérieure selon les règles du système.",
+            "leaveAsCreditSummary": "Le montant restera un crédit familial et ne sera pas réparti sur les échéances maintenant.",
+            "required": "Choisissez comment traiter le montant avant de continuer.",
+            "emptyAllocations": "Sélectionnez au moins une échéance et saisissez un montant supérieur à zéro.",
+            "noEligibleInstallments": "Aucune échéance encaissable n'est disponible sur ce compte actuellement."
+          }
         },
         "columns": {
           "payer": "Payeur",

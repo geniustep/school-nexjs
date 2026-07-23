@@ -9839,7 +9839,9 @@
             "cash_session_blocked": "Abra o únase a una sesión de caja para confirmar este pago.",
             "invalid_amount": "Introduzca un importe válido mayor que cero.",
             "invalid_allocations": "Corrija la asignación antes de confirmar.",
-            "payment_reference_required": "Introduzca la referencia de transferencia antes de confirmar."
+            "payment_reference_required": "Introduzca la referencia de transferencia antes de confirmar.",
+            "allocation_mode_required": "Seleccione cómo tratar el importe del cobro antes de continuar.",
+            "empty_allocations": "Seleccione al menos una cuota e introduzca un importe mayor que cero."
           },
           "installmentStateChanged": "El estado de una cuota cambió y ya no es cobrable. Se actualizó la asignación — revise el importe y confirme de nuevo.",
           "smartSummary": {
@@ -9876,7 +9878,18 @@
               "allocated": "Importe asignado"
             }
           },
-          "backendPreviewTitle": "Vista previa del servidor"
+          "backendPreviewTitle": "Vista previa del servidor",
+          "dispositionMode": {
+            "title": "Cómo tratar el importe del cobro",
+            "allocate": "Asignar el importe a las cuotas",
+            "allocateHint": "Vincula el importe a las cuotas que seleccione.",
+            "leaveAsCredit": "Conservar el importe como crédito familiar",
+            "leaveAsCreditHint": "Mantiene el importe en la cuenta familiar para usarlo después según las reglas del sistema.",
+            "leaveAsCreditSummary": "El importe permanecerá como crédito familiar y no se asignará a cuotas ahora.",
+            "required": "Seleccione cómo tratar el importe del cobro antes de continuar.",
+            "emptyAllocations": "Seleccione al menos una cuota e introduzca un importe mayor que cero.",
+            "noEligibleInstallments": "Actualmente no hay cuotas cobrables en esta cuenta."
+          }
         },
         "columns": {
           "payer": "Pagador",

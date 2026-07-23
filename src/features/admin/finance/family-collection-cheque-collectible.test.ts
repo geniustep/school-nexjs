@@ -60,6 +60,8 @@ describe('family collection cheque UX', () => {
       cashSessionBlocked: false,
       allocationInputs: { 3339: '100' },
       installments,
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       isCheque: false,
     });
     expect(state.canConfirm).toBe(true);
@@ -89,6 +91,8 @@ describe('family collection cheque UX', () => {
       cashSessionBlocked: false,
       allocationInputs: { 3339: '100' },
       installments,
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       reference: '',
     });
     expect(blocked.canConfirm).toBe(false);
@@ -103,6 +107,8 @@ describe('family collection cheque UX', () => {
       cashSessionBlocked: false,
       allocationInputs: { 3339: '100' },
       installments,
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       reference: 'TRX-99',
     });
     expect(ok.canConfirm).toBe(true);
@@ -146,6 +152,8 @@ describe('family collection cheque UX', () => {
       cashSessionBlocked: false,
       allocationInputs: { 3339: '100' },
       installments,
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       isCheque: true,
       chequeNumber: '',
       chequeBank: 'Bank',

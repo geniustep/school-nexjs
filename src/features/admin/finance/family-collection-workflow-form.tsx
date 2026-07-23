@@ -4,12 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashSessionCollectionAccess } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import {
+  buildFamilyCollectionDraftAllocationFields,
   familyCollectionConfirmBlockReasonKey,
-  parseFamilyAllocationInputs,
   readInstallmentNotCollectibleId,
   resolveFamilyCollectionConfirmState,
   sanitizeFamilyAllocationInputs,
   sumFamilyAllocationAmounts,
+  type FamilyCollectionConfirmBlockReason,
 } from '@/features/admin/finance/family-collection-allocation-utils';
 import {
   buildChequeRegistrationPayload,
@@ -40,7 +41,12 @@ import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cas
 import { isChequePayment } from '@/lib/utils/cheque';
 import { normalizeFamilyCollectionConfirmResponse, normalizeFamilyCollectionCreateResponse, normalizeFamilyCollectionDetail } from '@/lib/utils/normalize-family-finance';
 import { confirmFamilyCollection, getFamilyCollectionById, getFamilyFinanceSummary, submitFamilyCollection, updateFamilyCollectionDraft } from '@/features/admin/student-finance/api/family-finance-api';
-import type { FamilyCollectionCreateResponse, FamilyCollectionDetail, FamilyCollectionPreviewResponse } from '@/types/family-finance';
+import type {
+  FamilyCollectionCreateResponse,
+  FamilyCollectionDetail,
+  FamilyCollectionDispositionMode,
+  FamilyCollectionPreviewResponse,
+} from '@/types/family-finance';
 import type { ApiErrorBody } from '@/types/api';
 import type { CashSession } from '@/types/finance-cash-desk';
 
@@ -118,6 +124,10 @@ export function FamilyCollectionWorkflowForm({
   const [amount, setAmount] = useState('');
   const [allocationInputs, setAllocationInputs] = useState<Record<number, string>>({});
   const [allocationSource, setAllocationSource] = useState<'auto' | 'manual'>('auto');
+  const [dispositionMode, setDispositionMode] = useState<FamilyCollectionDispositionMode | null>(
+    null,
+  );
+  const [dispositionError, setDispositionError] = useState<string | null>(null);
   const [journalId, setJournalId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [reference, setReference] = useState('');
@@ -167,6 +177,17 @@ export function FamilyCollectionWorkflowForm({
     chequeNotes,
     chequeBranch,
   };
+
+  useEffect(() => {
+    setDispositionMode(null);
+    setDispositionError(null);
+    setAllocationInputs({});
+    setAllocationSource('auto');
+    setDraftId(null);
+    setBackendPreview(null);
+    setSubmitError(null);
+    idempotencyKeyRef.current = null;
+  }, [familyId]);
 
   useEffect(() => {
     if (!isCheque) {
@@ -266,6 +287,8 @@ export function FamilyCollectionWorkflowForm({
         cashSessionBlocked,
         allocationInputs,
         installments: openInstallments,
+        dispositionMode,
+        hasCollectibleInstallments: collectibleInstallments.length > 0,
         reference,
         isCheque,
         chequeNumber,
@@ -284,6 +307,8 @@ export function FamilyCollectionWorkflowForm({
       cashSessionBlocked,
       allocationInputs,
       openInstallments,
+      dispositionMode,
+      collectibleInstallments.length,
       reference,
       isCheque,
       chequeNumber,
@@ -296,6 +321,7 @@ export function FamilyCollectionWorkflowForm({
   );
 
   const canAutoSuggest =
+    dispositionMode === 'allocate_to_installments' &&
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
     collectibleInstallments.length > 0 &&
@@ -369,10 +395,15 @@ export function FamilyCollectionWorkflowForm({
   }
 
   function buildDraftPayload() {
-    const sanitizedInputs = sanitizeFamilyAllocationInputs({
-      values: allocationInputs,
+    const allocationResult = buildFamilyCollectionDraftAllocationFields({
+      dispositionMode,
+      allocationInputs,
       installments: openInstallments,
     });
+    if (!allocationResult.ok) {
+      return { ok: false as const, reason: allocationResult.reason };
+    }
+
     const payload: Parameters<typeof submitFamilyCollection>[0] = {
       family_id: familyId,
       amount: parsedAmount,
@@ -380,8 +411,11 @@ export function FamilyCollectionWorkflowForm({
       payment_method: paymentMethod,
       collection_date: collectionDate,
       academic_year_id: Number(academicYearId),
-      allocations: parseFamilyAllocationInputs(sanitizedInputs),
+      allocations: allocationResult.fields.allocations,
     };
+    if (allocationResult.fields.allocation_mode) {
+      payload.allocation_mode = allocationResult.fields.allocation_mode;
+    }
     const trimmedPayer = actualPayerName.trim();
     if (trimmedPayer) {
       payload.actual_payer_name = trimmedPayer;
@@ -409,7 +443,13 @@ export function FamilyCollectionWorkflowForm({
     } else if (reference.trim()) {
       payload.reference = reference.trim();
     }
-    return payload;
+    return { ok: true as const, payload };
+  }
+
+  function applyDispositionValidationError(reason: FamilyCollectionConfirmBlockReason) {
+    const message = t(familyCollectionConfirmBlockReasonKey(reason));
+    setDispositionError(message);
+    setSubmitError(message);
   }
 
   function handleInstallmentNotCollectible(error: ApiErrorBody) {
@@ -426,21 +466,36 @@ export function FamilyCollectionWorkflowForm({
     }
   }
 
-  async function persistDraft(): Promise<FamilyCollectionDetail | null> {
-    const payload = buildDraftPayload();
+  async function persistDraft(): Promise<
+    | { ok: true; detail: FamilyCollectionDetail }
+    | { ok: false; message?: string; code?: string }
+  > {
+    const built = buildDraftPayload();
+    if (!built.ok) {
+      applyDispositionValidationError(built.reason);
+      return { ok: false, code: built.reason };
+    }
+    const payload = built.payload;
     if (draftId != null) {
       const updated = await updateFamilyCollectionDraft(draftId, payload, buildQuery());
       if (!updated.success) {
         if (updated.error.code === 'installment_not_collectible') {
           handleInstallmentNotCollectible(updated.error);
         }
-        return null;
+        return {
+          ok: false,
+          code: updated.error.code,
+          message: updated.error.message?.trim() || undefined,
+        };
       }
       const normalized = normalizeFamilyCollectionDetail(updated.data);
-      if (!normalized) return null;
+      if (!normalized) return { ok: false };
       const readBack = await getFamilyCollectionById(normalized.id, buildQuery());
-      if (!readBack.success) return normalized;
-      return normalizeFamilyCollectionDetail(readBack.data) ?? normalized;
+      if (!readBack.success) return { ok: true, detail: normalized };
+      return {
+        ok: true,
+        detail: normalizeFamilyCollectionDetail(readBack.data) ?? normalized,
+      };
     }
     const created = await submitFamilyCollection(
       { ...payload, idempotency_key: ensureIdempotencyKey() },
@@ -450,16 +505,22 @@ export function FamilyCollectionWorkflowForm({
       if (created.error.code === 'installment_not_collectible') {
         handleInstallmentNotCollectible(created.error);
       }
-      return null;
+      return {
+        ok: false,
+        code: created.error.code,
+        message: created.error.message?.trim() || undefined,
+      };
     }
     const normalized = normalizeFamilyCollectionCreateResponse(created.data);
-    if (!normalized) return null;
+    if (!normalized) return { ok: false };
     const id = normalized.id ?? normalized.collection_id ?? normalized.collections[0]?.id ?? null;
-    if (id == null) return null;
+    if (id == null) return { ok: false };
     setDraftId(id);
     const readBack = await getFamilyCollectionById(id, buildQuery());
-    if (!readBack.success) return null;
-    return normalizeFamilyCollectionDetail(readBack.data);
+    if (!readBack.success) return { ok: false };
+    const detail = normalizeFamilyCollectionDetail(readBack.data);
+    if (!detail) return { ok: false };
+    return { ok: true, detail };
   }
 
   async function handleSaveDraft(event?: React.FormEvent) {
@@ -469,12 +530,29 @@ export function FamilyCollectionWorkflowForm({
       setSubmitError(t('admin.finance.billingAccounts.familyCollection.missingFields'));
       return false;
     }
+    const allocationResult = buildFamilyCollectionDraftAllocationFields({
+      dispositionMode,
+      allocationInputs,
+      installments: openInstallments,
+    });
+    if (!allocationResult.ok) {
+      applyDispositionValidationError(allocationResult.reason);
+      return false;
+    }
     setSubmitting(true);
     setSubmitError(null);
+    setDispositionError(null);
     const saved = await persistDraft();
     setSubmitting(false);
-    if (!saved) {
-      setSubmitError(t('admin.finance.billingAccounts.familyCollection.submitFailed'));
+    if (!saved.ok) {
+      if (saved.code === 'installment_not_collectible') return false;
+      setSubmitError(
+        resolveCollectionErrorMessage(
+          saved.code,
+          saved.message || t('admin.finance.billingAccounts.familyCollection.submitFailed'),
+          t,
+        ),
+      );
       return false;
     }
     return true;
@@ -484,18 +562,25 @@ export function FamilyCollectionWorkflowForm({
     if (confirming || previewing || !confirmState.canConfirm) return;
     setConfirming(true);
     setSubmitError(null);
+    setDispositionError(null);
 
-    const sanitizedInputs = sanitizeFamilyAllocationInputs({
-      values: allocationInputs,
+    const allocationResult = buildFamilyCollectionDraftAllocationFields({
+      dispositionMode,
+      allocationInputs,
       installments: openInstallments,
     });
-    const allocationLines = parseFamilyAllocationInputs(sanitizedInputs);
+    if (!allocationResult.ok) {
+      setConfirming(false);
+      applyDispositionValidationError(allocationResult.reason);
+      return;
+    }
 
     setPreviewing(true);
     const previewResult = await fetchFamilyCollectionBackendPreview({
       familyId,
       amount: parsedAmount,
-      allocations: allocationLines,
+      allocations: allocationResult.fields.allocations,
+      allocationMode: allocationResult.fields.allocation_mode,
       query: buildQuery(),
     });
     setPreviewing(false);
@@ -516,12 +601,19 @@ export function FamilyCollectionWorkflowForm({
     let collectionId = draftId;
     if (collectionId == null) {
       const saved = await persistDraft();
-      if (!saved) {
+      if (!saved.ok) {
         setConfirming(false);
-        setSubmitError(t('admin.finance.billingAccounts.familyCollection.submitFailed'));
+        if (saved.code === 'installment_not_collectible') return;
+        setSubmitError(
+          resolveCollectionErrorMessage(
+            saved.code,
+            saved.message || t('admin.finance.billingAccounts.familyCollection.submitFailed'),
+            t,
+          ),
+        );
         return;
       }
-      collectionId = saved.id;
+      collectionId = saved.detail.id;
     }
 
     const confirmed = await confirmFamilyCollection(collectionId, buildQuery());
@@ -730,6 +822,89 @@ export function FamilyCollectionWorkflowForm({
           </div>
         ) : null}
 
+        <section
+          className="collection-form-section finance-family-collection-allocation-options"
+          aria-labelledby="family-collection-disposition-title"
+        >
+          <h4 id="family-collection-disposition-title" className="collection-form-section__title">
+            {t('admin.finance.billingAccounts.familyCollection.dispositionMode.title')}
+          </h4>
+          <div
+            className="finance-family-payment-choice__options"
+            role="radiogroup"
+            aria-labelledby="family-collection-disposition-title"
+          >
+            <label
+              className={`finance-family-payment-choice__option${
+                collectibleInstallments.length === 0 ? ' is-disabled' : ''
+              }`}
+            >
+              <input
+                type="radio"
+                name="family-collection-disposition"
+                value="allocate_to_installments"
+                checked={dispositionMode === 'allocate_to_installments'}
+                disabled={collectibleInstallments.length === 0}
+                onChange={() => {
+                  setDispositionMode('allocate_to_installments');
+                  setDispositionError(null);
+                  setBackendPreview(null);
+                }}
+              />
+              <span className="finance-family-payment-choice__option-body">
+                <span className="finance-family-payment-choice__option-title">
+                  {t('admin.finance.billingAccounts.familyCollection.dispositionMode.allocate')}
+                </span>
+                <span className="finance-family-payment-choice__option-desc muted tiny">
+                  {t('admin.finance.billingAccounts.familyCollection.dispositionMode.allocateHint')}
+                </span>
+              </span>
+            </label>
+            <label className="finance-family-payment-choice__option">
+              <input
+                type="radio"
+                name="family-collection-disposition"
+                value="leave_as_family_credit"
+                checked={dispositionMode === 'leave_as_family_credit'}
+                onChange={() => {
+                  setDispositionMode('leave_as_family_credit');
+                  setDispositionError(null);
+                  setBackendPreview(null);
+                }}
+              />
+              <span className="finance-family-payment-choice__option-body">
+                <span className="finance-family-payment-choice__option-title">
+                  {t('admin.finance.billingAccounts.familyCollection.dispositionMode.leaveAsCredit')}
+                </span>
+                <span className="finance-family-payment-choice__option-desc muted tiny">
+                  {t(
+                    'admin.finance.billingAccounts.familyCollection.dispositionMode.leaveAsCreditHint',
+                  )}
+                </span>
+              </span>
+            </label>
+          </div>
+          {collectibleInstallments.length === 0 && !contextState.loading ? (
+            <p className="finance-family-collection-allocation-options__hint tiny muted" role="status">
+              {t(
+                'admin.finance.billingAccounts.familyCollection.dispositionMode.noEligibleInstallments',
+              )}
+            </p>
+          ) : null}
+          {dispositionMode === 'leave_as_family_credit' ? (
+            <p className="finance-family-collection-allocation-options__hint tiny" role="status">
+              {t(
+                'admin.finance.billingAccounts.familyCollection.dispositionMode.leaveAsCreditSummary',
+              )}
+            </p>
+          ) : null}
+          {dispositionError ? (
+            <p className="form-error" role="alert">
+              {dispositionError}
+            </p>
+          ) : null}
+        </section>
+
         {canAutoSuggest && context ? (
           <FamilyCollectionSmartSummary
             installments={collectibleInstallments}
@@ -795,7 +970,7 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="button"
               className="btn btn--secondary"
-              disabled={!canAutoSuggest}
+              disabled={!canAutoSuggest || dispositionMode !== 'allocate_to_installments'}
               onClick={() => setManualEditorOpen(true)}
             >
               {t('admin.finance.billingAccounts.familyCollection.editAllocationAction')}

@@ -228,6 +228,15 @@
   line-height: 1.4;
 }
 
+.finance-family-payment-choice__option.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.finance-family-payment-choice__option.is-disabled input {
+  cursor: not-allowed;
+}
+
 .btn.btn--danger {
   background: var(--color-danger, #b42318);
   border-color: var(--color-danger, #b42318);

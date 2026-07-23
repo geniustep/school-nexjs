@@ -25,6 +25,9 @@ const UX_I18N_KEYS = [
   'confirmBlockReason.invalid_allocations',
   'confirmBlockReason.missing_fields',
   'confirmBlockReason.payment_reference_required',
+  'dispositionMode.title',
+  'dispositionMode.required',
+  'dispositionMode.emptyAllocations',
 ] as const;
 
 const workflowSource = readFileSync(
@@ -87,6 +90,8 @@ describe('family collection confirm button state', () => {
       collectionDate: '2026-07-09',
       cashSessionBlocked: false,
       allocationInputs: { 1: '500' },
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       installments: [
         {
           installment_id: 1,
@@ -108,6 +113,8 @@ describe('family collection confirm button state', () => {
       collectionDate: '2026-07-09',
       cashSessionBlocked: false,
       allocationInputs: { 1: '500' },
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       installments: [
         {
           installment_id: 1,
@@ -128,6 +135,8 @@ describe('family collection confirm button state', () => {
       collectionDate: '2026-07-09',
       cashSessionBlocked: false,
       allocationInputs: { 1: '6000' },
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
       installments: [
         {
           installment_id: 1,

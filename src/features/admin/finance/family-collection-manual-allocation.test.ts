@@ -105,7 +105,7 @@ describe('manual family allocations', () => {
 
   it('uses provisional allocation inputs in direct confirm flow', () => {
     expect(workflowSource).not.toContain('autoAllocateOldest');
-    expect(workflowSource).toContain('parseFamilyAllocationInputs');
+    expect(workflowSource).toContain('buildFamilyCollectionDraftAllocationFields');
     expect(workflowSource).toContain('buildSuggestedFamilyAllocations');
   });
 

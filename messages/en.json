@@ -9839,7 +9839,9 @@
             "cash_session_blocked": "Open or join a cash session to confirm this payment.",
             "invalid_amount": "Enter a valid amount greater than zero.",
             "invalid_allocations": "Fix the allocation before confirming.",
-            "payment_reference_required": "Enter the bank transfer reference before confirming."
+            "payment_reference_required": "Enter the bank transfer reference before confirming.",
+            "allocation_mode_required": "Select how to handle the collection amount before continuing.",
+            "empty_allocations": "Select at least one installment and enter an amount greater than zero."
           },
           "installmentStateChanged": "An installment is no longer collectible. The allocation was refreshed — review the amount and confirm again.",
           "smartSummary": {
@@ -9876,7 +9878,18 @@
               "allocated": "Allocated amount"
             }
           },
-          "backendPreviewTitle": "Backend allocation preview"
+          "backendPreviewTitle": "Backend allocation preview",
+          "dispositionMode": {
+            "title": "How to handle the collection amount",
+            "allocate": "Allocate amount to installments",
+            "allocateHint": "Links the amount to the installments you select.",
+            "leaveAsCredit": "Keep amount as family credit",
+            "leaveAsCreditHint": "Keeps the amount on the family account for later use per system rules.",
+            "leaveAsCreditSummary": "The amount will remain as family credit and will not be allocated to installments now.",
+            "required": "Select how to handle the collection amount before continuing.",
+            "emptyAllocations": "Select at least one installment and enter an amount greater than zero.",
+            "noEligibleInstallments": "There are currently no collectible installments on this account."
+          }
         },
         "columns": {
           "payer": "Payer",

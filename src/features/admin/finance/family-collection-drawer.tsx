@@ -80,6 +80,7 @@ export function FamilyCollectionDrawer({
       onClose={onClose}
     >
       <FamilyCollectionWorkflowForm
+        key={familyId}
         familyId={familyId}
         accountName={accountName}
         suggestedAmount={suggestedAmount}

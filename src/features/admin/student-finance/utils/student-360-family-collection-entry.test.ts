@@ -32,8 +32,8 @@ describe('Student 360 family collection entry wiring', () => {
   it('shows student360 family context while keeping family-wide manual allocation', () => {
     expect(formSource).toContain('entrySource === \'student360\'');
     expect(formSource).toContain('finance-family-collection-student360-context');
-    expect(formSource).toContain('manualAllocationHint');
-    expect(formSource).toContain('FamilyCollectionAllocationSection');
+    expect(formSource).toContain('FamilyCollectionManualEditor');
+    expect(formSource).toContain('FamilyCollectionSmartSummary');
   });
 
   it('waits for family summary fetch before resolving payment entry route', () => {
@@ -41,8 +41,9 @@ describe('Student 360 family collection entry wiring', () => {
     expect(entrySource).toContain('if (!familyFetchStartedRef.current) return');
   });
 
-  it('keeps payload explicit with installment allocations only', () => {
-    expect(formSource).toContain('parseFamilyAllocationInputs');
-    expect(formSource).not.toContain('allocation_mode');
+  it('keeps payload explicit with installment allocations or leave_as_family_credit', () => {
+    expect(formSource).toContain('buildFamilyCollectionDraftAllocationFields');
+    expect(formSource).toContain('allocation_mode');
+    expect(formSource).toContain('leave_as_family_credit');
   });
 });

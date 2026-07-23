@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fetchFamilyCollectionBackendPreview } from '@/features/admin/finance/family-collection-backend-preview';
 import { parseFamilyAllocationInputs } from '@/features/admin/finance/family-collection-allocation-utils';
+import { previewFamilyCollectionAllocation } from '@/features/admin/student-finance/api/family-finance-api';
 
 vi.mock('@/features/admin/student-finance/api/family-finance-api', () => ({
   previewFamilyCollectionAllocation: vi.fn(async () => ({
@@ -55,5 +56,31 @@ describe('family collection allocation mapping + backend preview', () => {
     expect(result.preview.allocations).toHaveLength(2);
     expect(result.preview.allocations[0]?.student_name).toBe('Ayoub');
     expect(result.preview.allocations[1]?.student_id).toBe(11);
+    expect(previewFamilyCollectionAllocation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allocation_mode: 'manual',
+        allocations: [
+          { installment_id: 1, amount: 2000 },
+          { installment_id: 3, amount: 1000 },
+        ],
+      }),
+      undefined,
+    );
+  });
+
+  it('passes leave_as_family_credit preview without inventing positive allocations', async () => {
+    await fetchFamilyCollectionBackendPreview({
+      familyId: 55,
+      amount: 3000,
+      allocations: [{ installment_id: 1, amount: 2000 }],
+      allocationMode: 'leave_as_family_credit',
+    });
+    expect(previewFamilyCollectionAllocation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allocation_mode: 'leave_as_family_credit',
+        allocations: [],
+      }),
+      undefined,
+    );
   });
 });

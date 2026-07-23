@@ -158,6 +158,8 @@ describe('family collection smart default direct confirm UX', () => {
       cashSessionBlocked: false,
       allocationInputs: buildSuggestedFamilyAllocations({ amount: 3000, installments }),
       installments,
+      dispositionMode: 'allocate_to_installments',
+      hasCollectibleInstallments: true,
     });
     expect(state.canConfirm).toBe(true);
   });

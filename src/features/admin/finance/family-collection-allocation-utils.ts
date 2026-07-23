@@ -1,5 +1,7 @@
 import type {
   FamilyCollectionAllocationInput,
+  FamilyCollectionDispositionMode,
+  FamilyCollectionDraftAllocationMode,
   FamilyCollectionPreviewResponse,
   FamilyOpenInstallment,
 } from '@/types/family-finance';
@@ -16,9 +18,72 @@ export type FamilyCollectionConfirmBlockReason =
   | 'cash_session_blocked'
   | 'invalid_amount'
   | 'invalid_allocations'
+  | 'empty_allocations'
+  | 'allocation_mode_required'
   | 'payment_reference_required'
   | 'complete_cheque_fields'
   | 'fix_cheque_dates';
+
+export type FamilyCollectionDraftAllocationFields = {
+  allocations: FamilyCollectionAllocationInput[];
+  allocation_mode?: FamilyCollectionDraftAllocationMode;
+};
+
+/**
+ * Infer disposition from a saved draft only — never invent leave_as_family_credit
+ * for legacy ambiguous drafts (empty allocations without mode).
+ */
+export function resolveFamilyCollectionDispositionFromDraft(draft: {
+  allocations?: Array<{ amount?: number | null } | null> | null;
+  allocation_mode?: string | null;
+}): FamilyCollectionDispositionMode | null {
+  if (draft.allocation_mode === 'leave_as_family_credit') {
+    return 'leave_as_family_credit';
+  }
+  const hasPositive = (draft.allocations ?? []).some((row) => {
+    const amount = row?.amount;
+    return typeof amount === 'number' && Number.isFinite(amount) && amount > 0;
+  });
+  if (hasPositive) return 'allocate_to_installments';
+  return null;
+}
+
+/**
+ * Build the allocation contract fields for family collection draft create/update.
+ * Rejects ambiguous payloads: empty allocations without leave_as_family_credit.
+ */
+export function buildFamilyCollectionDraftAllocationFields(input: {
+  dispositionMode: FamilyCollectionDispositionMode | null;
+  allocationInputs: Record<number, string>;
+  installments: FamilyOpenInstallment[];
+}):
+  | { ok: true; fields: FamilyCollectionDraftAllocationFields }
+  | { ok: false; reason: FamilyCollectionConfirmBlockReason } {
+  if (input.dispositionMode == null) {
+    return { ok: false, reason: 'allocation_mode_required' };
+  }
+
+  if (input.dispositionMode === 'leave_as_family_credit') {
+    return {
+      ok: true,
+      fields: {
+        allocation_mode: 'leave_as_family_credit',
+        allocations: [],
+      },
+    };
+  }
+
+  const sanitized = sanitizeFamilyAllocationInputs({
+    values: input.allocationInputs,
+    installments: input.installments,
+  });
+  const allocations = parseFamilyAllocationInputs(sanitized);
+  if (allocations.length === 0) {
+    return { ok: false, reason: 'empty_allocations' };
+  }
+
+  return { ok: true, fields: { allocations } };
+}
 
 export interface FamilyStudentAllocationSummary {
   studentId: number;
@@ -380,6 +445,8 @@ export function validateFamilyAllocations(input: {
   amount: number;
   values: Record<number, string>;
   installments: FamilyOpenInstallment[];
+  /** When true, at least one positive allocation line is required. */
+  requirePositiveAllocation?: boolean;
 }): string | null {
   if (!Number.isFinite(input.amount) || input.amount <= 0) return 'invalid_amount';
 
@@ -389,6 +456,10 @@ export function validateFamilyAllocations(input: {
   }
 
   const lines = parseFamilyAllocationInputs(input.values);
+  if (input.requirePositiveAllocation && lines.length === 0) {
+    return 'empty_allocations';
+  }
+
   const seen = new Set<number>();
   for (const line of lines) {
     if (seen.has(line.installment_id)) return 'duplicate_allocation_target';
@@ -420,6 +491,8 @@ export function resolveFamilyCollectionConfirmState(input: {
   cashSessionBlocked: boolean;
   allocationInputs: Record<number, string>;
   installments: FamilyOpenInstallment[];
+  dispositionMode?: FamilyCollectionDispositionMode | null;
+  hasCollectibleInstallments?: boolean;
   reference?: string;
   isCheque?: boolean;
   chequeNumber?: string;
@@ -461,11 +534,29 @@ export function resolveFamilyCollectionConfirmState(input: {
       }
     }
   }
+
+  const dispositionMode = input.dispositionMode ?? null;
+  if (dispositionMode == null) {
+    return { canConfirm: false, blockReason: 'allocation_mode_required' };
+  }
+
+  if (dispositionMode === 'leave_as_family_credit') {
+    return { canConfirm: true, blockReason: null };
+  }
+
+  if (input.hasCollectibleInstallments === false) {
+    return { canConfirm: false, blockReason: 'empty_allocations' };
+  }
+
   const validation = validateFamilyAllocations({
     amount: input.parsedAmount,
     values: input.allocationInputs,
     installments: input.installments,
+    requirePositiveAllocation: true,
   });
+  if (validation === 'empty_allocations') {
+    return { canConfirm: false, blockReason: 'empty_allocations' };
+  }
   if (validation) {
     return { canConfirm: false, blockReason: 'invalid_allocations' };
   }
@@ -483,6 +574,12 @@ export function familyCollectionConfirmBlockReasonKey(
   }
   if (reason === 'payment_reference_required') {
     return 'admin.finance.billingAccounts.familyCollection.confirmBlockReason.payment_reference_required';
+  }
+  if (reason === 'allocation_mode_required') {
+    return 'admin.finance.billingAccounts.familyCollection.dispositionMode.required';
+  }
+  if (reason === 'empty_allocations') {
+    return 'admin.finance.billingAccounts.familyCollection.dispositionMode.emptyAllocations';
   }
   return `admin.finance.billingAccounts.familyCollection.confirmBlockReason.${reason}`;
 }

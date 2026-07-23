@@ -14,17 +14,19 @@ export async function fetchFamilyCollectionBackendPreview(input: {
   familyId: number;
   amount: number;
   allocations: FamilyCollectionAllocationInput[];
+  allocationMode?: 'leave_as_family_credit' | 'manual';
   query?: ListParams;
 }): Promise<
   | { ok: true; preview: FamilyCollectionPreviewResponse }
   | { ok: false; message?: string; errors?: string[] }
 > {
+  const allocationMode = input.allocationMode ?? 'manual';
   const response = await previewFamilyCollectionAllocation(
     {
       family_id: input.familyId,
       amount: input.amount,
-      allocation_mode: 'manual',
-      allocations: input.allocations,
+      allocation_mode: allocationMode,
+      allocations: allocationMode === 'leave_as_family_credit' ? [] : input.allocations,
     },
     input.query,
   );

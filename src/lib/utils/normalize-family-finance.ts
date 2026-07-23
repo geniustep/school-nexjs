@@ -394,6 +394,10 @@ export function normalizeFamilyCollectionDetail(raw: unknown): FamilyCollectionD
           .map(normalizeAllocation)
           .filter((item): item is FamilyCollectionAllocation => item != null)
       : [],
+    allocation_mode:
+      readString(row.allocation_mode) === 'leave_as_family_credit'
+        ? 'leave_as_family_credit'
+        : readString(row.allocation_mode),
     receipt_id: readNumber(row.receipt_id),
     warnings: Array.isArray(row.warnings)
       ? row.warnings.filter((item): item is string => typeof item === 'string')

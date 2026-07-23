@@ -28,6 +28,15 @@ describe('family collection contract alignment', () => {
     expect(workflowSource).toContain('idempotencyKeyRef');
   });
 
+  it('requires explicit allocation disposition on draft payload', () => {
+    expect(workflowSource).toContain('buildFamilyCollectionDraftAllocationFields');
+    expect(workflowSource).toContain('allocation_mode');
+    expect(workflowSource).toContain('leave_as_family_credit');
+    expect(workflowSource).not.toMatch(
+      /allocations:\s*parseFamilyAllocationInputs\(sanitizedInputs\)/,
+    );
+  });
+
   it('keeps the same idempotency key across retries for one create attempt', () => {
     expect(workflowSource).toMatch(/if \(!idempotencyKeyRef\.current\)/);
     expect(workflowSource).toContain('return idempotencyKeyRef.current');

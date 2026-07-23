@@ -28,7 +28,7 @@ const multiMethodBankJournal: PaymentJournal = {
   name: 'Bank',
   code: 'BNK1',
   type: 'bank',
-  allowed_payment_methods: [{ code: 'bank_transfer' }, { code: 'cheque' }],
+  allowed_payment_methods: ['bank_transfer', 'cheque'],
 };
 
 const singleCashJournal: PaymentJournal = {
@@ -36,7 +36,7 @@ const singleCashJournal: PaymentJournal = {
   name: 'Cash',
   code: 'CASH',
   type: 'cash',
-  allowed_payment_methods: [{ code: 'cash' }],
+  allowed_payment_methods: ['cash'],
 };
 
 function renderCore(

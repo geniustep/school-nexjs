@@ -139,6 +139,17 @@ export interface FamilyCollectionPreviewResponse {
   errors: string[];
 }
 
+/** Backend draft contract value when the full amount stays as family credit. */
+export type FamilyCollectionDraftAllocationMode = 'leave_as_family_credit';
+
+/**
+ * Explicit UI decision for how a family collection amount is handled.
+ * Only `leave_as_family_credit` is sent as `allocation_mode` on the draft payload.
+ */
+export type FamilyCollectionDispositionMode =
+  | 'allocate_to_installments'
+  | 'leave_as_family_credit';
+
 export interface FamilyCollectionDraftRequest {
   family_id: number;
   academic_year_id: number;
@@ -147,6 +158,8 @@ export interface FamilyCollectionDraftRequest {
   payment_method: string;
   collection_date?: string | null;
   allocations: FamilyCollectionAllocationInput[];
+  /** Required by Odoo when allocations are empty; never invent this client-side. */
+  allocation_mode?: FamilyCollectionDraftAllocationMode;
   idempotency_key?: string;
   notes?: string | null;
   actual_payer_name?: string | null;
@@ -167,6 +180,7 @@ export interface FamilyCollectionDetail {
   academic_year_id?: number | null;
   collection_date?: string | null;
   allocations: FamilyCollectionAllocation[];
+  allocation_mode?: FamilyCollectionDraftAllocationMode | string | null;
   receipt_id?: number | null;
   warnings?: string[];
 }
