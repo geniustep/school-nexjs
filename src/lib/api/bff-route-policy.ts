@@ -269,8 +269,10 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   // Odoo 236 subject enablement update — strict body allowlist (no active_school_id).
   // School scope remains on the query string + session.
   if (/^\/admin\/subjects\/enablement\/update$/.test(pathname)) return false;
-  // Draft term PATCH — Odoo rejects unknown body keys (active_school_id).
-  // Tenant scope remains on query string + session cookies.
+  // Academic term writes — Odoo school.term create/update reject unknown body keys
+  // (active_school_id). Year/term ids + session/query carry tenant school scope.
+  // Exact path only: do not match /terms/initialize or other *terms* families.
+  if (/^\/admin\/academic-years\/[^/]+\/terms$/.test(pathname)) return false;
   if (/^\/admin\/academic-setup\/terms\/[^/]+$/.test(pathname)) return false;
   // Selective family conversion — body is idempotency_key + application_ids only.
   // School scope remains on the query string + session.

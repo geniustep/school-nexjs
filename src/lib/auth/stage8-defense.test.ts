@@ -116,10 +116,49 @@ describe('F-NX-06 active school body binding', () => {
     expect(shouldInjectActiveSchoolIdInBody('/admin/subjects/enable')).toBe(true);
   });
 
-  it('does not inject active_school_id into academic-setup draft term PATCH body', () => {
+  it('does not inject active_school_id into academic term create or PATCH bodies', () => {
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-years/1/terms')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-years/12/terms/')).toBe(false);
     expect(shouldInjectActiveSchoolIdInBody('/admin/academic-setup/terms/31')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-setup/terms/20')).toBe(false);
+    // Nearby paths must keep injection — not over-broad *terms* matching.
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-years/1/terms/initialize')).toBe(
+      true,
+    );
     expect(shouldInjectActiveSchoolIdInBody('/admin/academic-setup/terms')).toBe(true);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/academic-context/options')).toBe(true);
     expect(shouldBindActiveSchoolInBody('/admin/academic-setup/terms/31', 'PATCH')).toBe(true);
+    expect(shouldBindActiveSchoolInBody('/admin/academic-years/1/terms', 'POST')).toBe(true);
+  });
+
+  it('preserves academic term create payload keys when injection is skipped', () => {
+    const path = '/admin/academic-years/1/terms';
+    expect(shouldInjectActiveSchoolIdInBody(path)).toBe(false);
+    const original = {
+      name: 'QA — Academic Term Create BFF Validation',
+      code: 'qa_tv_001',
+      date_start: '2027-10-05',
+      date_end: '2027-10-20',
+      state: 'draft',
+    };
+    const bound = bindActiveSchoolJsonBody(original, 3, {
+      injectActiveSchoolId: shouldInjectActiveSchoolIdInBody(path),
+    });
+    expect(bound.ok).toBe(true);
+    if (!bound.ok) return;
+    expect(bound.body).toEqual(original);
+    expect(bound.body).not.toHaveProperty('active_school_id');
+  });
+
+  it('still injects active_school_id for a school-scoped admin mutation that needs it', () => {
+    const path = '/admin/finance/fee-plans';
+    expect(shouldInjectActiveSchoolIdInBody(path)).toBe(true);
+    const bound = bindActiveSchoolJsonBody({ name: 'Plan' }, 3, {
+      injectActiveSchoolId: shouldInjectActiveSchoolIdInBody(path),
+    });
+    expect(bound.ok).toBe(true);
+    if (!bound.ok) return;
+    expect(bound.body).toMatchObject({ name: 'Plan', active_school_id: 3 });
   });
 });
 
