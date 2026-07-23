@@ -951,6 +951,12 @@ export interface FamilyBatchApplicationSummary {
   application_status?: AdmissionApplicationStatus | string | null;
   modern_allowed_actions?: AdmissionModernAllowedAction[] | null;
   primary_next_action?: AdmissionNextAction | string | null;
+  /**
+   * Internal eligibility metadata: true when the source payload included at least one
+   * modern-contract field (application_status / modern_allowed_actions / primary_next_action).
+   * Distinguishes field-absent from normalized empty defaults (e.g. modern_allowed_actions=[]).
+   */
+  modern_contract_present?: boolean | null;
   admission_workspace?:
     | 'follow_up'
     | 'awaiting_decision'

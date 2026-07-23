@@ -375,4 +375,48 @@ describe('FamilyBatchSelectiveConversionPanel', () => {
     expect(document.documentElement.getAttribute('dir')).toBe('rtl');
     expect(screen.getByTestId('family-batch-selective-conversion')).toBeTruthy();
   });
+
+  it('shows checkboxes for Family Batch summary apps ready without modern fields', async () => {
+    const user = userEvent.setup();
+    const summaryApps: FamilyBatchApplicationSummary[] = [
+      child({
+        id: 6413,
+        student_name: 'تلميذ اختبار مؤهل',
+        name: 'ADM/2026/06416',
+        registration_readiness: 'ready',
+        student_id: null,
+        modern_contract_present: false,
+        modern_allowed_actions: [],
+      }),
+      child({
+        id: 6414,
+        student_name: 'تلميذ اختبار غير مختار',
+        name: 'ADM/2026/06417',
+        registration_readiness: 'ready',
+        student_id: null,
+        modern_contract_present: false,
+        modern_allowed_actions: [],
+      }),
+    ];
+    renderPanel(summaryApps);
+
+    expect(screen.queryByTestId('family-batch-convert-no-eligible')).toBeNull();
+    expect(screen.getByTestId('family-batch-convert-check-6413')).toBeTruthy();
+    expect(screen.getByTestId('family-batch-convert-check-6414')).toBeTruthy();
+
+    await user.click(screen.getByTestId('family-batch-convert-select-all-eligible'));
+    expect(screen.getByTestId('family-batch-convert-selected-count').textContent).toContain('2');
+
+    await user.click(screen.getByTestId('family-batch-convert-clear-selection'));
+    expect(screen.getByTestId('family-batch-convert-selected-count').textContent).toContain('0');
+
+    await user.click(screen.getByTestId('family-batch-convert-check-6413'));
+    expect(screen.getByTestId('family-batch-convert-selected-count').textContent).toContain('1');
+    expect((screen.getByTestId('family-batch-convert-check-6413') as HTMLInputElement).checked).toBe(
+      true,
+    );
+    expect((screen.getByTestId('family-batch-convert-check-6414') as HTMLInputElement).checked).toBe(
+      false,
+    );
+  });
 });

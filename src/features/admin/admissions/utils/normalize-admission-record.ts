@@ -312,12 +312,31 @@ export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDeta
   };
 }
 
+/**
+ * Detect whether the source payload included modern-contract fields before display defaults.
+ * Empty `modern_allowed_actions: []` that exists on the source counts as present.
+ */
+export function detectFamilyBatchModernContractPresent(
+  raw: Record<string, unknown>,
+): boolean {
+  return (
+    Object.prototype.hasOwnProperty.call(raw, 'modern_allowed_actions') ||
+    Object.prototype.hasOwnProperty.call(raw, 'application_status') ||
+    Object.prototype.hasOwnProperty.call(raw, 'primary_next_action')
+  );
+}
+
 export function normalizeFamilyBatchApplication(
   app: FamilyBatchApplicationSummary,
 ): FamilyBatchApplicationSummary {
-  const normalized = normalizeAdmissionOutcomeFields(
-    app as FamilyBatchApplicationSummary & Record<string, unknown>,
-  );
+  const raw = app as FamilyBatchApplicationSummary & Record<string, unknown>;
+  // Preserve an already-computed flag across re-normalization so invented [] defaults
+  // do not flip absence into a false-positive modern contract.
+  const modern_contract_present =
+    typeof app.modern_contract_present === 'boolean'
+      ? app.modern_contract_present
+      : detectFamilyBatchModernContractPresent(raw);
+  const normalized = normalizeAdmissionOutcomeFields(raw);
   return {
     ...app,
     ...normalized,
@@ -339,6 +358,7 @@ export function normalizeFamilyBatchApplication(
     application_status: normalized.application_status,
     modern_allowed_actions: normalized.modern_allowed_actions,
     primary_next_action: normalized.primary_next_action,
+    modern_contract_present,
   };
 }
 

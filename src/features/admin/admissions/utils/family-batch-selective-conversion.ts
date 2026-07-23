@@ -1,12 +1,31 @@
 import type { FamilyBatchApplicationSummary } from '@/types/admission';
 import { isAdmissionLinkedRecord } from './admission-registration';
-import {
-  hasModernContract,
-  shouldShowConvertToStudentAction,
-} from './admission-modern-actions';
+import { shouldShowConvertToStudentAction } from './admission-modern-actions';
 import { resolveApplicationStatus } from './admission-modern-status';
 import { resolveRegistrationReadiness } from './admission-assessment-workflow-contract';
 import { sortConvertApplicationIds } from './family-batch-selective-conversion-idempotency';
+
+/**
+ * Whether modern-contract signals were present on the source (or meaningful on the record).
+ * Does not treat a normalized empty `modern_allowed_actions=[]` alone as presence.
+ */
+export function isFamilyBatchModernContractPresent(
+  app: FamilyBatchApplicationSummary,
+): boolean {
+  if (typeof app.modern_contract_present === 'boolean') {
+    return app.modern_contract_present;
+  }
+  if (typeof app.application_status === 'string' && app.application_status.trim()) {
+    return true;
+  }
+  if (app.primary_next_action != null && app.primary_next_action !== '') {
+    return true;
+  }
+  if (Array.isArray(app.modern_allowed_actions) && app.modern_allowed_actions.length > 0) {
+    return true;
+  }
+  return false;
+}
 
 export type FamilyBatchConvertEligibilityReason =
   | 'eligible'
@@ -83,13 +102,17 @@ export function resolveFamilyBatchConvertEligibility(
     return { selectable: true, reason: 'eligible' };
   }
 
-  // Without modern convert permission, only readiness=ready is treated as selectable.
-  if (!hasModernContract(app) && resolveRegistrationReadiness(app) === 'ready') {
+  // Legacy/readiness fallback only when modern-contract fields were absent from source.
+  // Explicit empty modern_allowed_actions (modern_contract_present=true) must not fall back.
+  if (
+    !isFamilyBatchModernContractPresent(app) &&
+    resolveRegistrationReadiness(app) === 'ready'
+  ) {
     return { selectable: true, reason: 'eligible' };
   }
 
   if (resolveRegistrationReadiness(app) === 'ready') {
-    // Ready but Backend did not allow convert_to_student → not selectable.
+    // Ready with modern contract present, but convert_to_student not allowed → not selectable.
     return {
       selectable: false,
       reason: 'ineligible',
