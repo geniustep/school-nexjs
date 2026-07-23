@@ -411,8 +411,8 @@
     },
     "subjectAmbiguous": "Several teaching offerings ({count}) exist for this subject",
     "terms": {
-      "title": "Terms",
-      "description": "Configure academic terms for the selected year",
+      "title": "Academic Terms",
+      "description": "View, add, and edit academic terms for the selected year, including confirmed term dates.",
       "code": "Code",
       "sequence": "Sequence",
       "dates": "Dates",
@@ -424,7 +424,7 @@
       "initializeYearReadonly": "Academic year",
       "datesRequiredExplicit": "Term dates must be set explicitly",
       "empty": "No terms yet",
-      "emptyManageHint": "Initialize terms for this academic year to continue",
+      "emptyManageHint": "Add a new term or initialize the standard terms for this academic year.",
       "emptyReadonlyHint": "No terms are configured for this academic year",
       "term1Name": "Term 1 name",
       "term1Start": "Term 1 start",
@@ -445,7 +445,14 @@
       "editCodeRequired": "Term code is required",
       "editDateStartRequired": "Start date is required",
       "editDateEndRequired": "End date is required",
-      "editNoChanges": "No changes to save"
+      "editNoChanges": "No changes to save",
+      "create": "Add term",
+      "createTitle": "Add academic term",
+      "createSubmit": "Create term",
+      "createSuccess": "Term created successfully",
+      "stateDraft": "Draft",
+      "stateActive": "Confirmed",
+      "stateDone": "Done"
     },
     "errors": {
       "academic_context_school_mismatch": "Academic context does not match the active school",
@@ -460,7 +467,7 @@
       "academic_year_not_found": "Academic year not found",
       "academic_year_school_mismatch": "Academic year does not belong to the active school",
       "term_not_found": "This term is no longer available",
-      "term_edit_not_allowed": "This term cannot be edited after it has been activated",
+      "term_edit_not_allowed": "This term cannot be edited in its current state",
       "invalid_term_field": "The request includes a field that cannot be edited",
       "invalid_term_name": "Term name is invalid",
       "invalid_term_code": "Term code is invalid",
@@ -3268,7 +3275,7 @@
         "teachers": "Teachers",
         "staff": "Staff",
         "assignments": "Teaching assignments",
-        "terms": "Terms"
+        "terms": "Academic Terms"
       },
       "cards": {
         "classes": "Levels & classes",

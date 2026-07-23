@@ -1,12 +1,14 @@
 'use client';
 
 /**
- * Academic Terms management — year-scoped list, initialize, and draft edit.
+ * Academic Terms management — year-scoped list, create, initialize, and edit.
+ * Confirmed (active) terms allow date edits without draft toggle.
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  createAcademicTerm,
   fetchAcademicYearTerms,
   initializeAcademicYearTerms,
   updateAcademicTerm,
@@ -14,11 +16,17 @@ import {
 import { formatTermOptionLabel } from '@/features/academic-context/utils/academic-context-display';
 import {
   buildTermUpdatePayload,
+  validateCreateTermForm,
   validateTermEditForm,
+  type CreateTermFormValues,
   type TermEditFormValues,
 } from '@/features/academic-context/utils/build-term-update-payload';
 import { resolveAcademicTermEditErrorMessage } from '@/features/academic-context/utils/term-edit-errors';
-import { canShowEditAcademicTerm } from '@/features/academic-context/utils/term-editability';
+import {
+  canEditAcademicTermDates,
+  canEditAcademicTermIdentity,
+  canShowEditAcademicTerm,
+} from '@/features/academic-context/utils/term-editability';
 import { useSession } from '@/features/auth/session-context';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
@@ -39,6 +47,25 @@ const EMPTY_EDIT_FORM: TermEditFormValues = {
   date_start: '',
   date_end: '',
 };
+
+const EMPTY_CREATE_FORM: CreateTermFormValues = {
+  name: '',
+  code: '',
+  date_start: '',
+  date_end: '',
+};
+
+function termStateLabel(
+  state: string | null | undefined,
+  translate: (key: string) => string,
+): string {
+  if (state === 'draft') return translate('academicContext.terms.stateDraft');
+  if (state === 'active') return translate('academicContext.terms.stateActive');
+  if (state === 'done' || state === 'completed') {
+    return translate('academicContext.terms.stateDone');
+  }
+  return state ?? '—';
+}
 
 export function AcademicTermsPage() {
   const t = useT();
@@ -62,6 +89,11 @@ export function AcademicTermsPage() {
   const [term2Start, setTerm2Start] = useState('');
   const [term2End, setTerm2End] = useState('');
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateTermFormValues>(EMPTY_CREATE_FORM);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const [editTerm, setEditTerm] = useState<AcademicTermOption | null>(null);
   const [editForm, setEditForm] = useState<TermEditFormValues>(EMPTY_EDIT_FORM);
@@ -103,6 +135,11 @@ export function AcademicTermsPage() {
     Boolean(yearId) &&
     (allowedActions.initialize !== false);
 
+  const canCreate = canManage && Boolean(yearId) && !loading;
+
+  const editIdentityAllowed = editTerm ? canEditAcademicTermIdentity(editTerm) : false;
+  const editDatesAllowed = editTerm ? canEditAcademicTermDates(editTerm) : false;
+
   function openEditDialog(term: AcademicTermOption) {
     setEditTerm(term);
     setEditForm({
@@ -121,10 +158,65 @@ export function AcademicTermsPage() {
     setEditError(null);
   }
 
+  function openCreateDialog() {
+    setCreateForm(EMPTY_CREATE_FORM);
+    setCreateError(null);
+    setCreateOpen(true);
+  }
+
+  function closeCreateDialog() {
+    if (createSubmitting) return;
+    setCreateOpen(false);
+    setCreateForm(EMPTY_CREATE_FORM);
+    setCreateError(null);
+  }
+
+  async function handleCreateSave() {
+    if (!yearId || createSubmitting) return;
+
+    const validation = validateCreateTermForm(createForm);
+    if (validation) {
+      const validationKey =
+        validation === 'name_required'
+          ? 'academicContext.terms.editNameRequired'
+          : validation === 'code_required'
+            ? 'academicContext.terms.editCodeRequired'
+            : validation === 'date_start_required'
+              ? 'academicContext.terms.editDateStartRequired'
+              : validation === 'date_end_required'
+                ? 'academicContext.terms.editDateEndRequired'
+                : 'academicContext.errors.term_dates_invalid';
+      setCreateError(t(validationKey));
+      return;
+    }
+
+    setCreateSubmitting(true);
+    setCreateError(null);
+    const res = await createAcademicTerm(yearId, {
+      name: createForm.name.trim(),
+      code: createForm.code.trim(),
+      date_start: createForm.date_start,
+      date_end: createForm.date_end,
+    });
+    setCreateSubmitting(false);
+
+    if (!res.success) {
+      setCreateError(resolveAcademicTermEditErrorMessage(res.error.code, t));
+      return;
+    }
+
+    toast.success(t('academicContext.terms.createSuccess'));
+    setCreateOpen(false);
+    setCreateForm(EMPTY_CREATE_FORM);
+    await loadTerms();
+  }
+
   async function handleEditSave() {
     if (!editTerm || editSubmitting) return;
 
-    const validation = validateTermEditForm(editForm);
+    const validation = validateTermEditForm(editForm, {
+      requireIdentity: editIdentityAllowed,
+    });
     if (validation) {
       const validationKey =
         validation === 'name_required'
@@ -140,7 +232,9 @@ export function AcademicTermsPage() {
       return;
     }
 
-    const payload = buildTermUpdatePayload(editTerm, editForm);
+    const payload = buildTermUpdatePayload(editTerm, editForm, {
+      includeIdentity: editIdentityAllowed,
+    });
     if (!payload) {
       setEditError(t('academicContext.terms.editNoChanges'));
       return;
@@ -186,11 +280,6 @@ export function AcademicTermsPage() {
         render: (row) => <span dir="ltr">{row.code ?? '—'}</span>,
       },
       {
-        key: 'sequence',
-        header: t('academicContext.terms.sequence'),
-        render: (row) => row.sequence ?? '—',
-      },
-      {
         key: 'dates',
         header: t('academicContext.terms.dates'),
         render: (row) => (
@@ -202,13 +291,7 @@ export function AcademicTermsPage() {
       {
         key: 'state',
         header: t('academicContext.terms.state'),
-        render: (row) => row.state ?? (row.active === false ? 'inactive' : 'active'),
-      },
-      {
-        key: 'active',
-        header: t('academicContext.terms.active'),
-        render: (row) =>
-          row.active === false ? t('common.no') : t('common.yes'),
+        render: (row) => termStateLabel(row.state, t),
       },
       {
         key: 'actions',
@@ -239,7 +322,6 @@ export function AcademicTermsPage() {
       return;
     }
     if (!(term1End < term2Start || term2End < term1Start)) {
-      // allow adjacent; block strict overlap
       if (term1Start <= term2End && term2Start <= term1End) {
         setConflictMessage(t('academicContext.errors.term_dates_overlap'));
         return;
@@ -318,10 +400,19 @@ export function AcademicTermsPage() {
             ))}
           </select>
         </label>
-        {canInitialize ? (
+        {canCreate ? (
           <button
             type="button"
             className="btn btn--primary"
+            onClick={openCreateDialog}
+          >
+            {t('academicContext.terms.create')}
+          </button>
+        ) : null}
+        {canInitialize ? (
+          <button
+            type="button"
+            className="btn btn--ghost"
             onClick={() => setInitOpen(true)}
           >
             {t('academicContext.terms.initialize')}
@@ -347,6 +438,13 @@ export function AcademicTermsPage() {
               ? t('academicContext.terms.emptyManageHint')
               : t('academicContext.terms.emptyReadonlyHint')
           }
+          action={
+            canCreate ? (
+              <button type="button" className="btn btn--primary" onClick={openCreateDialog}>
+                {t('academicContext.terms.create')}
+              </button>
+            ) : undefined
+          }
         />
       ) : (
         <DataTable
@@ -361,6 +459,88 @@ export function AcademicTermsPage() {
           {terms.map((term) => formatTermOptionLabel(term)).join(' · ')}
         </p>
       ) : null}
+
+      <ConfirmationDialog
+        open={createOpen}
+        title={t('academicContext.terms.createTitle')}
+        size="form"
+        closeOnBackdrop={!createSubmitting}
+        loading={createSubmitting}
+        confirmLabel={t('academicContext.terms.createSubmit')}
+        onConfirm={() => void handleCreateSave()}
+        onClose={closeCreateDialog}
+        body={
+          <div className="grid grid--form">
+            <p className="muted tiny">
+              {t('academicContext.terms.initializeYearReadonly')}:{' '}
+              <strong dir="auto">{selectedYearName}</strong>
+            </p>
+            {createError ? (
+              <p role="alert" className="academic-context-filters__error">
+                {createError}
+              </p>
+            ) : null}
+            <label className="field">
+              <span>{t('academicContext.terms.editName')}</span>
+              <input
+                className="input"
+                name="create_term_name"
+                value={createForm.name}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, name: e.target.value }))
+                }
+                disabled={createSubmitting}
+                required
+                aria-label={t('academicContext.terms.editName')}
+              />
+            </label>
+            <label className="field">
+              <span>{t('academicContext.terms.editCode')}</span>
+              <input
+                className="input"
+                name="create_term_code"
+                value={createForm.code}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, code: e.target.value }))
+                }
+                disabled={createSubmitting}
+                required
+                aria-label={t('academicContext.terms.editCode')}
+              />
+            </label>
+            <label className="field">
+              <span>{t('academicContext.terms.editDateStart')}</span>
+              <input
+                className="input"
+                type="date"
+                name="create_term_date_start"
+                value={createForm.date_start}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, date_start: e.target.value }))
+                }
+                disabled={createSubmitting}
+                required
+                aria-label={t('academicContext.terms.editDateStart')}
+              />
+            </label>
+            <label className="field">
+              <span>{t('academicContext.terms.editDateEnd')}</span>
+              <input
+                className="input"
+                type="date"
+                name="create_term_date_end"
+                value={createForm.date_end}
+                onChange={(e) =>
+                  setCreateForm((prev) => ({ ...prev, date_end: e.target.value }))
+                }
+                disabled={createSubmitting}
+                required
+                aria-label={t('academicContext.terms.editDateEnd')}
+              />
+            </label>
+          </div>
+        }
+      />
 
       <ConfirmationDialog
         open={initOpen}
@@ -469,6 +649,12 @@ export function AcademicTermsPage() {
         onClose={closeEditDialog}
         body={
           <div className="grid grid--form">
+            {editTerm ? (
+              <p className="muted tiny" dir="auto">
+                {t('academicContext.terms.state')}:{' '}
+                <strong>{termStateLabel(editTerm.state, t)}</strong>
+              </p>
+            ) : null}
             {editError ? (
               <p role="alert" className="academic-context-filters__error">
                 {editError}
@@ -483,8 +669,9 @@ export function AcademicTermsPage() {
                 onChange={(e) =>
                   setEditForm((prev) => ({ ...prev, name: e.target.value }))
                 }
-                disabled={editSubmitting}
-                required
+                disabled={editSubmitting || !editIdentityAllowed}
+                required={editIdentityAllowed}
+                readOnly={!editIdentityAllowed}
                 aria-label={t('academicContext.terms.editName')}
               />
             </label>
@@ -497,8 +684,9 @@ export function AcademicTermsPage() {
                 onChange={(e) =>
                   setEditForm((prev) => ({ ...prev, code: e.target.value }))
                 }
-                disabled={editSubmitting}
-                required
+                disabled={editSubmitting || !editIdentityAllowed}
+                required={editIdentityAllowed}
+                readOnly={!editIdentityAllowed}
                 aria-label={t('academicContext.terms.editCode')}
               />
             </label>
@@ -512,7 +700,7 @@ export function AcademicTermsPage() {
                 onChange={(e) =>
                   setEditForm((prev) => ({ ...prev, date_start: e.target.value }))
                 }
-                disabled={editSubmitting}
+                disabled={editSubmitting || !editDatesAllowed}
                 required
                 aria-label={t('academicContext.terms.editDateStart')}
               />
@@ -527,7 +715,7 @@ export function AcademicTermsPage() {
                 onChange={(e) =>
                   setEditForm((prev) => ({ ...prev, date_end: e.target.value }))
                 }
-                disabled={editSubmitting}
+                disabled={editSubmitting || !editDatesAllowed}
                 required
                 aria-label={t('academicContext.terms.editDateEnd')}
               />

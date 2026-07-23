@@ -81,14 +81,17 @@ describe('validateTermEditForm', () => {
     ).toBe('dates_invalid');
   });
 
-  it('accepts strict start before end', () => {
+  it('skips identity requirement when requireIdentity=false', () => {
     expect(
-      validateTermEditForm({
-        name: 'Term',
-        code: 'T1',
-        date_start: '2026-09-01',
-        date_end: '2027-01-15',
-      }),
+      validateTermEditForm(
+        {
+          name: '',
+          code: '',
+          date_start: '2026-09-01',
+          date_end: '2027-01-15',
+        },
+        { requireIdentity: false },
+      ),
     ).toBeNull();
   });
 });
@@ -114,6 +117,21 @@ describe('buildTermUpdatePayload', () => {
         date_end: '2027-01-15',
       }),
     ).toBeNull();
+  });
+
+  it('omits identity fields when includeIdentity=false', () => {
+    expect(
+      buildTermUpdatePayload(
+        original,
+        {
+          name: 'اسم مختلف',
+          code: 'ZZ',
+          date_start: '2026-09-10',
+          date_end: '2027-01-15',
+        },
+        { includeIdentity: false },
+      ),
+    ).toEqual({ date_start: '2026-09-10' });
   });
 
   it('never includes state, school_id, academic_year_id, or active', () => {

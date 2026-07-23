@@ -411,8 +411,8 @@
     },
     "subjectAmbiguous": "Existen varias ofertas educativas ({count}) para esta materia",
     "terms": {
-      "title": "Periodos",
-      "description": "Configurar los periodos académicos del año seleccionado",
+      "title": "Periodos académicos",
+      "description": "Ver, añadir y editar periodos académicos, incluidas las fechas confirmadas.",
       "code": "Código",
       "sequence": "Orden",
       "dates": "Fechas",
@@ -424,7 +424,7 @@
       "initializeYearReadonly": "Año académico",
       "datesRequiredExplicit": "Las fechas de los periodos deben definirse explícitamente",
       "empty": "Aún no hay periodos",
-      "emptyManageHint": "Inicialice los periodos de este año académico para continuar",
+      "emptyManageHint": "Añada un periodo o inicialice los periodos estándar para este año.",
       "emptyReadonlyHint": "No hay periodos configurados para este año académico",
       "term1Name": "Nombre del periodo 1",
       "term1Start": "Inicio del periodo 1",
@@ -445,7 +445,14 @@
       "editCodeRequired": "El código del periodo es obligatorio",
       "editDateStartRequired": "La fecha de inicio es obligatoria",
       "editDateEndRequired": "La fecha de fin es obligatoria",
-      "editNoChanges": "No hay cambios que guardar"
+      "editNoChanges": "No hay cambios que guardar",
+      "create": "Añadir periodo",
+      "createTitle": "Añadir periodo académico",
+      "createSubmit": "Crear periodo",
+      "createSuccess": "Periodo creado correctamente",
+      "stateDraft": "Borrador",
+      "stateActive": "Confirmado",
+      "stateDone": "Finalizado"
     },
     "errors": {
       "academic_context_school_mismatch": "El contexto académico no coincide con el centro activo",
@@ -460,7 +467,7 @@
       "academic_year_not_found": "Año académico no encontrado",
       "academic_year_school_mismatch": "El año académico no pertenece al centro activo",
       "term_not_found": "Este periodo ya no está disponible",
-      "term_edit_not_allowed": "Este periodo no se puede editar después de activarlo",
+      "term_edit_not_allowed": "Este periodo no se puede editar en su estado actual",
       "invalid_term_field": "La solicitud incluye un campo que no se puede editar",
       "invalid_term_name": "El nombre del periodo no es válido",
       "invalid_term_code": "El código del periodo no es válido",
@@ -3268,7 +3275,7 @@
         "teachers": "Profesores",
         "staff": "Personal",
         "assignments": "Asignaciones docentes",
-        "terms": "Periodos"
+        "terms": "Periodos académicos"
       },
       "cards": {
         "classes": "Niveles y clases",

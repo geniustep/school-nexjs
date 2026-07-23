@@ -1,16 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const patch = vi.fn();
+const post = vi.fn();
 
 vi.mock('@/lib/api/client', () => ({
   api: {
     get: vi.fn(),
-    post: vi.fn(),
+    post: (...args: unknown[]) => post(...args),
     patch: (...args: unknown[]) => patch(...args),
   },
 }));
 
 import {
+  createAcademicTerm,
+  sanitizeTermCreatePayload,
   sanitizeTermUpdatePayload,
   updateAcademicTerm,
 } from '@/features/academic-context/api/academic-context-api';
@@ -125,5 +128,63 @@ describe('updateAcademicTerm', () => {
     expect(patch).not.toHaveBeenCalled();
     expect(res.success).toBe(false);
     if (!res.success) expect(res.error.code).toBe('invalid_term_field');
+  });
+});
+
+describe('createAcademicTerm', () => {
+  beforeEach(() => {
+    post.mockReset();
+  });
+
+  it('POSTs year terms path without school_id in body', async () => {
+    post.mockResolvedValue({
+      success: true,
+      data: {
+        id: 99,
+        name: 'New',
+        code: 'TX',
+        date_start: '2026-09-01',
+        date_end: '2026-12-31',
+        state: 'draft',
+      },
+      meta: {},
+    });
+    const res = await createAcademicTerm(12, {
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+      // @ts-expect-error forbidden
+      school_id: 5,
+    });
+    expect(res.success).toBe(false);
+    expect(post).not.toHaveBeenCalled();
+    expect(sanitizeTermCreatePayload({
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+    })).toEqual({
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+    });
+
+    const ok = await createAcademicTerm(12, {
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+    });
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post.mock.calls[0][0]).toBe(endpoints.admin.academicYearTerms(12));
+    expect(post.mock.calls[0][1]).toEqual({
+      name: 'New',
+      code: 'TX',
+      date_start: '2026-09-01',
+      date_end: '2026-12-31',
+    });
+    expect(ok.success).toBe(true);
   });
 });
