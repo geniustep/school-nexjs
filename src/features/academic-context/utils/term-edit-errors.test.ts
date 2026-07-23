@@ -19,12 +19,67 @@ describe('term edit error mapping', () => {
     expect(academicTermEditErrorI18nKey(code)).toBe(key);
   });
 
-  it('falls back for unknown codes', () => {
+  it('prefers safe error.message from the standard 422 envelope', () => {
+    const translate = (key: string) => `i18n:${key}`;
+    expect(
+      resolveAcademicTermEditErrorMessage(
+        {
+          code: 'term_dates_outside_academic_year',
+          message: 'تواريخ الدورة يجب أن تكون ضمن حدود السنة الدراسية.',
+          details: {},
+        },
+        translate,
+      ),
+    ).toBe('تواريخ الدورة يجب أن تكون ضمن حدود السنة الدراسية.');
+  });
+
+  it('uses detail text when message is missing', () => {
+    const translate = (key: string) => `i18n:${key}`;
+    expect(
+      resolveAcademicTermEditErrorMessage(
+        {
+          code: 'term_dates_overlap',
+          message: '',
+          detail: 'تتداخل تواريخ هذه الدورة مع دورة أخرى.',
+        },
+        translate,
+      ),
+    ).toBe('تتداخل تواريخ هذه الدورة مع دورة أخرى.');
+  });
+
+  it('falls back to known-code i18n when no safe server text exists', () => {
+    const translate = (key: string) => `i18n:${key}`;
+    expect(
+      resolveAcademicTermEditErrorMessage(
+        {
+          code: 'term_dates_outside_academic_year',
+          message: '',
+          details: {},
+        },
+        translate,
+      ),
+    ).toBe('i18n:academicContext.errors.term_dates_outside_academic_year');
+  });
+
+  it('falls back to generic failure when code is unknown and message unsafe', () => {
+    const translate = (key: string) => `i18n:${key}`;
+    expect(
+      resolveAcademicTermEditErrorMessage(
+        {
+          code: 'weird_code',
+          message: 'Odoo traceback /api/endpoint failed',
+        },
+        translate,
+      ),
+    ).toBe('i18n:academicContext.errors.term_edit_failed');
+  });
+
+  it('falls back for unknown codes without a message', () => {
     expect(academicTermEditErrorI18nKey('weird_code')).toBe(
       'academicContext.errors.term_edit_failed',
     );
     const translate = (key: string) => key;
-    expect(resolveAcademicTermEditErrorMessage('weird_code', translate)).toBe(
+    expect(resolveAcademicTermEditErrorMessage({ code: 'weird_code' }, translate)).toBe(
       'academicContext.errors.term_edit_failed',
     );
   });

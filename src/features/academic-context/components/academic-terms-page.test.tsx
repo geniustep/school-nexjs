@@ -419,9 +419,19 @@ describe('AcademicTermsPage draft edit', () => {
     ['unknown_failure'],
   ])('keeps dialog open and values on API error %s', async (code) => {
     const user = userEvent.setup();
+    const serverMessage =
+      code === 'term_dates_outside_academic_year'
+        ? 'تواريخ الدورة يجب أن تكون ضمن حدود السنة الدراسية.'
+        : code === 'unknown_failure'
+          ? ''
+          : `رسالة الخادم: ${code}`;
     updateTerm.mockResolvedValue({
       success: false,
-      error: { code, message: 'fail', details: { status: code === 'term_code_conflict' ? 409 : 422 } },
+      error: {
+        code,
+        message: serverMessage,
+        details: { status: code === 'term_code_conflict' ? 409 : 422 },
+      },
       meta: {},
     });
 
@@ -437,12 +447,92 @@ describe('AcademicTermsPage draft edit', () => {
     expect(screen.getByText('academicContext.terms.editTitle')).toBeTruthy();
     expect(nameInput.value).toBe('قيمة محفوظة');
     expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.queryByText('academicContext.terms.editSuccess')).toBeNull();
 
-    const expectedKey =
+    const expected =
       code === 'unknown_failure'
         ? 'academicContext.errors.term_edit_failed'
-        : `academicContext.errors.${code}`;
-    expect(screen.getByRole('alert').textContent).toContain(expectedKey);
+        : serverMessage;
+    expect(screen.getByRole('alert').textContent).toContain(expected);
+    expect(toast.error).toHaveBeenCalledWith(expected);
+  });
+
+  it('shows generic fallback when 422 has no safe server message', async () => {
+    const user = userEvent.setup();
+    updateTerm.mockResolvedValue({
+      success: false,
+      error: {
+        code: 'term_dates_outside_academic_year',
+        message: '',
+        details: {},
+      },
+      meta: {},
+    });
+
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const nameInput = screen.getByLabelText('academicContext.terms.editName') as HTMLInputElement;
+    await user.clear(nameInput);
+    await user.type(nameInput, 'اسم بدون رسالة خادم');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toContain(
+        'academicContext.errors.term_dates_outside_academic_year',
+      ),
+    );
+    expect(screen.getByText('academicContext.terms.editTitle')).toBeTruthy();
+    expect(nameInput.value).toBe('اسم بدون رسالة خادم');
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(
+      'academicContext.errors.term_dates_outside_academic_year',
+    );
+  });
+
+  it('stops loading and keeps edit dialog after 422 without closing', async () => {
+    const user = userEvent.setup();
+    let resolveUpdate: ((value: unknown) => void) | undefined;
+    updateTerm.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        }),
+    );
+
+    render(<AcademicTermsPage />);
+    await waitFor(() => expect(screen.getByText('academicContext.terms.edit')).toBeTruthy());
+    await user.click(screen.getByText('academicContext.terms.edit'));
+    const startInput = screen.getByLabelText(
+      'academicContext.terms.editDateStart',
+    ) as HTMLInputElement;
+    await user.clear(startInput);
+    await user.type(startInput, '2020-01-01');
+    await user.click(screen.getByText('academicContext.terms.saveEdit'));
+
+    await waitFor(() => expect(screen.getByText('common.submitting')).toBeTruthy());
+    resolveUpdate?.({
+      success: false,
+      error: {
+        code: 'term_dates_outside_academic_year',
+        message: 'تواريخ الدورة يجب أن تكون ضمن حدود السنة الدراسية.',
+        details: {},
+      },
+      meta: {},
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toContain(
+        'تواريخ الدورة يجب أن تكون ضمن حدود السنة الدراسية.',
+      ),
+    );
+    expect(screen.queryByText('common.submitting')).toBeNull();
+    expect(screen.getByText('academicContext.terms.editTitle')).toBeTruthy();
+    expect(startInput.value).toBe('2020-01-01');
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(
+      'تواريخ الدورة يجب أن تكون ضمن حدود السنة الدراسية.',
+    );
   });
 
   it('does not change initialize flow when terms already exist', async () => {

@@ -201,7 +201,9 @@ export function AcademicTermsPage() {
     setCreateSubmitting(false);
 
     if (!res.success) {
-      setCreateError(resolveAcademicTermEditErrorMessage(res.error.code, t));
+      const message = resolveAcademicTermEditErrorMessage(res.error, t);
+      setCreateError(message);
+      toast.error(message);
       return;
     }
 
@@ -246,7 +248,9 @@ export function AcademicTermsPage() {
     setEditSubmitting(false);
 
     if (!res.success) {
-      setEditError(resolveAcademicTermEditErrorMessage(res.error.code, t));
+      const message = resolveAcademicTermEditErrorMessage(res.error, t);
+      setEditError(message);
+      toast.error(message);
       return;
     }
 
@@ -479,7 +483,7 @@ export function AcademicTermsPage() {
         closeOnBackdrop={!createSubmitting}
         loading={createSubmitting}
         confirmLabel={t('academicContext.terms.createSubmit')}
-        onConfirm={() => void handleCreateSave()}
+        onConfirm={() => handleCreateSave()}
         onClose={closeCreateDialog}
         body={
           <div className="grid grid--form">
@@ -657,7 +661,7 @@ export function AcademicTermsPage() {
         closeOnBackdrop={!editSubmitting}
         loading={editSubmitting}
         confirmLabel={t('academicContext.terms.saveEdit')}
-        onConfirm={() => void handleEditSave()}
+        onConfirm={() => handleEditSave()}
         onClose={closeEditDialog}
         body={
           <div className="grid grid--form">
