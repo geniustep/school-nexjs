@@ -73,6 +73,42 @@ describe('family collection cheque UX', () => {
     expect(workflowSource).toContain('chequeValues={chequeValues}');
   });
 
+  it('B2. workflow wires bank transfer reference through QuickPaymentCoreFields', () => {
+    expect(workflowSource).toContain('reference={reference}');
+    expect(workflowSource).toContain('onReferenceChange={setReference}');
+    expect(workflowSource).toMatch(/else if \(reference\.trim\(\)\)[\s\S]*payload\.reference = reference\.trim\(\)/);
+  });
+
+  it('B3. bank transfer without reference blocks confirm', () => {
+    const blocked = resolveFamilyCollectionConfirmState({
+      parsedAmount: 100,
+      journalId: '6',
+      paymentMethod: 'bank_transfer',
+      academicYearId: '2',
+      collectionDate: '2026-07-09',
+      cashSessionBlocked: false,
+      allocationInputs: { 3339: '100' },
+      installments,
+      reference: '',
+    });
+    expect(blocked.canConfirm).toBe(false);
+    expect(blocked.blockReason).toBe('payment_reference_required');
+
+    const ok = resolveFamilyCollectionConfirmState({
+      parsedAmount: 100,
+      journalId: '6',
+      paymentMethod: 'bank_transfer',
+      academicYearId: '2',
+      collectionDate: '2026-07-09',
+      cashSessionBlocked: false,
+      allocationInputs: { 3339: '100' },
+      installments,
+      reference: 'TRX-99',
+    });
+    expect(ok.canConfirm).toBe(true);
+    expect(ok.blockReason).toBeNull();
+  });
+
   it('C. cheque payload uses existing registration contract', () => {
     const payload = buildChequeRegistrationPayload({
       chequeNumber: 'CHQ-100',

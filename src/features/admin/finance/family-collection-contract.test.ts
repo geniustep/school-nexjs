@@ -36,6 +36,7 @@ describe('family collection contract alignment', () => {
   it('resolves receipt via payment-collections receipt endpoint when needed', () => {
     expect(workflowSource).toContain('resolveFamilyCollectionReceiptId');
     expect(workflowSource).toContain('fetchCollectionReceipt');
+    expect(workflowSource).toContain('issueCollectionReceipt');
   });
 
   it('navigates to receipt page after confirm success', () => {

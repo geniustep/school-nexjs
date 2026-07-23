@@ -94,9 +94,8 @@ export function collectionReferenceLabel(
   t: (key: string) => string,
 ): string | null {
   if (paymentMethod === 'cash') return null;
-  if (paymentMethod === 'cheque' || paymentMethod === 'check') {
-    return t('admin.finance.collectionWorkflow.referenceOptionalCheque');
-  }
+  // Cheque reference comes from cheque number via resolveChequeCollectionReference.
+  if (paymentMethod === 'cheque' || paymentMethod === 'check') return null;
   if (paymentMethod === 'transfer' || paymentMethod === 'bank_transfer') {
     return t('admin.finance.collectionWorkflow.referenceBankTransfer');
   }

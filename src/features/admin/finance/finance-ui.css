@@ -5904,7 +5904,7 @@
 }
 
 .finance-quick-payment-drawer__context {
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 /* ── Quick payment drawer shell (student + family) ── */
@@ -5919,17 +5919,26 @@
 
 .finance-quick-payment-drawer .finance-quick-payment-drawer__header-copy {
   flex-shrink: 0;
-  padding: 14px 22px;
-  background: linear-gradient(135deg, var(--qp-accent-soft, #ccfbf1) 0%, #fff 70%);
-  border-bottom: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 16%, var(--c-border, #e2e8f0));
+  padding: 12px 20px 14px;
+  background: #fff;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-quick-payment-drawer .finance-quick-payment-drawer__lead {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--qp-surface, #f0fdfa);
+  border: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 16%, var(--c-border, #e2e8f0));
+  border-inline-start: 3px solid var(--qp-accent, #0d9488);
 }
 
 .finance-quick-payment-drawer .finance-quick-payment-drawer__intro {
-  margin-bottom: 4px;
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--qp-accent-strong, #0f766e);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .finance-quick-payment-drawer .finance-quick-payment-drawer__context {
@@ -6080,6 +6089,89 @@
 
 .finance-quick-payment-core--drawer {
   gap: 14px;
+}
+
+/* ── Payment method + dependent fields (page + drawer) ── */
+
+.finance-payment-method-block {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.finance-payment-method-block__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-payment-method-block__field {
+  margin: 0;
+}
+
+.finance-payment-method-block__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.finance-payment-method-block__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: var(--c-surface, #fff);
+  border: 1px solid var(--c-border, #e2e8f0);
+  color: var(--c-text, #0f172a);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.finance-payment-method-fields {
+  display: grid;
+  gap: 14px;
+  padding-block: 4px 8px;
+  border-block-end: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-payment-method-fields:empty {
+  display: none;
+  border: none;
+  padding: 0;
+}
+
+.finance-payment-method-fields__reference {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.finance-payment-method-fields .collection-cheque-form {
+  margin: 0;
+}
+
+.finance-payment-journal-row,
+.finance-payment-date-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 640px) {
+  .finance-payment-method-block,
+  .finance-payment-method-fields,
+  .finance-payment-method-fields__reference {
+    width: 100%;
+  }
+
+  .finance-payment-method-block .input,
+  .finance-payment-method-fields .input {
+    width: 100%;
+  }
 }
 
 /* ── Drawer: payment method, amount, allocation ── */
@@ -6562,7 +6654,14 @@
 }
 
 .finance-family-collection-drawer .finance-quick-payment-drawer__header-copy {
-  padding: 16px 20px 12px;
+  padding: 0 20px 12px;
+  border-bottom: none;
+  background: #fff;
+}
+
+.finance-family-collection-drawer .academic-setup-drawer__head {
+  border-bottom: none;
+  padding-bottom: 10px;
 }
 
 .finance-family-collection-drawer .finance-quick-payment-drawer__header-copy .finance-quick-payment-drawer__context {
@@ -6570,7 +6669,50 @@
 }
 
 .finance-family-collection-drawer .finance-collection-workflow__scroll {
-  padding: 8px 20px 16px;
+  padding: 0 20px 16px;
+}
+
+.finance-family-collection-header-summary {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.finance-family-collection-header-summary__title {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-family-collection-header-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.finance-family-collection-header-summary__grid dt {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-family-collection-header-summary__grid dd {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+  line-height: 1.35;
 }
 
 .finance-family-collection-workflow__balance {
@@ -6997,37 +7139,6 @@
 
 .finance-family-collection-workflow__intro {
   margin: 0 0 8px;
-}
-
-.finance-family-collection-header-summary {
-  margin: 0 0 12px;
-  padding: 12px;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--surface-muted, #f9fafb) 85%, transparent);
-}
-
-.finance-family-collection-header-summary__title {
-  margin: 0 0 10px;
-  font-size: 0.92rem;
-}
-
-.finance-family-collection-header-summary__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px 14px;
-  margin: 0;
-}
-
-.finance-family-collection-header-summary__grid dt {
-  margin: 0;
-  font-size: 0.72rem;
-  color: var(--text-muted, #64748b);
-}
-
-.finance-family-collection-header-summary__grid dd {
-  margin: 4px 0 0;
-  font-size: 0.88rem;
 }
 
 .finance-family-collection-workflow__steps {

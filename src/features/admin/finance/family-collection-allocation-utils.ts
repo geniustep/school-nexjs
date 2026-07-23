@@ -16,6 +16,7 @@ export type FamilyCollectionConfirmBlockReason =
   | 'cash_session_blocked'
   | 'invalid_amount'
   | 'invalid_allocations'
+  | 'payment_reference_required'
   | 'complete_cheque_fields'
   | 'fix_cheque_dates';
 
@@ -419,6 +420,7 @@ export function resolveFamilyCollectionConfirmState(input: {
   cashSessionBlocked: boolean;
   allocationInputs: Record<number, string>;
   installments: FamilyOpenInstallment[];
+  reference?: string;
   isCheque?: boolean;
   chequeNumber?: string;
   chequeBank?: string;
@@ -435,6 +437,11 @@ export function resolveFamilyCollectionConfirmState(input: {
   }
   if (input.cashSessionBlocked) {
     return { canConfirm: false, blockReason: 'cash_session_blocked' };
+  }
+  const needsReference =
+    input.paymentMethod === 'transfer' || input.paymentMethod === 'bank_transfer';
+  if (needsReference && !input.reference?.trim()) {
+    return { canConfirm: false, blockReason: 'payment_reference_required' };
   }
   if (input.isCheque) {
     if (
@@ -473,6 +480,9 @@ export function familyCollectionConfirmBlockReasonKey(
   }
   if (reason === 'fix_cheque_dates') {
     return 'admin.finance.collections.blockers.fixChequeDates';
+  }
+  if (reason === 'payment_reference_required') {
+    return 'admin.finance.billingAccounts.familyCollection.confirmBlockReason.payment_reference_required';
   }
   return `admin.finance.billingAccounts.familyCollection.confirmBlockReason.${reason}`;
 }

@@ -13,9 +13,17 @@ export async function resolveFamilyCollectionReceiptId(
   collectionId: number,
   confirmData: FamilyCollectionConfirmResponse | null,
   fetchReceipt: (collectionId: number) => Promise<FinanceReceipt | null>,
+  issueReceipt?: (
+    collectionId: number,
+  ) => Promise<{ receipt: FinanceReceipt | null }>,
 ): Promise<number | null> {
   const fromConfirm = readReceiptIdFromConfirmResponse(confirmData);
   if (fromConfirm != null) return fromConfirm;
-  const receipt = await fetchReceipt(collectionId);
-  return receipt?.id ?? null;
+
+  const existing = await fetchReceipt(collectionId);
+  if (existing?.id != null) return existing.id;
+
+  if (!issueReceipt) return null;
+  const issued = await issueReceipt(collectionId);
+  return issued.receipt?.id ?? null;
 }

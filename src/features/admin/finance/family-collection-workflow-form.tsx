@@ -32,7 +32,7 @@ import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lo
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { fetchCollectionReceipt } from '@/lib/api/finance-receipt';
+import { fetchCollectionReceipt, issueCollectionReceipt } from '@/lib/api/finance-receipt';
 import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
 import { resolveCollectionErrorMessage } from '@/lib/utils/collection-errors';
 import { currencyCode, paymentMethodLabel } from '@/lib/utils/finance';
@@ -120,6 +120,7 @@ export function FamilyCollectionWorkflowForm({
   const [allocationSource, setAllocationSource] = useState<'auto' | 'manual'>('auto');
   const [journalId, setJournalId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [reference, setReference] = useState('');
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [academicYearId, setAcademicYearId] = useState('');
   const [actualPayerName, setActualPayerName] = useState('');
@@ -179,6 +180,7 @@ export function FamilyCollectionWorkflowForm({
       setChequeNotes('');
       return;
     }
+    setReference('');
     if (!chequeWrittenDate && collectionDate) {
       setChequeWrittenDate(collectionDate);
     }
@@ -264,6 +266,7 @@ export function FamilyCollectionWorkflowForm({
         cashSessionBlocked,
         allocationInputs,
         installments: openInstallments,
+        reference,
         isCheque,
         chequeNumber,
         chequeBank,
@@ -281,6 +284,7 @@ export function FamilyCollectionWorkflowForm({
       cashSessionBlocked,
       allocationInputs,
       openInstallments,
+      reference,
       isCheque,
       chequeNumber,
       chequeBank,
@@ -402,6 +406,8 @@ export function FamilyCollectionWorkflowForm({
       if (trimmedNotes) {
         payload.notes = trimmedNotes;
       }
+    } else if (reference.trim()) {
+      payload.reference = reference.trim();
     }
     return payload;
   }
@@ -543,6 +549,10 @@ export function FamilyCollectionWorkflowForm({
       collectionId,
       normalized,
       fetchCollectionReceipt,
+      async (id) => {
+        const issued = await issueCollectionReceipt(id);
+        return { receipt: issued.receipt };
+      },
     );
     idempotencyKeyRef.current = null;
     onDone({
@@ -678,6 +688,8 @@ export function FamilyCollectionWorkflowForm({
             allowedMethods={allowedMethods ?? []}
             collectionDate={collectionDate}
             onCollectionDateChange={setCollectionDate}
+            reference={reference}
+            onReferenceChange={setReference}
             chequeValues={chequeValues}
             onChequeChange={(patch) => {
               if (patch.chequeNumber !== undefined) setChequeNumber(patch.chequeNumber);

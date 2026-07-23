@@ -51,6 +51,18 @@ describe('normalize-finance-receipt', () => {
     expect(receiptAllowsAction(receipt, 'issue')).toBe(false);
   });
 
+  it('allows print/download when allowed_actions omitted on issued receipt', () => {
+    const receipt = normalizeFinanceReceipt({
+      id: 9,
+      number: 'PAY/2026/000010',
+      state: 'issued',
+      collection_amount: 200,
+    });
+    expect(receiptAllowsAction(receipt, 'print')).toBe(true);
+    expect(receiptAllowsAction(receipt, 'download')).toBe(true);
+    expect(receiptAllowsAction(receipt, 'issue')).toBe(false);
+  });
+
   it('preserves multi-student children snapshot breakdown', () => {
     const receipt = normalizeFinanceReceipt({
       id: 88,

@@ -22,6 +22,19 @@ describe('resolveFamilyCollectionReceiptId', () => {
     expect(id).toBe(77);
     expect(fetchReceipt).toHaveBeenCalledWith(42);
   });
+
+  it('issues receipt when confirm and fetch both omit receipt', async () => {
+    const fetchReceipt = vi.fn().mockResolvedValue(null);
+    const issueReceipt = vi.fn().mockResolvedValue({ receipt: { id: 55 } });
+    const id = await resolveFamilyCollectionReceiptId(
+      42,
+      { collection_id: 42 },
+      fetchReceipt,
+      issueReceipt,
+    );
+    expect(id).toBe(55);
+    expect(issueReceipt).toHaveBeenCalledWith(42);
+  });
 });
 
 describe('readReceiptIdFromConfirmResponse', () => {

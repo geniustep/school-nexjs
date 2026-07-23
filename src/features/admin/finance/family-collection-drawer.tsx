@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
@@ -38,6 +38,7 @@ export function FamilyCollectionDrawer({
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const t = useT();
   const toast = useToast();
   const handledRef = useRef(false);
@@ -52,11 +53,20 @@ export function FamilyCollectionDrawer({
       return;
     }
     handledRef.current = true;
-    toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
     onSuccess?.(result);
+
     const receiptId = result.receipt_id ?? result.receipts[0]?.id ?? null;
+    const collectionId = result.collection_id ?? result.id ?? result.collections[0]?.id ?? null;
+    const returnTo = encodeURIComponent(pathname || `/admin/finance/billing-accounts/${familyId}`);
+
     if (navigateToReceiptOnSuccess && receiptId) {
-      router.push(`/admin/finance/receipts/${receiptId}`);
+      toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
+      router.push(`/admin/finance/receipts/${receiptId}?returnTo=${returnTo}`);
+    } else if (navigateToReceiptOnSuccess && collectionId) {
+      toast.success(t('admin.finance.billingAccounts.familyCollection.receiptPendingHint'));
+      router.push(`/admin/finance/collections/${collectionId}?returnTo=${returnTo}`);
+    } else {
+      toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
     }
     onClose();
   }

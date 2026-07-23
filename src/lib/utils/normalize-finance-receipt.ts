@@ -325,8 +325,15 @@ export function parseFinanceReceiptList(data: unknown): FinanceReceipt[] {
 }
 
 export function receiptAllowsAction(receipt: FinanceReceipt | null | undefined, action: string): boolean {
-  if (!receipt?.allowed_actions?.length) return false;
-  return receipt.allowed_actions.includes(action);
+  if (!receipt) return false;
+  if (receipt.allowed_actions?.length) {
+    return receipt.allowed_actions.includes(action);
+  }
+  // Backend sometimes omits allowed_actions on issued receipts; keep print/download usable.
+  const state = (receipt.state ?? '').toLowerCase();
+  const issuedLike = !state || state === 'issued' || state === 'posted' || state === 'confirmed';
+  if (!issuedLike) return false;
+  return action === 'view' || action === 'download' || action === 'print';
 }
 
 export type ReceiptPrintLayout = 'a4' | 'a5' | 'thermal_80mm';

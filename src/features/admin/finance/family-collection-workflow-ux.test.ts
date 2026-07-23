@@ -24,6 +24,7 @@ const UX_I18N_KEYS = [
   'manualEditor.childrenHint',
   'confirmBlockReason.invalid_allocations',
   'confirmBlockReason.missing_fields',
+  'confirmBlockReason.payment_reference_required',
 ] as const;
 
 const workflowSource = readFileSync(
@@ -145,7 +146,9 @@ describe('family collection confirm button state', () => {
   it('auto-persists draft on confirm when draft id is missing', () => {
     expect(workflowSource).toContain('if (collectionId == null)');
     expect(workflowSource).toContain('const saved = await persistDraft()');
-    expect(workflowSource).toContain('disabled={confirming || !confirmState.canConfirm}');
+    expect(workflowSource).toContain(
+      'disabled={confirming || previewing || !confirmState.canConfirm}',
+    );
   });
 
   it('uses direct confirm footer actions', () => {

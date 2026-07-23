@@ -36,6 +36,7 @@ export function QuickPaymentDrawer({
         : 'admin.finance.quickPayment.studentContext';
 
   const showShortIntro = source !== 'arrears';
+  const isFamily = mode === 'family';
 
   return (
     <SetupDrawer
@@ -46,17 +47,19 @@ export function QuickPaymentDrawer({
       size="collection"
       className={`finance-collection-drawer finance-quick-payment-drawer${
         className ? ` ${className}` : ''
-      }${mode === 'family' ? ' finance-family-collection-drawer' : ''}`}
+      }${isFamily ? ' finance-family-collection-drawer' : ''}`}
       iconClose
     >
       <div className="finance-quick-payment-drawer__shell">
         <div className="finance-quick-payment-drawer__header-copy">
-          {showShortIntro ? (
-            <p className="finance-quick-payment-drawer__intro muted tiny">
-              {t('admin.finance.quickPayment.intro')}
-            </p>
-          ) : null}
-          <p className="finance-quick-payment-drawer__context muted tiny">{t(contextKey)}</p>
+          <div className="finance-quick-payment-drawer__lead">
+            {showShortIntro ? (
+              <p className="finance-quick-payment-drawer__intro">
+                {t('admin.finance.quickPayment.intro')}
+              </p>
+            ) : null}
+            <p className="finance-quick-payment-drawer__context">{t(contextKey)}</p>
+          </div>
         </div>
         <div className="finance-quick-payment-drawer__content">{children}</div>
       </div>
