@@ -9,7 +9,11 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "raqeem:preflight": "node .agents/hooks/raqeem-preflight.mjs --expect-repo school-nexjs",
+    "raqeem:hooks:self-test": "node .agents/hooks/raqeem-hook-self-test.mjs",
+    "raqeem:hooks:warn": "node .agents/hooks/raqeem-hook-setup.mjs --mode warn",
+    "raqeem:hooks:check-staged": "node .agents/hooks/raqeem-staged-scope.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
