@@ -5,10 +5,22 @@
 ## الحالة
 
 ```txt
-PILOT — LOCAL OPT-IN
+PILOT — VALIDATED LOCAL OPT-IN
 ```
 
 وجود الملفات داخل المستودع لا يفعّلها تلقائيًا على جهاز المطور. التفعيل يتم محليًا فقط عبر `git config --local`.
+
+## نتائج التحقق المعتمدة
+
+```txt
+SELF-TEST: PASS (9/9)
+WARN MODE: VALIDATED
+PRE-COMMIT SECRET BLOCK: VALIDATED
+ENFORCE ALLOWED SCOPE: VALIDATED
+ENFORCE OUTSIDE-SCOPE BLOCK: VALIDATED
+TEST HEAD: UNCHANGED
+TEST CLEANUP: CLEAN
+```
 
 ## المكونات
 
@@ -138,6 +150,20 @@ node .agents/hooks/raqeem-hook-setup.mjs --mode off
 - غياب Scope يمنع Commit.
 - أي ملف مرحّل خارج Scope يمنع Commit.
 
+## سياسة التشغيل المعتمدة
+
+```txt
+الوضع المحلي الافتراضي: warn
+
+عند Git closure مصرح بها:
+→ اضبط enforce مع Scope صريح
+→ نفذ الإغلاق المصرح فقط
+→ امسح Scope
+→ ارجع إلى warn
+```
+
+نجاح `enforce` تقنيًا لا يمنح إذن Commit أو Push أو Merge أو Release.
+
 ## حدود Pilot
 
 هذه الحزمة لا تقوم بـ:
@@ -155,8 +181,11 @@ node .agents/hooks/raqeem-hook-setup.mjs --mode off
 Hook files present
 ≠ Hook enabled locally
 
-warn passed
-≠ enforce approved
+warn mode
+→ validated
+
+enforce with explicit scope
+→ validated
 
 pre-commit passed
 ≠ Git closure authorized
