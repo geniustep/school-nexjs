@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 const sourceDir = dirname(fileURLToPath(import.meta.url));
 const tempRoot = mkdtempSync(resolve(tmpdir(), 'raqeem-hook-self-test-'));
 let passed = 0;
+let total = 0;
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, {
@@ -18,6 +19,8 @@ function run(command, args, options = {}) {
 }
 
 function expect(label, condition, detail = '') {
+  total += 1;
+
   if (!condition) {
     console.error(`FAIL: ${label}`);
     if (detail) console.error(detail);
@@ -143,7 +146,7 @@ try {
     outsideCheck.stdout || outsideCheck.stderr,
   );
 
-  if (!process.exitCode) console.log(`SELF_TEST_VERDICT: PASS (${passed}/8)`);
+  if (!process.exitCode) console.log(`SELF_TEST_VERDICT: PASS (${passed}/${total})`);
 } catch (error) {
   console.error(`SELF_TEST_VERDICT: FAIL — ${error instanceof Error ? error.message : String(error)}`);
   process.exitCode = 1;
