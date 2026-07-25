@@ -163,6 +163,14 @@ function familyPattern(root: string, families: readonly string[]): RegExp {
 const ROUTE_RULES: RouteRule[] = [
   { methods: ['GET', 'HEAD'], test: (p) => p === '/me' },
   { methods: ['POST'], test: (p) => p === '/auth/logout' || p === '/auth/refresh' },
+  /**
+   * Platform reference subject create — exact POST only.
+   * Not added to BFF_ADMIN_FAMILIES (no nested /id routes) and not bound for body school injection.
+   */
+  {
+    methods: ['POST'],
+    test: (p) => p === '/admin/reference-subjects',
+  },
   {
     methods: ALL_METHODS,
     test: (p) => familyPattern('admin', BFF_ADMIN_FAMILIES).test(p),

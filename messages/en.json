@@ -3063,6 +3063,59 @@
         "description": "Try adjusting search or filters, or reset them to show all subjects."
       }
     },
+    "referenceSubjects": {
+      "add": "Add reference subject",
+      "pageTitle": "Add reference subject",
+      "pageDesc": "Add a subject to the shared platform reference catalog. It will not become an operational school subject until it is explicitly enabled.",
+      "globalScopeWarning": "This subject is global and shared across schools. It does not create an operational subject or enablement in the current school.",
+      "fields": {
+        "name": "Subject name",
+        "code": "Subject code",
+        "cycle": "Reference cycle",
+        "cyclePlaceholder": "Select a cycle",
+        "levels": "Reference levels",
+        "levelsNeedCycle": "Select a cycle first to show reference levels.",
+        "levelsEmpty": "No reference levels for this cycle.",
+        "category": "Subject category",
+        "defaultStatus": "Default status",
+        "weeklySessions": "Default weekly sessions",
+        "additionalInfo": "Additional information",
+        "externalCode": "External reference code",
+        "sourceNote": "Source note"
+      },
+      "status": {
+        "unspecified": "Unspecified",
+        "mandatory": "Mandatory by default",
+        "optional": "Optional by default"
+      },
+      "categories": {
+        "language": "Languages",
+        "science": "Science",
+        "math": "Mathematics",
+        "social": "Social studies",
+        "art": "Arts",
+        "sport": "Physical education",
+        "religious": "Islamic education",
+        "technology": "Technology",
+        "other": "Other"
+      },
+      "actions": {
+        "create": "Create reference subject",
+        "enable": "Go to subject enablement"
+      },
+      "success": "The subject was added to the reference catalog.",
+      "successEnableHint": "It is not enabled in any school yet. Go to subject enablement to link it to operational levels when needed.",
+      "errors": {
+        "manageForbidden": "You do not have permission to manage the reference catalog.",
+        "codeConflict": "This subject code is already in use.",
+        "cycleNotFound": "The reference cycle was not found.",
+        "levelNotFound": "The reference level was not found.",
+        "cycleLevelMismatch": "The level does not belong to the selected cycle.",
+        "invalidPayload": "Invalid data.",
+        "levelsRequired": "Select at least one reference level.",
+        "invalidWeeklySessions": "Weekly sessions must be a non-negative integer."
+      }
+    },
     "settings": {
       "title": "Settings",
       "subtitle": "School configuration and organisation",

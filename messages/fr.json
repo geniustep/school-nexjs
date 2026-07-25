@@ -3063,6 +3063,59 @@
         "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher toutes les matières."
       }
     },
+    "referenceSubjects": {
+      "add": "Ajouter une matière de référence",
+      "pageTitle": "Ajouter une matière de référence",
+      "pageDesc": "Ajoutez une matière au catalogue de référence partagé de la plateforme. Elle ne devient opérationnelle dans l'établissement qu'après activation explicite.",
+      "globalScopeWarning": "Cette matière est mondiale et partagée entre les établissements. Elle ne crée ni matière opérationnelle ni activation dans l'établissement actuel.",
+      "fields": {
+        "name": "Nom de la matière",
+        "code": "Code de la matière",
+        "cycle": "Cycle de référence",
+        "cyclePlaceholder": "Choisir un cycle",
+        "levels": "Niveaux de référence",
+        "levelsNeedCycle": "Choisissez d'abord un cycle pour afficher les niveaux de référence.",
+        "levelsEmpty": "Aucun niveau de référence pour ce cycle.",
+        "category": "Catégorie de la matière",
+        "defaultStatus": "Statut par défaut",
+        "weeklySessions": "Séances hebdomadaires par défaut",
+        "additionalInfo": "Informations complémentaires",
+        "externalCode": "Code de référence externe",
+        "sourceNote": "Note de source"
+      },
+      "status": {
+        "unspecified": "Non défini",
+        "mandatory": "Obligatoire par défaut",
+        "optional": "Optionnelle par défaut"
+      },
+      "categories": {
+        "language": "Langues",
+        "science": "Sciences",
+        "math": "Mathématiques",
+        "social": "Sciences sociales",
+        "art": "Arts",
+        "sport": "Éducation physique",
+        "religious": "Éducation islamique",
+        "technology": "Technologie",
+        "other": "Autre"
+      },
+      "actions": {
+        "create": "Créer la matière de référence",
+        "enable": "Passer à l'activation des matières"
+      },
+      "success": "La matière a été ajoutée au catalogue de référence.",
+      "successEnableHint": "Elle n'est pas encore activée dans un établissement. Passez à l'activation pour la lier aux niveaux opérationnels si besoin.",
+      "errors": {
+        "manageForbidden": "Vous n'avez pas l'autorisation de gérer le catalogue de référence.",
+        "codeConflict": "Ce code de matière est déjà utilisé.",
+        "cycleNotFound": "Le cycle de référence est introuvable.",
+        "levelNotFound": "Le niveau de référence est introuvable.",
+        "cycleLevelMismatch": "Le niveau n'appartient pas au cycle sélectionné.",
+        "invalidPayload": "Données non valides.",
+        "levelsRequired": "Sélectionnez au moins un niveau de référence.",
+        "invalidWeeklySessions": "Le nombre de séances doit être un entier non négatif."
+      }
+    },
     "settings": {
       "title": "Paramètres",
       "subtitle": "Configuration et organisation de l'établissement",

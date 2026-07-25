@@ -27,6 +27,13 @@ export function hasAnyUserCapability(
   return codes.some((code) => hasUserCapability(user, code));
 }
 
+/** Platform-only — create global school.ref.subject catalog entries. */
+export const REFERENCE_SUBJECT_MANAGE_CAPABILITY = 'reference.subject.manage' as const;
+
+export function canManageReferenceSubjects(user: CurrentUser | null | undefined): boolean {
+  return hasUserCapability(user, REFERENCE_SUBJECT_MANAGE_CAPABILITY);
+}
+
 const STUDENT_UPDATE_CAPABILITIES = [
   'students.update_limited',
   'students.manage_registration_data',
