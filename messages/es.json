@@ -3063,6 +3063,59 @@
         "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las materias."
       }
     },
+    "referenceSubjects": {
+      "add": "Añadir materia de referencia",
+      "pageTitle": "Añadir materia de referencia",
+      "pageDesc": "Añada una materia al catálogo de referencia compartido de la plataforma. No se convertirá en materia operativa del centro hasta una activación explícita.",
+      "globalScopeWarning": "Esta materia es global y compartida entre centros. No crea una materia operativa ni una activación en el centro actual.",
+      "fields": {
+        "name": "Nombre de la materia",
+        "code": "Código de la materia",
+        "cycle": "Ciclo de referencia",
+        "cyclePlaceholder": "Seleccione un ciclo",
+        "levels": "Niveles de referencia",
+        "levelsNeedCycle": "Seleccione primero un ciclo para mostrar los niveles de referencia.",
+        "levelsEmpty": "No hay niveles de referencia para este ciclo.",
+        "category": "Categoría de la materia",
+        "defaultStatus": "Estado predeterminado",
+        "weeklySessions": "Sesiones semanales predeterminadas",
+        "additionalInfo": "Información adicional",
+        "externalCode": "Código de referencia externo",
+        "sourceNote": "Nota de origen"
+      },
+      "status": {
+        "unspecified": "No especificado",
+        "mandatory": "Obligatoria por defecto",
+        "optional": "Opcional por defecto"
+      },
+      "categories": {
+        "language": "Lenguas",
+        "science": "Ciencias",
+        "math": "Matemáticas",
+        "social": "Ciencias sociales",
+        "art": "Artes",
+        "sport": "Educación física",
+        "religious": "Educación islámica",
+        "technology": "Tecnología",
+        "other": "Otra"
+      },
+      "actions": {
+        "create": "Crear materia de referencia",
+        "enable": "Ir a la activación de materias"
+      },
+      "success": "La materia se añadió al catálogo de referencia.",
+      "successEnableHint": "Aún no está activada en ningún centro. Vaya a la activación para vincularla a niveles operativos cuando corresponda.",
+      "errors": {
+        "manageForbidden": "No tiene permiso para gestionar el catálogo de referencia.",
+        "codeConflict": "Este código de materia ya está en uso.",
+        "cycleNotFound": "No se encontró el ciclo de referencia.",
+        "levelNotFound": "No se encontró el nivel de referencia.",
+        "cycleLevelMismatch": "El nivel no pertenece al ciclo seleccionado.",
+        "invalidPayload": "Datos no válidos.",
+        "levelsRequired": "Seleccione al menos un nivel de referencia.",
+        "invalidWeeklySessions": "Las sesiones semanales deben ser un entero no negativo."
+      }
+    },
     "settings": {
       "title": "Ajustes",
       "subtitle": "Configuración y organización del centro",

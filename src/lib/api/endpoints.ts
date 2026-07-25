@@ -153,6 +153,8 @@ export const endpoints = {
     subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,
     subjectsImport: '/admin/subjects/import',
     subjectsExport: '/admin/subjects/export',
+    /** Platform-only — create global school.ref.subject (POST exact). */
+    referenceSubjects: '/admin/reference-subjects',
 
     setupReadiness: '/admin/setup/readiness',
     setupAcademicInitialize: '/admin/setup/academic/initialize',

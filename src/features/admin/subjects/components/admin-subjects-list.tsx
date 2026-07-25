@@ -18,6 +18,7 @@ import { buildSubjectEnabledLevelSummaries } from '@/features/admin/subject-enab
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { canManageReferenceSubjects } from '@/lib/permissions/academic-capabilities';
 import { canManageSubjects } from '@/lib/permissions/academic-setup';
 import type { Level, Subject } from '@/types/class';
 import type { SubjectEnabledLevelSummary } from '@/types/subject-enablement';
@@ -160,6 +161,7 @@ export function AdminSubjectsList({
   const t = useT();
   const user = useSession();
   const canManage = canManageSubjects(user);
+  const canManageReference = canManageReferenceSubjects(user);
   const [importOpen, setImportOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState<SubjectTier | ''>('');
@@ -238,6 +240,16 @@ export function AdminSubjectsList({
               showImport
               importOpen={importOpen}
               onToggleImport={() => setImportOpen((v) => !v)}
+              extra={
+                canManageReference ? (
+                  <Link
+                    href="/admin/subjects/reference/new"
+                    className="btn btn--ghost btn--sm"
+                  >
+                    {t('admin.referenceSubjects.add')}
+                  </Link>
+                ) : null
+              }
             />
           </div>
         </div>
