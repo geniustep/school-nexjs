@@ -218,6 +218,12 @@ function adminNav(user: CurrentUser): NavSection[] {
 
   {
     const communicationItems: NavItem[] = [];
+    communicationItems.push({
+      labelKey: 'nav.announcements',
+      href: '/admin/announcements',
+      icon: '📣',
+      isActive: (pathname) => pathname.startsWith('/admin/announcements'),
+    });
     pushIf(communicationItems, canReviewCommunication(user), {
       labelKey: 'nav.communicationReview',
       href: '/admin/communication',
@@ -330,7 +336,10 @@ function teacherNav(): NavSection[] {
     },
     {
       titleKey: 'nav.communication',
-      items: [{ labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' }],
+      items: [
+        { labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' },
+        { labelKey: 'nav.announcements', href: '/teacher/announcements', icon: '📣' },
+      ],
     },
     {
       titleKey: 'teacher.workspaceNavProfile',
@@ -351,7 +360,10 @@ function parentNav(): NavSection[] {
     },
     {
       titleKey: 'nav.communication',
-      items: [{ labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' }],
+      items: [
+        { labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' },
+        { labelKey: 'nav.announcements', href: '/parent/announcements', icon: '📣' },
+      ],
     },
   ];
 }

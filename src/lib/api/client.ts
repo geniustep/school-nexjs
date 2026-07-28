@@ -4,7 +4,7 @@
 // which attaches the Odoo session cookie server-side. Components never see the
 // session id and never call Odoo directly.
 
-import type { ApiResponse, ListParams } from '@/types/api';
+import type { ApiResponse, ApiSuccess, ListParams } from '@/types/api';
 import { clientActiveRoleHeaders } from '@/lib/auth/active-role-client';
 import { sanitizeClientApiErrorMessage } from '@/lib/utils/user-facing-error';
 
@@ -82,6 +82,19 @@ async function parse<T>(res: Response): Promise<ApiResponse<T>> {
           },
         },
         meta: payload.meta ?? {},
+      };
+    }
+    // Fold Odoo top-level list extras (e.g. unread_count on announcements) into meta.
+    const successPayload = payload as ApiSuccess<T> & Record<string, unknown>;
+    if (Object.prototype.hasOwnProperty.call(successPayload, 'unread_count')) {
+      const raw = Number(successPayload.unread_count);
+      return {
+        success: true,
+        data: successPayload.data,
+        meta: {
+          ...(successPayload.meta ?? {}),
+          unread_count: Number.isFinite(raw) ? raw : 0,
+        },
       };
     }
     return payload;

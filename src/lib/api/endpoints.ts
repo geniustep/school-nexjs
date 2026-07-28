@@ -886,6 +886,23 @@ export const endpoints = {
   },
 
   /**
+   * Governed announcement recipient APIs (Odoo 5D2B).
+   * Shared across parent/student/teacher/admin active roles.
+   * Optional `student_id` query is parent-child filter only (Backend-validated).
+   */
+  communication: {
+    announcements: '/communication/announcements',
+    announcement: (messageId: number | string) =>
+      `/communication/announcements/${messageId}`,
+    announcementRead: (messageId: number | string) =>
+      `/communication/announcements/${messageId}/read`,
+    announcementAttachmentDownload: (
+      messageId: number | string,
+      attachmentId: number | string,
+    ) => `/communication/announcements/${messageId}/attachments/${attachmentId}/download`,
+  },
+
+  /**
    * Staff portal communication (teacher/staff role via /staff/… Backend paths).
    * B4 content recipient preview — not the admin /admin/staff HR family.
    */
