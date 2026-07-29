@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/primitives';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { RequireCommunicationReviewAccess } from '@/features/admin/communication/components/require-communication-review';
 import { useToast } from '@/components/ui/toast';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -39,6 +39,7 @@ import {
   communicationStateMessageKey,
   stripHtmlPreview,
 } from '@/features/communication/utils/communication-labels';
+import { hasCommunicationRecordAction } from '@/lib/permissions/communication';
 import type { ApiErrorBody } from '@/types/api';
 import type { CommunicationContent } from '@/types/communication';
 import '../communication-review.css';
@@ -150,7 +151,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
     return <EmptyState icon="📣" title={t('communication.notFound')} />;
   }
 
-  const actions = new Set(item.allowed_actions ?? []);
+  const actions = item.allowed_actions ?? [];
   const body = item.body || item.current_version?.body || '';
   const isApprovedAwaitingPublish = item.state === 'approved';
   const canAuthorResubmit = canResubmitPendingContent(item, {
@@ -170,6 +171,12 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           is_frozen: true,
         })
       : null);
+
+  const canRequestChanges = hasCommunicationRecordAction(actions, 'request_changes');
+  const canApprove = hasCommunicationRecordAction(actions, 'approve');
+  const canPublish = hasCommunicationRecordAction(actions, 'publish');
+  const canSchedule = hasCommunicationRecordAction(actions, 'schedule');
+  const canCancel = hasCommunicationRecordAction(actions, 'cancel');
 
   return (
     <div className="admin-workspace communication-review">
@@ -331,7 +338,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
         </Card>
       ) : null}
 
-      {(showReason || actions.has('request_changes') || actions.has('cancel')) && (
+      {(showReason || canRequestChanges || canCancel) && (
         <Card>
           <label className="tiny" htmlFor="comm-reason">
             {t('communication.changeRequestReason')}
@@ -348,7 +355,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
       )}
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        {actions.has('request_changes') ? (
+        {canRequestChanges ? (
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -364,7 +371,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             {t('communication.actions.requestChanges')}
           </button>
         ) : null}
-        {actions.has('approve') ? (
+        {canApprove ? (
           <button
             type="button"
             className="btn btn--primary btn--sm"
@@ -374,7 +381,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             {t('communication.actions.approve')}
           </button>
         ) : null}
-        {actions.has('publish') ? (
+        {canPublish ? (
           <button
             type="button"
             className="btn btn--primary btn--sm"
@@ -384,7 +391,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             {t('communication.actions.publish')}
           </button>
         ) : null}
-        {actions.has('schedule') ? (
+        {canSchedule ? (
           <div className="row" style={{ gap: 8 }}>
             <input
               type="datetime-local"
@@ -407,7 +414,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             </button>
           </div>
         ) : null}
-        {actions.has('cancel') ? (
+        {canCancel ? (
           <button
             type="button"
             className="btn btn--danger btn--sm"
@@ -497,8 +504,8 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
 
 export function AdminCommunicationDetailPage({ id }: { id: number }) {
   return (
-    <RequireAdminPermission permission="view_channels">
+    <RequireCommunicationReviewAccess>
       <AdminCommunicationDetailInner id={id} />
-    </RequireAdminPermission>
+    </RequireCommunicationReviewAccess>
   );
 }

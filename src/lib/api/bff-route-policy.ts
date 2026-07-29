@@ -211,6 +211,23 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['GET', 'HEAD'],
     test: (p) => /^\/attachments\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),
   },
+  /**
+   * Governed announcement recipient APIs (Odoo 5D2B / 18.0.1.0.247).
+   * Published-only deliveries; Backend enforces audience + active role.
+   */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => /^\/communication\/announcements(?:\/[^/]+)?$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/communication\/announcements\/[^/]+\/read$/.test(p),
+  },
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) =>
+      /^\/communication\/announcements\/[^/]+\/attachments\/[^/]+\/download$/.test(p),
+  },
 ];
 
 export type BffRoutePolicyResult =

@@ -2,11 +2,9 @@
 
 import { use } from 'react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/ui/primitives';
+import { AnnouncementsRecipientFeed } from '@/features/announcements/components/announcements-recipient-feed';
 import { ChildSubnav } from '@/features/parent/child-subnav';
-import { AnnouncementsFeed } from '@/features/announcements/announcements-feed';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
 
 export default function ChildAnnouncementsPage({
   params,
@@ -15,17 +13,22 @@ export default function ChildAnnouncementsPage({
 }) {
   const { id } = use(params);
   const t = useT();
+  const studentId = Number(id);
+  const basePath = `/parent/children/${id}/announcements`;
+
   return (
     <>
       <Link href={`/parent/children/${id}`} className="back-link">
         ‹ {t('common.backToChild')}
       </Link>
-      <PageHeader
-        title={t('nav.announcements')}
-        subtitle={t('parent.childAnnouncementsSubtitle')}
-      />
       <ChildSubnav id={id} />
-      <AnnouncementsFeed path={endpoints.parent.childAnnouncements(id)} />
+      {Number.isFinite(studentId) && studentId > 0 ? (
+        <AnnouncementsRecipientFeed
+          basePath={basePath}
+          studentId={studentId}
+          subtitle={t('parent.childAnnouncementsSubtitle')}
+        />
+      ) : null}
     </>
   );
 }

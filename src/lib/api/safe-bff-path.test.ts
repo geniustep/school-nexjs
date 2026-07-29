@@ -126,6 +126,16 @@ describe('BFF route policy', () => {
     expect(
       assertBffRoutePolicy('/staff/communication/content/34/recipient-preview', 'POST').ok,
     ).toBe(true);
+    // Governed announcement recipient APIs (5D2B / 5E2)
+    expect(assertBffRoutePolicy('/communication/announcements', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/communication/announcements/12', 'GET').ok).toBe(true);
+    expect(assertBffRoutePolicy('/communication/announcements/12/read', 'POST').ok).toBe(true);
+    expect(
+      assertBffRoutePolicy(
+        '/communication/announcements/12/attachments/9/download',
+        'GET',
+      ).ok,
+    ).toBe(true);
   });
 
   it('rejects unlisted paths, wrong methods, and ORM namespaces', () => {

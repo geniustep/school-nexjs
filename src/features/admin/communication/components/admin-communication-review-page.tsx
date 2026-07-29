@@ -13,12 +13,12 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { PageHeader, Badge, Card } from '@/components/ui/primitives';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { RequireCommunicationReviewAccess } from '@/features/admin/communication/components/require-communication-review';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { formatDateTime } from '@/lib/utils/format';
 import {
-  canViewCommunicationWorkspace,
+  canReviewCommunication,
 } from '@/lib/permissions/communication';
 import { fetchCommunicationContentList } from '@/features/communication/api/admin-communication-api';
 import {
@@ -74,7 +74,7 @@ function AdminCommunicationReviewInner() {
     void load();
   }, [load]);
 
-  if (!canViewCommunicationWorkspace(user)) {
+  if (!canReviewCommunication(user)) {
     return (
       <EmptyState
         icon="🔒"
@@ -169,8 +169,8 @@ function AdminCommunicationReviewInner() {
 
 export function AdminCommunicationReviewPage() {
   return (
-    <RequireAdminPermission permission="view_channels">
+    <RequireCommunicationReviewAccess>
       <AdminCommunicationReviewInner />
-    </RequireAdminPermission>
+    </RequireCommunicationReviewAccess>
   );
 }

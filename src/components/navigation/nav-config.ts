@@ -11,6 +11,7 @@ import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { shouldUsePedagogicalNav } from '@/lib/admin/pedagogical-dashboard';
 import { canViewTeachingPlanning } from '@/lib/permissions/teaching-planning';
+import { canReviewCommunication } from '@/lib/permissions/communication';
 
 export interface NavItem {
   labelKey: string;
@@ -215,15 +216,31 @@ function adminNav(user: CurrentUser): NavSection[] {
     items: learningItems,
   });
 
-  if (canShowAdminNavPermission(user, 'view_channels')) {
+  {
+    const communicationItems: NavItem[] = [];
+    communicationItems.push({
+      labelKey: 'nav.announcements',
+      href: '/admin/announcements',
+      icon: '📣',
+      isActive: (pathname) => pathname.startsWith('/admin/announcements'),
+    });
+    pushIf(communicationItems, canReviewCommunication(user), {
+      labelKey: 'nav.communicationReview',
+      href: '/admin/communication',
+      icon: '☑️',
+      isActive: (pathname) => pathname.startsWith('/admin/communication'),
+    });
+    pushIf(communicationItems, canShowAdminNavPermission(user, 'view_channels'), {
+      labelKey: 'nav.channels',
+      href: '/admin/channels',
+      icon: '💬',
+      isActive: (pathname) => pathname.startsWith('/admin/channels'),
+    });
     pushSection(sections, {
       groupId: 'communication',
       icon: '📣',
       titleKey: scopedNavTitle('nav.communication', 'nav.adminScopedCommunication', scopedLabels),
-      items: [
-        { labelKey: 'nav.communicationReview', href: '/admin/communication', icon: '☑️' },
-        { labelKey: 'nav.channels', href: '/admin/channels', icon: '💬' },
-      ],
+      items: communicationItems,
     });
   }
 
@@ -319,7 +336,10 @@ function teacherNav(): NavSection[] {
     },
     {
       titleKey: 'nav.communication',
-      items: [{ labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' }],
+      items: [
+        { labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' },
+        { labelKey: 'nav.announcements', href: '/teacher/announcements', icon: '📣' },
+      ],
     },
     {
       titleKey: 'teacher.workspaceNavProfile',
@@ -340,7 +360,10 @@ function parentNav(): NavSection[] {
     },
     {
       titleKey: 'nav.communication',
-      items: [{ labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' }],
+      items: [
+        { labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' },
+        { labelKey: 'nav.announcements', href: '/parent/announcements', icon: '📣' },
+      ],
     },
   ];
 }
@@ -374,7 +397,6 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_classes', href: '/admin/classes', labelKey: 'nav.classes' },
   { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.staffCenter' },
   { permission: 'view_attendance', href: '/admin/attendance', labelKey: 'nav.attendance' },
-  { permission: 'view_channels', href: '/admin/communication', labelKey: 'nav.communicationReview' },
   { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.channels' },
   { permission: 'view_homeworks', href: '/admin/homeworks', labelKey: 'nav.homework' },
   { permission: 'view_resources', href: '/admin/resources', labelKey: 'nav.resources' },
