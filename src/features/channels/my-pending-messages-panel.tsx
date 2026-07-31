@@ -141,6 +141,7 @@ export function MyPendingMessagesPanel({
     inFlightRef.current = true;
     setPreviewPhase('submitting');
     setActingId(previewContentId);
+    const endpoints = channelsEndpointsForRole(role);
     const res = await api.post(endpoints.pendingMessageResubmit(channelId, previewContentId), {
       body: text,
     });
