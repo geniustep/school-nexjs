@@ -45,7 +45,10 @@ export function MyPendingMessagesPanel({
   const t = useT();
   const user = useSession();
   const toast = useToast();
-  const endpoints = channelsEndpointsForRole(user.role);
+  // Resolve path inside load — channelsEndpointsForRole returns a new object each call,
+  // so it must never be a useCallback/useEffect dependency (that caused an infinite refetch loop
+  // against /admin/channels/:id/pending-messages).
+  const role = user.role;
   const [items, setItems] = useState<CommunicationContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiErrorBody | null>(null);
@@ -60,13 +63,17 @@ export function MyPendingMessagesPanel({
   const [previewBodyKey, setPreviewBodyKey] = useState<string | null>(null);
   const [previewPhase, setPreviewPhase] = useState<'idle' | 'previewing' | 'submitting'>('idle');
   const inFlightRef = useRef(false);
+  const loadGenerationRef = useRef(0);
 
   const load = useCallback(async () => {
+    const generation = ++loadGenerationRef.current;
     setLoading(true);
+    const endpoints = channelsEndpointsForRole(role);
     const res = await api.get<CommunicationContent[]>(endpoints.myPendingMessages(channelId), {
       page: 1,
       limit: 50,
     });
+    if (generation !== loadGenerationRef.current) return;
     if (res.success) {
       setItems(Array.isArray(res.data) ? res.data : []);
       setError(null);
@@ -80,10 +87,14 @@ export function MyPendingMessagesPanel({
       }
     }
     setLoading(false);
-  }, [channelId, endpoints]);
+  }, [channelId, role]);
 
   useEffect(() => {
     void load();
+    return () => {
+      // Invalidate any in-flight load so unmount / channel switch cannot write stale state.
+      loadGenerationRef.current += 1;
+    };
   }, [load, reloadToken]);
 
   async function requestResubmitPreview(item: CommunicationContent) {

@@ -4,7 +4,7 @@
 // the channel's server-provided can_send / allowed_message_actions allow it.
 // Pending (HTTP 202) submissions never appear in the published message list.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { useSession } from '@/features/auth/session-context';
@@ -20,6 +20,7 @@ import type { Channel } from '@/types/channel';
 import type { Message } from '@/types/message';
 import type { ApiErrorBody } from '@/types/api';
 import { ChannelMessageComposer } from './channel-message-composer';
+import { useVisibleInterval } from './hooks/use-visible-interval';
 import { MyPendingMessagesPanel } from './my-pending-messages-panel';
 import { channelAllowsCompose, channelComposeMode } from './utils/channel-composer-actions';
 import {
@@ -29,6 +30,7 @@ import {
 import { resolveAdminChannel } from './utils/resolve-admin-channel';
 import './channels-pending.css';
 
+/** Published message list refresh while the channel detail stays open and visible. */
 const POLL_MS = 30000;
 
 export function ChannelChat({
@@ -55,6 +57,7 @@ export function ChannelChat({
   const [loadingMsgs, setLoadingMsgs] = useState(true);
   const [pendingReloadToken, setPendingReloadToken] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesGenerationRef = useRef(0);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -76,37 +79,48 @@ export function ChannelChat({
     };
   }, [channelId, isAdmin]);
 
-  async function loadMessages(scroll = false) {
-    // Backend 228 admin GET uses page/limit; portal accepts the same shape.
-    const res = await api.get<Message[]>(ch.messages(channelId), {
-      page: 1,
-      limit: 100,
-    });
-    if (res.success) {
-      const normalized = (Array.isArray(res.data) ? res.data : [])
-        .map((row) => normalizePublishedMessage(row))
-        .filter((m): m is Message => m != null);
-      // De-dupe by Message.id; never mix pending content into published list.
-      setMessages(mergePublishedMessages([], normalized));
-      setMsgError(null);
-      if (scroll) {
-        requestAnimationFrame(() => {
-          scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-        });
+  const loadMessages = useCallback(
+    async (scroll = false) => {
+      const generation = messagesGenerationRef.current;
+      // Resolve path inside the callback — channelsEndpointsForRole is not referentially stable.
+      const endpoints = channelsEndpointsForRole(user.role);
+      // Backend 228 admin GET uses page/limit; portal accepts the same shape.
+      const res = await api.get<Message[]>(endpoints.messages(channelId), {
+        page: 1,
+        limit: 100,
+      });
+      if (generation !== messagesGenerationRef.current) return;
+      if (res.success) {
+        const normalized = (Array.isArray(res.data) ? res.data : [])
+          .map((row) => normalizePublishedMessage(row))
+          .filter((m): m is Message => m != null);
+        // De-dupe by Message.id; never mix pending content into published list.
+        setMessages(mergePublishedMessages([], normalized));
+        setMsgError(null);
+        if (scroll) {
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+          });
+        }
+      } else {
+        setMsgError(res.error);
       }
-    } else {
-      setMsgError(res.error);
-    }
-    setLoadingMsgs(false);
-  }
+      setLoadingMsgs(false);
+    },
+    [channelId, user.role],
+  );
 
   useEffect(() => {
     setLoadingMsgs(true);
     void loadMessages(true);
-    const timer = setInterval(() => void loadMessages(false), POLL_MS);
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelId]);
+    return () => {
+      // Invalidate in-flight fetches on channel switch / unmount.
+      messagesGenerationRef.current += 1;
+    };
+  }, [loadMessages]);
+
+  // One poller per mounted ChannelChat; pauses when the tab is hidden.
+  useVisibleInterval(() => loadMessages(false), POLL_MS, true);
 
   function renderChat(channel: Channel) {
     const composeAllowed = channelAllowsCompose(channel);
