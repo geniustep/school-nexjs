@@ -8,7 +8,19 @@ import { useToast } from '@/components/ui/toast';
 import { Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { buildClassPayload, mapClassApiError, resolveAcademicYearId } from '@/features/admin/class-form-utils';
+import {
+  buildClassPayload,
+  collectCyclesFromLevels,
+  existingClassNamesForCanonicalScope,
+  filterLevelsByCycleId,
+  mapClassApiError,
+  resolveAcademicYearId,
+  resolveCycleIdForLevel,
+  resolveDefaultClassAcademicYearId,
+  resolveLevelAcademicCode,
+  shouldReplaceSuggestedClassName,
+  suggestNextCanonicalClassName,
+} from '@/features/admin/class-form-utils';
 import { ClassSubjectsField } from '@/features/admin/academic-setup/components/class-subjects-field';
 import { CreateSchoolSubjectDrawer } from '@/features/admin/academic-setup/components/create-school-subject-drawer';
 import { useSubjectOptions } from '@/features/admin/academic-setup/hooks/use-subject-options';
@@ -19,6 +31,8 @@ import {
   partitionClassSubjectSelection,
   resolveClassSubjectIdsForSave,
 } from '@/features/admin/academic-setup/utils/class-level-subjects';
+import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
+import { sortedLevels } from '@/features/admin/levels/utils/levels-list-utils';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { mapAccountApiError } from '@/lib/account/account-errors';
@@ -60,11 +74,13 @@ function FormShell({
   saving,
   onSubmit,
   onCancel,
+  submitLabel,
 }: {
   children: React.ReactNode;
   saving: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
+  submitLabel?: string;
 }) {
   const t = useT();
   return (
@@ -73,7 +89,7 @@ function FormShell({
         {children}
         <div className="row" style={{ gap: 8 }}>
           <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
-            {saving ? t('common.saving') : t('common.save')}
+            {saving ? t('common.saving') : submitLabel ?? t('common.save')}
           </button>
           <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
             {t('common.cancel')}
@@ -320,7 +336,12 @@ export function ClassForm({
 }) {
   const t = useT();
   const toast = useToast();
+  const isCreating = cls?.id == null;
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const classesState = useAdminResource<SchoolClass[]>(
+    isCreating ? endpoints.admin.classes : null,
+  );
+  const studentOptionsState = useStudentOptions();
   const schoolSubjectsState = useAdminResource<Subject[]>(endpoints.admin.subjects, {
     page_size: 500,
   });
@@ -328,6 +349,9 @@ export function ClassForm({
   const teachersState = useResource<Teacher[]>(endpoints.admin.teachers, { page_size: 200 });
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(cls?.name ?? '');
+  const [nameManuallyEdited, setNameManuallyEdited] = useState(!isCreating && Boolean(cls?.name));
+  const [lastSuggestedName, setLastSuggestedName] = useState('');
+  const [cycleId, setCycleId] = useState('');
   const [levelId, setLevelId] = useState(String(cls?.level_id ?? cls?.level?.id ?? ''));
   const [trackId, setTrackId] = useState(String(cls?.track_id ?? cls?.track?.id ?? ''));
   const [academicYearId, setAcademicYearId] = useState(resolveAcademicYearId(cls));
@@ -343,7 +367,16 @@ export function ClassForm({
   const [subjectIds, setSubjectIds] = useState<number[]>(initialSubjectIds);
   const [subjectsTouched, setSubjectsTouched] = useState(false);
   const [reconcileSubjectsAfterLevelChange, setReconcileSubjectsAfterLevelChange] = useState(false);
+  const [createAutoSubjectsKey, setCreateAutoSubjectsKey] = useState('');
   const [createSubjectOpen, setCreateSubjectOpen] = useState(false);
+
+  const allLevels = useMemo(() => sortedLevels(levelsState.data ?? []), [levelsState.data]);
+  const cycles = useMemo(() => collectCyclesFromLevels(allLevels), [allLevels]);
+  const levelsForCycle = useMemo(
+    () => (cycleId ? filterLevelsByCycleId(allLevels, cycleId) : []),
+    [allLevels, cycleId],
+  );
+  const academicYears = studentOptionsState.options?.academicYears ?? [];
 
   const legacyCatalog = useMemo(
     () =>
@@ -401,6 +434,94 @@ export function ClassForm({
     [subjectIds, levelSubjectOptions, legacyCatalog],
   );
 
+  // Prefill cycle from level (create stub / edit) once levels arrive.
+  useEffect(() => {
+    if (!allLevels.length || !levelId || cycleId) return;
+    const level = allLevels.find((l) => String(l.id) === levelId);
+    if (level) setCycleId(resolveCycleIdForLevel(level));
+  }, [allLevels, levelId, cycleId]);
+
+  // Default academic year from options when creating.
+  useEffect(() => {
+    if (!isCreating || academicYearId) return;
+    if (studentOptionsState.loading) return;
+    const years = studentOptionsState.options?.academicYears ?? [];
+    const next = resolveDefaultClassAcademicYearId(years);
+    if (next) setAcademicYearId(next);
+  }, [
+    isCreating,
+    academicYearId,
+    studentOptionsState.loading,
+    studentOptionsState.options?.academicYears,
+  ]);
+
+  // Suggest next canonical class name after year + level selection (create only).
+  useEffect(() => {
+    if (!isCreating) return;
+    if (!levelId || !academicYearId || classesState.loading) {
+      return;
+    }
+    const level = allLevels.find((l) => String(l.id) === levelId);
+    const academicCode = resolveLevelAcademicCode(level);
+    if (!academicCode) {
+      if (
+        shouldReplaceSuggestedClassName(name, lastSuggestedName, nameManuallyEdited) &&
+        name
+      ) {
+        setName('');
+        setLastSuggestedName('');
+        setNameManuallyEdited(false);
+      }
+      return;
+    }
+    const existing = existingClassNamesForCanonicalScope(classesState.data, {
+      levelId,
+      academicYearId,
+    });
+    const suggestion = suggestNextCanonicalClassName(academicCode, existing);
+    if (!suggestion) return;
+    if (
+      !shouldReplaceSuggestedClassName(name, lastSuggestedName, nameManuallyEdited)
+    ) {
+      return;
+    }
+    if (name === suggestion && lastSuggestedName === suggestion) return;
+    setName(suggestion);
+    setLastSuggestedName(suggestion);
+    setNameManuallyEdited(false);
+  }, [
+    isCreating,
+    levelId,
+    academicYearId,
+    allLevels,
+    classesState.loading,
+    classesState.data,
+    name,
+    lastSuggestedName,
+    nameManuallyEdited,
+  ]);
+
+  // On create: select all level subjects when level/track subject options settle.
+  useEffect(() => {
+    if (!isCreating || !parsedLevelId || subjectsFieldLoading) return;
+    if (subjectOptionsState.error) return;
+    const key = `${levelId}:${levelSupportsTracks ? trackId : ''}`;
+    if (createAutoSubjectsKey === key) return;
+    setSubjectIds(levelSubjectOptions.map((s) => s.id));
+    setSubjectsTouched(true);
+    setCreateAutoSubjectsKey(key);
+  }, [
+    isCreating,
+    parsedLevelId,
+    levelId,
+    trackId,
+    levelSupportsTracks,
+    subjectsFieldLoading,
+    subjectOptionsState.error,
+    levelSubjectOptions,
+    createAutoSubjectsKey,
+  ]);
+
   function handleSubjectCreated(subjectId: number) {
     schoolSubjectsState.reload();
     levelDetailState.reload();
@@ -410,9 +531,9 @@ export function ClassForm({
   }
 
   useEffect(() => {
+    if (isCreating) return;
     if (!reconcileSubjectsAfterLevelChange || subjectOptionsState.loading) return;
     if (subjectOptionsState.error) {
-      // Keep current selection on fetch failure — never wipe silently.
       setReconcileSubjectsAfterLevelChange(false);
       return;
     }
@@ -428,6 +549,7 @@ export function ClassForm({
     }
     setReconcileSubjectsAfterLevelChange(false);
   }, [
+    isCreating,
     reconcileSubjectsAfterLevelChange,
     subjectOptionsState.loading,
     subjectOptionsState.error,
@@ -437,25 +559,70 @@ export function ClassForm({
     t,
   ]);
 
+  function handleCycleChange(nextCycleId: string) {
+    if (nextCycleId === cycleId) return;
+    const nextLevels = filterLevelsByCycleId(allLevels, nextCycleId);
+    const stillValid = !levelId || nextLevels.some((l) => String(l.id) === levelId);
+    if (!stillValid && trackId.trim() && !isCreating) {
+      if (!window.confirm(t('admin.academicSetup.trackClearConfirm'))) {
+        return;
+      }
+    }
+    setCycleId(nextCycleId);
+    if (!stillValid) {
+      setLevelId('');
+      setTrackId('');
+      if (isCreating) {
+        setCreateAutoSubjectsKey('');
+        setSubjectIds([]);
+        if (shouldReplaceSuggestedClassName(name, lastSuggestedName, nameManuallyEdited)) {
+          setName('');
+          setLastSuggestedName('');
+          setNameManuallyEdited(false);
+        }
+      } else {
+        setReconcileSubjectsAfterLevelChange(true);
+      }
+    }
+  }
+
   function handleLevelChange(nextLevelId: string) {
     if (nextLevelId === levelId) return;
     if (trackId && nextLevelId !== levelId) {
       const hadTrack = trackId.trim().length > 0;
-      if (hadTrack && cls && !window.confirm(t('admin.academicSetup.trackClearConfirm'))) {
+      if (hadTrack && !isCreating && !window.confirm(t('admin.academicSetup.trackClearConfirm'))) {
         return;
       }
       setTrackId('');
     }
     setLevelId(nextLevelId);
-    setReconcileSubjectsAfterLevelChange(true);
+    if (isCreating) {
+      setCreateAutoSubjectsKey('');
+    } else {
+      setReconcileSubjectsAfterLevelChange(true);
+    }
   }
 
   function handleTrackChange(nextTrackId: string) {
-    if (cls && trackId && nextTrackId !== trackId && !window.confirm(t('admin.academicSetup.trackChangeWarning'))) {
+    if (
+      !isCreating &&
+      trackId &&
+      nextTrackId !== trackId &&
+      !window.confirm(t('admin.academicSetup.trackChangeWarning'))
+    ) {
       return;
     }
     setTrackId(nextTrackId);
-    setReconcileSubjectsAfterLevelChange(true);
+    if (isCreating) {
+      setCreateAutoSubjectsKey('');
+    } else {
+      setReconcileSubjectsAfterLevelChange(true);
+    }
+  }
+
+  function handleNameChange(value: string) {
+    setName(value);
+    setNameManuallyEdited(true);
   }
 
   function toggleId(id: number, list: number[], set: (v: number[]) => void) {
@@ -467,11 +634,28 @@ export function ClassForm({
     setSubjectIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
+  function selectAllSubjects() {
+    setSubjectsTouched(true);
+    setSubjectIds(levelSubjectOptions.map((s) => s.id));
+  }
+
+  function clearAllSubjects() {
+    setSubjectsTouched(true);
+    setSubjectIds([]);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !levelId) {
       toast.error(t('errors.validationFailed'));
       return;
+    }
+    if (isCreating) {
+      const level = allLevels.find((l) => String(l.id) === levelId);
+      if (!resolveLevelAcademicCode(level)) {
+        toast.error(t('admin.classMissingAcademicCode'));
+        return;
+      }
     }
     const safeSubjectIds = subjectsTouched
       ? resolveClassSubjectIdsForSave(subjectIds, levelSubjectOptions, initialSubjectIds)
@@ -486,12 +670,12 @@ export function ClassForm({
       teacherIds,
       subjectIds: safeSubjectIds,
       subjectsTouched,
-      creating: !cls,
+      creating: isCreating,
     });
     setSaving(true);
-    const res = cls
-      ? await api.post(endpoints.admin.classUpdate(cls.id), payload)
-      : await api.post(endpoints.admin.classes, payload);
+    const res = isCreating
+      ? await api.post(endpoints.admin.classes, payload)
+      : await api.post(endpoints.admin.classUpdate(cls!.id), payload);
     setSaving(false);
     if (res.success && res.data) {
       toast.success(t('admin.saveSuccess'));
@@ -501,20 +685,95 @@ export function ClassForm({
     }
   }
 
+  const selectedLevel = allLevels.find((l) => String(l.id) === levelId);
+  const selectedAcademicCode = resolveLevelAcademicCode(selectedLevel);
+  const levelSelectDisabled = !cycleId;
+  const levelEmptyHint = !cycleId
+    ? t('academicContext.placeholders.chooseCycleFirst')
+    : levelsForCycle.length === 0
+      ? t('admin.classNoLevelsForCycle')
+      : null;
+
   return (
     <>
-      <FormShell saving={saving} onSubmit={submit} onCancel={onCancel}>
-        <Field label={t('admin.className')}>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
-        </Field>
+      <FormShell
+        saving={saving}
+        onSubmit={submit}
+        onCancel={onCancel}
+        submitLabel={isCreating ? t('admin.createClass') : undefined}
+      >
         <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+          <Field label={t('academicContext.fields.academicYear')}>
+            {studentOptionsState.loading && academicYears.length === 0 ? (
+              <span className="tiny muted" aria-busy="true">
+                {t('common.loading')}
+              </span>
+            ) : academicYears.length === 0 ? (
+              <span className="tiny muted" role="status">
+                {t('admin.classNoAcademicYears')}
+              </span>
+            ) : (
+              <select
+                className="input"
+                value={academicYearId}
+                onChange={(e) => setAcademicYearId(e.target.value)}
+                required={isCreating}
+                aria-label={t('academicContext.fields.academicYear')}
+              >
+                <option value="">{t('academicContext.placeholders.academicYear')}</option>
+                {academicYears.map((year) => (
+                  <option key={year.id} value={year.id}>
+                    {year.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+          <Field label={t('academicContext.fields.cycle')}>
+            {levelsState.loading && cycles.length === 0 ? (
+              <span className="tiny muted" aria-busy="true">
+                {t('common.loading')}
+              </span>
+            ) : cycles.length === 0 ? (
+              <span className="tiny muted" role="status">
+                {t('admin.classNoCycles')}
+              </span>
+            ) : (
+              <select
+                className="input"
+                value={cycleId}
+                onChange={(e) => handleCycleChange(e.target.value)}
+                required
+                aria-label={t('academicContext.fields.cycle')}
+              >
+                <option value="">{t('academicContext.placeholders.cycle')}</option>
+                {cycles.map((cycle) => (
+                  <option key={cycle.id} value={cycle.id}>
+                    {cycle.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
           <Field label={t('nav.levels')}>
-            <select className="input" value={levelId} onChange={(e) => handleLevelChange(e.target.value)} required>
+            <select
+              className="input"
+              value={levelId}
+              onChange={(e) => handleLevelChange(e.target.value)}
+              required
+              disabled={levelSelectDisabled}
+              aria-label={t('nav.levels')}
+            >
               <option value="">{t('admin.selectLevel')}</option>
-              {(levelsState.data ?? []).map((l) => (
-                <option key={l.id} value={l.id}>{l.name}</option>
+              {levelsForCycle.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
               ))}
             </select>
+            {levelEmptyHint ? (
+              <span className="tiny muted block mt-2">{levelEmptyHint}</span>
+            ) : null}
           </Field>
           {levelSupportsTracks && (
             <Field label={t('admin.academicSetup.classTrackLabel')}>
@@ -525,28 +784,51 @@ export function ClassForm({
               >
                 <option value="">{t('common.dash')}</option>
                 {tracksForLevel.map((tr) => (
-                  <option key={tr.id} value={tr.id}>{tr.name}</option>
+                  <option key={tr.id} value={tr.id}>
+                    {tr.name}
+                  </option>
                 ))}
               </select>
-              {cls && (
+              {!isCreating && (
                 <span className="tiny muted block mt-2">
                   {t('admin.academicSetup.trackChangeHint')}
                 </span>
               )}
             </Field>
           )}
-          <Field label={t('admin.academicYearIdOptional')}>
+        </div>
+        <Field label={isCreating ? t('admin.classCanonicalCode') : t('admin.className')}>
+          <input
+            className="input"
+            value={name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            required
+            dir="ltr"
+            disabled={isCreating && Boolean(levelId) && !selectedAcademicCode}
+            aria-describedby={isCreating ? 'class-canonical-name-hint' : undefined}
+          />
+          {isCreating ? (
+            <span id="class-canonical-name-hint" className="tiny muted block mt-2">
+              {levelId && !selectedAcademicCode
+                ? t('admin.classMissingAcademicCode')
+                : t('admin.classCanonicalCodeHint')}
+            </span>
+          ) : null}
+          {isCreating && selectedLevel?.name ? (
+            <span className="tiny muted block mt-2" dir="auto">
+              {t('admin.classCanonicalLevelContext', { level: selectedLevel.name })}
+            </span>
+          ) : null}
+        </Field>
+        <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+          <Field label={t('admin.capacity')}>
             <input
               className="input"
               type="number"
-              min={1}
-              value={academicYearId}
-              onChange={(e) => setAcademicYearId(e.target.value)}
-              placeholder={t('admin.academicYearOptionalHint')}
+              min={0}
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
             />
-          </Field>
-          <Field label={t('admin.capacity')}>
-            <input className="input" type="number" min={0} value={capacity} onChange={(e) => setCapacity(e.target.value)} />
           </Field>
           <Field label={t('academic.room')}>
             <input className="input" value={room} onChange={(e) => setRoom(e.target.value)} />
@@ -578,24 +860,28 @@ export function ClassForm({
               legacy={legacySubjects}
               selectedIds={subjectIds}
               onToggle={toggleSubjectId}
+              onSelectAll={selectAllSubjects}
+              onClearAll={clearAllSubjects}
               onRetry={() => {
                 subjectOptionsState.reload();
                 schoolSubjectsState.reload();
                 levelDetailState.reload();
               }}
-              canAddSubject
+              canAddSubject={!isCreating}
               onAddSubject={() => setCreateSubjectOpen(true)}
             />
           )}
         </Field>
       </FormShell>
-      <CreateSchoolSubjectDrawer
-        open={createSubjectOpen}
-        levels={levelsState.data ?? []}
-        defaultLevelIds={parsedLevelId != null ? [parsedLevelId] : []}
-        onClose={() => setCreateSubjectOpen(false)}
-        onSaved={handleSubjectCreated}
-      />
+      {!isCreating ? (
+        <CreateSchoolSubjectDrawer
+          open={createSubjectOpen}
+          levels={levelsState.data ?? []}
+          defaultLevelIds={parsedLevelId != null ? [parsedLevelId] : []}
+          onClose={() => setCreateSubjectOpen(false)}
+          onSaved={handleSubjectCreated}
+        />
+      ) : null}
     </>
   );
 }

@@ -1,9 +1,20 @@
-import type { ApiErrorBody } from '@/types/api';
+import type { ApiErrorBody, ApiMeta } from '@/types/api';
 import type { Ref } from '@/types/api';
+import type { Level, LevelCycle, SchoolClass } from '@/types/class';
+import {
+  ORPHAN_CYCLE_ID,
+  sortCycles,
+} from '@/features/admin/academic-setup/utils/group-and-sort-levels';
 
 export interface ClassAcademicYearSource {
   academic_year_id?: number;
   academic_year?: string | Ref | { id: number; name: string } | null;
+}
+
+export interface ClassAcademicYearOption {
+  id: number;
+  name: string;
+  is_current?: boolean;
 }
 
 export interface ClassFormInput {
@@ -25,6 +36,209 @@ export function resolveAcademicYearId(cls?: ClassAcademicYearSource): string {
   const ay = cls?.academic_year;
   if (ay && typeof ay === 'object' && 'id' in ay) return String(ay.id);
   return '';
+}
+
+/** Prefer `is_current` when the options contract exposes it; else first entry. */
+export function resolveDefaultClassAcademicYearId(
+  years: ClassAcademicYearOption[],
+): string {
+  if (!years.length) return '';
+  const current = years.find((y) => y.is_current);
+  return String((current ?? years[0]).id);
+}
+
+export function collectCyclesFromLevels(levels: Level[]): LevelCycle[] {
+  const byId = new Map<number, LevelCycle>();
+  let hasOrphan = false;
+  for (const level of levels) {
+    if (level.cycle?.id != null) {
+      byId.set(level.cycle.id, level.cycle);
+    } else {
+      hasOrphan = true;
+    }
+  }
+  if (hasOrphan) {
+    byId.set(ORPHAN_CYCLE_ID, {
+      id: ORPHAN_CYCLE_ID,
+      code: 'other',
+      name: '—',
+      sequence: 999_999,
+    });
+  }
+  return sortCycles([...byId.values()]);
+}
+
+export function filterLevelsByCycleId(levels: Level[], cycleId: string): Level[] {
+  if (!cycleId) return [];
+  const id = Number(cycleId);
+  if (!Number.isFinite(id)) return [];
+  return levels.filter((level) => {
+    if (id === ORPHAN_CYCLE_ID) return level.cycle == null || level.cycle.id === ORPHAN_CYCLE_ID;
+    return level.cycle?.id === id;
+  });
+}
+
+export function resolveCycleIdForLevel(level: Level | undefined): string {
+  if (!level) return '';
+  if (level.cycle?.id != null) return String(level.cycle.id);
+  return String(ORPHAN_CYCLE_ID);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Read level.academic_code only — never fall back to level.code or Arabic name. */
+export function resolveLevelAcademicCode(
+  level: Pick<Level, 'academic_code'> | null | undefined,
+): string | null {
+  const code = level?.academic_code?.trim();
+  return code ? code : null;
+}
+
+/**
+ * Parse canonical group number from `{academic_code}-{N}`.
+ * Rejects legacy names (P1A, 6AP-A, 1-3APG) and non-positive N.
+ */
+export function parseCanonicalClassGroupNumber(
+  className: string,
+  academicCode: string,
+): number | null {
+  const code = academicCode.trim();
+  if (!code) return null;
+  const match = className.trim().match(new RegExp(`^${escapeRegExp(code)}-(\\d+)$`));
+  if (!match) return null;
+  const n = Number(match[1]);
+  if (!Number.isInteger(n) || n < 1) return null;
+  return n;
+}
+
+/**
+ * Suggest one or more canonical class names: `{academic_code}-{N}`.
+ * N is the smallest unused positive integer; gaps are reused.
+ * Returns null when academic_code is missing (no legacy fallback).
+ */
+export function suggestCanonicalClassNames(
+  academicCode: string | null | undefined,
+  existingNames: string[],
+  quantity = 1,
+): string[] | null {
+  const code = academicCode?.trim();
+  if (!code) return null;
+  const count = Math.max(1, Math.floor(quantity));
+  const taken = new Set<number>();
+  for (const name of existingNames) {
+    const n = parseCanonicalClassGroupNumber(name, code);
+    if (n != null) taken.add(n);
+  }
+
+  const results: string[] = [];
+  let n = 1;
+  while (results.length < count) {
+    if (!taken.has(n)) {
+      results.push(`${code}-${n}`);
+      taken.add(n);
+    }
+    n += 1;
+  }
+  return results;
+}
+
+export function suggestNextCanonicalClassName(
+  academicCode: string | null | undefined,
+  existingNames: string[],
+): string | null {
+  const names = suggestCanonicalClassNames(academicCode, existingNames, 1);
+  return names?.[0] ?? null;
+}
+
+/** Existing class names in scope: same level (+ academic year when id is known). */
+export function existingClassNamesForCanonicalScope(
+  classes: Array<
+    Pick<SchoolClass, 'name' | 'level'> & { academic_year_id?: number | null }
+  > | null | undefined,
+  options: { levelId: string | number; academicYearId?: string },
+): string[] {
+  const levelId = Number(options.levelId);
+  if (!Number.isFinite(levelId) || levelId <= 0) return [];
+  const yearRaw = options.academicYearId?.trim() ?? '';
+  const yearId = yearRaw ? Number(yearRaw) : NaN;
+  const filterByYear = Number.isFinite(yearId) && yearId > 0;
+
+  return (classes ?? [])
+    .filter((cls) => cls.level?.id === levelId)
+    .filter((cls) => {
+      if (!filterByYear) return true;
+      if (typeof cls.academic_year_id === 'number') {
+        return cls.academic_year_id === yearId;
+      }
+      // Year unknown on row — keep name in pool so we never suggest a likely collision.
+      return true;
+    })
+    .map((cls) => cls.name)
+    .filter((name): name is string => typeof name === 'string' && name.trim().length > 0);
+}
+
+/** @deprecated Prefer existingClassNamesForCanonicalScope with year when available. */
+export function existingClassNamesForLevel(
+  classes: SchoolClass[] | null | undefined,
+  levelId: string | number,
+): string[] {
+  return existingClassNamesForCanonicalScope(classes, { levelId });
+}
+
+/** Whether auto-suggested name should be replaced after year/level change. */
+export function shouldReplaceSuggestedClassName(
+  currentName: string,
+  previousSuggestion: string,
+  nameManuallyEdited: boolean,
+): boolean {
+  if (!nameManuallyEdited) return true;
+  return currentName.trim() === previousSuggestion.trim();
+}
+
+/** Whether a classes list response is complete enough to compute next N safely. */
+export function isClassesListCompleteForNaming(
+  data: unknown[] | null | undefined,
+  meta: ApiMeta | null | undefined,
+): boolean {
+  if (!data) return false;
+  const pg = meta?.pagination;
+  if (!pg) return true;
+  const total = typeof pg.total === 'number' ? pg.total : null;
+  if (total != null && data.length < total) return false;
+  if (
+    typeof pg.page === 'number' &&
+    typeof pg.total_pages === 'number' &&
+    pg.total_pages > 0 &&
+    pg.page < pg.total_pages
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/** Shared POST body for one class row in individual or batch create. */
+export function buildBatchClassCreatePayload(input: {
+  name: string;
+  levelId: number;
+  academicYearId: string;
+  subjectIds: number[];
+  trackId?: string;
+  capacity?: string;
+}): Record<string, unknown> {
+  return buildClassPayload({
+    name: input.name,
+    levelId: String(input.levelId),
+    trackId: input.trackId ?? '',
+    academicYearId: input.academicYearId,
+    capacity: input.capacity ?? '',
+    room: '',
+    teacherIds: [],
+    subjectIds: input.subjectIds,
+    subjectsTouched: true,
+    creating: true,
+  });
 }
 
 /** Build a POST body accepted by POST /admin/classes and /admin/classes/{id}/update. */

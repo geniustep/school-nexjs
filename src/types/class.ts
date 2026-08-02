@@ -106,6 +106,8 @@ export interface SchoolClass {
   track?: TrackRef | null;
   track_id?: number | null;
   academic_year: string | null;
+  /** Present on list/detail payloads when the year id is known for uniqueness scope. */
+  academic_year_id?: number | null;
   student_count: number;
   capacity: number | null;
   teachers: Ref[];

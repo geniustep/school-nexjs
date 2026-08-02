@@ -52,6 +52,7 @@ export default function AdminClassesPage() {
         actions={
           <AdminListActions
             addHref="/admin/classes/new"
+            addLabel={t('admin.createClass')}
             managePermission="manage_classes"
             exportPath={endpoints.admin.classesExport}
             exportFilename="classes.csv"

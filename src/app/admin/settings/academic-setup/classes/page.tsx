@@ -111,10 +111,6 @@ export default function AcademicSetupClassesPage() {
     [levelGroups],
   );
 
-  const batchLevel = batchLevelId
-    ? lists.levels.find((l) => l.id === batchLevelId) ?? null
-    : null;
-
   const headerActions = canManage ? (
     <button
       type="button"
@@ -259,15 +255,16 @@ export default function AcademicSetupClassesPage() {
         onClose={closeDrawer}
         onSaved={refreshAll}
       />
-      {batchLevel && (
+      {batchLevelId != null ? (
         <BatchClassDrawer
-          open={!!batchLevel}
-          level={batchLevel}
+          open
+          levels={lists.levels}
+          initialLevelId={batchLevelId}
           trackLevels={trackOptionsState.options?.levels ?? []}
           onClose={() => setBatchLevelId(null)}
           onSaved={refreshAll}
         />
-      )}
+      ) : null}
       {levelsDrawer}
     </div>
   );

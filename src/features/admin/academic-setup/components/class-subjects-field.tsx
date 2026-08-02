@@ -13,6 +13,8 @@ export function ClassSubjectsField({
   legacy,
   selectedIds,
   onToggle,
+  onSelectAll,
+  onClearAll,
   onRetry,
   onAddSubject,
   canAddSubject = false,
@@ -24,6 +26,8 @@ export function ClassSubjectsField({
   legacy: ClassLegacySubject[];
   selectedIds: number[];
   onToggle: (id: number) => void;
+  onSelectAll?: () => void;
+  onClearAll?: () => void;
   onRetry: () => void;
   onAddSubject?: () => void;
   canAddSubject?: boolean;
@@ -33,6 +37,24 @@ export function ClassSubjectsField({
       <button type="button" className="btn btn--secondary btn--sm" onClick={onAddSubject}>
         {t('admin.academicSetup.classAddSubject')}
       </button>
+    ) : null;
+
+  const optionIdSet = new Set(options.map((o) => o.id));
+  const selectedAmongOptions = selectedIds.filter((id) => optionIdSet.has(id)).length;
+  const bulkActions =
+    onSelectAll || onClearAll ? (
+      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+        {onSelectAll ? (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onSelectAll}>
+            {t('admin.academicSetup.classSubjectsSelectAll')}
+          </button>
+        ) : null}
+        {onClearAll ? (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onClearAll}>
+            {t('admin.academicSetup.classSubjectsClearAll')}
+          </button>
+        ) : null}
+      </div>
     ) : null;
 
   return (
@@ -94,12 +116,14 @@ export function ClassSubjectsField({
         <>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
             <span className="tiny muted">
-              {t('admin.academicSetup.classSubjectsSelectedCount', {
-                count: selectedIds.length,
+              {t('admin.academicSetup.classSubjectsSelectedOfTotal', {
+                selected: selectedAmongOptions,
+                total: options.length,
               })}
             </span>
             {addAction}
           </div>
+          {bulkActions}
           <div className="col" style={{ gap: 6, maxHeight: 220, overflow: 'auto' }}>
             {options.map((subject) => (
               <label key={subject.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
