@@ -219,7 +219,7 @@ function adminNav(user: CurrentUser): NavSection[] {
   {
     const communicationItems: NavItem[] = [];
     communicationItems.push({
-      labelKey: 'nav.announcements',
+      labelKey: 'nav.schoolCommunication',
       href: '/admin/announcements',
       icon: '📣',
       isActive: (pathname) => pathname.startsWith('/admin/announcements'),

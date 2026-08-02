@@ -5,6 +5,7 @@
  * @design-status adopted
  */
 
+import type { ReactNode } from 'react';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { PageHeader } from '@/components/ui/primitives';
@@ -20,15 +21,19 @@ export function AnnouncementsRecipientFeed({
   studentId,
   title,
   subtitle,
+  actions,
 }: {
   /** e.g. `/student/announcements` — detail at `${basePath}/${id}` */
   basePath: string;
   studentId?: number;
   title?: string;
   subtitle?: string;
+  /** Optional header actions (admin create entry, etc.). */
+  actions?: ReactNode;
 }) {
   const t = useT();
   const list = useAnnouncementsList({ studentId });
+  const pageTitle = title ?? t('nav.announcements');
 
   const resourceState: ResourceState<AnnouncementListPage> = {
     loading: list.loading,
@@ -55,13 +60,14 @@ export function AnnouncementsRecipientFeed({
   return (
     <>
       <PageHeader
-        title={title ?? t('nav.announcements')}
+        title={pageTitle}
         subtitle={
           subtitle ??
           (unread > 0
             ? t('announcements.unreadCount', { count: String(unread) })
             : t('announcements.subtitle'))
         }
+        actions={actions}
       />
       <ResourceView
         state={resourceState}
@@ -70,7 +76,7 @@ export function AnnouncementsRecipientFeed({
         empty={
           <EmptyState
             icon="📣"
-            title={t('nav.announcements')}
+            title={pageTitle}
             description={t('announcements.empty')}
           />
         }
