@@ -541,6 +541,8 @@ export type StudentCreatePayloadScope = {
   classes?: StudentClassOption[];
   /** Wizard stores guardian contact in emergency* fields but links/creates guardian separately. */
   deferGuardianContact?: boolean;
+  /** Atomic admission conversion — sent as top-level admission_id on create. */
+  admissionId?: number | null;
 };
 
 export function validateStudentCreateEnrollmentClass(
@@ -749,6 +751,9 @@ export function buildStudentCreatePayload(
     applyEmergencyFields(payload, state);
   }
   applyAdmissionDataFields(payload, state);
+  if (scope?.admissionId != null && scope.admissionId > 0) {
+    payload.admission_id = scope.admissionId;
+  }
   const scopedClassId = resolveScopedClassIdForCreate(state, scope);
   if (scopedClassId != null) payload.class_id = scopedClassId;
   const enrollment = buildEnrollmentBlock(state);

@@ -15,6 +15,7 @@ import type {
   StudentCreateBillingFormState,
   StudentCreateGuardianEntry,
 } from '@/types/student-enrollment-finance';
+import type { AdmissionGuardianPrefillText } from '@/features/admin/admissions/utils/admission-prefill-mapper';
 import type { PersonSearchResult } from '@/types/student-360';
 import { StudentCreateGuardianSourcePanel } from './student-create-guardian-source-panel';
 import { StudentCreateGuardianProvisionSection } from './student-create-guardian-provision-section';
@@ -66,6 +67,8 @@ export function StudentCreateBillingStep({
   guardian,
   allowCreateNewGuardian = true,
   canManageBillingProfile = true,
+  admissionGuardianSnapshot = null,
+  admissionSelectionRequired = false,
 }: {
   billingState: StudentCreateBillingFormState;
   billingErrors?: BillingResponsibilityFieldErrors;
@@ -93,6 +96,8 @@ export function StudentCreateBillingStep({
   guardian: EnrollmentIntakeGuardianOptions;
   allowCreateNewGuardian?: boolean;
   canManageBillingProfile?: boolean;
+  admissionGuardianSnapshot?: AdmissionGuardianPrefillText | null;
+  admissionSelectionRequired?: boolean;
 }) {
   const t = useT();
   const guardianName = intakeValues.guardianName.trim();
@@ -154,7 +159,17 @@ export function StudentCreateBillingStep({
           onLinkExisting={onLinkExistingGuardian}
           onClearLink={onClearLinkedGuardian}
           allowCreateNewGuardian={allowCreateNewGuardian}
+          admissionGuardianSnapshot={admissionGuardianSnapshot}
+          admissionSelectionRequired={admissionSelectionRequired}
         />
+
+        {billingState.guardianSourceMode === 'new' &&
+        admissionGuardianSnapshot &&
+        (admissionGuardianSnapshot.name || admissionGuardianSnapshot.phone) ? (
+          <p className="student-create-form__notice" role="note">
+            {t('admin.admissions.registration.guardianSnapshotNewModeHint')}
+          </p>
+        ) : null}
 
         <EnrollmentIntakeGuardianFields
           embedded

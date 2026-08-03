@@ -47,9 +47,14 @@ import type { StudentCreateSaveMode, StudentCreateSaveOutcome } from './student-
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useToast } from '@/components/ui/toast';
 import {
+  fetchAdmission,
   fetchAdmissionPrefill,
-  linkAdmissionStudent,
 } from '@/features/admin/admissions/api/admissions-api';
+import { notifyAdmissionsQueriesInvalidated } from '@/features/admin/admissions/utils/admission-list-invalidate';
+import {
+  isAdmissionConverted,
+  type AdmissionConversionSnapshot,
+} from '@/features/admin/admissions/utils/admission-atomic-conversion';
 import {
   buildAdmissionRegistrationContext,
   mapAdmissionPrefillToStudentProfile,
@@ -339,16 +344,55 @@ export function Student360CreatePage() {
   ) {
     void (async () => {
       if (admissionId != null && activeSchoolId != null) {
-        const link = await linkAdmissionStudent(admissionId, id, {
-          active_school_id: activeSchoolId,
+        let conversion: AdmissionConversionSnapshot | null =
+          outcome?.admissionConversion ?? null;
+
+        if (!isAdmissionConverted(conversion)) {
+          const detailRes = await fetchAdmission(admissionId, {
+            active_school_id: activeSchoolId,
+          });
+          if (detailRes.success && detailRes.data) {
+            const rawStudentId = detailRes.data.student_id;
+            const studentId =
+              typeof rawStudentId === 'number' && rawStudentId > 0 ? rawStudentId : null;
+            conversion = {
+              id: detailRes.data.id,
+              student_id: studentId,
+              application_status: detailRes.data.application_status ?? null,
+              registration_flow_state:
+                typeof detailRes.data.registration_flow_state === 'string'
+                  ? detailRes.data.registration_flow_state
+                  : null,
+              converted_at:
+                typeof detailRes.data.converted_at === 'string'
+                  ? detailRes.data.converted_at
+                  : null,
+            };
+          }
+        }
+
+        notifyAdmissionsQueriesInvalidated({
+          reason: 'atomic_student_create',
+          admissionId,
         });
-        if (!link.success) {
-          toast.error(t('admin.admissions.registration.linkFailed'));
+
+        if (!isAdmissionConverted(conversion)) {
+          toast.error(t('admin.admissions.registration.errors.admissionStudentLinkFailed'));
           router.push(`/admin/students/${id}`);
           return;
         }
-        toast.success(t('admin.admissions.registration.success'));
-        router.push(`/admin/students/${id}`);
+
+        if (outcome?.admissionAlreadyConverted) {
+          toast.show(t('admin.admissions.registration.errors.admissionAlreadyConverted'), 'info');
+        } else {
+          toast.success(t('admin.admissions.registration.success'));
+        }
+
+        const linkedStudentId =
+          typeof conversion?.student_id === 'number' && conversion.student_id > 0
+            ? conversion.student_id
+            : id;
+        router.push(`/admin/students/${linkedStudentId}`);
         return;
       }
 

@@ -26,6 +26,7 @@ const PREFILL_MESSAGE_KEYS: Record<string, string> = {
   'Identity document is missing.': 'admin.admissions.prefill.messages.identityDocumentMissing',
   'Identity document is required.': 'admin.admissions.prefill.messages.identityDocumentRequired',
   'Guardian identity document is missing.': 'admin.admissions.prefill.messages.identityDocumentMissing',
+  guardian_selection_required: 'admin.admissions.registration.errors.guardianSelectionRequired',
 };
 
 /** Backend registration_requirement / readiness codes → i18n keys. */
@@ -48,6 +49,7 @@ const REGISTRATION_REQUIREMENT_CODE_KEYS: Record<string, string> = {
   family_multiple_guardians:
     'admin.admissions.prefill.messages.familyApplicationMultipleGuardians',
   multiple_guardians: 'admin.admissions.prefill.messages.familyApplicationMultipleGuardians',
+  guardian_selection_required: 'admin.admissions.registration.errors.guardianSelectionRequired',
   billing_responsibility_at_registration:
     'admin.admissions.prefill.messages.billingResponsibilityAtRegistrationStart',
   billing_responsibility_selected_at_registration:

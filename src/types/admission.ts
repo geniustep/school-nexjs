@@ -652,6 +652,17 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   has_requested_services?: boolean | null;
 }
 
+/** Guardian selection metadata from prefill (atomic conversion contract). */
+export interface AdmissionGuardianSelection {
+  selection_required?: boolean;
+  has_bound_guardian?: boolean;
+  prefill_source?: string | null;
+  guardian_id?: number | null;
+  is_existing_guardian_selected?: boolean;
+  requires_selection?: boolean;
+  warning_codes?: string[];
+}
+
 export interface AdmissionPrefill {
   source?: Record<string, unknown> | null;
   student?: Record<string, unknown> | null;
@@ -661,6 +672,15 @@ export interface AdmissionPrefill {
   readiness?: Record<string, unknown> | null;
   warnings?: string[];
   blocking_issues?: string[];
+  /** Nested selection contract (preferred when present). */
+  guardian_selection?: AdmissionGuardianSelection | null;
+  /** Flat aliases returned by some prefill payloads. */
+  selection_required?: boolean;
+  is_existing_guardian_selected?: boolean;
+  guardian_id?: number | null;
+  requires_selection?: boolean;
+  has_guardian_id?: boolean;
+  warning_codes?: string[];
 }
 
 export interface AdmissionPrefillApiEnvelope {

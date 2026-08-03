@@ -403,6 +403,11 @@ export interface StudentCreatePayload {
   siblings_raw_text?: string;
   sibling_lines?: SiblingLine[];
   admission_notes?: string;
+  /**
+   * Atomic admission conversion context (School API).
+   * When set, Backend creates the student and links the admission in one savepoint.
+   */
+  admission_id?: number;
   class_id?: number;
   enrollment?: StudentEnrollmentBlock;
   academic?: StudentCreateAcademicBlock;

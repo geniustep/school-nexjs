@@ -210,8 +210,28 @@ export function validateStudentCreateGuardianContract(
   profileState: StudentProfileFormState,
   billingState: StudentCreateBillingFormState,
   t: (key: string) => string,
+  options?: { requireExistingGuardianSelection?: boolean },
 ): { valid: boolean; errors: StudentCreateGuardianValidationErrors; message?: string } {
   const errors: StudentCreateGuardianValidationErrors = {};
+
+  const hasGuardianIntakeText =
+    Boolean(trim(profileState.emergencyContactName)) ||
+    Boolean(trim(profileState.emergencyPhone));
+
+  // Existing-guardian mode requires an explicit search-result ID — text is not selection.
+  if (
+    billingState.guardianSourceMode === 'existing' &&
+    billingState.linkedGuardianId == null &&
+    (options?.requireExistingGuardianSelection ||
+      billingState.responsibilitySelection === 'guardian' ||
+      hasGuardianIntakeText)
+  ) {
+    const message = t(
+      'admin.student360.create.billing.errors.existingGuardianSelectionRequired',
+    );
+    errors.guardianRequired = message;
+    return { valid: false, errors, message };
+  }
 
   if (billingState.responsibilitySelection !== 'guardian') {
     const additionalValidation = validateAdditionalGuardianEntries(profileState, billingState, t);

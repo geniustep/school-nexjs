@@ -2,10 +2,56 @@ import type { ApiErrorBody } from '@/types/api';
 import type { BillingResponsibilityFieldErrors } from './student-create-billing-responsibility';
 import type { StudentProfileFieldErrors } from './student-profile';
 import { mapBillingResponsibilityApiError, mapStudentCreateGuardianAtomicApiError } from './billing-responsibility-errors';
+import {
+  isAdmissionAtomicConversionErrorCode,
+  type AdmissionAtomicConversionErrorCode,
+} from '@/features/admin/admissions/utils/admission-atomic-conversion';
 
 export interface StudentApiErrorContext {
   message: string;
   fieldErrors?: StudentProfileFieldErrors & BillingResponsibilityFieldErrors;
+  /** When set, caller should refetch admission list/detail instead of blind retry. */
+  admissionAlreadyConverted?: boolean;
+  stayOnGuardianStep?: boolean;
+}
+
+const ADMISSION_ATOMIC_ERROR_MESSAGE_KEYS: Record<AdmissionAtomicConversionErrorCode, string> = {
+  guardian_selection_required:
+    'admin.admissions.registration.errors.guardianSelectionRequired',
+  admission_not_found: 'admin.admissions.registration.errors.admissionNotFound',
+  admission_school_mismatch: 'admin.admissions.registration.errors.admissionSchoolMismatch',
+  admission_already_converted: 'admin.admissions.registration.errors.admissionAlreadyConverted',
+  admission_student_link_failed: 'admin.admissions.registration.errors.admissionStudentLinkFailed',
+};
+
+export function mapAdmissionAtomicConversionApiError(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+): StudentApiErrorContext | null {
+  const code = String(error.code ?? '');
+  if (!isAdmissionAtomicConversionErrorCode(code)) return null;
+
+  const key = ADMISSION_ATOMIC_ERROR_MESSAGE_KEYS[code];
+  const label = t(key);
+  // Prefer the stable i18n key/result over opaque Backend message text.
+  const message = label || key;
+
+  if (code === 'guardian_selection_required') {
+    return {
+      message,
+      fieldErrors: { guardianRequired: message },
+      stayOnGuardianStep: true,
+    };
+  }
+
+  if (code === 'admission_already_converted') {
+    return {
+      message,
+      admissionAlreadyConverted: true,
+    };
+  }
+
+  return { message };
 }
 
 function msgIncludes(message: string, ...needles: string[]): boolean {
@@ -145,6 +191,9 @@ export function mapStudentApiError(
 
   const guardianAtomicMapped = mapStudentCreateGuardianAtomicApiError(error, t);
   if (guardianAtomicMapped) return guardianAtomicMapped;
+
+  const admissionAtomicMapped = mapAdmissionAtomicConversionApiError(error, t);
+  if (admissionAtomicMapped) return admissionAtomicMapped;
 
   const code = String(error.code ?? '');
   const message = error.message?.trim() ?? '';

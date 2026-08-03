@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { EnrollmentIntakeValues } from '@/features/admin/enrollment-intake/types';
+import type { AdmissionGuardianPrefillText } from '@/features/admin/admissions/utils/admission-prefill-mapper';
 import type { StudentCreateGuardianSourceMode } from '@/types/student-enrollment-finance';
 import type { PersonSearchResult } from '@/types/student-360';
 import { useDebouncedValue } from '../hooks/use-debounced-value';
@@ -26,6 +27,8 @@ export function StudentCreateGuardianSourcePanel({
   onLinkExisting,
   onClearLink,
   allowCreateNewGuardian = true,
+  admissionGuardianSnapshot = null,
+  admissionSelectionRequired = false,
 }: {
   intakeValues: Pick<EnrollmentIntakeValues, 'guardianName' | 'guardianPhone' | 'guardianEmail'>;
   sourceMode: StudentCreateGuardianSourceMode;
@@ -36,6 +39,8 @@ export function StudentCreateGuardianSourcePanel({
   onClearLink: () => void;
   /** When false, hide/disable «ولي جديد» — employee may only link an existing guardian. */
   allowCreateNewGuardian?: boolean;
+  admissionGuardianSnapshot?: AdmissionGuardianPrefillText | null;
+  admissionSelectionRequired?: boolean;
 }) {
   const t = useT();
   const { activeSchoolId } = useAdminSession();
@@ -47,9 +52,17 @@ export function StudentCreateGuardianSourcePanel({
   const debouncedName = useDebouncedValue(searchName, 400);
   const debouncedPhone = useDebouncedValue(searchPhone, 400);
   const requestSeq = useRef(0);
-  const guardianName = intakeValues.guardianName.trim();
+  const guardianName =
+    (linkedGuardianPerson?.name ?? intakeValues.guardianName).trim() || '—';
   const isExistingMode = sourceMode === 'existing';
   const isLinked = isExistingMode && linkedGuardianId != null;
+  const snapshotName = admissionGuardianSnapshot?.name?.trim() ?? '';
+  const snapshotPhone = admissionGuardianSnapshot?.phone?.trim() ?? '';
+  const showAdmissionSnapshot =
+    Boolean(admissionSelectionRequired) &&
+    isExistingMode &&
+    !isLinked &&
+    Boolean(snapshotName || snapshotPhone);
   const searchQuery = buildGuardianDualSearchQuery(debouncedPhone, debouncedName);
   const hasSearchInput = hasGuardianDualSearchInput(debouncedPhone, debouncedName);
 
@@ -176,6 +189,21 @@ export function StudentCreateGuardianSourcePanel({
         </div>
       </fieldset>
 
+      {showAdmissionSnapshot ? (
+        <div className="student-create-form__notice" role="status">
+          <p>{t('admin.admissions.registration.guardianTextPrefillNotice')}</p>
+          <p className="muted" dir="auto">
+            {snapshotName || '—'}
+            {snapshotPhone ? (
+              <>
+                {' · '}
+                <span dir="ltr">{formatMoroccanPhoneDisplay(snapshotPhone)}</span>
+              </>
+            ) : null}
+          </p>
+        </div>
+      ) : null}
+
       {isExistingMode && !isLinked ? (
         <div className="student-create-guardian-source__search student-create-form__grid">
           <div className="student-create-form__cell student-create-form__cell--half">
@@ -266,6 +294,13 @@ export function StudentCreateGuardianSourcePanel({
 
         {boxVariant === 'linked' ? (
           <div className="student-create-guardian-source__linked-meta">
+            {linkedGuardianId != null ? (
+              <span className="student-create-guardian-source__meta-item" dir="ltr">
+                {t('admin.student360.create.billing.guardianSelectedId', {
+                  id: linkedGuardianId,
+                })}
+              </span>
+            ) : null}
             {intakeValues.guardianPhone.trim() ? (
               <span className="student-create-guardian-source__meta-item" dir="ltr">
                 {formatMoroccanPhoneDisplay(intakeValues.guardianPhone)}

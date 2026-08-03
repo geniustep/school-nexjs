@@ -22,6 +22,15 @@ function idStr(value: unknown): string {
   return /^\d+$/.test(raw) ? raw : '';
 }
 
+function positiveId(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
+  if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+    const n = Number(value.trim());
+    return n > 0 ? n : null;
+  }
+  return null;
+}
+
 function splitStudentName(fullName: string): { firstName: string; lastName: string } {
   const parts = fullName.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return { firstName: '', lastName: '' };
@@ -50,6 +59,31 @@ function buildGuardianNotes(guardian: Record<string, unknown> | null | undefined
   return lines.join('\n');
 }
 
+function asStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => str(item))
+    .filter(Boolean);
+}
+
+/** Textual guardian snapshot from admission — never an identity key. */
+export interface AdmissionGuardianPrefillText {
+  name: string;
+  phone: string;
+  relationship: string;
+  email: string;
+  notes: string;
+}
+
+export interface AdmissionGuardianSelectionView {
+  selectionRequired: boolean;
+  isExistingGuardianSelected: boolean;
+  hasBoundGuardian: boolean;
+  guardianId: number | null;
+  warningCodes: string[];
+  prefillSource: string | null;
+}
+
 export interface AdmissionRegistrationContext {
   admissionId: number;
   reference: string;
@@ -57,6 +91,89 @@ export interface AdmissionRegistrationContext {
   offerState?: string | null;
   warnings?: string[];
   blockingIssues?: string[];
+  guardianSelection: AdmissionGuardianSelectionView;
+  guardianPrefillText: AdmissionGuardianPrefillText;
+}
+
+export function extractAdmissionGuardianPrefillText(
+  prefill: AdmissionPrefill,
+): AdmissionGuardianPrefillText {
+  const guardian = (prefill.guardian ?? {}) as Record<string, unknown>;
+  return {
+    name: str(guardian.name),
+    phone: str(guardian.phone),
+    relationship: str(guardian.relationship) || str(guardian.guardian_relationship),
+    email: str(guardian.email),
+    notes: buildGuardianNotes(guardian),
+  };
+}
+
+export function resolveAdmissionGuardianSelection(
+  prefill: AdmissionPrefill,
+): AdmissionGuardianSelectionView {
+  const nested = prefill.guardian_selection ?? null;
+  const warningCodes = [
+    ...asStringList(prefill.warning_codes),
+    ...asStringList(nested?.warning_codes),
+    ...(prefill.warnings ?? []).map((w) => str(w)).filter(Boolean),
+  ];
+
+  const guardianId =
+    positiveId(nested?.guardian_id) ??
+    positiveId(prefill.guardian_id) ??
+    positiveId((prefill.guardian as Record<string, unknown> | null | undefined)?.guardian_id) ??
+    positiveId((prefill.guardian as Record<string, unknown> | null | undefined)?.id);
+
+  const hasBoundGuardian =
+    nested?.has_bound_guardian === true ||
+    prefill.has_guardian_id === true ||
+    guardianId != null;
+
+  const isExistingGuardianSelected =
+    nested?.is_existing_guardian_selected === true ||
+    prefill.is_existing_guardian_selected === true ||
+    hasBoundGuardian;
+
+  const selectionRequiredExplicit =
+    nested?.selection_required === true ||
+    nested?.requires_selection === true ||
+    prefill.selection_required === true ||
+    prefill.requires_selection === true ||
+    warningCodes.includes('guardian_selection_required');
+
+  const selectionRequired =
+    selectionRequiredExplicit || (!isExistingGuardianSelected && Boolean(extractAdmissionGuardianPrefillText(prefill).name));
+
+  return {
+    selectionRequired: isExistingGuardianSelected ? false : selectionRequired,
+    isExistingGuardianSelected,
+    hasBoundGuardian,
+    guardianId: isExistingGuardianSelected ? guardianId : null,
+    warningCodes: [...new Set(warningCodes)],
+    prefillSource: str(nested?.prefill_source) || null,
+  };
+}
+
+/**
+ * Text prefill is not a selected existing guardian.
+ * Only apply guardian fields to the profile when Backend already bound a guardian_id.
+ */
+export function shouldApplyGuardianPrefillToProfile(
+  selection: AdmissionGuardianSelectionView,
+): boolean {
+  return selection.isExistingGuardianSelected && selection.guardianId != null;
+}
+
+export function guardianPrefillTextToProfilePatch(
+  text: AdmissionGuardianPrefillText,
+): Partial<StudentProfileFormState> {
+  return {
+    emergencyContactName: text.name,
+    emergencyPhone: text.phone,
+    emergencyRelationship: text.relationship,
+    emergencyNotes: text.notes,
+    guardianEmail: text.email,
+  };
 }
 
 export function buildAdmissionRegistrationContext(
@@ -66,6 +183,16 @@ export function buildAdmissionRegistrationContext(
 ): AdmissionRegistrationContext {
   const admission = (prefill.admission ?? {}) as Record<string, unknown>;
   const source = (prefill.source ?? {}) as Record<string, unknown>;
+  const guardianSelection = resolveAdmissionGuardianSelection(prefill);
+  const guardianPrefillText = extractAdmissionGuardianPrefillText(prefill);
+
+  const warnings = [
+    ...(prefill.warnings ?? []),
+    ...(guardianSelection.selectionRequired && !guardianSelection.warningCodes.includes('guardian_selection_required')
+      ? ['guardian_selection_required']
+      : []),
+  ];
+
   return {
     admissionId,
     reference:
@@ -75,8 +202,10 @@ export function buildAdmissionRegistrationContext(
       `#${admissionId}`,
     decision: str(admission.decision) || str(prefill.readiness && (prefill.readiness as Record<string, unknown>).decision) || null,
     offerState: str(admission.offer_state) || null,
-    warnings: prefill.warnings ?? [],
+    warnings,
     blockingIssues: prefill.blocking_issues ?? [],
+    guardianSelection,
+    guardianPrefillText,
   };
 }
 
@@ -84,9 +213,9 @@ export function mapAdmissionPrefillToStudentProfile(
   prefill: AdmissionPrefill,
 ): Partial<StudentProfileFormState> {
   const student = (prefill.student ?? {}) as Record<string, unknown>;
-  const guardian = (prefill.guardian ?? {}) as Record<string, unknown>;
   const academic = (prefill.academic ?? {}) as Record<string, unknown>;
   const admission = (prefill.admission ?? {}) as Record<string, unknown>;
+  const selection = resolveAdmissionGuardianSelection(prefill);
 
   let firstName = str(student.child_first_name_ar) || str(student.first_name_ar);
   let lastName = str(student.child_last_name_ar) || str(student.last_name_ar);
@@ -111,10 +240,9 @@ export function mapAdmissionPrefillToStudentProfile(
     lastNameLatin = fromLatin.lastName;
   }
 
-  const guardianNotes = buildGuardianNotes(guardian);
   const prefillRegistrationNotes = str(admission.registration_notes);
 
-  return {
+  const patch: Partial<StudentProfileFormState> = {
     firstName,
     lastName,
     firstNameLatin,
@@ -157,12 +285,13 @@ export function mapAdmissionPrefillToStudentProfile(
     firstContactDate: str(admission.first_contact_date),
     nextAction: str(admission.next_action),
     nextActionDate: str(admission.next_action_date),
-    emergencyContactName: str(guardian.name),
-    emergencyPhone: str(guardian.phone),
-    emergencyRelationship: str(guardian.relationship) || str(guardian.guardian_relationship),
-    emergencyNotes: guardianNotes,
-    guardianEmail: str(guardian.email),
   };
+
+  if (shouldApplyGuardianPrefillToProfile(selection)) {
+    Object.assign(patch, guardianPrefillTextToProfilePatch(extractAdmissionGuardianPrefillText(prefill)));
+  }
+
+  return patch;
 }
 
 export function admissionPrefillReferenceLabel(

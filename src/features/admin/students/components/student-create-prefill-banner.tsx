@@ -6,6 +6,7 @@ import {
   formatPrefillFieldValue,
   formatPrefillMessage,
 } from '@/features/admin/admissions/utils/admission-prefill-display';
+import { formatMoroccanPhoneDisplay } from '@/features/admin/students/utils/normalize-moroccan-phone';
 
 export function StudentCreatePrefillBanner({
   banner,
@@ -16,6 +17,12 @@ export function StudentCreatePrefillBanner({
   const warnings = banner.warnings ?? [];
   const blockingIssues = banner.blockingIssues ?? [];
   const hasFlags = warnings.length > 0 || blockingIssues.length > 0;
+  const selection = banner.guardianSelection;
+  const snapshot = banner.guardianPrefillText;
+  const showGuardianTextNotice =
+    selection.selectionRequired &&
+    !selection.isExistingGuardianSelected &&
+    Boolean(snapshot.name.trim() || snapshot.phone.trim());
 
   return (
     <section className="student-create-prefill" aria-label={t('admin.admissions.registration.prefillBannerTitle', { reference: banner.reference })}>
@@ -55,6 +62,26 @@ export function StudentCreatePrefillBanner({
           </ul>
         ) : null}
       </div>
+
+      {showGuardianTextNotice ? (
+        <div className="student-create-prefill__flags" role="status">
+          <p className="student-create-prefill__flag student-create-prefill__flag--warn">
+            <span className="student-create-prefill__flag-icon" aria-hidden="true">
+              !
+            </span>
+            {t('admin.admissions.registration.guardianTextPrefillNotice')}
+          </p>
+          <p className="student-create-prefill__note muted" dir="auto">
+            {snapshot.name || '—'}
+            {snapshot.phone.trim() ? (
+              <>
+                {' · '}
+                <span dir="ltr">{formatMoroccanPhoneDisplay(snapshot.phone)}</span>
+              </>
+            ) : null}
+          </p>
+        </div>
+      ) : null}
 
       {hasFlags ? (
         <ul className="student-create-prefill__flags">

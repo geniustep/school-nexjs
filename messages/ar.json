@@ -6279,11 +6279,20 @@
         "success": "تم إنشاء التلميذ وربطه بطلب التسجيل.",
         "linkFailed": "تم إنشاء التلميذ، لكن ربطه بطلب التسجيل فشل. افتح ملف التلميذ للمتابعة.",
         "prefillMultiGuardianHint": "يُعبَّأ ولي اتصال واحد من طلب التسجيل. يمكنك إضافة أولياء آخرين واختيار المسؤول عن الأداء في هذه الخطوة.",
+        "guardianTextPrefillNotice": "بيانات ولي الأمر من طلب التسجيل — اختر وليًا موجودًا من نتائج البحث أو استخدمها لإنشاء ولي جديد.",
+        "guardianSnapshotNewModeHint": "الحقول أدناه معبأة مسبقًا من طلب التسجيل وقابلة للمراجعة قبل الحفظ.",
         "awaitingMessage": "وافقت المدرسة على الطلب، لكن التسجيل لم يُستكمل بعد.",
         "convertedAt": "تاريخ التحويل: {date}",
         "readyMessage": "قبلت الأسرة العرض، وأصبح الملف جاهزًا لاستكمال تسجيل التلميذ.",
         "convertToStudent": "تحويل إلى تلميذ",
-        "convertIncompleteHint": "سيتم فتح تسجيل التلميذ ويمكن استكمال البيانات الناقصة قبل الحفظ."
+        "convertIncompleteHint": "سيتم فتح تسجيل التلميذ ويمكن استكمال البيانات الناقصة قبل الحفظ.",
+        "errors": {
+          "guardianSelectionRequired": "اختر ولي أمر موجودًا من نتائج البحث، أو اختر إضافة ولي جديد.",
+          "admissionNotFound": "تعذر العثور على طلب التسجيل.",
+          "admissionSchoolMismatch": "طلب التسجيل لا ينتمي إلى المدرسة الحالية.",
+          "admissionAlreadyConverted": "تم تحويل طلب التسجيل إلى تلميذ مسبقًا. سيتم تحديث القائمة.",
+          "admissionStudentLinkFailed": "تعذر إكمال ربط طلب التسجيل بالتلميذ. لم تُحفظ عملية تحويل جزئية."
+        }
       },
       "errors": {
         "notFound": "طلب التسجيل غير موجود."
@@ -7297,6 +7306,7 @@
           "guardianBillingNeedsName": "أدخل اسم ولي الأمر أعلاه لربط المسؤول عن الأداء به.",
           "guardianExistingLinked": "تم اختيار ولي أمر موجود ({name}) — سيتم ربطه بالتلميذ بعد الحفظ.",
           "guardianClearLink": "إلغاء الربط",
+          "guardianSelectedId": "المعرّف: {id}",
           "guardianSearching": "جارٍ البحث عن ولي أمر موجود…",
           "guardianLinkFailed": "تم إنشاء التلميذ، لكن تعذّر ربط ولي الأمر. يمكنك إكمال الربط من ملف التلميذ.",
           "guardianSourceIdleTitle": "حدّد مصدر ولي الأمر",
@@ -7318,7 +7328,10 @@
           "addAnotherGuardian": "إضافة ولي أمر",
           "additionalGuardianTitle": "ولي أمر إضافي",
           "removeAdditionalGuardian": "إزالة ولي الأمر",
-          "saveGuardianHint": "أكمل بيانات ولي الأمر المطلوبة قبل المتابعة."
+          "saveGuardianHint": "أكمل بيانات ولي الأمر المطلوبة قبل المتابعة.",
+          "errors": {
+            "existingGuardianSelectionRequired": "اختر ولي أمر موجودًا من نتائج البحث قبل المتابعة."
+          }
         },
         "billingResponsibility": {
           "title": "المسؤول عن الأداء",

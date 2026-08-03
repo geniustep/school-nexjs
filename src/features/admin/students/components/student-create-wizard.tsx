@@ -7,6 +7,13 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
+import { guardianPrefillTextToProfilePatch } from '@/features/admin/admissions/utils/admission-prefill-mapper';
+import {
+  parseAdmissionConversionFromCreateResponse,
+  type AdmissionConversionSnapshot,
+} from '@/features/admin/admissions/utils/admission-atomic-conversion';
+import { fetchAdmission } from '@/features/admin/admissions/api/admissions-api';
+import { notifyAdmissionsQueriesInvalidated } from '@/features/admin/admissions/utils/admission-list-invalidate';
 import { useAdmissionOptions } from '@/features/admin/admissions/hooks/use-admission-options';
 import {
   filterStreamsByLevel,
@@ -136,6 +143,10 @@ export interface StudentCreateSaveOutcome {
   billingResponsibility?: BillingResponsibilityMetadata | null;
   collectionAllowed?: boolean | null;
   billingResponsibilityUnresolved?: boolean;
+  /** Evidence from atomic create (detail.admission) or post-create refetch. */
+  admissionConversion?: AdmissionConversionSnapshot | null;
+  /** Create returned admission_already_converted — open linked student, no blind retry. */
+  admissionAlreadyConverted?: boolean;
 }
 export type StudentCreateWizardStep =
   | 'identity'
@@ -237,6 +248,20 @@ export function StudentCreateForm({
   const [linkedGuardianPersonsByEntryKey, setLinkedGuardianPersonsByEntryKey] = useState<
     Record<string, PersonSearchResult>
   >({});
+
+  const admissionBoundGuardianAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!admissionBanner || admissionBoundGuardianAppliedRef.current) return;
+    const selection = admissionBanner.guardianSelection;
+    if (!selection.isExistingGuardianSelected || selection.guardianId == null) return;
+    admissionBoundGuardianAppliedRef.current = true;
+    setBillingState((prev) => ({
+      ...prev,
+      guardianSourceMode: 'existing',
+      linkedGuardianId: selection.guardianId,
+      billingGuardianEntryKey: `existing-${selection.guardianId}`,
+    }));
+  }, [admissionBanner]);
 
   useEffect(() => {
     if (optionsState.loading) return;
@@ -608,6 +633,13 @@ export function StudentCreateForm({
   function handleGuardianSourceModeChange(mode: StudentCreateBillingFormState['guardianSourceMode']) {
     if (mode === 'existing') {
       clearGuardianIntakeFields();
+    }
+    if (mode === 'new' && admissionBanner?.guardianPrefillText) {
+      const snapshot = admissionBanner.guardianPrefillText;
+      const hasSnapshot = Boolean(snapshot.name.trim() || snapshot.phone.trim());
+      if (hasSnapshot) {
+        patch(guardianPrefillTextToProfilePatch(snapshot));
+      }
     }
     setLinkedGuardianPerson(null);
     setBillingState((prev) => ({
@@ -1206,7 +1238,11 @@ export function StudentCreateForm({
 
     if (current === 'billing' || current === 'review') {
       const billingValidation = validateBillingResponsibilityForm(billingState, t);
-      const guardianValidation = validateStudentCreateGuardianContract(state, billingState, t);
+      const guardianValidation = validateStudentCreateGuardianContract(state, billingState, t, {
+        requireExistingGuardianSelection: Boolean(
+          admissionBanner?.guardianSelection.selectionRequired,
+        ),
+      });
       if (!billingValidation.valid || !guardianValidation.valid) {
         const nextErrors = {
           ...billingValidation.errors,
@@ -1396,6 +1432,7 @@ export function StudentCreateForm({
           schoolId: resolvedSchoolId,
           classes: options?.classes ?? [],
           deferGuardianContact: true,
+          admissionId: admissionBanner?.admissionId ?? null,
         },
       ),
       state,
@@ -1459,7 +1496,7 @@ export function StudentCreateForm({
         toast.success(t('admin.student360.create.financeActivation.activateSuccess'));
       } else if (payload.finance && activation === 'draft') {
         toast.success(t('admin.student360.create.financeActivation.draftSuccess'));
-      } else {
+      } else if (!admissionBanner) {
         toast.success(t('admin.student360.create.success'));
       }
 
@@ -1468,12 +1505,24 @@ export function StudentCreateForm({
         persistStudentCreateGuardianOnboarding(id, createdGuardianAccounts);
       }
 
+      const admissionConversion = admissionBanner
+        ? parseAdmissionConversionFromCreateResponse(data)
+        : null;
+
+      if (admissionBanner) {
+        notifyAdmissionsQueriesInvalidated({
+          reason: 'atomic_student_create',
+          admissionId: admissionBanner.admissionId,
+        });
+      }
+
       const outcome: StudentCreateSaveOutcome = {
         financeActivation: payload.finance ? activation : undefined,
         agreementState,
         billingResponsibility: billingOutcome.metadata,
         collectionAllowed: billingOutcome.collectionAllowed,
         billingResponsibilityUnresolved: billingUnresolved,
+        admissionConversion,
       };
 
       setCreateResult({
@@ -1496,6 +1545,50 @@ export function StudentCreateForm({
 
       if (!res.success) {
       const mapped = mapStudentApiError(res.error, t);
+
+      if (mapped.admissionAlreadyConverted && admissionBanner) {
+        notifyAdmissionsQueriesInvalidated({
+          reason: 'admission_already_converted',
+          admissionId: admissionBanner.admissionId,
+        });
+        const detailRes = await fetchAdmission(admissionBanner.admissionId, {
+          active_school_id: resolvedSchoolId ?? undefined,
+        });
+        const admissionDetail =
+          detailRes.success && detailRes.data ? detailRes.data : null;
+        const studentIdFromAdmission =
+          admissionDetail &&
+          typeof admissionDetail.student_id === 'number' &&
+          admissionDetail.student_id > 0
+            ? admissionDetail.student_id
+            : null;
+        toast.show(mapped.message, 'info');
+        if (studentIdFromAdmission != null) {
+          const conversion: AdmissionConversionSnapshot = {
+            id: admissionDetail?.id ?? admissionBanner.admissionId,
+            student_id: studentIdFromAdmission,
+            application_status: admissionDetail?.application_status ?? 'registered',
+            registration_flow_state:
+              typeof admissionDetail?.registration_flow_state === 'string'
+                ? admissionDetail.registration_flow_state
+                : 'linked',
+            converted_at:
+              typeof admissionDetail?.converted_at === 'string'
+                ? admissionDetail.converted_at
+                : null,
+          };
+          setPendingSaveOutcome({
+            id: studentIdFromAdmission,
+            mode,
+            outcome: {
+              admissionAlreadyConverted: true,
+              admissionConversion: conversion,
+            },
+          });
+        }
+        return;
+      }
+
       if (mapped.fieldErrors) {
         const billingFieldErrors: BillingResponsibilityFieldErrors = {};
         if (mapped.fieldErrors.billingResponsibilitySelection) {
@@ -1532,9 +1625,14 @@ export function StudentCreateForm({
             billingGuardianEntryKey: null,
           }));
           setLinkedGuardianPerson(null);
+          setStep('billing');
+        } else if (mapped.stayOnGuardianStep) {
+          setStep('billing');
         }
         setFieldErrors(mapped.fieldErrors);
         focusFirstError(mapped.fieldErrors);
+      } else if (mapped.stayOnGuardianStep) {
+        setStep('billing');
       }
       toast.error(mapped.message);
     }
@@ -1664,6 +1762,11 @@ export function StudentCreateForm({
           onRemoveAdditionalGuardian={handleRemoveAdditionalGuardian}
           usedGuardianIds={usedGuardianIds}
           linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
+          admissionGuardianSnapshot={admissionBanner?.guardianPrefillText ?? null}
+          admissionSelectionRequired={
+            Boolean(admissionBanner?.guardianSelection.selectionRequired) &&
+            billingState.linkedGuardianId == null
+          }
           allowCreateNewGuardian={journeyCapabilities.canCreateNewGuardian}
           canManageBillingProfile={journeyCapabilities.canManageBillingProfile}
           guardian={{
