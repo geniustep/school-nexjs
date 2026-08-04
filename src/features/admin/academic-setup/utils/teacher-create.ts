@@ -234,28 +234,81 @@ export function normalizeTeacherCreateResult(data: unknown): TeacherCreateResult
   };
 }
 
-export function storeTeacherCreateResult(result: TeacherCreateResult): void {
+/**
+ * In-memory pending create results.
+ * Survives React Strict Mode remounts (effects re-run) without losing the banner payload.
+ * Cleared only via dismissTeacherCreateResult (user close / explicit clear).
+ */
+const pendingTeacherCreateResults = new Map<number, TeacherCreateResult>();
+
+function teacherCreateResultStorageKey(teacherId: number): string {
+  return `${TEACHER_CREATE_RESULT_STORAGE_PREFIX}${teacherId}`;
+}
+
+/** Test-only: clear memory + matching session keys for isolated unit tests. */
+export function resetTeacherCreateResultStoreForTests(): void {
+  pendingTeacherCreateResults.clear();
   if (typeof window === 'undefined') return;
   try {
-    sessionStorage.setItem(
-      `${TEACHER_CREATE_RESULT_STORAGE_PREFIX}${result.teacher_id}`,
-      JSON.stringify(result),
-    );
+    const prefix = TEACHER_CREATE_RESULT_STORAGE_PREFIX;
+    const keys: string[] = [];
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+      const key = sessionStorage.key(i);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+    for (const key of keys) sessionStorage.removeItem(key);
   } catch {
-    /* ignore quota / private mode */
+    /* ignore */
   }
 }
 
+export function storeTeacherCreateResult(result: TeacherCreateResult): void {
+  pendingTeacherCreateResults.set(result.teacher_id, result);
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(teacherCreateResultStorageKey(result.teacher_id), JSON.stringify(result));
+  } catch {
+    /* ignore quota / private mode — memory still holds the result for SPA navigation */
+  }
+}
+
+/**
+ * Idempotent read of a pending create result for a teacher profile.
+ * Safe under React Strict Mode double-invoke: does not drop the payload on first read.
+ * Prefer dismissTeacherCreateResult when the banner is closed.
+ */
 export function consumeTeacherCreateResult(teacherId: number): TeacherCreateResult | null {
+  const fromMemory = pendingTeacherCreateResults.get(teacherId);
+  if (fromMemory) return fromMemory;
+
   if (typeof window === 'undefined') return null;
-  const key = `${TEACHER_CREATE_RESULT_STORAGE_PREFIX}${teacherId}`;
+  const key = teacherCreateResultStorageKey(teacherId);
   try {
     const raw = sessionStorage.getItem(key);
     if (!raw) return null;
+    const normalized = normalizeTeacherCreateResult(JSON.parse(raw));
+    if (!normalized) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    // Hydrate memory then drop session entry so refresh does not re-show forever,
+    // while Strict Mode remounts still see the in-memory copy.
+    pendingTeacherCreateResults.set(teacherId, normalized);
     sessionStorage.removeItem(key);
-    return normalizeTeacherCreateResult(JSON.parse(raw));
+    return normalized;
   } catch {
     return null;
+  }
+}
+
+/** Clear pending create result after the user dismisses the readiness banner. */
+export function dismissTeacherCreateResult(teacherId: number): void {
+  pendingTeacherCreateResults.delete(teacherId);
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(teacherCreateResultStorageKey(teacherId));
+  } catch {
+    /* ignore */
   }
 }
 

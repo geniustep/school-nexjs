@@ -1,10 +1,17 @@
-import { describe, expect, it } from 'vitest';
+/**
+ * @vitest-environment happy-dom
+ */
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   assertSafeTeacherCreatePayload,
   buildSimplifiedTeacherCreatePayload,
+  consumeTeacherCreateResult,
   createEmptyTeacherCreateAssignmentDraft,
+  dismissTeacherCreateResult,
   findDuplicateTeacherCreateAssignmentKey,
   normalizeTeacherCreateResult,
+  resetTeacherCreateResultStoreForTests,
+  storeTeacherCreateResult,
   validateTeacherCreateForm,
 } from './teacher-create';
 import type { TeacherOptions } from '@/types/teacher';
@@ -147,7 +154,12 @@ describe('normalizeTeacherCreateResult', () => {
   it('reads teacher id from nested item', () => {
     const result = normalizeTeacherCreateResult({
       item: { id: 12, name: 'A' },
-      account: { created: true, status: 'password_setup_required', can_login: false, password_was_set: false },
+      account: {
+        created: true,
+        status: 'password_setup_required',
+        can_login: false,
+        password_was_set: false,
+      },
       assignments: { requested: 0, created: 0 },
       lifecycle: {
         teacher_registered: true,
@@ -159,5 +171,60 @@ describe('normalizeTeacherCreateResult', () => {
     });
     expect(result?.teacher_id).toBe(12);
     expect(result?.lifecycle.assignments_count).toBe(0);
+  });
+});
+
+describe('teacher create result store (Strict Mode safe)', () => {
+  afterEach(() => {
+    resetTeacherCreateResultStoreForTests();
+  });
+
+  const sample = normalizeTeacherCreateResult({
+    item: { id: 77, name: 'أستاذ', code: 'T-1' },
+    account: {
+      created: true,
+      user_id: 9,
+      status: 'password_setup_required',
+      can_login: false,
+      password_was_set: false,
+    },
+    assignments: { requested: 0, created: 0 },
+    lifecycle: {
+      teacher_registered: true,
+      has_account: true,
+      can_login: false,
+      has_assignments: false,
+      assignments_count: 0,
+    },
+  });
+
+  it('keeps the result available across repeated consume calls (Strict Mode remount)', () => {
+    expect(sample).toBeTruthy();
+    storeTeacherCreateResult(sample!);
+    const first = consumeTeacherCreateResult(77);
+    const second = consumeTeacherCreateResult(77);
+    expect(first?.teacher_id).toBe(77);
+    expect(second?.teacher_id).toBe(77);
+    expect(second?.account.status).toBe('password_setup_required');
+    expect(second?.lifecycle.can_login).toBe(false);
+  });
+
+  it('hydrates memory from sessionStorage once then survives remount without re-showing after dismiss', () => {
+    expect(sample).toBeTruthy();
+    const key = `raqeem.teacherCreateResult.${77}`;
+    sessionStorage.setItem(key, JSON.stringify(sample));
+    const first = consumeTeacherCreateResult(77);
+    expect(first?.teacher_id).toBe(77);
+    expect(sessionStorage.getItem(key)).toBeNull();
+    expect(consumeTeacherCreateResult(77)?.teacher_id).toBe(77);
+    dismissTeacherCreateResult(77);
+    expect(consumeTeacherCreateResult(77)).toBeNull();
+  });
+
+  it('dismiss clears both memory and sessionStorage', () => {
+    expect(sample).toBeTruthy();
+    storeTeacherCreateResult(sample!);
+    dismissTeacherCreateResult(77);
+    expect(consumeTeacherCreateResult(77)).toBeNull();
   });
 });

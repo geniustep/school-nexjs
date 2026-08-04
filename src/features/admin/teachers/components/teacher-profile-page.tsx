@@ -14,7 +14,10 @@ import { Badge, Card, DefinitionList, PageHeader, SectionHead } from '@/componen
 import { TeacherForm } from '@/features/admin/entity-forms';
 import { useTeacherOptions } from '@/features/admin/academic-setup/hooks/use-teacher-options';
 import { resolveGenderLabel } from '@/features/admin/academic-setup/utils/teacher-profile';
-import { consumeTeacherCreateResult } from '@/features/admin/academic-setup/utils/teacher-create';
+import {
+  consumeTeacherCreateResult,
+  dismissTeacherCreateResult,
+} from '@/features/admin/academic-setup/utils/teacher-create';
 import { resolveTeacherTypeLabelFromCode } from '@/features/admin/staff/utils/staff-center-present';
 import { TeacherAcademicProfilePanel } from '@/features/admin/teachers/components/teacher-academic-profile-panel';
 import { TeacherCreateReadinessBanner } from '@/features/admin/teachers/components/teacher-create-readiness-banner';
@@ -185,7 +188,10 @@ export function TeacherProfilePage({ id }: { id: string }) {
                 <TeacherCreateReadinessBanner
                   result={createResult}
                   staffUserId={staffUserId}
-                  onDismiss={() => setCreateResult(null)}
+                  onDismiss={() => {
+                    dismissTeacherCreateResult(teacher.id);
+                    setCreateResult(null);
+                  }}
                 />
               ) : null}
               <PageHeader
