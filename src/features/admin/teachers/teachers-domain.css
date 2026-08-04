@@ -3,6 +3,25 @@
  * Teachers list styles live in teachers-list.css.
  */
 
+.teacher-create-readiness {
+  margin-block-end: 12px;
+}
+
+.teacher-create-readiness__list {
+  margin: 8px 0 0;
+  padding-inline-start: 1.25rem;
+  display: grid;
+  gap: 4px;
+}
+
+.teacher-create-readiness__next {
+  margin-block-start: 10px;
+}
+
+.teacher-create-readiness__actions {
+  margin-block-start: 12px;
+}
+
 .teachers-list__filters {
   display: flex;
   flex-wrap: wrap;

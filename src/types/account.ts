@@ -5,7 +5,8 @@ export type UserAccountStatus =
   | 'inactive'
   | 'suspended'
   | 'not_created'
-  | 'unavailable';
+  | 'unavailable'
+  | 'password_setup_required';
 
 export type AccountWarningCode = 'custom_login_preserved' | 'invite_not_sent' | (string & {});
 

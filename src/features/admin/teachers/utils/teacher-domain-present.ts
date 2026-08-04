@@ -82,9 +82,13 @@ export function teacherAccountStateLabelKey(
     has_linked_user?: boolean;
     status?: string;
     user_id?: number | null;
+    can_login?: boolean;
   } | null;
   if (!account || (account.has_linked_user === false && account.user_id == null)) {
     return 'admin.teacherDomain.account.none';
+  }
+  if (account.status === 'password_setup_required') {
+    return 'admin.teacherDomain.account.passwordSetupRequired';
   }
   if (account.user_active === false || account.status === 'inactive') {
     return 'admin.teacherDomain.account.inactive';

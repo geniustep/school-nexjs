@@ -3110,7 +3110,9 @@
         "warnings": {
           "blockedCreation": "المعلومات المطلوبة غير مكتملة، لذلك الإنشاء غير مسموح بعد.",
           "teacherProfileWillBeCreated": "سيتم إنشاء ملف أستاذ لهذا العضو."
-        }
+        },
+        "teacherEntryHintTitle": "لإضافة أستاذ مادة استخدم قائمة الأساتذة",
+        "teacherEntryHintDesc": "إنشاء إطار ذكي مخصص للأدوار الإدارية والصلاحيات المتقدمة، وليس للرحلة القصيرة لإضافة أستاذ."
       }
     },
     "classesListDesc": "إدارة الأقسام",
@@ -3788,12 +3790,20 @@
           "maxBelowTarget": "الحد الأسبوعي يجب أن يكون ≥ الهدف الأسبوعي.",
           "invalidMaxContinuousMinutes": "المدة المتواصلة غير صالحة.",
           "invalidStatus": "الحالة غير صالحة.",
-          "schoolNotAllowed": "المدرسة المختارة غير مسموحة."
+          "schoolNotAllowed": "المدرسة المختارة غير مسموحة.",
+          "invalidEmail": "البريد الإلكتروني غير صالح.",
+          "duplicateTeacherCode": "رمز الأستاذ مستعمل مسبقاً.",
+          "userAlreadyLinkedToTeacher": "هذا الحساب مرتبط بأستاذ آخر.",
+          "invalidSubject": "المادة غير صالحة أو غير موجودة."
         },
         "assignmentsColumnClass": "القسم",
         "assignmentsColumnSubject": "المادة",
         "assignmentsColumnHours": "الساعات",
-        "assignmentsColumnAction": "إجراء"
+        "assignmentsColumnAction": "إجراء",
+        "warnings": {
+          "createAccountForced": "أُنشئ الحساب تلقائياً بواسطة النظام.",
+          "accountPasswordIgnored": "تم تجاهل كلمة المرور لأن إنشاء الحساب تلقائي."
+        }
       },
       "teacherDetail": {
         "level": "المستوى"
@@ -4729,6 +4739,38 @@
         "classAlreadyExists": "يوجد قسم بهذا الاسم أو الرمز مسبقًا.",
         "academicContextMissing": "سياق دراسي ناقص لإنشاء القسم.",
         "classCreationFailed": "تعذر إنشاء القسم."
+      },
+      "teacherCreate": {
+        "pageSubtitle": "أدخل المعلومات الأساسية فقط. يُنشأ الحساب تلقائياً ويحتاج تهيئة كلمة المرور لاحقاً.",
+        "basicsTitle": "المعلومات الأساسية",
+        "assignmentsTitle": "ماذا سيدرّس؟",
+        "assignmentsOptionalHint": "اختياري. يمكنك حفظ الأستاذ دون إسناد وإكماله لاحقاً.",
+        "assignmentsEmpty": "لا توجد إسنادات بعد. أضف قسماً ومادة عند الحاجة.",
+        "showAssignments": "إظهار الإسنادات",
+        "hideAssignments": "إخفاء الإسنادات",
+        "accountAutomaticHint": "سيُنشأ حساب دخول تلقائياً في الخلفية. لن يظهر اسم الدخول أو كلمة المرور هنا، والحساب يحتاج تهيئة كلمة المرور قبل أول دخول.",
+        "saveTeacher": "حفظ الأستاذ",
+        "saveSuccess": "تم إنشاء الأستاذ بنجاح.",
+        "drawerSuccessTitle": "تم إنشاء الأستاذ",
+        "drawerSuccessBody": "أُنشئ الأستاذ مع حساب يحتاج تهيئة كلمة المرور.",
+        "openTeacherProfile": "فتح ملف الأستاذ",
+        "csvImportHint": "الاستيراد الجماعي فقط. يُنشأ الحساب تلقائياً ويحتاج تهيئة كلمة المرور، ولا تُرسل بيانات الدخول تلقائياً.",
+        "readiness": {
+          "title": "نتيجة الإنشاء",
+          "teacherCreated": "تم إنشاء الأستاذ.",
+          "accountCreated": "الحساب: تم إنشاؤه تلقائياً.",
+          "accountUnknown": "الحساب: الحالة غير مؤكدة من الاستجابة.",
+          "passwordSetupRequired": "الدخول: يحتاج إلى تهيئة كلمة المرور.",
+          "canLogin": "الدخول: متاح.",
+          "cannotLogin": "الدخول: غير متاح بعد.",
+          "assignmentsCount": "{count} إسناد",
+          "noAssignments": "الإسنادات: لا توجد إسنادات.",
+          "passwordSetupNext": "تم إنشاء الحساب ويحتاج إلى تهيئة كلمة المرور من إدارة الحساب.",
+          "openAccountManagement": "إدارة الحساب",
+          "addAssignment": "إضافة إسناد",
+          "assignmentsReadyHint": "الأستاذ مسند أكاديمياً. هذا لا يعني أن استعمال الزمن منشور.",
+          "addAnother": "إضافة أستاذ آخر"
+        }
       }
     },
     "searchParents": "بحث بالاسم أو الهاتف أو وثيقة الهوية…",
@@ -13810,7 +13852,8 @@
       "account": {
         "none": "بدون حساب",
         "active": "حساب فعّال",
-        "inactive": "حساب غير فعّال"
+        "inactive": "حساب غير فعّال",
+        "passwordSetupRequired": "يحتاج تهيئة كلمة المرور"
       },
       "list": {
         "noMatchTitle": "لا توجد نتائج مطابقة",

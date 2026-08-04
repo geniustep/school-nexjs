@@ -3003,7 +3003,9 @@
         "warnings": {
           "blockedCreation": "Les informations requises sont incomplètes ; la création n'est pas encore autorisée.",
           "teacherProfileWillBeCreated": "Un profil enseignant sera créé pour ce membre."
-        }
+        },
+        "teacherEntryHintTitle": "Pour ajouter un enseignant de matière, utilisez la liste des enseignants",
+        "teacherEntryHintDesc": "La création intelligente du personnel est destinée aux rôles administratifs et aux permissions avancées, pas au flux court d’ajout d’enseignant."
       }
     },
     "classesListDesc": "Gérer les classes",
@@ -3654,12 +3656,20 @@
           "maxBelowTarget": "Le max hebdo doit être ≥ l'objectif hebdo.",
           "invalidMaxContinuousMinutes": "Durée continue invalide.",
           "invalidStatus": "Statut invalide.",
-          "schoolNotAllowed": "École sélectionnée non autorisée."
+          "schoolNotAllowed": "École sélectionnée non autorisée.",
+          "invalidEmail": "Adresse e-mail invalide.",
+          "duplicateTeacherCode": "Le code enseignant existe déjà.",
+          "userAlreadyLinkedToTeacher": "Cet utilisateur est déjà lié à un autre enseignant.",
+          "invalidSubject": "Matière invalide ou manquante."
         },
         "assignmentsColumnClass": "Classe",
         "assignmentsColumnSubject": "Matière",
         "assignmentsColumnHours": "Heures",
-        "assignmentsColumnAction": "Action"
+        "assignmentsColumnAction": "Action",
+        "warnings": {
+          "createAccountForced": "Le compte a été créé automatiquement par le système.",
+          "accountPasswordIgnored": "Le mot de passe a été ignoré car la création du compte est automatique."
+        }
       },
       "teacherDetail": {
         "level": "Niveau"
@@ -4591,6 +4601,38 @@
         "classAlreadyExists": "Une classe avec ce nom ou ce code existe déjà.",
         "academicContextMissing": "Contexte académique manquant pour créer la classe.",
         "classCreationFailed": "Impossible de créer la classe."
+      },
+      "teacherCreate": {
+        "pageSubtitle": "Saisissez uniquement les informations de base. Un compte est créé automatiquement et nécessite une configuration du mot de passe plus tard.",
+        "basicsTitle": "Informations de base",
+        "assignmentsTitle": "Que va-t-il enseigner ?",
+        "assignmentsOptionalHint": "Facultatif. Vous pouvez enregistrer l’enseignant sans affectation et terminer plus tard.",
+        "assignmentsEmpty": "Aucune affectation pour le moment. Ajoutez une classe et une matière si besoin.",
+        "showAssignments": "Afficher les affectations",
+        "hideAssignments": "Masquer les affectations",
+        "accountAutomaticHint": "Un compte de connexion est créé automatiquement en arrière-plan. Identifiant et mot de passe ne sont pas affichés ici ; une configuration du mot de passe est requise avant la première connexion.",
+        "saveTeacher": "Enregistrer l’enseignant",
+        "saveSuccess": "Enseignant créé avec succès.",
+        "drawerSuccessTitle": "Enseignant créé",
+        "drawerSuccessBody": "L’enseignant a été créé avec un compte nécessitant une configuration du mot de passe.",
+        "openTeacherProfile": "Ouvrir le profil enseignant",
+        "csvImportHint": "Import en masse uniquement. Les comptes sont créés automatiquement, nécessitent une configuration du mot de passe, et les identifiants ne sont pas envoyés automatiquement.",
+        "readiness": {
+          "title": "Résultat de la création",
+          "teacherCreated": "Enseignant créé.",
+          "accountCreated": "Compte : créé automatiquement.",
+          "accountUnknown": "Compte : état peu clair dans la réponse.",
+          "passwordSetupRequired": "Connexion : configuration du mot de passe requise.",
+          "canLogin": "Connexion : disponible.",
+          "cannotLogin": "Connexion : pas encore disponible.",
+          "assignmentsCount": "{count} affectation(s)",
+          "noAssignments": "Affectations : aucune.",
+          "passwordSetupNext": "Le compte a été créé et nécessite une configuration du mot de passe depuis la gestion du compte.",
+          "openAccountManagement": "Gérer le compte",
+          "addAssignment": "Ajouter une affectation",
+          "assignmentsReadyHint": "L’enseignant a des affectations académiques. Cela ne signifie pas que l’emploi du temps est publié.",
+          "addAnother": "Ajouter un autre enseignant"
+        }
       }
     },
     "searchParents": "Rechercher par nom, téléphone ou document d’identité…",
@@ -13686,7 +13728,8 @@
       "account": {
         "none": "No account",
         "active": "Active account",
-        "inactive": "Inactive account"
+        "inactive": "Inactive account",
+        "passwordSetupRequired": "Configuration du mot de passe requise"
       },
       "list": {
         "noMatchTitle": "No matching results",

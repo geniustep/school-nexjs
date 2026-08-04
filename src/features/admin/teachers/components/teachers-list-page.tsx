@@ -418,7 +418,11 @@ export function TeachersListPage() {
       />
 
       {importOpen ? (
-        <CsvImportPanel importPath={endpoints.admin.teachersImport} onDone={() => state.reload()} />
+        <CsvImportPanel
+          importPath={endpoints.admin.teachersImport}
+          instructions={t('admin.academicSetup.teacherCreate.csvImportHint')}
+          onDone={() => state.reload()}
+        />
       ) : null}
 
       {state.fetching && !state.initialLoading ? (

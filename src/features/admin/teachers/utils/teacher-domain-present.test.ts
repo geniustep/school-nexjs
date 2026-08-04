@@ -43,6 +43,19 @@ describe('teacher-domain-present', () => {
     ).toBe('admin.teacherDomain.account.none');
   });
 
+  it('labels password_setup_required from backend status without inventing login access', () => {
+    expect(
+      teacherAccountStateLabelKey({
+        account: {
+          has_linked_user: true,
+          user_id: 3,
+          status: 'password_setup_required',
+        },
+        active: true,
+      }),
+    ).toBe('admin.teacherDomain.account.passwordSetupRequired');
+  });
+
   it('shows only backend-allowed primary actions', () => {
     expect(
       teacherPrimaryActions({

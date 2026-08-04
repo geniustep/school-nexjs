@@ -57,8 +57,9 @@ import type { Ref } from '@/types/api';
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { Student } from '@/types/student';
 import type { Parent } from '@/types/parent';
-import type { Teacher } from '@/types/teacher';
+import type { Teacher, TeacherCreateResult } from '@/types/teacher';
 import type { AcademicTrack, TrackOptions } from '@/types/academic-setup';
+import { TeacherCreateForm } from '@/features/admin/academic-setup/components/teacher-create-form';
 import { TeacherSetupForm } from '@/features/admin/academic-setup/components/teacher-setup-form';
 import { canManageTeachingAssignments } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
@@ -279,11 +280,22 @@ export function TeacherForm({
   onCancel,
 }: {
   teacher?: Teacher;
-  onSaved: (id: number) => void;
+  onSaved: (id: number, result?: TeacherCreateResult) => void;
   onCancel: () => void;
 }) {
   const user = useSession();
   const canManageAssignments = canManageTeachingAssignments(user);
+
+  if (!teacher) {
+    return (
+      <TeacherCreateForm
+        layout="page"
+        canManageAssignments={canManageAssignments}
+        onSaved={(id, result) => onSaved(id, result)}
+        onCancel={onCancel}
+      />
+    );
+  }
 
   return (
     <TeacherSetupForm

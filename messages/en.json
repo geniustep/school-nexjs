@@ -3003,7 +3003,9 @@
         "warnings": {
           "blockedCreation": "Required information is incomplete, so creation is not allowed yet.",
           "teacherProfileWillBeCreated": "A teacher profile will be created for this member."
-        }
+        },
+        "teacherEntryHintTitle": "To add a subject teacher, use the Teachers list",
+        "teacherEntryHintDesc": "Smart staff creation is for administrative roles and advanced permissions, not the short add-teacher flow."
       }
     },
     "classesListDesc": "Manage classes",
@@ -3654,12 +3656,20 @@
           "maxBelowTarget": "Weekly max must be ≥ weekly target.",
           "invalidMaxContinuousMinutes": "Invalid continuous duration.",
           "invalidStatus": "Invalid status.",
-          "schoolNotAllowed": "Selected school is not allowed."
+          "schoolNotAllowed": "Selected school is not allowed.",
+          "invalidEmail": "Invalid email address.",
+          "duplicateTeacherCode": "Teacher code already exists.",
+          "userAlreadyLinkedToTeacher": "This user is already linked to another teacher.",
+          "invalidSubject": "Subject is invalid or missing."
         },
         "assignmentsColumnClass": "Class",
         "assignmentsColumnSubject": "Subject",
         "assignmentsColumnHours": "Hours",
-        "assignmentsColumnAction": "Action"
+        "assignmentsColumnAction": "Action",
+        "warnings": {
+          "createAccountForced": "Account was created automatically by the system.",
+          "accountPasswordIgnored": "Password was ignored because account creation is automatic."
+        }
       },
       "teacherDetail": {
         "level": "Level"
@@ -4591,6 +4601,38 @@
         "classAlreadyExists": "A class with this name or code already exists.",
         "academicContextMissing": "Academic context is missing to create the class.",
         "classCreationFailed": "Could not create the class."
+      },
+      "teacherCreate": {
+        "pageSubtitle": "Enter basic details only. An account is created automatically and needs password setup later.",
+        "basicsTitle": "Basic information",
+        "assignmentsTitle": "What will they teach?",
+        "assignmentsOptionalHint": "Optional. You can save the teacher without assignments and finish later.",
+        "assignmentsEmpty": "No assignments yet. Add a class and subject when needed.",
+        "showAssignments": "Show assignments",
+        "hideAssignments": "Hide assignments",
+        "accountAutomaticHint": "A login account is created automatically in the background. Login and password are not shown here; password setup is required before the first login.",
+        "saveTeacher": "Save teacher",
+        "saveSuccess": "Teacher created successfully.",
+        "drawerSuccessTitle": "Teacher created",
+        "drawerSuccessBody": "The teacher was created with an account that needs password setup.",
+        "openTeacherProfile": "Open teacher profile",
+        "csvImportHint": "Bulk import only. Accounts are created automatically, need password setup, and credentials are not sent automatically.",
+        "readiness": {
+          "title": "Creation result",
+          "teacherCreated": "Teacher created.",
+          "accountCreated": "Account: created automatically.",
+          "accountUnknown": "Account: status unclear from the response.",
+          "passwordSetupRequired": "Login: password setup required.",
+          "canLogin": "Login: available.",
+          "cannotLogin": "Login: not available yet.",
+          "assignmentsCount": "{count} assignment(s)",
+          "noAssignments": "Assignments: none.",
+          "passwordSetupNext": "The account was created and needs password setup from account management.",
+          "openAccountManagement": "Manage account",
+          "addAssignment": "Add assignment",
+          "assignmentsReadyHint": "The teacher has academic assignments. This does not mean the timetable is published.",
+          "addAnother": "Add another teacher"
+        }
       }
     },
     "searchParents": "Search by name, phone, or identity document…",
@@ -13665,7 +13707,8 @@
       "account": {
         "none": "No account",
         "active": "Active account",
-        "inactive": "Inactive account"
+        "inactive": "Inactive account",
+        "passwordSetupRequired": "Password setup required"
       },
       "list": {
         "noMatchTitle": "No matching results",

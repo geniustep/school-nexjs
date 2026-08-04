@@ -6,7 +6,7 @@
  */
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState, ErrorState } from '@/components/states/states';
@@ -14,8 +14,10 @@ import { Badge, Card, DefinitionList, PageHeader, SectionHead } from '@/componen
 import { TeacherForm } from '@/features/admin/entity-forms';
 import { useTeacherOptions } from '@/features/admin/academic-setup/hooks/use-teacher-options';
 import { resolveGenderLabel } from '@/features/admin/academic-setup/utils/teacher-profile';
+import { consumeTeacherCreateResult } from '@/features/admin/academic-setup/utils/teacher-create';
 import { resolveTeacherTypeLabelFromCode } from '@/features/admin/staff/utils/staff-center-present';
 import { TeacherAcademicProfilePanel } from '@/features/admin/teachers/components/teacher-academic-profile-panel';
+import { TeacherCreateReadinessBanner } from '@/features/admin/teachers/components/teacher-create-readiness-banner';
 import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
 import { TeacherStaffAccountSection } from '@/features/admin/teachers/components/teacher-staff-account-section';
 import { fetchTeacherAcademicProfile } from '@/features/admin/teachers/api/teacher-domain-api';
@@ -34,9 +36,8 @@ import { canViewTeacherAdminPrivateFields } from '@/lib/auth/teacher-workspace';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
-import type { Teacher } from '@/types/teacher';
+import type { Teacher, TeacherCreateResult } from '@/types/teacher';
 import type { TeacherAcademicProfile, TeacherDetail } from '@/types/teacher-domain';
-import { useEffect } from 'react';
 import '@/features/admin/teachers/teachers-domain.css';
 
 type ProfileTab =
@@ -77,6 +78,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
   const [academic, setAcademic] = useState<TeacherAcademicProfile | null>(null);
   const [academicError, setAcademicError] = useState<string | null>(null);
   const [academicLoading, setAcademicLoading] = useState(false);
+  const [createResult, setCreateResult] = useState<TeacherCreateResult | null>(null);
 
   const state = useAdminResource<TeacherDetail>(isNew ? null : endpoints.admin.teacher(id));
   const optionsState = useTeacherOptions(!isNew);
@@ -85,6 +87,13 @@ export function TeacherProfilePage({ id }: { id: string }) {
     () => (state.data ? normalizeTeacherDetail(state.data) : null),
     [state.data],
   );
+
+  useEffect(() => {
+    if (isNew) return;
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) return;
+    setCreateResult(consumeTeacherCreateResult(numericId));
+  }, [id, isNew]);
 
   useEffect(() => {
     if (isNew || !teacher?.id) return;
@@ -112,7 +121,10 @@ export function TeacherProfilePage({ id }: { id: string }) {
         <Link href="/admin/teachers" className="back-link">
           ‹ {t('nav.teachers')}
         </Link>
-        <PageHeader title={t('admin.addTeacher')} />
+        <PageHeader
+          title={t('admin.addTeacher')}
+          subtitle={t('admin.academicSetup.teacherCreate.pageSubtitle')}
+        />
         <TeacherForm
           onSaved={(tid) => router.push(`/admin/teachers/${tid}`)}
           onCancel={() => router.push('/admin/teachers')}
@@ -161,8 +173,21 @@ export function TeacherProfilePage({ id }: { id: string }) {
           const name = teacherDisplayName(teacher);
           const warningCount = teacherWarningCount(teacher);
 
+          const staffUserId =
+            teacher.user_id ??
+            createResult?.account.user_id ??
+            (teacher.account as { user_id?: number | null } | null | undefined)?.user_id ??
+            null;
+
           return (
             <>
+              {createResult ? (
+                <TeacherCreateReadinessBanner
+                  result={createResult}
+                  staffUserId={staffUserId}
+                  onDismiss={() => setCreateResult(null)}
+                />
+              ) : null}
               <PageHeader
                 title={name}
                 subtitle={teacher.code ?? undefined}

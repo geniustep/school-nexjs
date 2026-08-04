@@ -148,3 +148,61 @@ export type TeacherProfileValidationResult = {
 };
 
 export type TeacherProfilePayload = Record<string, unknown>;
+
+/** Atomic create assignment line — Odoo teacher create contract (no weekly_hours). */
+export type TeacherCreateAssignmentInput = {
+  class_id: number;
+  subject_id: number;
+  role?: 'main' | 'assistant' | 'substitute' | 'co_teacher' | 'co';
+};
+
+/** Simplified teacher create request — automatic account is backend-owned. */
+export type TeacherCreateRequest = {
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  school_id?: number | null;
+  school_ids?: number[];
+  /** Internal default only — not shown on simplified create UI. */
+  teacher_type?: string;
+  status?: string;
+  active?: boolean;
+  assignments?: TeacherCreateAssignmentInput[];
+};
+
+export type TeacherCreateAccountResult = {
+  requested?: boolean;
+  created: boolean;
+  user_id?: number | null;
+  status: string;
+  login?: string | null;
+  password_was_set: boolean;
+  can_login: boolean;
+};
+
+export type TeacherCreateAssignmentsResult = {
+  requested: number;
+  created: number;
+  items?: unknown[];
+};
+
+export type TeacherCreateLifecycleResult = {
+  teacher_registered: boolean;
+  has_account: boolean;
+  can_login: boolean;
+  has_assignments: boolean;
+  assignments_count: number;
+};
+
+/** Normalized create response used by readiness summary. */
+export type TeacherCreateResult = {
+  teacher_id: number;
+  name?: string | null;
+  code?: string | null;
+  account: TeacherCreateAccountResult;
+  assignments: TeacherCreateAssignmentsResult;
+  lifecycle: TeacherCreateLifecycleResult;
+  warnings?: string[];
+  allowed_actions?: string[];
+  raw?: unknown;
+};

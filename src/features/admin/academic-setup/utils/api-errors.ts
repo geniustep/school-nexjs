@@ -12,8 +12,20 @@ const TEACHER_ERRORS: Record<string, string> = {
   invalid_max_continuous_minutes: 'admin.academicSetup.teacherForm.errors.invalidMaxContinuousMinutes',
   school_not_allowed: 'admin.academicSetup.teacherForm.errors.schoolNotAllowed',
   duplicate_login: 'admin.academicSetup.errors.duplicateLogin',
+  duplicate_teacher_code: 'admin.academicSetup.teacherForm.errors.duplicateTeacherCode',
+  user_already_linked_to_teacher: 'admin.academicSetup.teacherForm.errors.userAlreadyLinkedToTeacher',
+  duplicate_assignment_in_request: 'admin.academicSetup.teacherForm.duplicateAssignment',
+  invalid_email: 'admin.academicSetup.teacherForm.errors.invalidEmail',
+  invalid_class: 'admin.academicSetup.errors.classNotFound',
+  invalid_subject: 'admin.academicSetup.teacherForm.errors.invalidSubject',
+  class_not_found: 'admin.academicSetup.errors.classNotFound',
+  subject_not_found: 'admin.academicSetup.teacherForm.errors.invalidSubject',
+  class_out_of_scope: 'admin.academicSetup.errors.classOutOfScope',
+  school_out_of_scope: 'admin.academicSetup.errors.schoolOutOfScope',
   validation_error: 'errors.validationFailed',
   forbidden: 'admin.pageForbidden',
+  create_account_forced: 'admin.academicSetup.teacherForm.warnings.createAccountForced',
+  account_password_ignored: 'admin.academicSetup.teacherForm.warnings.accountPasswordIgnored',
 };
 
 const ASSIGNMENT_ERRORS: Record<string, string> = {

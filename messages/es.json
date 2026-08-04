@@ -3003,7 +3003,9 @@
         "warnings": {
           "blockedCreation": "Faltan datos obligatorios; la creación aún no está permitida.",
           "teacherProfileWillBeCreated": "Se creará un perfil de profesor para este miembro."
-        }
+        },
+        "teacherEntryHintTitle": "Para añadir un profesor de materia, use la lista de profesores",
+        "teacherEntryHintDesc": "La creación inteligente de personal es para roles administrativos y permisos avanzados, no para el flujo corto de alta de profesor."
       }
     },
     "classesListDesc": "Gestionar clases",
@@ -3654,12 +3656,20 @@
           "maxBelowTarget": "El máximo semanal debe ser ≥ el objetivo semanal.",
           "invalidMaxContinuousMinutes": "Duración continua no válida.",
           "invalidStatus": "Estado no válido.",
-          "schoolNotAllowed": "Escuela seleccionada no permitida."
+          "schoolNotAllowed": "Escuela seleccionada no permitida.",
+          "invalidEmail": "Correo electrónico no válido.",
+          "duplicateTeacherCode": "El código del profesor ya existe.",
+          "userAlreadyLinkedToTeacher": "Este usuario ya está vinculado a otro profesor.",
+          "invalidSubject": "Materia no válida o ausente."
         },
         "assignmentsColumnClass": "Clase",
         "assignmentsColumnSubject": "Materia",
         "assignmentsColumnHours": "Horas",
-        "assignmentsColumnAction": "Acción"
+        "assignmentsColumnAction": "Acción",
+        "warnings": {
+          "createAccountForced": "La cuenta fue creada automáticamente por el sistema.",
+          "accountPasswordIgnored": "Se ignoró la contraseña porque la creación de cuenta es automática."
+        }
       },
       "teacherDetail": {
         "level": "Nivel"
@@ -4591,6 +4601,38 @@
         "classAlreadyExists": "Ya existe una clase con este nombre o código.",
         "academicContextMissing": "Falta contexto académico para crear la clase.",
         "classCreationFailed": "No se pudo crear la clase."
+      },
+      "teacherCreate": {
+        "pageSubtitle": "Introduzca solo la información básica. La cuenta se crea automáticamente y requiere configurar la contraseña más tarde.",
+        "basicsTitle": "Información básica",
+        "assignmentsTitle": "¿Qué enseñará?",
+        "assignmentsOptionalHint": "Opcional. Puede guardar al profesor sin asignaciones y completarlas después.",
+        "assignmentsEmpty": "Aún no hay asignaciones. Añada una clase y una materia si es necesario.",
+        "showAssignments": "Mostrar asignaciones",
+        "hideAssignments": "Ocultar asignaciones",
+        "accountAutomaticHint": "Se crea automáticamente una cuenta de acceso en segundo plano. El usuario y la contraseña no se muestran aquí; se requiere configurar la contraseña antes del primer acceso.",
+        "saveTeacher": "Guardar profesor",
+        "saveSuccess": "Profesor creado correctamente.",
+        "drawerSuccessTitle": "Profesor creado",
+        "drawerSuccessBody": "Se creó el profesor con una cuenta que requiere configurar la contraseña.",
+        "openTeacherProfile": "Abrir perfil del profesor",
+        "csvImportHint": "Solo importación masiva. Las cuentas se crean automáticamente, requieren configurar la contraseña y las credenciales no se envían automáticamente.",
+        "readiness": {
+          "title": "Resultado de la creación",
+          "teacherCreated": "Profesor creado.",
+          "accountCreated": "Cuenta: creada automáticamente.",
+          "accountUnknown": "Cuenta: estado poco claro en la respuesta.",
+          "passwordSetupRequired": "Acceso: se requiere configurar la contraseña.",
+          "canLogin": "Acceso: disponible.",
+          "cannotLogin": "Acceso: aún no disponible.",
+          "assignmentsCount": "{count} asignación(es)",
+          "noAssignments": "Asignaciones: ninguna.",
+          "passwordSetupNext": "La cuenta se creó y necesita configurar la contraseña desde la gestión de cuentas.",
+          "openAccountManagement": "Gestionar cuenta",
+          "addAssignment": "Añadir asignación",
+          "assignmentsReadyHint": "El profesor tiene asignaciones académicas. Esto no significa que el horario esté publicado.",
+          "addAnother": "Añadir otro profesor"
+        }
       }
     },
     "searchParents": "Buscar por nombre, teléfono o documento de identidad…",
@@ -13666,7 +13708,8 @@
       "account": {
         "none": "No account",
         "active": "Active account",
-        "inactive": "Inactive account"
+        "inactive": "Inactive account",
+        "passwordSetupRequired": "Configuración de contraseña requerida"
       },
       "list": {
         "noMatchTitle": "No matching results",

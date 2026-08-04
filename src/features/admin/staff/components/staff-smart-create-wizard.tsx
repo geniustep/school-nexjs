@@ -698,6 +698,13 @@ function StaffSmartCreateWizardContent() {
         }
       />
 
+      <InfoBanner
+        tone="blue"
+        icon="ℹ"
+        title={t('admin.staffCenter.smartCreate.teacherEntryHintTitle')}
+        description={t('admin.staffCenter.smartCreate.teacherEntryHintDesc')}
+      />
+
       <nav
         className="staff-smart-create__stepper staff-smart-create__stepper--enhanced"
         aria-label={t('admin.staffCenter.smartCreate.stepperLabel')}
