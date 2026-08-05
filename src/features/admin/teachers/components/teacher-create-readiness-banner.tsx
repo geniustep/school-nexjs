@@ -14,11 +14,9 @@ import '@/features/admin/teachers/teachers-domain.css';
 export function TeacherCreateReadinessBanner({
   result,
   onDismiss,
-  staffUserId,
 }: {
   result: TeacherCreateResult;
   onDismiss?: () => void;
-  staffUserId?: number | null;
 }) {
   const t = useT();
   const assignmentsCount = result.lifecycle.assignments_count;
@@ -60,14 +58,6 @@ export function TeacherCreateReadinessBanner({
       {!canLogin && needsPasswordSetup ? (
         <p className="teacher-create-readiness__next muted">
           {t('admin.academicSetup.teacherCreate.readiness.passwordSetupNext')}
-          {staffUserId != null && staffUserId > 0 ? (
-            <>
-              {' '}
-              <Link href={`/admin/staff/${staffUserId}`} className="btn btn--ghost btn--sm">
-                {t('admin.academicSetup.teacherCreate.readiness.openAccountManagement')}
-              </Link>
-            </>
-          ) : null}
         </p>
       ) : null}
 

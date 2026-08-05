@@ -176,18 +176,11 @@ export function TeacherProfilePage({ id }: { id: string }) {
           const name = teacherDisplayName(teacher);
           const warningCount = teacherWarningCount(teacher);
 
-          const staffUserId =
-            teacher.user_id ??
-            createResult?.account.user_id ??
-            (teacher.account as { user_id?: number | null } | null | undefined)?.user_id ??
-            null;
-
           return (
             <>
               {createResult ? (
                 <TeacherCreateReadinessBanner
                   result={createResult}
-                  staffUserId={staffUserId}
                   onDismiss={() => {
                     dismissTeacherCreateResult(teacher.id);
                     setCreateResult(null);
