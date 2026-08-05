@@ -160,6 +160,105 @@ describe('F-NX-06 active school body binding', () => {
     if (!bound.ok) return;
     expect(bound.body).toMatchObject({ name: 'Plan', active_school_id: 3 });
   });
+
+  it('does not inject active_school_id into admin channel lifecycle bodies', () => {
+    const lifecyclePaths = [
+      '/admin/channels',
+      '/admin/channels/',
+      '/admin/channels/12',
+      '/admin/channels/12/',
+      '/admin/channels/12/archive',
+      '/admin/channels/12/restore',
+    ];
+    for (const path of lifecyclePaths) {
+      expect(shouldInjectActiveSchoolIdInBody(path)).toBe(false);
+      expect(shouldBindActiveSchoolInBody(path, 'POST')).toBe(true);
+      expect(shouldBindActiveSchoolInBody(path, 'PATCH')).toBe(true);
+      expect(shouldBindActiveSchoolInBody(path, 'DELETE')).toBe(true);
+    }
+
+    const createBody = {
+      name: 'قناة تحقق سياسة BFF',
+      description: 'بيانات اختبار مؤقتة',
+      channel_type: 'teachers',
+    };
+    const createBound = bindActiveSchoolJsonBody(createBody, 3, {
+      injectActiveSchoolId: shouldInjectActiveSchoolIdInBody('/admin/channels'),
+    });
+    expect(createBound.ok).toBe(true);
+    if (!createBound.ok) return;
+    expect(createBound.body).toEqual(createBody);
+    expect(createBound.body).not.toHaveProperty('active_school_id');
+
+    const updateBound = bindActiveSchoolJsonBody(
+      { name: 'قناة تحقق سياسة BFF — محدثة' },
+      3,
+      { injectActiveSchoolId: shouldInjectActiveSchoolIdInBody('/admin/channels/12') },
+    );
+    expect(updateBound.ok).toBe(true);
+    if (!updateBound.ok) return;
+    expect(updateBound.body).toEqual({ name: 'قناة تحقق سياسة BFF — محدثة' });
+    expect(updateBound.body).not.toHaveProperty('active_school_id');
+    expect(updateBound.body).not.toHaveProperty('school_id');
+    expect(updateBound.body).not.toHaveProperty('class_id');
+
+    const emptyArchive = bindActiveSchoolJsonBody({}, 3, {
+      injectActiveSchoolId: shouldInjectActiveSchoolIdInBody('/admin/channels/12/archive'),
+    });
+    expect(emptyArchive.ok).toBe(true);
+    if (!emptyArchive.ok) return;
+    expect(emptyArchive.body).toEqual({});
+
+    const emptyDelete = bindActiveSchoolJsonBody(undefined, 3, {
+      injectActiveSchoolId: shouldInjectActiveSchoolIdInBody('/admin/channels/12'),
+    });
+    expect(emptyDelete.ok).toBe(true);
+    if (!emptyDelete.ok) return;
+    expect(emptyDelete.body).toBeUndefined();
+  });
+
+  it('keeps body injection for nested channel communication routes', () => {
+    expect(shouldInjectActiveSchoolIdInBody('/admin/channels/12/messages')).toBe(true);
+    expect(
+      shouldInjectActiveSchoolIdInBody('/admin/channels/12/messages/recipient-preview'),
+    ).toBe(true);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/channels/recipient-candidates')).toBe(
+      true,
+    );
+    expect(
+      shouldInjectActiveSchoolIdInBody('/admin/channels/12/pending-messages/34/resubmit'),
+    ).toBe(true);
+    // Non-numeric lookalike must not match lifecycle exception.
+    expect(shouldInjectActiveSchoolIdInBody('/admin/channels/abc')).toBe(true);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/channels/12/archive/extra')).toBe(true);
+  });
+
+  it('rejects client-supplied mismatched active_school_id on channel lifecycle', () => {
+    const path = '/admin/channels';
+    expect(shouldInjectActiveSchoolIdInBody(path)).toBe(false);
+    const mismatch = bindActiveSchoolJsonBody(
+      { name: 'x', channel_type: 'teachers', active_school_id: 99 },
+      3,
+      { injectActiveSchoolId: shouldInjectActiveSchoolIdInBody(path) },
+    );
+    expect(mismatch.ok).toBe(false);
+    if (!mismatch.ok) expect(mismatch.reason).toBe('active_school_id_mismatch');
+
+    // Matching client-supplied value is not used to switch school; inject stays off.
+    // Field may remain for upstream allowlist validation (no scope override).
+    const matching = bindActiveSchoolJsonBody(
+      { name: 'x', channel_type: 'teachers', active_school_id: 3 },
+      3,
+      { injectActiveSchoolId: shouldInjectActiveSchoolIdInBody(path) },
+    );
+    expect(matching.ok).toBe(true);
+    if (!matching.ok) return;
+    expect(matching.body).toMatchObject({ active_school_id: 3 });
+    // BFF did not re-inject / replace — body keys unchanged aside from bind copy.
+    expect(Object.keys(matching.body as object).sort()).toEqual(
+      ['active_school_id', 'channel_type', 'name'].sort(),
+    );
+  });
 });
 
 describe('F-NX-12 mutation origin', () => {

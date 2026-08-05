@@ -281,6 +281,21 @@ export function shouldBindActiveSchoolInBody(path: string, method: string): bool
 }
 
 /**
+ * Admin channel lifecycle create / update / delete / archive / restore only.
+ * Odoo 18.0.1.0.253 channel allowlists reject active_school_id in the JSON body;
+ * school scope stays on query + session. Must not use startsWith('/admin/channels')
+ * so messages, recipient-preview, and other nested routes keep prior injection.
+ */
+export function isAdminChannelLifecycleMutationPath(pathname: string): boolean {
+  const path = normalizePolicyPath(pathname);
+  return (
+    /^\/admin\/channels$/.test(path) ||
+    /^\/admin\/channels\/\d+$/.test(path) ||
+    /^\/admin\/channels\/\d+\/(?:archive|restore)$/.test(path)
+  );
+}
+
+/**
  * Whether to inject active_school_id into the JSON body.
  * School is already forwarded as a query param for /admin/*; some Odoo
  * write endpoints reject active_school_id as an unsupported field
@@ -304,5 +319,7 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   if (/^\/admin\/admissions\/family-batches\/[^/]+\/convert-to-students$/.test(pathname)) {
     return false;
   }
+  // Channel lifecycle — query/session scope only; no body injection.
+  if (isAdminChannelLifecycleMutationPath(pathname)) return false;
   return true;
 }
