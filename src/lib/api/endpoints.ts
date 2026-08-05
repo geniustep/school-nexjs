@@ -452,6 +452,8 @@ export const endpoints = {
 
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
+    channelArchive: (id: number | string) => `/admin/channels/${id}/archive`,
+    channelRestore: (id: number | string) => `/admin/channels/${id}/restore`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
     channelPendingMessages: (id: number | string) => `/admin/channels/${id}/pending-messages`,
     /** Backend 228 — admin author resubmit (changes_requested only). */

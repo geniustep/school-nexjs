@@ -1,10 +1,13 @@
-// Channel resources — mirrors School API channel list/detail (Odoo 18.0.1.0.227).
+// Channel resources — mirrors School API channel list/detail.
+// Admin lifecycle fields live in admin-channel.ts (Odoo 18.0.1.0.253).
 
 import type { ChannelMessageAction } from './communication';
 
 export type ChannelType =
   | 'public'
   | 'class'
+  | 'class_staff'
+  | 'class_family'
   | 'teachers'
   | 'parents'
   | 'announcement'
