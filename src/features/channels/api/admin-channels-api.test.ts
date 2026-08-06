@@ -128,14 +128,24 @@ describe('admin-channels-api transport', () => {
       data: [{ id: 1, name: 'A', type: 'teachers' }],
       meta: { allowed_actions: { create_channel: true } },
     });
-    const res = await listAdminChannels({ include_archived: 'true', page_size: 100 });
+    const res = await listAdminChannels({
+      include_archived: 'true',
+      include_family_audience: '1',
+      page_size: 100,
+      active_school_id: 3,
+    });
     expect(mockApi.get).toHaveBeenCalledWith(endpoints.admin.channels, {
       include_archived: 'true',
+      include_family_audience: '1',
       page_size: 100,
+      active_school_id: 3,
     });
     expect(res.success).toBe(true);
     const meta = res.meta as { allowed_actions?: { create_channel?: boolean } };
     expect(meta.allowed_actions?.create_channel).toBe(true);
+    const query = mockApi.get.mock.calls[0][1] as Record<string, unknown>;
+    expect(query).not.toHaveProperty('school_id');
+    expect(query.include_family_audience).toBe('1');
   });
 
   it('posts create and patches update through BFF paths', async () => {

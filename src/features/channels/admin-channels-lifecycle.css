@@ -141,3 +141,33 @@
     min-inline-size: min(100vw - 32px, 220px);
   }
 }
+
+.channel-audience {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  max-inline-size: 100%;
+}
+
+.channel-audience--family {
+  align-items: flex-start;
+}
+
+.channel-audience__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.channel-audience__line,
+.channel-audience__hint {
+  display: block;
+  line-height: 1.35;
+}
+
+.channel-chat__audience {
+  max-inline-size: min(100%, 280px);
+  text-align: end;
+}

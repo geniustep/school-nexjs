@@ -1,6 +1,6 @@
 /**
  * Admin channel lifecycle API — BFF `/api/odoo` only.
- * Contract: Odoo 18.0.1.0.253 (f405385…).
+ * Contract: Odoo 18.0.1.0.254 (1b6f9b62…).
  */
 
 import { api } from '@/lib/api/client';
@@ -114,6 +114,7 @@ export function buildUpdateAdminChannelPayload(
 
 export type ListAdminChannelsQuery = ListParams & {
   include_archived?: string | number | boolean;
+  include_family_audience?: string | number | boolean;
   type?: string;
 };
 

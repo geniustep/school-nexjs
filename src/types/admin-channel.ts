@@ -1,8 +1,9 @@
 /**
- * Admin communication channel lifecycle contract (Odoo Runtime 18.0.1.0.253 /
- * source commit f40538565c2d938603303ec5a35c79773827de86).
+ * Admin communication channel lifecycle contract (Odoo Runtime 18.0.1.0.254 /
+ * source commit 1b6f9b62e10b7976a8d1b4faac0c39f42415cd9a).
  *
  * Serialization: fmt_admin_channel — additive over portal fmt_channel.
+ * Opt-in: include_family_audience=1 → family_audience_summary on class_family.
  * Permissions: Backend-owned boolean maps only; never invent local can* flags.
  */
 
@@ -75,6 +76,29 @@ export type AdminChannelMemberSummary = {
   external_member_count?: number | null;
 };
 
+/** Opt-in family audience delivery state (Odoo include_family_audience=1). */
+export type FamilyAudienceDeliveryState =
+  | 'ready'
+  | 'partial'
+  | 'unavailable'
+  | 'empty_class';
+
+export type FamilyAudienceExclusionLine = {
+  code: string;
+  count?: number | null;
+  message?: string | null;
+};
+
+export type FamilyAudienceSummary = {
+  resolution_source?: string | null;
+  student_count: number;
+  guardian_count: number;
+  deliverable_user_count: number;
+  excluded_count: number;
+  delivery_state: FamilyAudienceDeliveryState;
+  exclusion_summary: FamilyAudienceExclusionLine[];
+};
+
 /**
  * Admin list/detail row. Keeps portal Channel fields (`type`, `can_send`, …)
  * and adds lifecycle fields from fmt_admin_channel.
@@ -90,6 +114,8 @@ export type AdminChannel = Channel & {
   allow_attachments?: boolean | null;
   notify_email?: boolean | null;
   member_summary?: AdminChannelMemberSummary | null;
+  /** Present when list/detail requested with include_family_audience=1. */
+  family_audience_summary?: FamilyAudienceSummary | null;
   has_history?: boolean | null;
   history_usage?: AdminChannelHistoryUsage | null;
   allowed_actions?: AdminChannelAllowedActions | null;

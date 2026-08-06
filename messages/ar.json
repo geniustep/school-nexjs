@@ -639,6 +639,23 @@
     "viewOnly": "عرض فقط",
     "members": "أعضاء",
     "member": "عضو",
+    "audience": {
+      "staffMembers": "أعضاء الطاقم: {count}",
+      "audienceCounts": "الجمهور: {students} تلميذًا · {guardians} وليًا",
+      "deliverableAccounts": "{count} حسابًا قابلًا للتواصل",
+      "unavailableData": "بيانات الجمهور غير متاحة",
+      "badges": {
+        "ready": "الجمهور جاهز",
+        "partial": "الجمهور جاهز جزئيًا",
+        "unavailable": "الجمهور غير جاهز",
+        "emptyClass": "القسم دون تلاميذ نشطين",
+        "unavailableData": "بيانات الجمهور غير متاحة"
+      },
+      "hints": {
+        "partialAccounts": "بعض المستفيدين لا يملكون حسابًا جاهزًا للتواصل",
+        "noDeliverableAccounts": "لا توجد حسابات صالحة للتواصل حاليًا"
+      }
+    },
     "newCount": "{count} جديد",
     "activeAt": "نشط {date}",
     "noMessagesYet": "لا رسائل بعد",

@@ -639,6 +639,23 @@
     "viewOnly": "View only",
     "members": "members",
     "member": "member",
+    "audience": {
+      "staffMembers": "Staff members: {count}",
+      "audienceCounts": "Audience: {students} students · {guardians} guardians",
+      "deliverableAccounts": "{count} deliverable accounts",
+      "unavailableData": "Audience data unavailable",
+      "badges": {
+        "ready": "Audience ready",
+        "partial": "Audience partially ready",
+        "unavailable": "Audience not ready",
+        "emptyClass": "No active students in class",
+        "unavailableData": "Audience data unavailable"
+      },
+      "hints": {
+        "partialAccounts": "Some recipients do not have a ready communication account",
+        "noDeliverableAccounts": "No deliverable accounts are available yet"
+      }
+    },
     "newCount": "{count} new",
     "activeAt": "Active {date}",
     "noMessagesYet": "No messages yet",

@@ -28,9 +28,9 @@ import {
   CHANNELS_LIST_PAGE_SIZE,
   channelHasUnread,
   channelTypeAccentClass,
-  formatChannelMemberCount,
   resolveChannelAccessPresentation,
 } from '@/features/channels/utils/channels-list-present';
+import { ChannelAudienceSummary } from '@/features/channels/components/channel-audience-summary';
 import {
   canCreateAdminChannel,
   channelAllows,
@@ -66,6 +66,7 @@ export function AdminChannelsWorkspace() {
     () => ({
       page_size: CHANNELS_LIST_PAGE_SIZE,
       include_archived: 'true',
+      include_family_audience: '1',
     }),
     [],
   );
@@ -199,8 +200,6 @@ export function AdminChannelsWorkspace() {
               {channels.map((channel) => {
                 const channelType = resolveChannelType(channel);
                 const access = resolveChannelAccessPresentation(channel);
-                const memberCount =
-                  channel.member_summary?.member_count ?? channel.member_count ?? 0;
                 const archived = channel.is_archived === true;
                 const systemManaged = channel.is_system_managed === true;
                 const hasActions =
@@ -299,13 +298,7 @@ export function AdminChannelsWorkspace() {
                           </span>
                         </>
                       ) : null}
-                      <span className="channels-list__meta-count" dir="ltr">
-                        {formatChannelMemberCount(
-                          memberCount,
-                          t('channels.member'),
-                          t('channels.members'),
-                        )}
-                      </span>
+                      <ChannelAudienceSummary channel={channel} compact />
                       <span className="channels-list__meta-sep" aria-hidden="true">
                         ·
                       </span>

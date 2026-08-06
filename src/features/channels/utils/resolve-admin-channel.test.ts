@@ -43,7 +43,9 @@ describe('resolveAdminChannel', () => {
       expect(res.source).toBe('detail');
       expect(res.channel.id).toBe(10);
     }
-    expect(apiMock.get).toHaveBeenCalledWith('/admin/channels/10');
+    expect(apiMock.get).toHaveBeenCalledWith('/admin/channels/10', {
+      include_family_audience: '1',
+    });
   });
 
   it('falls back to list when detail is 404 (Backend gap)', async () => {
@@ -63,6 +65,7 @@ describe('resolveAdminChannel', () => {
     expect(apiMock.get).toHaveBeenNthCalledWith(2, '/admin/channels', {
       page: 1,
       limit: 200,
+      include_family_audience: '1',
     });
   });
 });

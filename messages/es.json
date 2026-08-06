@@ -639,6 +639,23 @@
     "viewOnly": "Solo ver",
     "members": "miembros",
     "member": "miembro",
+    "audience": {
+      "staffMembers": "Miembros del personal: {count}",
+      "audienceCounts": "Audiencia: {students} alumnos · {guardians} tutores",
+      "deliverableAccounts": "{count} cuentas contactables",
+      "unavailableData": "Datos de audiencia no disponibles",
+      "badges": {
+        "ready": "Audiencia lista",
+        "partial": "Audiencia parcialmente lista",
+        "unavailable": "Audiencia no lista",
+        "emptyClass": "Clase sin alumnos activos",
+        "unavailableData": "Datos de audiencia no disponibles"
+      },
+      "hints": {
+        "partialAccounts": "Algunos beneficiarios no tienen una cuenta de comunicación lista",
+        "noDeliverableAccounts": "No hay cuentas contactables disponibles por ahora"
+      }
+    },
     "newCount": "{count} nuevo(s)",
     "activeAt": "Activo {date}",
     "noMessagesYet": "Sin mensajes",

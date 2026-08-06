@@ -16,6 +16,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { channelTypeLabel } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
+import type { AdminChannel } from '@/types/admin-channel';
 import type { Channel } from '@/types/channel';
 import type { Message } from '@/types/message';
 import type { ApiErrorBody } from '@/types/api';
@@ -28,7 +29,9 @@ import {
   normalizePublishedMessage,
 } from './utils/normalize-send-message-result';
 import { resolveAdminChannel } from './utils/resolve-admin-channel';
+import { ChannelAudienceSummary } from './components/channel-audience-summary';
 import './channels-pending.css';
+import './admin-channels-lifecycle.css';
 
 /** Published message list refresh while the channel detail stays open and visible. */
 const POLL_MS = 30000;
@@ -48,7 +51,7 @@ export function ChannelChat({
   const isAdmin = user.role === 'admin';
   const portalChannelState = useResource<Channel>(!isAdmin ? ch.detail(channelId) : null);
 
-  const [adminChannel, setAdminChannel] = useState<Channel | null>(null);
+  const [adminChannel, setAdminChannel] = useState<AdminChannel | null>(null);
   const [adminChannelError, setAdminChannelError] = useState<ApiErrorBody | null>(null);
   const [adminChannelLoading, setAdminChannelLoading] = useState(isAdmin);
 
@@ -122,13 +125,14 @@ export function ChannelChat({
   // One poller per mounted ChannelChat; pauses when the tab is hidden.
   useVisibleInterval(() => loadMessages(false), POLL_MS, true);
 
-  function renderChat(channel: Channel) {
+  function renderChat(channel: Channel | AdminChannel) {
     const composeAllowed = channelAllowsCompose(channel);
     const canSend =
       !forceReadOnly &&
       composeAllowed &&
       (user.role !== 'admin' || hasPermission(user, 'send_messages'));
     const typeLabel = channelTypeLabel(t, channel.type);
+    const adminLike = channel as AdminChannel;
     return (
       <div className="channel-chat-stack">
         {!forceReadOnly ? (
@@ -155,8 +159,14 @@ export function ChannelChat({
                 <Badge tone="slate">{typeLabel}</Badge>
               </div>
             </div>
-            <span className="tiny faint">
-              {channel.member_count} {t('channels.members')}
+            <span className="tiny faint channel-chat__audience">
+              {isAdmin ? (
+                <ChannelAudienceSummary channel={adminLike} />
+              ) : (
+                <>
+                  {channel.member_count} {t('channels.members')}
+                </>
+              )}
             </span>
           </div>
 

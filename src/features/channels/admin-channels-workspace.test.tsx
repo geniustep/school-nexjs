@@ -58,7 +58,7 @@ vi.mock('@/lib/api/client', () => ({
 
 import { AdminChannelsWorkspace } from './admin-channels-workspace';
 
-const baseChannel = {
+const baseChannel: Record<string, unknown> = {
   id: 10,
   name: 'قناة يدوية',
   type: 'teachers',
@@ -117,6 +117,15 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
     render(<AdminChannelsWorkspace />);
     await waitFor(() => expect(screen.getByText('قناة يدوية')).toBeTruthy());
     expect(screen.getByRole('button', { name: 'channels.lifecycle.create' })).toBeTruthy();
+    expect(getMock).toHaveBeenCalledWith(
+      '/admin/channels',
+      expect.objectContaining({
+        include_archived: 'true',
+        include_family_audience: '1',
+        page_size: 100,
+        active_school_id: 1,
+      }),
+    );
 
     cleanup();
     mockList([baseChannel], false);
@@ -124,6 +133,64 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
     await waitFor(() => expect(screen.getByText('قناة يدوية')).toBeTruthy());
     expect(screen.queryByRole('button', { name: 'channels.lifecycle.create' })).toBeNull();
     expect(screen.getByRole('link', { name: 'channels.createMessage' })).toBeTruthy();
+  });
+
+  it('presents class_family audience without misleading member_count zero', async () => {
+    mockList([
+      {
+        ...baseChannel,
+        id: 31,
+        name: 'أسر القسم',
+        type: 'class_family',
+        channel_type: 'class_family',
+        is_system_managed: true,
+        member_count: 0,
+        family_audience_summary: {
+          student_count: 8,
+          guardian_count: 8,
+          deliverable_user_count: 5,
+          excluded_count: 3,
+          delivery_state: 'partial',
+          exclusion_summary: [{ code: 'missing_portal_user', count: 3 }],
+        },
+        allowed_actions: {
+          view: true,
+          send_message: true,
+          update: true,
+          delete: false,
+          archive: false,
+          restore: false,
+        },
+      },
+      {
+        ...baseChannel,
+        id: 30,
+        name: 'طاقم القسم',
+        type: 'class_staff',
+        channel_type: 'class_staff',
+        is_system_managed: true,
+        member_count: 4,
+        family_audience_summary: null,
+        allowed_actions: {
+          view: true,
+          send_message: true,
+          update: true,
+          delete: false,
+          archive: false,
+          restore: false,
+        },
+      },
+    ]);
+    render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channel-card-31')).toBeTruthy());
+    const familyCard = screen.getByTestId('admin-channel-card-31');
+    expect(within(familyCard).getByTestId('channel-audience-family')).toBeTruthy();
+    expect(within(familyCard).getByText('channels.audience.badges.partial')).toBeTruthy();
+    expect(within(familyCard).queryByText(/^0 /)).toBeNull();
+    expect(within(familyCard).queryByText('missing_portal_user')).toBeNull();
+
+    const staffCard = screen.getByTestId('admin-channel-card-30');
+    expect(within(staffCard).getByTestId('channel-audience-staff')).toBeTruthy();
   });
 
   it('opens create dialog and submits allowlisted payload without school_id', async () => {

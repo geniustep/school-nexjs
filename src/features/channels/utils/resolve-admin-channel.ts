@@ -1,20 +1,24 @@
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { FAMILY_AUDIENCE_QUERY } from '@/features/channels/utils/channel-audience-present';
 import type { ApiErrorBody } from '@/types/api';
-import type { Channel } from '@/types/channel';
+import type { AdminChannel } from '@/types/admin-channel';
 
 /**
  * Resolve an admin channel for chat UI.
  * Backend 228 exposes GET …/messages, but detail GET …/channels/{id} may still 404.
  * Fallback: find the channel in GET /admin/channels (no invented endpoint).
+ * Opt-in include_family_audience=1 for privacy-safe class_family presentation.
  */
 export async function resolveAdminChannel(
   channelId: number,
 ): Promise<
-  | { ok: true; channel: Channel; source: 'detail' | 'list' }
+  | { ok: true; channel: AdminChannel; source: 'detail' | 'list' }
   | { ok: false; error: ApiErrorBody }
 > {
-  const detail = await api.get<Channel>(endpoints.admin.channel(channelId));
+  const detail = await api.get<AdminChannel>(endpoints.admin.channel(channelId), {
+    ...FAMILY_AUDIENCE_QUERY,
+  });
   if (detail.success) {
     return { ok: true, channel: detail.data, source: 'detail' };
   }
@@ -30,7 +34,11 @@ export async function resolveAdminChannel(
     return { ok: false, error: detailError };
   }
 
-  const list = await api.get<Channel[]>(endpoints.admin.channels, { page: 1, limit: 200 });
+  const list = await api.get<AdminChannel[]>(endpoints.admin.channels, {
+    page: 1,
+    limit: 200,
+    ...FAMILY_AUDIENCE_QUERY,
+  });
   if (!list.success) {
     return {
       ok: false,
@@ -49,9 +57,9 @@ export async function resolveAdminChannel(
 
 /** Pick channel from list payload (unit-testable, no network). */
 export function pickChannelFromList(
-  rows: Channel[] | null | undefined,
+  rows: AdminChannel[] | null | undefined,
   channelId: number,
-): Channel | null {
+): AdminChannel | null {
   if (!Array.isArray(rows)) return null;
   return rows.find((c) => c.id === channelId) ?? null;
 }
