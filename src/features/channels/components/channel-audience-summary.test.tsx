@@ -38,11 +38,37 @@ describe('ChannelAudienceSummary', () => {
     );
     expect(screen.getByTestId('channel-audience-family')).toBeTruthy();
     expect(screen.getByText('channels.audience.badges.partial')).toBeTruthy();
-    expect(
-      screen.getByText('channels.audience.audienceCounts'),
-    ).toBeTruthy();
+    expect(screen.getByText('channels.audience.audienceCounts')).toBeTruthy();
+    expect(screen.getByText('channels.audience.deliverableAccounts')).toBeTruthy();
+    expect(screen.getByText('channels.audience.excludedCount')).toBeTruthy();
+    expect(screen.getByText('channels.audience.hints.missingPortalUser')).toBeTruthy();
     expect(screen.queryByText(/0 members|الأعضاء: 0|0 عضو/i)).toBeNull();
     expect(screen.queryByText('missing_portal_user')).toBeNull();
+  });
+
+  it('shows ready deliverable count without excluded line', () => {
+    render(
+      <ChannelAudienceSummary
+        channel={{
+          type: 'class_family',
+          channel_type: 'class_family',
+          member_count: 0,
+          family_audience_summary: {
+            student_count: 4,
+            guardian_count: 4,
+            deliverable_user_count: 4,
+            excluded_count: 0,
+            delivery_state: 'ready',
+            exclusion_summary: [],
+          },
+        }}
+      />,
+    );
+    expect(screen.getByTestId('channel-audience-family').getAttribute('data-delivery-state')).toBe(
+      'ready',
+    );
+    expect(screen.getByText('channels.audience.badges.ready')).toBeTruthy();
+    expect(screen.queryByText('channels.audience.excludedCount')).toBeNull();
   });
 
   it('falls back without using member_count when summary is absent', () => {

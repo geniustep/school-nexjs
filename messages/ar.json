@@ -643,6 +643,7 @@
       "staffMembers": "أعضاء الطاقم: {count}",
       "audienceCounts": "الجمهور: {students} تلميذًا · {guardians} وليًا",
       "deliverableAccounts": "{count} حسابًا قابلًا للتواصل",
+      "excludedCount": "{count} مستبعدًا",
       "unavailableData": "بيانات الجمهور غير متاحة",
       "badges": {
         "ready": "الجمهور جاهز",
@@ -653,6 +654,7 @@
       },
       "hints": {
         "partialAccounts": "بعض المستفيدين لا يملكون حسابًا جاهزًا للتواصل",
+        "missingPortalUser": "لا يملك بعض الأولياء حسابات دخول مفعّلة",
         "noDeliverableAccounts": "لا توجد حسابات صالحة للتواصل حاليًا"
       }
     },

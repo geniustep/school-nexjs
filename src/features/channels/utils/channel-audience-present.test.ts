@@ -3,8 +3,68 @@ import {
   buildChannelAudienceViewModel,
   normalizeFamilyAudienceSummary,
   resolveChannelAudienceMode,
+  resolveFamilyPartialHintKey,
   resolveMemberCount,
 } from './channel-audience-present';
+
+/** Synthetic tenant-shaped fixtures — no real PII or IDs. */
+const AHLEN_LIKE = [
+  {
+    type: 'class_family' as const,
+    channel_type: 'class_family' as const,
+    member_count: 0,
+    family_audience_summary: {
+      student_count: 0,
+      guardian_count: 0,
+      deliverable_user_count: 0,
+      excluded_count: 0,
+      delivery_state: 'empty_class' as const,
+      exclusion_summary: [],
+    },
+  },
+  {
+    type: 'class_staff' as const,
+    channel_type: 'class_staff' as const,
+    member_count: 2,
+    family_audience_summary: null,
+  },
+];
+
+const NIBRAS_LIKE_PARTIAL = {
+  type: 'class_family' as const,
+  channel_type: 'class_family' as const,
+  member_count: 0,
+  family_audience_summary: {
+    student_count: 20,
+    guardian_count: 18,
+    deliverable_user_count: 12,
+    excluded_count: 6,
+    delivery_state: 'partial' as const,
+    exclusion_summary: [{ code: 'missing_portal_user', count: 6 }],
+  },
+};
+
+const ALWAH_LIKE_MIXED = [
+  {
+    type: 'class_family' as const,
+    channel_type: 'class_family' as const,
+    member_count: 0,
+    family_audience_summary: {
+      student_count: 5,
+      guardian_count: 5,
+      deliverable_user_count: 5,
+      excluded_count: 0,
+      delivery_state: 'ready' as const,
+      exclusion_summary: [],
+    },
+  },
+  {
+    type: 'parents' as const,
+    channel_type: 'parents' as const,
+    member_count: 8,
+    family_audience_summary: null,
+  },
+];
 
 describe('normalizeFamilyAudienceSummary', () => {
   it('normalizes a valid partial summary', () => {
@@ -30,6 +90,34 @@ describe('normalizeFamilyAudienceSummary', () => {
     expect(normalizeFamilyAudienceSummary(null)).toBeNull();
     expect(normalizeFamilyAudienceSummary({ delivery_state: 'weird' })).toBeNull();
     expect(normalizeFamilyAudienceSummary('x')).toBeNull();
+  });
+});
+
+describe('resolveFamilyPartialHintKey', () => {
+  it('maps missing_portal_user to the portal-login hint key', () => {
+    expect(
+      resolveFamilyPartialHintKey({
+        student_count: 10,
+        guardian_count: 9,
+        deliverable_user_count: 4,
+        excluded_count: 5,
+        delivery_state: 'partial',
+        exclusion_summary: [{ code: 'missing_portal_user', count: 5 }],
+      }),
+    ).toBe('channels.audience.hints.missingPortalUser');
+  });
+
+  it('keeps a generic hint for unknown exclusion codes', () => {
+    expect(
+      resolveFamilyPartialHintKey({
+        student_count: 2,
+        guardian_count: 2,
+        deliverable_user_count: 1,
+        excluded_count: 1,
+        delivery_state: 'partial',
+        exclusion_summary: [{ code: 'unknown_backend_code', count: 1 }],
+      }),
+    ).toBe('channels.audience.hints.partialAccounts');
   });
 });
 
@@ -156,5 +244,37 @@ describe('buildChannelAudienceViewModel', () => {
         member_summary: { member_count: 3 },
       }),
     ).toBe(3);
+  });
+
+  it('covers Ahlen-like empty_class without treating staff as family', () => {
+    const family = buildChannelAudienceViewModel(AHLEN_LIKE[0]!);
+    const staff = buildChannelAudienceViewModel(AHLEN_LIKE[1]!);
+    expect(family.mode).toBe('family');
+    if (family.mode === 'family') {
+      expect(family.badgeKey).toBe('channels.audience.badges.emptyClass');
+      expect(family.summary?.deliverable_user_count).toBe(0);
+    }
+    expect(staff).toEqual({ mode: 'staff', memberCount: 2 });
+  });
+
+  it('covers Nibras-like member_count=0 with deliverable audience', () => {
+    const view = buildChannelAudienceViewModel(NIBRAS_LIKE_PARTIAL);
+    expect(view.mode).toBe('family');
+    if (view.mode !== 'family') return;
+    expect(view.summary?.deliverable_user_count).toBe(12);
+    expect(view.summary?.excluded_count).toBe(6);
+    expect(resolveFamilyPartialHintKey(view.summary)).toBe(
+      'channels.audience.hints.missingPortalUser',
+    );
+  });
+
+  it('covers Alwah-like mixed family and non-family rows', () => {
+    const family = buildChannelAudienceViewModel(ALWAH_LIKE_MIXED[0]!);
+    const manual = buildChannelAudienceViewModel(ALWAH_LIKE_MIXED[1]!);
+    expect(family.mode).toBe('family');
+    if (family.mode === 'family') {
+      expect(family.badgeKey).toBe('channels.audience.badges.ready');
+    }
+    expect(manual).toEqual({ mode: 'members', memberCount: 8 });
   });
 });

@@ -5,7 +5,7 @@
  * @design-status adopted
  *
  * Admin channels workspace — lifecycle create/update/delete/archive/restore.
- * Consumes Odoo Runtime 18.0.1.0.253 allowed_actions; no local permission math.
+ * Consumes Odoo Runtime 18.0.1.0.254 allowed_actions; no local permission math.
  */
 
 import Link from 'next/link';

@@ -98,12 +98,14 @@ export function ChannelAudienceSummary({
             count: summary.deliverable_user_count,
           })}
         </span>
-        {hintKey && !compact ? (
-          <span className="channel-audience__hint muted tiny" dir="auto">
-            {t(hintKey)}
+        {summary.excluded_count > 0 ? (
+          <span className="channel-audience__line" dir="auto">
+            {t('channels.audience.excludedCount', {
+              count: summary.excluded_count,
+            })}
           </span>
         ) : null}
-        {hintKey && compact ? (
+        {hintKey ? (
           <span className="channel-audience__hint muted tiny" dir="auto">
             {t(hintKey)}
           </span>

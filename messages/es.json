@@ -643,6 +643,7 @@
       "staffMembers": "Miembros del personal: {count}",
       "audienceCounts": "Audiencia: {students} alumnos · {guardians} tutores",
       "deliverableAccounts": "{count} cuentas contactables",
+      "excludedCount": "{count} excluidos",
       "unavailableData": "Datos de audiencia no disponibles",
       "badges": {
         "ready": "Audiencia lista",
@@ -653,6 +654,7 @@
       },
       "hints": {
         "partialAccounts": "Algunos beneficiarios no tienen una cuenta de comunicación lista",
+        "missingPortalUser": "Algunos tutores no tienen una cuenta de portal activa",
         "noDeliverableAccounts": "No hay cuentas contactables disponibles por ahora"
       }
     },

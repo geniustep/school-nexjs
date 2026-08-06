@@ -198,7 +198,10 @@ export function buildChannelAudienceViewModel(
   }
 }
 
-/** Known exclusion codes may refine partial copy; unknown codes stay generic. */
+/**
+ * Known exclusion codes may refine partial copy.
+ * Never surface raw codes in the UI — return i18n keys only.
+ */
 export function resolveFamilyPartialHintKey(
   summary: FamilyAudienceSummary | null,
 ): string {
@@ -207,8 +210,11 @@ export function resolveFamilyPartialHintKey(
   }
   const codes = summary.exclusion_summary.map((line) => line.code);
   if (codes.length === 0) return 'channels.audience.hints.partialAccounts';
-  if (codes.every((code) => KNOWN_EXCLUSION_CODES.has(code))) {
-    return 'channels.audience.hints.partialAccounts';
+
+  const hasMissingPortal = codes.includes('missing_portal_user');
+  const onlyKnown = codes.every((code) => KNOWN_EXCLUSION_CODES.has(code));
+  if (hasMissingPortal && onlyKnown) {
+    return 'channels.audience.hints.missingPortalUser';
   }
   return 'channels.audience.hints.partialAccounts';
 }

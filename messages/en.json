@@ -643,6 +643,7 @@
       "staffMembers": "Staff members: {count}",
       "audienceCounts": "Audience: {students} students · {guardians} guardians",
       "deliverableAccounts": "{count} deliverable accounts",
+      "excludedCount": "{count} excluded",
       "unavailableData": "Audience data unavailable",
       "badges": {
         "ready": "Audience ready",
@@ -653,6 +654,7 @@
       },
       "hints": {
         "partialAccounts": "Some recipients do not have a ready communication account",
+        "missingPortalUser": "Some guardians do not have an active portal login",
         "noDeliverableAccounts": "No deliverable accounts are available yet"
       }
     },
