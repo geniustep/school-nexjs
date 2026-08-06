@@ -237,6 +237,28 @@ describe('buildChannelAudienceViewModel', () => {
     ).toEqual({ mode: 'members', memberCount: 2 });
   });
 
+  it('aligns audience mode with canonical channel_type when type diverges', () => {
+    expect(
+      resolveChannelAudienceMode({ type: 'teachers', channel_type: 'class_family' }),
+    ).toBe('family');
+    expect(resolveChannelAudienceMode({ type: 'class_family' })).toBe('family');
+    expect(
+      buildChannelAudienceViewModel({
+        type: 'teachers',
+        channel_type: 'class_family',
+        member_count: 0,
+        family_audience_summary: {
+          student_count: 2,
+          guardian_count: 2,
+          deliverable_user_count: 2,
+          excluded_count: 0,
+          delivery_state: 'ready',
+          exclusion_summary: [],
+        },
+      }).mode,
+    ).toBe('family');
+  });
+
   it('prefers member_summary.member_count when present', () => {
     expect(
       resolveMemberCount({

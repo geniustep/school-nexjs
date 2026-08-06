@@ -80,11 +80,19 @@ export function AdminChannelsWorkspace() {
   const [archiveTarget, setArchiveTarget] = useState<AdminChannel | null>(null);
   const [mutatingId, setMutatingId] = useState<number | null>(null);
 
-  // Drop stale allowed_actions when Active Role changes.
+  function resetLifecycleUiState() {
+    setForm(null);
+    setDeleteTarget(null);
+    setArchiveTarget(null);
+    setMutatingId(null);
+  }
+
+  // Drop stale dialogs/selection when Active Role or school changes — no mutations.
   useEffect(() => {
+    resetLifecycleUiState();
     state.reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeRole]);
+  }, [activeRole, activeSchoolId]);
 
   async function runArchive(channel: AdminChannel) {
     if (mutatingId != null) return;

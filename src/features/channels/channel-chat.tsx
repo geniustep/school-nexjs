@@ -29,6 +29,7 @@ import {
   normalizePublishedMessage,
 } from './utils/normalize-send-message-result';
 import { resolveAdminChannel } from './utils/resolve-admin-channel';
+import { resolveChannelType } from './utils/admin-channel-actions';
 import { ChannelAudienceSummary } from './components/channel-audience-summary';
 import './channels-pending.css';
 import './admin-channels-lifecycle.css';
@@ -131,7 +132,8 @@ export function ChannelChat({
       !forceReadOnly &&
       composeAllowed &&
       (user.role !== 'admin' || hasPermission(user, 'send_messages'));
-    const typeLabel = channelTypeLabel(t, channel.type);
+    // Prefer channel_type (canonical) then legacy type — same as audience summary.
+    const typeLabel = channelTypeLabel(t, resolveChannelType(channel));
     const adminLike = channel as AdminChannel;
     return (
       <div className="channel-chat-stack">

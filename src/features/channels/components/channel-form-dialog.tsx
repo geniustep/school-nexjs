@@ -107,6 +107,10 @@ export function ChannelFormDialog({
   useEffect(() => {
     if (!open || mode !== 'create' || !needsClass) return;
     let active = true;
+    // Drop class from a prior school before options for the active school load.
+    setClassId('');
+    setClasses([]);
+    setError(null);
     setClassesLoading(true);
     const query =
       activeSchoolId != null ? { active_school_id: activeSchoolId, page_size: 200 } : { page_size: 200 };
@@ -136,7 +140,13 @@ export function ChannelFormDialog({
       setError(t('channels.lifecycle.errors.nameRequired'));
       return;
     }
-    if (needsClass && !classId) {
+    const selectedClassId = needsClass ? Number(classId) : NaN;
+    const classValidForSchool =
+      !needsClass ||
+      (Boolean(classId) &&
+        Number.isFinite(selectedClassId) &&
+        classes.some((cls) => Number(cls.id) === selectedClassId));
+    if (needsClass && !classValidForSchool) {
       setError(t('channels.lifecycle.errors.classRequired'));
       return;
     }
@@ -158,7 +168,7 @@ export function ChannelFormDialog({
         allow_attachments: allowAttachments,
         notify_email: notifyEmail,
       };
-      if (needsClass) input.class_id = Number(classId);
+      if (needsClass) input.class_id = selectedClassId;
       res = await createAdminChannel(input, schoolQuery);
     } else if (channel) {
       const input: UpdateAdminChannelInput = {

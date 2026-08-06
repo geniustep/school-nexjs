@@ -127,4 +127,39 @@ describe('ChannelAudienceSummary', () => {
     );
     expect(screen.getByTestId('channel-audience-members')).toBeTruthy();
   });
+
+  it('uses channel_type over divergent type for family audience', () => {
+    render(
+      <ChannelAudienceSummary
+        channel={{
+          type: 'teachers',
+          channel_type: 'class_family',
+          member_count: 99,
+          family_audience_summary: {
+            student_count: 1,
+            guardian_count: 1,
+            deliverable_user_count: 1,
+            excluded_count: 0,
+            delivery_state: 'ready',
+            exclusion_summary: [],
+          },
+        }}
+      />,
+    );
+    expect(screen.getByTestId('channel-audience-family')).toBeTruthy();
+    expect(screen.queryByTestId('channel-audience-members')).toBeNull();
+  });
+
+  it('supports legacy type-only class_family payload', () => {
+    render(
+      <ChannelAudienceSummary
+        channel={{
+          type: 'class_family',
+          member_count: 0,
+          family_audience_summary: null,
+        }}
+      />,
+    );
+    expect(screen.getByTestId('channel-audience-family-fallback')).toBeTruthy();
+  });
 });

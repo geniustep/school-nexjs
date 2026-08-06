@@ -10,6 +10,7 @@ const patchMock = vi.fn();
 const deleteMock = vi.fn();
 const toastSuccess = vi.fn();
 const toastError = vi.fn();
+const sessionState = { activeSchoolId: 1 as number };
 
 vi.mock('next/link', () => ({
   default: ({
@@ -40,9 +41,14 @@ vi.mock('@/features/auth/active-role-context', () => ({
 
 vi.mock('@/features/auth/admin-session-context', () => ({
   useAdminSession: () => ({
-    activeSchoolId: 1,
+    get activeSchoolId() {
+      return sessionState.activeSchoolId;
+    },
     requiresActiveSchool: false,
-    schools: [{ id: 1, name: 'School' }],
+    schools: [
+      { id: 1, name: 'School' },
+      { id: 2, name: 'School B' },
+    ],
     switching: false,
   }),
 }));
@@ -110,6 +116,7 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
   });
 
   beforeEach(() => {
+    sessionState.activeSchoolId = 1;
     mockList();
   });
 
@@ -436,6 +443,62 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
     await user.click(screen.getByRole('button', { name: 'channels.lifecycle.archive' }));
     await waitFor(() =>
       expect(postMock).toHaveBeenCalledWith('/admin/channels/10/archive', {}, { active_school_id: 1 }),
+    );
+  });
+
+  it('closes create/edit/delete/archive dialogs and skips mutations on school switch', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByText('قناة يدوية')).toBeTruthy());
+
+    await user.click(screen.getByRole('button', { name: 'channels.lifecycle.create' }));
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+    const callsBeforeCreateClose = postMock.mock.calls.length + patchMock.mock.calls.length + deleteMock.mock.calls.length;
+
+    sessionState.activeSchoolId = 2;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.queryByTestId('channel-form-dialog')).toBeNull());
+    expect(postMock.mock.calls.length + patchMock.mock.calls.length + deleteMock.mock.calls.length).toBe(
+      callsBeforeCreateClose,
+    );
+
+    sessionState.activeSchoolId = 1;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channel-card-10')).toBeTruthy());
+    await user.click(screen.getByLabelText('channels.lifecycle.actionsMenu'));
+    await user.click(screen.getByRole('menuitem', { name: 'channels.lifecycle.edit' }));
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+
+    sessionState.activeSchoolId = 2;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.queryByTestId('channel-form-dialog')).toBeNull());
+
+    sessionState.activeSchoolId = 1;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channel-card-10')).toBeTruthy());
+    await user.click(screen.getByLabelText('channels.lifecycle.actionsMenu'));
+    await user.click(screen.getByRole('menuitem', { name: 'channels.lifecycle.delete' }));
+    expect(screen.getByTestId('channel-delete-dialog')).toBeTruthy();
+
+    sessionState.activeSchoolId = 2;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.queryByTestId('channel-delete-dialog')).toBeNull());
+    expect(deleteMock).not.toHaveBeenCalled();
+
+    sessionState.activeSchoolId = 1;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channel-card-10')).toBeTruthy());
+    await user.click(screen.getByLabelText('channels.lifecycle.actionsMenu'));
+    await user.click(screen.getByRole('menuitem', { name: 'channels.lifecycle.archive' }));
+    expect(screen.getByText('channels.lifecycle.archiveWarning')).toBeTruthy();
+
+    const mutationCallsBeforeArchiveClose =
+      postMock.mock.calls.length + patchMock.mock.calls.length + deleteMock.mock.calls.length;
+    sessionState.activeSchoolId = 2;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.queryByText('channels.lifecycle.archiveWarning')).toBeNull());
+    expect(postMock.mock.calls.length + patchMock.mock.calls.length + deleteMock.mock.calls.length).toBe(
+      mutationCallsBeforeArchiveClose,
     );
   });
 });

@@ -37,6 +37,11 @@ describe('admin-channel-actions', () => {
     expect(resolveChannelType({ channel_type: 'class_staff', type: 'teachers' })).toBe(
       'class_staff',
     );
+    expect(resolveChannelType({ type: 'class_family' })).toBe('class_family');
+    expect(resolveChannelType({ channel_type: 'class_family', type: 'teachers' })).toBe(
+      'class_family',
+    );
+    expect(resolveChannelType({})).toBe('');
   });
 });
 
