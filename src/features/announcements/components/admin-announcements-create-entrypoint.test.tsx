@@ -37,8 +37,8 @@ vi.mock('@/features/auth/session-context', () => ({
   useSession: () => sessionRef.current,
 }));
 
-vi.mock('@/lib/permissions/scope', () => ({
-  canSeeChannels: (user: { permissions?: string[] } | null) =>
+vi.mock('@/lib/permissions/communication', () => ({
+  canComposeGeneralCommunication: (user: { permissions?: string[] } | null) =>
     !!user?.permissions?.includes('view_channels'),
 }));
 
@@ -78,39 +78,41 @@ describe('AdminAnnouncementsPage create entrypoint', () => {
     };
   });
 
-  it('shows school communication title and create-message CTA to compose journey', () => {
+  it('shows school communication title and opens the governed intent-aware compose journey', () => {
     render(<AdminAnnouncementsPage />);
 
     expect(screen.getByText('channels.schoolCommunicationTitle')).toBeTruthy();
     expect(screen.getByText('announcements.adminWorkspaceSubtitle')).toBeTruthy();
-    const createLink = screen.getByRole('link', { name: 'channels.createMessage' });
-    expect(createLink.getAttribute('href')).toBe('/admin/channels/compose');
+    const createLink = screen.getByRole('link', {
+      name: 'communication.general.newCommunication',
+    });
+    expect(createLink.getAttribute('href')).toBe('/admin/communication/compose');
     expect(screen.getByTestId('announcements-feed').getAttribute('data-base-path')).toBe(
       '/admin/announcements',
     );
   });
 
-  it('hides create CTA when view_channels is unavailable', () => {
+  it('hides create CTA when general communication compose is unavailable', () => {
     sessionRef.current = {
       ...sessionRef.current,
       permissions: ['view_dashboard'],
     };
     render(<AdminAnnouncementsPage />);
-    expect(screen.queryByRole('link', { name: 'channels.createMessage' })).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: 'communication.general.newCommunication' }),
+    ).toBeNull();
   });
 });
 
 describe('Arabic admin announcements naming', () => {
-  it('uses التواصل المدرسي as page domain label and create CTA', () => {
+  it('keeps التواصل المدرسي as the page domain and uses a neutral create CTA', () => {
     expect(ar.channels.schoolCommunicationTitle).toBe('التواصل المدرسي');
-    expect(ar.channels.createMessage).toBe('إنشاء رسالة');
+    expect(ar.communication.general.newCommunication).toBe('تواصل جديد');
     expect(ar.announcements.adminWorkspaceSubtitle).toContain('الرسائل المنشورة');
-    expect(ar.announcements.adminWorkspaceSubtitle).not.toBe('الإعلانات');
   });
 
-  it('does not use البلاغات المدرسية or الإعلانات as the domain page title', () => {
-    expect(ar.channels.schoolCommunicationTitle).toBe('التواصل المدرسي');
-    expect(ar.channels.schoolCommunicationTitle).not.toBe('الإعلانات');
+  it('does not use البلاغات المدرسية as the domain page title', () => {
+    expect(ar.channels.schoolCommunicationTitle).not.toBe('البلاغات المدرسية');
     expect(ar.nav.schoolCommunication).toBe('التواصل المدرسي');
     expect(JSON.stringify(ar.announcements.adminWorkspaceSubtitle)).not.toContain(
       'البلاغات المدرسية',

@@ -17,9 +17,7 @@ import { RequireCommunicationReviewAccess } from '@/features/admin/communication
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { formatDateTime } from '@/lib/utils/format';
-import {
-  canReviewCommunication,
-} from '@/lib/permissions/communication';
+import { canReviewCommunication } from '@/lib/permissions/communication';
 import { fetchCommunicationContentList } from '@/features/communication/api/admin-communication-api';
 import {
   communicationContentTypeMessageKey,
@@ -31,15 +29,61 @@ import type { CommunicationContent } from '@/types/communication';
 import '../communication-review.css';
 
 const FILTERS = [
-  { id: 'all', state: '', contentType: '' },
-  { id: 'messages', state: '', contentType: 'message' },
-  { id: 'homework', state: '', contentType: 'homework' },
-  { id: 'resource', state: '', contentType: 'resource' },
-  { id: 'submitted', state: 'submitted', contentType: '' },
-  { id: 'changes_requested', state: 'changes_requested', contentType: '' },
-  { id: 'approved', state: 'approved', contentType: '' },
-  { id: 'scheduled', state: 'scheduled', contentType: '' },
-  { id: 'published', state: 'published', contentType: '' },
+  { id: 'all', state: '', contentType: '', labelKey: 'communication.filter.all' },
+  {
+    id: 'announcements',
+    state: '',
+    contentType: 'announcement',
+    labelKey: 'communication.contentType.announcement',
+  },
+  {
+    id: 'messages',
+    state: '',
+    contentType: 'message',
+    labelKey: 'communication.filter.messages',
+  },
+  {
+    id: 'homework',
+    state: '',
+    contentType: 'homework',
+    labelKey: 'communication.filter.homework',
+  },
+  {
+    id: 'resource',
+    state: '',
+    contentType: 'resource',
+    labelKey: 'communication.filter.resource',
+  },
+  {
+    id: 'submitted',
+    state: 'submitted',
+    contentType: '',
+    labelKey: 'communication.filter.submitted',
+  },
+  {
+    id: 'changes_requested',
+    state: 'changes_requested',
+    contentType: '',
+    labelKey: 'communication.filter.changes_requested',
+  },
+  {
+    id: 'approved',
+    state: 'approved',
+    contentType: '',
+    labelKey: 'communication.filter.approved',
+  },
+  {
+    id: 'scheduled',
+    state: 'scheduled',
+    contentType: '',
+    labelKey: 'communication.filter.scheduled',
+  },
+  {
+    id: 'published',
+    state: 'published',
+    contentType: '',
+    labelKey: 'communication.filter.published',
+  },
 ] as const;
 
 function AdminCommunicationReviewInner() {
@@ -49,7 +93,7 @@ function AdminCommunicationReviewInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filterId = searchParams.get('filter') || 'submitted';
-  const active = FILTERS.find((f) => f.id === filterId) ?? FILTERS[4];
+  const active = FILTERS.find((f) => f.id === filterId) ?? FILTERS[5];
 
   const [items, setItems] = useState<CommunicationContent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +135,11 @@ function AdminCommunicationReviewInner() {
         subtitle={t('communication.reviewSubtitle')}
       />
 
-      <div className="communication-review__filters" role="tablist" aria-label={t('communication.filters')}>
+      <div
+        className="communication-review__filters"
+        role="tablist"
+        aria-label={t('communication.filters')}
+      >
         {FILTERS.map((f) => {
           const selected = f.id === active.id;
           return (
@@ -107,7 +155,7 @@ function AdminCommunicationReviewInner() {
                 router.replace(`${pathname}?${params.toString()}`);
               }}
             >
-              {t(`communication.filter.${f.id}`)}
+              {t(f.labelKey)}
             </button>
           );
         })}
@@ -118,7 +166,11 @@ function AdminCommunicationReviewInner() {
       ) : error ? (
         <ApiErrorView error={error} onRetry={() => void load()} />
       ) : items.length === 0 ? (
-        <EmptyState icon="📣" title={t('communication.emptyTitle')} description={t('communication.emptyDesc')} />
+        <EmptyState
+          icon="📣"
+          title={t('communication.emptyTitle')}
+          description={t('communication.emptyDesc')}
+        />
       ) : (
         <div className="communication-review__grid">
           {items.map((item) => (
@@ -129,7 +181,15 @@ function AdminCommunicationReviewInner() {
             >
               <div className="between" style={{ gap: 8, flexWrap: 'wrap' }}>
                 <strong dir="auto">{item.subject || item.name || `#${item.id}`}</strong>
-                <Badge tone={item.state === 'changes_requested' ? 'amber' : item.state === 'published' ? 'green' : 'slate'}>
+                <Badge
+                  tone={
+                    item.state === 'changes_requested'
+                      ? 'amber'
+                      : item.state === 'published'
+                        ? 'green'
+                        : 'slate'
+                  }
+                >
                   {t(communicationStateMessageKey(item.state))}
                 </Badge>
               </div>

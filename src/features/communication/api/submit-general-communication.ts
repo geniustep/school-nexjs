@@ -20,6 +20,22 @@ import type { IndividualRecipientScope, RecipientScope } from '@/types/recipient
 
 const PROXY_BASE = '/api/odoo';
 
+type GeneralCommunicationContentType = 'message' | 'announcement';
+
+export function resolveGeneralCommunicationContentType(
+  search?: string,
+): GeneralCommunicationContentType {
+  const rawSearch =
+    search ?? (typeof window !== 'undefined' && window.location ? window.location.search : '');
+  try {
+    return new URLSearchParams(rawSearch).get('content_type') === 'announcement'
+      ? 'announcement'
+      : 'message';
+  } catch {
+    return 'message';
+  }
+}
+
 function buildUrl(path: string): string {
   const clean = path.startsWith('/') ? path : `/${path}`;
   return `${PROXY_BASE}${clean}`;
@@ -176,6 +192,7 @@ function classifyOutcome(
 
 /**
  * Ensure draft exists (create or PATCH), then Submit.
+ * content_type is selected by the intent-aware compose entrypoint.
  * Does not invent Published messages on 202.
  */
 export async function submitGroupGeneralCommunication(input: {
@@ -185,13 +202,14 @@ export async function submitGroupGeneralCommunication(input: {
   recipient_scope: Exclude<RecipientScope, IndividualRecipientScope>;
 }): Promise<GeneralCommunicationSubmitResult> {
   let draftId = input.draftId;
+  const contentType = resolveGeneralCommunicationContentType();
   try {
     if (draftId == null) {
       const created = await createAdminCommunicationContent({
         subject: input.subject,
         body: input.body,
         recipient_scope: input.recipient_scope,
-        content_type: 'message',
+        content_type: contentType,
       });
       if (!created.success) {
         return { ok: false, error: created.error, draftId: null };
@@ -213,6 +231,7 @@ export async function submitGroupGeneralCommunication(input: {
         subject: input.subject,
         body: input.body,
         recipient_scope: input.recipient_scope,
+        content_type: contentType,
       });
       if (!patched.success) {
         return { ok: false, error: patched.error, draftId };
@@ -242,7 +261,7 @@ export async function submitGroupGeneralCommunication(input: {
 }
 
 /**
- * Individual submit via 256 endpoint — classify by HTTP status when available.
+ * Individual submit via 256 endpoint — always a direct message, never an announcement.
  */
 export async function submitIndividualGeneralCommunication(input: {
   scope: IndividualRecipientScope;

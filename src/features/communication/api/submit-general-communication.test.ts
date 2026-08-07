@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createMock = vi.hoisted(() => vi.fn());
 const updateMock = vi.hoisted(() => vi.fn());
@@ -14,7 +14,10 @@ vi.mock('@/features/communication/api/admin-communication-api', async () => {
   };
 });
 
-import { submitGroupGeneralCommunication } from './submit-general-communication';
+import {
+  resolveGeneralCommunicationContentType,
+  submitGroupGeneralCommunication,
+} from './submit-general-communication';
 
 describe('submitGroupGeneralCommunication', () => {
   beforeEach(() => {
@@ -31,7 +34,22 @@ describe('submitGroupGeneralCommunication', () => {
     });
   });
 
-  it('creates draft then submits and classifies 202 as pending_review without inventing publish', async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('defaults the group journey to message when no explicit intent is present', () => {
+    expect(resolveGeneralCommunicationContentType('')).toBe('message');
+    expect(resolveGeneralCommunicationContentType('?content_type=unknown')).toBe('message');
+  });
+
+  it('resolves announcement intent from the compose query', () => {
+    expect(resolveGeneralCommunicationContentType('?content_type=announcement')).toBe(
+      'announcement',
+    );
+  });
+
+  it('creates message draft then submits and classifies 202 as pending_review', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -56,7 +74,12 @@ describe('submitGroupGeneralCommunication', () => {
       recipient_scope: { scope_type: 'school', beneficiary_kind: 'guardians' },
     });
 
-    expect(createMock).toHaveBeenCalledTimes(1);
+    expect(createMock).toHaveBeenCalledWith({
+      subject: 'S',
+      body: 'B',
+      recipient_scope: { scope_type: 'school', beneficiary_kind: 'guardians' },
+      content_type: 'message',
+    });
     expect(updateMock).not.toHaveBeenCalled();
     expect(fetch).toHaveBeenCalledWith(
       '/api/odoo/admin/communication/content/90/submit',
@@ -69,7 +92,38 @@ describe('submitGroupGeneralCommunication', () => {
     }
   });
 
-  it('PATCHes existing draft before submit and accepts 201', async () => {
+  it('creates announcement content when the announcement intent is selected', async () => {
+    vi.stubGlobal('window', { location: { search: '?content_type=announcement' } });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 202,
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { id: 90, state: 'submitted', communication_content_id: 90 },
+          meta: {},
+        }),
+      }),
+    );
+
+    await submitGroupGeneralCommunication({
+      draftId: null,
+      subject: 'Announcement',
+      body: 'Body',
+      recipient_scope: { scope_type: 'school', beneficiary_kind: 'guardians' },
+    });
+
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Announcement',
+        body: 'Body',
+        content_type: 'announcement',
+      }),
+    );
+  });
+
+  it('PATCHes existing draft with the current content type before submit and accepts 201', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -95,6 +149,7 @@ describe('submitGroupGeneralCommunication', () => {
       subject: 'S2',
       body: 'B2',
       recipient_scope: { scope_type: 'school', beneficiary_kind: 'staff' },
+      content_type: 'message',
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
