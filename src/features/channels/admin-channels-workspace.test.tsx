@@ -10,7 +10,8 @@ const patchMock = vi.fn();
 const deleteMock = vi.fn();
 const toastSuccess = vi.fn();
 const toastError = vi.fn();
-const sessionState = { activeSchoolId: 1 as number };
+const sessionState = { activeSchoolId: 1 as number | null };
+const roleState = { activeRole: 'admin' };
 
 vi.mock('next/link', () => ({
   default: ({
@@ -36,7 +37,11 @@ vi.mock('@/components/ui/toast', () => ({
 }));
 
 vi.mock('@/features/auth/active-role-context', () => ({
-  useActiveRole: () => ({ activeRole: 'admin' }),
+  useActiveRole: () => ({
+    get activeRole() {
+      return roleState.activeRole;
+    },
+  }),
 }));
 
 vi.mock('@/features/auth/admin-session-context', () => ({
@@ -94,6 +99,9 @@ const baseChannel: Record<string, unknown> = {
 
 function mockList(channels = [baseChannel], createAllowed = true) {
   getMock.mockImplementation((path: string) => {
+    if (String(path).includes('/undeliverable-guardians')) {
+      return Promise.resolve({ success: true, data: [], meta: {} });
+    }
     if (String(path).includes('/admin/classes')) {
       return Promise.resolve({
         success: true,
@@ -117,6 +125,7 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
 
   beforeEach(() => {
     sessionState.activeSchoolId = 1;
+    roleState.activeRole = 'admin';
     mockList();
   });
 
@@ -500,5 +509,213 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
     expect(postMock.mock.calls.length + patchMock.mock.calls.length + deleteMock.mock.calls.length).toBe(
       mutationCallsBeforeArchiveClose,
     );
+  });
+
+  it('keeps create dialog open on ordinary rerender and same school/role reconfirm', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByText('قناة يدوية')).toBeTruthy());
+
+    await user.click(screen.getByTestId('admin-channels-create'));
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+
+    rerender(<AdminChannelsWorkspace />);
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+
+    sessionState.activeSchoolId = 1;
+    roleState.activeRole = 'admin';
+    rerender(<AdminChannelsWorkspace />);
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+    expect(postMock).not.toHaveBeenCalled();
+    expect(patchMock).not.toHaveBeenCalled();
+    expect(deleteMock).not.toHaveBeenCalled();
+  });
+
+  it('closes create dialog on role change and allows reopen after switch', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByText('قناة يدوية')).toBeTruthy());
+
+    await user.click(screen.getByTestId('admin-channels-create'));
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+
+    roleState.activeRole = 'manager';
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.queryByTestId('channel-form-dialog')).toBeNull());
+
+    roleState.activeRole = 'admin';
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByText('قناة يدوية')).toBeTruthy());
+    await user.click(screen.getByTestId('admin-channels-create'));
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+  });
+
+  it('opens create dialog from empty list without silent no-op', async () => {
+    const user = userEvent.setup();
+    mockList([], true);
+    render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channels-create-empty')).toBeTruthy());
+    await user.click(screen.getByTestId('admin-channels-create-empty'));
+    expect(screen.getByTestId('channel-form-dialog')).toBeTruthy();
+  });
+
+  it('fetches undeliverable guardians only on CTA click (no N+1)', async () => {
+    const user = userEvent.setup();
+    const familyChannel = {
+      ...baseChannel,
+      id: 31,
+      name: 'أسر القسم',
+      type: 'class_family',
+      channel_type: 'class_family',
+      is_system_managed: true,
+      member_count: 0,
+      family_audience_summary: {
+        student_count: 8,
+        guardian_count: 8,
+        deliverable_user_count: 5,
+        excluded_count: 3,
+        delivery_state: 'partial',
+        exclusion_summary: [{ code: 'missing_portal_user', count: 3 }],
+      },
+      allowed_actions: {
+        view: true,
+        send_message: true,
+        update: true,
+        delete: false,
+        archive: false,
+        restore: false,
+      },
+    };
+    mockList([familyChannel]);
+    getMock.mockImplementation((path: string, query?: Record<string, unknown>) => {
+      if (String(path).includes('/undeliverable-guardians')) {
+        return Promise.resolve({
+          success: true,
+          data: [
+            {
+              guardian: { id: 501, name: 'أحمد الولي' },
+              students: [
+                { id: 11, name: 'سارة', class: { id: 7, name: '6A' } },
+                { id: 12, name: 'يوسف', class: { id: 7, name: '6A' } },
+              ],
+              reason_code: 'missing_portal_user',
+              account_status: 'no_account',
+              phone: '0612345678',
+              email: 'secret@example.com',
+              login: 'ahmed',
+              user_id: 999,
+            },
+          ],
+          meta: {
+            pagination: { page: 1, page_size: 50, total: 1, total_pages: 1 },
+            consistency: {
+              undeliverable_guardian_count: 1,
+              excluded_count: 3,
+            },
+          },
+        });
+      }
+      if (String(path).includes('/admin/classes')) {
+        return Promise.resolve({ success: true, data: [], meta: {} });
+      }
+      return Promise.resolve({
+        success: true,
+        data: [familyChannel],
+        meta: { allowed_actions: { create_channel: true } },
+      });
+    });
+
+    const { rerender } = render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channel-card-31')).toBeTruthy());
+    expect(
+      getMock.mock.calls.filter(([path]) => String(path).includes('/undeliverable-guardians')),
+    ).toHaveLength(0);
+
+    await user.click(screen.getByTestId('undeliverable-guardians-cta'));
+    await waitFor(() => expect(screen.getByTestId('undeliverable-guardians-dialog')).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId('undeliverable-guardian-501')).toBeTruthy());
+
+    const undeliverableCalls = getMock.mock.calls.filter(([path]) =>
+      String(path).includes('/undeliverable-guardians'),
+    );
+    expect(undeliverableCalls).toHaveLength(1);
+    expect(undeliverableCalls[0]?.[0]).toBe('/admin/channels/31/undeliverable-guardians');
+    expect(undeliverableCalls[0]?.[1]).toMatchObject({
+      page: 1,
+      page_size: 50,
+      active_school_id: 1,
+    });
+
+    expect(screen.getByText('أحمد الولي')).toBeTruthy();
+    expect(screen.getByText(/سارة/)).toBeTruthy();
+    expect(screen.getByText(/يوسف/)).toBeTruthy();
+    expect(screen.getAllByText(/6A/).length).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.getByText('channels.audience.undeliverable.statuses.noAccount'),
+    ).toBeTruthy();
+    expect(screen.queryByText('0612345678')).toBeNull();
+    expect(screen.queryByText('secret@example.com')).toBeNull();
+    expect(screen.queryByText('ahmed')).toBeNull();
+    expect(screen.queryByText('999')).toBeNull();
+    expect(postMock).not.toHaveBeenCalled();
+    expect(patchMock).not.toHaveBeenCalled();
+    expect(deleteMock).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'common.cancel' }));
+    await waitFor(() => expect(screen.queryByTestId('undeliverable-guardians-dialog')).toBeNull());
+    expect(
+      getMock.mock.calls.filter(([path]) => String(path).includes('/undeliverable-guardians')),
+    ).toHaveLength(1);
+
+    await user.click(screen.getByTestId('undeliverable-guardians-cta'));
+    await waitFor(() => expect(screen.getByTestId('undeliverable-guardians-dialog')).toBeTruthy());
+
+    sessionState.activeSchoolId = 2;
+    rerender(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.queryByTestId('undeliverable-guardians-dialog')).toBeNull());
+    expect(screen.queryByText('أحمد الولي')).toBeNull();
+  });
+
+  it('maps undeliverable permission and not-found errors without crashing the page', async () => {
+    const user = userEvent.setup();
+    const familyChannel = {
+      ...baseChannel,
+      id: 44,
+      name: 'أسر',
+      type: 'class_family',
+      channel_type: 'class_family',
+      family_audience_summary: {
+        student_count: 2,
+        guardian_count: 2,
+        deliverable_user_count: 1,
+        excluded_count: 1,
+        delivery_state: 'partial',
+        exclusion_summary: [{ code: 'inactive_user', count: 1 }],
+      },
+      allowed_actions: { view: true, send_message: true },
+    };
+    mockList([familyChannel]);
+    getMock.mockImplementation((path: string) => {
+      if (String(path).includes('/undeliverable-guardians')) {
+        return Promise.resolve({
+          success: false,
+          error: { code: 'forbidden', message: 'denied', details: { status: 403 } },
+          meta: {},
+        });
+      }
+      return Promise.resolve({
+        success: true,
+        data: [familyChannel],
+        meta: { allowed_actions: { create_channel: true } },
+      });
+    });
+
+    render(<AdminChannelsWorkspace />);
+    await waitFor(() => expect(screen.getByTestId('admin-channel-card-44')).toBeTruthy());
+    await user.click(screen.getByTestId('undeliverable-guardians-cta'));
+    await waitFor(() =>
+      expect(screen.getByText('channels.audience.undeliverable.errors.forbidden')).toBeTruthy(),
+    );
+    expect(screen.getByTestId('admin-channel-card-44')).toBeTruthy();
   });
 });

@@ -10,6 +10,7 @@ import {
   restoreAdminChannel,
   updateAdminChannel,
   listAdminChannels,
+  listUndeliverableGuardians,
 } from './admin-channels-api';
 
 vi.mock('@/lib/api/client', () => ({
@@ -219,5 +220,34 @@ describe('admin-channels-api transport', () => {
     expect(res.error.details?.blocking_reasons).toEqual([
       { code: 'channel_has_communication_history', count: 2 },
     ]);
+  });
+
+  it('GETs undeliverable guardians without mutation', async () => {
+    mockApi.get.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          guardian: { id: 1, name: 'ولي' },
+          students: [{ id: 2, name: 'تلميذ', class: { id: 3, name: '6A' } }],
+          reason_code: 'inactive_user',
+          account_status: 'inactive',
+        },
+      ],
+      meta: { pagination: { page: 1, page_size: 50, total: 1, total_pages: 1 } },
+    });
+    const res = await listUndeliverableGuardians(31, {
+      page: 1,
+      page_size: 50,
+      active_school_id: 1,
+    });
+    expect(mockApi.get).toHaveBeenCalledWith('/admin/channels/31/undeliverable-guardians', {
+      page: 1,
+      page_size: 50,
+      active_school_id: 1,
+    });
+    expect(mockApi.post).not.toHaveBeenCalled();
+    expect(mockApi.patch).not.toHaveBeenCalled();
+    expect(mockApi.delete).not.toHaveBeenCalled();
+    expect(res.success).toBe(true);
   });
 });

@@ -641,21 +641,46 @@
     "member": "عضو",
     "audience": {
       "staffMembers": "أعضاء الطاقم: {count}",
-      "audienceCounts": "الجمهور: {students} تلميذًا · {guardians} وليًا",
-      "deliverableAccounts": "{count} حسابًا قابلًا للتواصل",
-      "excludedCount": "{count} مستبعدًا",
-      "unavailableData": "بيانات الجمهور غير متاحة",
+      "audienceCounts": "التلاميذ المعنيون: {students} · أولياء الأمور المرتبطون: {guardians}",
+      "deliverableAccounts": "أولياء الأمور الذين ستصلهم الرسالة: {count}",
+      "excludedCount": "عناصر مستبعدة من التوصل: {count}",
+      "unavailableData": "تعذر تحديد أولياء الأمور المعنيين",
       "badges": {
-        "ready": "الجمهور جاهز",
-        "partial": "الجمهور جاهز جزئيًا",
-        "unavailable": "الجمهور غير جاهز",
-        "emptyClass": "القسم دون تلاميذ نشطين",
-        "unavailableData": "بيانات الجمهور غير متاحة"
+        "ready": "جاهز للإرسال",
+        "partial": "التوصل جزئي",
+        "unavailable": "تعذر تحديد أولياء الأمور المعنيين",
+        "emptyClass": "لا يوجد تلاميذ معنيون في هذا القسم حاليًا",
+        "unavailableData": "تعذر تحديد أولياء الأمور المعنيين"
       },
       "hints": {
-        "partialAccounts": "بعض المستفيدين لا يملكون حسابًا جاهزًا للتواصل",
-        "missingPortalUser": "لا يملك بعض الأولياء حسابات دخول مفعّلة",
-        "noDeliverableAccounts": "لا توجد حسابات صالحة للتواصل حاليًا"
+        "partialAccounts": "بعض أولياء الأمور لن تصلهم الرسالة عبر رقيم.",
+        "missingPortalUser": "بعض أولياء الأمور لا يتوفرون على حساب ولي أمر مفعل في رقيم.",
+        "noDeliverableAccounts": "لن تصل الرسائل عبر رقيم إلى أن يتم تفعيل حساب ولي الأمر."
+      },
+      "undeliverable": {
+        "viewList": "عرض اللائحة",
+        "title": "أولياء الأمور الذين لن تصلهم الرسالة",
+        "description": "توضح هذه اللائحة أولياء الأمور الذين يتعذر توجيه الرسائل إليهم عبر رقيم حاليًا.",
+        "loading": "جاري تحميل اللائحة…",
+        "empty": "لا يوجد أولياء أمور متعذر التوصل إليهم حاليًا.",
+        "loadMore": "تحميل المزيد",
+        "retry": "إعادة المحاولة",
+        "guardianLabel": "ولي الأمر",
+        "studentLabel": "التلميذ",
+        "classLabel": "القسم",
+        "statusLabel": "الحالة",
+        "statuses": {
+          "noAccount": "لا يتوفر على حساب ولي أمر مفعل في رقيم",
+          "inactive": "حساب ولي الأمر غير مفعل حاليًا",
+          "guardianInactive": "بيانات ولي الأمر غير نشطة حاليًا",
+          "undeliverable": "يتعذر توجيه الرسالة عبر رقيم حاليًا"
+        },
+        "errors": {
+          "forbidden": "لا تملك صلاحية عرض هذه اللائحة.",
+          "notFound": "تعذر العثور على القناة ضمن المدرسة الحالية.",
+          "unsupported": "لا تتوفر هذه اللائحة لهذا النوع من القنوات.",
+          "loadFailed": "تعذر تحميل اللائحة. حاول مرة أخرى."
+        }
       }
     },
     "newCount": "{count} جديد",
@@ -728,6 +753,7 @@
         "generic": "تعذّر إكمال العملية على قناة التواصل.",
         "nameRequired": "اسم قناة التواصل مطلوب.",
         "classRequired": "القسم مطلوب لهذا النوع من القنوات.",
+        "classesLoadFailed": "تعذّر تحميل قائمة الأقسام. حاول مرة أخرى.",
         "activeRoleNotAvailable": "الدور النشط غير متاح لهذه العملية.",
         "invalidChannelType": "نوع قناة التواصل غير صالح.",
         "crossSchoolForbidden": "لا يمكن تنفيذ العملية عبر مدرسة أخرى.",

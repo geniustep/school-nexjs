@@ -454,6 +454,9 @@ export const endpoints = {
     channel: (id: number | string) => `/admin/channels/${id}`,
     channelArchive: (id: number | string) => `/admin/channels/${id}/archive`,
     channelRestore: (id: number | string) => `/admin/channels/${id}/restore`,
+    /** Odoo 255 — undeliverable guardians drill-down (GET only; on-demand). */
+    channelUndeliverableGuardians: (id: number | string) =>
+      `/admin/channels/${id}/undeliverable-guardians`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
     channelPendingMessages: (id: number | string) => `/admin/channels/${id}/pending-messages`,
     /** Backend 228 — admin author resubmit (changes_requested only). */

@@ -4,8 +4,9 @@
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  * @design-status adopted
  *
- * Shared audience presentation for admin channel list + detail.
+ * Shared family delivery presentation for admin channel list + detail.
  * Never renders PII or raw exclusion codes.
+ * Never treats excluded_count as undeliverable guardian count.
  */
 
 import { Badge } from '@/components/ui/primitives';
@@ -25,10 +26,13 @@ type AudienceChannel = Pick<
 export function ChannelAudienceSummary({
   channel,
   compact = false,
+  onViewUndeliverable,
 }: {
   channel: AudienceChannel;
   /** Compact single-line meta for list cards. */
   compact?: boolean;
+  /** On-demand drill-down — parent fetches; never called from list load. */
+  onViewUndeliverable?: () => void;
 }) {
   const t = useT();
   const view = buildChannelAudienceViewModel(channel);
@@ -78,6 +82,8 @@ export function ChannelAudienceSummary({
     view.hintKey === 'channels.audience.hints.partialAccounts'
       ? resolveFamilyPartialHintKey(summary)
       : view.hintKey;
+  const showUndeliverableCta =
+    summary.delivery_state === 'partial' && typeof onViewUndeliverable === 'function';
 
   return (
     <span
@@ -98,17 +104,25 @@ export function ChannelAudienceSummary({
             count: summary.deliverable_user_count,
           })}
         </span>
-        {summary.excluded_count > 0 ? (
-          <span className="channel-audience__line" dir="auto">
-            {t('channels.audience.excludedCount', {
-              count: summary.excluded_count,
-            })}
-          </span>
-        ) : null}
         {hintKey ? (
           <span className="channel-audience__hint muted tiny" dir="auto">
             {t(hintKey)}
           </span>
+        ) : null}
+        {showUndeliverableCta ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm channel-audience__drilldown"
+            data-testid="undeliverable-guardians-cta"
+            aria-label={t('channels.audience.undeliverable.viewList')}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              onViewUndeliverable();
+            }}
+          >
+            {t('channels.audience.undeliverable.viewList')}
+          </button>
         ) : null}
       </span>
     </span>

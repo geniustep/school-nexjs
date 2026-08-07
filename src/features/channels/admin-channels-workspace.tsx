@@ -9,7 +9,7 @@
  */
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader, Badge } from '@/components/ui/primitives';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { ResourceView } from '@/components/states/resource';
@@ -43,6 +43,7 @@ import {
 } from '@/features/channels/api/admin-channels-api';
 import { ChannelFormDialog } from '@/features/channels/components/channel-form-dialog';
 import { ChannelDeleteDialog } from '@/features/channels/components/channel-delete-dialog';
+import { UndeliverableGuardiansDialog } from '@/features/channels/components/undeliverable-guardians-dialog';
 import {
   ChannelActionsMenu,
   type ChannelLifecycleActionId,
@@ -55,6 +56,11 @@ type FormState =
   | { mode: 'create' }
   | { mode: 'edit'; channel: AdminChannel }
   | null;
+
+type ContextSnapshot = {
+  role: string;
+  schoolId: number | null;
+};
 
 export function AdminChannelsWorkspace() {
   const t = useT();
@@ -78,17 +84,32 @@ export function AdminChannelsWorkspace() {
   const [form, setForm] = useState<FormState>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminChannel | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<AdminChannel | null>(null);
+  const [undeliverableChannel, setUndeliverableChannel] = useState<AdminChannel | null>(null);
   const [mutatingId, setMutatingId] = useState<number | null>(null);
+  const contextRef = useRef<ContextSnapshot | null>(null);
 
   function resetLifecycleUiState() {
     setForm(null);
     setDeleteTarget(null);
     setArchiveTarget(null);
+    setUndeliverableChannel(null);
     setMutatingId(null);
   }
 
-  // Drop stale dialogs/selection when Active Role or school changes — no mutations.
+  function openCreateChannel() {
+    setForm({ mode: 'create' });
+  }
+
+  // Drop stale dialogs only on real Active Role / school changes — not mount or same-value reconfirm.
   useEffect(() => {
+    const next: ContextSnapshot = {
+      role: activeRole,
+      schoolId: activeSchoolId ?? null,
+    };
+    const prev = contextRef.current;
+    contextRef.current = next;
+    if (prev == null) return;
+    if (prev.role === next.role && prev.schoolId === next.schoolId) return;
     resetLifecycleUiState();
     state.reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,8 +170,9 @@ export function AdminChannelsWorkspace() {
         <button
           type="button"
           className="btn btn--primary"
-          onClick={() => setForm({ mode: 'create' })}
+          onClick={openCreateChannel}
           aria-label={t('channels.lifecycle.create')}
+          data-testid="admin-channels-create"
         >
           {t('channels.lifecycle.create')}
         </button>
@@ -188,7 +210,8 @@ export function AdminChannelsWorkspace() {
                   <button
                     type="button"
                     className="btn btn--primary"
-                    onClick={() => setForm({ mode: 'create' })}
+                    data-testid="admin-channels-create-empty"
+                    onClick={openCreateChannel}
                   >
                     {t('channels.lifecycle.create')}
                   </button>
@@ -306,7 +329,11 @@ export function AdminChannelsWorkspace() {
                           </span>
                         </>
                       ) : null}
-                      <ChannelAudienceSummary channel={channel} compact />
+                      <ChannelAudienceSummary
+                        channel={channel}
+                        compact
+                        onViewUndeliverable={() => setUndeliverableChannel(channel)}
+                      />
                       <span className="channels-list__meta-sep" aria-hidden="true">
                         ·
                       </span>
@@ -358,6 +385,12 @@ export function AdminChannelsWorkspace() {
           setDeleteTarget(null);
           state.reload();
         }}
+      />
+
+      <UndeliverableGuardiansDialog
+        open={undeliverableChannel != null}
+        channel={undeliverableChannel}
+        onClose={() => setUndeliverableChannel(null)}
       />
 
       <ConfirmationDialog

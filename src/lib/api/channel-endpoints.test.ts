@@ -34,6 +34,12 @@ describe('channelsEndpointsForRole admin (Backend 228/229)', () => {
   it('uses admin pending list for myPendingMessages', () => {
     expect(admin.myPendingMessages(10)).toBe('/admin/channels/10/pending-messages');
   });
+
+  it('uses admin undeliverable guardians path (Odoo 255)', () => {
+    expect(endpoints.admin.channelUndeliverableGuardians(31)).toBe(
+      '/admin/channels/31/undeliverable-guardians',
+    );
+  });
 });
 
 describe('channelsEndpointsForRole portal', () => {

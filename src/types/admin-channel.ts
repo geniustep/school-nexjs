@@ -100,6 +100,41 @@ export type FamilyAudienceSummary = {
 };
 
 /**
+ * Odoo 18.0.1.0.255 undeliverable guardians drill-down (GET).
+ * Privacy: no phone / mobile / email / login / user_id / credentials.
+ */
+export type UndeliverableGuardianAccountStatus =
+  | 'no_account'
+  | 'inactive'
+  | 'guardian_inactive'
+  | 'undeliverable';
+
+export type UndeliverableGuardianStudent = {
+  id: number;
+  name: string;
+  class: Ref;
+};
+
+export type UndeliverableGuardianRow = {
+  guardian: Ref;
+  students: UndeliverableGuardianStudent[];
+  reason_code: string;
+  account_status: UndeliverableGuardianAccountStatus;
+};
+
+export type UndeliverableGuardiansConsistency = {
+  excluded_count?: number | null;
+  undeliverable_guardian_line_count?: number | null;
+  undeliverable_guardian_count?: number | null;
+  delivery_state?: FamilyAudienceDeliveryState | string | null;
+  resolution_source?: string | null;
+};
+
+export type UndeliverableGuardiansMeta = ApiMeta & {
+  consistency?: UndeliverableGuardiansConsistency | null;
+};
+
+/**
  * Admin list/detail row. Keeps portal Channel fields (`type`, `can_send`, …)
  * and adds lifecycle fields from fmt_admin_channel.
  */

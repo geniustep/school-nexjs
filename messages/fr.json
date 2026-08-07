@@ -641,21 +641,46 @@
     "member": "membre",
     "audience": {
       "staffMembers": "Membres du personnel : {count}",
-      "audienceCounts": "Audience : {students} élèves · {guardians} tuteurs",
-      "deliverableAccounts": "{count} comptes joignables",
-      "excludedCount": "{count} exclus",
-      "unavailableData": "Données d'audience indisponibles",
+      "audienceCounts": "Élèves concernés : {students} · Tuteurs liés : {guardians}",
+      "deliverableAccounts": "Tuteurs qui recevront le message : {count}",
+      "excludedCount": "Éléments exclus de la livraison : {count}",
+      "unavailableData": "Impossible de déterminer les tuteurs concernés",
       "badges": {
-        "ready": "Audience prête",
-        "partial": "Audience partiellement prête",
-        "unavailable": "Audience non prête",
-        "emptyClass": "Classe sans élèves actifs",
-        "unavailableData": "Données d'audience indisponibles"
+        "ready": "Prêt à envoyer",
+        "partial": "Livraison partielle",
+        "unavailable": "Impossible de déterminer les tuteurs concernés",
+        "emptyClass": "Aucun élève concerné dans cette classe actuellement",
+        "unavailableData": "Impossible de déterminer les tuteurs concernés"
       },
       "hints": {
-        "partialAccounts": "Certains bénéficiaires n'ont pas de compte de communication prêt",
-        "missingPortalUser": "Certains parents n'ont pas de compte portail activé",
-        "noDeliverableAccounts": "Aucun compte joignable n'est disponible pour le moment"
+        "partialAccounts": "Certains tuteurs ne recevront pas le message via Raqeem.",
+        "missingPortalUser": "Certains tuteurs n'ont pas de compte tuteur activé dans Raqeem.",
+        "noDeliverableAccounts": "Les messages ne leur parviendront via Raqeem qu'après activation du compte tuteur."
+      },
+      "undeliverable": {
+        "viewList": "Voir la liste",
+        "title": "Tuteurs qui ne recevront pas le message",
+        "description": "Cette liste présente les tuteurs auxquels les messages ne peuvent pas être adressés via Raqeem actuellement.",
+        "loading": "Chargement de la liste…",
+        "empty": "Aucun tuteur injoignable pour le moment.",
+        "loadMore": "Charger plus",
+        "retry": "Réessayer",
+        "guardianLabel": "Tuteur",
+        "studentLabel": "Élève",
+        "classLabel": "Classe",
+        "statusLabel": "Statut",
+        "statuses": {
+          "noAccount": "N'a pas de compte tuteur activé dans Raqeem",
+          "inactive": "Le compte tuteur est actuellement inactif",
+          "guardianInactive": "Le dossier du tuteur est actuellement inactif",
+          "undeliverable": "Le message ne peut pas être adressé via Raqeem actuellement"
+        },
+        "errors": {
+          "forbidden": "Vous n'avez pas l'autorisation d'afficher cette liste.",
+          "notFound": "Canal introuvable dans l'école actuelle.",
+          "unsupported": "Cette liste n'est pas disponible pour ce type de canal.",
+          "loadFailed": "Impossible de charger la liste. Réessayez."
+        }
       }
     },
     "newCount": "{count} nouveau(x)",
@@ -728,6 +753,7 @@
         "generic": "Impossible de terminer l’opération sur le canal de communication.",
         "nameRequired": "Le nom du canal de communication est obligatoire.",
         "classRequired": "La classe est obligatoire pour ce type de canal.",
+        "classesLoadFailed": "Impossible de charger la liste des classes. Réessayez.",
         "activeRoleNotAvailable": "Le rôle actif n’est pas disponible pour cette opération.",
         "invalidChannelType": "Type de canal de communication invalide.",
         "crossSchoolForbidden": "Opération interdite entre écoles.",

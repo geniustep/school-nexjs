@@ -73,6 +73,31 @@ describe('Arabic school communication naming', () => {
     expect(ar.channels.lifecycle.badges.manual).toBe('قناة يدوية');
     expect(ar.channels.lifecycle.systemProtected).toContain('تُدار نظاميًا');
   });
+
+  it('uses Moroccan school delivery terminology without جمهور or حساب دخول', () => {
+    const audience = JSON.stringify(ar.channels.audience);
+    expect(audience).not.toContain('جمهور');
+    expect(audience).not.toContain('حساب دخول');
+    expect(ar.channels.audience.badges.ready).toBe('جاهز للإرسال');
+    expect(ar.channels.audience.badges.partial).toBe('التوصل جزئي');
+    expect(ar.channels.audience.badges.unavailable).toBe(
+      'تعذر تحديد أولياء الأمور المعنيين',
+    );
+    expect(ar.channels.audience.badges.emptyClass).toBe(
+      'لا يوجد تلاميذ معنيون في هذا القسم حاليًا',
+    );
+    expect(ar.channels.audience.hints.missingPortalUser).toContain(
+      'حساب ولي أمر مفعل في رقيم',
+    );
+    expect(ar.channels.audience.undeliverable.statuses.noAccount).toContain(
+      'حساب ولي أمر مفعل في رقيم',
+    );
+    expect(ar.channels.audience.deliverableAccounts).toContain(
+      'أولياء الأمور الذين ستصلهم الرسالة',
+    );
+    expect(ar.channels.audience.excludedCount).not.toMatch(/أولياء الأمور/);
+    expect(ar.channels.audience.excludedCount).not.toMatch(/ولي/);
+  });
 });
 
 describe('channel lifecycle i18n parity', () => {
@@ -84,5 +109,15 @@ describe('channel lifecycle i18n parity', () => {
     expect(fr.channels.type.class_staff).toBeTruthy();
     expect(en.channels.type.class_family).toBeTruthy();
     expect(es.channels.lifecycle.create).toBeTruthy();
+  });
+
+  it('keeps undeliverable audience keys across ar/fr/en/es', () => {
+    const arKeys = Object.keys(ar.channels.audience.undeliverable.errors).sort();
+    expect(Object.keys(fr.channels.audience.undeliverable.errors).sort()).toEqual(arKeys);
+    expect(Object.keys(en.channels.audience.undeliverable.errors).sort()).toEqual(arKeys);
+    expect(Object.keys(es.channels.audience.undeliverable.errors).sort()).toEqual(arKeys);
+    expect(Object.keys(ar.channels.audience.undeliverable.statuses).sort()).toEqual(
+      Object.keys(en.channels.audience.undeliverable.statuses).sort(),
+    );
   });
 });

@@ -11,6 +11,7 @@ import type {
   AdminChannelListMeta,
   CreateAdminChannelInput,
   DeleteAdminChannelResult,
+  UndeliverableGuardianRow,
   UpdateAdminChannelInput,
 } from '@/types/admin-channel';
 import { ADMIN_MANUAL_CHANNEL_TYPES, ADMIN_SYSTEM_CHANNEL_TYPES } from '@/types/admin-channel';
@@ -171,4 +172,20 @@ export async function restoreAdminChannel(
   query?: ListParams,
 ): Promise<ApiResponse<AdminChannel>> {
   return api.post<AdminChannel>(endpoints.admin.channelRestore(id), {}, query);
+}
+
+export type ListUndeliverableGuardiansQuery = ListParams & {
+  page?: number;
+  page_size?: number;
+};
+
+/** GET undeliverable guardians — on-demand only; never N+1 from channel list. */
+export async function listUndeliverableGuardians(
+  channelId: number | string,
+  query?: ListUndeliverableGuardiansQuery,
+): Promise<ApiResponse<UndeliverableGuardianRow[]>> {
+  return api.get<UndeliverableGuardianRow[]>(
+    endpoints.admin.channelUndeliverableGuardians(channelId),
+    query,
+  );
 }

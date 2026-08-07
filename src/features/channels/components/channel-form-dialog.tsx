@@ -121,6 +121,7 @@ export function ChannelFormDialog({
         setClasses(res.data.map((row) => ({ id: row.id, name: row.name })));
       } else {
         setClasses([]);
+        setError(t('channels.lifecycle.errors.classesLoadFailed'));
       }
     });
     return () => {

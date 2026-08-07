@@ -40,10 +40,53 @@ describe('ChannelAudienceSummary', () => {
     expect(screen.getByText('channels.audience.badges.partial')).toBeTruthy();
     expect(screen.getByText('channels.audience.audienceCounts')).toBeTruthy();
     expect(screen.getByText('channels.audience.deliverableAccounts')).toBeTruthy();
-    expect(screen.getByText('channels.audience.excludedCount')).toBeTruthy();
+    expect(screen.queryByText('channels.audience.excludedCount')).toBeNull();
     expect(screen.getByText('channels.audience.hints.missingPortalUser')).toBeTruthy();
     expect(screen.queryByText(/0 members|الأعضاء: 0|0 عضو/i)).toBeNull();
     expect(screen.queryByText('missing_portal_user')).toBeNull();
+  });
+
+  it('shows undeliverable CTA only for partial when handler provided', () => {
+    const onView = vi.fn();
+    const { rerender } = render(
+      <ChannelAudienceSummary
+        channel={{
+          type: 'class_family',
+          channel_type: 'class_family',
+          member_count: 0,
+          family_audience_summary: {
+            student_count: 10,
+            guardian_count: 9,
+            deliverable_user_count: 4,
+            excluded_count: 5,
+            delivery_state: 'partial',
+            exclusion_summary: [{ code: 'missing_portal_user', count: 5 }],
+          },
+        }}
+        onViewUndeliverable={onView}
+      />,
+    );
+    expect(screen.getByTestId('undeliverable-guardians-cta')).toBeTruthy();
+
+    rerender(
+      <ChannelAudienceSummary
+        channel={{
+          type: 'class_family',
+          channel_type: 'class_family',
+          member_count: 0,
+          family_audience_summary: {
+            student_count: 4,
+            guardian_count: 4,
+            deliverable_user_count: 4,
+            excluded_count: 0,
+            delivery_state: 'ready',
+            exclusion_summary: [],
+          },
+        }}
+        onViewUndeliverable={onView}
+      />,
+    );
+    expect(screen.queryByTestId('undeliverable-guardians-cta')).toBeNull();
   });
 
   it('shows ready deliverable count without excluded line', () => {

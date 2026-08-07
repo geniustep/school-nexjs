@@ -641,21 +641,46 @@
     "member": "member",
     "audience": {
       "staffMembers": "Staff members: {count}",
-      "audienceCounts": "Audience: {students} students · {guardians} guardians",
-      "deliverableAccounts": "{count} deliverable accounts",
-      "excludedCount": "{count} excluded",
-      "unavailableData": "Audience data unavailable",
+      "audienceCounts": "Concerned students: {students} · Linked guardians: {guardians}",
+      "deliverableAccounts": "Guardians who will receive the message: {count}",
+      "excludedCount": "Items excluded from delivery: {count}",
+      "unavailableData": "Unable to determine the concerned guardians",
       "badges": {
-        "ready": "Audience ready",
-        "partial": "Audience partially ready",
-        "unavailable": "Audience not ready",
-        "emptyClass": "No active students in class",
-        "unavailableData": "Audience data unavailable"
+        "ready": "Ready to send",
+        "partial": "Partial delivery",
+        "unavailable": "Unable to determine the concerned guardians",
+        "emptyClass": "No concerned students in this class currently",
+        "unavailableData": "Unable to determine the concerned guardians"
       },
       "hints": {
-        "partialAccounts": "Some recipients do not have a ready communication account",
-        "missingPortalUser": "Some guardians do not have an active portal login",
-        "noDeliverableAccounts": "No deliverable accounts are available yet"
+        "partialAccounts": "Some guardians will not receive the message through Raqeem.",
+        "missingPortalUser": "Some guardians do not have an active guardian account in Raqeem.",
+        "noDeliverableAccounts": "Messages will not reach them through Raqeem until the guardian account is activated."
+      },
+      "undeliverable": {
+        "viewList": "View list",
+        "title": "Guardians who will not receive the message",
+        "description": "This list shows guardians who currently cannot receive messages through Raqeem.",
+        "loading": "Loading the list…",
+        "empty": "There are currently no undeliverable guardians.",
+        "loadMore": "Load more",
+        "retry": "Retry",
+        "guardianLabel": "Guardian",
+        "studentLabel": "Student",
+        "classLabel": "Class",
+        "statusLabel": "Status",
+        "statuses": {
+          "noAccount": "Does not have an active guardian account in Raqeem",
+          "inactive": "Guardian account is currently inactive",
+          "guardianInactive": "Guardian record is currently inactive",
+          "undeliverable": "Message cannot be delivered through Raqeem currently"
+        },
+        "errors": {
+          "forbidden": "You do not have permission to view this list.",
+          "notFound": "The channel could not be found in the current school.",
+          "unsupported": "This list is not available for this channel type.",
+          "loadFailed": "Could not load the list. Please try again."
+        }
       }
     },
     "newCount": "{count} new",
@@ -728,6 +753,7 @@
         "generic": "Could not complete the communication channel operation.",
         "nameRequired": "Communication channel name is required.",
         "classRequired": "Class is required for this channel type.",
+        "classesLoadFailed": "Could not load the class list. Please try again.",
         "activeRoleNotAvailable": "The active role is not available for this operation.",
         "invalidChannelType": "Invalid communication channel type.",
         "crossSchoolForbidden": "Cross-school operation is forbidden.",
