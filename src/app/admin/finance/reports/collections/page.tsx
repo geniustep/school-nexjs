@@ -71,6 +71,19 @@ export default function AdminFinanceCollectionReportsPage() {
       const params = new URLSearchParams(searchParams.toString());
       const next: CollectionReportsFilters = { ...filters, ...updates } as CollectionReportsFilters;
 
+      // Keep the last valid report visible and do not call the Backend with an
+      // inverted date range. Odoo remains the final validation boundary, but
+      // normal UI interaction must never turn this recoverable input mistake
+      // into a full-page 422 error state.
+      if (
+        next.dateMode === 'range' &&
+        next.dateFrom.trim() &&
+        next.dateTo.trim() &&
+        next.dateFrom.trim() > next.dateTo.trim()
+      ) {
+        return;
+      }
+
       for (const key of Object.keys(URL_KEYS) as Array<keyof CollectionReportsFilters>) {
         const paramKey = URL_KEYS[key];
         const value = next[key];
