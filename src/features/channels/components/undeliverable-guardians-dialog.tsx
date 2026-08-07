@@ -17,10 +17,10 @@ import {
 } from '@/features/channels/api/admin-channels-api';
 import {
   UNDELIVERABLE_PAGE_SIZE,
-  normalizeUndeliverableGuardianRows,
   undeliverableAccountStatusKey,
   undeliverableGuardiansErrorKey,
   undeliverableHasMore,
+  undeliverableRowsFromPayload,
 } from '@/features/channels/utils/undeliverable-guardians-present';
 import type { AdminChannel, UndeliverableGuardianRow } from '@/types/admin-channel';
 import type { ApiMeta } from '@/types/api';
@@ -78,7 +78,7 @@ export function UndeliverableGuardiansDialog({
       }
       setLoadState({
         kind: 'ready',
-        rows: normalizeUndeliverableGuardianRows(res.data),
+        rows: undeliverableRowsFromPayload(res.data),
         meta: res.meta ?? {},
       });
     });
@@ -115,7 +115,7 @@ export function UndeliverableGuardiansDialog({
       });
       return;
     }
-    const nextRows = normalizeUndeliverableGuardianRows(res.data);
+    const nextRows = undeliverableRowsFromPayload(res.data);
     setPage(nextPage);
     setLoadState({
       kind: 'ready',
@@ -136,6 +136,7 @@ export function UndeliverableGuardiansDialog({
         : { page: 1, page_size: UNDELIVERABLE_PAGE_SIZE };
     const res = await listUndeliverableGuardians(channel.id, query);
     if (gen !== requestGenRef.current) return;
+    if (schoolAtOpenRef.current !== (activeSchoolId ?? null)) return;
     if (!res.success) {
       setLoadState({
         kind: 'error',
@@ -145,7 +146,7 @@ export function UndeliverableGuardiansDialog({
     }
     setLoadState({
       kind: 'ready',
-      rows: normalizeUndeliverableGuardianRows(res.data),
+      rows: undeliverableRowsFromPayload(res.data),
       meta: res.meta ?? {},
     });
   }

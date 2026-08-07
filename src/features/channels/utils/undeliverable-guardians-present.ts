@@ -1,6 +1,7 @@
 /**
- * Privacy-safe presentation helpers for undeliverable guardians (Odoo 255).
+ * Privacy-safe presentation helpers for undeliverable guardians (Odoo 255/256).
  * Never surface phone / email / login / user_id.
+ * Live contract: rows live under `data.rows`; meta is flat `{ page, page_size, total }`.
  */
 
 import type { ApiErrorBody } from '@/types/api';
@@ -8,6 +9,8 @@ import type {
   UndeliverableGuardianAccountStatus,
   UndeliverableGuardianRow,
   UndeliverableGuardianStudent,
+  UndeliverableGuardiansConsistency,
+  UndeliverableGuardiansPayload,
 } from '@/types/admin-channel';
 
 export const UNDELIVERABLE_PAGE_SIZE = 50;
@@ -113,6 +116,73 @@ export function normalizeUndeliverableGuardianRows(
   return out;
 }
 
+function asNonNegativeInt(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(0, Math.trunc(value));
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const n = Number(value);
+    if (Number.isFinite(n)) return Math.max(0, Math.trunc(n));
+  }
+  return null;
+}
+
+function normalizeConsistency(raw: unknown): UndeliverableGuardiansConsistency | null {
+  if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const row = raw as Record<string, unknown>;
+  return {
+    excluded_count: asNonNegativeInt(row.excluded_count),
+    undeliverable_guardian_line_count: asNonNegativeInt(
+      row.undeliverable_guardian_line_count,
+    ),
+    undeliverable_guardian_count: asNonNegativeInt(row.undeliverable_guardian_count),
+    delivery_state:
+      typeof row.delivery_state === 'string' ? row.delivery_state : null,
+    resolution_source:
+      typeof row.resolution_source === 'string' ? row.resolution_source : null,
+  };
+}
+
+/**
+ * Normalize Odoo 255/256 payload object.
+ * Always reads rows from `data.rows` — never treats the payload itself as a row array.
+ */
+export function normalizeUndeliverableGuardiansPayload(raw: unknown): {
+  rows: UndeliverableGuardianRow[];
+  total: number | null;
+  consistency: UndeliverableGuardiansConsistency | null;
+  channel_id: number | null;
+  channel_type: string | null;
+  school_id: number | null;
+} {
+  if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return {
+      rows: [],
+      total: null,
+      consistency: null,
+      channel_id: null,
+      channel_type: null,
+      school_id: null,
+    };
+  }
+  const data = raw as Record<string, unknown>;
+  return {
+    rows: normalizeUndeliverableGuardianRows(data.rows),
+    total: asNonNegativeInt(data.total),
+    consistency: normalizeConsistency(data.consistency),
+    channel_id: asId(data.channel_id),
+    channel_type: typeof data.channel_type === 'string' ? data.channel_type : null,
+    school_id: asId(data.school_id),
+  };
+}
+
+/** Extract privacy-safe rows from a typed or unknown success payload. */
+export function undeliverableRowsFromPayload(
+  data: UndeliverableGuardiansPayload | unknown | null | undefined,
+): UndeliverableGuardianRow[] {
+  return normalizeUndeliverableGuardiansPayload(data).rows;
+}
+
 export function undeliverableAccountStatusKey(
   status: UndeliverableGuardianAccountStatus | string | null | undefined,
 ): string {
@@ -146,26 +216,55 @@ export function undeliverableGuardiansErrorKey(
   return 'channels.audience.undeliverable.errors.loadFailed';
 }
 
-/** True when list meta indicates another page may exist. */
+type UndeliverableListMeta = {
+  page?: number;
+  page_size?: number;
+  total?: number;
+  total_pages?: number;
+  pagination?: {
+    page?: number;
+    page_size?: number;
+    total?: number;
+    total_pages?: number;
+  };
+} | null | undefined;
+
+/**
+ * True when another page may exist.
+ * Canonical Runtime 256: flat `meta.page` / `meta.page_size` / `meta.total`.
+ * Nested `meta.pagination` remains compatible when present.
+ */
 export function undeliverableHasMore(
   loadedCount: number,
-  meta: { pagination?: { page?: number; page_size?: number; total?: number; total_pages?: number } } | null | undefined,
+  meta: UndeliverableListMeta,
 ): boolean {
-  const pagination = meta?.pagination;
-  if (!pagination) return false;
-  if (
-    typeof pagination.total === 'number' &&
-    Number.isFinite(pagination.total) &&
-    loadedCount < pagination.total
-  ) {
-    return true;
+  if (!meta) return false;
+  const nested = meta.pagination;
+
+  const total =
+    typeof nested?.total === 'number' && Number.isFinite(nested.total)
+      ? nested.total
+      : typeof meta.total === 'number' && Number.isFinite(meta.total)
+        ? meta.total
+        : null;
+  if (total != null) {
+    return loadedCount < total;
   }
-  if (
-    typeof pagination.page === 'number' &&
-    typeof pagination.total_pages === 'number' &&
-    pagination.page < pagination.total_pages
-  ) {
-    return true;
+
+  const page =
+    typeof nested?.page === 'number' && Number.isFinite(nested.page)
+      ? nested.page
+      : typeof meta.page === 'number' && Number.isFinite(meta.page)
+        ? meta.page
+        : null;
+  const totalPages =
+    typeof nested?.total_pages === 'number' && Number.isFinite(nested.total_pages)
+      ? nested.total_pages
+      : typeof meta.total_pages === 'number' && Number.isFinite(meta.total_pages)
+        ? meta.total_pages
+        : null;
+  if (page != null && totalPages != null) {
+    return page < totalPages;
   }
   return false;
 }

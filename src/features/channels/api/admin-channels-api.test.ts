@@ -225,15 +225,29 @@ describe('admin-channels-api transport', () => {
   it('GETs undeliverable guardians without mutation', async () => {
     mockApi.get.mockResolvedValue({
       success: true,
-      data: [
-        {
-          guardian: { id: 1, name: 'ولي' },
-          students: [{ id: 2, name: 'تلميذ', class: { id: 3, name: '6A' } }],
-          reason_code: 'inactive_user',
-          account_status: 'inactive',
+      data: {
+        channel_id: 31,
+        channel_type: 'class_family',
+        school_id: 1,
+        total: 1,
+        rows: [
+          {
+            guardian: { id: 1, name: 'ولي' },
+            students: [{ id: 2, name: 'تلميذ', class: { id: 3, name: '6A' } }],
+            reason_code: 'inactive_user',
+            account_status: 'inactive',
+          },
+        ],
+        consistency: {
+          excluded_count: 3,
+          undeliverable_guardian_count: 1,
+          undeliverable_guardian_line_count: 1,
+          delivery_state: 'partial',
+          resolution_source: 'class_family',
         },
-      ],
-      meta: { pagination: { page: 1, page_size: 50, total: 1, total_pages: 1 } },
+        allowed_actions: { view_undeliverable_guardians: true },
+      },
+      meta: { page: 1, page_size: 50, total: 1 },
     });
     const res = await listUndeliverableGuardians(31, {
       page: 1,
@@ -249,5 +263,12 @@ describe('admin-channels-api transport', () => {
     expect(mockApi.patch).not.toHaveBeenCalled();
     expect(mockApi.delete).not.toHaveBeenCalled();
     expect(res.success).toBe(true);
+    if (res.success) {
+      expect(Array.isArray(res.data)).toBe(false);
+      expect(Array.isArray(res.data.rows)).toBe(true);
+      expect(res.data.rows).toHaveLength(1);
+      expect(res.data.total).toBe(1);
+      expect(res.meta).toMatchObject({ page: 1, page_size: 50, total: 1 });
+    }
   });
 });

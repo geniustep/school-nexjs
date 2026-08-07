@@ -100,7 +100,25 @@ const baseChannel: Record<string, unknown> = {
 function mockList(channels = [baseChannel], createAllowed = true) {
   getMock.mockImplementation((path: string) => {
     if (String(path).includes('/undeliverable-guardians')) {
-      return Promise.resolve({ success: true, data: [], meta: {} });
+      return Promise.resolve({
+        success: true,
+        data: {
+          channel_id: 0,
+          channel_type: 'class_family',
+          school_id: 1,
+          total: 0,
+          rows: [],
+          consistency: {
+            excluded_count: 0,
+            undeliverable_guardian_count: 0,
+            undeliverable_guardian_line_count: 0,
+            delivery_state: null,
+            resolution_source: null,
+          },
+          allowed_actions: { view_undeliverable_guardians: true },
+        },
+        meta: { page: 1, page_size: 50, total: 0 },
+      });
     }
     if (String(path).includes('/admin/classes')) {
       return Promise.resolve({
@@ -591,27 +609,39 @@ describe('AdminChannelsWorkspace lifecycle UI', () => {
       if (String(path).includes('/undeliverable-guardians')) {
         return Promise.resolve({
           success: true,
-          data: [
-            {
-              guardian: { id: 501, name: 'أحمد الولي' },
-              students: [
-                { id: 11, name: 'سارة', class: { id: 7, name: '6A' } },
-                { id: 12, name: 'يوسف', class: { id: 7, name: '6A' } },
-              ],
-              reason_code: 'missing_portal_user',
-              account_status: 'no_account',
-              phone: '0612345678',
-              email: 'secret@example.com',
-              login: 'ahmed',
-              user_id: 999,
-            },
-          ],
-          meta: {
-            pagination: { page: 1, page_size: 50, total: 1, total_pages: 1 },
+          data: {
+            channel_id: 31,
+            channel_type: 'class_family',
+            school_id: 1,
+            total: 1,
+            rows: [
+              {
+                guardian: { id: 501, name: 'أحمد الولي' },
+                students: [
+                  { id: 11, name: 'سارة', class: { id: 7, name: '6A' } },
+                  { id: 12, name: 'يوسف', class: { id: 7, name: '6A' } },
+                ],
+                reason_code: 'missing_portal_user',
+                account_status: 'no_account',
+                phone: '0612345678',
+                email: 'secret@example.com',
+                login: 'ahmed',
+                user_id: 999,
+              },
+            ],
             consistency: {
               undeliverable_guardian_count: 1,
+              undeliverable_guardian_line_count: 1,
               excluded_count: 3,
+              delivery_state: 'partial',
+              resolution_source: 'class_family',
             },
+            allowed_actions: { view_undeliverable_guardians: true },
+          },
+          meta: {
+            page: 1,
+            page_size: 50,
+            total: 1,
           },
         });
       }

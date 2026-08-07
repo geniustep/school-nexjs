@@ -38,6 +38,28 @@ const channel = {
   channel_type: 'class_family',
 } as AdminChannel;
 
+function liveSuccess(rows: unknown[], total = rows.length, page = 1) {
+  return {
+    success: true as const,
+    data: {
+      channel_id: channel.id,
+      channel_type: 'class_family',
+      school_id: 3,
+      total,
+      rows,
+      consistency: {
+        excluded_count: total,
+        undeliverable_guardian_line_count: total,
+        undeliverable_guardian_count: total,
+        delivery_state: 'partial',
+        resolution_source: 'class_family',
+      },
+      allowed_actions: { view_undeliverable_guardians: true },
+    },
+    meta: { page, page_size: 50, total },
+  };
+}
+
 describe('UndeliverableGuardiansDialog', () => {
   afterEach(() => {
     cleanup();
@@ -48,45 +70,52 @@ describe('UndeliverableGuardiansDialog', () => {
     sessionState.activeSchoolId = 1;
   });
 
-  it('loads on open and supports statuses, empty, retry, and pagination', async () => {
+  it('loads live payload rows on open and supports statuses, empty, retry, and pagination', async () => {
     const user = userEvent.setup();
     getMock
-      .mockResolvedValueOnce({
-        success: true,
-        data: [
-          {
-            guardian: { id: 1, name: 'ولي أ' },
-            students: [{ id: 10, name: 'تلميذ أ', class: { id: 5, name: '4A' } }],
-            reason_code: 'inactive_user',
-            account_status: 'inactive',
-          },
-          {
-            guardian: { id: 2, name: 'ولي ب' },
-            students: [{ id: 11, name: 'تلميذ ب', class: { id: 5, name: '4A' } }],
-            reason_code: 'inactive_guardian',
-            account_status: 'guardian_inactive',
-          },
-        ],
-        meta: { pagination: { page: 1, page_size: 50, total: 51, total_pages: 2 } },
-      })
-      .mockResolvedValueOnce({
-        success: true,
-        data: [
-          {
-            guardian: { id: 3, name: 'ولي ج' },
-            students: [{ id: 12, name: 'تلميذ ج', class: { id: 6, name: '5B' } }],
-            reason_code: 'missing_portal_user',
-            account_status: 'no_account',
-          },
-        ],
-        meta: { pagination: { page: 2, page_size: 50, total: 51, total_pages: 2 } },
-      });
+      .mockResolvedValueOnce(
+        liveSuccess(
+          [
+            {
+              guardian: { id: 1, name: 'ولي أ' },
+              students: [{ id: 10, name: 'تلميذ أ', class: { id: 5, name: '4A' } }],
+              reason_code: 'inactive_user',
+              account_status: 'inactive',
+            },
+            {
+              guardian: { id: 2, name: 'ولي ب' },
+              students: [{ id: 11, name: 'تلميذ ب', class: { id: 5, name: '4A' } }],
+              reason_code: 'inactive_guardian',
+              account_status: 'guardian_inactive',
+            },
+          ],
+          51,
+          1,
+        ),
+      )
+      .mockResolvedValueOnce(
+        liveSuccess(
+          [
+            {
+              guardian: { id: 3, name: 'ولي ج' },
+              students: [{ id: 12, name: 'تلميذ ج', class: { id: 6, name: '5B' } }],
+              reason_code: 'missing_portal_user',
+              account_status: 'no_account',
+            },
+          ],
+          51,
+          2,
+        ),
+      );
 
     const { rerender } = render(
       <UndeliverableGuardiansDialog open channel={channel} onClose={vi.fn()} />,
     );
 
     await waitFor(() => expect(screen.getByTestId('undeliverable-guardian-1')).toBeTruthy());
+    expect(screen.getByText('ولي أ')).toBeTruthy();
+    expect(screen.getByText(/تلميذ أ/)).toBeTruthy();
+    expect(screen.getAllByText(/4A/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('channels.audience.undeliverable.statuses.inactive')).toBeTruthy();
     expect(
       screen.getByText('channels.audience.undeliverable.statuses.guardianInactive'),
@@ -95,6 +124,7 @@ describe('UndeliverableGuardiansDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'channels.audience.undeliverable.loadMore' }));
     await waitFor(() => expect(screen.getByTestId('undeliverable-guardian-3')).toBeTruthy());
+    expect(screen.getByTestId('undeliverable-guardian-1')).toBeTruthy();
     expect(getMock).toHaveBeenCalledTimes(2);
     expect(getMock.mock.calls[1]?.[1]).toMatchObject({ page: 2, page_size: 50 });
 
@@ -108,7 +138,7 @@ describe('UndeliverableGuardiansDialog', () => {
       expect(screen.getByText('channels.audience.undeliverable.errors.unsupported')).toBeTruthy(),
     );
 
-    getMock.mockResolvedValueOnce({ success: true, data: [], meta: {} });
+    getMock.mockResolvedValueOnce(liveSuccess([], 0));
     await user.click(screen.getByRole('button', { name: 'channels.audience.undeliverable.retry' }));
     await waitFor(() =>
       expect(screen.getByText('channels.audience.undeliverable.empty')).toBeTruthy(),
@@ -121,11 +151,11 @@ describe('UndeliverableGuardiansDialog', () => {
   });
 
   it('ignores stale response after school change', async () => {
-    let resolveFirst: ((value: unknown) => void) | null = null;
+    const pending: { resolve: ((value: unknown) => void) | null } = { resolve: null };
     getMock.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
-          resolveFirst = resolve;
+          pending.resolve = resolve;
         }),
     );
 
@@ -133,27 +163,35 @@ describe('UndeliverableGuardiansDialog', () => {
       <UndeliverableGuardiansDialog open channel={channel} onClose={vi.fn()} />,
     );
     expect(screen.getByText('channels.audience.undeliverable.loading')).toBeTruthy();
+    expect(getMock).toHaveBeenCalledTimes(1);
 
     sessionState.activeSchoolId = 2;
-    getMock.mockResolvedValueOnce({ success: true, data: [], meta: {} });
+    getMock.mockResolvedValueOnce(liveSuccess([], 0));
     rerender(<UndeliverableGuardiansDialog open channel={channel} onClose={vi.fn()} />);
 
-    resolveFirst?.({
-      success: true,
-      data: [
-        {
-          guardian: { id: 77, name: 'ولي مدرسة سابقة' },
-          students: [],
-          reason_code: 'missing_portal_user',
-          account_status: 'no_account',
-        },
-      ],
-      meta: {},
-    });
+    await waitFor(() =>
+      expect(screen.getByText('channels.audience.undeliverable.empty')).toBeTruthy(),
+    );
+    expect(getMock).toHaveBeenCalledTimes(2);
+
+    pending.resolve?.(
+      liveSuccess(
+        [
+          {
+            guardian: { id: 77, name: 'ولي مدرسة سابقة' },
+            students: [],
+            reason_code: 'missing_portal_user',
+            account_status: 'no_account',
+          },
+        ],
+        1,
+      ),
+    );
 
     await waitFor(() =>
       expect(screen.getByText('channels.audience.undeliverable.empty')).toBeTruthy(),
     );
     expect(screen.queryByText('ولي مدرسة سابقة')).toBeNull();
+    expect(screen.queryByTestId('undeliverable-guardian-77')).toBeNull();
   });
 });

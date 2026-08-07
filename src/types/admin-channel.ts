@@ -123,15 +123,39 @@ export type UndeliverableGuardianRow = {
 };
 
 export type UndeliverableGuardiansConsistency = {
+  /** Exclusion lines from family audience — NOT undeliverable guardian count. */
   excluded_count?: number | null;
   undeliverable_guardian_line_count?: number | null;
+  /** Guardian-level undeliverable count (distinct from excluded_count). */
   undeliverable_guardian_count?: number | null;
   delivery_state?: FamilyAudienceDeliveryState | string | null;
   resolution_source?: string | null;
 };
 
+/**
+ * Odoo 255/256 undeliverable-guardians success `data` object.
+ * Rows live under `data.rows` — never treat `data` itself as the row array.
+ */
+export type UndeliverableGuardiansPayload = {
+  channel_id: number;
+  channel_type: string;
+  school_id: number | null;
+  total: number;
+  rows: UndeliverableGuardianRow[];
+  consistency: UndeliverableGuardiansConsistency;
+  allowed_actions?: {
+    view_undeliverable_guardians?: boolean;
+  };
+};
+
+/**
+ * List meta for undeliverable guardians.
+ * Runtime 256 uses flat `{ page, page_size, total }`; nested `pagination` remains compatible.
+ */
 export type UndeliverableGuardiansMeta = ApiMeta & {
-  consistency?: UndeliverableGuardiansConsistency | null;
+  page?: number;
+  page_size?: number;
+  total?: number;
 };
 
 /**
