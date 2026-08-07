@@ -110,6 +110,13 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       show: canViewPayments(user),
     },
     {
+      href: financeDeepLinkHref('collectionReports'),
+      icon: <IconClipboard size={22} />,
+      labelKey: 'admin.finance.hub.linkCollectionReports',
+      descKey: 'admin.finance.hub.linkCollectionReportsDesc',
+      show: canViewPayments(user),
+    },
+    {
       href: '/admin/finance/receipts',
       icon: <IconClipboard size={22} />,
       labelKey: 'admin.finance.hub.linkReceipts',

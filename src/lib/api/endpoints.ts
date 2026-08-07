@@ -567,6 +567,9 @@ export const endpoints = {
       `/admin/finance/payment-collections/${id}/receipt`,
     financePaymentCollectionIssueReceipt: (id: number | string) =>
       `/admin/finance/payment-collections/${id}/issue-receipt`,
+    /** ODOO_FINANCE_COLLECTION_REPORTS_CONTRACT_1A */
+    financeCollectionReports: '/admin/finance/reports/collections',
+    financeCollectionReportsAggregations: '/admin/finance/reports/collections/aggregations',
     financeReceipts: '/admin/finance/receipts',
     financeReceipt: (id: number | string) => `/admin/finance/receipts/${id}`,
     financeReceiptPdf: (id: number | string) => `/admin/finance/receipts/${id}/pdf`,

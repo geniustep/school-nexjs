@@ -135,6 +135,13 @@ export const FINANCE_DEEP_LINKS = {
     scope: 'school' as const,
   },
 
+  collectionReports: {
+    path: '/admin/finance/reports/collections',
+    scope: 'school' as const,
+    titleKey: 'admin.finance.collectionReports.pageTitle',
+    descriptionKey: 'admin.finance.collectionReports.pageDesc',
+  },
+
   draftAgreements: {
     path: '/admin/finance/agreements',
     query: { state: 'draft' },

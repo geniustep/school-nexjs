@@ -1,0 +1,188 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.finance-collection-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.finance-collection-reports__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px;
+}
+
+.finance-collection-reports__kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+}
+
+.finance-collection-reports__kpi-label {
+  font-size: 0.75rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-collection-reports__kpi-value {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-collection-reports__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+
+.finance-collection-reports__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min(100%, 140px);
+}
+
+.finance-collection-reports__field label {
+  font-size: 0.75rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-collection-reports__field .input {
+  min-width: 0;
+}
+
+.finance-collection-reports__search {
+  position: relative;
+  flex: 1 1 220px;
+  min-width: min(100%, 220px);
+}
+
+.finance-collection-reports__search .input {
+  width: 100%;
+  padding-inline-end: 2rem;
+}
+
+.finance-collection-reports__search-clear {
+  position: absolute;
+  inset-inline-end: 6px;
+  inset-block-end: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-text-muted, #64748b);
+  cursor: pointer;
+}
+
+.finance-collection-reports__search-clear:hover,
+.finance-collection-reports__search-clear:focus-visible {
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 60%, transparent);
+  color: var(--c-text, #0f172a);
+  outline: none;
+}
+
+.finance-collection-reports__mode,
+.finance-collection-reports__views,
+.finance-collection-reports__dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finance-collection-reports__seg {
+  appearance: none;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #0f172a);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.finance-collection-reports__seg:hover,
+.finance-collection-reports__seg:focus-visible {
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 35%, var(--c-border, #e2e8f0));
+  outline: none;
+}
+
+.finance-collection-reports__seg.is-active {
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 10%, #fff);
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 45%, var(--c-border, #e2e8f0));
+  color: var(--raqeem-primary, #243b6b);
+  font-weight: 600;
+}
+
+.finance-collection-reports__section-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.finance-collection-reports__fetching {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-collection-reports__results--fetching {
+  opacity: 0.72;
+  transition: opacity 120ms ease;
+}
+
+.finance-collection-reports__unallocated {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-collection-reports__unallocated-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-accent, #f2a541) 55%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--raqeem-accent, #f2a541) 14%, #fff);
+  font-size: 0.75rem;
+  color: #7a4a08;
+}
+
+.finance-collection-reports__drilldown {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--raqeem-primary, #243b6b);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: start;
+  padding: 0;
+}
+
+.finance-collection-reports__drilldown:hover,
+.finance-collection-reports__drilldown:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+.finance-collection-reports__muted-cell {
+  color: var(--c-text-muted, #64748b);
+}
+
+@media (max-width: 720px) {
+  .finance-collection-reports__field {
+    flex: 1 1 100%;
+  }
+}
