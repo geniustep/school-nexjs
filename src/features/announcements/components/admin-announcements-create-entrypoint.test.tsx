@@ -1,7 +1,9 @@
 // @vitest-environment happy-dom
 
-import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const listMock = vi.hoisted(() => vi.fn());
 
 const sessionRef = {
   current: {
@@ -10,6 +12,7 @@ const sessionRef = {
     name: 'Admin',
     login: 'admin',
     permissions: ['view_channels', 'view_dashboard'],
+    effective_capabilities: ['communication.content.view'],
     admin_kind: 'school_admin' as const,
   },
 };
@@ -37,9 +40,18 @@ vi.mock('@/features/auth/session-context', () => ({
   useSession: () => sessionRef.current,
 }));
 
+vi.mock('@/features/communication/api/admin-communication-api', () => ({
+  fetchCommunicationContentList: listMock,
+}));
+
 vi.mock('@/lib/permissions/communication', () => ({
+  COMMUNICATION_CAPABILITIES: { view: 'communication.content.view' },
   canComposeGeneralCommunication: (user: { permissions?: string[] } | null) =>
     !!user?.permissions?.includes('view_channels'),
+  hasCommunicationCapability: (
+    user: { effective_capabilities?: string[] } | null,
+    code: string,
+  ) => !!user?.effective_capabilities?.includes(code),
 }));
 
 vi.mock('@/features/announcements/components/announcements-recipient-feed', () => ({
@@ -65,7 +77,60 @@ vi.mock('@/features/announcements/components/announcements-recipient-feed', () =
 import AdminAnnouncementsPage from '@/app/admin/announcements/page';
 import ar from '../../../../messages/ar.json';
 
-describe('AdminAnnouncementsPage create entrypoint', () => {
+const announcement = {
+  id: 10,
+  school_id: 1,
+  subject: 'Announcement A',
+  content_type: 'announcement',
+  state: 'published',
+  channel_id: null,
+  source_summary: null,
+  author: { id: 1, name: 'Admin' },
+  audience_summary: { label: 'Guardians' },
+  published_at: '2026-08-08T00:00:00Z',
+};
+
+const directMessage = {
+  id: 11,
+  school_id: 1,
+  subject: 'Message B',
+  content_type: 'message',
+  state: 'published',
+  channel_id: null,
+  source_summary: null,
+  author: { id: 1, name: 'Admin' },
+  audience_summary: { label: 'Teacher' },
+  published_at: '2026-08-08T00:01:00Z',
+};
+
+const channelMessage = {
+  id: 12,
+  school_id: 1,
+  subject: 'Channel message',
+  content_type: 'message',
+  state: 'published',
+  channel_id: 7,
+  source_summary: { model: 'school.channel', res_id: 7 },
+  author: { id: 1, name: 'Admin' },
+  audience_summary: { label: 'Channel' },
+  published_at: '2026-08-08T00:02:00Z',
+};
+
+describe('AdminAnnouncementsPage published communication workspace', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    listMock.mockImplementation((query: { content_type?: string }) => {
+      if (query.content_type === 'announcement') {
+        return Promise.resolve({ success: true, data: [announcement], meta: {} });
+      }
+      return Promise.resolve({
+        success: true,
+        data: [directMessage, channelMessage],
+        meta: {},
+      });
+    });
+  });
+
   afterEach(() => {
     cleanup();
     sessionRef.current = {
@@ -74,28 +139,58 @@ describe('AdminAnnouncementsPage create entrypoint', () => {
       name: 'Admin',
       login: 'admin',
       permissions: ['view_channels', 'view_dashboard'],
+      effective_capabilities: ['communication.content.view'],
       admin_kind: 'school_admin',
     };
   });
 
-  it('shows school communication title and opens the governed intent-aware compose journey', () => {
+  it('shows published announcements and direct messages while keeping channel messages separate', async () => {
     render(<AdminAnnouncementsPage />);
 
-    expect(screen.getByText('channels.schoolCommunicationTitle')).toBeTruthy();
-    expect(screen.getByText('announcements.adminWorkspaceSubtitle')).toBeTruthy();
+    expect(await screen.findByText('Announcement A')).toBeTruthy();
+    expect(screen.getByText('Message B')).toBeTruthy();
+    expect(screen.queryByText('Channel message')).toBeNull();
+    expect(screen.getByTestId('published-general-communication-feed')).toBeTruthy();
+    expect(
+      screen.getByRole('link', { name: /Announcement A/ }).getAttribute('href'),
+    ).toBe('/admin/communication/10');
+    expect(screen.getByRole('link', { name: /Message B/ }).getAttribute('href')).toBe(
+      '/admin/communication/11',
+    );
+
+    fireEvent.click(
+      screen.getByRole('tab', { name: 'communication.contentType.message' }),
+    );
+    expect(screen.queryByText('Announcement A')).toBeNull();
+    expect(screen.getByText('Message B')).toBeTruthy();
+  });
+
+  it('keeps the governed create entrypoint', async () => {
+    render(<AdminAnnouncementsPage />);
+    await screen.findByText('Announcement A');
     const createLink = screen.getByRole('link', {
       name: 'communication.general.newCommunication',
     });
     expect(createLink.getAttribute('href')).toBe('/admin/communication/compose');
+  });
+
+  it('falls back to the recipient announcement feed when content-view capability is unavailable', () => {
+    sessionRef.current = {
+      ...sessionRef.current,
+      effective_capabilities: [],
+    };
+    render(<AdminAnnouncementsPage />);
     expect(screen.getByTestId('announcements-feed').getAttribute('data-base-path')).toBe(
       '/admin/announcements',
     );
+    expect(listMock).not.toHaveBeenCalled();
   });
 
   it('hides create CTA when general communication compose is unavailable', () => {
     sessionRef.current = {
       ...sessionRef.current,
       permissions: ['view_dashboard'],
+      effective_capabilities: [],
     };
     render(<AdminAnnouncementsPage />);
     expect(
