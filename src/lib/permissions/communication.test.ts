@@ -86,9 +86,11 @@ describe('communication review gate capability adoption', () => {
     expect(isCommunicationReviewPath('/admin/communication')).toBe(true);
     expect(isCommunicationReviewPath('/admin/communication/42')).toBe(true);
     expect(isCommunicationReviewPath('/admin/communication?filter=submitted')).toBe(true);
+    expect(isCommunicationReviewPath('/admin/communication/compose')).toBe(false);
     expect(isCommunicationReviewPath('/admin/channels')).toBe(false);
     expect(permissionForAdminPath('/admin/communication')).toBeNull();
     expect(permissionForAdminPath('/admin/communication/9')).toBeNull();
+    expect(permissionForAdminPath('/admin/communication/compose')).toBe('view_channels');
     expect(permissionForAdminPath('/admin/channels')).toBe('view_channels');
     expect(permissionForAdminPath('/admin/channels/3')).toBe('view_channels');
   });

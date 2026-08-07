@@ -19,19 +19,29 @@ describe('channel-composer-actions', () => {
     ).toBe(true);
   });
 
-  it('blocks read_only and empty can_send', () => {
+  it('allows compose when Backend can_send even if read_only flag is set', () => {
     expect(
       channelAllowsCompose({
         can_send: true,
         read_only: true,
         allowed_message_actions: ['submit_message'],
       }),
-    ).toBe(false);
+    ).toBe(true);
+  });
+
+  it('blocks when can_send is false regardless of read_only', () => {
     expect(
       channelAllowsCompose({
         can_send: false,
         read_only: false,
         allowed_message_actions: ['submit_message'],
+      }),
+    ).toBe(false);
+    expect(
+      channelAllowsCompose({
+        can_send: false,
+        read_only: true,
+        allowed_message_actions: ['send_internal'],
       }),
     ).toBe(false);
   });

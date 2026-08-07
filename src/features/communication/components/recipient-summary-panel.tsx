@@ -32,6 +32,7 @@ export function RecipientSummaryPanel({
   presentation,
   showAdminSnapshotRef = false,
   compact = false,
+  terminology = 'default',
 }: {
   summary: CommunicationRecipientSummary | null | undefined;
   /** preview = advisory; frozen = Submit/Detail authoritative. */
@@ -39,8 +40,14 @@ export function RecipientSummaryPanel({
   /** Short fingerprint for admin audit only — never full hash for end users. */
   showAdminSnapshotRef?: boolean;
   compact?: boolean;
+  /**
+   * beneficiaries — general communication journey (no visible «جمهور» labels).
+   * default — channel / review surfaces (legacy keys preserved).
+   */
+  terminology?: 'default' | 'beneficiaries';
 }) {
   const t = useT();
+  const beneficiaries = terminology === 'beneficiaries';
 
   if (!summary) {
     return (
@@ -60,10 +67,13 @@ export function RecipientSummaryPanel({
     <div
       className={`recipient-summary${compact ? ' recipient-summary--compact' : ''}`}
       data-presentation={presentation}
+      data-terminology={terminology}
     >
       <p className="recipient-summary__badge" role="status">
         {presentation === 'preview'
-          ? t('communication.recipients.previewBadge')
+          ? beneficiaries
+            ? t('communication.recipients.deliveryStatusTitle')
+            : t('communication.recipients.previewBadge')
           : t('communication.recipients.frozenBadge')}
       </p>
       {presentation === 'preview' ? (
@@ -74,7 +84,9 @@ export function RecipientSummaryPanel({
 
       {summary.audience_changed === true ? (
         <p className="recipient-summary__warning" role="alert">
-          {t('communication.recipients.audienceChanged')}
+          {beneficiaries
+            ? t('communication.recipients.beneficiariesChanged')
+            : t('communication.recipients.audienceChanged')}
         </p>
       ) : null}
 
@@ -93,35 +105,70 @@ export function RecipientSummaryPanel({
       ) : null}
 
       <div className="recipient-summary__counts">
-        <CountCard
-          label={t('communication.recipients.totalPeople')}
-          value={summary.total_people_count}
-        />
-        <CountCard
-          label={t('communication.recipients.deliverable')}
-          value={summary.deliverable_user_count}
-        />
-        <CountCard
-          label={t('communication.recipients.students')}
-          value={summary.student_count}
-        />
-        <CountCard
-          label={t('communication.recipients.guardians')}
-          value={summary.guardian_count}
-        />
-        <CountCard
-          label={t('communication.recipients.staff')}
-          value={summary.staff_count}
-        />
-        <CountCard
-          label={t('communication.recipients.excluded')}
-          value={summary.excluded_count}
-        />
+        {beneficiaries ? (
+          <>
+            <CountCard
+              label={t('communication.recipients.studentsConcerned')}
+              value={summary.student_count}
+            />
+            <CountCard
+              label={t('communication.recipients.guardiansLinked')}
+              value={summary.guardian_count}
+            />
+            <CountCard
+              label={t('communication.recipients.teachersConcerned')}
+              value={summary.teacher_count}
+            />
+            <CountCard
+              label={t('communication.recipients.staffConcerned')}
+              value={summary.staff_count}
+            />
+            <CountCard
+              label={t('communication.recipients.deliverableUsers')}
+              value={summary.deliverable_user_count}
+            />
+          </>
+        ) : (
+          <>
+            <CountCard
+              label={t('communication.recipients.totalPeople')}
+              value={summary.total_people_count}
+            />
+            <CountCard
+              label={t('communication.recipients.deliverable')}
+              value={summary.deliverable_user_count}
+            />
+            <CountCard
+              label={t('communication.recipients.students')}
+              value={summary.student_count}
+            />
+            <CountCard
+              label={t('communication.recipients.guardians')}
+              value={summary.guardian_count}
+            />
+            <CountCard
+              label={t('communication.recipients.staff')}
+              value={summary.staff_count}
+            />
+            <CountCard
+              label={t('communication.recipients.teachers')}
+              value={summary.teacher_count}
+            />
+            <CountCard
+              label={t('communication.recipients.excluded')}
+              value={summary.excluded_count}
+            />
+          </>
+        )}
       </div>
 
       {labels.length > 0 ? (
         <div className="recipient-summary__labels">
-          <span className="tiny">{t('communication.recipients.audienceLabels')}</span>
+          <span className="tiny">
+            {beneficiaries
+              ? t('communication.recipients.beneficiaryLabels')
+              : t('communication.recipients.audienceLabels')}
+          </span>
           <ul>
             {labels.map((label) => (
               <li key={label}>{label}</li>
@@ -132,7 +179,11 @@ export function RecipientSummaryPanel({
 
       {exclusions.length > 0 ? (
         <div className="recipient-summary__exclusions">
-          <span className="tiny">{t('communication.recipients.exclusionSummary')}</span>
+          <span className="tiny">
+            {beneficiaries
+              ? t('communication.recipients.deliveryNotes')
+              : t('communication.recipients.exclusionSummary')}
+          </span>
           <ul>
             {exclusions.map((item, index) => {
               const text = item.reason || item.label || item.code || t('common.dash');

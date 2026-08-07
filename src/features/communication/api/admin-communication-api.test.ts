@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const apiMock = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
+  patch: vi.fn(),
 }));
 
 vi.mock('@/lib/api/client', () => ({
@@ -10,19 +11,28 @@ vi.mock('@/lib/api/client', () => ({
 }));
 
 import {
+  createAdminCommunicationContent,
+  previewAdminRecipientScope,
+  submitIndividualCommunication,
+  updateAdminCommunicationContent,
   fetchAdminChannelMessages,
   previewAdminCommunicationContentRecipients,
   previewStaffCommunicationContentRecipients,
   resubmitAdminChannelPendingMessage,
 } from './admin-communication-api';
 
-describe('admin communication API — Backend 228/229 paths', () => {
+describe('admin communication API — Backend 228/229/259 paths', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     apiMock.get.mockResolvedValue({ success: true, data: [], meta: {} });
     apiMock.post.mockResolvedValue({
       success: true,
       data: { pending_review: true, communication_state: 'submitted' },
+      meta: {},
+    });
+    apiMock.patch.mockResolvedValue({
+      success: true,
+      data: { id: 10, state: 'draft' },
       meta: {},
     });
   });
@@ -87,5 +97,97 @@ describe('admin communication API — Backend 228/229 paths', () => {
       {},
     );
     expect(result.ok).toBe(true);
+  });
+
+  it('POST generic recipient-preview with canonical scope and no school_id', async () => {
+    apiMock.post.mockResolvedValue({
+      success: true,
+      data: {
+        recipient_summary: {
+          deliverable_user_count: 9,
+          can_submit: true,
+          teacher_count: 2,
+        },
+      },
+      meta: {},
+    });
+    const result = await previewAdminRecipientScope({
+      recipient_scope: {
+        scope_type: 'class',
+        beneficiary_kind: 'students_and_guardians',
+        scope_id: 5,
+      },
+      subject: 'Hello',
+      body: 'Body',
+    });
+    expect(apiMock.post).toHaveBeenCalledWith('/admin/communication/recipient-preview', {
+      recipient_scope: {
+        scope_type: 'class',
+        beneficiary_kind: 'students_and_guardians',
+        scope_id: 5,
+      },
+      subject: 'Hello',
+      body: 'Body',
+    });
+    const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('school_id');
+    expect(body).not.toHaveProperty('recipient_ids');
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.preview.recipient_summary.deliverable_user_count).toBe(9);
+      expect(result.preview.recipient_summary.teacher_count).toBe(2);
+    }
+  });
+
+  it('POST admin content create with recipient_scope', async () => {
+    apiMock.post.mockResolvedValue({
+      success: true,
+      data: { id: 77, state: 'draft' },
+      meta: {},
+    });
+    await createAdminCommunicationContent({
+      subject: 'S',
+      body: 'B',
+      recipient_scope: { scope_type: 'school', beneficiary_kind: 'staff' },
+    });
+    expect(apiMock.post).toHaveBeenCalledWith('/admin/communication/content', {
+      subject: 'S',
+      body: 'B',
+      content_type: 'message',
+      recipient_scope: { scope_type: 'school', beneficiary_kind: 'staff' },
+    });
+    const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('school_id');
+  });
+
+  it('PATCH admin content draft', async () => {
+    await updateAdminCommunicationContent(77, {
+      subject: 'S2',
+      body: 'B2',
+      recipient_scope: { scope_type: 'school', beneficiary_kind: 'teachers' },
+    });
+    expect(apiMock.patch).toHaveBeenCalledWith('/admin/communication/content/77', {
+      subject: 'S2',
+      body: 'B2',
+      recipient_scope: { scope_type: 'school', beneficiary_kind: 'teachers' },
+    });
+  });
+
+  it('POST individual with domain recipient_id (no res.users id field)', async () => {
+    await submitIndividualCommunication({
+      recipient_type: 'student',
+      recipient_id: 44,
+      subject: 'Hi',
+      body: 'Body',
+    });
+    expect(apiMock.post).toHaveBeenCalledWith('/admin/communication/individual', {
+      recipient_type: 'student',
+      recipient_id: 44,
+      subject: 'Hi',
+      body: 'Body',
+    });
+    const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('user_id');
+    expect(body).not.toHaveProperty('res_users_id');
   });
 });

@@ -129,6 +129,9 @@ export function normalizeRecipientSummary(
   const staff = normalizeRecipientCount(row.staff_count);
   if (staff !== undefined) summary.staff_count = staff;
 
+  const teachers = normalizeRecipientCount(row.teacher_count);
+  if (teachers !== undefined) summary.teacher_count = teachers;
+
   const excluded = normalizeRecipientCount(row.excluded_count);
   if (excluded !== undefined) summary.excluded_count = excluded;
 

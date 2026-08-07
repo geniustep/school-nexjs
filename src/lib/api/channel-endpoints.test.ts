@@ -77,3 +77,15 @@ describe('B4 content recipient-preview endpoint construction', () => {
     );
   });
 });
+
+describe('Odoo 259 general communication endpoints', () => {
+  it('exposes generic preview, content submit, and individual paths', () => {
+    expect(endpoints.admin.communicationRecipientPreview).toBe(
+      '/admin/communication/recipient-preview',
+    );
+    expect(endpoints.admin.communicationContentSubmit(90)).toBe(
+      '/admin/communication/content/90/submit',
+    );
+    expect(endpoints.admin.communicationIndividual).toBe('/admin/communication/individual');
+  });
+});

@@ -228,7 +228,16 @@ function adminNav(user: CurrentUser): NavSection[] {
       labelKey: 'nav.communicationReview',
       href: '/admin/communication',
       icon: '☑️',
-      isActive: (pathname) => pathname.startsWith('/admin/communication'),
+      isActive: (pathname) => {
+        const base = pathname.split('?')[0];
+        if (
+          base === '/admin/communication/compose' ||
+          base.startsWith('/admin/communication/compose/')
+        ) {
+          return false;
+        }
+        return pathname.startsWith('/admin/communication');
+      },
     });
     pushIf(communicationItems, canShowAdminNavPermission(user, 'view_channels'), {
       labelKey: 'nav.channels',
@@ -236,6 +245,13 @@ function adminNav(user: CurrentUser): NavSection[] {
       icon: '💬',
       isActive: (pathname) => pathname.startsWith('/admin/channels'),
     });
+    // Highlight school communication feed when composing general messages.
+    const schoolComm = communicationItems.find((item) => item.href === '/admin/announcements');
+    if (schoolComm) {
+      schoolComm.isActive = (pathname) =>
+        pathname.startsWith('/admin/announcements') ||
+        pathname.startsWith('/admin/communication/compose');
+    }
     pushSection(sections, {
       groupId: 'communication',
       icon: '📣',

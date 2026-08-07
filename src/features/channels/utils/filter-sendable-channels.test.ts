@@ -56,7 +56,20 @@ describe('filterSendableChannels', () => {
       }),
     ];
 
-    expect(filterSendableChannels(rows).map((c) => c.id)).toEqual([1, 2]);
+    expect(filterSendableChannels(rows).map((c) => c.id)).toEqual([1, 2, 4]);
+  });
+
+  it('does not block solely because read_only when Backend can_send allows compose', () => {
+    const rows = [
+      channel({
+        id: 4,
+        name: 'Governed read_only flag',
+        can_send: true,
+        read_only: true,
+        allowed_message_actions: ['submit_message'],
+      }),
+    ];
+    expect(filterSendableChannels(rows).map((c) => c.id)).toEqual([4]);
   });
 
   it('keeps can_send=true when allowed_message_actions is omitted (compat)', () => {

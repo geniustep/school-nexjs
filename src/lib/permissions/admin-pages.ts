@@ -119,7 +119,14 @@ export function permissionForAdminPath(pathname: string): Permission | null {
   }
   if (base.startsWith('/admin/attendance')) return 'view_attendance';
   if (base.startsWith('/admin/channels')) return 'view_channels';
-  // /admin/communication is gated by communication.content.review (AdminPageGuard).
+  // General compose uses view_channels; review center is capability-gated in AdminPageGuard.
+  if (
+    base === '/admin/communication/compose' ||
+    base.startsWith('/admin/communication/compose/')
+  ) {
+    return 'view_channels';
+  }
+  // /admin/communication review is gated by communication.content.review (AdminPageGuard).
   if (base.startsWith('/admin/communication')) return null;
   if (base.startsWith('/admin/homeworks')) return 'view_homeworks';
   if (base.startsWith('/admin/resources')) return 'view_resources';

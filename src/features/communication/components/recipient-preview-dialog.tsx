@@ -11,6 +11,7 @@ export function RecipientPreviewDialog({
   composeMode = 'unknown',
   loading = false,
   confirming = false,
+  terminology = 'default',
   onConfirm,
   onClose,
 }: {
@@ -20,6 +21,7 @@ export function RecipientPreviewDialog({
   composeMode?: 'internal' | 'submit' | 'unknown';
   loading?: boolean;
   confirming?: boolean;
+  terminology?: 'default' | 'beneficiaries';
   onConfirm: () => void | Promise<void>;
   onClose: () => void;
 }) {
@@ -55,6 +57,11 @@ export function RecipientPreviewDialog({
         ? t('communication.recipients.pendingReviewHint')
         : null;
 
+  const title =
+    terminology === 'beneficiaries'
+      ? t('communication.recipients.deliveryStatusTitle')
+      : t('communication.recipients.previewTitle');
+
   return (
     <div
       className="modal-backdrop"
@@ -68,14 +75,18 @@ export function RecipientPreviewDialog({
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={titleId}>{t('communication.recipients.previewTitle')}</h3>
+        <h3 id={titleId}>{title}</h3>
         <div className="confirmation-dialog__body">
           {loading && !summary ? (
             <p className="tiny" role="status">
               {t('communication.recipients.previewLoading')}
             </p>
           ) : (
-            <RecipientSummaryPanel summary={summary} presentation="preview" />
+            <RecipientSummaryPanel
+              summary={summary}
+              presentation="preview"
+              terminology={terminology}
+            />
           )}
           {outcomeHint ? (
             <p className="tiny" style={{ marginTop: '0.75rem' }}>

@@ -28,6 +28,7 @@ export interface CommunicationRecipientSummary {
   student_count?: number | null;
   guardian_count?: number | null;
   staff_count?: number | null;
+  teacher_count?: number | null;
   excluded_count?: number | null;
   audience_labels?: string[] | null;
   exclusion_summary?: CommunicationRecipientExclusion[] | null;

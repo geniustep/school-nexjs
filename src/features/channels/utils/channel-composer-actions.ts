@@ -6,8 +6,9 @@ export function channelAllowsCompose(channel: Pick<
   Channel,
   'can_send' | 'read_only' | 'allowed_message_actions'
 >): boolean {
-  if (channel.read_only) return false;
-  if (!channel.can_send) return false;
+  // Do not derive authority from read_only alone — Backend can_send + actions win.
+  if (channel.can_send === false) return false;
+  if (channel.can_send !== true) return false;
   const actions = channel.allowed_message_actions;
   if (!actions || actions.length === 0) {
     // Backward compatible when Backend omits the field.

@@ -49,7 +49,29 @@ export function hasCommunicationRecordAction(
   return (allowedActions ?? []).includes(action);
 }
 
+export function isCommunicationComposePath(pathname: string): boolean {
+  const base = pathname.split('?')[0];
+  return (
+    base === '/admin/communication/compose' ||
+    base.startsWith('/admin/communication/compose/')
+  );
+}
+
+/**
+ * Content review center only — excludes general compose (`/admin/communication/compose`).
+ */
 export function isCommunicationReviewPath(pathname: string): boolean {
   const base = pathname.split('?')[0];
+  if (isCommunicationComposePath(base)) return false;
   return base === '/admin/communication' || base.startsWith('/admin/communication/');
+}
+
+/** Admin may open general school communication compose (Backend still authorizes create/submit). */
+export function canComposeGeneralCommunication(
+  user: CurrentUser | null | undefined,
+): boolean {
+  if (!user || user.role !== 'admin') return false;
+  if (hasCommunicationCapability(user, COMMUNICATION_CAPABILITIES.create)) return true;
+  if (hasCommunicationCapability(user, COMMUNICATION_CAPABILITIES.submit)) return true;
+  return hasPermission(user, 'view_channels');
 }

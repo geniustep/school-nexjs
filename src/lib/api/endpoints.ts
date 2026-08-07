@@ -471,6 +471,9 @@ export const endpoints = {
 
     communicationContent: '/admin/communication/content',
     communicationContentDetail: (id: number | string) => `/admin/communication/content/${id}`,
+    /** Odoo 259 — authoritative submit after draft create/PATCH. */
+    communicationContentSubmit: (id: number | string) =>
+      `/admin/communication/content/${id}/submit`,
     communicationContentApprove: (id: number | string) =>
       `/admin/communication/content/${id}/approve`,
     communicationContentRequestChanges: (id: number | string) =>
@@ -486,6 +489,13 @@ export const endpoints = {
     /** B4 — advisory recipient preview for admin communication content. */
     communicationContentRecipientPreview: (id: number | string) =>
       `/admin/communication/content/${id}/recipient-preview`,
+    /**
+     * Odoo 258+ — generic advisory recipient preview (canonical recipient_scope).
+     * Prefer this for general/admin compose before draft exists.
+     */
+    communicationRecipientPreview: '/admin/communication/recipient-preview',
+    /** Odoo 256 compatibility — individual domain-entity messaging. */
+    communicationIndividual: '/admin/communication/individual',
     communicationApprovals: '/admin/communication/approvals',
 
     financeFeeTypes: '/admin/finance/fee-types',

@@ -4,20 +4,19 @@
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  *
  * Admin published-message feed for school communication.
- * Create reuses the existing /admin/channels/compose journey (no second composer).
+ * Create opens general communication compose (recipient scopes), not channel compose.
  */
 
 import Link from 'next/link';
 import { AnnouncementsRecipientFeed } from '@/features/announcements/components/announcements-recipient-feed';
 import { useSession } from '@/features/auth/session-context';
-import { adminCreateMessageHref } from '@/features/channels/utils/filter-sendable-channels';
 import { useT } from '@/features/i18n/locale-context';
-import { canSeeChannels } from '@/lib/permissions/scope';
+import { canComposeGeneralCommunication } from '@/lib/permissions/communication';
 
 export default function AdminAnnouncementsPage() {
   const t = useT();
   const user = useSession();
-  const canOpenCreate = canSeeChannels(user);
+  const canOpenCreate = canComposeGeneralCommunication(user);
 
   return (
     <div className="admin-workspace">
@@ -28,11 +27,11 @@ export default function AdminAnnouncementsPage() {
         actions={
           canOpenCreate ? (
             <Link
-              href={adminCreateMessageHref()}
+              href="/admin/communication/compose"
               className="btn btn--primary"
-              aria-label={t('channels.createMessage')}
+              aria-label={t('communication.general.newCommunication')}
             >
-              {t('channels.createMessage')}
+              {t('communication.general.newCommunication')}
             </Link>
           ) : null
         }

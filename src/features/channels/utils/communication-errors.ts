@@ -28,6 +28,8 @@ export const COMMUNICATION_ERROR_MESSAGE_KEYS: Record<string, string> = {
   communication_recipient_snapshot_immutable: 'communication.errors.recipientSnapshotImmutable',
   communication_recipient_cross_school_forbidden: 'communication.errors.recipientCrossSchoolForbidden',
   communication_recipient_not_allowed: 'communication.errors.recipientNotAllowedB4',
+  communication_recipient_not_found: 'communication.errors.recipientNotFound',
+  not_found: 'communication.errors.recipientNotFound',
   communication_recipient_audience_changed: 'communication.errors.recipientAudienceChanged',
   communication_recipient_expansion_forbidden: 'communication.errors.recipientExpansionForbidden',
   permission_denied: 'channels.permissionDenied',
