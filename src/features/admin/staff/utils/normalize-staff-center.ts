@@ -146,6 +146,73 @@ export function isStaffCenterParent(
   return false;
 }
 
+type StaffProfessionalEvidenceInput = Pick<
+  StaffMember,
+  | 'user_kind'
+  | 'is_parent'
+  | 'is_admin_staff'
+  | 'is_teacher'
+  | 'teacher_id'
+  | 'teacher'
+  | 'admin_kind'
+>;
+
+/**
+ * Professional Staff/Teacher evidence from contract fields only.
+ * Never treats `role_display_name`, login, or account presence as Staff.
+ * `admin_kind` alone does not count when the row is parent-marked (misleading Backend flag).
+ */
+export function hasStaffCenterProfessionalEvidence(
+  member: StaffProfessionalEvidenceInput,
+): boolean {
+  const kind = asString(member.user_kind)?.toLowerCase() ?? null;
+  if (kind === 'teacher') return true;
+  if (kind && KNOWN_ADMIN_USER_KINDS.has(kind)) return true;
+  if (member.is_teacher === true) return true;
+  if (member.is_admin_staff === true) return true;
+  if (typeof member.teacher_id === 'number' && Number.isFinite(member.teacher_id)) return true;
+  if (member.teacher != null && asNumber(asRecord(member.teacher)?.id) != null) return true;
+
+  const parentMarked = kind === 'parent' || member.is_parent === true;
+  if (!parentMarked && asString(member.admin_kind)) return true;
+  return false;
+}
+
+/** Parent with no professional Staff/Teacher evidence. */
+export function isStaffCenterParentOnly(
+  member: StaffProfessionalEvidenceInput,
+): boolean {
+  return isStaffCenterParent(member) && !hasStaffCenterProfessionalEvidence(member);
+}
+
+/**
+ * Rows eligible for `/admin/staff` list.
+ * Requires professional evidence — parent-only and account-only are excluded.
+ */
+export function isStaffCenterListEligible(
+  member: StaffProfessionalEvidenceInput,
+): boolean {
+  return hasStaffCenterProfessionalEvidence(member);
+}
+
+export function resolveStaffUserId(member: StaffMember): number {
+  return member.user_id ?? member.id;
+}
+
+/** Stable unique list rows after parent-only / account-only exclusion. */
+export function filterStaffCenterListMembers(members: StaffMember[]): StaffMember[] {
+  const seen = new Set<number>();
+  const out: StaffMember[] = [];
+  for (const member of members) {
+    if (!isStaffCenterListEligible(member)) continue;
+    const id = resolveStaffUserId(member);
+    if (!Number.isFinite(id) || seen.has(id)) continue;
+    seen.add(id);
+    out.push(member);
+  }
+  return out;
+}
+
 /**
  * Resolve canonical staff user kind for presentation.
  * Precedence: user_kind → is_parent fallback → null (caller uses legacy flags).
@@ -170,10 +237,24 @@ export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
   const userKind = normalizeStaffUserKind(raw.user_kind);
   const isParent =
     asBool(raw.is_parent) ?? (userKind?.toLowerCase() === 'parent' ? true : undefined);
-  const isParentRow = userKind?.toLowerCase() === 'parent' || isParent === true;
   // Preserve explicit null from Backend; do not coerce null → legacy/default via `??`.
   const adminKind =
     raw.admin_kind === null ? null : normalizeNullableAdminKind(raw.admin_kind) ?? base.admin_kind;
+  const rawTeacherId = asNumber(raw.teacher_id);
+  const rawIsTeacher = asBool(raw.is_teacher);
+  const rawIsAdminStaff = asBool(raw.is_admin_staff);
+  const hasProfessional = hasStaffCenterProfessionalEvidence({
+    user_kind: userKind,
+    is_parent: isParent,
+    is_admin_staff: rawIsAdminStaff,
+    is_teacher: rawIsTeacher,
+    teacher_id: rawTeacherId,
+    teacher: raw.teacher,
+    admin_kind: adminKind,
+  });
+  // Strip misleading admin/teacher flags only for parent-only rows.
+  const isParentOnly =
+    (userKind?.toLowerCase() === 'parent' || isParent === true) && !hasProfessional;
 
   return {
     ...base,
@@ -185,18 +266,17 @@ export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
     status: asString(raw.status) ?? base.account_status,
     user_kind: userKind,
     is_parent: isParent,
-    admin_kind: adminKind,
-    // Parent contract: never present as admin/teacher from misleading flags.
-    is_admin_staff: isParentRow ? false : asBool(raw.is_admin_staff),
-    is_teacher: isParentRow ? false : asBool(raw.is_teacher),
-    teacher_id: isParentRow ? null : asNumber(raw.teacher_id),
-    teacher_type: isParentRow ? null : asString(raw.teacher_type),
+    admin_kind: isParentOnly ? null : adminKind,
+    is_admin_staff: isParentOnly ? false : rawIsAdminStaff,
+    is_teacher: isParentOnly ? false : rawIsTeacher,
+    teacher_id: isParentOnly ? null : rawTeacherId,
+    teacher_type: isParentOnly ? null : asString(raw.teacher_type),
     creation_template_code: asString(raw.creation_template_code),
     role_display_name: asString(raw.role_display_name),
     primary_school_id: asNumber(raw.primary_school_id),
     role_templates: Array.isArray(raw.role_templates) ? raw.role_templates : undefined,
     scopes: normalizeScopes(raw.scopes),
-    teacher: isParentRow ? null : normalizeTeacherLink(raw.teacher),
+    teacher: isParentOnly ? null : normalizeTeacherLink(raw.teacher),
     warnings: normalizeStaffWarnings(raw.warnings),
     allowed_actions: normalizeStaffAllowedActions(raw.allowed_actions),
     assigned_capabilities:
@@ -211,10 +291,6 @@ export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
         ? asStringArray(raw.effective_permissions)
         : base.effective_permissions),
   };
-}
-
-export function resolveStaffUserId(member: StaffMember): number {
-  return member.user_id ?? member.id;
 }
 
 export function resolveStaffDisplayName(member: StaffMember): string {
@@ -280,13 +356,32 @@ export function mergeStaffPermissionsPayload(
 
 /**
  * User-type badge keys for the unified staff list.
- * Precedence: user_kind → is_parent → legacy flags. Never infer parent from name/login.
- * `admin_kind` alone never wins over `user_kind='parent'`.
+ * Professional evidence wins over parent marking for multi-role people.
+ * Never infer Staff/Teacher from `role_display_name`, name, or login.
+ * `admin_kind` alone never wins over parent-only rows.
  */
 export function staffUserTypeLabelKeys(member: StaffMember): string[] {
   const kind = resolveStaffCenterUserKind(member);
+  const hasProfessional = hasStaffCenterProfessionalEvidence(member);
 
-  if (kind === 'parent') {
+  if (hasProfessional) {
+    if (
+      kind === 'teacher' ||
+      member.is_teacher === true ||
+      typeof member.teacher_id === 'number' ||
+      member.teacher != null
+    ) {
+      return ['admin.staffCenter.userType.teacher'];
+    }
+    if (kind === 'legacy_admin') {
+      return ['roles.adminKind.legacy_admin'];
+    }
+    if ((kind && KNOWN_ADMIN_USER_KINDS.has(kind)) || member.is_admin_staff || member.admin_kind) {
+      return ['admin.staffCenter.userType.admin'];
+    }
+  }
+
+  if (kind === 'parent' || isStaffCenterParentOnly(member)) {
     return ['admin.staffCenter.userType.parent'];
   }
 

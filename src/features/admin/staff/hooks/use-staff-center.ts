@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import {
+  filterStaffCenterListMembers,
   mergeStaffPermissionsPayload,
   normalizeStaffCenterMember,
   unwrapStaffDetailResponse,
@@ -20,7 +21,10 @@ export function useStaffCenterList(query?: ListParams) {
   const state = useAdminResource<StaffMember[]>(endpoints.admin.staff, query);
   const reload = useCallback(() => state.reload(), [state]);
   const staff = useMemo(
-    () => (state.data ?? []).map(normalizeStaffCenterMember),
+    () =>
+      filterStaffCenterListMembers(
+        (state.data ?? []).map(normalizeStaffCenterMember),
+      ),
     [state.data],
   );
   return {
