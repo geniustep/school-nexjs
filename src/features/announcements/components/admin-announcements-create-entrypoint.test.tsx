@@ -36,6 +36,10 @@ vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string) => key,
 }));
 
+vi.mock('@/features/i18n/use-format', () => ({
+  useFormat: () => ({ formatDateTime: (value: string) => value }),
+}));
+
 vi.mock('@/features/auth/session-context', () => ({
   useSession: () => sessionRef.current,
 }));
@@ -90,6 +94,33 @@ const announcement = {
   published_at: '2026-08-08T00:00:00Z',
 };
 
+const pendingAnnouncement = {
+  id: 13,
+  school_id: 1,
+  subject: 'Announcement Pending',
+  content_type: 'announcement',
+  state: 'submitted',
+  channel_id: null,
+  source_summary: null,
+  author: { id: 1, name: 'Admin' },
+  audience_summary: { label: 'Guardians' },
+  submitted_at: '2026-08-08T00:03:00Z',
+};
+
+const editableAnnouncement = {
+  id: 14,
+  school_id: 1,
+  subject: 'Announcement Needs Edit',
+  content_type: 'announcement',
+  state: 'changes_requested',
+  channel_id: null,
+  source_summary: null,
+  author: { id: 1, name: 'Admin' },
+  audience_summary: { label: 'Guardians' },
+  allowed_actions: ['edit'],
+  submitted_at: '2026-08-08T00:04:00Z',
+};
+
 const directMessage = {
   id: 11,
   school_id: 1,
@@ -116,12 +147,16 @@ const channelMessage = {
   published_at: '2026-08-08T00:02:00Z',
 };
 
-describe('AdminAnnouncementsPage published communication workspace', () => {
+describe('AdminAnnouncementsPage communication workspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     listMock.mockImplementation((query: { content_type?: string }) => {
       if (query.content_type === 'announcement') {
-        return Promise.resolve({ success: true, data: [announcement], meta: {} });
+        return Promise.resolve({
+          success: true,
+          data: [announcement, pendingAnnouncement, editableAnnouncement],
+          meta: {},
+        });
       }
       return Promise.resolve({
         success: true,
@@ -144,10 +179,12 @@ describe('AdminAnnouncementsPage published communication workspace', () => {
     };
   });
 
-  it('shows published announcements and direct messages while keeping channel messages separate', async () => {
+  it('shows channel-less communication across workflow states while keeping channel messages separate', async () => {
     render(<AdminAnnouncementsPage />);
 
     expect(await screen.findByText('Announcement A')).toBeTruthy();
+    expect(screen.getByText('Announcement Pending')).toBeTruthy();
+    expect(screen.getByText('Announcement Needs Edit')).toBeTruthy();
     expect(screen.getByText('Message B')).toBeTruthy();
     expect(screen.queryByText('Channel message')).toBeNull();
     expect(screen.getByTestId('published-general-communication-feed')).toBeTruthy();
@@ -157,12 +194,25 @@ describe('AdminAnnouncementsPage published communication workspace', () => {
     expect(screen.getByRole('link', { name: /Message B/ }).getAttribute('href')).toBe(
       '/admin/communication/11',
     );
+    expect(screen.getByRole('link', { name: 'common.edit' }).getAttribute('href')).toBe(
+      '/admin/communication/14/edit',
+    );
 
     fireEvent.click(
-      screen.getByRole('tab', { name: 'communication.contentType.message' }),
+      screen.getByRole('tab', { name: /communication.contentType.message/ }),
     );
     expect(screen.queryByText('Announcement A')).toBeNull();
+    expect(screen.queryByText('Announcement Pending')).toBeNull();
     expect(screen.getByText('Message B')).toBeTruthy();
+  });
+
+  it('does not force a published-state filter so newly submitted content can be found after create', async () => {
+    render(<AdminAnnouncementsPage />);
+    await screen.findByText('Announcement Pending');
+    expect(listMock).toHaveBeenCalledWith(
+      expect.objectContaining({ content_type: 'announcement' }),
+    );
+    expect(listMock.mock.calls[0][0].state).toBeUndefined();
   });
 
   it('keeps the governed create entrypoint', async () => {
@@ -203,15 +253,11 @@ describe('Arabic admin announcements naming', () => {
   it('keeps التواصل المدرسي as the page domain and uses a neutral create CTA', () => {
     expect(ar.channels.schoolCommunicationTitle).toBe('التواصل المدرسي');
     expect(ar.communication.general.newCommunication).toBe('تواصل جديد');
-    expect(ar.announcements.adminWorkspaceSubtitle).toContain('الرسائل المنشورة');
   });
 
   it('does not use البلاغات المدرسية as the domain page title', () => {
     expect(ar.channels.schoolCommunicationTitle).not.toBe('البلاغات المدرسية');
     expect(ar.nav.schoolCommunication).toBe('التواصل المدرسي');
-    expect(JSON.stringify(ar.announcements.adminWorkspaceSubtitle)).not.toContain(
-      'البلاغات المدرسية',
-    );
     expect(JSON.stringify(ar.nav)).not.toContain('البلاغات المدرسية');
   });
 });
