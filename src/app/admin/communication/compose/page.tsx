@@ -79,12 +79,15 @@ function AdminCommunicationComposeContent() {
   return (
     <div className={`general-comm-intent general-comm-intent--${contentType}`}>
       <div className="admin-workspace general-comm__intent-context">
-        <strong>{t(labelKey)}</strong>
+        <div className="wrap-gap">
+          <span aria-hidden="true">{contentType === 'announcement' ? '📣' : '✉️'}</span>
+          <strong>{t(labelKey)}</strong>
+        </div>
         <Link href="/admin/communication/compose" className="btn btn--ghost btn--sm">
           {t('common.edit')}
         </Link>
       </div>
-      <GeneralCommunicationComposeWorkspace key={contentType} />
+      <GeneralCommunicationComposeWorkspace key={contentType} contentType={contentType} />
     </div>
   );
 }
