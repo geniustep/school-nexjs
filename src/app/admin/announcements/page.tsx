@@ -100,11 +100,7 @@ function communicationBody(item: CommunicationContent): string | null | undefine
 }
 
 function canOfferEdit(item: CommunicationContent): boolean {
-  return (
-    (item.allowed_actions ?? []).includes('edit') ||
-    item.state === 'draft' ||
-    item.state === 'changes_requested'
-  );
+  return (item.allowed_actions ?? []).includes('edit');
 }
 
 function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode }) {
@@ -249,7 +245,7 @@ function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode })
             </Link>
             {canOfferEdit(item) ? (
               <Link
-                href={`/admin/communication/${item.id}/edit`}
+                href={`/admin/communication/${item.id}#communication-edit`}
                 className="btn btn--ghost btn--sm"
               >
                 {t('common.edit')}
