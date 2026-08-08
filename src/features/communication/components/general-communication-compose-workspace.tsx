@@ -748,16 +748,16 @@ export function GeneralCommunicationComposeWorkspace({
                 <button
                   type="submit"
                   className="btn btn--primary"
-                  disabled={!canAct || phase === 'submitting'}
-                  aria-disabled={!canAct || phase === 'submitting'}
+                  disabled={!canAct}
+                  aria-disabled={!canAct}
                 >
                   {phase === 'submitting' ? t('common.submitting') : t('common.submit')}
                 </button>
                 <button
                   type="button"
                   className="btn btn--ghost"
-                  disabled={!canAct || phase === 'previewing'}
-                  aria-disabled={!canAct || phase === 'previewing'}
+                  disabled={!canAct}
+                  aria-disabled={!canAct}
                   onClick={() => void requestPreview()}
                 >
                   {phase === 'previewing'
