@@ -2,10 +2,11 @@
 
 /**
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
- * @design-status review-needed
+ * @design-status adopted
  *
- * Admin communication review workspace — content list + filters.
- * Actions driven by Backend allowed_actions + communication.* capabilities.
+ * Admin communication review workspace.
+ * The submitted filter is the operational review queue; opening a record never
+ * changes workflow state. Backend allowed_actions remains authoritative.
  */
 
 import Link from 'next/link';
@@ -40,7 +41,7 @@ const FILTERS = [
     id: 'messages',
     state: '',
     contentType: 'message',
-    labelKey: 'communication.filter.messages',
+    labelKey: 'communication.contentType.message',
   },
   {
     id: 'homework',
@@ -86,6 +87,16 @@ const FILTERS = [
   },
 ] as const;
 
+const DEFAULT_FILTER = FILTERS.find((filter) => filter.id === 'submitted') ?? FILTERS[0];
+
+function stateTone(state: string): 'amber' | 'green' | 'slate' {
+  if (state === 'submitted' || state === 'changes_requested' || state === 'approved') {
+    return 'amber';
+  }
+  if (state === 'published') return 'green';
+  return 'slate';
+}
+
 function AdminCommunicationReviewInner() {
   const t = useT();
   const user = useSession();
@@ -93,7 +104,7 @@ function AdminCommunicationReviewInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filterId = searchParams.get('filter') || 'submitted';
-  const active = FILTERS.find((f) => f.id === filterId) ?? FILTERS[5];
+  const active = FILTERS.find((filter) => filter.id === filterId) ?? DEFAULT_FILTER;
 
   const [items, setItems] = useState<CommunicationContent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,11 +115,13 @@ function AdminCommunicationReviewInner() {
     const query: Record<string, string | number> = { page_size: 50 };
     if (active.state) query.state = active.state;
     if (active.contentType) query.content_type = active.contentType;
+
     const res = await fetchCommunicationContentList(query);
     if (res.success) {
       setItems(Array.isArray(res.data) ? res.data : []);
       setError(null);
     } else {
+      setItems([]);
       setError(res.error);
     }
     setLoading(false);
@@ -128,6 +141,8 @@ function AdminCommunicationReviewInner() {
     );
   }
 
+  const isReviewQueue = active.id === 'submitted';
+
   return (
     <div className="admin-workspace communication-review">
       <PageHeader
@@ -135,27 +150,42 @@ function AdminCommunicationReviewInner() {
         subtitle={t('communication.reviewSubtitle')}
       />
 
+      {isReviewQueue ? (
+        <section className="communication-review__queue-hero" aria-labelledby="review-queue-title">
+          <div className="communication-review__queue-copy">
+            <span className="communication-review__queue-marker" aria-hidden="true" />
+            <div>
+              <h2 id="review-queue-title">{t('communication.filter.submitted')}</h2>
+              <p>{t('communication.recipients.confirmApproveHint')}</p>
+            </div>
+          </div>
+          <Badge tone="amber">{loading ? '…' : String(items.length)}</Badge>
+        </section>
+      ) : null}
+
       <div
         className="communication-review__filters"
         role="tablist"
         aria-label={t('communication.filters')}
       >
-        {FILTERS.map((f) => {
-          const selected = f.id === active.id;
+        {FILTERS.map((filter) => {
+          const selected = filter.id === active.id;
           return (
             <button
-              key={f.id}
+              key={filter.id}
               type="button"
               role="tab"
               aria-selected={selected}
-              className={selected ? 'btn btn--primary btn--sm' : 'btn btn--ghost btn--sm'}
+              className={
+                selected ? 'btn btn--primary btn--sm' : 'btn btn--ghost btn--sm'
+              }
               onClick={() => {
                 const params = new URLSearchParams(searchParams.toString());
-                params.set('filter', f.id);
+                params.set('filter', filter.id);
                 router.replace(`${pathname}?${params.toString()}`);
               }}
             >
-              {t(f.labelKey)}
+              {t(filter.labelKey)}
             </button>
           );
         })}
@@ -167,54 +197,64 @@ function AdminCommunicationReviewInner() {
         <ApiErrorView error={error} onRetry={() => void load()} />
       ) : items.length === 0 ? (
         <EmptyState
-          icon="📣"
-          title={t('communication.emptyTitle')}
+          icon={isReviewQueue ? '✓' : '📣'}
+          title={
+            isReviewQueue
+              ? t('communication.filter.submitted')
+              : t('communication.emptyTitle')
+          }
           description={t('communication.emptyDesc')}
         />
       ) : (
         <div className="communication-review__grid">
-          {items.map((item) => (
-            <Link
-              key={item.id}
-              href={`/admin/communication/${item.id}`}
-              className="card card--pad communication-review__card row-link"
-            >
-              <div className="between" style={{ gap: 8, flexWrap: 'wrap' }}>
-                <strong dir="auto">{item.subject || item.name || `#${item.id}`}</strong>
-                <Badge
-                  tone={
-                    item.state === 'changes_requested'
-                      ? 'amber'
-                      : item.state === 'published'
-                        ? 'green'
-                        : 'slate'
-                  }
-                >
-                  {t(communicationStateMessageKey(item.state))}
-                </Badge>
-              </div>
-              <div className="wrap-gap">
-                <Badge tone="slate">{t(communicationContentTypeMessageKey(item.content_type))}</Badge>
-                {item.message_direction ? (
-                  <Badge tone="slate">{item.message_direction}</Badge>
-                ) : null}
-              </div>
-              <p className="tiny muted" dir="auto">
-                {stripHtmlPreview(item.current_version?.body || item.body || '') || t('common.dash')}
-              </p>
-              <div className="tiny faint">
-                {item.author?.name || t('common.dash')}
-                {' · '}
-                {item.audience_summary?.label || t('common.dash')}
-                {' · '}
-                {item.submitted_at
-                  ? formatDateTime(item.submitted_at)
-                  : item.created_at
-                    ? formatDateTime(item.created_at)
-                    : t('common.dash')}
-              </div>
-            </Link>
-          ))}
+          {items.map((item) => {
+            const submittedAt = item.submitted_at || item.created_at;
+            const preview = stripHtmlPreview(item.current_version?.body || item.body || '', 220);
+            return (
+              <Link
+                key={item.id}
+                href={`/admin/communication/${item.id}`}
+                className="card card--pad communication-review__card row-link"
+              >
+                <div className="communication-review__card-head">
+                  <div className="communication-review__card-title">
+                    <div className="communication-review__badges">
+                      <Badge tone="slate">
+                        {t(communicationContentTypeMessageKey(item.content_type))}
+                      </Badge>
+                      <Badge tone={stateTone(item.state)}>
+                        {t(communicationStateMessageKey(item.state))}
+                      </Badge>
+                    </div>
+                    <strong dir="auto">{item.subject || item.name || `#${item.id}`}</strong>
+                  </div>
+                  <span className="communication-review__card-cta">
+                    {t('common.view')}
+                    <span aria-hidden="true">‹</span>
+                  </span>
+                </div>
+
+                <p className="communication-review__preview" dir="auto">
+                  {preview || t('common.dash')}
+                </p>
+
+                <dl className="communication-review__meta-grid">
+                  <div>
+                    <dt>{t('communication.author')}</dt>
+                    <dd dir="auto">{item.author?.name || t('common.dash')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('communication.audience')}</dt>
+                    <dd dir="auto">{item.audience_summary?.label || t('common.dash')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('communication.submittedAt')}</dt>
+                    <dd>{submittedAt ? formatDateTime(submittedAt) : t('common.dash')}</dd>
+                  </div>
+                </dl>
+              </Link>
+            );
+          })}
         </div>
       )}
 

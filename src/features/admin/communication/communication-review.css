@@ -1,18 +1,149 @@
+.communication-review {
+  --communication-review-border: var(--border, #e5e7eb);
+  --communication-review-muted: var(--surface-muted, #f8fafc);
+}
+
+.communication-review__queue-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  margin-block-end: 16px;
+  border: 1px solid var(--communication-review-border);
+  border-radius: 14px;
+  background: var(--communication-review-muted);
+}
+
+.communication-review__queue-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.communication-review__queue-copy h2,
+.communication-review__queue-copy p {
+  margin: 0;
+}
+
+.communication-review__queue-copy h2 {
+  font-size: 1.05rem;
+}
+
+.communication-review__queue-copy p {
+  margin-block-start: 4px;
+  max-width: 60rem;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+
+.communication-review__queue-marker {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-block-start: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
 .communication-review__filters {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-block-end: 16px;
+  padding-block: 4px 16px;
+  margin-block-end: 4px;
+  border-block-end: 1px solid var(--communication-review-border);
 }
 
 .communication-review__grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .communication-review__card {
   display: grid;
+  gap: 14px;
+  min-width: 0;
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+
+.communication-review__card:hover,
+.communication-review__card:focus-visible {
+  transform: translateY(-1px);
+}
+
+.communication-review__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.communication-review__card-title {
+  display: grid;
   gap: 8px;
+  min-width: 0;
+}
+
+.communication-review__card-title strong {
+  font-size: 1rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.communication-review__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.communication-review__card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.communication-review__preview {
+  margin: 0;
+  color: inherit;
+  line-height: 1.65;
+  opacity: 0.82;
+}
+
+.communication-review__meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--communication-review-border);
+}
+
+.communication-review__meta-grid div {
+  min-width: 0;
+}
+
+.communication-review__meta-grid dt,
+.communication-review__meta-grid dd {
+  margin: 0;
+}
+
+.communication-review__meta-grid dt {
+  margin-block-end: 3px;
+  font-size: 0.72rem;
+  opacity: 0.62;
+}
+
+.communication-review__meta-grid dd {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
 .communication-review__nav-card {
@@ -20,25 +151,122 @@
 }
 
 .communication-review__section-title {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 1rem;
   font-weight: 650;
 }
 
 .communication-review__body {
   white-space: pre-wrap;
-  line-height: 1.55;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .communication-review__audit {
   margin: 0;
-  padding-inline-start: 1.25rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.communication-review__audit li {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0;
+  border-block-end: 1px solid var(--communication-review-border);
+}
+
+.communication-review__audit li:last-child {
+  border-block-end: 0;
+}
+
+.communication-review__audit-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.communication-detail__layout {
+  display: grid;
+  gap: 16px;
+  margin-block-start: 16px;
+}
+
+.communication-detail__main,
+.communication-detail__side {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.communication-detail__section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 14px;
+}
+
+.communication-detail__metadata-card,
+.communication-detail__actions-card {
+  min-width: 0;
+}
+
+.communication-detail__actions {
   display: grid;
   gap: 8px;
 }
 
-@media (min-width: 900px) {
+.communication-detail__actions > .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.communication-detail__schedule {
+  display: grid;
+  gap: 8px;
+}
+
+.communication-detail__reason {
+  display: grid;
+  gap: 8px;
+  margin-block-start: 12px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--communication-review-border);
+}
+
+@media (min-width: 720px) {
   .communication-review__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 980px) {
+  .communication-detail__layout {
+    grid-template-columns: minmax(0, 1.7fr) minmax(18rem, 0.8fr);
+    align-items: start;
+  }
+
+  .communication-detail__side {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+@media (max-width: 719px) {
+  .communication-review__queue-hero,
+  .communication-review__card-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .communication-review__meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .communication-review__card-cta {
+    justify-content: flex-start;
   }
 }

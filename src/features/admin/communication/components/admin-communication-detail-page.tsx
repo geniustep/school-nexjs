@@ -2,10 +2,14 @@
 
 /**
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
- * @design-status review-needed
+ * @design-status adopted
+ *
+ * Reviewer-focused communication detail. Technical backend codes are translated
+ * or omitted from the product surface; workflow actions remain Backend-driven.
  */
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import {
   PageHeader,
@@ -35,6 +39,8 @@ import {
 import { RecipientSummaryPanel } from '@/features/communication/components/recipient-summary-panel';
 import { normalizeRecipientSummary } from '@/features/communication/utils/normalize-recipient-summary';
 import {
+  communicationActorRoleMessageKey,
+  communicationAuditDecisionMessageKey,
   communicationContentTypeMessageKey,
   communicationStateMessageKey,
   stripHtmlPreview,
@@ -110,36 +116,38 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
 
   async function runResubmit() {
     if (!item?.channel_id || acting) return;
-    const body = resubmitBody.trim();
-    if (!body) return;
+    const nextBody = resubmitBody.trim();
+    if (!nextBody) return;
+
     setActing(true);
     const res = await resubmitAdminChannelPendingMessage(item.channel_id, item.id, {
-      body,
+      body: nextBody,
       subject: resubmitSubject.trim() || undefined,
     });
     setActing(false);
+
     if (!res.success) {
       const key = communicationErrorMessageKey(res.error?.code);
       toast.error(key ? t(key) : res.error?.message || t('channels.sendFailed'));
-      // Keep draft text on failure.
       return;
     }
+
     const data = res.data as Record<string, unknown> | CommunicationContent | undefined;
     toast.success(t('channels.pendingResubmitSuccess'));
     setShowResubmit(false);
-    // Refresh detail — never insert into published channel list here.
+
     if (data && typeof data === 'object' && 'state' in data) {
-      setItem((prev) =>
-        prev
+      setItem((previous) =>
+        previous
           ? {
-              ...prev,
+              ...previous,
               ...(data as CommunicationContent),
               state:
                 (data as { communication_state?: string; state?: string }).communication_state ||
                 (data as { state?: string }).state ||
                 'submitted',
             }
-          : prev,
+          : previous,
       );
     }
     void load();
@@ -147,19 +155,17 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
 
   if (loading) return <LoadingState label={t('communication.loading')} />;
   if (error) return <ApiErrorView error={error} onRetry={() => void load()} />;
-  if (!item) {
-    return <EmptyState icon="📣" title={t('communication.notFound')} />;
-  }
+  if (!item) return <EmptyState icon="📣" title={t('communication.notFound')} />;
 
   const actions = item.allowed_actions ?? [];
   const body = item.body || item.current_version?.body || '';
+  const isSubmitted = item.state === 'submitted';
   const isApprovedAwaitingPublish = item.state === 'approved';
   const canAuthorResubmit = canResubmitPendingContent(item, {
     currentUserId: user.id,
     requireChannelMessage: true,
   });
-  const changeReason =
-    item.changes_requested_reason || item.last_decision_reason || null;
+  const changeReason = item.changes_requested_reason || item.last_decision_reason || null;
   const frozenSummary =
     normalizeRecipientSummary(item.recipient_summary) ??
     (item.snapshot_id != null || item.snapshot_fingerprint
@@ -178,11 +184,45 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
   const canSchedule = hasCommunicationRecordAction(actions, 'schedule');
   const canCancel = hasCommunicationRecordAction(actions, 'cancel');
 
+  const roleMessageKey = communicationActorRoleMessageKey(item.created_by_role);
+  const metadataItems: Array<{ label: string; value: ReactNode }> = [
+    {
+      label: t('communication.author'),
+      value: item.author?.name || t('common.dash'),
+    },
+    {
+      label: t('communication.createdByRole'),
+      value: roleMessageKey ? t(roleMessageKey) : t('common.dash'),
+    },
+    {
+      label: t('communication.audience'),
+      value: item.audience_summary?.label || t('common.dash'),
+    },
+    {
+      label: t('communication.submittedAt'),
+      value: item.submitted_at ? formatDateTime(item.submitted_at) : t('common.dash'),
+    },
+    {
+      label: t('communication.reviewer'),
+      value: item.reviewer?.name || t('common.dash'),
+    },
+  ];
+
+  if (item.channel_id != null) {
+    metadataItems.push({
+      label: t('communication.channel'),
+      value: <Link href={`/admin/channels/${item.channel_id}`}>#{item.channel_id}</Link>,
+    });
+  }
+
+  const hasActions = canRequestChanges || canApprove || canPublish || canSchedule || canCancel;
+
   return (
-    <div className="admin-workspace communication-review">
+    <div className="admin-workspace communication-review communication-detail">
       <Link href="/admin/communication?filter=submitted" className="back-link">
         ‹ {t('communication.backToReview')}
       </Link>
+
       <PageHeader
         title={item.subject || item.name || `#${item.id}`}
         subtitle={t(communicationContentTypeMessageKey(item.content_type))}
@@ -192,6 +232,14 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           </Badge>
         }
       />
+
+      {isSubmitted ? (
+        <InfoBanner
+          tone="amber"
+          title={t('communication.state.submitted')}
+          description={t('communication.recipients.confirmApproveHint')}
+        />
+      ) : null}
 
       {isApprovedAwaitingPublish ? (
         <InfoBanner
@@ -209,276 +257,220 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
         />
       ) : null}
 
-      <Card>
-        <DefinitionList
-          items={[
-            {
-              label: t('communication.author'),
-              value: item.author?.name || t('common.dash'),
-            },
-            {
-              label: t('communication.createdByRole'),
-              value: item.created_by_role || t('common.dash'),
-            },
-            {
-              label: t('communication.direction'),
-              value: item.message_direction || t('common.dash'),
-            },
-            {
-              label: t('communication.audience'),
-              value: item.audience_summary?.label || t('common.dash'),
-            },
-            {
-              label: t('communication.channel'),
-              value:
-                item.channel_id != null ? (
-                  <Link href={`/admin/channels/${item.channel_id}`}>
-                    #{item.channel_id}
-                  </Link>
-                ) : (
-                  t('common.dash')
-                ),
-            },
-            {
-              label: t('communication.submittedAt'),
-              value: item.submitted_at ? formatDateTime(item.submitted_at) : t('common.dash'),
-            },
-            {
-              label: t('communication.publishedMessageId'),
-              value:
-                item.published_message_id != null
-                  ? String(item.published_message_id)
-                  : t('common.dash'),
-            },
-            {
-              label: t('communication.reviewer'),
-              value: item.reviewer?.name || t('common.dash'),
-            },
-          ]}
-        />
-      </Card>
+      <div className="communication-detail__layout">
+        <div className="communication-detail__main">
+          <Card className="communication-detail__content-card">
+            <div className="communication-detail__section-head">
+              <div>
+                <h2 className="communication-review__section-title">{t('communication.body')}</h2>
+                <div className="communication-review__badges">
+                  <Badge tone="slate">{t(communicationContentTypeMessageKey(item.content_type))}</Badge>
+                  <Badge tone={isSubmitted ? 'amber' : item.state === 'published' ? 'green' : 'slate'}>
+                    {t(communicationStateMessageKey(item.state))}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            <div className="communication-review__body" dir="auto">
+              {stripHtmlPreview(body, 4000) || t('common.dash')}
+            </div>
+          </Card>
 
-      <Card>
-        <h2 className="communication-review__section-title">{t('communication.body')}</h2>
-        <div className="communication-review__body" dir="auto">
-          {stripHtmlPreview(body, 4000) || t('common.dash')}
-        </div>
-      </Card>
+          <Card className="communication-detail__recipient-card">
+            <h2 className="communication-review__section-title">{t('communication.recipients.frozenTitle')}</h2>
+            <RecipientSummaryPanel summary={frozenSummary} presentation="frozen" showAdminSnapshotRef />
+          </Card>
 
-      <Card>
-        <h2 className="communication-review__section-title">
-          {t('communication.recipients.frozenTitle')}
-        </h2>
-        <RecipientSummaryPanel
-          summary={frozenSummary}
-          presentation="frozen"
-          showAdminSnapshotRef
-        />
-      </Card>
-
-      {canAuthorResubmit ? (
-        <Card>
-          <h2 className="communication-review__section-title">
-            {t('channels.pendingResubmit')}
-          </h2>
-          {!showResubmit ? (
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              disabled={acting}
-              onClick={() => {
-                setShowResubmit(true);
-                setResubmitBody(stripHtmlPreview(body, 4000));
-                setResubmitSubject(item.subject || '');
-              }}
-            >
-              {t('channels.pendingEditResubmit')}
-            </button>
-          ) : (
-            <div className="stack" style={{ gap: 10 }}>
-              <label className="tiny" htmlFor="comm-resubmit-subject">
-                {t('communication.subjectOptional')}
-              </label>
-              <input
-                id="comm-resubmit-subject"
-                className="input"
-                value={resubmitSubject}
-                onChange={(e) => setResubmitSubject(e.target.value)}
-              />
-              <label className="tiny" htmlFor="comm-resubmit-body">
-                {t('communication.body')}
-              </label>
-              <textarea
-                id="comm-resubmit-body"
-                className="textarea"
-                rows={5}
-                value={resubmitBody}
-                onChange={(e) => setResubmitBody(e.target.value)}
-              />
-              <div className="row" style={{ gap: 8 }}>
+          {canAuthorResubmit ? (
+            <Card>
+              <h2 className="communication-review__section-title">{t('channels.pendingResubmit')}</h2>
+              {!showResubmit ? (
                 <button
                   type="button"
                   className="btn btn--primary btn--sm"
-                  disabled={acting || !resubmitBody.trim()}
-                  onClick={() => void runResubmit()}
-                >
-                  {acting ? t('channels.sending') : t('channels.pendingResubmit')}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
                   disabled={acting}
-                  onClick={() => setShowResubmit(false)}
+                  onClick={() => {
+                    setShowResubmit(true);
+                    setResubmitBody(stripHtmlPreview(body, 4000));
+                    setResubmitSubject(item.subject || '');
+                  }}
                 >
-                  {t('common.cancel')}
+                  {t('channels.pendingEditResubmit')}
                 </button>
-              </div>
-            </div>
-          )}
-        </Card>
-      ) : null}
+              ) : (
+                <div className="stack" style={{ gap: 10 }}>
+                  <label className="tiny" htmlFor="comm-resubmit-subject">{t('communication.subjectOptional')}</label>
+                  <input
+                    id="comm-resubmit-subject"
+                    className="input"
+                    value={resubmitSubject}
+                    onChange={(event) => setResubmitSubject(event.target.value)}
+                  />
+                  <label className="tiny" htmlFor="comm-resubmit-body">{t('communication.body')}</label>
+                  <textarea
+                    id="comm-resubmit-body"
+                    className="textarea"
+                    rows={5}
+                    value={resubmitBody}
+                    onChange={(event) => setResubmitBody(event.target.value)}
+                  />
+                  <div className="row" style={{ gap: 8 }}>
+                    <button
+                      type="button"
+                      className="btn btn--primary btn--sm"
+                      disabled={acting || !resubmitBody.trim()}
+                      onClick={() => void runResubmit()}
+                    >
+                      {acting ? t('channels.sending') : t('channels.pendingResubmit')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={acting}
+                      onClick={() => setShowResubmit(false)}
+                    >
+                      {t('common.cancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </Card>
+          ) : null}
 
-      {(showReason || canRequestChanges || canCancel) && (
-        <Card>
-          <label className="tiny" htmlFor="comm-reason">
-            {t('communication.changeRequestReason')}
-          </label>
-          <textarea
-            id="comm-reason"
-            className="textarea"
-            rows={3}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder={t('communication.reasonPlaceholder')}
-          />
-        </Card>
-      )}
+          <Card>
+            <h2 className="communication-review__section-title">{t('communication.auditTitle')}</h2>
+            {(item.audit_decisions ?? []).length === 0 ? (
+              <p className="tiny muted">{t('communication.auditEmpty')}</p>
+            ) : (
+              <ol className="communication-review__audit">
+                {(item.audit_decisions ?? []).map((decision) => (
+                  <li key={decision.id}>
+                    <div className="communication-review__audit-head">
+                      <Badge tone="slate">{t(communicationAuditDecisionMessageKey(decision.decision))}</Badge>
+                      <span dir="auto">{decision.actor?.name || t('common.dash')}</span>
+                      <span className="muted">
+                        {decision.decision_at ? formatDateTime(decision.decision_at) : t('common.dash')}
+                      </span>
+                    </div>
+                    {decision.reason ? <div className="tiny muted" dir="auto">{decision.reason}</div> : null}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </Card>
+        </div>
 
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        {canRequestChanges ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            disabled={acting}
-            onClick={() => {
-              setShowReason(true);
-              void runAction(
-                () => requestChangesCommunicationContent(item.id, reason.trim()),
-                { requireReason: true },
-              );
-            }}
-          >
-            {t('communication.actions.requestChanges')}
-          </button>
-        ) : null}
-        {canApprove ? (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            disabled={acting}
-            onClick={() => setConfirmAction('approve')}
-          >
-            {t('communication.actions.approve')}
-          </button>
-        ) : null}
-        {canPublish ? (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            disabled={acting}
-            onClick={() => setConfirmAction('publish')}
-          >
-            {t('communication.actions.publish')}
-          </button>
-        ) : null}
-        {canSchedule ? (
-          <div className="row" style={{ gap: 8 }}>
-            <input
-              type="datetime-local"
-              className="input"
-              value={scheduleAt}
-              onChange={(e) => setScheduleAt(e.target.value)}
-              aria-label={t('communication.actions.schedule')}
-            />
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              disabled={acting || !scheduleAt}
-              onClick={() =>
-                void runAction(() =>
-                  scheduleCommunicationContent(item.id, new Date(scheduleAt).toISOString()),
-                )
-              }
-            >
-              {t('communication.actions.schedule')}
-            </button>
-          </div>
-        ) : null}
-        {canCancel ? (
-          <button
-            type="button"
-            className="btn btn--danger btn--sm"
-            disabled={acting}
-            onClick={() =>
-              void runAction(() => cancelCommunicationContent(item.id, reason.trim() || undefined))
-            }
-          >
-            {t('communication.actions.cancel')}
-          </button>
-        ) : null}
-      </div>
+        <aside className="communication-detail__side">
+          <Card className="communication-detail__metadata-card">
+            <h2 className="communication-review__section-title">{t('communication.reviewTitle')}</h2>
+            <DefinitionList items={metadataItems} />
+          </Card>
 
-      <Card>
-        <h2 className="communication-review__section-title">{t('communication.auditTitle')}</h2>
-        {(item.audit_decisions ?? []).length === 0 ? (
-          <p className="tiny muted">{t('communication.auditEmpty')}</p>
-        ) : (
-          <ol className="communication-review__audit">
-            {(item.audit_decisions ?? []).map((d) => (
-              <li key={d.id}>
-                <strong>{d.decision}</strong>
-                {' · '}
-                {d.actor?.name || t('common.dash')}
-                {' · '}
-                {d.decision_at ? formatDateTime(d.decision_at) : t('common.dash')}
-                {d.reason ? (
-                  <div className="tiny muted" dir="auto">
-                    {d.reason}
+          {hasActions ? (
+            <Card className="communication-detail__actions-card">
+              <h2 className="communication-review__section-title">{t('common.actions')}</h2>
+              {isSubmitted && canApprove ? (
+                <p className="tiny muted">{t('communication.recipients.confirmApproveHint')}</p>
+              ) : null}
+
+              <div className="communication-detail__actions">
+                {canApprove ? (
+                  <button type="button" className="btn btn--primary" disabled={acting} onClick={() => setConfirmAction('approve')}>
+                    {t('communication.actions.approve')}
+                  </button>
+                ) : null}
+                {canPublish ? (
+                  <button type="button" className="btn btn--primary" disabled={acting} onClick={() => setConfirmAction('publish')}>
+                    {t('communication.actions.publish')}
+                  </button>
+                ) : null}
+                {canRequestChanges ? (
+                  <button type="button" className="btn btn--ghost" disabled={acting} onClick={() => setShowReason((current) => !current)}>
+                    {t('communication.actions.requestChanges')}
+                  </button>
+                ) : null}
+                {canSchedule ? (
+                  <div className="communication-detail__schedule">
+                    <input
+                      type="datetime-local"
+                      className="input"
+                      value={scheduleAt}
+                      onChange={(event) => setScheduleAt(event.target.value)}
+                      aria-label={t('communication.actions.schedule')}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={acting || !scheduleAt}
+                      onClick={() => void runAction(() => scheduleCommunicationContent(item.id, new Date(scheduleAt).toISOString()))}
+                    >
+                      {t('communication.actions.schedule')}
+                    </button>
                   </div>
                 ) : null}
-              </li>
-            ))}
-          </ol>
-        )}
-      </Card>
+                {canCancel ? (
+                  <button
+                    type="button"
+                    className="btn btn--danger btn--sm"
+                    disabled={acting}
+                    onClick={() => void runAction(() => cancelCommunicationContent(item.id, reason.trim() || undefined))}
+                  >
+                    {t('communication.actions.cancel')}
+                  </button>
+                ) : null}
+              </div>
+
+              {showReason && canRequestChanges ? (
+                <div className="communication-detail__reason">
+                  <label className="tiny" htmlFor="comm-reason">{t('communication.changeRequestReason')}</label>
+                  <textarea
+                    id="comm-reason"
+                    className="textarea"
+                    rows={3}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    placeholder={t('communication.reasonPlaceholder')}
+                  />
+                  <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn btn--primary btn--sm"
+                      disabled={acting || !reason.trim()}
+                      onClick={() => void runAction(() => requestChangesCommunicationContent(item.id, reason.trim()), { requireReason: true })}
+                    >
+                      {t('communication.actions.requestChanges')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      disabled={acting}
+                      onClick={() => {
+                        setShowReason(false);
+                        setReason('');
+                      }}
+                    >
+                      {t('common.cancel')}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+          ) : null}
+        </aside>
+      </div>
 
       <ConfirmationDialog
         open={confirmAction != null}
-        title={
-          confirmAction === 'publish'
-            ? t('communication.recipients.confirmPublishTitle')
-            : t('communication.recipients.confirmApproveTitle')
-        }
+        title={confirmAction === 'publish' ? t('communication.recipients.confirmPublishTitle') : t('communication.recipients.confirmApproveTitle')}
         body={
           <div className="stack" style={{ gap: 10 }}>
             <p className="tiny">
-              {confirmAction === 'publish'
-                ? t('communication.recipients.confirmPublishHint')
-                : t('communication.recipients.confirmApproveHint')}
+              {confirmAction === 'publish' ? t('communication.recipients.confirmPublishHint') : t('communication.recipients.confirmApproveHint')}
             </p>
-            <RecipientSummaryPanel
-              summary={frozenSummary}
-              presentation="frozen"
-              showAdminSnapshotRef
-              compact
-            />
+            <RecipientSummaryPanel summary={frozenSummary} presentation="frozen" showAdminSnapshotRef compact />
           </div>
         }
-        confirmLabel={
-          confirmAction === 'publish'
-            ? t('communication.actions.publish')
-            : t('communication.actions.approve')
-        }
+        confirmLabel={confirmAction === 'publish' ? t('communication.actions.publish') : t('communication.actions.approve')}
         loading={acting}
         size="wide"
         onClose={() => {
@@ -488,13 +480,9 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           const action = confirmAction;
           setConfirmAction(null);
           if (action === 'approve') {
-            await runAction(() => approveCommunicationContent(item.id), {
-              successKey: 'communication.actionSuccess',
-            });
+            await runAction(() => approveCommunicationContent(item.id), { successKey: 'communication.actionSuccess' });
           } else if (action === 'publish') {
-            await runAction(() => publishCommunicationContent(item.id), {
-              successKey: 'communication.actionSuccess',
-            });
+            await runAction(() => publishCommunicationContent(item.id), { successKey: 'communication.actionSuccess' });
           }
         }}
       />
