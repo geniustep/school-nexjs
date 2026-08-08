@@ -410,19 +410,20 @@ export function GeneralCommunicationComposeWorkspace() {
     setDraftId(null);
 
     if (result.outcome.kind === 'pending_review') {
-      const target = await resolvePendingReviewTarget(
-        result.outcome.contentId,
-        result.outcome.result?.allowed_actions,
-      );
-      setPendingReviewTarget(target);
-      setSuccessNotice(t('communication.general.pendingReviewSuccess'));
+      const contentId = result.outcome.contentId ?? result.draftId;
       toast.success(t('communication.general.pendingReviewSuccess'));
+      if (contentId != null) {
+        router.push(`/admin/communication/${contentId}`);
+      } else {
+        router.push('/admin/communication?filter=submitted');
+      }
       return;
     }
 
     setPendingReviewTarget(null);
-    setSuccessNotice(t('communication.general.acceptedSuccess'));
+    setSuccessNotice(null);
     toast.success(t('communication.general.acceptedSuccess'));
+    router.push('/admin/announcements');
   }
 
   async function approveAndPublishPending() {
