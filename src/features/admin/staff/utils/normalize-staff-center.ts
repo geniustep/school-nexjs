@@ -187,19 +187,21 @@ export function isStaffCenterParentOnly(
 
 /**
  * Rows eligible for `/admin/staff` list.
- * Requires professional evidence — parent-only and account-only are excluded.
+ * The staff endpoint is authoritative for non-parent rows and may return a compact
+ * teacher payload without explicit professional flags. Exclude only confirmed
+ * parent-only rows here; broader eligibility belongs to the Backend contract.
  */
 export function isStaffCenterListEligible(
   member: StaffProfessionalEvidenceInput,
 ): boolean {
-  return hasStaffCenterProfessionalEvidence(member);
+  return !isStaffCenterParentOnly(member);
 }
 
 export function resolveStaffUserId(member: StaffMember): number {
   return member.user_id ?? member.id;
 }
 
-/** Stable unique list rows after parent-only / account-only exclusion. */
+/** Stable unique list rows after confirmed parent-only exclusion. */
 export function filterStaffCenterListMembers(members: StaffMember[]): StaffMember[] {
   const seen = new Set<number>();
   const out: StaffMember[] = [];

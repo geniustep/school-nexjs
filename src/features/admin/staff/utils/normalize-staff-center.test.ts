@@ -216,7 +216,7 @@ describe('normalizeStaffCenterMember', () => {
     expect(rows.map((row) => row.id).sort()).toEqual([1, 3]);
   });
 
-  it('CASE8: unknown future user_kind → unknown, not admin/teacher', () => {
+  it('CASE8: unknown future user_kind remains visible but is not labeled admin/teacher', () => {
     const member = normalizeStaffCenterMember(
       baseMember({
         user_kind: 'future_role_x',
@@ -229,7 +229,7 @@ describe('normalizeStaffCenterMember', () => {
     expect(staffUserTypeLabelKeys(member)).toEqual(['admin.staffCenter.userType.unknown']);
     expect(staffUserTypeLabelKeys(member)).not.toContain('admin.staffCenter.userType.teacher');
     expect(staffUserTypeLabelKeys(member)).not.toContain('admin.staffCenter.userType.admin');
-    expect(isStaffCenterListEligible(member)).toBe(false);
+    expect(isStaffCenterListEligible(member)).toBe(true);
   });
 
   it('CASE9: admin_kind=null without user_kind/is_parent → not Legacy Admin / not Teacher', () => {
@@ -248,7 +248,7 @@ describe('normalizeStaffCenterMember', () => {
     expect(staffUserTypeLabelKeys(member)).toEqual(['admin.staffCenter.userType.unknown']);
     expect(staffUserTypeLabelKeys(member)).not.toContain('roles.adminKind.legacy_admin');
     expect(staffUserTypeLabelKeys(member)).not.toContain('admin.staffCenter.userType.teacher');
-    expect(isStaffCenterListEligible(member)).toBe(false);
+    expect(isStaffCenterListEligible(member)).toBe(true);
   });
 
   it('CASE10: legacy admin_staff / teacher flags without user_kind do not regress', () => {
@@ -274,7 +274,7 @@ describe('normalizeStaffCenterMember', () => {
     expect(isStaffCenterListEligible(teacher)).toBe(true);
   });
 
-  it('CASE11: account-only (login/user without professional evidence) excluded', () => {
+  it('CASE11: compact non-parent row remains visible without invented professional evidence', () => {
     const member = normalizeStaffCenterMember(
       baseMember({
         user_id: 88,
@@ -291,7 +291,28 @@ describe('normalizeStaffCenterMember', () => {
     );
 
     expect(hasStaffCenterProfessionalEvidence(member)).toBe(false);
-    expect(isStaffCenterListEligible(member)).toBe(false);
+    expect(isStaffCenterListEligible(member)).toBe(true);
+  });
+
+  it('keeps a compact production teacher row with omitted relationship fields', () => {
+    const member = normalizeStaffCenterMember(
+      baseMember({
+        id: 901,
+        user_id: 901,
+        user_kind: undefined,
+        is_parent: undefined,
+        admin_kind: null,
+        is_admin_staff: undefined,
+        is_teacher: undefined,
+        teacher_id: undefined,
+        teacher: undefined,
+      }),
+    );
+
+    expect(hasStaffCenterProfessionalEvidence(member)).toBe(false);
+    expect(isStaffCenterParentOnly(member)).toBe(false);
+    expect(isStaffCenterListEligible(member)).toBe(true);
+    expect(filterStaffCenterListMembers([member])).toEqual([member]);
   });
 
   it('CASE12: parent + teacher retained with teacher evidence preserved', () => {
@@ -397,7 +418,7 @@ describe('normalizeStaffCenterMember', () => {
     );
 
     expect(member).toBeTruthy();
-    expect(isStaffCenterListEligible(member)).toBe(false);
+    expect(isStaffCenterListEligible(member)).toBe(true);
     expect(staffUserTypeLabelKeys(member)).toEqual(['admin.staffCenter.userType.unknown']);
   });
 
