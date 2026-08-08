@@ -32,6 +32,11 @@ export const COMMUNICATION_ERROR_MESSAGE_KEYS: Record<string, string> = {
   not_found: 'communication.errors.recipientNotFound',
   communication_recipient_audience_changed: 'communication.errors.recipientAudienceChanged',
   communication_recipient_expansion_forbidden: 'communication.errors.recipientExpansionForbidden',
+  /** Individual messaging — exactly one deliverable recipient required by Odoo. */
+  communication_individual_recipient_count_invalid:
+    'communication.errors.individualRecipientCountInvalid',
+  missing_portal_user: 'communication.general.individualAccountNoAccount',
+  inactive_user: 'communication.general.individualAccountInactive',
   permission_denied: 'channels.permissionDenied',
   forbidden: 'channels.permissionDenied',
 };

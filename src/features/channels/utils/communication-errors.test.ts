@@ -54,6 +54,9 @@ describe('communicationErrorMessageKey', () => {
     expect(communicationErrorMessageKey('communication_recipient_expansion_forbidden')).toBe(
       'communication.errors.recipientExpansionForbidden',
     );
+    expect(
+      communicationErrorMessageKey('communication_individual_recipient_count_invalid'),
+    ).toBe('communication.errors.individualRecipientCountInvalid');
   });
 
   it('returns null for unknown codes', () => {

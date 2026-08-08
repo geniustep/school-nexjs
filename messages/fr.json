@@ -944,7 +944,8 @@
       "recipientNotAllowedB4": "Vous n’êtes pas autorisé à prévisualiser ou envoyer à cette audience.",
       "recipientAudienceChanged": "L’audience des destinataires a changé. Consultez le résumé final.",
       "recipientExpansionForbidden": "L’élargissement de l’audience des destinataires n’est pas autorisé.",
-      "recipientNotFound": "The selected scope could not be found or is no longer available."
+      "recipientNotFound": "The selected scope could not be found or is no longer available.",
+      "individualRecipientCountInvalid": "Un message individuel ne peut être envoyé qu’à exactement un destinataire joignable."
     },
     "general": {
       "title": "General communication",
@@ -1000,7 +1001,14 @@
       "pendingReviewSuccess": "Communication submitted for review. It will not appear to beneficiaries before approval and publish.",
       "acceptedSuccess": "Communication accepted.",
       "newAnother": "Another new communication",
-      "backToFeed": "Back to school communication"
+      "backToFeed": "Back to school communication",
+      "individualDeliverabilityChecking": "Vérification de la possibilité de réception…",
+      "individualDeliverabilityReady": "Ce destinataire peut recevoir le message.",
+      "individualDeliverabilityUnavailable": "Ce message ne peut pas être envoyé à ce destinataire pour le moment.",
+      "individualDeliverabilityCheckFailed": "Impossible de vérifier la délivrabilité. Réessayez.",
+      "individualAccountNoAccount": "Ce destinataire n’a pas de compte prêt à recevoir des messages.",
+      "individualAccountInactive": "Le compte de ce destinataire est actuellement inactif.",
+      "individualAccountGuardianInactive": "Le compte du responsable légal est actuellement inactif."
     }
   },
   "announcements": {

@@ -58,6 +58,24 @@ export interface CommunicationRecipientPreviewResponse {
 }
 
 /**
+ * POST …/admin/communication/individual/preview — read-only deliverability check.
+ * Odoo remains source of truth; clients must not recompute deliverability.
+ */
+export interface IndividualCommunicationPreview {
+  recipient_type?: string | null;
+  recipient_count?: number | null;
+  deliverable_user_count?: number | null;
+  can_submit?: boolean | null;
+  account_status?: string | null;
+  blocking_reasons?: string[] | null;
+  exclusion_summary?: CommunicationRecipientExclusion[] | null;
+  /** Opaque backend moderation payload — store for display only, never invent rules. */
+  moderation?: Record<string, unknown> | null;
+  /** Domain recipient echo from backend when present (not res.users id). */
+  recipient?: Record<string, unknown> | null;
+}
+
+/**
  * Fields commonly returned on Submit / Pending / Detail after freeze.
  * Prefer Submit response over any prior Preview summary.
  */

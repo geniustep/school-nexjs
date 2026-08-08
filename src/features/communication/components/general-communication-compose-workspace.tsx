@@ -3,7 +3,8 @@
 /**
  * General school communication compose — group (259 content lifecycle) + individual (256).
  * Channel composer remains separate; no broad school/level/cycle scopes there.
- * Preview is advisory and optional; Submit remains authoritative on the backend.
+ * Group recipient preview remains manual/advisory.
+ * Individual deliverability uses Odoo read-only /individual/preview before submit.
  */
 
 import Link from 'next/link';
@@ -12,7 +13,10 @@ import { useRouter } from 'next/navigation';
 import { StudentSearchPicker } from '@/features/admin/students/components/student-search-picker';
 import { collectCyclesFromLevels } from '@/features/admin/class-form-utils';
 import { fetchTeachers } from '@/features/admin/teachers/api/teacher-domain-api';
-import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
+import {
+  previewAdminRecipientScope,
+  previewIndividualCommunication,
+} from '@/features/communication/api/admin-communication-api';
 import {
   submitGroupGeneralCommunication,
   submitIndividualGeneralCommunication,
@@ -25,6 +29,11 @@ import {
   schoolBeneficiaryKinds,
   sectionBeneficiaryKinds,
 } from '@/features/communication/utils/recipient-scope';
+import {
+  createRequestGenerationGuard,
+  individualDeliverabilityMessageKey,
+  isIndividualSubmitAllowed,
+} from '@/features/communication/utils/individual-deliverability';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
@@ -35,7 +44,10 @@ import type { Level, LevelCycle, SchoolClass } from '@/types/class';
 import type { Parent } from '@/types/parent';
 import type { StudentSearchHit } from '@/types/student-search';
 import type { TeacherSummary } from '@/types/teacher-domain';
-import type { CommunicationRecipientSummary } from '@/types/communication';
+import type {
+  CommunicationRecipientSummary,
+  IndividualCommunicationPreview,
+} from '@/types/communication';
 import type {
   GeneralCommunicationMode,
   GroupScopeLevel,
@@ -46,6 +58,7 @@ import './general-communication-compose.css';
 
 type ComposeContentType = 'announcement' | 'message';
 type Phase = 'idle' | 'previewing' | 'submitting';
+type IndividualCheckStatus = 'idle' | 'checking' | 'ready' | 'blocked' | 'failed';
 type EntityOption = { id: number; label: string };
 
 function beneficiaryLabelKey(kind: string): string {
@@ -77,6 +90,7 @@ export function GeneralCommunicationComposeWorkspace({
   const router = useRouter();
   const formId = useId();
   const inFlightRef = useRef(false);
+  const individualPreviewGuardRef = useRef(createRequestGenerationGuard());
   const initialMode: GeneralCommunicationMode | null = contentType === 'announcement' ? 'group' : null;
 
   const [mode, setMode] = useState<GeneralCommunicationMode | null>(initialMode);
@@ -107,6 +121,12 @@ export function GeneralCommunicationComposeWorkspace({
   const [previewSummary, setPreviewSummary] = useState<CommunicationRecipientSummary | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [draftId, setDraftId] = useState<number | null>(null);
+  const [individualPreview, setIndividualPreview] = useState<IndividualCommunicationPreview | null>(
+    null,
+  );
+  const [individualCheckStatus, setIndividualCheckStatus] =
+    useState<IndividualCheckStatus>('idle');
+  const [individualCheckMessageKey, setIndividualCheckMessageKey] = useState<string | null>(null);
 
   const beneficiaryOptions = useMemo(() => {
     if (!scopeLevel) return [] as string[];
@@ -134,6 +154,13 @@ export function GeneralCommunicationComposeWorkspace({
     setPreviewSummary(null);
   }
 
+  function clearIndividualDeliverability() {
+    individualPreviewGuardRef.current.next();
+    setIndividualPreview(null);
+    setIndividualCheckStatus('idle');
+    setIndividualCheckMessageKey(null);
+  }
+
   function resetSelectionPreservingMode(nextMode: GeneralCommunicationMode | null) {
     setMode(contentType === 'announcement' ? 'group' : nextMode);
     setScopeLevel(null);
@@ -148,7 +175,50 @@ export function GeneralCommunicationComposeWorkspace({
     setParentHits([]);
     setDraftId(null);
     invalidatePreview();
+    clearIndividualDeliverability();
   }
+
+  useEffect(() => {
+    if (mode !== 'individual' || !individualType || individualId == null) {
+      individualPreviewGuardRef.current.next();
+      setIndividualPreview(null);
+      setIndividualCheckStatus('idle');
+      setIndividualCheckMessageKey(null);
+      return;
+    }
+
+    const requestToken = individualPreviewGuardRef.current.next();
+    setIndividualPreview(null);
+    setIndividualCheckStatus('checking');
+    setIndividualCheckMessageKey(null);
+
+    void previewIndividualCommunication({
+      recipient_type: individualType,
+      recipient_id: individualId,
+    }).then((result) => {
+      if (!individualPreviewGuardRef.current.isCurrent(requestToken)) return;
+
+      if (!result.ok) {
+        setIndividualPreview(null);
+        setIndividualCheckStatus('failed');
+        setIndividualCheckMessageKey(
+          communicationErrorMessageKey(result.error.code) ??
+            'communication.general.individualDeliverabilityCheckFailed',
+        );
+        return;
+      }
+
+      setIndividualPreview(result.preview);
+      if (isIndividualSubmitAllowed(result.preview)) {
+        setIndividualCheckStatus('ready');
+        setIndividualCheckMessageKey('communication.general.individualDeliverabilityReady');
+        return;
+      }
+
+      setIndividualCheckStatus('blocked');
+      setIndividualCheckMessageKey(individualDeliverabilityMessageKey(result.preview));
+    });
+  }, [mode, individualType, individualId]);
 
   useEffect(() => {
     if (mode !== 'group') return;
@@ -333,6 +403,21 @@ export function GeneralCommunicationComposeWorkspace({
     const input = validateInput();
     if (!input) return;
 
+    if (input.scope.scope_type === 'individual') {
+      if (
+        individualCheckStatus === 'checking' ||
+        !isIndividualSubmitAllowed(individualPreview)
+      ) {
+        toast.error(
+          t(
+            individualCheckMessageKey ??
+              'communication.general.individualDeliverabilityUnavailable',
+          ),
+        );
+        return;
+      }
+    }
+
     inFlightRef.current = true;
     setPhase('submitting');
     const result =
@@ -361,6 +446,7 @@ export function GeneralCommunicationComposeWorkspace({
     setPhase('idle');
     setDraftId(null);
     invalidatePreview();
+    clearIndividualDeliverability();
     toast.success(
       result.outcome.kind === 'pending_review'
         ? t('communication.general.pendingReviewSuccess')
@@ -379,12 +465,28 @@ export function GeneralCommunicationComposeWorkspace({
     mode === 'group' &&
     (scopeLevel === 'class' || scopeLevel === 'level' || scopeLevel === 'cycle');
   const entityOptions = scopeLevel === 'class' ? classes : scopeLevel === 'level' ? levels : cycles;
+  const individualSubmitAllowed =
+    mode !== 'individual' ||
+    (individualCheckStatus === 'ready' && isIndividualSubmitAllowed(individualPreview));
   const canAct =
+    phase === 'idle' &&
+    recipientScope != null &&
+    subject.trim().length > 0 &&
+    body.trim().length > 0 &&
+    individualCheckStatus !== 'checking' &&
+    individualSubmitAllowed;
+  const canManualPreview =
     phase === 'idle' &&
     recipientScope != null &&
     subject.trim().length > 0 &&
     body.trim().length > 0;
   const inputBusy = phase !== 'idle';
+  const individualStatusTone =
+    individualCheckStatus === 'ready'
+      ? 'general-comm__deliverability--ready'
+      : individualCheckStatus === 'blocked' || individualCheckStatus === 'failed'
+        ? 'general-comm__deliverability--blocked'
+        : '';
 
   return (
     <div className="general-comm admin-workspace" data-testid="general-communication-compose">
@@ -744,20 +846,35 @@ export function GeneralCommunicationComposeWorkspace({
               ) : (
                 <p className="tiny">{t('communication.general.incompleteSelection')}</p>
               )}
+              {mode === 'individual' && individualId != null ? (
+                <p
+                  className={`tiny general-comm__deliverability ${individualStatusTone}`.trim()}
+                  role="status"
+                  data-testid="individual-deliverability-status"
+                  dir="auto"
+                >
+                  {individualCheckStatus === 'checking'
+                    ? t('communication.general.individualDeliverabilityChecking')
+                    : individualCheckMessageKey
+                      ? t(individualCheckMessageKey)
+                      : null}
+                </p>
+              ) : null}
               <div className="form-actions general-comm__actions">
                 <button
                   type="submit"
                   className="btn btn--primary"
                   disabled={!canAct}
                   aria-disabled={!canAct}
+                  data-testid="general-communication-submit"
                 >
                   {phase === 'submitting' ? t('common.submitting') : t('common.submit')}
                 </button>
                 <button
                   type="button"
                   className="btn btn--ghost"
-                  disabled={!canAct}
-                  aria-disabled={!canAct}
+                  disabled={!canManualPreview}
+                  aria-disabled={!canManualPreview}
                   onClick={() => void requestPreview()}
                 >
                   {phase === 'previewing'

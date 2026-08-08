@@ -973,7 +973,14 @@
       "pendingReviewSuccess": "أُرسل التواصل للمراجعة. لن يظهر للمستفيدين قبل الاعتماد والنشر.",
       "acceptedSuccess": "تم قبول التواصل.",
       "newAnother": "تواصل جديد آخر",
-      "backToFeed": "العودة إلى التواصل المدرسي"
+      "backToFeed": "العودة إلى التواصل المدرسي",
+      "individualDeliverabilityChecking": "جاري التحقق من قابلية استلام الرسالة…",
+      "individualDeliverabilityReady": "المستفيد جاهز لاستلام الرسالة.",
+      "individualDeliverabilityUnavailable": "لا يمكن إرسال الرسالة إلى هذا المستفيد حاليًا.",
+      "individualDeliverabilityCheckFailed": "تعذر التحقق من قابلية الإرسال. حاول مجددًا.",
+      "individualAccountNoAccount": "المستفيد لا يملك حسابًا جاهزًا لاستقبال الرسائل.",
+      "individualAccountInactive": "حساب المستفيد غير نشط حاليًا.",
+      "individualAccountGuardianInactive": "حساب ولي الأمر غير نشط."
     },
     "errors": {
       "messagePendingReview": "الرسالة بانتظار مراجعة الإدارة.",
@@ -1000,7 +1007,8 @@
       "recipientNotAllowedB4": "هذا الاختيار غير مسموح به.",
       "recipientNotFound": "تعذر العثور على النطاق المحدد أو لم يعد متاحًا.",
       "recipientAudienceChanged": "تغيّر المستفيدون. راجع الملخص النهائي.",
-      "recipientExpansionForbidden": "توسيع نطاق المستفيدين غير مسموح."
+      "recipientExpansionForbidden": "توسيع نطاق المستفيدين غير مسموح.",
+      "individualRecipientCountInvalid": "لا يمكن إرسال رسالة فردية إلا إلى مستفيد واحد قابل لاستلام الرسائل."
     }
   },
   "announcements": {

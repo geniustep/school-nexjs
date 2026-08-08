@@ -944,7 +944,8 @@
       "recipientNotAllowedB4": "No tiene permiso para previsualizar o enviar a esta audiencia.",
       "recipientAudienceChanged": "La audiencia de destinatarios cambió. Revise el resumen final.",
       "recipientExpansionForbidden": "No está permitido ampliar la audiencia de destinatarios.",
-      "recipientNotFound": "The selected scope could not be found or is no longer available."
+      "recipientNotFound": "The selected scope could not be found or is no longer available.",
+      "individualRecipientCountInvalid": "Un mensaje individual solo puede enviarse a exactamente un destinatario alcanzable."
     },
     "general": {
       "title": "General communication",
@@ -1000,7 +1001,14 @@
       "pendingReviewSuccess": "Communication submitted for review. It will not appear to beneficiaries before approval and publish.",
       "acceptedSuccess": "Communication accepted.",
       "newAnother": "Another new communication",
-      "backToFeed": "Back to school communication"
+      "backToFeed": "Back to school communication",
+      "individualDeliverabilityChecking": "Comprobando si este destinatario puede recibir mensajes…",
+      "individualDeliverabilityReady": "Este destinatario puede recibir el mensaje.",
+      "individualDeliverabilityUnavailable": "No se puede enviar el mensaje a este destinatario en este momento.",
+      "individualDeliverabilityCheckFailed": "No se pudo verificar la entregabilidad. Inténtelo de nuevo.",
+      "individualAccountNoAccount": "Este destinatario no tiene una cuenta lista para recibir mensajes.",
+      "individualAccountInactive": "La cuenta de este destinatario está inactiva actualmente.",
+      "individualAccountGuardianInactive": "La cuenta del tutor está inactiva actualmente."
     }
   },
   "announcements": {

@@ -496,6 +496,11 @@ export const endpoints = {
     communicationRecipientPreview: '/admin/communication/recipient-preview',
     /** Odoo 256 compatibility — individual domain-entity messaging. */
     communicationIndividual: '/admin/communication/individual',
+    /**
+     * Odoo individual deliverability preview — READ ONLY.
+     * Does not create content/snapshot/message; payload is recipient_type + recipient_id only.
+     */
+    communicationIndividualPreview: '/admin/communication/individual/preview',
     communicationApprovals: '/admin/communication/approvals',
 
     financeFeeTypes: '/admin/finance/fee-types',
