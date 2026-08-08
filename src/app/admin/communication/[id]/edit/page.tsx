@@ -78,7 +78,7 @@ export default function AdminCommunicationEditPage() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!canEdit || saving) return;
+    if (!canEdit || saving || !content) return;
     const nextSubject = subject.trim();
     const nextBody = body.trim();
     if (!nextSubject) {
