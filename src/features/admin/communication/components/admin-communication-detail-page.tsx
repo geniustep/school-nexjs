@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/primitives';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { RequireCommunicationReviewAccess } from '@/features/admin/communication/components/require-communication-review';
+import { GeneralCommunicationInlineEditor } from '@/features/admin/communication/components/general-communication-inline-editor';
 import { useToast } from '@/components/ui/toast';
 import { useSession } from '@/features/auth/session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -279,9 +280,9 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
         actions={
           <div className="wrap-gap">
             {canEdit ? (
-              <Link href={`/admin/communication/${item.id}/edit`} className="btn btn--ghost btn--sm">
+              <a href="#communication-edit" className="btn btn--ghost btn--sm">
                 {t('common.edit')}
-              </Link>
+              </a>
             ) : null}
             <Badge tone={item.state === 'published' ? 'green' : 'amber'}>
               {t(communicationStateMessageKey(item.state))}
@@ -324,6 +325,10 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
               {stripHtmlPreview(body, 4000) || t('common.dash')}
             </div>
           </Card>
+
+          {canEdit ? (
+            <GeneralCommunicationInlineEditor item={item} onSaved={(updated) => setItem(updated)} />
+          ) : null}
 
           <Card className="communication-detail__recipient-card">
             <h2 className="communication-review__section-title">{t('communication.recipients.frozenTitle')}</h2>
