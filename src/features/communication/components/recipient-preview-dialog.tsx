@@ -12,6 +12,7 @@ export function RecipientPreviewDialog({
   loading = false,
   confirming = false,
   terminology = 'default',
+  previewOnly = false,
   onConfirm,
   onClose,
 }: {
@@ -22,12 +23,14 @@ export function RecipientPreviewDialog({
   loading?: boolean;
   confirming?: boolean;
   terminology?: 'default' | 'beneficiaries';
-  onConfirm: () => void | Promise<void>;
+  /** Advisory popup only: no second confirmation gate before sending. */
+  previewOnly?: boolean;
+  onConfirm?: () => void | Promise<void>;
   onClose: () => void;
 }) {
   const t = useT();
   const titleId = useId();
-  const confirmRef = useRef<HTMLButtonElement>(null);
+  const primaryRef = useRef<HTMLButtonElement>(null);
   const busy = loading || confirming;
   const canSubmit = summary?.can_submit !== false;
   const confirmDisabled = busy || !summary || !canSubmit;
@@ -41,7 +44,7 @@ export function RecipientPreviewDialog({
       }
     };
     window.addEventListener('keydown', onKey);
-    const timer = window.setTimeout(() => confirmRef.current?.focus(), 0);
+    const timer = window.setTimeout(() => primaryRef.current?.focus(), 0);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.clearTimeout(timer);
@@ -63,13 +66,9 @@ export function RecipientPreviewDialog({
       : t('communication.recipients.previewTitle');
 
   return (
-    <div
-      className="modal-backdrop"
-      role="presentation"
-      onClick={busy ? undefined : onClose}
-    >
+    <div className="modal-backdrop" role="presentation" onClick={busy ? undefined : onClose}>
       <div
-        className="card modal-panel confirmation-dialog modal-panel--wide"
+        className="card modal-panel confirmation-dialog modal-panel--wide recipient-preview-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -95,29 +94,41 @@ export function RecipientPreviewDialog({
           ) : null}
         </div>
         <div className="row confirmation-dialog__actions">
-          <button
-            ref={confirmRef}
-            type="button"
-            className="btn btn--primary btn--sm"
-            disabled={confirmDisabled}
-            aria-disabled={confirmDisabled}
-            onClick={() => {
-              if (confirmDisabled) return;
-              void onConfirm();
-            }}
-          >
-            {confirming
-              ? t('channels.sending')
-              : t('communication.recipients.confirmSend')}
-          </button>
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            disabled={busy}
-            onClick={onClose}
-          >
-            {t('common.cancel')}
-          </button>
+          {previewOnly ? (
+            <button
+              ref={primaryRef}
+              type="button"
+              className="btn btn--primary btn--sm"
+              disabled={busy}
+              onClick={onClose}
+            >
+              {t('common.close')}
+            </button>
+          ) : (
+            <>
+              <button
+                ref={primaryRef}
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={confirmDisabled}
+                aria-disabled={confirmDisabled}
+                onClick={() => {
+                  if (confirmDisabled) return;
+                  void onConfirm?.();
+                }}
+              >
+                {confirming ? t('channels.sending') : t('communication.recipients.confirmSend')}
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={busy}
+                onClick={onClose}
+              >
+                {t('common.cancel')}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
