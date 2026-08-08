@@ -156,8 +156,24 @@ export function AssignmentFormDrawer({
   }
 
   return (
-    <SetupDrawer open={open} title={title} onClose={onClose}>
+    <SetupDrawer
+      open={open}
+      title={title}
+      subtitle={assignment ? t('admin.academicSetup.editAssignmentSubtitle') : t('admin.academicSetup.newAssignmentSubtitle')}
+      onClose={onClose}
+      size="wide"
+      className="academic-setup-assignment-drawer"
+      iconClose
+    >
       {!canManage && <p className="muted tiny">{t('admin.pageForbidden')}</p>}
+      <section className="academic-setup-assignment-form-section">
+        <div className="academic-setup-assignment-form-section__head">
+          <span>1</span>
+          <div>
+            <h3>{t('admin.academicSetup.assignmentScopeTitle')}</h3>
+            <p>{t('admin.academicSetup.assignmentScopeDescription')}</p>
+          </div>
+        </div>
       {!assignment && !missingIssue ? (
         <div className="grid grid--form">
           <label className="field">
@@ -177,6 +193,16 @@ export function AssignmentFormDrawer({
         </div>
       ) : null}
 
+      </section>
+      <section className="academic-setup-assignment-form-section">
+        <div className="academic-setup-assignment-form-section__head">
+          <span>2</span>
+          <div>
+            <h3>{t('admin.academicSetup.assignmentDetailsTitle')}</h3>
+            <p>{t('admin.academicSetup.assignmentDetailsDescription')}</p>
+          </div>
+        </div>
+
       <label className="field">
         <span>{t('admin.academicSetup.assignmentRole')}</span>
         <select value={role} disabled={saving} onChange={(event) => { setRole(event.target.value); setSelection({ teacherId: null, override: false, overrideReason: '' }); setReviewing(false); }}>
@@ -188,7 +214,7 @@ export function AssignmentFormDrawer({
       {classId && subjectId ? (
         <div className="col" style={{ gap: 8 }}>
           <label className="col" style={{ gap: 4 }}>
-            <span className="tiny muted">{t('academicContext.fields.offering')}</span>
+            <span className="tiny muted">{t('admin.academicSetup.levelSubject')}</span>
             <select
               className="input"
               value={offeringId}
@@ -197,8 +223,8 @@ export function AssignmentFormDrawer({
             >
               <option value="">
                 {offeringAmbiguous
-                  ? t('academicContext.placeholders.offeringRequired')
-                  : t('academicContext.placeholders.offering')}
+                  ? t('admin.academicSetup.levelSubjectRequired')
+                  : t('admin.academicSetup.levelSubjectPlaceholder')}
               </option>
               {offerings.map((offering) => (
                 <option key={offering.id} value={offering.id}>
@@ -230,6 +256,16 @@ export function AssignmentFormDrawer({
         </div>
       ) : null}
 
+      </section>
+
+      <section className="academic-setup-assignment-form-section">
+        <div className="academic-setup-assignment-form-section__head">
+          <span>3</span>
+          <div>
+            <h3>{t('admin.academicSetup.teacherSelectionTitle')}</h3>
+            <p>{t('admin.academicSetup.teacherSelectionDescription')}</p>
+          </div>
+        </div>
       <div className="col" style={{ gap: 12 }}>
         {assignment ? (
           <p className="muted tiny">
@@ -270,6 +306,18 @@ export function AssignmentFormDrawer({
           onChange={setSelection}
           onCandidatesReloaded={() => setRecheckNotice(true)}
         />
+
+      </div>
+      </section>
+
+      <section className="academic-setup-assignment-form-section academic-setup-assignment-form-section--final">
+        <div className="academic-setup-assignment-form-section__head">
+          <span>4</span>
+          <div>
+            <h3>{t('admin.academicSetup.assignmentReviewTitle')}</h3>
+            <p>{t('admin.academicSetup.assignmentReviewDescription')}</p>
+          </div>
+        </div>
 
         {reviewing && selection.teacherId ? (
           <div className="info-banner" role="status">
@@ -335,7 +383,7 @@ export function AssignmentFormDrawer({
             </button>
           )}
         </div>
-      </div>
+      </section>
     </SetupDrawer>
   );
 }

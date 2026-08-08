@@ -76,6 +76,7 @@ export function AssignmentBoard({
     effectiveYearId ? { academic_year_id: effectiveYearId } : undefined,
   );
   const pagination = meta?.pagination;
+  const assignedCount = pagination?.total ?? assignments.length;
 
   const missingIssues = useMemo(() => {
     const all = filterAssignmentMissingIssues(readinessState.data?.issues ?? []);
@@ -146,7 +147,40 @@ export function AssignmentBoard({
 
   return (
     <div className="academic-setup-assignment-board">
-      <div className="academic-toolbar academic-setup-assignment-toolbar">
+      <section className="academic-setup-assignment-hero" aria-labelledby="assignment-workspace-title">
+        <div>
+          <p className="academic-setup-assignment-hero__eyebrow">{t('admin.academicSetup.assignmentWorkspaceEyebrow')}</p>
+          <h2 id="assignment-workspace-title">{t('admin.academicSetup.assignmentWorkspaceTitle')}</h2>
+          <p>{t('admin.academicSetup.assignmentWorkspaceDescription')}</p>
+        </div>
+        {canManage ? (
+          <button type="button" className="btn btn--primary" onClick={() => { setEditing(null); setPickMissing(null); setFormOpen(true); }}>
+            <span aria-hidden>＋</span>
+            {t('admin.academicSetup.addAssignment')}
+          </button>
+        ) : null}
+      </section>
+
+      <section className="academic-setup-assignment-stats" aria-label={t('admin.academicSetup.assignmentOverview')}>
+        <div className="academic-setup-assignment-stat academic-setup-assignment-stat--primary">
+          <span>{t('admin.academicSetup.assignedCount')}</span>
+          <strong>{assignedCount}</strong>
+          <small>{t('admin.academicSetup.assignedCountHint')}</small>
+        </div>
+        <div className="academic-setup-assignment-stat academic-setup-assignment-stat--warning">
+          <span>{t('admin.academicSetup.missingCount')}</span>
+          <strong>{missingIssues.length}</strong>
+          <small>{t('admin.academicSetup.missingCountHint')}</small>
+        </div>
+        <div className="academic-setup-assignment-stat">
+          <span>{t('admin.academicSetup.currentYear')}</span>
+          <strong>{academicYears.find((year) => String(year.id) === effectiveYearId)?.name ?? '—'}</strong>
+          <small>{t('admin.academicSetup.currentYearHint')}</small>
+        </div>
+      </section>
+
+      <section className="academic-setup-assignment-controls">
+        <div className="academic-toolbar academic-setup-assignment-toolbar">
         <label className="field" style={{ margin: 0 }}>
           <span>{t('admin.academicSetup.academicYear')}</span>
           <select
@@ -181,20 +215,15 @@ export function AssignmentBoard({
             {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
           </button>
         )}
-        {canManage ? (
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => { setEditing(null); setPickMissing(null); setFormOpen(true); }}>
-            {t('admin.academicSetup.addAssignment')}
-          </button>
+        </div>
+        {readinessState.data?.academic_year ? (
+          <p className="tiny muted academic-setup-assignment-controls__context" role="status">
+            {t('admin.academicSetup.activeAcademicYear', { year: readinessState.data.academic_year.name })}
+          </p>
         ) : null}
-      </div>
+      </section>
 
-      {readinessState.data?.academic_year ? (
-        <p className="tiny muted" role="status">
-          {t('admin.academicSetup.activeAcademicYear', { year: readinessState.data.academic_year.name })}
-        </p>
-      ) : null}
-
-      <Card pad={false}>
+      <Card pad={false} className="academic-setup-assignment-results">
         {loading ? (
           <p className="muted" style={{ padding: 14 }}>{t('common.loading')}</p>
         ) : error ? (

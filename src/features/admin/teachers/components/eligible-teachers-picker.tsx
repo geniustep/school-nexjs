@@ -62,6 +62,7 @@ export function EligibleTeachersPicker({
   const [summary, setSummary] = useState<TeachingAssignmentCandidatesSummary | null>(null);
   const [allowed, setAllowed] = useState<TeachingAssignmentCandidatesAllowedActions>({});
   const [overrideReason, setOverrideReason] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const contextKey = useMemo(() => {
     if (!context) return '';
@@ -135,6 +136,28 @@ export function EligibleTeachersPicker({
     [candidates],
   );
 
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase();
+  const visibleSelectable = useMemo(
+    () => normalizedSearch
+      ? selectable.filter((candidate) =>
+          (candidate.display_name ?? `#${candidate.teacher_id}`)
+            .toLocaleLowerCase()
+            .includes(normalizedSearch),
+        )
+      : selectable,
+    [normalizedSearch, selectable],
+  );
+  const visibleIneligible = useMemo(
+    () => normalizedSearch
+      ? ineligible.filter((candidate) =>
+          (candidate.display_name ?? `#${candidate.teacher_id}`)
+            .toLocaleLowerCase()
+            .includes(normalizedSearch),
+        )
+      : ineligible,
+    [ineligible, normalizedSearch],
+  );
+
   const selected = candidates.find((c) => c.teacher_id === selectedTeacherId) ?? null;
   const needsOverride = candidateNeedsOverride(selected, { currentTeacherId });
   const canViewIneligible = allowed.can_view_ineligible_candidates === true;
@@ -170,6 +193,20 @@ export function EligibleTeachersPicker({
 
   return (
     <div className="teacher-domain-eligible">
+      <label className="teacher-domain-eligible__search">
+        <span className="tiny muted">{t('admin.teacherDomain.eligibleTeachers.searchLabel')}</span>
+        <span className="teacher-domain-eligible__search-control">
+          <span aria-hidden>⌕</span>
+          <input
+            className="input"
+            type="search"
+            dir="auto"
+            value={searchQuery}
+            placeholder={t('admin.teacherDomain.eligibleTeachers.searchPlaceholder')}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </span>
+      </label>
       {summary ? (
         <p className="tiny muted teacher-domain-eligible__summary" role="status">
           {t('admin.teacherDomain.eligibleTeachers.summaryLine', {
@@ -198,8 +235,15 @@ export function EligibleTeachersPicker({
         </div>
       ) : null}
 
+      {visibleSelectable.length > 0 ? (
+        <p className="teacher-domain-eligible__section-title">
+          {t('admin.teacherDomain.eligibleTeachers.matchingSection')}
+          <span>{visibleSelectable.length}</span>
+        </p>
+      ) : null}
+
       <ul className="teacher-domain-eligible__list">
-        {selectable.map((candidate) => {
+        {visibleSelectable.map((candidate) => {
           const selectableNow = canSelectCandidate(candidate, allowed, { currentTeacherId });
           const selectedNow = selectedTeacherId === candidate.teacher_id;
           const tt = formatTimetableConflict(candidate.has_timetable_conflict, t);
@@ -266,6 +310,13 @@ export function EligibleTeachersPicker({
         })}
       </ul>
 
+      {!loading && !error && normalizedSearch && visibleSelectable.length === 0 && visibleIneligible.length === 0 ? (
+        <div className="teacher-domain-eligible__empty">
+          <p className="muted">{t('admin.teacherDomain.eligibleTeachers.searchEmpty')}</p>
+          <p className="tiny muted">{t('admin.teacherDomain.eligibleTeachers.searchEmptyHint')}</p>
+        </div>
+      ) : null}
+
       {canViewIneligible ? (
         <label className="teacher-domain-eligible__toggle">
           <input
@@ -278,11 +329,14 @@ export function EligibleTeachersPicker({
         </label>
       ) : null}
 
-      {includeIneligible && ineligible.length > 0 ? (
+      {includeIneligible && visibleIneligible.length > 0 ? (
         <div className="teacher-domain-eligible__ineligible">
-          <p className="tiny muted">{t('admin.teacherDomain.eligibleTeachers.ineligibleSection')}</p>
+          <p className="teacher-domain-eligible__section-title teacher-domain-eligible__section-title--review">
+            {t('admin.teacherDomain.eligibleTeachers.ineligibleSection')}
+            <span>{visibleIneligible.length}</span>
+          </p>
           <ul className="teacher-domain-eligible__list">
-            {ineligible.map((candidate) => (
+            {visibleIneligible.map((candidate) => (
               <li key={candidate.teacher_id}>
                 <div className="teacher-domain-eligible__item teacher-domain-eligible__item--disabled">
                   <span className="teacher-domain-eligible__item-main">
