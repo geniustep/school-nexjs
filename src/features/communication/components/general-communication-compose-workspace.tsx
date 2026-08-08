@@ -11,7 +11,12 @@ import { useRouter } from 'next/navigation';
 import { StudentSearchPicker } from '@/features/admin/students/components/student-search-picker';
 import { collectCyclesFromLevels } from '@/features/admin/class-form-utils';
 import { fetchTeachers } from '@/features/admin/teachers/api/teacher-domain-api';
-import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
+import {
+  approveCommunicationContent,
+  fetchCommunicationContentDetail,
+  previewAdminRecipientScope,
+  publishCommunicationContent,
+} from '@/features/communication/api/admin-communication-api';
 import {
   submitGroupGeneralCommunication,
   submitIndividualGeneralCommunication,
@@ -45,8 +50,8 @@ import type {
 import './general-communication-compose.css';
 
 type Phase = 'idle' | 'previewing' | 'confirming' | 'submitting';
-
 type EntityOption = { id: number; label: string };
+type PendingReviewTarget = { contentId: number; canApprove: boolean };
 
 function beneficiaryLabelKey(kind: string): string {
   switch (kind) {
@@ -106,6 +111,8 @@ export function GeneralCommunicationComposeWorkspace() {
   const [previewFingerprint, setPreviewFingerprint] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<number | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [pendingReviewTarget, setPendingReviewTarget] = useState<PendingReviewTarget | null>(null);
+  const [reviewActionLoading, setReviewActionLoading] = useState(false);
 
   const beneficiaryOptions = useMemo(() => {
     if (!scopeLevel) return [] as string[];
@@ -155,6 +162,7 @@ export function GeneralCommunicationComposeWorkspace() {
     setParentHits([]);
     setDraftId(null);
     setSuccessNotice(null);
+    setPendingReviewTarget(null);
     invalidatePreview();
   }
 
@@ -341,6 +349,20 @@ export function GeneralCommunicationComposeWorkspace() {
     setPhase('confirming');
   }
 
+  async function resolvePendingReviewTarget(contentId: number | null, allowedActions?: string[]) {
+    if (contentId == null) return null;
+    if (allowedActions) {
+      return { contentId, canApprove: allowedActions.includes('approve') };
+    }
+
+    const detail = await fetchCommunicationContentDetail(contentId);
+    if (!detail.success) return { contentId, canApprove: false };
+    return {
+      contentId,
+      canApprove: (detail.data.allowed_actions ?? []).includes('approve'),
+    };
+  }
+
   async function confirmSend() {
     if (inFlightRef.current || phase !== 'confirming') return;
     if (!recipientScope || !composeKey || composeKey !== previewFingerprint) {
@@ -388,13 +410,52 @@ export function GeneralCommunicationComposeWorkspace() {
     setDraftId(null);
 
     if (result.outcome.kind === 'pending_review') {
+      const target = await resolvePendingReviewTarget(
+        result.outcome.contentId,
+        result.outcome.result?.allowed_actions,
+      );
+      setPendingReviewTarget(target);
       setSuccessNotice(t('communication.general.pendingReviewSuccess'));
       toast.success(t('communication.general.pendingReviewSuccess'));
       return;
     }
 
+    setPendingReviewTarget(null);
     setSuccessNotice(t('communication.general.acceptedSuccess'));
     toast.success(t('communication.general.acceptedSuccess'));
+  }
+
+  async function approveAndPublishPending() {
+    const target = pendingReviewTarget;
+    if (!target?.canApprove || reviewActionLoading) return;
+
+    setReviewActionLoading(true);
+    const approved = await approveCommunicationContent(target.contentId);
+    if (!approved.success) {
+      setReviewActionLoading(false);
+      const key = communicationErrorMessageKey(approved.error.code);
+      toast.error(key ? t(key) : t('channels.sendFailed'));
+      return;
+    }
+
+    const publishAllowed = (approved.data?.allowed_actions ?? []).includes('publish');
+    if (!publishAllowed) {
+      setReviewActionLoading(false);
+      router.push(`/admin/communication/${target.contentId}`);
+      return;
+    }
+
+    const published = await publishCommunicationContent(target.contentId);
+    setReviewActionLoading(false);
+    if (!published.success) {
+      const key = communicationErrorMessageKey(published.error.code);
+      toast.error(key ? t(key) : t('channels.sendFailed'));
+      router.push(`/admin/communication/${target.contentId}`);
+      return;
+    }
+
+    toast.success(t('communication.actionSuccess'));
+    router.push('/admin/announcements');
   }
 
   function closePreview() {
@@ -431,9 +492,30 @@ export function GeneralCommunicationComposeWorkspace() {
         <div className="general-comm__success" role="status">
           <p>{successNotice}</p>
           <div className="row" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
+            {pendingReviewTarget?.canApprove ? (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={reviewActionLoading}
+                onClick={() => void approveAndPublishPending()}
+              >
+                {t('communication.actions.approve')} + {t('communication.actions.publish')}
+              </button>
+            ) : null}
+            {pendingReviewTarget ? (
+              <button
+                type="button"
+                className={pendingReviewTarget.canApprove ? 'btn btn--ghost btn--sm' : 'btn btn--primary btn--sm'}
+                disabled={reviewActionLoading}
+                onClick={() => router.push(`/admin/communication/${pendingReviewTarget.contentId}`)}
+              >
+                {t('common.view')}
+              </button>
+            ) : null}
             <button
               type="button"
-              className="btn btn--primary btn--sm"
+              className="btn btn--ghost btn--sm"
+              disabled={reviewActionLoading}
               onClick={() => {
                 setSuccessNotice(null);
                 resetSelectionPreservingMode(null);
@@ -444,6 +526,7 @@ export function GeneralCommunicationComposeWorkspace() {
             <button
               type="button"
               className="btn btn--ghost btn--sm"
+              disabled={reviewActionLoading}
               onClick={() => router.push('/admin/announcements')}
             >
               {t('communication.general.backToFeed')}
