@@ -16,8 +16,8 @@ import { PageHeader, Badge, Card } from '@/components/ui/primitives';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { RequireCommunicationReviewAccess } from '@/features/admin/communication/components/require-communication-review';
 import { useSession } from '@/features/auth/session-context';
-import { useT } from '@/features/i18n/locale-context';
-import { formatDateTime } from '@/lib/utils/format';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { formatDateTime } from '@/lib/i18n/format';
 import { canReviewCommunication } from '@/lib/permissions/communication';
 import { fetchCommunicationContentList } from '@/features/communication/api/admin-communication-api';
 import {
@@ -97,8 +97,18 @@ function stateTone(state: string): 'amber' | 'green' | 'slate' {
   return 'slate';
 }
 
+function audienceLabelParts(item: CommunicationContent): string[] {
+  const candidates = [
+    item.audience_summary?.class?.name,
+    item.audience_summary?.level?.name,
+    item.audience_summary?.subject?.name,
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+  return Array.from(new Set(candidates));
+}
+
 function AdminCommunicationReviewInner() {
   const t = useT();
+  const { locale } = useLocale();
   const user = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -156,7 +166,7 @@ function AdminCommunicationReviewInner() {
             <span className="communication-review__queue-marker" aria-hidden="true" />
             <div>
               <h2 id="review-queue-title">{t('communication.filter.submitted')}</h2>
-              <p>{t('communication.recipients.confirmApproveHint')}</p>
+              <p>{t('communication.reviewSubtitle')}</p>
             </div>
           </div>
           <Badge tone="amber">{loading ? '…' : String(items.length)}</Badge>
@@ -210,6 +220,7 @@ function AdminCommunicationReviewInner() {
           {items.map((item) => {
             const submittedAt = item.submitted_at || item.created_at;
             const preview = stripHtmlPreview(item.current_version?.body || item.body || '', 220);
+            const audiences = audienceLabelParts(item);
             return (
               <Link
                 key={item.id}
@@ -245,11 +256,11 @@ function AdminCommunicationReviewInner() {
                   </div>
                   <div>
                     <dt>{t('communication.audience')}</dt>
-                    <dd dir="auto">{item.audience_summary?.label || t('common.dash')}</dd>
+                    <dd dir="auto">{audiences.length > 0 ? audiences.join(' / ') : t('common.dash')}</dd>
                   </div>
                   <div>
                     <dt>{t('communication.submittedAt')}</dt>
-                    <dd>{submittedAt ? formatDateTime(submittedAt) : t('common.dash')}</dd>
+                    <dd>{submittedAt ? formatDateTime(submittedAt, locale) : t('common.dash')}</dd>
                   </div>
                 </dl>
               </Link>
