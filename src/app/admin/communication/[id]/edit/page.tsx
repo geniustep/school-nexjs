@@ -8,8 +8,8 @@
  */
 
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { use, useCallback, useEffect, useState } from 'react';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { Badge, InfoBanner, PageHeader } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
@@ -25,12 +25,16 @@ import { useT } from '@/features/i18n/locale-context';
 import type { ApiErrorBody } from '@/types/api';
 import type { CommunicationContent } from '@/types/communication';
 
-export default function AdminCommunicationEditPage() {
+export default function AdminCommunicationEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const t = useT();
   const toast = useToast();
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const contentId = Number(params.id);
+  const { id } = use(params);
+  const contentId = Number(id);
 
   const [content, setContent] = useState<CommunicationContent | null>(null);
   const [subject, setSubject] = useState('');
