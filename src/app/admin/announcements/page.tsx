@@ -2,38 +2,41 @@
 
 /**
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
  *
  * Admin school-communication workspace.
- * - Full communication viewers see published channel-less announcements + messages.
- * - Limited users keep the recipient-facing announcement feed.
- * Channel messages remain in /admin/channels and review remains in /admin/communication.
+ * - Full communication viewers see channel-less announcements + messages across their workflow states.
+ * - Limited users keep the recipient-facing published announcement feed.
+ * - Channel messages remain in /admin/channels and moderation remains governed by Odoo.
  */
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { DataTable, type Column } from '@/components/tables/data-table';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
-import { Badge, PageHeader, StatCard } from '@/components/ui/primitives';
+import { Badge, PageHeader } from '@/components/ui/primitives';
 import { AnnouncementsRecipientFeed } from '@/features/announcements/components/announcements-recipient-feed';
 import { useSession } from '@/features/auth/session-context';
 import { fetchCommunicationContentList } from '@/features/communication/api/admin-communication-api';
 import {
   communicationContentTypeMessageKey,
+  communicationStateMessageKey,
   stripHtmlPreview,
 } from '@/features/communication/utils/communication-labels';
 import { useT } from '@/features/i18n/locale-context';
-import { formatDateTime } from '@/lib/utils/format';
+import { useFormat } from '@/features/i18n/use-format';
 import {
   COMMUNICATION_CAPABILITIES,
   canComposeGeneralCommunication,
   hasCommunicationCapability,
 } from '@/lib/permissions/communication';
 import type { ApiErrorBody } from '@/types/api';
-import type { CommunicationContent } from '@/types/communication';
+import type { CommunicationContent, CommunicationContentState } from '@/types/communication';
 
-type PublishedFilter = 'all' | 'announcement' | 'message';
+type CommunicationFilter = 'all' | 'announcement' | 'message';
 
-const PUBLISHED_FILTERS: ReadonlyArray<{
-  id: PublishedFilter;
+const COMMUNICATION_FILTERS: ReadonlyArray<{
+  id: CommunicationFilter;
   labelKey: string;
 }> = [
   { id: 'all', labelKey: 'communication.filter.all' },
@@ -41,30 +44,73 @@ const PUBLISHED_FILTERS: ReadonlyArray<{
   { id: 'message', labelKey: 'communication.contentType.message' },
 ];
 
-function isPublishedGeneralCommunication(item: CommunicationContent): boolean {
+function isGeneralCommunication(item: CommunicationContent): boolean {
   return (
-    item.state === 'published' &&
     item.channel_id == null &&
     item.source_summary?.model !== 'school.channel' &&
+    item.state !== 'archived' &&
     (item.content_type === 'announcement' || item.content_type === 'message')
   );
 }
 
-function publishedTimestamp(item: CommunicationContent): number {
-  const raw = item.published_at ?? item.approved_at ?? item.created_at;
+function activityTimestamp(item: CommunicationContent): number {
+  const raw =
+    item.published_at ??
+    item.scheduled_at ??
+    item.approved_at ??
+    item.submitted_at ??
+    item.created_at;
   if (!raw) return 0;
   const value = Date.parse(raw);
   return Number.isFinite(value) ? value : 0;
 }
 
-function communicationIcon(item: CommunicationContent): string {
-  return item.content_type === 'announcement' ? '📣' : '✉️';
+function displayTimestamp(item: CommunicationContent): string | null | undefined {
+  return (
+    item.published_at ??
+    item.scheduled_at ??
+    item.approved_at ??
+    item.submitted_at ??
+    item.created_at
+  );
 }
 
-function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNode }) {
+function stateTone(state: CommunicationContentState): 'green' | 'red' | 'amber' | 'blue' | 'slate' {
+  switch (state) {
+    case 'published':
+      return 'green';
+    case 'changes_requested':
+    case 'delivery_failed':
+      return 'red';
+    case 'submitted':
+    case 'partially_delivered':
+      return 'amber';
+    case 'approved':
+    case 'scheduled':
+    case 'publishing':
+      return 'blue';
+    default:
+      return 'slate';
+  }
+}
+
+function communicationBody(item: CommunicationContent): string | null | undefined {
+  return item.body ?? item.current_version?.body ?? item.approved_version?.body;
+}
+
+function canOfferEdit(item: CommunicationContent): boolean {
+  return (
+    (item.allowed_actions ?? []).includes('edit') ||
+    item.state === 'draft' ||
+    item.state === 'changes_requested'
+  );
+}
+
+function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode }) {
   const t = useT();
+  const format = useFormat();
   const [items, setItems] = useState<CommunicationContent[]>([]);
-  const [filter, setFilter] = useState<PublishedFilter>('all');
+  const [filter, setFilter] = useState<CommunicationFilter>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiErrorBody | null>(null);
 
@@ -74,13 +120,11 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
       fetchCommunicationContentList({
         page: 1,
         page_size: 100,
-        state: 'published',
         content_type: 'announcement',
       }),
       fetchCommunicationContentList({
         page: 1,
         page_size: 100,
-        state: 'published',
         content_type: 'message',
       }),
     ]);
@@ -99,8 +143,8 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
     }
 
     const next = [...announcements.data, ...messages.data]
-      .filter(isPublishedGeneralCommunication)
-      .sort((a, b) => publishedTimestamp(b) - publishedTimestamp(a));
+      .filter(isGeneralCommunication)
+      .sort((a, b) => activityTimestamp(b) - activityTimestamp(a));
     setItems(next);
     setError(null);
     setLoading(false);
@@ -115,7 +159,7 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
     [filter, items],
   );
 
-  const counts = useMemo<Record<PublishedFilter, number>>(
+  const counts = useMemo<Record<CommunicationFilter, number>>(
     () => ({
       all: items.length,
       announcement: items.filter((item) => item.content_type === 'announcement').length,
@@ -124,8 +168,101 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
     [items],
   );
 
+  const columns = useMemo<Column<CommunicationContent>[]>(
+    () => [
+      {
+        key: 'content',
+        header: t('communication.content'),
+        width: '42%',
+        render: (item) => {
+          const preview = stripHtmlPreview(communicationBody(item), 150);
+          return (
+            <div style={{ minWidth: 0 }}>
+              <Link
+                href={`/admin/communication/${item.id}`}
+                className="communication-list__title"
+                dir="auto"
+              >
+                <span aria-hidden="true">
+                  {item.content_type === 'announcement' ? '📣' : '✉️'}
+                </span>
+                <strong>{item.subject || item.name || `#${item.id}`}</strong>
+              </Link>
+              {preview ? (
+                <div className="tiny muted communication-list__preview" dir="auto">
+                  {preview}
+                </div>
+              ) : null}
+              <div className="tiny muted" dir="auto">
+                {item.author?.name || t('common.dash')}
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        key: 'type',
+        header: t('communication.type'),
+        width: '9rem',
+        render: (item) => (
+          <Badge tone={item.content_type === 'announcement' ? 'amber' : 'blue'}>
+            {t(communicationContentTypeMessageKey(item.content_type))}
+          </Badge>
+        ),
+      },
+      {
+        key: 'state',
+        header: t('common.status'),
+        width: '11rem',
+        render: (item) => (
+          <Badge tone={stateTone(item.state)}>{t(communicationStateMessageKey(item.state))}</Badge>
+        ),
+      },
+      {
+        key: 'audience',
+        header: t('communication.general.beneficiaries'),
+        width: '16%',
+        render: (item) => (
+          <span className="tiny" dir="auto">
+            {item.audience_summary?.label || t('common.dash')}
+          </span>
+        ),
+      },
+      {
+        key: 'date',
+        header: t('common.date'),
+        width: '11rem',
+        render: (item) => {
+          const value = displayTimestamp(item);
+          return <span className="tiny">{value ? format.formatDateTime(value) : t('common.dash')}</span>;
+        },
+      },
+      {
+        key: 'actions',
+        header: t('common.actions'),
+        width: '11rem',
+        render: (item) => (
+          <div className="wrap-gap">
+            <Link href={`/admin/communication/${item.id}`} className="btn btn--ghost btn--sm">
+              {t('common.view')}
+            </Link>
+            {canOfferEdit(item) ? (
+              <Link
+                href={`/admin/communication/${item.id}/edit`}
+                className="btn btn--ghost btn--sm"
+              >
+                {t('common.edit')}
+              </Link>
+            ) : null}
+          </div>
+        ),
+      },
+    ],
+    [format, t],
+  );
+
   return (
-    <div className="admin-workspace" data-testid="published-general-communication-feed">
+    <div className="admin-workspace communication-list" data-testid="published-general-communication-feed">
       <PageHeader
         title={t('channels.schoolCommunicationTitle')}
         subtitle={t('announcements.adminWorkspaceSubtitle')}
@@ -138,103 +275,33 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
         <ApiErrorView error={error} onRetry={() => void load()} />
       ) : (
         <>
-          <div className="grid grid--stats" aria-label={t('communication.filters')}>
-            <StatCard
-              label={t('communication.filter.all')}
-              value={counts.all}
-              icon="🗂️"
-              tone="slate"
-            />
-            <StatCard
-              label={t('communication.contentType.announcement')}
-              value={counts.announcement}
-              icon="📣"
-              tone="amber"
-            />
-            <StatCard
-              label={t('communication.contentType.message')}
-              value={counts.message}
-              icon="✉️"
-              tone="blue"
-            />
+          <div className="toolbar communication-list__toolbar" role="tablist" aria-label={t('communication.filters')}>
+            {COMMUNICATION_FILTERS.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={filter === entry.id}
+                className={filter === entry.id ? 'btn btn--primary btn--sm' : 'btn btn--ghost btn--sm'}
+                onClick={() => setFilter(entry.id)}
+              >
+                <span>{t(entry.labelKey)}</span>
+                <bdi className="numeric-text" dir="ltr">
+                  {counts[entry.id]}
+                </bdi>
+              </button>
+            ))}
           </div>
 
-          <section className="section" aria-label={t('channels.schoolCommunicationTitle')}>
-            <div className="tabs" role="tablist" aria-label={t('communication.filters')}>
-              {PUBLISHED_FILTERS.map((entry) => (
-                <button
-                  key={entry.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === entry.id}
-                  className={filter === entry.id ? 'tab tab--active' : 'tab'}
-                  onClick={() => setFilter(entry.id)}
-                >
-                  <span>{t(entry.labelKey)}</span>
-                  <bdi className="numeric-text" dir="ltr">
-                    {counts[entry.id]}
-                  </bdi>
-                </button>
-              ))}
-            </div>
-
-            {visibleItems.length === 0 ? (
-              <EmptyState
-                icon="📭"
-                title={t('channels.schoolCommunicationTitle')}
-                description={t('communication.emptyDesc')}
-              />
-            ) : (
-              <div className="card">
-                <div className="msg-feed">
-                  {visibleItems.map((item) => {
-                    const publishedAt = item.published_at ?? item.approved_at ?? item.created_at;
-                    const preview = stripHtmlPreview(item.body, 220);
-                    const audience = item.audience_summary?.label;
-
-                    return (
-                      <Link
-                        key={item.id}
-                        href={`/admin/communication/${item.id}`}
-                        className="msg-feed__item block row-link"
-                        data-testid={`published-communication-${item.id}`}
-                      >
-                        <div className="msg-feed__meta">
-                          <div className="wrap-gap">
-                            <span aria-hidden="true">{communicationIcon(item)}</span>
-                            <strong className="msg-feed__channel" dir="auto">
-                              {item.subject || item.name || `#${item.id}`}
-                            </strong>
-                          </div>
-                          <span className="msg-feed__time">
-                            {publishedAt ? formatDateTime(publishedAt) : t('common.dash')}
-                          </span>
-                        </div>
-
-                        <div className="msg-feed__sender" dir="auto">
-                          {item.author?.name || t('common.dash')}
-                          {audience ? ` · ${audience}` : ''}
-                        </div>
-
-                        {preview ? (
-                          <div className="msg-feed__body" dir="auto">
-                            {preview}
-                          </div>
-                        ) : null}
-
-                        <div className="wrap-gap">
-                          <Badge tone={item.content_type === 'announcement' ? 'amber' : 'blue'}>
-                            {t(communicationContentTypeMessageKey(item.content_type))}
-                          </Badge>
-                          <Badge tone="green">{t('communication.state.published')}</Badge>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </section>
+          {visibleItems.length === 0 ? (
+            <EmptyState
+              icon="📭"
+              title={t('channels.schoolCommunicationTitle')}
+              description={t('communication.emptyDesc')}
+            />
+          ) : (
+            <DataTable columns={columns} rows={visibleItems} rowKey={(item) => item.id} />
+          )}
         </>
       )}
     </div>
@@ -245,7 +312,7 @@ export default function AdminAnnouncementsPage() {
   const t = useT();
   const user = useSession();
   const canOpenCreate = canComposeGeneralCommunication(user);
-  const canViewPublishedGeneralCommunication = hasCommunicationCapability(
+  const canViewGeneralCommunication = hasCommunicationCapability(
     user,
     COMMUNICATION_CAPABILITIES.view,
   );
@@ -260,7 +327,7 @@ export default function AdminAnnouncementsPage() {
     </Link>
   ) : undefined;
 
-  if (!canViewPublishedGeneralCommunication) {
+  if (!canViewGeneralCommunication) {
     return (
       <div className="admin-workspace">
         <AnnouncementsRecipientFeed
@@ -273,5 +340,5 @@ export default function AdminAnnouncementsPage() {
     );
   }
 
-  return <AdminPublishedCommunicationFeed actions={createAction} />;
+  return <AdminCommunicationWorkspace actions={createAction} />;
 }
