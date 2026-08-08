@@ -208,6 +208,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
         })
       : null);
 
+  const canEdit = hasCommunicationRecordAction(actions, 'edit');
   const canRequestChanges = hasCommunicationRecordAction(actions, 'request_changes');
   const canApprove = hasCommunicationRecordAction(actions, 'approve');
   const canPublish = hasCommunicationRecordAction(actions, 'publish');
@@ -276,9 +277,16 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
         title={item.subject || item.name || `#${item.id}`}
         subtitle={t(communicationContentTypeMessageKey(item.content_type))}
         actions={
-          <Badge tone={item.state === 'published' ? 'green' : 'amber'}>
-            {t(communicationStateMessageKey(item.state))}
-          </Badge>
+          <div className="wrap-gap">
+            {canEdit ? (
+              <Link href={`/admin/communication/${item.id}/edit`} className="btn btn--ghost btn--sm">
+                {t('common.edit')}
+              </Link>
+            ) : null}
+            <Badge tone={item.state === 'published' ? 'green' : 'amber'}>
+              {t(communicationStateMessageKey(item.state))}
+            </Badge>
+          </div>
         }
       />
 
