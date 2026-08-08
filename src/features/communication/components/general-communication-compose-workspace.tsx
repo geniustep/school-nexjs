@@ -3,6 +3,7 @@
 /**
  * General school communication compose — group (259 content lifecycle) + individual (256).
  * Channel composer remains separate; no broad school/level/cycle scopes there.
+ * Preview is advisory and optional; Submit remains authoritative on the backend.
  */
 
 import Link from 'next/link';
@@ -11,12 +12,7 @@ import { useRouter } from 'next/navigation';
 import { StudentSearchPicker } from '@/features/admin/students/components/student-search-picker';
 import { collectCyclesFromLevels } from '@/features/admin/class-form-utils';
 import { fetchTeachers } from '@/features/admin/teachers/api/teacher-domain-api';
-import {
-  approveCommunicationContent,
-  fetchCommunicationContentDetail,
-  previewAdminRecipientScope,
-  publishCommunicationContent,
-} from '@/features/communication/api/admin-communication-api';
+import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
 import {
   submitGroupGeneralCommunication,
   submitIndividualGeneralCommunication,
@@ -26,7 +22,6 @@ import {
   buildGroupRecipientScope,
   buildIndividualRecipientScope,
   isBeneficiaryAllowedForScopeLevel,
-  recipientComposeFingerprint,
   schoolBeneficiaryKinds,
   sectionBeneficiaryKinds,
 } from '@/features/communication/utils/recipient-scope';
@@ -49,9 +44,9 @@ import type {
 } from '@/types/recipient-scope';
 import './general-communication-compose.css';
 
-type Phase = 'idle' | 'previewing' | 'confirming' | 'submitting';
+type ComposeContentType = 'announcement' | 'message';
+type Phase = 'idle' | 'previewing' | 'submitting';
 type EntityOption = { id: number; label: string };
-type PendingReviewTarget = { contentId: number; canApprove: boolean };
 
 function beneficiaryLabelKey(kind: string): string {
   switch (kind) {
@@ -72,14 +67,19 @@ function beneficiaryLabelKey(kind: string): string {
   }
 }
 
-export function GeneralCommunicationComposeWorkspace() {
+export function GeneralCommunicationComposeWorkspace({
+  contentType = 'message',
+}: {
+  contentType?: ComposeContentType;
+}) {
   const t = useT();
   const toast = useToast();
   const router = useRouter();
   const formId = useId();
   const inFlightRef = useRef(false);
+  const initialMode: GeneralCommunicationMode | null = contentType === 'announcement' ? 'group' : null;
 
-  const [mode, setMode] = useState<GeneralCommunicationMode | null>(null);
+  const [mode, setMode] = useState<GeneralCommunicationMode | null>(initialMode);
   const [scopeLevel, setScopeLevel] = useState<GroupScopeLevel | null>(null);
   const [beneficiaryKind, setBeneficiaryKind] = useState<string | null>(null);
   const [entityId, setEntityId] = useState<number | null>(null);
@@ -104,15 +104,9 @@ export function GeneralCommunicationComposeWorkspace() {
   const [parentsLoading, setParentsLoading] = useState(false);
 
   const [phase, setPhase] = useState<Phase>('idle');
-  const [previewSummary, setPreviewSummary] = useState<CommunicationRecipientSummary | null>(
-    null,
-  );
+  const [previewSummary, setPreviewSummary] = useState<CommunicationRecipientSummary | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewFingerprint, setPreviewFingerprint] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<number | null>(null);
-  const [successNotice, setSuccessNotice] = useState<string | null>(null);
-  const [pendingReviewTarget, setPendingReviewTarget] = useState<PendingReviewTarget | null>(null);
-  const [reviewActionLoading, setReviewActionLoading] = useState(false);
 
   const beneficiaryOptions = useMemo(() => {
     if (!scopeLevel) return [] as string[];
@@ -135,21 +129,13 @@ export function GeneralCommunicationComposeWorkspace() {
     return null;
   }, [mode, scopeLevel, beneficiaryKind, entityId, individualType, individualId]);
 
-  const composeKey = recipientComposeFingerprint({
-    scope: recipientScope,
-    subject,
-    body,
-  });
-
   function invalidatePreview() {
     setPreviewOpen(false);
     setPreviewSummary(null);
-    setPreviewFingerprint(null);
-    setPhase((current) => (current === 'submitting' ? current : 'idle'));
   }
 
   function resetSelectionPreservingMode(nextMode: GeneralCommunicationMode | null) {
-    setMode(nextMode);
+    setMode(contentType === 'announcement' ? 'group' : nextMode);
     setScopeLevel(null);
     setBeneficiaryKind(null);
     setEntityId(null);
@@ -161,8 +147,6 @@ export function GeneralCommunicationComposeWorkspace() {
     setParentQuery('');
     setParentHits([]);
     setDraftId(null);
-    setSuccessNotice(null);
-    setPendingReviewTarget(null);
     invalidatePreview();
   }
 
@@ -210,9 +194,7 @@ export function GeneralCommunicationComposeWorkspace() {
               label: row.display_name || row.name || String(row.id),
             })),
           );
-          const cycleRows: LevelCycle[] = collectCyclesFromLevels(rows).filter(
-            (c) => c.id > 0,
-          );
+          const cycleRows: LevelCycle[] = collectCyclesFromLevels(rows).filter((c) => c.id > 0);
           setCycles(
             cycleRows.map((c) => ({
               id: c.id,
@@ -242,8 +224,7 @@ export function GeneralCommunicationComposeWorkspace() {
       void fetchTeachers({ page: 1, page_size: 20, search: q }).then((res) => {
         if (cancelled) return;
         setTeachersLoading(false);
-        if (res.success) setTeacherHits(res.data ?? []);
-        else setTeacherHits([]);
+        setTeacherHits(res.success ? res.data ?? [] : []);
       });
     }, 300);
     return () => {
@@ -267,8 +248,7 @@ export function GeneralCommunicationComposeWorkspace() {
         .then((res) => {
           if (cancelled) return;
           setParentsLoading(false);
-          if (res.success) setParentHits(res.data ?? []);
-          else setParentHits([]);
+          setParentHits(res.success ? res.data ?? [] : []);
         });
     }, 300);
     return () => {
@@ -289,12 +269,12 @@ export function GeneralCommunicationComposeWorkspace() {
 
   function onSubjectChange(next: string) {
     setSubject(next);
-    if (previewOpen && previewFingerprint != null) invalidatePreview();
+    invalidatePreview();
   }
 
   function onBodyChange(next: string) {
     setBody(next);
-    if (previewOpen && previewFingerprint != null) invalidatePreview();
+    invalidatePreview();
   }
 
   function selectStudent(student: StudentSearchHit) {
@@ -304,184 +284,118 @@ export function GeneralCommunicationComposeWorkspace() {
     invalidatePreview();
   }
 
-  async function requestPreview(e: React.FormEvent) {
-    e.preventDefault();
-    if (inFlightRef.current || phase !== 'idle') return;
+  function validateInput(): { subject: string; body: string; scope: RecipientScope } | null {
     if (!recipientScope) {
       toast.error(t('communication.general.incompleteSelection'));
-      return;
+      return null;
     }
-    const text = body.trim();
-    const subj = subject.trim();
-    if (!subj) {
+    const nextSubject = subject.trim();
+    const nextBody = body.trim();
+    if (!nextSubject) {
       toast.error(t('communication.general.subjectRequired'));
-      return;
+      return null;
     }
-    if (!text) {
+    if (!nextBody) {
       toast.error(t('communication.general.bodyRequired'));
-      return;
+      return null;
     }
+    return { subject: nextSubject, body: nextBody, scope: recipientScope };
+  }
+
+  async function requestPreview() {
+    if (inFlightRef.current || phase !== 'idle') return;
+    const input = validateInput();
+    if (!input) return;
 
     inFlightRef.current = true;
     setPhase('previewing');
     const result = await previewAdminRecipientScope({
-      recipient_scope: recipientScope,
-      subject: subj,
-      body: text,
+      recipient_scope: input.scope,
+      subject: input.subject,
+      body: input.body,
     });
     inFlightRef.current = false;
+    setPhase('idle');
 
     if (!result.ok) {
-      setPhase('idle');
       const key = communicationErrorMessageKey(result.error.code);
       toast.error(key ? t(key) : result.error.message || t('communication.general.previewFailed'));
       return;
     }
 
-    const fp = recipientComposeFingerprint({
-      scope: recipientScope,
-      subject: subj,
-      body: text,
-    });
     setPreviewSummary(result.preview.recipient_summary);
-    setPreviewFingerprint(fp);
     setPreviewOpen(true);
-    setPhase('confirming');
   }
 
-  async function resolvePendingReviewTarget(contentId: number | null, allowedActions?: string[]) {
-    if (contentId == null) return null;
-    if (allowedActions) {
-      return { contentId, canApprove: allowedActions.includes('approve') };
-    }
+  async function submitNow(e: React.FormEvent) {
+    e.preventDefault();
+    if (inFlightRef.current || phase !== 'idle') return;
+    const input = validateInput();
+    if (!input) return;
 
-    const detail = await fetchCommunicationContentDetail(contentId);
-    if (!detail.success) return { contentId, canApprove: false };
-    return {
-      contentId,
-      canApprove: (detail.data.allowed_actions ?? []).includes('approve'),
-    };
-  }
-
-  async function confirmSend() {
-    if (inFlightRef.current || phase !== 'confirming') return;
-    if (!recipientScope || !composeKey || composeKey !== previewFingerprint) {
-      invalidatePreview();
-      setPhase('idle');
-      return;
-    }
-    if (previewSummary?.can_submit === false) return;
-
-    const subj = subject.trim();
-    const text = body.trim();
     inFlightRef.current = true;
     setPhase('submitting');
-
     const result =
-      recipientScope.scope_type === 'individual'
+      input.scope.scope_type === 'individual'
         ? await submitIndividualGeneralCommunication({
-            scope: recipientScope,
-            subject: subj,
-            body: text,
+            scope: input.scope,
+            subject: input.subject,
+            body: input.body,
           })
         : await submitGroupGeneralCommunication({
             draftId,
-            subject: subj,
-            body: text,
-            recipient_scope: recipientScope,
+            subject: input.subject,
+            body: input.body,
+            recipient_scope: input.scope,
           });
-
     inFlightRef.current = false;
 
     if (!result.ok) {
-      setPhase('confirming');
+      setPhase('idle');
       if (result.draftId != null) setDraftId(result.draftId);
       const key = communicationErrorMessageKey(result.error.code);
       toast.error(key ? t(key) : result.error.message || t('communication.general.submitFailed'));
       return;
     }
 
-    if (result.draftId != null) setDraftId(result.draftId);
-
-    setSubject('');
-    setBody('');
-    invalidatePreview();
     setPhase('idle');
     setDraftId(null);
-
-    if (result.outcome.kind === 'pending_review') {
-      const contentId = result.outcome.contentId ?? result.draftId;
-      toast.success(t('communication.general.pendingReviewSuccess'));
-      if (contentId != null) {
-        router.push(`/admin/communication/${contentId}`);
-      } else {
-        router.push('/admin/communication?filter=submitted');
-      }
-      return;
-    }
-
-    setPendingReviewTarget(null);
-    setSuccessNotice(null);
-    toast.success(t('communication.general.acceptedSuccess'));
-    router.push('/admin/announcements');
-  }
-
-  async function approveAndPublishPending() {
-    const target = pendingReviewTarget;
-    if (!target?.canApprove || reviewActionLoading) return;
-
-    setReviewActionLoading(true);
-    const approved = await approveCommunicationContent(target.contentId);
-    if (!approved.success) {
-      setReviewActionLoading(false);
-      const key = communicationErrorMessageKey(approved.error.code);
-      toast.error(key ? t(key) : t('channels.sendFailed'));
-      return;
-    }
-
-    const publishAllowed = (approved.data?.allowed_actions ?? []).includes('publish');
-    if (!publishAllowed) {
-      setReviewActionLoading(false);
-      router.push(`/admin/communication/${target.contentId}`);
-      return;
-    }
-
-    const published = await publishCommunicationContent(target.contentId);
-    setReviewActionLoading(false);
-    if (!published.success) {
-      const key = communicationErrorMessageKey(published.error.code);
-      toast.error(key ? t(key) : t('channels.sendFailed'));
-      router.push(`/admin/communication/${target.contentId}`);
-      return;
-    }
-
-    toast.success(t('communication.actionSuccess'));
+    invalidatePreview();
+    toast.success(
+      result.outcome.kind === 'pending_review'
+        ? t('communication.general.pendingReviewSuccess')
+        : t('communication.general.acceptedSuccess'),
+    );
     router.push('/admin/announcements');
   }
 
   function closePreview() {
-    if (phase === 'submitting' || phase === 'previewing') return;
-    invalidatePreview();
-    setPhase('idle');
+    if (phase === 'previewing') return;
+    setPreviewOpen(false);
+    setPreviewSummary(null);
   }
 
   const needsEntity =
     mode === 'group' &&
     (scopeLevel === 'class' || scopeLevel === 'level' || scopeLevel === 'cycle');
-  const entityOptions =
-    scopeLevel === 'class' ? classes : scopeLevel === 'level' ? levels : cycles;
-  const canPreview =
+  const entityOptions = scopeLevel === 'class' ? classes : scopeLevel === 'level' ? levels : cycles;
+  const canAct =
     phase === 'idle' &&
     recipientScope != null &&
     subject.trim().length > 0 &&
     body.trim().length > 0;
+  const inputBusy = phase !== 'idle';
 
   return (
     <div className="general-comm admin-workspace" data-testid="general-communication-compose">
       <header className="general-comm__header">
         <div>
           <p className="tiny general-comm__eyebrow">{t('channels.schoolCommunicationTitle')}</p>
-          <h1>{t('communication.general.title')}</h1>
+          <h1>
+            {contentType === 'announcement'
+              ? t('communication.contentType.announcement')
+              : t('communication.contentType.message')}
+          </h1>
           <p className="muted">{t('communication.general.subtitle')}</p>
         </div>
         <Link href="/admin/announcements" className="btn btn--ghost btn--sm">
@@ -489,397 +403,385 @@ export function GeneralCommunicationComposeWorkspace() {
         </Link>
       </header>
 
-      {successNotice ? (
-        <div className="general-comm__success" role="status">
-          <p>{successNotice}</p>
-          <div className="row" style={{ gap: '0.5rem', flexWrap: 'wrap' }}>
-            {pendingReviewTarget?.canApprove ? (
-              <button
-                type="button"
-                className="btn btn--primary btn--sm"
-                disabled={reviewActionLoading}
-                onClick={() => void approveAndPublishPending()}
+      <div className="general-comm__layout">
+        <div className="general-comm__setup">
+          {contentType === 'message' ? (
+            <section className="general-comm__card" aria-labelledby={`${formId}-mode`}>
+              <h2 id={`${formId}-mode`}>{t('communication.general.chooseMode')}</h2>
+              <div
+                className="general-comm__mode-row"
+                role="group"
+                aria-label={t('communication.general.chooseMode')}
               >
-                {t('communication.actions.approve')} + {t('communication.actions.publish')}
-              </button>
-            ) : null}
-            {pendingReviewTarget ? (
-              <button
-                type="button"
-                className={pendingReviewTarget.canApprove ? 'btn btn--ghost btn--sm' : 'btn btn--primary btn--sm'}
-                disabled={reviewActionLoading}
-                onClick={() => router.push(`/admin/communication/${pendingReviewTarget.contentId}`)}
-              >
-                {t('common.view')}
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              disabled={reviewActionLoading}
-              onClick={() => {
-                setSuccessNotice(null);
-                resetSelectionPreservingMode(null);
-              }}
-            >
-              {t('communication.general.newAnother')}
-            </button>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              disabled={reviewActionLoading}
-              onClick={() => router.push('/admin/announcements')}
-            >
-              {t('communication.general.backToFeed')}
-            </button>
-          </div>
-        </div>
-      ) : null}
+                <button
+                  type="button"
+                  className={`btn btn--sm${mode === 'group' ? ' btn--primary' : ' btn--ghost'}`}
+                  aria-pressed={mode === 'group'}
+                  onClick={() => resetSelectionPreservingMode('group')}
+                >
+                  {t('communication.general.sendToGroup')}
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn--sm${mode === 'individual' ? ' btn--primary' : ' btn--ghost'}`}
+                  aria-pressed={mode === 'individual'}
+                  onClick={() => resetSelectionPreservingMode('individual')}
+                >
+                  {t('communication.general.sendToPerson')}
+                </button>
+              </div>
+            </section>
+          ) : null}
 
-      <section className="general-comm__card" aria-labelledby={`${formId}-mode`}>
-        <h2 id={`${formId}-mode`}>{t('communication.general.chooseMode')}</h2>
-        <div className="general-comm__mode-row" role="group" aria-label={t('communication.general.chooseMode')}>
-          <button
-            type="button"
-            className={`btn btn--sm${mode === 'group' ? ' btn--primary' : ' btn--ghost'}`}
-            aria-pressed={mode === 'group'}
-            onClick={() => resetSelectionPreservingMode('group')}
-          >
-            {t('communication.general.sendToGroup')}
-          </button>
-          <button
-            type="button"
-            className={`btn btn--sm${mode === 'individual' ? ' btn--primary' : ' btn--ghost'}`}
-            aria-pressed={mode === 'individual'}
-            onClick={() => resetSelectionPreservingMode('individual')}
-          >
-            {t('communication.general.sendToPerson')}
-          </button>
-        </div>
-      </section>
-
-      {mode === 'group' ? (
-        <section className="general-comm__card" aria-labelledby={`${formId}-scope`}>
-          <h2 id={`${formId}-scope`}>{t('communication.general.scopeTitle')}</h2>
-          <div className="general-comm__stack">
-            <label className="general-comm__field">
-              <span>{t('communication.general.scopeLevel')}</span>
-              <select
-                className="select"
-                value={scopeLevel ?? ''}
-                aria-label={t('communication.general.scopeLevel')}
-                onChange={(e) => {
-                  const v = e.target.value as GroupScopeLevel | '';
-                  if (!v) {
-                    setScopeLevel(null);
-                    setBeneficiaryKind(null);
-                    setEntityId(null);
-                    invalidatePreview();
-                    return;
-                  }
-                  onScopeLevelChange(v);
-                }}
-              >
-                <option value="">{t('common.select')}</option>
-                <option value="school">{t('communication.general.scope.school')}</option>
-                <option value="class">{t('communication.general.scope.class')}</option>
-                <option value="level">{t('communication.general.scope.level')}</option>
-                <option value="cycle">{t('communication.general.scope.cycle')}</option>
-              </select>
-            </label>
-
-            {needsEntity ? (
-              <label className="general-comm__field">
-                <span>
-                  {scopeLevel === 'class'
-                    ? t('communication.general.pickClass')
-                    : scopeLevel === 'level'
-                      ? t('communication.general.pickLevel')
-                      : t('communication.general.pickCycle')}
-                </span>
-                {entitiesLoading ? (
-                  <p className="tiny" role="status">
-                    {t('communication.general.entitiesLoading')}
-                  </p>
-                ) : entitiesError ? (
-                  <p className="tiny" role="alert">
-                    {entitiesError}
-                  </p>
-                ) : (
+          {mode === 'group' ? (
+            <section className="general-comm__card" aria-labelledby={`${formId}-scope`}>
+              <h2 id={`${formId}-scope`}>{t('communication.general.scopeTitle')}</h2>
+              <div className="general-comm__stack">
+                <label className="general-comm__field">
+                  <span>{t('communication.general.scopeLevel')}</span>
                   <select
                     className="select"
-                    value={entityId ?? ''}
-                    aria-label={t('communication.general.pickEntity')}
+                    value={scopeLevel ?? ''}
+                    aria-label={t('communication.general.scopeLevel')}
+                    disabled={inputBusy}
                     onChange={(e) => {
-                      const raw = e.target.value;
-                      setEntityId(raw ? Number(raw) : null);
-                      setDraftId(null);
-                      invalidatePreview();
+                      const value = e.target.value as GroupScopeLevel | '';
+                      if (!value) {
+                        setScopeLevel(null);
+                        setBeneficiaryKind(null);
+                        setEntityId(null);
+                        setDraftId(null);
+                        invalidatePreview();
+                        return;
+                      }
+                      onScopeLevelChange(value);
                     }}
                   >
                     <option value="">{t('common.select')}</option>
-                    {entityOptions.map((opt) => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </option>
-                    ))}
+                    <option value="school">{t('communication.general.scope.school')}</option>
+                    <option value="class">{t('communication.general.scope.class')}</option>
+                    <option value="level">{t('communication.general.scope.level')}</option>
+                    <option value="cycle">{t('communication.general.scope.cycle')}</option>
                   </select>
-                )}
-              </label>
-            ) : null}
+                </label>
 
-            {scopeLevel ? (
-              <fieldset className="general-comm__fieldset">
-                <legend>{t('communication.general.beneficiaries')}</legend>
-                <div className="general-comm__options">
-                  {beneficiaryOptions.map((kind) => (
-                    <label key={kind} className="general-comm__option">
-                      <input
-                        type="radio"
-                        name="beneficiary"
-                        value={kind}
-                        checked={beneficiaryKind === kind}
-                        onChange={() => {
-                          setBeneficiaryKind(kind);
+                {needsEntity ? (
+                  <label className="general-comm__field">
+                    <span>
+                      {scopeLevel === 'class'
+                        ? t('communication.general.pickClass')
+                        : scopeLevel === 'level'
+                          ? t('communication.general.pickLevel')
+                          : t('communication.general.pickCycle')}
+                    </span>
+                    {entitiesLoading ? (
+                      <p className="tiny" role="status">
+                        {t('communication.general.entitiesLoading')}
+                      </p>
+                    ) : entitiesError ? (
+                      <p className="tiny" role="alert">
+                        {entitiesError}
+                      </p>
+                    ) : (
+                      <select
+                        className="select"
+                        value={entityId ?? ''}
+                        aria-label={t('communication.general.pickEntity')}
+                        disabled={inputBusy}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          setEntityId(raw ? Number(raw) : null);
                           setDraftId(null);
                           invalidatePreview();
                         }}
-                      />
-                      <span>{t(beneficiaryLabelKey(kind))}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
+                      >
+                        <option value="">{t('common.select')}</option>
+                        {entityOptions.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </label>
+                ) : null}
 
-      {mode === 'individual' ? (
-        <section className="general-comm__card" aria-labelledby={`${formId}-person`}>
-          <h2 id={`${formId}-person`}>{t('communication.general.personTitle')}</h2>
-          <div className="general-comm__stack">
-            <fieldset className="general-comm__fieldset">
-              <legend>{t('communication.general.personType')}</legend>
-              <div className="general-comm__options">
-                {(
-                  [
-                    ['teacher', 'communication.general.person.teacher'],
-                    ['student', 'communication.general.person.student'],
-                    ['guardian', 'communication.general.person.guardian'],
-                  ] as const
-                ).map(([value, key]) => (
-                  <label key={value} className="general-comm__option">
-                    <input
-                      type="radio"
-                      name="personType"
-                      value={value}
-                      checked={individualType === value}
-                      onChange={() => {
-                        setIndividualType(value);
+                {scopeLevel ? (
+                  <fieldset className="general-comm__fieldset" disabled={inputBusy}>
+                    <legend>{t('communication.general.beneficiaries')}</legend>
+                    <div className="general-comm__options">
+                      {beneficiaryOptions.map((kind) => (
+                        <label key={kind} className="general-comm__option">
+                          <input
+                            type="radio"
+                            name="beneficiary"
+                            value={kind}
+                            checked={beneficiaryKind === kind}
+                            onChange={() => {
+                              setBeneficiaryKind(kind);
+                              setDraftId(null);
+                              invalidatePreview();
+                            }}
+                          />
+                          <span>{t(beneficiaryLabelKey(kind))}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
+          {mode === 'individual' ? (
+            <section className="general-comm__card" aria-labelledby={`${formId}-person`}>
+              <h2 id={`${formId}-person`}>{t('communication.general.personTitle')}</h2>
+              <div className="general-comm__stack">
+                <fieldset className="general-comm__fieldset" disabled={inputBusy}>
+                  <legend>{t('communication.general.personType')}</legend>
+                  <div className="general-comm__options">
+                    {(
+                      [
+                        ['teacher', 'communication.general.person.teacher'],
+                        ['student', 'communication.general.person.student'],
+                        ['guardian', 'communication.general.person.guardian'],
+                      ] as const
+                    ).map(([value, key]) => (
+                      <label key={value} className="general-comm__option">
+                        <input
+                          type="radio"
+                          name="personType"
+                          value={value}
+                          checked={individualType === value}
+                          onChange={() => {
+                            setIndividualType(value);
+                            setIndividualId(null);
+                            setIndividualLabel(null);
+                            setTeacherQuery('');
+                            setParentQuery('');
+                            setDraftId(null);
+                            invalidatePreview();
+                          }}
+                        />
+                        <span>{t(key)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                {individualType === 'student' ? (
+                  <div className="general-comm__field">
+                    <span>{t('communication.general.pickStudent')}</span>
+                    <StudentSearchPicker
+                      onSelect={selectStudent}
+                      onClear={() => {
                         setIndividualId(null);
                         setIndividualLabel(null);
-                        setTeacherQuery('');
-                        setParentQuery('');
                         setDraftId(null);
                         invalidatePreview();
                       }}
                     />
-                    <span>{t(key)}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+                    {individualLabel ? (
+                      <p className="tiny" dir="auto">
+                        {t('communication.general.selected')}: {individualLabel}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
 
-            {individualType === 'student' ? (
-              <div className="general-comm__field">
-                <span>{t('communication.general.pickStudent')}</span>
-                <StudentSearchPicker
-                  onSelect={selectStudent}
-                  onClear={() => {
-                    setIndividualId(null);
-                    setIndividualLabel(null);
-                    invalidatePreview();
-                  }}
+                {individualType === 'teacher' ? (
+                  <div className="general-comm__field">
+                    <label>
+                      <span>{t('communication.general.pickTeacher')}</span>
+                      <input
+                        className="input"
+                        value={teacherQuery}
+                        disabled={inputBusy}
+                        onChange={(e) => setTeacherQuery(e.target.value)}
+                        placeholder={t('communication.general.searchPlaceholder')}
+                        aria-label={t('communication.general.pickTeacher')}
+                      />
+                    </label>
+                    {teachersLoading ? (
+                      <p className="tiny">{t('common.loading')}</p>
+                    ) : (
+                      <ul className="general-comm__hits" role="listbox">
+                        {teacherHits.map((row) => (
+                          <li key={row.id}>
+                            <button
+                              type="button"
+                              className="general-comm__hit"
+                              disabled={inputBusy}
+                              onClick={() => {
+                                setIndividualId(row.id);
+                                setIndividualLabel(row.name);
+                                setDraftId(null);
+                                invalidatePreview();
+                              }}
+                            >
+                              <span dir="auto">{row.name}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {individualLabel ? (
+                      <p className="tiny" dir="auto">
+                        {t('communication.general.selected')}: {individualLabel}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {individualType === 'guardian' ? (
+                  <div className="general-comm__field">
+                    <label>
+                      <span>{t('communication.general.pickGuardian')}</span>
+                      <input
+                        className="input"
+                        value={parentQuery}
+                        disabled={inputBusy}
+                        onChange={(e) => setParentQuery(e.target.value)}
+                        placeholder={t('communication.general.searchPlaceholder')}
+                        aria-label={t('communication.general.pickGuardian')}
+                      />
+                    </label>
+                    {parentsLoading ? (
+                      <p className="tiny">{t('common.loading')}</p>
+                    ) : (
+                      <ul className="general-comm__hits" role="listbox">
+                        {parentHits.map((row) => {
+                          const children =
+                            Array.isArray(row.children) && row.children.length > 0
+                              ? row.children
+                                  .map((child) => child.name || getStudentDisplayName(child))
+                                  .filter(Boolean)
+                                  .join(' · ')
+                              : null;
+                          return (
+                            <li key={row.id}>
+                              <button
+                                type="button"
+                                className="general-comm__hit"
+                                disabled={inputBusy}
+                                onClick={() => {
+                                  setIndividualId(row.id);
+                                  setIndividualLabel(
+                                    children
+                                      ? `${row.display_name || row.name} — ${children}`
+                                      : row.display_name || row.name,
+                                  );
+                                  setDraftId(null);
+                                  invalidatePreview();
+                                }}
+                              >
+                                <span dir="auto">{row.display_name || row.name}</span>
+                                {children ? (
+                                  <span className="tiny" dir="auto">
+                                    {children}
+                                  </span>
+                                ) : null}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    {individualLabel ? (
+                      <p className="tiny" dir="auto">
+                        {t('communication.general.selected')}: {individualLabel}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+        </div>
+
+        {mode ? (
+          <section className="general-comm__card general-comm__message-card" aria-labelledby={`${formId}-message`}>
+            <h2 id={`${formId}-message`}>
+              {contentType === 'announcement'
+                ? t('communication.contentType.announcement')
+                : t('communication.general.messageTitle')}
+            </h2>
+            <form id={formId} className="general-comm__stack" onSubmit={(e) => void submitNow(e)}>
+              <label className="general-comm__field">
+                <span>{t('communication.general.subject')}</span>
+                <input
+                  className="input"
+                  value={subject}
+                  required
+                  aria-required="true"
+                  onChange={(e) => onSubjectChange(e.target.value)}
+                  disabled={inputBusy}
                 />
-                {individualLabel ? (
-                  <p className="tiny" dir="auto">
-                    {t('communication.general.selected')}: {individualLabel}
-                  </p>
-                ) : null}
+              </label>
+              <label className="general-comm__field">
+                <span>{t('communication.body')}</span>
+                <textarea
+                  className="textarea"
+                  rows={10}
+                  value={body}
+                  required
+                  aria-required="true"
+                  onChange={(e) => onBodyChange(e.target.value)}
+                  disabled={inputBusy}
+                />
+              </label>
+              {recipientScope ? (
+                <p className="tiny general-comm__summary" dir="auto">
+                  {t('communication.general.beneficiaries')}:{' '}
+                  {mode === 'group'
+                    ? `${t(`communication.general.scope.${scopeLevel}`)} · ${t(
+                        beneficiaryLabelKey(beneficiaryKind ?? ''),
+                      )}`
+                    : `${t(`communication.general.person.${individualType}`)}${
+                        individualLabel ? ` · ${individualLabel}` : ''
+                      }`}
+                </p>
+              ) : (
+                <p className="tiny">{t('communication.general.incompleteSelection')}</p>
+              )}
+              <div className="form-actions general-comm__actions">
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={!canAct || phase === 'submitting'}
+                  aria-disabled={!canAct || phase === 'submitting'}
+                >
+                  {phase === 'submitting' ? t('common.submitting') : t('common.submit')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  disabled={!canAct || phase === 'previewing'}
+                  aria-disabled={!canAct || phase === 'previewing'}
+                  onClick={() => void requestPreview()}
+                >
+                  {phase === 'previewing'
+                    ? t('communication.recipients.previewLoading')
+                    : t('communication.general.previewAction')}
+                </button>
               </div>
-            ) : null}
-
-            {individualType === 'teacher' ? (
-              <div className="general-comm__field">
-                <label>
-                  <span>{t('communication.general.pickTeacher')}</span>
-                  <input
-                    className="input"
-                    value={teacherQuery}
-                    onChange={(e) => setTeacherQuery(e.target.value)}
-                    placeholder={t('communication.general.searchPlaceholder')}
-                    aria-label={t('communication.general.pickTeacher')}
-                  />
-                </label>
-                {teachersLoading ? (
-                  <p className="tiny">{t('common.loading')}</p>
-                ) : (
-                  <ul className="general-comm__hits" role="listbox">
-                    {teacherHits.map((row) => (
-                      <li key={row.id}>
-                        <button
-                          type="button"
-                          className="general-comm__hit"
-                          onClick={() => {
-                            setIndividualId(row.id);
-                            setIndividualLabel(row.name);
-                            setDraftId(null);
-                            invalidatePreview();
-                          }}
-                        >
-                          <span dir="auto">{row.name}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {individualLabel ? (
-                  <p className="tiny" dir="auto">
-                    {t('communication.general.selected')}: {individualLabel}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {individualType === 'guardian' ? (
-              <div className="general-comm__field">
-                <label>
-                  <span>{t('communication.general.pickGuardian')}</span>
-                  <input
-                    className="input"
-                    value={parentQuery}
-                    onChange={(e) => setParentQuery(e.target.value)}
-                    placeholder={t('communication.general.searchPlaceholder')}
-                    aria-label={t('communication.general.pickGuardian')}
-                  />
-                </label>
-                {parentsLoading ? (
-                  <p className="tiny">{t('common.loading')}</p>
-                ) : (
-                  <ul className="general-comm__hits" role="listbox">
-                    {parentHits.map((row) => {
-                      const children =
-                        Array.isArray(row.children) && row.children.length > 0
-                          ? row.children
-                              .map((c) => c.name || getStudentDisplayName(c))
-                              .filter(Boolean)
-                              .join(' · ')
-                          : null;
-                      return (
-                        <li key={row.id}>
-                          <button
-                            type="button"
-                            className="general-comm__hit"
-                            onClick={() => {
-                              setIndividualId(row.id);
-                              setIndividualLabel(
-                                children
-                                  ? `${row.display_name || row.name} — ${children}`
-                                  : row.display_name || row.name,
-                              );
-                              setDraftId(null);
-                              invalidatePreview();
-                            }}
-                          >
-                            <span dir="auto">{row.display_name || row.name}</span>
-                            {children ? (
-                              <span className="tiny" dir="auto">
-                                {children}
-                              </span>
-                            ) : null}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-                {individualLabel ? (
-                  <p className="tiny" dir="auto">
-                    {t('communication.general.selected')}: {individualLabel}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-
-      {mode ? (
-        <section className="general-comm__card" aria-labelledby={`${formId}-message`}>
-          <h2 id={`${formId}-message`}>{t('communication.general.messageTitle')}</h2>
-          <form id={formId} className="general-comm__stack" onSubmit={(e) => void requestPreview(e)}>
-            <label className="general-comm__field">
-              <span>{t('communication.general.subject')}</span>
-              <input
-                className="input"
-                value={subject}
-                required
-                aria-required="true"
-                onChange={(e) => onSubjectChange(e.target.value)}
-                disabled={phase !== 'idle'}
-              />
-            </label>
-            <label className="general-comm__field">
-              <span>{t('communication.body')}</span>
-              <textarea
-                className="textarea"
-                rows={6}
-                value={body}
-                required
-                aria-required="true"
-                onChange={(e) => onBodyChange(e.target.value)}
-                disabled={phase !== 'idle'}
-              />
-            </label>
-            {recipientScope ? (
-              <p className="tiny general-comm__summary" dir="auto">
-                {t('communication.general.beneficiaries')}:{' '}
-                {mode === 'group'
-                  ? `${t(`communication.general.scope.${scopeLevel}`)} · ${t(
-                      beneficiaryLabelKey(beneficiaryKind ?? ''),
-                    )}`
-                  : `${t(`communication.general.person.${individualType}`)}${
-                      individualLabel ? ` · ${individualLabel}` : ''
-                    }`}
-              </p>
-            ) : (
-              <p className="tiny">{t('communication.general.incompleteSelection')}</p>
-            )}
-            <div className="row" style={{ gap: '0.5rem' }}>
-              <button
-                type="submit"
-                className="btn btn--primary"
-                disabled={!canPreview}
-                aria-disabled={!canPreview}
-              >
-                {phase === 'previewing'
-                  ? t('communication.recipients.previewLoading')
-                  : t('communication.general.previewAction')}
-              </button>
-            </div>
-          </form>
-        </section>
-      ) : null}
+            </form>
+          </section>
+        ) : (
+          <section className="general-comm__card general-comm__message-card">
+            <p className="muted">{t('communication.general.incompleteSelection')}</p>
+          </section>
+        )}
+      </div>
 
       <RecipientPreviewDialog
         open={previewOpen}
         summary={previewSummary}
         composeMode="unknown"
-        loading={phase === 'previewing'}
-        confirming={phase === 'submitting'}
+        loading={false}
+        confirming={false}
         terminology="beneficiaries"
-        onConfirm={() => void confirmSend()}
+        previewOnly
         onClose={closePreview}
       />
     </div>
