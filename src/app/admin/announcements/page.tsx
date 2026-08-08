@@ -32,6 +32,7 @@ import {
 } from '@/lib/permissions/communication';
 import type { ApiErrorBody } from '@/types/api';
 import type { CommunicationContent, CommunicationContentState } from '@/types/communication';
+import './announcements.css';
 
 type CommunicationFilter = 'all' | 'announcement' | 'message';
 
@@ -172,7 +173,7 @@ function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode })
     () => [
       {
         key: 'content',
-        header: t('communication.content'),
+        header: t('nav.content'),
         width: '42%',
         render: (item) => {
           const preview = stripHtmlPreview(communicationBody(item), 150);
@@ -202,7 +203,7 @@ function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode })
       },
       {
         key: 'type',
-        header: t('communication.type'),
+        header: t('communication.general.chooseMode'),
         width: '9rem',
         render: (item) => (
           <Badge tone={item.content_type === 'announcement' ? 'amber' : 'blue'}>
