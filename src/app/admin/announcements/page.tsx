@@ -12,11 +12,14 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
-import { Badge, PageHeader } from '@/components/ui/primitives';
+import { Badge, PageHeader, StatCard } from '@/components/ui/primitives';
 import { AnnouncementsRecipientFeed } from '@/features/announcements/components/announcements-recipient-feed';
 import { useSession } from '@/features/auth/session-context';
 import { fetchCommunicationContentList } from '@/features/communication/api/admin-communication-api';
-import { communicationContentTypeMessageKey } from '@/features/communication/utils/communication-labels';
+import {
+  communicationContentTypeMessageKey,
+  stripHtmlPreview,
+} from '@/features/communication/utils/communication-labels';
 import { useT } from '@/features/i18n/locale-context';
 import { formatDateTime } from '@/lib/utils/format';
 import {
@@ -52,6 +55,10 @@ function publishedTimestamp(item: CommunicationContent): number {
   if (!raw) return 0;
   const value = Date.parse(raw);
   return Number.isFinite(value) ? value : 0;
+}
+
+function communicationIcon(item: CommunicationContent): string {
+  return item.content_type === 'announcement' ? '📣' : '✉️';
 }
 
 function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNode }) {
@@ -108,6 +115,15 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
     [filter, items],
   );
 
+  const counts = useMemo<Record<PublishedFilter, number>>(
+    () => ({
+      all: items.length,
+      announcement: items.filter((item) => item.content_type === 'announcement').length,
+      message: items.filter((item) => item.content_type === 'message').length,
+    }),
+    [items],
+  );
+
   return (
     <div className="admin-workspace" data-testid="published-general-communication-feed">
       <PageHeader
@@ -116,67 +132,110 @@ function AdminPublishedCommunicationFeed({ actions }: { actions?: React.ReactNod
         actions={actions}
       />
 
-      <div
-        className="wrap-gap"
-        role="tablist"
-        aria-label={t('communication.filters')}
-        style={{ marginBlockEnd: '1rem' }}
-      >
-        {PUBLISHED_FILTERS.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            role="tab"
-            aria-selected={filter === entry.id}
-            className={filter === entry.id ? 'btn btn--primary btn--sm' : 'btn btn--ghost btn--sm'}
-            onClick={() => setFilter(entry.id)}
-          >
-            {t(entry.labelKey)}
-          </button>
-        ))}
-      </div>
-
       {loading ? (
         <LoadingState label={t('communication.loading')} />
       ) : error ? (
         <ApiErrorView error={error} onRetry={() => void load()} />
-      ) : visibleItems.length === 0 ? (
-        <EmptyState
-          icon="📭"
-          title={t('channels.schoolCommunicationTitle')}
-          description={t('communication.emptyDesc')}
-        />
       ) : (
-        <div className="stack" style={{ gap: '0.75rem' }}>
-          {visibleItems.map((item) => {
-            const publishedAt = item.published_at ?? item.approved_at ?? item.created_at;
-            return (
-              <Link
-                key={item.id}
-                href={`/admin/communication/${item.id}`}
-                className="card card--pad block row-link"
-                data-testid={`published-communication-${item.id}`}
-              >
-                <div className="between" style={{ gap: 8, flexWrap: 'wrap' }}>
-                  <strong dir="auto">{item.subject || item.name || `#${item.id}`}</strong>
-                  <div className="wrap-gap">
-                    <Badge tone={item.content_type === 'announcement' ? 'amber' : 'slate'}>
-                      {t(communicationContentTypeMessageKey(item.content_type))}
-                    </Badge>
-                    <Badge tone="green">{t('communication.state.published')}</Badge>
-                  </div>
+        <>
+          <div className="grid grid--stats" aria-label={t('communication.filters')}>
+            <StatCard
+              label={t('communication.filter.all')}
+              value={counts.all}
+              icon="🗂️"
+              tone="slate"
+            />
+            <StatCard
+              label={t('communication.contentType.announcement')}
+              value={counts.announcement}
+              icon="📣"
+              tone="amber"
+            />
+            <StatCard
+              label={t('communication.contentType.message')}
+              value={counts.message}
+              icon="✉️"
+              tone="blue"
+            />
+          </div>
+
+          <section className="section" aria-label={t('channels.schoolCommunicationTitle')}>
+            <div className="tabs" role="tablist" aria-label={t('communication.filters')}>
+              {PUBLISHED_FILTERS.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === entry.id}
+                  className={filter === entry.id ? 'tab tab--active' : 'tab'}
+                  onClick={() => setFilter(entry.id)}
+                >
+                  <span>{t(entry.labelKey)}</span>
+                  <bdi className="numeric-text" dir="ltr">
+                    {counts[entry.id]}
+                  </bdi>
+                </button>
+              ))}
+            </div>
+
+            {visibleItems.length === 0 ? (
+              <EmptyState
+                icon="📭"
+                title={t('channels.schoolCommunicationTitle')}
+                description={t('communication.emptyDesc')}
+              />
+            ) : (
+              <div className="card">
+                <div className="msg-feed">
+                  {visibleItems.map((item) => {
+                    const publishedAt = item.published_at ?? item.approved_at ?? item.created_at;
+                    const preview = stripHtmlPreview(item.body, 220);
+                    const audience = item.audience_summary?.label;
+
+                    return (
+                      <Link
+                        key={item.id}
+                        href={`/admin/communication/${item.id}`}
+                        className="msg-feed__item block row-link"
+                        data-testid={`published-communication-${item.id}`}
+                      >
+                        <div className="msg-feed__meta">
+                          <div className="wrap-gap">
+                            <span aria-hidden="true">{communicationIcon(item)}</span>
+                            <strong className="msg-feed__channel" dir="auto">
+                              {item.subject || item.name || `#${item.id}`}
+                            </strong>
+                          </div>
+                          <span className="msg-feed__time">
+                            {publishedAt ? formatDateTime(publishedAt) : t('common.dash')}
+                          </span>
+                        </div>
+
+                        <div className="msg-feed__sender" dir="auto">
+                          {item.author?.name || t('common.dash')}
+                          {audience ? ` · ${audience}` : ''}
+                        </div>
+
+                        {preview ? (
+                          <div className="msg-feed__body" dir="auto">
+                            {preview}
+                          </div>
+                        ) : null}
+
+                        <div className="wrap-gap">
+                          <Badge tone={item.content_type === 'announcement' ? 'amber' : 'blue'}>
+                            {t(communicationContentTypeMessageKey(item.content_type))}
+                          </Badge>
+                          <Badge tone="green">{t('communication.state.published')}</Badge>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
-                <div className="tiny muted" style={{ marginBlockStart: '0.45rem' }}>
-                  {item.author?.name || t('common.dash')}
-                  {' · '}
-                  {item.audience_summary?.label || t('common.dash')}
-                  {' · '}
-                  {publishedAt ? formatDateTime(publishedAt) : t('common.dash')}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+              </div>
+            )}
+          </section>
+        </>
       )}
     </div>
   );
