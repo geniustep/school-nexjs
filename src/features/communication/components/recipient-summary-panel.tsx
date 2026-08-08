@@ -5,10 +5,13 @@
  * Never computes guardians/students/staff locally.
  */
 
-import { useT } from '@/features/i18n/locale-context';
-import { formatDateTime } from '@/lib/utils/format';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { formatDateTime } from '@/lib/i18n/format';
 import { shortSnapshotFingerprint } from '@/features/communication/utils/normalize-recipient-summary';
-import type { CommunicationRecipientSummary } from '@/types/communication';
+import type {
+  CommunicationRecipientExclusion,
+  CommunicationRecipientSummary,
+} from '@/types/communication';
 import './recipient-summary-panel.css';
 
 function CountCard({
@@ -25,6 +28,26 @@ function CountCard({
       <span className="recipient-summary__count-label">{label}</span>
     </div>
   );
+}
+
+function looksLikeBackendCode(value: string): boolean {
+  const normalized = value.trim();
+  return /^[a-z0-9]+(?:_[a-z0-9]+)+$/i.test(normalized);
+}
+
+function exclusionText(
+  item: CommunicationRecipientExclusion,
+  fallback: string,
+): string {
+  const candidates = [item.label, item.reason].filter(
+    (value): value is string => typeof value === 'string' && value.trim().length > 0,
+  );
+  const readable = candidates.find((value) => !looksLikeBackendCode(value));
+  return readable ?? fallback;
+}
+
+function blockingText(reason: string, fallback: string): string {
+  return looksLikeBackendCode(reason) ? fallback : reason;
 }
 
 export function RecipientSummaryPanel({
@@ -47,6 +70,7 @@ export function RecipientSummaryPanel({
   terminology?: 'default' | 'beneficiaries';
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const beneficiaries = terminology === 'beneficiaries';
 
   if (!summary) {
@@ -62,6 +86,8 @@ export function RecipientSummaryPanel({
   const labels = summary.audience_labels?.filter(Boolean) ?? [];
   const exclusions = summary.exclusion_summary ?? [];
   const fingerprintShort = shortSnapshotFingerprint(summary.snapshot_fingerprint);
+  const unavailableText = t('communication.recipients.notReachable');
+  const showSubmitWarnings = presentation === 'preview';
 
   return (
     <div
@@ -90,16 +116,16 @@ export function RecipientSummaryPanel({
         </p>
       ) : null}
 
-      {canSubmit === false ? (
+      {showSubmitWarnings && canSubmit === false ? (
         <p className="recipient-summary__warning" role="alert">
           {t('communication.recipients.cannotSubmit')}
         </p>
       ) : null}
 
-      {blocking.length > 0 ? (
+      {showSubmitWarnings && blocking.length > 0 ? (
         <ul className="recipient-summary__blocking" aria-label={t('communication.recipients.blockingReasons')}>
           {blocking.map((reason) => (
-            <li key={reason}>{reason}</li>
+            <li key={reason}>{blockingText(reason, unavailableText)}</li>
           ))}
         </ul>
       ) : null}
@@ -186,9 +212,8 @@ export function RecipientSummaryPanel({
           </span>
           <ul>
             {exclusions.map((item, index) => {
-              const text = item.reason || item.label || item.code || t('common.dash');
-              const countPart =
-                item.count != null ? ` (${item.count})` : '';
+              const text = exclusionText(item, unavailableText);
+              const countPart = item.count != null ? ` (${item.count})` : '';
               return (
                 <li key={`${text}-${index}`}>
                   {text}
@@ -202,7 +227,7 @@ export function RecipientSummaryPanel({
 
       {summary.resolved_at ? (
         <p className="tiny recipient-summary__meta">
-          {t('communication.recipients.resolvedAt')}: {formatDateTime(summary.resolved_at)}
+          {t('communication.recipients.resolvedAt')}: {formatDateTime(summary.resolved_at, locale)}
         </p>
       ) : null}
 
