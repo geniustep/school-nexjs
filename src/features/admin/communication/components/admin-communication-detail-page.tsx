@@ -18,13 +18,12 @@ import {
   DefinitionList,
   InfoBanner,
 } from '@/components/ui/primitives';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { RequireCommunicationReviewAccess } from '@/features/admin/communication/components/require-communication-review';
 import { useToast } from '@/components/ui/toast';
 import { useSession } from '@/features/auth/session-context';
-import { useT } from '@/features/i18n/locale-context';
-import { formatDateTime } from '@/lib/utils/format';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { formatDateTime } from '@/lib/i18n/format';
 import { canResubmitPendingContent } from '@/features/channels/utils/can-resubmit-pending';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
 import {
@@ -52,6 +51,7 @@ import '../communication-review.css';
 
 function AdminCommunicationDetailInner({ id }: { id: number }) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const user = useSession();
   const [item, setItem] = useState<CommunicationContent | null>(null);
@@ -64,7 +64,6 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
   const [showResubmit, setShowResubmit] = useState(false);
   const [resubmitBody, setResubmitBody] = useState('');
   const [resubmitSubject, setResubmitSubject] = useState('');
-  const [confirmAction, setConfirmAction] = useState<'approve' | 'publish' | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,6 +82,11 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
     void load();
   }, [load]);
 
+  function showActionError(actionError?: ApiErrorBody) {
+    const key = communicationErrorMessageKey(actionError?.code);
+    toast.error(key ? t(key) : t('channels.sendFailed'));
+  }
+
   async function runAction(
     action: () => Promise<{ success: boolean; error?: ApiErrorBody; data?: CommunicationContent }>,
     opts?: { requireReason?: boolean; successKey?: string },
@@ -97,8 +101,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
     const res = await action();
     setActing(false);
     if (!res.success) {
-      const key = communicationErrorMessageKey(res.error?.code);
-      toast.error(key ? t(key) : res.error?.message || t('channels.sendFailed'));
+      showActionError(res.error);
       if (
         res.error?.code === 'communication_message_audience_changed' ||
         res.error?.code === 'communication_invalid_transition'
@@ -114,6 +117,34 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
     toast.success(t(opts?.successKey ?? 'communication.actionSuccess'));
   }
 
+  async function runApproveAndPublish() {
+    if (acting || !item) return;
+    setActing(true);
+
+    const approved = await approveCommunicationContent(item.id);
+    if (!approved.success) {
+      setActing(false);
+      showActionError(approved.error);
+      void load();
+      return;
+    }
+
+    if (approved.data) setItem(approved.data);
+
+    const published = await publishCommunicationContent(item.id);
+    setActing(false);
+
+    if (!published.success) {
+      showActionError(published.error);
+      void load();
+      return;
+    }
+
+    if (published.data) setItem(published.data);
+    else void load();
+    toast.success(t('communication.actionSuccess'));
+  }
+
   async function runResubmit() {
     if (!item?.channel_id || acting) return;
     const nextBody = resubmitBody.trim();
@@ -127,8 +158,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
     setActing(false);
 
     if (!res.success) {
-      const key = communicationErrorMessageKey(res.error?.code);
-      toast.error(key ? t(key) : res.error?.message || t('channels.sendFailed'));
+      showActionError(res.error);
       return;
     }
 
@@ -185,10 +215,28 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
   const canCancel = hasCommunicationRecordAction(actions, 'cancel');
 
   const roleMessageKey = communicationActorRoleMessageKey(item.created_by_role);
+  const audienceLabels = Array.from(
+    new Set(
+      [
+        item.audience_summary?.class?.name,
+        item.audience_summary?.level?.name,
+        item.audience_summary?.subject?.name,
+        ...(frozenSummary?.audience_labels ?? []),
+      ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0),
+    ),
+  );
+
+  function actorName(name: string | null | undefined): string {
+    const value = name?.trim();
+    if (!value) return t('common.dash');
+    if (value.toLowerCase() === 'administrator') return t('roles.admin');
+    return value;
+  }
+
   const metadataItems: Array<{ label: string; value: ReactNode }> = [
     {
       label: t('communication.author'),
-      value: item.author?.name || t('common.dash'),
+      value: actorName(item.author?.name),
     },
     {
       label: t('communication.createdByRole'),
@@ -196,15 +244,15 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
     },
     {
       label: t('communication.audience'),
-      value: item.audience_summary?.label || t('common.dash'),
+      value: audienceLabels.length > 0 ? audienceLabels.join(' / ') : t('common.dash'),
     },
     {
       label: t('communication.submittedAt'),
-      value: item.submitted_at ? formatDateTime(item.submitted_at) : t('common.dash'),
+      value: item.submitted_at ? formatDateTime(item.submitted_at, locale) : t('common.dash'),
     },
     {
       label: t('communication.reviewer'),
-      value: item.reviewer?.name || t('common.dash'),
+      value: actorName(item.reviewer?.name),
     },
   ];
 
@@ -216,6 +264,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
   }
 
   const hasActions = canRequestChanges || canApprove || canPublish || canSchedule || canCancel;
+  const approvePublishLabel = `${t('communication.actions.approve')} + ${t('communication.actions.publish')}`;
 
   return (
     <div className="admin-workspace communication-review communication-detail">
@@ -232,14 +281,6 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           </Badge>
         }
       />
-
-      {isSubmitted ? (
-        <InfoBanner
-          tone="amber"
-          title={t('communication.state.submitted')}
-          description={t('communication.recipients.confirmApproveHint')}
-        />
-      ) : null}
 
       {isApprovedAwaitingPublish ? (
         <InfoBanner
@@ -278,7 +319,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
 
           <Card className="communication-detail__recipient-card">
             <h2 className="communication-review__section-title">{t('communication.recipients.frozenTitle')}</h2>
-            <RecipientSummaryPanel summary={frozenSummary} presentation="frozen" showAdminSnapshotRef />
+            <RecipientSummaryPanel summary={frozenSummary} presentation="frozen" />
           </Card>
 
           {canAuthorResubmit ? (
@@ -321,7 +362,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
                       disabled={acting || !resubmitBody.trim()}
                       onClick={() => void runResubmit()}
                     >
-                      {acting ? t('channels.sending') : t('channels.pendingResubmit')}
+                      {acting ? t('common.loading') : t('channels.pendingResubmit')}
                     </button>
                     <button
                       type="button"
@@ -347,9 +388,9 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
                   <li key={decision.id}>
                     <div className="communication-review__audit-head">
                       <Badge tone="slate">{t(communicationAuditDecisionMessageKey(decision.decision))}</Badge>
-                      <span dir="auto">{decision.actor?.name || t('common.dash')}</span>
+                      <span dir="auto">{actorName(decision.actor?.name)}</span>
                       <span className="muted">
-                        {decision.decision_at ? formatDateTime(decision.decision_at) : t('common.dash')}
+                        {decision.decision_at ? formatDateTime(decision.decision_at, locale) : t('common.dash')}
                       </span>
                     </div>
                     {decision.reason ? <div className="tiny muted" dir="auto">{decision.reason}</div> : null}
@@ -369,26 +410,39 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           {hasActions ? (
             <Card className="communication-detail__actions-card">
               <h2 className="communication-review__section-title">{t('common.actions')}</h2>
-              {isSubmitted && canApprove ? (
-                <p className="tiny muted">{t('communication.recipients.confirmApproveHint')}</p>
-              ) : null}
 
               <div className="communication-detail__actions">
                 {canApprove ? (
-                  <button type="button" className="btn btn--primary" disabled={acting} onClick={() => setConfirmAction('approve')}>
-                    {t('communication.actions.approve')}
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    disabled={acting}
+                    onClick={() => void runApproveAndPublish()}
+                  >
+                    {acting ? t('common.loading') : approvePublishLabel}
+                  </button>
+                ) : canPublish ? (
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    disabled={acting}
+                    onClick={() => void runAction(() => publishCommunicationContent(item.id))}
+                  >
+                    {acting ? t('common.loading') : t('communication.actions.publish')}
                   </button>
                 ) : null}
-                {canPublish ? (
-                  <button type="button" className="btn btn--primary" disabled={acting} onClick={() => setConfirmAction('publish')}>
-                    {t('communication.actions.publish')}
-                  </button>
-                ) : null}
+
                 {canRequestChanges ? (
-                  <button type="button" className="btn btn--ghost" disabled={acting} onClick={() => setShowReason((current) => !current)}>
+                  <button
+                    type="button"
+                    className="btn btn--ghost"
+                    disabled={acting}
+                    onClick={() => setShowReason((current) => !current)}
+                  >
                     {t('communication.actions.requestChanges')}
                   </button>
                 ) : null}
+
                 {canSchedule ? (
                   <div className="communication-detail__schedule">
                     <input
@@ -408,6 +462,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
                     </button>
                   </div>
                 ) : null}
+
                 {canCancel ? (
                   <button
                     type="button"
@@ -458,34 +513,6 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
           ) : null}
         </aside>
       </div>
-
-      <ConfirmationDialog
-        open={confirmAction != null}
-        title={confirmAction === 'publish' ? t('communication.recipients.confirmPublishTitle') : t('communication.recipients.confirmApproveTitle')}
-        body={
-          <div className="stack" style={{ gap: 10 }}>
-            <p className="tiny">
-              {confirmAction === 'publish' ? t('communication.recipients.confirmPublishHint') : t('communication.recipients.confirmApproveHint')}
-            </p>
-            <RecipientSummaryPanel summary={frozenSummary} presentation="frozen" showAdminSnapshotRef compact />
-          </div>
-        }
-        confirmLabel={confirmAction === 'publish' ? t('communication.actions.publish') : t('communication.actions.approve')}
-        loading={acting}
-        size="wide"
-        onClose={() => {
-          if (!acting) setConfirmAction(null);
-        }}
-        onConfirm={async () => {
-          const action = confirmAction;
-          setConfirmAction(null);
-          if (action === 'approve') {
-            await runAction(() => approveCommunicationContent(item.id), { successKey: 'communication.actionSuccess' });
-          } else if (action === 'publish') {
-            await runAction(() => publishCommunicationContent(item.id), { successKey: 'communication.actionSuccess' });
-          }
-        }}
-      />
     </div>
   );
 }
