@@ -1,0 +1,52 @@
+.communication-list {
+  width: 100%;
+  max-width: none;
+}
+
+.communication-list__toolbar {
+  margin-block-end: 10px;
+}
+
+.communication-list .table-wrap {
+  width: 100%;
+  max-width: none;
+  overflow-x: auto;
+}
+
+.communication-list .table-wrap table.data {
+  min-width: 980px;
+  table-layout: auto;
+}
+
+.communication-list__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  color: var(--c-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.communication-list__title:hover,
+.communication-list__title:focus-visible {
+  color: var(--c-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.communication-list__preview {
+  max-width: 52rem;
+  margin-block: 4px 2px;
+  line-height: 1.45;
+}
+
+.communication-list td:last-child .wrap-gap {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 900px) {
+  .communication-list .table-wrap table.data {
+    min-width: 820px;
+  }
+}
