@@ -195,7 +195,7 @@ describe('AdminAnnouncementsPage communication workspace', () => {
       '/admin/communication/11',
     );
     expect(screen.getByRole('link', { name: 'common.edit' }).getAttribute('href')).toBe(
-      '/admin/communication/14/edit',
+      '/admin/communication/14#communication-edit',
     );
 
     fireEvent.click(
