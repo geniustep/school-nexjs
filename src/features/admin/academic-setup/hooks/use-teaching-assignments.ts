@@ -46,6 +46,7 @@ export function useTeachingAssignmentSuggestions() {
 }
 
 export async function createTeachingAssignment(payload: {
+  academic_year_id?: number;
   class_id: number;
   subject_id: number;
   teacher_id: number;

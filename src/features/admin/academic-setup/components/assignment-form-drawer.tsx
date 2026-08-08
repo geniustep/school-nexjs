@@ -5,6 +5,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { useAcademicContextOptions } from '@/features/academic-context';
 import { formatOfferingContextLabel } from '@/features/academic-context/utils/academic-context-display';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
+import type { SchoolClass, Subject } from '@/types/class';
 import {
   EligibleTeachersPicker,
   eligibleTeachersSelectionValid,
@@ -13,6 +14,7 @@ import {
 import { SetupDrawer } from './setup-drawer';
 
 export type AssignmentFormCreatePayload = {
+  academic_year_id?: number;
   class_id: number;
   subject_id: number;
   teacher_id: number;
@@ -37,6 +39,9 @@ export function AssignmentFormDrawer({
   onClose,
   assignment,
   missingIssue,
+  classes,
+  subjects,
+  academicYearId: pageAcademicYearId,
   canManage,
   saving,
   onCreate,
@@ -47,6 +52,9 @@ export function AssignmentFormDrawer({
   onClose: () => void;
   assignment: TeachingAssignment | null;
   missingIssue: SetupReadinessIssue | null;
+  classes: SchoolClass[];
+  subjects: Subject[];
+  academicYearId?: number;
   canManage: boolean;
   saving: boolean;
   onCreate: (payload: AssignmentFormCreatePayload) => void;
@@ -62,14 +70,18 @@ export function AssignmentFormDrawer({
   const [weeklyHours, setWeeklyHours] = useState('2');
   const [offeringId, setOfferingId] = useState('');
   const [recheckNotice, setRecheckNotice] = useState(false);
+  const [classSelection, setClassSelection] = useState('');
+  const [subjectSelection, setSubjectSelection] = useState('');
+  const [role, setRole] = useState('main');
+  const [reviewing, setReviewing] = useState(false);
 
-  const classId = assignment?.class.id ?? Number(missingIssue?.target.query?.class_id ?? 0);
-  const subjectId = assignment?.subject.id ?? Number(missingIssue?.target.query?.subject_id ?? 0);
+  const classId = assignment?.class.id ?? Number(missingIssue?.target.query?.class_id ?? classSelection ?? 0);
+  const subjectId = assignment?.subject.id ?? Number(missingIssue?.target.query?.subject_id ?? subjectSelection ?? 0);
   const academicYearId =
     Number(
       (assignment as { academic_year?: { id?: number } } | null)?.academic_year?.id ??
         missingIssue?.target.query?.academic_year_id ??
-        0,
+        pageAcademicYearId ?? 0,
     ) || undefined;
 
   const title = assignment
@@ -100,13 +112,20 @@ export function AssignmentFormDrawer({
       setOfferingId(
         assignment.teaching_offering_id ? String(assignment.teaching_offering_id) : '',
       );
+      setClassSelection(String(assignment.class.id));
+      setSubjectSelection(String(assignment.subject.id));
+      setRole(assignment.role ?? 'main');
     } else {
       setSelection({ teacherId: null, override: false, overrideReason: '' });
       setWeeklyHours('2');
       setOfferingId('');
+      setClassSelection(String(missingIssue?.target.query?.class_id ?? ''));
+      setSubjectSelection(String(missingIssue?.target.query?.subject_id ?? ''));
+      setRole('main');
     }
     setRecheckNotice(false);
-  }, [open, assignment]);
+    setReviewing(false);
+  }, [open, assignment, missingIssue]);
 
   const offerings = context.options?.offerings ?? [];
   const offeringAmbiguous = offerings.length > 1;
@@ -119,10 +138,10 @@ export function AssignmentFormDrawer({
       subject_id: subjectId,
       academic_year_id: academicYearId,
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
-      role: 'main',
+      role,
       weekly_hours: Number(weeklyHours) || undefined,
     };
-  }, [classId, subjectId, academicYearId, offeringId, weeklyHours]);
+  }, [classId, subjectId, academicYearId, offeringId, weeklyHours, role]);
 
   const selectionValid = eligibleTeachersSelectionValid(selection);
   const offeringBlocksCreate = !assignment && offeringAmbiguous && !offeringId;
@@ -139,6 +158,33 @@ export function AssignmentFormDrawer({
   return (
     <SetupDrawer open={open} title={title} onClose={onClose}>
       {!canManage && <p className="muted tiny">{t('admin.pageForbidden')}</p>}
+      {!assignment && !missingIssue ? (
+        <div className="grid grid--form">
+          <label className="field">
+            <span>{t('admin.academicSetup.class')}</span>
+            <select value={classSelection} disabled={saving} onChange={(event) => { setClassSelection(event.target.value); setSubjectSelection(''); setSelection({ teacherId: null, override: false, overrideReason: '' }); setReviewing(false); }}>
+              <option value="">{t('common.select')}</option>
+              {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+          <label className="field">
+            <span>{t('admin.academicSetup.subject')}</span>
+            <select value={subjectSelection} disabled={!classSelection || saving} onChange={(event) => { setSubjectSelection(event.target.value); setSelection({ teacherId: null, override: false, overrideReason: '' }); setReviewing(false); }}>
+              <option value="">{t('common.select')}</option>
+              {subjects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+        </div>
+      ) : null}
+
+      <label className="field">
+        <span>{t('admin.academicSetup.assignmentRole')}</span>
+        <select value={role} disabled={saving} onChange={(event) => { setRole(event.target.value); setSelection({ teacherId: null, override: false, overrideReason: '' }); setReviewing(false); }}>
+          {(['main', 'assistant', 'substitute', 'co_teacher'] as const).map((value) => (
+            <option key={value} value={value}>{t(`admin.academicSetup.assignmentRoles.${value}`)}</option>
+          ))}
+        </select>
+      </label>
       {classId && subjectId ? (
         <div className="col" style={{ gap: 8 }}>
           <label className="col" style={{ gap: 4 }}>
@@ -225,6 +271,17 @@ export function AssignmentFormDrawer({
           onCandidatesReloaded={() => setRecheckNotice(true)}
         />
 
+        {reviewing && selection.teacherId ? (
+          <div className="info-banner" role="status">
+            <strong>{t('admin.academicSetup.previewAssignment')}</strong>
+            <p className="tiny muted">
+              {classes.find((item) => item.id === classId)?.name ?? assignment?.class.name} ·{' '}
+              {subjects.find((item) => item.id === subjectId)?.name ?? assignment?.subject.name} ·{' '}
+              {t(`admin.academicSetup.assignmentRoles.${role}`)}
+            </p>
+          </div>
+        ) : null}
+
         <div className="row" style={{ gap: 8 }}>
           {assignment ? (
             <>
@@ -232,16 +289,18 @@ export function AssignmentFormDrawer({
                 type="button"
                 className="btn btn--primary btn--sm"
                 disabled={!canSubmit}
-                onClick={() =>
-                  onUpdate(assignment.id, {
+              onClick={() => {
+                if (!reviewing) { setReviewing(true); return; }
+                onUpdate(assignment.id, {
                     teacher_id: selection.teacherId!,
                     weekly_hours: Number(weeklyHours) || undefined,
+                    role,
                     teaching_offering_id: offeringId ? Number(offeringId) : null,
                     ...buildOverrideFields(),
-                  })
-                }
+                  });
+              }}
               >
-                {t('admin.academicSetup.confirmAssignment')}
+                {reviewing ? t('admin.academicSetup.confirmAssignment') : t('admin.academicSetup.previewAssignment')}
               </button>
               <button
                 type="button"
@@ -249,7 +308,7 @@ export function AssignmentFormDrawer({
                 disabled={saving}
                 onClick={() => onDelete(assignment)}
               >
-                {t('admin.academicSetup.deactivateAssignment')}
+              {t('admin.academicSetup.removeAssignment')}
               </button>
             </>
           ) : (
@@ -259,18 +318,20 @@ export function AssignmentFormDrawer({
               disabled={!canSubmit || !classId || !subjectId}
               onClick={() => {
                 if (!classId || !subjectId || !selection.teacherId) return;
+                if (!reviewing) { setReviewing(true); return; }
                 onCreate({
+                  academic_year_id: academicYearId,
                   class_id: classId,
                   subject_id: subjectId,
                   teacher_id: selection.teacherId,
                   weekly_hours: Number(weeklyHours) || 2,
-                  role: 'main',
+                  role,
                   teaching_offering_id: offeringId ? Number(offeringId) : undefined,
                   ...buildOverrideFields(),
                 });
               }}
             >
-              {t('admin.academicSetup.confirmAssignment')}
+              {reviewing ? t('admin.academicSetup.confirmAssignment') : t('admin.academicSetup.previewAssignment')}
             </button>
           )}
         </div>

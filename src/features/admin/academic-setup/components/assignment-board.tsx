@@ -3,9 +3,10 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card } from '@/components/ui/primitives';
+import { Pagination } from '@/components/tables/data-table';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import type { SchoolClass } from '@/types/class';
+import type { SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
 import {
   createTeachingAssignment,
@@ -32,9 +33,13 @@ export type AssignmentViewMode = 'class' | 'teacher' | 'subject';
 
 export function AssignmentBoard({
   classes,
+  subjects,
+  academicYears,
   canManage,
 }: {
   classes: SchoolClass[];
+  subjects: Subject[];
+  academicYears: { id: number; name: string; is_current?: boolean }[];
   canManage: boolean;
 }) {
   const t = useT();
@@ -46,9 +51,17 @@ export function AssignmentBoard({
   const [editing, setEditing] = useState<TeachingAssignment | null>(null);
   const [pickMissing, setPickMissing] = useState<SetupReadinessIssue | null>(null);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [academicYearId, setAcademicYearId] = useState(() => {
+    const requested = searchParams.get('academic_year_id');
+    return requested ?? '';
+  });
+
+  const effectiveYearId = academicYearId || String(academicYears.find((year) => year.is_current)?.id ?? academicYears[0]?.id ?? '');
 
   const query = useMemo(() => {
-    const q: Record<string, string | number> = { limit: 500 };
+    const q: Record<string, string | number> = { page, limit: 50 };
+    if (effectiveYearId) q.academic_year_id = effectiveYearId;
     const classId = searchParams.get('class_id');
     const teacherId = searchParams.get('teacher_id');
     const subjectId = searchParams.get('subject_id');
@@ -56,10 +69,13 @@ export function AssignmentBoard({
     if (teacherId) q.teacher_id = teacherId;
     if (subjectId) q.subject_id = subjectId;
     return q;
-  }, [searchParams]);
+  }, [searchParams, page, effectiveYearId]);
 
-  const { assignments, loading, error, reload } = useTeachingAssignments(query);
-  const readinessState = useSetupReadiness();
+  const { assignments, loading, error, meta, reload } = useTeachingAssignments(query);
+  const readinessState = useSetupReadiness(
+    effectiveYearId ? { academic_year_id: effectiveYearId } : undefined,
+  );
+  const pagination = meta?.pagination;
 
   const missingIssues = useMemo(() => {
     const all = filterAssignmentMissingIssues(readinessState.data?.issues ?? []);
@@ -118,7 +134,11 @@ export function AssignmentBoard({
       toast.error(mapAcademicSetupApiError(res.error, t, 'assignment'));
       return;
     }
-    toast.success(t('admin.actionSuccess'));
+    toast.success(
+      res.data.action === 'deleted'
+        ? t('admin.academicSetup.assignmentDeleted')
+        : t('admin.academicSetup.assignmentDeactivated'),
+    );
     setFormOpen(false);
     setEditing(null);
     invalidate();
@@ -127,6 +147,21 @@ export function AssignmentBoard({
   return (
     <div className="academic-setup-assignment-board">
       <div className="academic-toolbar academic-setup-assignment-toolbar">
+        <label className="field" style={{ margin: 0 }}>
+          <span>{t('admin.academicSetup.academicYear')}</span>
+          <select
+            value={effectiveYearId}
+            onChange={(event) => {
+              setAcademicYearId(event.target.value);
+              setPage(1);
+              setEditing(null);
+              setPickMissing(null);
+              setFormOpen(false);
+            }}
+          >
+            {academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
+          </select>
+        </label>
         <div className="academic-setup-view-tabs" role="tablist">
           {(['class', 'teacher', 'subject'] as const).map((mode) => (
             <button
@@ -146,7 +181,18 @@ export function AssignmentBoard({
             {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
           </button>
         )}
+        {canManage ? (
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => { setEditing(null); setPickMissing(null); setFormOpen(true); }}>
+            {t('admin.academicSetup.addAssignment')}
+          </button>
+        ) : null}
       </div>
+
+      {readinessState.data?.academic_year ? (
+        <p className="tiny muted" role="status">
+          {t('admin.academicSetup.activeAcademicYear', { year: readinessState.data.academic_year.name })}
+        </p>
+      ) : null}
 
       <Card pad={false}>
         {loading ? (
@@ -173,11 +219,14 @@ export function AssignmentBoard({
             }}
           />
         ) : view === 'teacher' ? (
-          <AssignmentByTeacher assignments={assignments} />
+          <AssignmentByTeacher assignments={assignments} canManage={canManage} onEdit={(a) => { setEditing(a); setPickMissing(null); setFormOpen(true); }} />
         ) : (
-          <AssignmentBySubject assignments={assignments} />
+          <AssignmentBySubject assignments={assignments} canManage={canManage} onEdit={(a) => { setEditing(a); setPickMissing(null); setFormOpen(true); }} />
         )}
       </Card>
+      {pagination ? (
+        <Pagination page={pagination.page} totalPages={pagination.total_pages} total={pagination.total} pageSize={pagination.page_size || 50} onPage={setPage} />
+      ) : null}
 
       <AssignmentFormDrawer
         open={formOpen}
@@ -188,6 +237,9 @@ export function AssignmentBoard({
         }}
         assignment={editing}
         missingIssue={pickMissing}
+        classes={classes}
+        subjects={subjects}
+        academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
         canManage={canManage}
         saving={saving}
         onCreate={handleCreate}

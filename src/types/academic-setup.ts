@@ -38,6 +38,8 @@ export interface TeachingAssignment {
   notes?: string | null;
   teaching_offering_id?: number | null;
   teaching_offering?: { id: number; display_name: string; state: string } | null;
+  academic_year?: { id: number; name: string } | null;
+  allowed_actions?: Record<string, boolean> | string[];
 }
 
 export type AssignmentSuggestionLabel =
@@ -387,4 +389,8 @@ export interface SetupReadinessPayload {
   issues: SetupReadinessIssue[];
   issues_total?: number;
   quick_actions?: SetupQuickAction[];
+  academic_year_id?: number | null;
+  academic_year?: { id: number; name: string } | null;
+  academic_year_source?: string | null;
+  assignment_contract?: { completeness_role?: TeachingAssignmentRole | string };
 }

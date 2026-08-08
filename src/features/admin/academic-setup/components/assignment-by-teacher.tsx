@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { TeachingAssignment } from '@/types/academic-setup';
 
-export function AssignmentByTeacher({ assignments }: { assignments: TeachingAssignment[] }) {
+export function AssignmentByTeacher({ assignments, canManage, onEdit }: { assignments: TeachingAssignment[]; canManage: boolean; onEdit: (assignment: TeachingAssignment) => void }) {
   const t = useT();
 
   const grouped = useMemo(() => {
@@ -34,7 +34,7 @@ export function AssignmentByTeacher({ assignments }: { assignments: TeachingAssi
           {rows.map((row) => (
             <div key={row.id} className="academic-setup-assignment-row">
               <span>{row.class.name}</span>
-              <span>{row.subject.name}</span>
+              <button type="button" className="btn btn--ghost btn--sm" disabled={!canManage} onClick={() => onEdit(row)}>{row.subject.name}</button>
             </div>
           ))}
         </div>
