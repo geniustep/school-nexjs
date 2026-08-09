@@ -51,6 +51,34 @@ const REASON_LABEL_KEYS: Record<string, string> = {
     'admin.teacherDomain.eligibleTeachers.reasons.availabilityNotEvaluated',
 };
 
+type CandidateDecision = 'eligible' | 'warnings' | 'blocked' | 'allowed_with_override';
+
+type CandidateDecisionAliases = {
+  decision?: CandidateDecision | null;
+  blocked?: boolean;
+  allowed_with_override?: boolean;
+  warnings?: boolean;
+};
+
+function resolveCandidateDecision(candidate: TeachingAssignmentCandidate): CandidateDecision {
+  const aliases = candidate as TeachingAssignmentCandidate & CandidateDecisionAliases;
+  if (aliases.decision) return aliases.decision;
+  if (aliases.blocked === true) return 'blocked';
+  if (aliases.allowed_with_override === true) return 'allowed_with_override';
+  if (aliases.warnings === true) return 'warnings';
+
+  switch (candidate.eligibility_state) {
+    case 'not_eligible':
+      return 'blocked';
+    case 'override_required':
+      return 'allowed_with_override';
+    case 'eligible_with_warning':
+      return 'warnings';
+    default:
+      return 'eligible';
+  }
+}
+
 export function candidateStateLabelKey(state: TeachingAssignmentCandidateState): string {
   return STATE_LABEL_KEYS[state];
 }
@@ -77,8 +105,10 @@ export function canSelectCandidate(
   if (opts?.currentTeacherId != null && candidate.teacher_id === opts.currentTeacherId) {
     return true;
   }
-  if (candidate.eligibility_state === 'not_eligible') return false;
-  if (candidate.eligibility_state === 'override_required') {
+
+  const decision = resolveCandidateDecision(candidate);
+  if (decision === 'blocked') return false;
+  if (decision === 'allowed_with_override') {
     return (
       allowed?.can_override_assignment_eligibility === true &&
       candidate.allowed_actions?.can_override === true
@@ -95,7 +125,7 @@ export function candidateNeedsOverride(
   if (opts?.currentTeacherId != null && candidate.teacher_id === opts.currentTeacherId) {
     return false;
   }
-  return candidate.eligibility_state === 'override_required';
+  return resolveCandidateDecision(candidate) === 'allowed_with_override';
 }
 
 export function formatWeeklyLoadValue(
@@ -140,7 +170,7 @@ export function partitionCandidates(candidates: TeachingAssignmentCandidate[]): 
   const selectable: TeachingAssignmentCandidate[] = [];
   const ineligible: TeachingAssignmentCandidate[] = [];
   for (const candidate of candidates) {
-    if (candidate.eligibility_state === 'not_eligible') ineligible.push(candidate);
+    if (resolveCandidateDecision(candidate) === 'blocked') ineligible.push(candidate);
     else selectable.push(candidate);
   }
   return { selectable, ineligible };
