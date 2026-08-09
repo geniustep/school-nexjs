@@ -20,6 +20,7 @@ import {
 } from '@/features/admin/academic-setup/utils/teacher-create';
 import { resolveTeacherTypeLabelFromCode } from '@/features/admin/staff/utils/staff-center-present';
 import { TeacherAcademicProfilePanel } from '@/features/admin/teachers/components/teacher-academic-profile-panel';
+import { TeacherAssignmentsPanel } from '@/features/admin/teachers/components/teacher-assignments-panel';
 import { TeacherCreateReadinessBanner } from '@/features/admin/teachers/components/teacher-create-readiness-banner';
 import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
 import { TeacherStaffAccountSection } from '@/features/admin/teachers/components/teacher-staff-account-section';
@@ -403,53 +404,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
                   ) : null}
 
                   {tab === 'assignments' ? (
-                    <Card>
-                      <SectionHead
-                        title={t('admin.teacherDomain.tabs.assignments')}
-                        action={
-                          <Link
-                            href={`/admin/teaching-assignments?teacher_id=${teacher.id}`}
-                            className="btn btn--ghost btn--sm"
-                          >
-                            {t('admin.teacherDomain.detail.openAssignments')}
-                          </Link>
-                        }
-                      />
-                      <p className="tiny muted">
-                        {t('admin.teacherDomain.detail.assignmentsSummaryHint')}
-                      </p>
-                      <DefinitionList
-                        items={[
-                          {
-                            label: t('admin.teacherDomain.columns.activeAssignments'),
-                            value: String(
-                              workload?.active_assignment_count ??
-                                teacher.assignment_summary?.operational_count ??
-                                teacher.assignment_summary?.active_count ??
-                                0,
-                            ),
-                          },
-                          {
-                            label: t('admin.teacherDomain.detail.totalAssignments'),
-                            value: String(
-                              workload?.assignment_count ?? teacher.assignment_summary?.total_count ?? 0,
-                            ),
-                          },
-                          {
-                            label: t('admin.teacherDomain.eligibleTeachers.weeklyLoad'),
-                            value: workloadValue(
-                              workload?.planned_weekly_hours ??
-                                teacher.assignment_summary?.planned_weekly_load,
-                              t('common.dash'),
-                            ),
-                          },
-                          {
-                            label: t('admin.teacherDomain.eligibleTeachers.remainingCapacity'),
-                            value: workloadValue(workload?.remaining_capacity, t('common.dash')),
-                          },
-                        ]}
-                      />
-                    </Card>
+                    <TeacherAssignmentsPanel teacher={teacher} />
                   ) : null}
 
                   {tab === 'account' ? (
