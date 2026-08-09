@@ -4,6 +4,7 @@ import { Suspense, use } from 'react';
 import { TeacherProfilePage } from '@/features/admin/teachers/components/teacher-profile-page';
 import { LoadingState } from '@/components/states/states';
 import { useT } from '@/features/i18n/locale-context';
+import '@/features/admin/teachers/teacher-profile-refresh.css';
 
 function TeacherProfilePageBoot({ id }: { id: string }) {
   return <TeacherProfilePage id={id} />;
