@@ -5,6 +5,7 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
 import { formatAcademicClassLabel } from '../utils/format-academic-label';
+import '../assignment-cycle-filter.css';
 
 type ClassBucket = {
   key: string;
@@ -172,14 +173,16 @@ export function AssignmentByClass({
     );
   }
 
+  const cyclesLabel = t('admin.teacherDomain.academic.eligibleCycles');
+  const levelsLabel = t('admin.teacherDomain.academic.eligibleLevels');
+
   return (
     <div className="assignment-levels">
       <section className="assignment-filter-step assignment-filter-step--cycle">
         <div className="assignment-filter-step__head">
-          <strong>السلك</strong>
-          <span className="tiny muted">اختر السلك أولًا</span>
+          <strong>{cyclesLabel}</strong>
         </div>
-        <div className="assignment-cycle-filter" role="tablist" aria-label="السلك">
+        <div className="assignment-cycle-filter" role="tablist" aria-label={cyclesLabel}>
           {groupedCycles.map((group) => {
             const active = group.key === effectiveCycleKey;
             const missingCount = group.classes.reduce(
@@ -210,10 +213,10 @@ export function AssignmentByClass({
       {selectedCycle ? (
         <section className="assignment-filter-step assignment-filter-step--level">
           <div className="assignment-filter-step__head">
-            <strong>المستوى</strong>
+            <strong>{levelsLabel}</strong>
             <span className="tiny muted" dir="auto">{selectedCycle.label}</span>
           </div>
-          <div className="assignment-level-filter" role="tablist" aria-label="المستوى">
+          <div className="assignment-level-filter" role="tablist" aria-label={levelsLabel}>
             {selectedCycle.levels.map((group) => {
               const active = group.key === effectiveLevelKey;
               const missingCount = group.classes.reduce(
