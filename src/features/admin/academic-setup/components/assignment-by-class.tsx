@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
@@ -31,6 +31,7 @@ export function AssignmentByClass({
 }) {
   const t = useT();
   const { locale } = useLocale();
+  const [selectedLevelKey, setSelectedLevelKey] = useState('');
 
   const collator = useMemo(
     () => new Intl.Collator(locale || 'ar', { numeric: true, sensitivity: 'base' }),
@@ -107,24 +108,53 @@ export function AssignmentByClass({
     return [...groups.values()].sort((a, b) => collator.compare(a.label, b.label));
   }, [classList, collator, t]);
 
+  const effectiveLevelKey =
+    selectedLevelKey && groupedClasses.some((group) => group.key === selectedLevelKey)
+      ? selectedLevelKey
+      : groupedClasses[0]?.key ?? '';
+  const selectedGroup = groupedClasses.find((group) => group.key === effectiveLevelKey) ?? null;
+
   if (!classList.length && !assignments.length) {
     return <p className="muted assignment-workspace__empty">{t('admin.academicSetup.noAssignments')}</p>;
   }
 
   return (
     <div className="assignment-levels">
-      {groupedClasses.map((group) => (
-        <section key={group.key} className="assignment-level-group">
+      <div className="assignment-level-filter" role="tablist" aria-label={t('admin.academicSetup.viewBy.class')}>
+        {groupedClasses.map((group) => {
+          const active = group.key === effectiveLevelKey;
+          const missingCount = group.classes.reduce(
+            (total, cls) => total + (missingByClass.get(cls.id)?.length ?? 0),
+            0,
+          );
+          return (
+            <button
+              key={group.key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={active ? 'assignment-level-filter__tile assignment-level-filter__tile--active' : 'assignment-level-filter__tile'}
+              onClick={() => setSelectedLevelKey(group.key)}
+            >
+              <strong dir="auto">{group.label}</strong>
+              <span>{group.classes.length} · {missingCount}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {selectedGroup ? (
+        <section className="assignment-level-group">
           <header className="assignment-level-group__head">
             <div>
-              <span className="assignment-level-group__kicker">{t('admin.academicSetup.level')}</span>
-              <h3 dir="auto">{group.label}</h3>
+              <h3 dir="auto">{selectedGroup.label}</h3>
+              <p className="tiny muted">{selectedGroup.classes.length} {t('admin.academicSetup.viewBy.class')}</p>
             </div>
-            <span className="assignment-level-group__count">{group.classes.length}</span>
+            <span className="assignment-level-group__count">{selectedGroup.classes.length}</span>
           </header>
 
           <div className="assignment-class-grid">
-            {group.classes.map((cls) => {
+            {selectedGroup.classes.map((cls) => {
               const rows = [...(byClass.get(cls.id) ?? [])].sort((a, b) => {
                 const rankA = subjectRank.get(a.subject.id) ?? 9999;
                 const rankB = subjectRank.get(b.subject.id) ?? 9999;
@@ -199,7 +229,7 @@ export function AssignmentByClass({
             })}
           </div>
         </section>
-      ))}
+      ) : null}
     </div>
   );
 }
