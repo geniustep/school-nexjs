@@ -1,0 +1,93 @@
+.assignment-filter-step {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--c-text) 4%, transparent);
+}
+
+.assignment-filter-step--cycle {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--c-primary) 5%, var(--c-surface, #fff)),
+    var(--c-surface, #fff)
+  );
+}
+
+.assignment-filter-step__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-inline: 2px;
+}
+
+.assignment-filter-step__head > strong {
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.assignment-cycle-filter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.assignment-cycle-filter__tile {
+  display: grid;
+  gap: 6px;
+  min-height: 88px;
+  padding: 15px 16px;
+  text-align: start;
+  border: 1px solid var(--c-border);
+  border-radius: 15px;
+  background: var(--c-surface, #fff);
+  color: inherit;
+  cursor: pointer;
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--c-text) 5%, transparent);
+  transition: transform .14s ease, border-color .14s ease, background .14s ease, box-shadow .14s ease;
+}
+
+.assignment-cycle-filter__tile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--c-primary) 34%, var(--c-border));
+}
+
+.assignment-cycle-filter__tile strong {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.assignment-cycle-filter__tile span {
+  color: var(--c-text-muted, var(--c-muted));
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.assignment-cycle-filter__tile--active {
+  border-color: color-mix(in srgb, var(--c-primary) 52%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 9%, var(--c-surface, #fff));
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--c-primary) 12%, transparent);
+}
+
+.assignment-cycle-filter__tile--active strong {
+  color: var(--c-primary);
+}
+
+.assignment-cycle-filter__tile:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--c-primary) 24%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .assignment-cycle-filter {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-cycle-filter__tile {
+    min-height: 76px;
+    padding: 12px;
+  }
+}
