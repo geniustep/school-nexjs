@@ -2,13 +2,14 @@
 
 import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
+import { StaffCompensationPanel } from '@/features/admin/staff/components/staff-compensation-panel';
 import { useT } from '@/features/i18n/locale-context';
 import type { Teacher } from '@/types/teacher';
 
 /**
- * Displays teacher-linked account status on the teacher profile.
- * Does not link to /admin/staff/{user_id}: a teacher user_id alone does not
- * prove Staff Center eligibility.
+ * Displays teacher-linked account status and the staff-first compensation bridge.
+ * Compensation remains owned by Staff Compensation V1; the teacher profile does
+ * not create a separate payroll domain.
  */
 export function TeacherStaffAccountSection({ teacher }: { teacher: Teacher }) {
   const t = useT();
@@ -19,7 +20,7 @@ export function TeacherStaffAccountSection({ teacher }: { teacher: Teacher }) {
   const needsPasswordSetup = accountStatus === 'password_setup_required';
 
   return (
-    <div data-testid="teacher-account-status-card">
+    <div data-testid="teacher-account-status-card" className="teacher-staff-account-stack">
       <Card>
         <SectionHead title={t('admin.staffCenter.teacherAccountCardTitle')} />
         <p className="muted mb-2">{t('admin.staffCenter.teacherAccountCardDesc')}</p>
@@ -41,6 +42,7 @@ export function TeacherStaffAccountSection({ teacher }: { teacher: Teacher }) {
           ]}
         />
       </Card>
+      <StaffCompensationPanel teacherId={teacher.id} />
     </div>
   );
 }
