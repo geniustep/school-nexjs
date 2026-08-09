@@ -102,6 +102,7 @@ export interface SchoolClass {
     display_alias?: string | null;
     academic_code?: string | null;
     moroccan_display_alias?: string | null;
+    cycle?: LevelCycle | null;
   }) | null;
   track?: TrackRef | null;
   track_id?: number | null;
