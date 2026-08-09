@@ -53,6 +53,31 @@ type ProfileTab =
 
 type LifecycleAction = 'terminate' | 'archive' | 'reactivate' | null;
 
+type TeacherWorkloadSummary = {
+  planned_weekly_hours?: number | null;
+  assignment_count?: number | null;
+  active_assignment_count?: number | null;
+  workload_limit?: number | null;
+  remaining_capacity?: number | null;
+  over_capacity?: boolean;
+  warnings?: unknown[];
+  reasons?: unknown[];
+  derived?: boolean;
+  writable?: boolean;
+  source?: string | null;
+};
+
+function getTeacherWorkloadSummary(teacher: TeacherDetail): TeacherWorkloadSummary | null {
+  const row = teacher as TeacherDetail & {
+    workload_summary?: TeacherWorkloadSummary | null;
+  };
+  return row.workload_summary ?? null;
+}
+
+function workloadValue(value: number | null | undefined, dash: string): string {
+  return value == null ? dash : String(value);
+}
+
 const TABS: ProfileTab[] = [
   'overview',
   'academic',
@@ -175,6 +200,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
           const showAdminPrivate = canViewTeacherAdminPrivateFields(sessionUser, teacher.id);
           const name = teacherDisplayName(teacher);
           const warningCount = teacherWarningCount(teacher);
+          const workload = getTeacherWorkloadSummary(teacher);
 
           return (
             <>
@@ -198,6 +224,11 @@ export function TeacherProfilePage({ id }: { id: string }) {
                       {statusLabel(t, teacherEmploymentState(teacher))}
                     </Badge>
                     <Badge tone="slate">{t(teacherAccountStateLabelKey(teacher))}</Badge>
+                    {workload?.over_capacity ? (
+                      <Badge tone="amber">
+                        {t('admin.teacherDomain.eligibleTeachers.reasons.weeklyLimitExceeded')}
+                      </Badge>
+                    ) : null}
                     {warningCount > 0 ? (
                       <Badge tone="amber">
                         {t('admin.teacherDomain.list.warningCount', { count: warningCount })}
@@ -304,7 +335,8 @@ export function TeacherProfilePage({ id }: { id: string }) {
                             {
                               label: t('admin.teacherDomain.columns.activeAssignments'),
                               value: String(
-                                teacher.assignment_summary?.operational_count ??
+                                workload?.active_assignment_count ??
+                                  teacher.assignment_summary?.operational_count ??
                                   teacher.assignment_summary?.active_count ??
                                   0,
                               ),
@@ -318,6 +350,39 @@ export function TeacherProfilePage({ id }: { id: string }) {
                           ]}
                         />
                       </Card>
+                      {workload ? (
+                        <Card>
+                          <SectionHead
+                            title={t('admin.teacherDomain.eligibleTeachers.weeklyLoad')}
+                          />
+                          <DefinitionList
+                            items={[
+                              {
+                                label: t('admin.teacherDomain.eligibleTeachers.weeklyLoad'),
+                                value: workloadValue(
+                                  workload.planned_weekly_hours,
+                                  t('common.dash'),
+                                ),
+                              },
+                              {
+                                label: t('admin.teacherDomain.eligibleTeachers.weeklyMax'),
+                                value: workloadValue(workload.workload_limit, t('common.dash')),
+                              },
+                              {
+                                label: t('admin.teacherDomain.eligibleTeachers.remainingCapacity'),
+                                value: workloadValue(
+                                  workload.remaining_capacity,
+                                  t('common.dash'),
+                                ),
+                              },
+                              {
+                                label: t('admin.teacherDomain.detail.totalAssignments'),
+                                value: workloadValue(workload.assignment_count, t('common.dash')),
+                              },
+                            ]}
+                          />
+                        </Card>
+                      ) : null}
                     </div>
                   ) : null}
 
@@ -358,14 +423,29 @@ export function TeacherProfilePage({ id }: { id: string }) {
                           {
                             label: t('admin.teacherDomain.columns.activeAssignments'),
                             value: String(
-                              teacher.assignment_summary?.operational_count ??
+                              workload?.active_assignment_count ??
+                                teacher.assignment_summary?.operational_count ??
                                 teacher.assignment_summary?.active_count ??
                                 0,
                             ),
                           },
                           {
                             label: t('admin.teacherDomain.detail.totalAssignments'),
-                            value: String(teacher.assignment_summary?.total_count ?? 0),
+                            value: String(
+                              workload?.assignment_count ?? teacher.assignment_summary?.total_count ?? 0,
+                            ),
+                          },
+                          {
+                            label: t('admin.teacherDomain.eligibleTeachers.weeklyLoad'),
+                            value: workloadValue(
+                              workload?.planned_weekly_hours ??
+                                teacher.assignment_summary?.planned_weekly_load,
+                              t('common.dash'),
+                            ),
+                          },
+                          {
+                            label: t('admin.teacherDomain.eligibleTeachers.remainingCapacity'),
+                            value: workloadValue(workload?.remaining_capacity, t('common.dash')),
                           },
                         ]}
                       />
