@@ -38,7 +38,6 @@ import {
   teacherInitials,
   teacherPrimaryActions,
 } from '@/features/admin/teachers/utils/teacher-domain-present';
-import { hasAllowedAction } from '@/features/admin/teachers/utils/teacher-domain-allowed-actions';
 import { normalizeTeacherSummaries } from '@/features/admin/teachers/utils/teacher-domain-normalize';
 import {
   countTeacherInterventions,
@@ -50,10 +49,12 @@ import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import type { TeacherSummary } from '@/types/teacher-domain';
 import '@/features/admin/teachers/teachers-list.css';
 import '@/features/admin/teachers/teachers-domain.css';
+import '@/features/admin/teachers/teachers-list-density.css';
 
 type LifecycleAction = 'terminate' | 'archive' | 'reactivate' | null;
 
@@ -118,9 +119,6 @@ export function TeachersListPage() {
     [manuallyFiltered, operationalPreset],
   );
 
-  // Card composition counts follow the rows available after independent manual
-  // filters (and before the operational preset), so the number matches what the
-  // user can still reach when clicking a card without a silent mismatch.
   const interventionCounts = useMemo(
     () => countTeacherInterventions(manuallyFiltered),
     [manuallyFiltered],
@@ -171,6 +169,8 @@ export function TeachersListPage() {
     legacyPermission: 'manage_teachers',
     capability: 'manage_teachers',
   });
+  const canShowSecondaryActions =
+    hasPermission(user, 'export_data') || hasPermission(user, 'import_data');
 
   const resetFilters = () => {
     setSearchDraft('');
@@ -183,11 +183,7 @@ export function TeachersListPage() {
 
   const applyOperationalPreset = (preset: TeacherOperationalPreset) => {
     setOperationalPreset(preset);
-    // Avoid silent conflict with the legacy hasAssignments select when using
-    // the operational_count-based no_assignment preset.
-    if (preset === 'no_assignment') {
-      setHasAssignments('');
-    }
+    if (preset === 'no_assignment') setHasAssignments('');
     setPage(1);
   };
 
@@ -256,106 +252,85 @@ export function TeachersListPage() {
                 <strong className="teachers-list__name" dir="auto" title={name}>
                   {name}
                 </strong>
-                <span className="teachers-list__code mono muted" dir="auto">
-                  {teacher.code ?? t('common.dash')}
-                </span>
+                {teacher.code ? (
+                  <span className="teachers-list__code mono muted" dir="auto">
+                    {teacher.code}
+                  </span>
+                ) : null}
               </div>
             </div>
           );
         },
       },
       {
-        key: 'employment',
-        header: t('admin.teacherDomain.columns.employment'),
-        render: (teacher) => (
-          <Badge tone={teacherEmploymentState(teacher) === 'active' ? 'green' : 'slate'}>
-            {statusLabel(t, teacherEmploymentState(teacher))}
-          </Badge>
-        ),
-      },
-      {
-        key: 'account',
-        header: t('admin.teacherDomain.columns.account'),
-        className: 'teachers-list__academic-col',
-        render: (teacher) => (
-          <span className="teachers-list__meta" dir="auto">
-            {t(teacherAccountStateLabelKey(teacher))}
-          </span>
-        ),
-      },
-      {
-        key: 'specialization',
+        key: 'teaching',
         header: t('admin.teacherDomain.columns.specialization'),
-        className: 'teachers-list__academic-col',
-        render: (teacher) => (
-          <span className="teachers-list__academic" dir="auto">
-            {teacher.specialization?.trim() || t('common.dash')}
-          </span>
-        ),
+        render: (teacher) => {
+          const assignmentCount =
+            teacher.assignment_summary?.operational_count ??
+            teacher.assignment_summary?.active_count ??
+            0;
+          const plannedLoad = formatPlannedLoad(
+            teacher.academic_profile_summary?.weekly_hours_target ?? teacher.weekly_hours_target,
+            t('common.dash'),
+          );
+          return (
+            <div className="teachers-list__teaching">
+              <span className="teachers-list__academic" dir="auto">
+                {teacher.specialization?.trim() || t('common.dash')}
+              </span>
+              <span className="teachers-list__teaching-meta muted">
+                {t('admin.teacherDomain.columns.activeAssignments')}: <bdi>{assignmentCount}</bdi>
+                {' · '}
+                {t('admin.teacherDomain.columns.weeklyTarget')}: <bdi>{plannedLoad}</bdi>
+              </span>
+            </div>
+          );
+        },
       },
       {
-        key: 'assignments',
-        header: t('admin.teacherDomain.columns.activeAssignments'),
-        render: (teacher) => (
-          <span className="teachers-list__meta" dir="ltr">
-            {teacher.assignment_summary?.operational_count ??
-              teacher.assignment_summary?.active_count ??
-              t('common.dash')}
-          </span>
-        ),
-      },
-      {
-        key: 'loadTarget',
-        header: t('admin.teacherDomain.columns.weeklyTarget'),
-        className: 'teachers-list__academic-col',
-        render: (teacher) => (
-          <span className="teachers-list__meta" dir="ltr">
-            {formatPlannedLoad(
-              teacher.academic_profile_summary?.weekly_hours_target ??
-                teacher.weekly_hours_target,
-              t('common.dash'),
-            )}
-          </span>
-        ),
-      },
-      {
-        key: 'intervention',
+        key: 'attention',
         header: t('admin.teacherDomain.columns.intervention'),
-        render: (teacher) => <TeachersListInterventionCell teacher={teacher} />,
+        render: (teacher) => {
+          const employment = teacherEmploymentState(teacher);
+          const accountKey = teacherAccountStateLabelKey(teacher);
+          const accountNeedsAttention = accountKey !== 'admin.teacherDomain.account.active';
+          return (
+            <div className="teachers-list__attention">
+              {employment !== 'active' ? (
+                <Badge tone="slate">{statusLabel(t, employment)}</Badge>
+              ) : null}
+              {accountNeedsAttention ? (
+                <span className="teachers-list__attention-note" dir="auto">
+                  {t(accountKey)}
+                </span>
+              ) : null}
+              <TeachersListInterventionCell teacher={teacher} />
+            </div>
+          );
+        },
       },
       {
         key: 'actions',
         header: '',
-        width: '140px',
+        width: '104px',
         render: (teacher) => {
           const actions = teacherPrimaryActions(teacher);
-          return (
+          return actions.includes('archive') ? (
             <div
               className="teachers-list__row-actions"
               onClick={(event) => event.stopPropagation()}
             >
-              {actions.includes('archive') ? (
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  aria-label={t('admin.teacherDomain.lifecycle.archive')}
-                  onClick={() => setLifecycle({ teacher, action: 'archive' })}
-                >
-                  {t('admin.teacherDomain.lifecycle.archiveShort')}
-                </button>
-              ) : null}
-              {hasAllowedAction(teacher.allowed_actions, 'view') || true ? (
-                <Link
-                  href={`/admin/teachers/${teacher.id}`}
-                  className="teachers-list__view-link"
-                  aria-label={t('common.view')}
-                  title={t('common.view')}
-                >
-                  <span aria-hidden="true">→</span>
-                </Link>
-              ) : null}
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                aria-label={t('admin.teacherDomain.lifecycle.archive')}
+                onClick={() => setLifecycle({ teacher, action: 'archive' })}
+              >
+                {t('admin.teacherDomain.lifecycle.archiveShort')}
+              </button>
             </div>
-          );
+          ) : null;
         },
       },
     ],
@@ -366,27 +341,31 @@ export function TeachersListPage() {
     <div className="admin-workspace teachers-list-page">
       <PageHeader
         title={t('nav.teachers')}
-        subtitle={
-          check && !check.ok
-            ? t('admin.teacherDomain.contract.incompatible')
-            : schoolTotal != null
-              ? t('admin.teacherDomain.list.subtitleWithCount', { total: schoolTotal })
-              : t('admin.teachersListDesc')
-        }
+        subtitle={check && !check.ok ? t('admin.teacherDomain.contract.incompatible') : undefined}
         actions={
-          <div className="teachers-list__header-actions">
-            <AdminListActions
-              addHref="/admin/teachers/new"
-              addLabel={t('admin.addTeacher')}
-              addCapability="manage_teachers"
-              managePermission="manage_teachers"
-              exportPath={endpoints.admin.teachersExport}
-              exportFilename="teachers.csv"
-              showImport
-              importOpen={importOpen}
-              onToggleImport={() => setImportOpen((v) => !v)}
-            />
-          </div>
+          canAddTeacher || canShowSecondaryActions ? (
+            <div className="teachers-list__header-actions">
+              {canAddTeacher ? (
+                <Link href="/admin/teachers/new" className="btn btn--primary btn--sm">
+                  {t('admin.addTeacher')}
+                </Link>
+              ) : null}
+              {canShowSecondaryActions ? (
+                <details className="teachers-list__more-actions">
+                  <summary className="btn btn--ghost btn--sm">المزيد</summary>
+                  <div className="teachers-list__more-actions-menu">
+                    <AdminListActions
+                      exportPath={endpoints.admin.teachersExport}
+                      exportFilename="teachers.csv"
+                      showImport
+                      importOpen={importOpen}
+                      onToggleImport={() => setImportOpen((value) => !value)}
+                    />
+                  </div>
+                </details>
+              ) : null}
+            </div>
+          ) : null
         }
       />
 
