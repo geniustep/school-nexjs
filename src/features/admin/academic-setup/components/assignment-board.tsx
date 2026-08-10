@@ -28,6 +28,7 @@ import {
   type AssignmentFormUpdatePayload,
 } from './assignment-form-drawer';
 import { MissingAssignmentsDrawer } from './missing-assignments-drawer';
+import '../assignment-workspace-refresh.css';
 
 export type AssignmentViewMode = 'class' | 'teacher' | 'subject';
 
@@ -146,7 +147,7 @@ export function AssignmentBoard({
   }
 
   return (
-    <div className="academic-setup-assignment-board">
+    <div className="academic-setup-assignment-board assignment-workspace">
       <section className="academic-setup-assignment-hero" aria-labelledby="assignment-workspace-title">
         <div>
           <p className="academic-setup-assignment-hero__eyebrow">{t('admin.academicSetup.assignmentWorkspaceEyebrow')}</p>
@@ -181,40 +182,40 @@ export function AssignmentBoard({
 
       <section className="academic-setup-assignment-controls">
         <div className="academic-toolbar academic-setup-assignment-toolbar">
-        <label className="field" style={{ margin: 0 }}>
-          <span>{t('admin.academicSetup.academicYear')}</span>
-          <select
-            value={effectiveYearId}
-            onChange={(event) => {
-              setAcademicYearId(event.target.value);
-              setPage(1);
-              setEditing(null);
-              setPickMissing(null);
-              setFormOpen(false);
-            }}
-          >
-            {academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
-          </select>
-        </label>
-        <div className="academic-setup-view-tabs" role="tablist">
-          {(['class', 'teacher', 'subject'] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              role="tab"
-              aria-selected={view === mode}
-              className={`academic-setup-view-tab${view === mode ? ' academic-setup-view-tab--active' : ''}`}
-              onClick={() => setView(mode)}
+          <label className="field assignment-workspace__year" style={{ margin: 0 }}>
+            <span>{t('admin.academicSetup.academicYear')}</span>
+            <select
+              value={effectiveYearId}
+              onChange={(event) => {
+                setAcademicYearId(event.target.value);
+                setPage(1);
+                setEditing(null);
+                setPickMissing(null);
+                setFormOpen(false);
+              }}
             >
-              {t(`admin.academicSetup.viewBy.${mode}`)}
+              {academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
+            </select>
+          </label>
+          <div className="academic-setup-view-tabs" role="tablist">
+            {(['class', 'teacher', 'subject'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                role="tab"
+                aria-selected={view === mode}
+                className={`academic-setup-view-tab${view === mode ? ' academic-setup-view-tab--active' : ''}`}
+                onClick={() => setView(mode)}
+              >
+                {t(`admin.academicSetup.viewBy.${mode}`)}
+              </button>
+            ))}
+          </div>
+          {missingIssues.length > 0 && canManage && (
+            <button type="button" className="btn btn--primary btn--sm academic-setup-assignment-toolbar__cta" onClick={() => setMissingOpen(true)}>
+              {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
             </button>
-          ))}
-        </div>
-        {missingIssues.length > 0 && canManage && (
-          <button type="button" className="btn btn--primary btn--sm academic-setup-assignment-toolbar__cta" onClick={() => setMissingOpen(true)}>
-            {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
-          </button>
-        )}
+          )}
         </div>
         {readinessState.data?.academic_year ? (
           <p className="tiny muted academic-setup-assignment-controls__context" role="status">
@@ -223,16 +224,17 @@ export function AssignmentBoard({
         ) : null}
       </section>
 
-      <Card pad={false} className="academic-setup-assignment-results">
+      <Card pad={false} className="academic-setup-assignment-results assignment-workspace__results">
         {loading ? (
-          <p className="muted" style={{ padding: 14 }}>{t('common.loading')}</p>
+          <p className="muted assignment-workspace__empty">{t('common.loading')}</p>
         ) : error ? (
-          <p className="muted" style={{ padding: 14 }}>
+          <p className="muted assignment-workspace__empty">
             {sanitizeUserFacingErrorMessage(error.message, t('errors.loadFailedRetry'))}
           </p>
         ) : view === 'class' ? (
           <AssignmentByClass
             classes={classes}
+            subjects={subjects}
             assignments={assignments}
             missingIssues={missingIssues}
             canManage={canManage}

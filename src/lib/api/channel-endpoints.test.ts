@@ -87,5 +87,8 @@ describe('Odoo 259 general communication endpoints', () => {
       '/admin/communication/content/90/submit',
     );
     expect(endpoints.admin.communicationIndividual).toBe('/admin/communication/individual');
+    expect(endpoints.admin.communicationIndividualPreview).toBe(
+      '/admin/communication/individual/preview',
+    );
   });
 });

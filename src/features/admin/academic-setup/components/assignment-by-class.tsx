@@ -1,13 +1,28 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocale, useT } from '@/features/i18n/locale-context';
-import type { SchoolClass } from '@/types/class';
+import type { SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
 import { formatAcademicClassLabel } from '../utils/format-academic-label';
+import '../assignment-cycle-filter.css';
+
+type ClassBucket = {
+  key: string;
+  label: string;
+  classes: SchoolClass[];
+};
+
+type CycleBucket = {
+  key: string;
+  label: string;
+  levels: ClassBucket[];
+  classes: SchoolClass[];
+};
 
 export function AssignmentByClass({
   classes,
+  subjects,
   assignments,
   missingIssues,
   canManage,
@@ -15,6 +30,7 @@ export function AssignmentByClass({
   onEdit,
 }: {
   classes: SchoolClass[];
+  subjects: Subject[];
   assignments: TeachingAssignment[];
   missingIssues: SetupReadinessIssue[];
   canManage: boolean;
@@ -23,6 +39,13 @@ export function AssignmentByClass({
 }) {
   const t = useT();
   const { locale } = useLocale();
+  const [selectedCycleKey, setSelectedCycleKey] = useState('');
+  const [selectedLevelKey, setSelectedLevelKey] = useState('');
+
+  const collator = useMemo(
+    () => new Intl.Collator(locale || 'ar', { numeric: true, sensitivity: 'base' }),
+    [locale],
+  );
 
   const byClass = useMemo(() => {
     const map = new Map<number, TeachingAssignment[]>();
@@ -46,71 +69,279 @@ export function AssignmentByClass({
     return map;
   }, [missingIssues]);
 
-  const classList = classes.length ? classes : [...new Set(assignments.map((a) => a.class.id))].map((id) => {
-    const a = assignments.find((x) => x.class.id === id)!;
-    return { id, name: a.class.name, level: a.class.level_name ? { id: a.class.level_id ?? 0, name: a.class.level_name } : null } as SchoolClass;
-  });
+  const subjectRank = useMemo(() => {
+    const rank = new Map<number, number>();
+    [...subjects]
+      .sort(
+        (a, b) =>
+          (a.sequence ?? 9999) - (b.sequence ?? 9999) || collator.compare(a.name, b.name),
+      )
+      .forEach((subject, index) => rank.set(subject.id, index));
+    return rank;
+  }, [subjects, collator]);
 
-  if (!classList.length && !assignments.length) {
-    return <p className="muted" style={{ padding: 14 }}>{t('admin.academicSetup.noAssignments')}</p>;
+  const classList = useMemo(() => {
+    const source = classes.length
+      ? classes
+      : [...new Set(assignments.map((a) => a.class.id))].map((id) => {
+          const a = assignments.find((x) => x.class.id === id)!;
+          return {
+            id,
+            name: a.class.name,
+            code: null,
+            level: a.class.level_name
+              ? { id: a.class.level_id ?? 0, name: a.class.level_name }
+              : null,
+            academic_year: null,
+            student_count: 0,
+            capacity: null,
+            teachers: [],
+            subjects: [],
+            status: 'active',
+          } as SchoolClass;
+        });
+
+    return [...source].sort((a, b) => {
+      const cycleA = a.level?.cycle?.name ?? '';
+      const cycleB = b.level?.cycle?.name ?? '';
+      const levelA = a.level?.name ?? '';
+      const levelB = b.level?.name ?? '';
+      return (
+        collator.compare(cycleA, cycleB) ||
+        collator.compare(levelA, levelB) ||
+        collator.compare(a.name, b.name)
+      );
+    });
+  }, [classes, assignments, collator]);
+
+  const groupedLevels = useMemo<ClassBucket[]>(() => {
+    const groups = new Map<string, ClassBucket>();
+    for (const cls of classList) {
+      const label = cls.level?.name?.trim() || t('common.dash');
+      const key = cls.level?.id ? `level-${cls.level.id}` : `level-${label}`;
+      const bucket = groups.get(key) ?? { key, label, classes: [] };
+      bucket.classes.push(cls);
+      groups.set(key, bucket);
+    }
+    return [...groups.values()].sort((a, b) => collator.compare(a.label, b.label));
+  }, [classList, collator, t]);
+
+  const groupedCycles = useMemo<CycleBucket[]>(() => {
+    const groups = new Map<string, CycleBucket>();
+    for (const level of groupedLevels) {
+      const sample = level.classes[0];
+      const cycle = sample?.level?.cycle;
+      const label = cycle?.name?.trim() || t('common.dash');
+      const key = cycle?.id ? `cycle-${cycle.id}` : `cycle-${label}`;
+      const bucket = groups.get(key) ?? { key, label, levels: [], classes: [] };
+      bucket.levels.push(level);
+      bucket.classes.push(...level.classes);
+      groups.set(key, bucket);
+    }
+    return [...groups.values()]
+      .map((group) => ({
+        ...group,
+        levels: [...group.levels].sort((a, b) => collator.compare(a.label, b.label)),
+        classes: [...group.classes].sort((a, b) => collator.compare(a.name, b.name)),
+      }))
+      .sort((a, b) => collator.compare(a.label, b.label));
+  }, [groupedLevels, collator, t]);
+
+  const effectiveCycleKey =
+    selectedCycleKey && groupedCycles.some((group) => group.key === selectedCycleKey)
+      ? selectedCycleKey
+      : groupedCycles[0]?.key ?? '';
+  const selectedCycle = groupedCycles.find((group) => group.key === effectiveCycleKey) ?? null;
+
+  const effectiveLevelKey =
+    selectedLevelKey && selectedCycle?.levels.some((group) => group.key === selectedLevelKey)
+      ? selectedLevelKey
+      : selectedCycle?.levels[0]?.key ?? '';
+  const selectedGroup =
+    selectedCycle?.levels.find((group) => group.key === effectiveLevelKey) ?? null;
+
+  function selectCycle(key: string) {
+    setSelectedCycleKey(key);
+    setSelectedLevelKey('');
   }
 
+  if (!classList.length && !assignments.length) {
+    return (
+      <p className="muted assignment-workspace__empty">
+        {t('admin.academicSetup.noAssignments')}
+      </p>
+    );
+  }
+
+  const cyclesLabel = t('admin.teacherDomain.academic.eligibleCycles');
+  const levelsLabel = t('admin.teacherDomain.academic.eligibleLevels');
+
   return (
-    <>
-      {classList.map((cls) => {
-        const rows = byClass.get(cls.id) ?? [];
-        const missing = missingByClass.get(cls.id) ?? [];
-        const assigned = rows.length;
-        const classLabel = formatAcademicClassLabel(cls, locale);
-        return (
-          <div key={cls.id} style={{ padding: '12px 14px', borderBottom: '1px solid var(--c-border)' }}>
-            <div className="between mb-2">
-              <div>
-                <strong>{classLabel.primary}</strong>
-                {classLabel.secondary ? (
-                  <span className="tiny muted mono block" dir="ltr">
-                    {classLabel.secondary}
-                  </span>
-                ) : null}
-              </div>
-              <span className="tiny muted">
-                {t('admin.academicSetup.classAssignmentMeta', {
-                  total: assigned + missing.length,
-                  assigned,
-                  missing: missing.length,
-                })}
-              </span>
-            </div>
-            {rows.map((row) => (
-              <div key={row.id} className="academic-setup-assignment-row">
-                <span>{row.subject.name}</span>
-                <button
-                  type="button"
-                  className="academic-setup-unassigned"
-                  style={{ color: 'inherit', cursor: canManage ? 'pointer' : 'default' }}
-                  onClick={() => canManage && onEdit(row)}
-                  disabled={!canManage}
-                >
-                  {row.teacher.name}
-                </button>
-              </div>
-            ))}
-            {missing.map((issue) => (
-              <div key={issue.id} className="academic-setup-assignment-row">
-                <span>{issue.context?.subject_name as string ?? issue.title}</span>
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm academic-setup-assign-cta"
-                  onClick={() => canManage && onPickMissing(issue)}
-                  disabled={!canManage}
-                >
-                  {t('admin.academicSetup.assignTeacher')}
-                </button>
-              </div>
-            ))}
+    <div className="assignment-levels">
+      <section className="assignment-filter-step assignment-filter-step--cycle">
+        <div className="assignment-filter-step__head">
+          <strong>{cyclesLabel}</strong>
+        </div>
+        <div className="assignment-cycle-filter" role="tablist" aria-label={cyclesLabel}>
+          {groupedCycles.map((group) => {
+            const active = group.key === effectiveCycleKey;
+            const missingCount = group.classes.reduce(
+              (total, cls) => total + (missingByClass.get(cls.id)?.length ?? 0),
+              0,
+            );
+            return (
+              <button
+                key={group.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={
+                  active
+                    ? 'assignment-cycle-filter__tile assignment-cycle-filter__tile--active'
+                    : 'assignment-cycle-filter__tile'
+                }
+                onClick={() => selectCycle(group.key)}
+              >
+                <strong dir="auto">{group.label}</strong>
+                <span>{group.levels.length} · {group.classes.length} · {missingCount}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {selectedCycle ? (
+        <section className="assignment-filter-step assignment-filter-step--level">
+          <div className="assignment-filter-step__head">
+            <strong>{levelsLabel}</strong>
+            <span className="tiny muted" dir="auto">{selectedCycle.label}</span>
           </div>
-        );
-      })}
-    </>
+          <div className="assignment-level-filter" role="tablist" aria-label={levelsLabel}>
+            {selectedCycle.levels.map((group) => {
+              const active = group.key === effectiveLevelKey;
+              const missingCount = group.classes.reduce(
+                (total, cls) => total + (missingByClass.get(cls.id)?.length ?? 0),
+                0,
+              );
+              return (
+                <button
+                  key={group.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={
+                    active
+                      ? 'assignment-level-filter__tile assignment-level-filter__tile--active'
+                      : 'assignment-level-filter__tile'
+                  }
+                  onClick={() => setSelectedLevelKey(group.key)}
+                >
+                  <strong dir="auto">{group.label}</strong>
+                  <span>{group.classes.length} · {missingCount}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {selectedGroup ? (
+        <section className="assignment-level-group">
+          <header className="assignment-level-group__head">
+            <div>
+              <h3 dir="auto">{selectedGroup.label}</h3>
+              <p className="tiny muted">{selectedGroup.classes.length} {t('admin.academicSetup.viewBy.class')}</p>
+            </div>
+            <span className="assignment-level-group__count">{selectedGroup.classes.length}</span>
+          </header>
+
+          <div className="assignment-class-grid">
+            {selectedGroup.classes.map((cls) => {
+              const rows = [...(byClass.get(cls.id) ?? [])].sort((a, b) => {
+                const rankA = subjectRank.get(a.subject.id) ?? 9999;
+                const rankB = subjectRank.get(b.subject.id) ?? 9999;
+                return rankA - rankB || collator.compare(a.subject.name, b.subject.name);
+              });
+              const missing = [...(missingByClass.get(cls.id) ?? [])].sort((a, b) =>
+                collator.compare(
+                  String(a.context?.subject_name ?? a.title ?? ''),
+                  String(b.context?.subject_name ?? b.title ?? ''),
+                ),
+              );
+              const assigned = rows.length;
+              const classLabel = formatAcademicClassLabel(cls, locale);
+
+              return (
+                <article key={cls.id} className="assignment-class-card">
+                  <header className="assignment-class-card__head">
+                    <div className="assignment-class-card__identity">
+                      <strong dir="auto">{classLabel.primary}</strong>
+                      {classLabel.secondary ? (
+                        <span className="tiny muted mono" dir="ltr">
+                          {classLabel.secondary}
+                        </span>
+                      ) : null}
+                    </div>
+                    <span
+                      className={
+                        missing.length
+                          ? 'assignment-class-card__status assignment-class-card__status--warning'
+                          : 'assignment-class-card__status'
+                      }
+                    >
+                      {assigned}/{assigned + missing.length}
+                    </span>
+                  </header>
+
+                  <div className="assignment-class-card__meta">
+                    {t('admin.academicSetup.classAssignmentMeta', {
+                      total: assigned + missing.length,
+                      assigned,
+                      missing: missing.length,
+                    })}
+                  </div>
+
+                  <div className="assignment-subject-grid">
+                    {rows.map((row) => (
+                      <button
+                        key={row.id}
+                        type="button"
+                        className="assignment-subject-tile"
+                        onClick={() => canManage && onEdit(row)}
+                        disabled={!canManage}
+                      >
+                        <span className="assignment-subject-tile__subject" dir="auto">
+                          {row.subject.name}
+                        </span>
+                        <span className="assignment-subject-tile__teacher" dir="auto">
+                          {row.teacher.name}
+                        </span>
+                      </button>
+                    ))}
+
+                    {missing.map((issue) => (
+                      <button
+                        key={issue.id}
+                        type="button"
+                        className="assignment-subject-tile assignment-subject-tile--missing"
+                        onClick={() => canManage && onPickMissing(issue)}
+                        disabled={!canManage}
+                      >
+                        <span className="assignment-subject-tile__subject" dir="auto">
+                          {String(issue.context?.subject_name ?? issue.title)}
+                        </span>
+                        <span className="assignment-subject-tile__teacher">
+                          {t('admin.academicSetup.assignTeacher')}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+    </div>
   );
 }

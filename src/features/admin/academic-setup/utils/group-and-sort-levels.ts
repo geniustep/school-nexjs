@@ -1,7 +1,7 @@
 import type { LevelCycle } from '@/types/class';
 import type { LevelGroup } from '../types';
 
-/** Used only when school levels lack `sequence` from the API. */
+/** Canonical academic order for known Moroccan level codes. */
 export const FALLBACK_LEVEL_ORDER: Record<string, number> = {
   PRE1: 10,
   PRE2: 20,
@@ -65,23 +65,30 @@ function compareLevelCodes(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 }
 
-function levelSortTuple(level: LevelGroup): [number, number, string] {
+function levelSortTuple(level: LevelGroup): [number, number, number, string] {
+  const canonical = getFallbackLevelOrder(level.code);
   const sequence =
     level.sequence != null && Number.isFinite(level.sequence)
       ? level.sequence
       : Number.POSITIVE_INFINITY;
-  const fallback = getFallbackLevelOrder(level.code) ?? Number.POSITIVE_INFINITY;
   const code = normalizeLevelCode(level.code);
-  return [sequence, fallback, code];
+
+  // Known academic codes are authoritative. This prevents reversed API
+  // sequences from flipping PRE1→PRE3 or H_TC→H2 in academic browsers.
+  if (canonical != null) return [0, canonical, sequence, code];
+
+  // Unknown/custom school levels keep the API-defined sequence contract.
+  return [1, sequence, Number.POSITIVE_INFINITY, code];
 }
 
 export function sortLevels(levels: LevelGroup[]): LevelGroup[] {
   return [...levels].sort((a, b) => {
-    const [seqA, fbA, codeA] = levelSortTuple(a);
-    const [seqB, fbB, codeB] = levelSortTuple(b);
+    const [kindA, orderA, seqA, codeA] = levelSortTuple(a);
+    const [kindB, orderB, seqB, codeB] = levelSortTuple(b);
 
+    if (kindA !== kindB) return kindA - kindB;
+    if (orderA !== orderB) return orderA - orderB;
     if (seqA !== seqB) return seqA - seqB;
-    if (fbA !== fbB) return fbA - fbB;
     return compareLevelCodes(codeA, codeB);
   });
 }

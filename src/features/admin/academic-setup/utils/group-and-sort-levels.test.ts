@@ -71,12 +71,39 @@ describe('sortLevels', () => {
     expect(sortLevels(input).map((l) => l.code)).toEqual(['H_TC', 'H1', 'H2']);
   });
 
-  it('prefers API sequence over fallback', () => {
+  it('keeps canonical known level order when API sequence conflicts', () => {
     const input = [
       level({ id: 1, code: 'P2', name: 'P2', sequence: 10 }),
       level({ id: 2, code: 'P1', name: 'P1', sequence: 20 }),
     ];
-    expect(sortLevels(input).map((l) => l.code)).toEqual(['P2', 'P1']);
+    expect(sortLevels(input).map((l) => l.code)).toEqual(['P1', 'P2']);
+  });
+
+  it('keeps preschool and secondary order when API sequence is reversed', () => {
+    const input = [
+      level({ id: 1, code: 'PRE1', name: 'Pre 1', cycle: preschool, sequence: 30 }),
+      level({ id: 2, code: 'PRE2', name: 'Pre 2', cycle: preschool, sequence: 20 }),
+      level({ id: 3, code: 'PRE3', name: 'Pre 3', cycle: preschool, sequence: 10 }),
+      level({ id: 4, code: 'H_TC', name: 'TC', cycle: high, sequence: 150 }),
+      level({ id: 5, code: 'H1', name: 'H1', cycle: high, sequence: 140 }),
+      level({ id: 6, code: 'H2', name: 'H2', cycle: high, sequence: 130 }),
+    ];
+    expect(sortLevels(input).map((l) => l.code)).toEqual([
+      'PRE1',
+      'PRE2',
+      'PRE3',
+      'H_TC',
+      'H1',
+      'H2',
+    ]);
+  });
+
+  it('keeps API sequence for unknown custom level codes', () => {
+    const input = [
+      level({ id: 1, code: 'CUSTOM-B', name: 'B', sequence: 20 }),
+      level({ id: 2, code: 'CUSTOM-A', name: 'A', sequence: 10 }),
+    ];
+    expect(sortLevels(input).map((l) => l.code)).toEqual(['CUSTOM-A', 'CUSTOM-B']);
   });
 
   it('does not sort by id, class count, or status', () => {

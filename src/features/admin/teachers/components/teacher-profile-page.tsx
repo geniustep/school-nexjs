@@ -20,6 +20,7 @@ import {
 } from '@/features/admin/academic-setup/utils/teacher-create';
 import { resolveTeacherTypeLabelFromCode } from '@/features/admin/staff/utils/staff-center-present';
 import { TeacherAcademicProfilePanel } from '@/features/admin/teachers/components/teacher-academic-profile-panel';
+import { TeacherAssignmentsPanel } from '@/features/admin/teachers/components/teacher-assignments-panel';
 import { TeacherCreateReadinessBanner } from '@/features/admin/teachers/components/teacher-create-readiness-banner';
 import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
 import { TeacherStaffAccountSection } from '@/features/admin/teachers/components/teacher-staff-account-section';
@@ -42,6 +43,7 @@ import { statusLabel } from '@/lib/utils/labels';
 import type { Teacher, TeacherCreateResult } from '@/types/teacher';
 import type { TeacherAcademicProfile, TeacherDetail } from '@/types/teacher-domain';
 import '@/features/admin/teachers/teachers-domain.css';
+import '@/features/admin/teachers/teacher-profile-refresh.css';
 
 type ProfileTab =
   | 'overview'
@@ -52,6 +54,15 @@ type ProfileTab =
   | 'account';
 
 type LifecycleAction = 'terminate' | 'archive' | 'reactivate' | null;
+
+type TeacherWorkloadSummary = {
+  planned_weekly_hours?: number | null;
+  assignment_count?: number | null;
+  active_assignment_count?: number | null;
+  workload_limit?: number | null;
+  remaining_capacity?: number | null;
+  over_capacity?: boolean;
+};
 
 const TABS: ProfileTab[] = [
   'overview',
@@ -67,6 +78,109 @@ function resolveInitialTab(raw: string | null): ProfileTab {
   return 'overview';
 }
 
+function getTeacherWorkloadSummary(teacher: TeacherDetail): TeacherWorkloadSummary | null {
+  return (teacher as TeacherDetail & { workload_summary?: TeacherWorkloadSummary | null })
+    .workload_summary ?? null;
+}
+
+function workloadValue(value: number | null | undefined, dash: string): string {
+  return value == null ? dash : String(value);
+}
+
+function AcademicLoadingState({
+  loading,
+  error,
+  onRetry,
+  children,
+}: {
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  children: React.ReactNode;
+}) {
+  const t = useT();
+  if (loading) return <p className="muted">{t('common.loading')}</p>;
+  if (error) {
+    return <ErrorState error={{ code: 'server_error', message: error }} onRetry={onRetry} />;
+  }
+  return <>{children}</>;
+}
+
+function TeacherAvailabilityView({ profile }: { profile: TeacherAcademicProfile }) {
+  const t = useT();
+  const slots = profile.availability ?? [];
+  return (
+    <div className="teacher-domain-focused teacher-domain-focused--availability">
+      <Card>
+        <SectionHead title={t('admin.teacherDomain.academic.availabilityTitle')} />
+        <p className="tiny muted">{t('admin.teacherDomain.academic.availabilityNotTimetable')}</p>
+        {slots.length === 0 ? (
+          <p className="muted teacher-domain-focused__empty">
+            {t('admin.teacherDomain.academic.availabilityEmpty')}
+          </p>
+        ) : (
+          <div className="teacher-domain-focused__cards">
+            {slots.map((slot, index) => {
+              const start = slot.start || slot.start_time;
+              const end = slot.end || slot.end_time;
+              const type = slot.availability_type || slot.type || t('common.dash');
+              return (
+                <article key={slot.id ?? index} className="teacher-domain-focused__item">
+                  <div className="teacher-domain-focused__item-head">
+                    <strong dir="auto">{String(slot.day ?? slot.day_of_week ?? t('common.dash'))}</strong>
+                    <Badge tone="slate">{String(type)}</Badge>
+                  </div>
+                  <span className="teacher-domain-focused__time" dir="ltr">
+                    {start && end ? `${start}–${end}` : t('common.dash')}
+                  </span>
+                  {slot.reason ? <p className="tiny muted" dir="auto">{slot.reason}</p> : null}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function TeacherQualificationsView({ profile }: { profile: TeacherAcademicProfile }) {
+  const t = useT();
+  const qualifications = profile.qualifications ?? [];
+  return (
+    <div className="teacher-domain-focused teacher-domain-focused--qualifications">
+      <Card>
+        <SectionHead title={t('admin.teacherDomain.academic.qualificationsTitle')} />
+        {qualifications.length === 0 ? (
+          <p className="muted teacher-domain-focused__empty">
+            {t('admin.teacherDomain.academic.qualificationsEmpty')}
+          </p>
+        ) : (
+          <div className="teacher-domain-focused__cards">
+            {qualifications.map((q, index) => (
+              <article key={q.id ?? index} className="teacher-domain-focused__item">
+                <div className="teacher-domain-focused__item-head">
+                  <strong dir="auto">{q.title || q.type || t('common.dash')}</strong>
+                  {q.verification_state ? <Badge tone="slate">{q.verification_state}</Badge> : null}
+                </div>
+                <p className="teacher-domain-focused__primary" dir="auto">
+                  {q.institution || t('common.dash')}
+                </p>
+                {q.specialization ? <p className="tiny muted" dir="auto">{q.specialization}</p> : null}
+                {q.issue_date || q.expiry_date ? (
+                  <p className="tiny muted" dir="ltr">
+                    {[q.issue_date, q.expiry_date].filter(Boolean).join(' → ')}
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 export function TeacherProfilePage({ id }: { id: string }) {
   const t = useT();
   const router = useRouter();
@@ -74,9 +188,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
   const sessionUser = useSession();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const [tab, setTab] = useState<ProfileTab>(() =>
-    resolveInitialTab(searchParams.get('tab')),
-  );
+  const [tab, setTab] = useState<ProfileTab>(() => resolveInitialTab(searchParams.get('tab')));
   const [lifecycle, setLifecycle] = useState<LifecycleAction>(null);
   const [academic, setAcademic] = useState<TeacherAcademicProfile | null>(null);
   const [academicError, setAcademicError] = useState<string | null>(null);
@@ -121,30 +233,15 @@ export function TeacherProfilePage({ id }: { id: string }) {
   if (isNew) {
     return (
       <div className="admin-workspace teacher-domain-profile">
-        <Link href="/admin/teachers" className="back-link">
-          ‹ {t('nav.teachers')}
-        </Link>
-        <PageHeader
-          title={t('admin.addTeacher')}
-          subtitle={t('admin.academicSetup.teacherCreate.pageSubtitle')}
-        />
-        <TeacherForm
-          onSaved={(tid) => router.push(`/admin/teachers/${tid}`)}
-          onCancel={() => router.push('/admin/teachers')}
-        />
+        <Link href="/admin/teachers" className="back-link">‹ {t('nav.teachers')}</Link>
+        <PageHeader title={t('admin.addTeacher')} subtitle={t('admin.academicSetup.teacherCreate.pageSubtitle')} />
+        <TeacherForm onSaved={(tid) => router.push(`/admin/teachers/${tid}`)} onCancel={() => router.push('/admin/teachers')} />
       </div>
     );
   }
 
   if (state.error?.code === 'forbidden' || state.error?.code === 'permission_denied') {
-    return (
-      <div className="admin-workspace">
-        <ErrorState
-          error={{ code: 'forbidden', message: t('admin.pageForbidden') }}
-          onRetry={state.reload}
-        />
-      </div>
-    );
+    return <div className="admin-workspace"><ErrorState error={{ code: 'forbidden', message: t('admin.pageForbidden') }} onRetry={state.reload} /></div>;
   }
 
   if (state.error?.code === 'not_found' || state.error?.code === 'teacher_not_found') {
@@ -154,11 +251,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
           icon="🔎"
           title={t('admin.teacherDomain.errors.teacherNotFound')}
           description={t('admin.teacherDomain.detail.notFoundDesc')}
-          action={
-            <Link href="/admin/teachers" className="btn btn--primary btn--sm">
-              {t('admin.teacherDomain.detail.backToList')}
-            </Link>
-          }
+          action={<Link href="/admin/teachers" className="btn btn--primary btn--sm">{t('admin.teacherDomain.detail.backToList')}</Link>}
         />
       </div>
     );
@@ -166,15 +259,14 @@ export function TeacherProfilePage({ id }: { id: string }) {
 
   return (
     <div className="admin-workspace teacher-domain-profile">
-      <Link href="/admin/teachers" className="back-link">
-        ‹ {t('nav.teachers')}
-      </Link>
+      <Link href="/admin/teachers" className="back-link">‹ {t('nav.teachers')}</Link>
       <ResourceView state={state} loadingLabel={t('common.loading')}>
         {() => {
           if (!teacher) return null;
           const showAdminPrivate = canViewTeacherAdminPrivateFields(sessionUser, teacher.id);
           const name = teacherDisplayName(teacher);
           const warningCount = teacherWarningCount(teacher);
+          const workload = getTeacherWorkloadSummary(teacher);
 
           return (
             <>
@@ -187,61 +279,29 @@ export function TeacherProfilePage({ id }: { id: string }) {
                   }}
                 />
               ) : null}
+
               <PageHeader
                 title={name}
                 subtitle={teacher.code ?? undefined}
                 actions={
                   <div className="row teacher-domain-profile__actions" style={{ gap: 8 }}>
-                    <Badge
-                      tone={teacherEmploymentState(teacher) === 'active' ? 'green' : 'slate'}
-                    >
+                    <Badge tone={teacherEmploymentState(teacher) === 'active' ? 'green' : 'slate'}>
                       {statusLabel(t, teacherEmploymentState(teacher))}
                     </Badge>
                     <Badge tone="slate">{t(teacherAccountStateLabelKey(teacher))}</Badge>
-                    {warningCount > 0 ? (
-                      <Badge tone="amber">
-                        {t('admin.teacherDomain.list.warningCount', { count: warningCount })}
-                      </Badge>
+                    {workload?.over_capacity ? <Badge tone="amber">{t('admin.teacherDomain.eligibleTeachers.reasons.weeklyLimitExceeded')}</Badge> : null}
+                    {warningCount > 0 ? <Badge tone="amber">{t('admin.teacherDomain.list.warningCount', { count: warningCount })}</Badge> : null}
+                    {!editing && showAdminPrivate && hasAllowedAction(teacher.allowed_actions, 'edit') ? (
+                      <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>{t('common.edit')}</button>
                     ) : null}
-                    {!editing && showAdminPrivate ? (
-                      <>
-                        {hasAllowedAction(teacher.allowed_actions, 'edit') ? (
-                          <button
-                            type="button"
-                            className="btn btn--ghost btn--sm"
-                            onClick={() => setEditing(true)}
-                          >
-                            {t('common.edit')}
-                          </button>
-                        ) : null}
-                        {hasAllowedAction(teacher.allowed_actions, 'terminate') ? (
-                          <button
-                            type="button"
-                            className="btn btn--sm"
-                            onClick={() => setLifecycle('terminate')}
-                          >
-                            {t('admin.teacherDomain.lifecycle.terminate')}
-                          </button>
-                        ) : null}
-                        {hasAllowedAction(teacher.allowed_actions, 'archive') ? (
-                          <button
-                            type="button"
-                            className="btn btn--sm"
-                            onClick={() => setLifecycle('archive')}
-                          >
-                            {t('admin.teacherDomain.lifecycle.archive')}
-                          </button>
-                        ) : null}
-                        {hasAllowedAction(teacher.allowed_actions, 'reactivate') ? (
-                          <button
-                            type="button"
-                            className="btn btn--primary btn--sm"
-                            onClick={() => setLifecycle('reactivate')}
-                          >
-                            {t('admin.teacherDomain.lifecycle.reactivate')}
-                          </button>
-                        ) : null}
-                      </>
+                    {!editing && showAdminPrivate && hasAllowedAction(teacher.allowed_actions, 'terminate') ? (
+                      <button type="button" className="btn btn--sm" onClick={() => setLifecycle('terminate')}>{t('admin.teacherDomain.lifecycle.terminate')}</button>
+                    ) : null}
+                    {!editing && showAdminPrivate && hasAllowedAction(teacher.allowed_actions, 'archive') ? (
+                      <button type="button" className="btn btn--sm" onClick={() => setLifecycle('archive')}>{t('admin.teacherDomain.lifecycle.archive')}</button>
+                    ) : null}
+                    {!editing && showAdminPrivate && hasAllowedAction(teacher.allowed_actions, 'reactivate') ? (
+                      <button type="button" className="btn btn--primary btn--sm" onClick={() => setLifecycle('reactivate')}>{t('admin.teacherDomain.lifecycle.reactivate')}</button>
                     ) : null}
                   </div>
                 }
@@ -250,30 +310,19 @@ export function TeacherProfilePage({ id }: { id: string }) {
               {editing ? (
                 <TeacherForm
                   teacher={teacher as unknown as Teacher}
-                  onSaved={() => {
-                    setEditing(false);
-                    state.reload();
-                  }}
+                  onSaved={() => { setEditing(false); state.reload(); }}
                   onCancel={() => setEditing(false)}
                 />
               ) : (
                 <>
-                  <div
-                    className="teacher-domain-profile__tabs"
-                    role="tablist"
-                    aria-label={t('admin.teacherDomain.detail.tabsLabel')}
-                  >
+                  <div className="teacher-domain-profile__tabs" role="tablist" aria-label={t('admin.teacherDomain.detail.tabsLabel')}>
                     {TABS.map((item) => (
                       <button
                         key={item}
                         type="button"
                         role="tab"
                         aria-selected={tab === item}
-                        className={
-                          tab === item
-                            ? 'teacher-domain-profile__tab teacher-domain-profile__tab--active'
-                            : 'teacher-domain-profile__tab'
-                        }
+                        className={tab === item ? 'teacher-domain-profile__tab teacher-domain-profile__tab--active' : 'teacher-domain-profile__tab'}
                         onClick={() => setTab(item)}
                       >
                         {t(`admin.teacherDomain.tabs.${item}`)}
@@ -285,119 +334,60 @@ export function TeacherProfilePage({ id }: { id: string }) {
                     <div className="teacher-domain-profile__stack">
                       <Card>
                         <SectionHead title={t('admin.teacherDomain.tabs.overview')} />
-                        <DefinitionList
-                          items={[
-                            { label: t('admin.fullName'), value: name },
-                            { label: t('admin.code'), value: teacher.code ?? t('common.dash') },
-                            {
-                              label: t('admin.academicSetup.teacherForm.gender'),
-                              value: resolveGenderLabel(teacher.gender, options, t),
-                            },
-                            {
-                              label: t('admin.academicSetup.teacherForm.teacherType'),
-                              value: resolveTeacherTypeLabelFromCode(teacher.teacher_type, t),
-                            },
-                            {
-                              label: t('admin.teacherDomain.academic.specialization'),
-                              value: teacher.specialization?.trim() || t('common.dash'),
-                            },
-                            {
-                              label: t('admin.teacherDomain.columns.activeAssignments'),
-                              value: String(
-                                teacher.assignment_summary?.operational_count ??
-                                  teacher.assignment_summary?.active_count ??
-                                  0,
-                              ),
-                            },
-                            {
-                              label: t('admin.teacherDomain.columns.eligibleSubjects'),
-                              value: String(
-                                teacher.academic_profile_summary?.subject_eligibility_count ?? 0,
-                              ),
-                            },
-                          ]}
-                        />
+                        <DefinitionList items={[
+                          { label: t('admin.fullName'), value: name },
+                          { label: t('admin.code'), value: teacher.code ?? t('common.dash') },
+                          { label: t('admin.academicSetup.teacherForm.gender'), value: resolveGenderLabel(teacher.gender, options, t) },
+                          { label: t('admin.academicSetup.teacherForm.teacherType'), value: resolveTeacherTypeLabelFromCode(teacher.teacher_type, t) },
+                          { label: t('admin.teacherDomain.academic.specialization'), value: teacher.specialization?.trim() || t('common.dash') },
+                          { label: t('admin.teacherDomain.columns.activeAssignments'), value: String(workload?.active_assignment_count ?? teacher.assignment_summary?.operational_count ?? teacher.assignment_summary?.active_count ?? 0) },
+                          { label: t('admin.teacherDomain.columns.eligibleSubjects'), value: String(teacher.academic_profile_summary?.subject_eligibility_count ?? 0) },
+                        ]} />
                       </Card>
+                      {workload ? (
+                        <Card>
+                          <SectionHead title={t('admin.teacherDomain.eligibleTeachers.weeklyLoad')} />
+                          <DefinitionList items={[
+                            { label: t('admin.teacherDomain.eligibleTeachers.weeklyLoad'), value: workloadValue(workload.planned_weekly_hours, t('common.dash')) },
+                            { label: t('admin.teacherDomain.eligibleTeachers.weeklyMax'), value: workloadValue(workload.workload_limit, t('common.dash')) },
+                            { label: t('admin.teacherDomain.eligibleTeachers.remainingCapacity'), value: workloadValue(workload.remaining_capacity, t('common.dash')) },
+                            { label: t('admin.teacherDomain.detail.totalAssignments'), value: workloadValue(workload.assignment_count, t('common.dash')) },
+                          ]} />
+                        </Card>
+                      ) : null}
                     </div>
                   ) : null}
 
-                  {tab === 'academic' || tab === 'availability' || tab === 'qualifications' ? (
-                    academicLoading ? (
-                      <p className="muted">{t('common.loading')}</p>
-                    ) : academicError ? (
-                      <ErrorState
-                        error={{ code: 'server_error', message: academicError }}
-                        onRetry={() => setTab(tab)}
-                      />
-                    ) : academic ? (
-                      <TeacherAcademicProfilePanel
-                        profile={academic}
-                        onProfileUpdated={setAcademic}
-                      />
-                    ) : null
+                  {tab === 'academic' ? (
+                    <AcademicLoadingState loading={academicLoading} error={academicError} onRetry={() => setTab('academic')}>
+                      {academic ? <TeacherAcademicProfilePanel profile={academic} onProfileUpdated={setAcademic} /> : null}
+                    </AcademicLoadingState>
                   ) : null}
 
-                  {tab === 'assignments' ? (
-                    <Card>
-                      <SectionHead
-                        title={t('admin.teacherDomain.tabs.assignments')}
-                        action={
-                          <Link
-                            href={`/admin/teaching-assignments?teacher_id=${teacher.id}`}
-                            className="btn btn--ghost btn--sm"
-                          >
-                            {t('admin.teacherDomain.detail.openAssignments')}
-                          </Link>
-                        }
-                      />
-                      <p className="tiny muted">
-                        {t('admin.teacherDomain.detail.assignmentsSummaryHint')}
-                      </p>
-                      <DefinitionList
-                        items={[
-                          {
-                            label: t('admin.teacherDomain.columns.activeAssignments'),
-                            value: String(
-                              teacher.assignment_summary?.operational_count ??
-                                teacher.assignment_summary?.active_count ??
-                                0,
-                            ),
-                          },
-                          {
-                            label: t('admin.teacherDomain.detail.totalAssignments'),
-                            value: String(teacher.assignment_summary?.total_count ?? 0),
-                          },
-                        ]}
-                      />
-                    </Card>
+                  {tab === 'availability' ? (
+                    <AcademicLoadingState loading={academicLoading} error={academicError} onRetry={() => setTab('availability')}>
+                      {academic ? <TeacherAvailabilityView profile={academic} /> : null}
+                    </AcademicLoadingState>
                   ) : null}
+
+                  {tab === 'qualifications' ? (
+                    <AcademicLoadingState loading={academicLoading} error={academicError} onRetry={() => setTab('qualifications')}>
+                      {academic ? <TeacherQualificationsView profile={academic} /> : null}
+                    </AcademicLoadingState>
+                  ) : null}
+
+                  {tab === 'assignments' ? <TeacherAssignmentsPanel teacher={teacher} /> : null}
 
                   {tab === 'account' ? (
                     <div className="teacher-domain-profile__stack">
-                      {showAdminPrivate ? (
-                        <TeacherStaffAccountSection teacher={teacher as unknown as Teacher} />
-                      ) : null}
+                      {showAdminPrivate ? <TeacherStaffAccountSection teacher={teacher as unknown as Teacher} /> : null}
                       <Card>
                         <SectionHead title={t('admin.teacherDomain.tabs.account')} />
-                        <DefinitionList
-                          items={[
-                            {
-                              label: t('admin.teacherDomain.columns.employment'),
-                              value: statusLabel(t, teacherEmploymentState(teacher)),
-                            },
-                            {
-                              label: t('admin.teacherDomain.columns.account'),
-                              value: t(teacherAccountStateLabelKey(teacher)),
-                            },
-                            {
-                              label: t('admin.teacherDomain.lifecycle.employmentEndDate'),
-                              value:
-                                teacher.employment?.employment_end_date ??
-                                teacher.employment_end_date ??
-                                t('common.dash'),
-                            },
-                          ]}
-                        />
+                        <DefinitionList items={[
+                          { label: t('admin.teacherDomain.columns.employment'), value: statusLabel(t, teacherEmploymentState(teacher)) },
+                          { label: t('admin.teacherDomain.columns.account'), value: t(teacherAccountStateLabelKey(teacher)) },
+                          { label: t('admin.teacherDomain.lifecycle.employmentEndDate'), value: teacher.employment?.employment_end_date ?? teacher.employment_end_date ?? t('common.dash') },
+                        ]} />
                       </Card>
                     </div>
                   ) : null}

@@ -4,9 +4,11 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { normalizeRecipientPreviewResponse } from '@/features/communication/utils/normalize-recipient-summary';
 import type { ApiErrorBody, ApiResponse, ListParams } from '@/types/api';
+import { normalizeIndividualCommunicationPreview } from '@/features/communication/utils/individual-deliverability';
 import type {
   CommunicationContent,
   CommunicationRecipientPreviewResponse,
+  IndividualCommunicationPreview,
 } from '@/types/communication';
 import type { RecipientScope } from '@/types/recipient-scope';
 
@@ -29,6 +31,11 @@ export type IndividualCommunicationSubmitInput = {
   recipient_id: number;
   subject: string;
   body: string;
+};
+
+export type IndividualCommunicationPreviewInput = {
+  recipient_type: 'teacher' | 'student' | 'guardian';
+  recipient_id: number;
 };
 
 export function fetchCommunicationContentList(
@@ -246,6 +253,37 @@ export async function previewStaffCommunicationContentRecipients(
   }
   const preview = normalizeRecipientPreviewResponse(res.data);
   if (!preview) {
+    return {
+      ok: false,
+      error: {
+        code: 'server_error',
+        message: 'Unexpected server response.',
+        details: {},
+      },
+    };
+  }
+  return { ok: true, preview };
+}
+
+/**
+ * Odoo individual deliverability preview — READ ONLY.
+ * Payload is recipient_type + recipient_id only (domain entity id, never res.users id).
+ */
+export async function previewIndividualCommunication(
+  input: IndividualCommunicationPreviewInput,
+): Promise<
+  | { ok: true; preview: IndividualCommunicationPreview }
+  | { ok: false; error: ApiErrorBody }
+> {
+  const res = await api.post<unknown>(endpoints.admin.communicationIndividualPreview, {
+    recipient_type: input.recipient_type,
+    recipient_id: input.recipient_id,
+  });
+  if (!res.success) {
+    return { ok: false, error: res.error };
+  }
+  const preview = normalizeIndividualCommunicationPreview(res.data);
+  if (!preview || preview.can_submit === undefined) {
     return {
       ok: false,
       error: {

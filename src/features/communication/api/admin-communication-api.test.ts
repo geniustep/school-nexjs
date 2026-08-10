@@ -13,6 +13,7 @@ vi.mock('@/lib/api/client', () => ({
 import {
   createAdminCommunicationContent,
   previewAdminRecipientScope,
+  previewIndividualCommunication,
   submitIndividualCommunication,
   updateAdminCommunicationContent,
   fetchAdminChannelMessages,
@@ -189,5 +190,37 @@ describe('admin communication API — Backend 228/229/259 paths', () => {
     const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
     expect(body).not.toHaveProperty('user_id');
     expect(body).not.toHaveProperty('res_users_id');
+  });
+
+  it('POST individual preview with domain recipient_id only', async () => {
+    apiMock.post.mockResolvedValue({
+      success: true,
+      data: {
+        recipient_type: 'student',
+        deliverable_user_count: 1,
+        can_submit: true,
+        account_status: null,
+      },
+      meta: {},
+    });
+    const result = await previewIndividualCommunication({
+      recipient_type: 'student',
+      recipient_id: 44,
+    });
+    expect(apiMock.post).toHaveBeenCalledWith('/admin/communication/individual/preview', {
+      recipient_type: 'student',
+      recipient_id: 44,
+    });
+    const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('school_id');
+    expect(body).not.toHaveProperty('user_id');
+    expect(body).not.toHaveProperty('recipient_user_id');
+    expect(body).not.toHaveProperty('recipient_ids');
+    expect(body).not.toHaveProperty('deliverable_user_count');
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.preview.can_submit).toBe(true);
+      expect(result.preview.deliverable_user_count).toBe(1);
+    }
   });
 });

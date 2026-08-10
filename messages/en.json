@@ -973,7 +973,14 @@
       "pendingReviewSuccess": "Communication submitted for review. It will not appear to beneficiaries before approval and publish.",
       "acceptedSuccess": "Communication accepted.",
       "newAnother": "Another new communication",
-      "backToFeed": "Back to school communication"
+      "backToFeed": "Back to school communication",
+      "individualDeliverabilityChecking": "Checking whether this recipient can receive messages…",
+      "individualDeliverabilityReady": "This recipient is ready to receive the message.",
+      "individualDeliverabilityUnavailable": "This message cannot be sent to this recipient right now.",
+      "individualDeliverabilityCheckFailed": "Could not verify deliverability. Please try again.",
+      "individualAccountNoAccount": "This recipient does not have an account ready to receive messages.",
+      "individualAccountInactive": "This recipient’s account is currently inactive.",
+      "individualAccountGuardianInactive": "The guardian account is currently inactive."
     },
     "errors": {
       "messagePendingReview": "The message is pending administrative review.",
@@ -1000,7 +1007,8 @@
       "recipientNotAllowedB4": "This selection is not allowed.",
       "recipientNotFound": "The selected scope could not be found or is no longer available.",
       "recipientAudienceChanged": "Beneficiaries changed. Review the final summary.",
-      "recipientExpansionForbidden": "Expanding the beneficiary scope is not allowed."
+      "recipientExpansionForbidden": "Expanding the beneficiary scope is not allowed.",
+      "individualRecipientCountInvalid": "An individual message can only be sent to exactly one deliverable recipient."
     }
   },
   "announcements": {

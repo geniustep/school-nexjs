@@ -201,6 +201,18 @@
   margin-block-start: 4px;
 }
 
+.general-comm__deliverability {
+  margin: 0;
+}
+
+.general-comm__deliverability--ready {
+  color: var(--c-success, #0f7a45);
+}
+
+.general-comm__deliverability--blocked {
+  color: var(--c-danger, #b42318);
+}
+
 .recipient-preview-dialog {
   width: min(760px, calc(100vw - 32px));
   max-width: 760px;
