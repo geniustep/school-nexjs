@@ -1,7 +1,7 @@
 import type { LevelCycle } from '@/types/class';
 import type { LevelGroup } from '../types';
 
-/** Canonical academic order for known Moroccan level codes. */
+/** Canonical and recognized school-facing Moroccan level codes for stable academic ordering. */
 export const FALLBACK_LEVEL_ORDER: Record<string, number> = {
   PRE1: 10,
   PRE2: 20,
@@ -18,6 +18,9 @@ export const FALLBACK_LEVEL_ORDER: Record<string, number> = {
   H_TC: 130,
   H1: 140,
   H2: 150,
+  TC: 130,
+  '1BAC': 140,
+  '2BAC': 150,
 };
 
 export const ORPHAN_CYCLE_ID = 0;
