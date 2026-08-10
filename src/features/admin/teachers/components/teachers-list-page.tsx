@@ -67,16 +67,19 @@ export function TeachersListPage() {
   const [stateFilter, setStateFilter] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [hasAssignments, setHasAssignments] = useState('');
+  const [accountFilter, setAccountFilter] = useState('');
   const [operationalPreset, setOperationalPreset] = useState<TeacherOperationalPreset>('all');
   const [importOpen, setImportOpen] = useState(false);
 
-  const hasManualClientFilters = Boolean(stateFilter || activeFilter || hasAssignments);
+  const hasManualClientFilters = Boolean(
+    stateFilter || activeFilter || hasAssignments || accountFilter,
+  );
   const hasOperationalPreset = operationalPreset !== 'all';
   const useCompositionWindow = hasManualClientFilters || hasOperationalPreset;
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, stateFilter, activeFilter, hasAssignments, operationalPreset]);
+  }, [debouncedSearch, stateFilter, activeFilter, hasAssignments, accountFilter, operationalPreset]);
 
   const query = useMemo(() => {
     const search = debouncedSearch.trim();
@@ -98,15 +101,21 @@ export function TeachersListPage() {
     [state.data],
   );
 
-  const manuallyFiltered = useMemo(
-    () =>
-      filterTeacherSummaries(teachers, {
-        state: stateFilter,
-        active: activeFilter,
-        hasAssignments,
-      }),
-    [teachers, stateFilter, activeFilter, hasAssignments],
-  );
+  const manuallyFiltered = useMemo(() => {
+    const base = filterTeacherSummaries(teachers, {
+      state: stateFilter,
+      active: activeFilter,
+      hasAssignments,
+    });
+    if (accountFilter !== 'no_account') return base;
+    return base.filter((teacher) => {
+      const account = teacher.account as {
+        has_linked_user?: boolean;
+        user_id?: number | null;
+      } | null | undefined;
+      return account == null || (account.has_linked_user === false && account.user_id == null);
+    });
+  }, [teachers, stateFilter, activeFilter, hasAssignments, accountFilter]);
 
   const filteredTeachers = useMemo(
     () => filterTeachersByOperationalPreset(manuallyFiltered, operationalPreset),
@@ -152,6 +161,7 @@ export function TeachersListPage() {
       stateFilter ||
       activeFilter ||
       hasAssignments ||
+      accountFilter ||
       operationalPreset !== 'all',
   );
   const emptyVariant = resolveTeacherListEmptyVariant({
@@ -171,6 +181,7 @@ export function TeachersListPage() {
     setStateFilter('');
     setActiveFilter('');
     setHasAssignments('');
+    setAccountFilter('');
     setOperationalPreset('all');
     setPage(1);
   };
@@ -364,6 +375,7 @@ export function TeachersListPage() {
         stateFilter={stateFilter}
         activeFilter={activeFilter}
         hasAssignments={hasAssignments}
+        accountFilter={accountFilter}
         operationalPreset={operationalPreset}
         hasActiveFilters={hasActiveFilters}
         onSearchChange={setSearchDraft}
@@ -371,6 +383,7 @@ export function TeachersListPage() {
         onStateFilterChange={onStateFilterChange}
         onActiveFilterChange={onActiveFilterChange}
         onHasAssignmentsChange={onHasAssignmentsChange}
+        onAccountFilterChange={setAccountFilter}
         onOperationalPresetChange={applyOperationalPreset}
         onReset={resetFilters}
       />
