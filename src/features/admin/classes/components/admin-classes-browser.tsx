@@ -11,17 +11,13 @@ import { useRouter } from 'next/navigation';
 import { EmptyState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
-import {
-  formatAcademicClassLabel,
-  formatAcademicLevelLabel,
-} from '@/features/admin/academic-setup/utils/format-academic-label';
+import { formatAcademicLevelLabel } from '@/features/admin/academic-setup/utils/format-academic-label';
 import {
   ORPHAN_CYCLE_ID,
   normalizeCycleCode,
 } from '@/features/admin/academic-setup/utils/group-and-sort-levels';
 import {
   classesBrowserHasActiveQuery,
-  computeClassesOverview,
   filterClassesForBrowser,
   groupClassesByCycle,
   resolveClassesBrowserEmptyVariant,
@@ -68,7 +64,33 @@ function capacityPercent(studentCount: number, capacity: number | null): number 
   return Math.min(100, Math.round((studentCount / capacity) * 100));
 }
 
-function ClassCard({
+function classTitle(
+  cls: SchoolClass,
+  locale: string,
+  fallback: string,
+): string {
+  const code = cls.code?.trim() || '';
+  const displayAlias = cls.display_alias?.trim();
+  if (displayAlias && displayAlias !== code) return displayAlias;
+
+  const displayName = cls.display_name?.trim();
+  if (displayName && displayName !== code && displayName !== cls.level?.name?.trim()) {
+    return displayName;
+  }
+
+  const section = cls.section_name?.trim();
+  if (section) {
+    if (locale === 'ar') return section.startsWith('القسم') ? section : `القسم ${section}`;
+    return section;
+  }
+
+  const name = cls.name?.trim();
+  if (name && name !== code && name !== cls.level?.name?.trim()) return name;
+
+  return fallback;
+}
+
+function ClassRow({
   cls,
   onNavigate,
 }: {
@@ -77,57 +99,62 @@ function ClassCard({
 }) {
   const t = useT();
   const { locale } = useLocale();
-  const label = formatAcademicClassLabel(cls, locale);
   const studentCount = cls.student_count ?? 0;
   const fill = capacityPercent(studentCount, cls.capacity);
   const isActive = cls.status === 'active';
   const overCapacity = !!cls.capacity && cls.capacity > 0 && studentCount > cls.capacity;
+  const title = classTitle(cls, locale, t('common.class'));
 
   return (
     <button
       type="button"
-      className="classes-browser__class-card"
+      className="classes-browser__class-row"
       data-status={isActive ? 'active' : 'inactive'}
       data-over-capacity={overCapacity || undefined}
       onClick={() => onNavigate(cls.id)}
     >
-      <div className="classes-browser__class-card-head">
-        <strong className="classes-browser__class-name" dir="auto" title={label.primary}>
-          {label.primary}
-        </strong>
-        {!isActive ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}
-      </div>
+      <span className="classes-browser__class-main">
+        <span className="classes-browser__class-title-line">
+          <strong className="classes-browser__class-name" dir="auto" title={title}>
+            {title}
+          </strong>
+          {!isActive ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}
+        </span>
+        <span className="classes-browser__class-meta">
+          {cls.code ? (
+            <span className="classes-browser__class-code mono" dir="ltr">
+              {locale === 'ar' ? `القسم: ${cls.code}` : cls.code}
+            </span>
+          ) : null}
+          {cls.track?.name ? (
+            <span className="classes-browser__class-track" dir="auto">
+              {cls.track.name}
+            </span>
+          ) : null}
+        </span>
+      </span>
 
-      <div className="classes-browser__class-meta">
-        {label.secondary ? (
-          <span className="classes-browser__class-code mono" dir="ltr">
-            {label.secondary}
-          </span>
-        ) : null}
-        {cls.track?.name ? (
-          <span className="classes-browser__class-track" dir="auto" title={cls.track.name}>
-            {cls.track.name}
-          </span>
-        ) : null}
-      </div>
-
-      <div className="classes-browser__class-students" data-over-capacity={overCapacity || undefined}>
-        <span className="classes-browser__class-students-label">{t('nav.students')}</span>
+      <span
+        className="classes-browser__class-students"
+        data-over-capacity={overCapacity || undefined}
+      >
+        <span>{t('nav.students')}</span>
         <strong className="mono" dir="ltr">
-          {studentCount}
-          {cls.capacity ? ` / ${cls.capacity}` : ''}
+          {studentCount}{cls.capacity ? ` / ${cls.capacity}` : ''}
         </strong>
-      </div>
+      </span>
 
       {fill != null ? (
-        <div
+        <span
           className="classes-browser__capacity"
           data-over-capacity={overCapacity || undefined}
           aria-hidden
         >
-          <div className="classes-browser__capacity-bar" style={{ width: `${fill}%` }} />
-        </div>
+          <span className="classes-browser__capacity-bar" style={{ width: `${fill}%` }} />
+        </span>
       ) : null}
+
+      <span className="classes-browser__class-arrow" aria-hidden>‹</span>
     </button>
   );
 }
@@ -148,6 +175,7 @@ export function AdminClassesBrowser({
   const [cycleId, setCycleId] = useState('');
   const [levelId, setLevelId] = useState('');
   const [status, setStatus] = useState('');
+  const [moreOpen, setMoreOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [openCycleIds, setOpenCycleIds] = useState<Set<number>>(() => new Set());
 
@@ -185,9 +213,11 @@ export function AdminClassesBrowser({
 
   const levelOptions = useMemo(
     () =>
-      structureGroups
-        .filter((section) => selectedCycleId == null || section.cycle.id === selectedCycleId)
-        .flatMap((section) => section.levels),
+      selectedCycleId == null
+        ? []
+        : structureGroups
+            .filter((section) => section.cycle.id === selectedCycleId)
+            .flatMap((section) => section.levels),
     [structureGroups, selectedCycleId],
   );
 
@@ -200,25 +230,12 @@ export function AdminClassesBrowser({
         levelId: selectedLevelId,
         status,
       }),
-    [
-      classes,
-      levels,
-      debouncedSearch,
-      academicYear,
-      selectedCycleId,
-      selectedLevelId,
-      status,
-    ],
+    [classes, levels, debouncedSearch, academicYear, selectedCycleId, selectedLevelId, status],
   );
 
   const grouped = useMemo(
     () => groupClassesByCycle(filteredClasses, levels),
     [filteredClasses, levels],
-  );
-
-  const overview = useMemo(
-    () => computeClassesOverview(filteredClasses, grouped),
-    [filteredClasses, grouped],
   );
 
   const queryActive = classesBrowserHasActiveQuery({
@@ -235,6 +252,15 @@ export function AdminClassesBrowser({
     hasActiveQuery: queryActive,
   });
 
+  const focusedLevel = useMemo(() => {
+    if (selectedLevelId == null) return null;
+    for (const section of grouped) {
+      const level = section.levels.find((item) => item.id === selectedLevelId);
+      if (level) return { section, level };
+    }
+    return null;
+  }, [grouped, selectedLevelId]);
+
   useEffect(() => {
     if (selectedCycleId == null) return;
     if (!structureGroups.some((section) => section.cycle.id === selectedCycleId)) {
@@ -249,6 +275,10 @@ export function AdminClassesBrowser({
   }, [levelOptions, selectedLevelId]);
 
   useEffect(() => {
+    if (academicYear || status) setMoreOpen(true);
+  }, [academicYear, status]);
+
+  useEffect(() => {
     const mq = window.matchMedia(MOBILE_MEDIA);
     const update = () => setIsMobile(mq.matches);
     update();
@@ -261,19 +291,16 @@ export function AdminClassesBrowser({
       setOpenCycleIds(new Set());
       return;
     }
-
-    if (queryActive) {
+    if (selectedCycleId != null || debouncedSearch) {
       setOpenCycleIds(new Set(grouped.map((section) => section.cycle.id)));
       return;
     }
-
     if (isMobile) {
       setOpenCycleIds(new Set([grouped[0].cycle.id]));
       return;
     }
-
     setOpenCycleIds(new Set(grouped.map((section) => section.cycle.id)));
-  }, [grouped, queryActive, isMobile]);
+  }, [grouped, selectedCycleId, debouncedSearch, isMobile]);
 
   function toggleCycle(cycleIdToToggle: number) {
     setOpenCycleIds((prev) => {
@@ -284,12 +311,18 @@ export function AdminClassesBrowser({
     });
   }
 
+  function selectCycle(value: string) {
+    setCycleId(value);
+    setLevelId('');
+  }
+
   function clearFilters() {
     setSearch('');
     setAcademicYear('');
     setCycleId('');
     setLevelId('');
     setStatus('');
+    setMoreOpen(false);
   }
 
   if (emptyVariant === 'no-data' && !classes.length) {
@@ -304,23 +337,7 @@ export function AdminClassesBrowser({
 
   return (
     <div className="classes-browser">
-      <div className="classes-browser__topbar">
-        <div className="classes-browser__summary" aria-live="polite">
-          <span><strong dir="ltr">{overview.classCount}</strong> {t('nav.classes')}</span>
-          <span aria-hidden>·</span>
-          <span><strong dir="ltr">{overview.levelCount}</strong> {t('nav.levels')}</span>
-          <span aria-hidden>·</span>
-          <span><strong dir="ltr">{overview.studentCount}</strong> {t('nav.students')}</span>
-          {queryActive ? (
-            <>
-              <span aria-hidden>·</span>
-              <span className="classes-browser__summary-filtered mono" dir="ltr">
-                {filteredClasses.length} / {classes.length}
-              </span>
-            </>
-          ) : null}
-        </div>
-
+      <div className="classes-browser__toolbar">
         <label className="classes-browser__search">
           <span className="classes-browser__search-icon" aria-hidden>⌕</span>
           <input
@@ -346,45 +363,56 @@ export function AdminClassesBrowser({
             </button>
           ) : null}
         </label>
+
+        <button
+          type="button"
+          className={moreOpen ? 'btn btn--ghost btn--sm classes-browser__more classes-browser__more--active' : 'btn btn--ghost btn--sm classes-browser__more'}
+          onClick={() => setMoreOpen((open) => !open)}
+          aria-expanded={moreOpen}
+        >
+          {moreOpen ? t('admin.studentsList.filters.hideMore') : t('admin.studentsList.filters.more')}
+        </button>
+
+        {queryActive ? (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={clearFilters}>
+            {t('common.clear')}
+          </button>
+        ) : null}
       </div>
 
-      <div className="classes-browser__filters">
-        <select
-          className="input classes-browser__filter-input"
-          value={academicYear}
-          onChange={(event) => setAcademicYear(event.target.value)}
-          disabled={!academicYears.length}
-          aria-label={t('academicContext.fields.academicYear')}
-        >
-          <option value="">{t('academicContext.fields.academicYear')}</option>
-          {academicYears.map((year) => (
-            <option key={year} value={year}>{year}</option>
-          ))}
-        </select>
+      <div className="classes-browser__academic-filters">
+        <div className="classes-browser__cycle-filter" role="tablist" aria-label={t('academicContext.fields.cycle')}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!cycleId}
+            className={!cycleId ? 'classes-browser__cycle-pill classes-browser__cycle-pill--active' : 'classes-browser__cycle-pill'}
+            onClick={() => selectCycle('')}
+          >
+            {t('admin.studentsList.filters.allCycles')}
+          </button>
+          {structureGroups.map((section) => {
+            const active = cycleId === String(section.cycle.id);
+            return (
+              <button
+                key={section.cycle.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={active ? 'classes-browser__cycle-pill classes-browser__cycle-pill--active' : 'classes-browser__cycle-pill'}
+                onClick={() => selectCycle(String(section.cycle.id))}
+              >
+                {cycleTitle(section.cycle, t)}
+              </button>
+            );
+          })}
+        </div>
 
         <select
-          className="input classes-browser__filter-input"
-          value={cycleId}
-          onChange={(event) => {
-            setCycleId(event.target.value);
-            setLevelId('');
-          }}
-          disabled={!structureGroups.length}
-          aria-label={t('academicContext.fields.cycle')}
-        >
-          <option value="">{t('academicContext.fields.cycle')}</option>
-          {structureGroups.map((section) => (
-            <option key={section.cycle.id} value={section.cycle.id}>
-              {cycleTitle(section.cycle, t)}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="input classes-browser__filter-input"
+          className="input classes-browser__level-filter"
           value={levelId}
           onChange={(event) => setLevelId(event.target.value)}
-          disabled={!levelOptions.length}
+          disabled={selectedCycleId == null || !levelOptions.length}
           aria-label={t('academicContext.fields.level')}
         >
           <option value="">{t('academicContext.fields.level')}</option>
@@ -393,44 +421,76 @@ export function AdminClassesBrowser({
             return <option key={level.id} value={level.id}>{label.primary}</option>;
           })}
         </select>
-
-        <select
-          className="input classes-browser__filter-input"
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-          disabled={!statuses.length}
-          aria-label={t('common.status')}
-        >
-          <option value="">{t('common.allStatuses')}</option>
-          {statuses.map((value) => (
-            <option key={value} value={value}>{statusLabel(t, value)}</option>
-          ))}
-        </select>
-
-        {queryActive ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm classes-browser__filters-clear"
-            onClick={clearFilters}
-          >
-            {t('common.clear')}
-          </button>
-        ) : null}
       </div>
+
+      {moreOpen ? (
+        <div className="classes-browser__more-filters">
+          <label>
+            <span>{t('academicContext.fields.academicYear')}</span>
+            <select
+              className="input"
+              value={academicYear}
+              onChange={(event) => setAcademicYear(event.target.value)}
+              disabled={!academicYears.length}
+            >
+              <option value="">{t('academicContext.fields.academicYear')}</option>
+              {academicYears.map((year) => <option key={year} value={year}>{year}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>{t('common.status')}</span>
+            <select
+              className="input"
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+              disabled={!statuses.length}
+            >
+              <option value="">{t('common.allStatuses')}</option>
+              {statuses.map((value) => (
+                <option key={value} value={value}>{statusLabel(t, value)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
 
       {!grouped.length ? (
         <EmptyState
           icon="🔍"
           title={t('admin.classesBrowser.noMatch.title')}
           description={t('admin.classesBrowser.noMatch.description')}
-          action={
-            queryActive ? (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={clearFilters}>
-                {t('common.clear')}
-              </button>
-            ) : undefined
-          }
+          action={queryActive ? (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={clearFilters}>
+              {t('common.clear')}
+            </button>
+          ) : undefined}
         />
+      ) : focusedLevel ? (
+        <section className="classes-browser__focus" data-tone={cycleTone(focusedLevel.section.cycle.code)}>
+          <div className="classes-browser__focus-context">
+            <span>{cycleTitle(focusedLevel.section.cycle, t)}</span>
+          </div>
+          <div className="classes-browser__focus-head">
+            {(() => {
+              const levelLabel = formatAcademicLevelLabel(focusedLevel.level, locale);
+              return (
+                <>
+                  <Link href={`/admin/levels/${focusedLevel.level.id}`} className="classes-browser__focus-title" dir="auto">
+                    {levelLabel.primary}
+                  </Link>
+                  {levelLabel.secondary ? (
+                    <span className="classes-browser__level-code mono" dir="ltr">{levelLabel.secondary}</span>
+                  ) : null}
+                </>
+              );
+            })()}
+          </div>
+          <div className="classes-browser__class-list">
+            {focusedLevel.level.classes.map((cls) => (
+              <ClassRow key={cls.id} cls={cls} onNavigate={(id) => router.push(`/admin/classes/${id}`)} />
+            ))}
+          </div>
+        </section>
       ) : (
         <div className="classes-browser__cycles">
           {grouped.map((section) => {
@@ -439,12 +499,7 @@ export function AdminClassesBrowser({
             const panelId = `classes-cycle-${section.cycle.id}`;
 
             return (
-              <section
-                key={section.cycle.id}
-                className="classes-browser__cycle"
-                data-tone={tone}
-                data-open={open || undefined}
-              >
+              <section key={section.cycle.id} className="classes-browser__cycle" data-tone={tone} data-open={open || undefined}>
                 <header className="classes-browser__cycle-header">
                   <button
                     type="button"
@@ -454,24 +509,10 @@ export function AdminClassesBrowser({
                     onClick={() => toggleCycle(section.cycle.id)}
                   >
                     <span className="classes-browser__cycle-marker" aria-hidden />
-                    <span className="classes-browser__cycle-copy">
-                      <strong className="classes-browser__cycle-title" dir="auto">
-                        {cycleTitle(section.cycle, t)}
-                      </strong>
-                      <span className="classes-browser__cycle-stats">
-                        {t('admin.academicSetup.cycleGroupStats', {
-                          levels: section.levelCount,
-                          classes: section.classCount,
-                        })}
-                        {' · '}
-                        {t('admin.classesBrowser.studentCount', { count: section.studentCount })}
-                      </span>
-                    </span>
-                    <span
-                      className="classes-browser__cycle-chevron"
-                      data-open={open || undefined}
-                      aria-hidden
-                    />
+                    <strong className="classes-browser__cycle-title" dir="auto">
+                      {cycleTitle(section.cycle, t)}
+                    </strong>
+                    <span className="classes-browser__cycle-chevron" data-open={open || undefined} aria-hidden />
                   </button>
                 </header>
 
@@ -498,21 +539,10 @@ export function AdminClassesBrowser({
                                 </span>
                               ) : null}
                             </div>
-                            <span className="classes-browser__level-meta">
-                              {t('admin.classesBrowser.levelMeta', {
-                                classes: levelGroup.classes.length,
-                                students: levelGroup.studentCount ?? 0,
-                              })}
-                            </span>
                           </div>
-
-                          <div className="classes-browser__class-rail">
+                          <div className="classes-browser__class-list">
                             {levelGroup.classes.map((cls) => (
-                              <ClassCard
-                                key={cls.id}
-                                cls={cls}
-                                onNavigate={(id) => router.push(`/admin/classes/${id}`)}
-                              />
+                              <ClassRow key={cls.id} cls={cls} onNavigate={(id) => router.push(`/admin/classes/${id}`)} />
                             ))}
                           </div>
                         </article>
