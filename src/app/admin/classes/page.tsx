@@ -53,7 +53,6 @@ export default function AdminClassesPage() {
     <div className="admin-workspace">
       <PageHeader
         title={t('nav.classes')}
-        subtitle={t('admin.classesListDesc')}
         actions={
           <AdminListActions
             addHref="/admin/classes/new"
