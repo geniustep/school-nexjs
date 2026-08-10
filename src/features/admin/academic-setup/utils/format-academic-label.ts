@@ -116,7 +116,7 @@ function formatSectionLabel(section: string, locale: Locale): string {
 
 export function formatAcademicLevelLabel(
   level: AcademicLevelLabelSource | null | undefined,
-  _locale?: Locale,
+  locale: Locale = 'ar',
 ): AcademicLabelParts {
   if (!level) return { primary: '—', secondary: null };
 
@@ -139,6 +139,8 @@ export function formatAcademicLevelLabel(
   if (academicCode && academicCode !== primary) secondary = academicCode;
   else if (code && code !== primary) secondary = code;
   else if (name && name !== primary) secondary = name;
+
+  if (locale === 'ar' && secondary) secondary = `المستوى: ${secondary}`;
 
   return { primary, secondary };
 }
