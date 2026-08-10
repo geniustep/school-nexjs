@@ -110,7 +110,10 @@ export function AdminSessionProvider({
 
       const data = normalizeAcademicContextOptions(res.data);
       const years = data.academic_years ?? [];
-      const currentId = data.selected_context?.academic_year_id ?? null;
+      const currentId =
+        data.selected_context?.academic_year_id ??
+        data.applied_filters?.academic_year_id ??
+        null;
       setAcademicYears(years);
 
       if (currentId == null) {
