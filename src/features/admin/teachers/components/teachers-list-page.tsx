@@ -15,9 +15,7 @@ import { DataTable, Pagination, type Column } from '@/components/tables/data-tab
 import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
-import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
 import { TeachersListFilters } from '@/features/admin/teachers/components/teachers-list-filters';
-import { TeachersListInterventionCell } from '@/features/admin/teachers/components/teachers-list-intervention-cell';
 import {
   TeachersListSummaryCards,
   type TeachersListSummaryCardId,
@@ -36,12 +34,14 @@ import {
   teacherDisplayName,
   teacherEmploymentState,
   teacherInitials,
-  teacherPrimaryActions,
 } from '@/features/admin/teachers/utils/teacher-domain-present';
 import { normalizeTeacherSummaries } from '@/features/admin/teachers/utils/teacher-domain-normalize';
 import {
   countTeacherInterventions,
+  deriveTeacherInterventions,
   filterTeachersByOperationalPreset,
+  getTeacherPrimaryIntervention,
+  interventionTitleKey,
   presetFromSummaryCard,
   type TeacherOperationalPreset,
 } from '@/features/admin/teachers/utils/teacher-interventions';
@@ -56,8 +56,6 @@ import '@/features/admin/teachers/teachers-list.css';
 import '@/features/admin/teachers/teachers-domain.css';
 import '@/features/admin/teachers/teachers-list-density.css';
 
-type LifecycleAction = 'terminate' | 'archive' | 'reactivate' | null;
-
 export function TeachersListPage() {
   const router = useRouter();
   const t = useT();
@@ -71,10 +69,6 @@ export function TeachersListPage() {
   const [hasAssignments, setHasAssignments] = useState('');
   const [operationalPreset, setOperationalPreset] = useState<TeacherOperationalPreset>('all');
   const [importOpen, setImportOpen] = useState(false);
-  const [lifecycle, setLifecycle] = useState<{
-    teacher: TeacherSummary | null;
-    action: LifecycleAction;
-  }>({ teacher: null, action: null });
 
   const hasManualClientFilters = Boolean(stateFilter || activeFilter || hasAssignments);
   const hasOperationalPreset = operationalPreset !== 'all';
@@ -295,6 +289,9 @@ export function TeachersListPage() {
           const employment = teacherEmploymentState(teacher);
           const accountKey = teacherAccountStateLabelKey(teacher);
           const accountNeedsAttention = accountKey !== 'admin.teacherDomain.account.active';
+          const interventions = deriveTeacherInterventions(teacher);
+          const primaryIntervention = getTeacherPrimaryIntervention(teacher);
+          const extraInterventions = Math.max(0, interventions.length - 1);
           return (
             <div className="teachers-list__attention">
               {employment !== 'active' ? (
@@ -305,32 +302,14 @@ export function TeachersListPage() {
                   {t(accountKey)}
                 </span>
               ) : null}
-              <TeachersListInterventionCell teacher={teacher} />
+              {primaryIntervention ? (
+                <span className="teachers-list__attention-note" dir="auto">
+                  {t(interventionTitleKey(primaryIntervention.code))}
+                  {extraInterventions > 0 ? ` +${extraInterventions}` : ''}
+                </span>
+              ) : null}
             </div>
           );
-        },
-      },
-      {
-        key: 'actions',
-        header: '',
-        width: '104px',
-        render: (teacher) => {
-          const actions = teacherPrimaryActions(teacher);
-          return actions.includes('archive') ? (
-            <div
-              className="teachers-list__row-actions"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                aria-label={t('admin.teacherDomain.lifecycle.archive')}
-                onClick={() => setLifecycle({ teacher, action: 'archive' })}
-              >
-                {t('admin.teacherDomain.lifecycle.archiveShort')}
-              </button>
-            </div>
-          ) : null;
         },
       },
     ],
@@ -451,13 +430,6 @@ export function TeachersListPage() {
           )}
         </ResourceView>
       </div>
-
-      <TeacherLifecycleDialogs
-        teacher={lifecycle.teacher}
-        action={lifecycle.action}
-        onClose={() => setLifecycle({ teacher: null, action: null })}
-        onSuccess={() => state.reload()}
-      />
     </div>
   );
 }
