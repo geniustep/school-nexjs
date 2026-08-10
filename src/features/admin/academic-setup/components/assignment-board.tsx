@@ -148,40 +148,23 @@ export function AssignmentBoard({
 
   return (
     <div className="academic-setup-assignment-board assignment-workspace">
-      <section className="academic-setup-assignment-hero" aria-labelledby="assignment-workspace-title">
-        <div>
-          <p className="academic-setup-assignment-hero__eyebrow">{t('admin.academicSetup.assignmentWorkspaceEyebrow')}</p>
-          <h2 id="assignment-workspace-title">{t('admin.academicSetup.assignmentWorkspaceTitle')}</h2>
-          <p>{t('admin.academicSetup.assignmentWorkspaceDescription')}</p>
-        </div>
-        {canManage ? (
-          <button type="button" className="btn btn--primary" onClick={() => { setEditing(null); setPickMissing(null); setFormOpen(true); }}>
-            <span aria-hidden>＋</span>
-            {t('admin.academicSetup.addAssignment')}
-          </button>
-        ) : null}
-      </section>
-
-      <section className="academic-setup-assignment-stats" aria-label={t('admin.academicSetup.assignmentOverview')}>
-        <div className="academic-setup-assignment-stat academic-setup-assignment-stat--primary">
-          <span>{t('admin.academicSetup.assignedCount')}</span>
-          <strong>{assignedCount}</strong>
-          <small>{t('admin.academicSetup.assignedCountHint')}</small>
-        </div>
-        <div className="academic-setup-assignment-stat academic-setup-assignment-stat--warning">
-          <span>{t('admin.academicSetup.missingCount')}</span>
-          <strong>{missingIssues.length}</strong>
-          <small>{t('admin.academicSetup.missingCountHint')}</small>
-        </div>
-        <div className="academic-setup-assignment-stat">
-          <span>{t('admin.academicSetup.currentYear')}</span>
-          <strong>{academicYears.find((year) => String(year.id) === effectiveYearId)?.name ?? '—'}</strong>
-          <small>{t('admin.academicSetup.currentYearHint')}</small>
-        </div>
-      </section>
-
       <section className="academic-setup-assignment-controls">
         <div className="academic-toolbar academic-setup-assignment-toolbar">
+          <div className="academic-setup-assignment-toolbar__summary" aria-live="polite">
+            <strong>{assignedCount}</strong>
+            <span className="muted">{t('admin.academicSetup.assignedCount')}</span>
+            {missingIssues.length > 0 ? (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => setMissingOpen(true)}
+                disabled={!canManage}
+              >
+                {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
+              </button>
+            ) : null}
+          </div>
+
           <label className="field assignment-workspace__year" style={{ margin: 0 }}>
             <span>{t('admin.academicSetup.academicYear')}</span>
             <select
@@ -197,6 +180,7 @@ export function AssignmentBoard({
               {academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
             </select>
           </label>
+
           <div className="academic-setup-view-tabs" role="tablist">
             {(['class', 'teacher', 'subject'] as const).map((mode) => (
               <button
@@ -211,17 +195,22 @@ export function AssignmentBoard({
               </button>
             ))}
           </div>
-          {missingIssues.length > 0 && canManage && (
-            <button type="button" className="btn btn--primary btn--sm academic-setup-assignment-toolbar__cta" onClick={() => setMissingOpen(true)}>
-              {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
+
+          {canManage ? (
+            <button
+              type="button"
+              className="btn btn--primary btn--sm academic-setup-assignment-toolbar__cta"
+              onClick={() => {
+                setEditing(null);
+                setPickMissing(null);
+                setFormOpen(true);
+              }}
+            >
+              <span aria-hidden>＋</span>
+              {t('admin.academicSetup.addAssignment')}
             </button>
-          )}
+          ) : null}
         </div>
-        {readinessState.data?.academic_year ? (
-          <p className="tiny muted academic-setup-assignment-controls__context" role="status">
-            {t('admin.academicSetup.activeAcademicYear', { year: readinessState.data.academic_year.name })}
-          </p>
-        ) : null}
       </section>
 
       <Card pad={false} className="academic-setup-assignment-results assignment-workspace__results">
@@ -255,6 +244,7 @@ export function AssignmentBoard({
           <AssignmentBySubject assignments={assignments} canManage={canManage} onEdit={(a) => { setEditing(a); setPickMissing(null); setFormOpen(true); }} />
         )}
       </Card>
+
       {pagination ? (
         <Pagination page={pagination.page} totalPages={pagination.total_pages} total={pagination.total} pageSize={pagination.page_size || 50} onPage={setPage} />
       ) : null}
