@@ -51,22 +51,13 @@ function sectionSuffixFromShortName(shortName: string, levelCode: string | null)
   return null;
 }
 
-function formatStoredSectionLabel(section: string, locale: Locale): string {
-  if (locale !== 'ar') return section;
-  const trimmed = section.trim();
-  if (!trimmed) return section;
-  if (trimmed.startsWith('الفوج')) return trimmed;
-  if (trimmed.startsWith('القسم')) return trimmed.replace(/^القسم\s*/, 'الفوج ');
-  return `الفوج ${trimmed}`;
-}
-
 function resolveClassSectionLabel(
   cls: AcademicClassLabelSource,
   locale: Locale,
   levelCode: string | null,
 ): string | null {
   const sectionName = nonEmpty(cls.section_name ?? null);
-  if (sectionName) return formatStoredSectionLabel(sectionName, locale);
+  if (sectionName) return formatSectionLabel(sectionName, locale);
 
   const code = nonEmpty(cls.code ?? null);
   const name = nonEmpty(cls.name ?? null);
@@ -91,8 +82,7 @@ function resolveClassSecondaryLabel(
   code: string | null,
   name: string | null,
 ): string | null {
-  if (name && name !== primary && name.length <= 8) return name;
-  if (code && code !== primary && code !== name) return code;
+  if (code && code !== primary) return code;
   if (name && name !== primary) return name;
   return null;
 }
@@ -104,16 +94,24 @@ const LATIN_SECTION_TO_ARABIC: Record<string, string> = {
 };
 
 function formatSectionLabel(section: string, locale: Locale): string {
-  if (/^[A-Z]$/.test(section)) {
+  const trimmed = section.trim();
+  if (!trimmed) return section;
+
+  if (/^[A-Z]$/.test(trimmed)) {
     if (locale === 'ar') {
-      const arabicLetter = LATIN_SECTION_TO_ARABIC[section] ?? section;
-      return `الفوج ${arabicLetter}`;
+      const arabicLetter = LATIN_SECTION_TO_ARABIC[trimmed] ?? trimmed;
+      return `القسم ${arabicLetter}`;
     }
-    if (locale === 'fr') return `Section ${section}`;
-    if (locale === 'es') return `Sección ${section}`;
-    return `Section ${section}`;
+    if (locale === 'fr') return `Section ${trimmed}`;
+    if (locale === 'es') return `Sección ${trimmed}`;
+    return `Section ${trimmed}`;
   }
-  return locale === 'ar' ? formatStoredSectionLabel(section, locale) : section;
+
+  if (locale === 'ar') {
+    if (trimmed.startsWith('القسم')) return trimmed;
+    return `القسم ${trimmed}`;
+  }
+  return trimmed;
 }
 
 export function formatAcademicLevelLabel(
@@ -170,7 +168,8 @@ export function formatAcademicClassLabel(
   }
 
   let secondary = resolveClassSecondaryLabel(primary, code, name);
-  if (secondary === primary || locale === 'ar') secondary = null;
+  if (secondary === primary) secondary = null;
+  if (locale === 'ar' && code && code !== primary) secondary = `القسم: ${code}`;
 
   return { primary, secondary };
 }
