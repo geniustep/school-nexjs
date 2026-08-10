@@ -24,9 +24,6 @@ function normalizeArabicUiTerm(locale: Locale, value: string): string {
   if (value === 'إخفاء عوامل التصفية الإضافية') return 'إخفاء الفلاتر';
   if (value === 'الأسلاك المؤهل لها') return 'السلك';
   if (value === 'المستويات المؤهل لها') return 'المستوى';
-  if (value === 'الأقسام') return 'الأقسام والأفواج';
-  if (value === 'كل الأقسام') return 'كل الأقسام والأفواج';
-  if (value === 'القسم') return 'القسم / الفوج';
   return value;
 }
 
