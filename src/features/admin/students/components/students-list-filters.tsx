@@ -123,9 +123,8 @@ export function StudentsListFilters({
   }, [levelId, classId, classes, onClassIdChange]);
 
   useEffect(() => {
-    if (!accountFilter) return;
-    setMoreOpen(true);
-  }, [accountFilter]);
+    if (statusFilter || accountFilter || serviceId) setMoreOpen(true);
+  }, [statusFilter, accountFilter, serviceId]);
 
   const selectedCycleLabel = useMemo(
     () => resolveCycleLabel(cycleOptions, cycleCode),
@@ -165,21 +164,11 @@ export function StudentsListFilters({
     }
   }
 
-  function handleServiceChange(nextServiceId: string) {
-    onServiceIdChange(nextServiceId);
-  }
-
   const effectivePresence: StudentsListServicePresence =
     servicePresence === 'not_has' ? 'not_has' : 'has';
-
-  const hasMoreActive = !!accountFilter;
+  const hasMoreActive = !!(statusFilter || accountFilter || serviceId);
   const hasStructuredActive = !!(
-    cycleCode ||
-    levelId ||
-    classId ||
-    statusFilter ||
-    accountFilter ||
-    serviceId
+    cycleCode || levelId || classId || statusFilter || accountFilter || serviceId
   );
 
   return (
@@ -207,81 +196,35 @@ export function StudentsListFilters({
           ))}
         </select>
 
-        <select
-          className="input students-list-filters__level"
-          value={levelId}
-          disabled={!cycleCode}
-          onChange={(event) => handleLevelChange(event.target.value)}
-          aria-label={t('admin.studentsList.filters.level')}
-          title={!cycleCode ? t('admin.studentsList.filters.selectCycleFirst') : undefined}
-        >
-          <option value="">
-            {cycleCode ? t('admin.allLevels') : t('admin.studentsList.filters.selectCycleFirst')}
-          </option>
-          {levelsForCycle.map((level) => (
-            <option key={level.id} value={level.id}>
-              {studentLevelLabel(level)}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="input students-list-filters__class"
-          value={classId}
-          disabled={!levelId}
-          onChange={(event) => onClassIdChange(event.target.value)}
-          aria-label={t('admin.studentsList.filters.class')}
-          title={!levelId ? t('admin.studentsList.filters.selectLevelFirst') : undefined}
-        >
-          <option value="">
-            {levelId ? t('admin.allClasses') : t('admin.studentsList.filters.selectLevelFirst')}
-          </option>
-          {classesForLevel.map((cls) => (
-            <option key={cls.id} value={cls.id}>
-              {studentClassLabel(cls)}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="input students-list-filters__status"
-          value={statusFilter}
-          onChange={(event) => onStatusFilterChange(event.target.value)}
-          aria-label={t('admin.studentsList.filters.status')}
-        >
-          <option value="">{t('admin.allStates')}</option>
-          <option value="active">{t('states.active')}</option>
-          <option value="suspended">{t('states.suspended')}</option>
-        </select>
-
-        <select
-          className="input students-list-filters__service"
-          value={serviceId}
-          onChange={(event) => handleServiceChange(event.target.value)}
-          aria-label={t('admin.studentsList.filters.service')}
-          disabled={feeTypesLoading && sortedFeeTypes.length === 0}
-        >
-          <option value="">{t('admin.studentsList.filters.allServices')}</option>
-          {sortedFeeTypes.map((feeType) => (
-            <option key={feeType.id} value={feeType.id}>
-              {feeType.name}
-            </option>
-          ))}
-        </select>
-
-        {serviceId ? (
+        {cycleCode ? (
           <select
-            className="input students-list-filters__service-presence"
-            value={effectivePresence}
-            onChange={(event) =>
-              onServicePresenceChange(
-                event.target.value === 'not_has' ? 'not_has' : 'has',
-              )
-            }
-            aria-label={t('admin.studentsList.filters.servicePresence')}
+            className="input students-list-filters__level"
+            value={levelId}
+            onChange={(event) => handleLevelChange(event.target.value)}
+            aria-label={t('admin.studentsList.filters.level')}
           >
-            <option value="has">{t('admin.studentsList.filters.serviceHas')}</option>
-            <option value="not_has">{t('admin.studentsList.filters.serviceNotHas')}</option>
+            <option value="">{t('admin.allLevels')}</option>
+            {levelsForCycle.map((level) => (
+              <option key={level.id} value={level.id}>
+                {studentLevelLabel(level)}
+              </option>
+            ))}
+          </select>
+        ) : null}
+
+        {levelId ? (
+          <select
+            className="input students-list-filters__class"
+            value={classId}
+            onChange={(event) => onClassIdChange(event.target.value)}
+            aria-label={t('admin.studentsList.filters.class')}
+          >
+            <option value="">{t('admin.allClasses')}</option>
+            {classesForLevel.map((cls) => (
+              <option key={cls.id} value={cls.id}>
+                {studentClassLabel(cls)}
+              </option>
+            ))}
           </select>
         ) : null}
 
@@ -300,14 +243,65 @@ export function StudentsListFilters({
         </button>
 
         {hasActiveFilters ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onReset}>
+          <button type="button" className="btn btn--ghost btn--sm students-list-filters__reset" onClick={onReset}>
             {t('admin.studentsList.resetFilters')}
           </button>
         ) : null}
       </div>
 
       {moreOpen ? (
-        <div className="students-list-filters__more">
+        <div className="students-list-filters__more students-list-filters__more--compact">
+          <label className="students-list-filters__more-field">
+            <span className="students-list-filters__more-label">{t('admin.studentsList.filters.status')}</span>
+            <select
+              className="input"
+              value={statusFilter}
+              onChange={(event) => onStatusFilterChange(event.target.value)}
+              aria-label={t('admin.studentsList.filters.status')}
+            >
+              <option value="">{t('admin.allStates')}</option>
+              <option value="active">{t('states.active')}</option>
+              <option value="suspended">{t('states.suspended')}</option>
+            </select>
+          </label>
+
+          <label className="students-list-filters__more-field">
+            <span className="students-list-filters__more-label">{t('admin.studentsList.filters.service')}</span>
+            <select
+              className="input"
+              value={serviceId}
+              onChange={(event) => onServiceIdChange(event.target.value)}
+              aria-label={t('admin.studentsList.filters.service')}
+              disabled={feeTypesLoading && sortedFeeTypes.length === 0}
+            >
+              <option value="">{t('admin.studentsList.filters.allServices')}</option>
+              {sortedFeeTypes.map((feeType) => (
+                <option key={feeType.id} value={feeType.id}>
+                  {feeType.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {serviceId ? (
+            <label className="students-list-filters__more-field">
+              <span className="students-list-filters__more-label">
+                {t('admin.studentsList.filters.servicePresence')}
+              </span>
+              <select
+                className="input"
+                value={effectivePresence}
+                onChange={(event) =>
+                  onServicePresenceChange(event.target.value === 'not_has' ? 'not_has' : 'has')
+                }
+                aria-label={t('admin.studentsList.filters.servicePresence')}
+              >
+                <option value="has">{t('admin.studentsList.filters.serviceHas')}</option>
+                <option value="not_has">{t('admin.studentsList.filters.serviceNotHas')}</option>
+              </select>
+            </label>
+          ) : null}
+
           <label className="students-list-filters__more-field">
             <span className="students-list-filters__more-label">{t('admin.studentsList.filters.account')}</span>
             <select
@@ -328,77 +322,38 @@ export function StudentsListFilters({
       {hasStructuredActive ? (
         <div className="students-list-filters__chips" aria-live="polite">
           {selectedCycleLabel ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => handleCycleChange('')}
-            >
-              {t('admin.studentsList.filters.chipCycle', { cycle: selectedCycleLabel })}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => handleCycleChange('')}>
+              {t('admin.studentsList.filters.chipCycle', { cycle: selectedCycleLabel })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
           {selectedLevelLabel ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => handleLevelChange('')}
-            >
-              {t('admin.studentsList.filters.chipLevel', { level: selectedLevelLabel })}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => handleLevelChange('')}>
+              {t('admin.studentsList.filters.chipLevel', { level: selectedLevelLabel })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
           {selectedClassLabel ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => onClassIdChange('')}
-            >
-              {t('admin.studentsList.filters.chipClass', { className: selectedClassLabel })}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onClassIdChange('')}>
+              {t('admin.studentsList.filters.chipClass', { className: selectedClassLabel })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
           {statusFilter ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => onStatusFilterChange('')}
-            >
-              {t('admin.studentsList.filters.chipStatus', { status: statusLabel(t, statusFilter) })}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onStatusFilterChange('')}>
+              {t('admin.studentsList.filters.chipStatus', { status: statusLabel(t, statusFilter) })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
           {serviceId ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => onServiceIdChange('')}
-            >
-              {t('admin.studentsList.filters.chipService', {
-                service: selectedServiceLabel ?? serviceId,
-              })}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onServiceIdChange('')}>
+              {t('admin.studentsList.filters.chipService', { service: selectedServiceLabel ?? serviceId })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
           {serviceId ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => onServiceIdChange('')}
-            >
-              {t('admin.studentsList.filters.chipServicePresence', {
-                presence: servicePresenceLabel(t, effectivePresence),
-              })}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onServiceIdChange('')}>
+              {t('admin.studentsList.filters.chipServicePresence', { presence: servicePresenceLabel(t, effectivePresence) })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
           {accountFilter ? (
-            <button
-              type="button"
-              className="students-list-filters__chip students-list-filters__chip--action"
-              onClick={() => onAccountFilterChange('')}
-            >
-              {accountFilterLabel(t, accountFilter)}
-              <span aria-hidden="true">×</span>
+            <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onAccountFilterChange('')}>
+              {accountFilterLabel(t, accountFilter)}<span aria-hidden="true">×</span>
             </button>
           ) : null}
         </div>
