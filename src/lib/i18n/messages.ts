@@ -18,15 +18,24 @@ export function getMessage(messages: Messages, key: string): string | undefined 
   return typeof cur === 'string' ? cur : undefined;
 }
 
+function normalizeArabicUiTerm(locale: Locale, value: string): string {
+  if (locale !== 'ar') return value;
+  if (value === 'عوامل تصفية إضافية') return 'فلاتر أخرى';
+  if (value === 'إخفاء عوامل التصفية الإضافية') return 'إخفاء الفلاتر';
+  return value;
+}
+
 export function translate(
   locale: Locale,
   key: string,
   params?: Record<string, string | number>,
 ): string {
-  const raw =
+  const raw = normalizeArabicUiTerm(
+    locale,
     getMessage(MESSAGES[locale], key) ??
-    getMessage(MESSAGES.en, key) ??
-    key;
+      getMessage(MESSAGES.en, key) ??
+      key,
+  );
   if (!params) return raw;
   return Object.entries(params).reduce(
     (acc, [k, v]) => acc.replaceAll(`{${k}}`, String(v)),
