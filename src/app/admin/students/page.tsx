@@ -37,6 +37,7 @@ import type { Student } from '@/types/student';
 import type { Level } from '@/types/class';
 import type { FeeType } from '@/types/finance';
 import '@/features/admin/students/student-360.css';
+import '@/features/admin/students/students-list-density.css';
 
 function StudentAvatar({ name }: { name: string }) {
   return (
@@ -52,11 +53,10 @@ export default function AdminStudentsPage() {
   const user = useSession();
   const canAddStudent = canCreateStudents(user);
   const canImportStudents = hasStudentImportCapability(user);
-  const canShowListActions =
-    canAddStudent ||
-    canImportStudents ||
-    hasPermission(user, 'export_data') ||
-    hasPermission(user, 'import_data');
+  const canExportStudents = hasPermission(user, 'export_data');
+  const canImportCsv = hasPermission(user, 'import_data');
+  const canShowSecondaryActions =
+    canAddStudent || canImportStudents || canExportStudents || canImportCsv;
   const {
     search,
     cycleCode,
@@ -167,9 +167,7 @@ export default function AdminStudentsPage() {
                   <span className="students-list__student-ref mono muted" dir="auto" title={ref}>
                     {ref}
                   </span>
-                ) : (
-                  <span className="students-list__student-ref mono muted">{t('common.dash')}</span>
-                )}
+                ) : null}
               </div>
             </div>
           );
@@ -188,26 +186,8 @@ export default function AdminStudentsPage() {
       {
         key: 'status',
         header: t('academic.status'),
-        render: (s) => (
-          <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, s.status)}</Badge>
-        ),
-      },
-      {
-        key: 'actions',
-        header: '',
-        width: '88px',
-        render: (s) => (
-          <div className="students-list__row-actions" onClick={(e) => e.stopPropagation()}>
-            <Link
-              href={`/admin/students/${s.id}`}
-              className="students-list__view-link"
-              aria-label={t('common.view')}
-              title={t('common.view')}
-            >
-              <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-        ),
+        render: (s) =>
+          s.status === 'active' ? null : <Badge tone="slate">{statusLabel(t, s.status)}</Badge>,
       },
     ],
     [t],
@@ -217,40 +197,50 @@ export default function AdminStudentsPage() {
     <div className="students-list-page">
       <PageHeader
         title={t('nav.students')}
-        subtitle={t('admin.studentsListDesc')}
         actions={
-          canShowListActions ? (
+          canAddStudent || canShowSecondaryActions ? (
             <div className="students-list__header-actions">
-              <AdminListActions
-                addHref="/admin/students/new"
-                addLabel={t('admin.addStudent')}
-                addCapability="students.create"
-                managePermission="manage_students"
-                exportPath={endpoints.admin.studentsExport}
-                exportFilename="students.csv"
-                showImport
-                importOpen={importOpen}
-                onToggleImport={() => setImportOpen((v) => !v)}
-                extra={
-                  canImportStudents || canAddStudent ? (
-                    <>
-                      {canAddStudent ? (
-                        <Link
-                          href="/admin/students/family/new"
-                          className="btn btn--ghost btn--sm"
-                        >
-                          {t('admin.student360.familyRegistration.entryFromList')}
-                        </Link>
-                      ) : null}
-                      {canImportStudents ? (
-                        <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
-                          {t('admin.studentImport.openImport')}
-                        </Link>
-                      ) : null}
-                    </>
-                  ) : null
-                }
-              />
+              {canAddStudent ? (
+                <Link href="/admin/students/new" className="btn btn--primary btn--sm">
+                  {t('admin.addStudent')}
+                </Link>
+              ) : null}
+
+              {canShowSecondaryActions ? (
+                <details className="students-list__more-actions">
+                  <summary className="btn btn--ghost btn--sm">
+                    {t('admin.studentsList.filters.more')}
+                  </summary>
+                  <div className="students-list__more-actions-menu">
+                    <AdminListActions
+                      exportPath={endpoints.admin.studentsExport}
+                      exportFilename="students.csv"
+                      showImport
+                      importOpen={importOpen}
+                      onToggleImport={() => setImportOpen((v) => !v)}
+                      extra={
+                        canImportStudents || canAddStudent ? (
+                          <>
+                            {canAddStudent ? (
+                              <Link
+                                href="/admin/students/family/new"
+                                className="btn btn--ghost btn--sm"
+                              >
+                                {t('admin.student360.familyRegistration.entryFromList')}
+                              </Link>
+                            ) : null}
+                            {canImportStudents ? (
+                              <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
+                                {t('admin.studentImport.openImport')}
+                              </Link>
+                            ) : null}
+                          </>
+                        ) : null
+                      }
+                    />
+                  </div>
+                </details>
+              ) : null}
             </div>
           ) : null
         }
@@ -309,18 +299,10 @@ export default function AdminStudentsPage() {
           role="group"
           aria-label={t('admin.studentsList.viewMode')}
         >
-          <button
-            type="button"
-            aria-pressed={view === 'list'}
-            onClick={() => setView('list')}
-          >
+          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
             {t('admin.studentsList.viewList')}
           </button>
-          <button
-            type="button"
-            aria-pressed={view === 'kanban'}
-            onClick={() => setView('kanban')}
-          >
+          <button type="button" aria-pressed={view === 'kanban'} onClick={() => setView('kanban')}>
             {t('admin.studentsList.viewKanban')}
           </button>
         </div>
