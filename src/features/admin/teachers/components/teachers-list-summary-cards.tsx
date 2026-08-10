@@ -84,18 +84,6 @@ export function TeachersListSummaryCards({
       composed: true,
     },
     {
-      id: 'inactive_account',
-      label: t('admin.teacherDomain.summary.inactiveAccount'),
-      value: counts.inactiveAccount,
-      composed: true,
-    },
-    {
-      id: 'incomplete_academic',
-      label: t('admin.teacherDomain.summary.incompleteAcademic'),
-      value: counts.incompleteAcademic,
-      composed: true,
-    },
-    {
       id: 'needs_intervention',
       label: t('admin.teacherDomain.summary.needsIntervention'),
       value: counts.needsIntervention,
@@ -104,10 +92,7 @@ export function TeachersListSummaryCards({
   ];
 
   return (
-    <section
-      className="teachers-list-summary"
-      aria-label={t('admin.teacherDomain.summary.regionLabel')}
-    >
+    <section className="teachers-list-summary" aria-label={t('admin.teacherDomain.summary.regionLabel')}>
       <div className="teachers-list-summary__grid" role="toolbar">
         {cards.map((card) => {
           const preset = cardToPreset(card.id);
@@ -138,16 +123,7 @@ export function TeachersListSummaryCards({
               }
             >
               <span className="teachers-list-summary__label">{card.label}</span>
-              <span className="teachers-list-summary__value" dir="ltr">
-                {card.value}
-              </span>
-              {card.composed ? (
-                <span className="teachers-list-summary__scope">{scopeLabel}</span>
-              ) : (
-                <span className="teachers-list-summary__scope">
-                  {t('admin.teacherDomain.summary.scopeSchool')}
-                </span>
-              )}
+              <span className="teachers-list-summary__value" dir="ltr">{card.value}</span>
             </button>
           );
         })}

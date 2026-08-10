@@ -29,13 +29,7 @@ export function TeachersListInterventionCell({ teacher }: { teacher: TeacherSumm
   const interventions = deriveTeacherInterventions(teacher);
   const primary = getTeacherPrimaryIntervention(teacher);
 
-  if (!primary) {
-    return (
-      <span className="teachers-list__intervention teachers-list__intervention--none">
-        {t('admin.teacherDomain.interventions.none')}
-      </span>
-    );
-  }
+  if (!primary) return null;
 
   const extra = Math.max(0, interventions.length - 1);
   const extraSummary = interventions
@@ -55,9 +49,7 @@ export function TeachersListInterventionCell({ teacher }: { teacher: TeacherSumm
       </div>
       {extra > 0 ? (
         <details className="teachers-list__intervention-more">
-          <summary>
-            {t('admin.teacherDomain.interventions.moreReasons', { count: extra })}
-          </summary>
+          <summary>{t('admin.teacherDomain.interventions.moreReasons', { count: extra })}</summary>
           <ul className="teachers-list__intervention-list">
             {interventions.slice(1).map((item) => (
               <li key={item.code}>{t(interventionTitleKey(item.code))}</li>
