@@ -20,6 +20,13 @@ type CycleBucket = {
   classes: SchoolClass[];
 };
 
+function missingTeacherLabel(count: number) {
+  if (count === 1) return 'مادة واحدة بدون أستاذ';
+  if (count === 2) return 'مادتان بدون أستاذ';
+  if (count >= 3 && count <= 10) return `${count} مواد بدون أستاذ`;
+  return `${count} مادة بدون أستاذ`;
+}
+
 export function AssignmentByClass({
   classes,
   subjects,
@@ -185,10 +192,6 @@ export function AssignmentByClass({
         <div className="assignment-cycle-filter" role="tablist" aria-label={cyclesLabel}>
           {groupedCycles.map((group) => {
             const active = group.key === effectiveCycleKey;
-            const missingCount = group.classes.reduce(
-              (total, cls) => total + (missingByClass.get(cls.id)?.length ?? 0),
-              0,
-            );
             return (
               <button
                 key={group.key}
@@ -203,7 +206,6 @@ export function AssignmentByClass({
                 onClick={() => selectCycle(group.key)}
               >
                 <strong dir="auto">{group.label}</strong>
-                {missingCount > 0 ? <span>{t('admin.academicSetup.completeMissing')} ({missingCount})</span> : null}
               </button>
             );
           })}
@@ -218,10 +220,6 @@ export function AssignmentByClass({
           <div className="assignment-level-filter" role="tablist" aria-label={levelsLabel}>
             {selectedCycle.levels.map((group) => {
               const active = group.key === effectiveLevelKey;
-              const missingCount = group.classes.reduce(
-                (total, cls) => total + (missingByClass.get(cls.id)?.length ?? 0),
-                0,
-              );
               return (
                 <button
                   key={group.key}
@@ -236,7 +234,6 @@ export function AssignmentByClass({
                   onClick={() => setSelectedLevelKey(group.key)}
                 >
                   <strong dir="auto">{group.label}</strong>
-                  {missingCount > 0 ? <span>{t('admin.academicSetup.completeMissing')} ({missingCount})</span> : null}
                 </button>
               );
             })}
@@ -278,7 +275,7 @@ export function AssignmentByClass({
                     </div>
                     {missing.length > 0 ? (
                       <span className="assignment-class-card__status assignment-class-card__status--warning">
-                        {t('admin.academicSetup.completeMissing')} ({missing.length})
+                        {missingTeacherLabel(missing.length)}
                       </span>
                     ) : null}
                   </header>
@@ -313,7 +310,7 @@ export function AssignmentByClass({
                           {String(issue.context?.subject_name ?? issue.title)}
                         </span>
                         <span className="assignment-subject-tile__teacher">
-                          {t('admin.academicSetup.assignTeacher')}
+                          بدون أستاذ
                         </span>
                       </button>
                     ))}
