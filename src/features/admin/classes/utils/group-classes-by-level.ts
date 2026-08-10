@@ -5,6 +5,7 @@
 
 import type { LevelGroup } from '@/features/admin/academic-setup/types';
 import {
+  ORPHAN_CYCLE_ID,
   groupLevelsByCycle,
   normalizeLevelCode,
   type GroupedLevelsByCycle,
@@ -13,8 +14,22 @@ import type { Level, SchoolClass } from '@/types/class';
 
 export type ClassesBrowserEmptyVariant = 'no-data' | 'no-match';
 
-export function classesBrowserHasActiveQuery(options: { search?: string }): boolean {
-  return !!options.search?.trim();
+export interface ClassesBrowserQuery {
+  search?: string;
+  academicYear?: string;
+  cycleId?: number | null;
+  levelId?: number | null;
+  status?: string;
+}
+
+export function classesBrowserHasActiveQuery(options: ClassesBrowserQuery): boolean {
+  return (
+    !!options.search?.trim() ||
+    !!options.academicYear?.trim() ||
+    options.cycleId != null ||
+    options.levelId != null ||
+    !!options.status?.trim()
+  );
 }
 
 export function resolveClassesBrowserEmptyVariant(options: {
@@ -49,8 +64,14 @@ export interface ClassesOverview {
 
 function sortClassesInLevel(classes: SchoolClass[]): SchoolClass[] {
   return [...classes].sort((a, b) => {
-    const keyA = normalizeLevelCode(a.code) || a.name;
-    const keyB = normalizeLevelCode(b.code) || b.name;
+    const keyA =
+      normalizeLevelCode(
+        a.recommended_display_code ?? a.academic_code ?? a.code ?? a.section_name,
+      ) || a.name;
+    const keyB =
+      normalizeLevelCode(
+        b.recommended_display_code ?? b.academic_code ?? b.code ?? b.section_name,
+      ) || b.name;
     return keyA.localeCompare(keyB, undefined, { numeric: true, sensitivity: 'base' });
   });
 }
@@ -131,8 +152,24 @@ export function computeClassesOverview(
   };
 }
 
+const ARABIC_DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g;
+const INVISIBLE_SEARCH_CHARS = /[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g;
+
+/** Conservative normalization only: no fuzzy spelling correction. */
+export function normalizeClassesSearchText(value: string): string {
+  return value
+    .normalize('NFKC')
+    .replace(ARABIC_DIACRITICS, '')
+    .replace(/\u0640/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(INVISIBLE_SEARCH_CHARS, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 export function filterClassesForSearch(classes: SchoolClass[], query: string): SchoolClass[] {
-  const needle = query.trim().toLowerCase();
+  const needle = normalizeClassesSearchText(query);
   if (!needle) return classes;
 
   return classes.filter((cls) => {
@@ -151,8 +188,34 @@ export function filterClassesForSearch(classes: SchoolClass[], query: string): S
     ]
       .filter((value): value is string => !!value?.trim())
       .join(' ')
-      .toLowerCase();
+      .trim();
 
-    return haystack.includes(needle);
+    return normalizeClassesSearchText(haystack).includes(needle);
+  });
+}
+
+export function filterClassesForBrowser(
+  classes: SchoolClass[],
+  levels: Level[],
+  query: ClassesBrowserQuery,
+): SchoolClass[] {
+  const byLevelId = new Map(levels.map((level) => [level.id, level]));
+  const searched = filterClassesForSearch(classes, query.search ?? '');
+  const academicYear = query.academicYear?.trim() ?? '';
+  const status = query.status?.trim() ?? '';
+
+  return searched.filter((cls) => {
+    if (academicYear && cls.academic_year?.trim() !== academicYear) return false;
+    if (status && cls.status !== status) return false;
+    if (query.levelId != null && cls.level?.id !== query.levelId) return false;
+
+    if (query.cycleId != null) {
+      const embeddedCycleId = cls.level?.cycle?.id;
+      const levelCycleId = cls.level?.id != null ? byLevelId.get(cls.level.id)?.cycle?.id : null;
+      const resolvedCycleId = embeddedCycleId ?? levelCycleId ?? ORPHAN_CYCLE_ID;
+      if (resolvedCycleId !== query.cycleId) return false;
+    }
+
+    return true;
   });
 }

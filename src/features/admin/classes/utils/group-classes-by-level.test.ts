@@ -4,8 +4,10 @@ import {
   buildClassLevelGroups,
   classesBrowserHasActiveQuery,
   computeClassesOverview,
+  filterClassesForBrowser,
   filterClassesForSearch,
   groupClassesByCycle,
+  normalizeClassesSearchText,
   resolveClassesBrowserEmptyVariant,
 } from './group-classes-by-level';
 
@@ -80,6 +82,37 @@ describe('groupClassesByCycle', () => {
     expect(filtered[0].code).toBe('M1-A');
   });
 
+  it('normalizes safe Arabic variants without fuzzy correction', () => {
+    expect(normalizeClassesSearchText('  أَولىـ  ')).toBe('اولى');
+    const cls = classStub(1, 1, 'P1-A', 'الأولى أ');
+    expect(filterClassesForSearch([cls], 'الاولى')).toHaveLength(1);
+  });
+
+  it('filters by academic year, cycle, level, and status', () => {
+    const current = classStub(1, 1, 'P1-A', 'P1-A');
+    const archived = {
+      ...classStub(2, 2, 'M1-A', 'M1-A'),
+      academic_year: '2024-2025',
+      status: 'archived',
+    };
+    const filtered = filterClassesForBrowser([current, archived], levels, {
+      academicYear: '2025-2026',
+      cycleId: 10,
+      levelId: 1,
+      status: 'active',
+    });
+    expect(filtered.map((cls) => cls.id)).toEqual([1]);
+  });
+
+  it('orders classes by recommended academic display code before legacy code', () => {
+    const classes = [
+      { ...classStub(1, 1, 'AAA', 'Legacy A'), recommended_display_code: 'P1-2' },
+      { ...classStub(2, 1, 'ZZZ', 'Legacy Z'), recommended_display_code: 'P1-1' },
+    ];
+    const grouped = groupClassesByCycle(classes, levels);
+    expect(grouped[0].levels[0].classes.map((cls) => cls.id)).toEqual([2, 1]);
+  });
+
   it('builds orphan level bucket when level list is incomplete', () => {
     const orphanClass: SchoolClass = {
       ...classStub(9, 1, 'X1-A', 'X1-A'),
@@ -96,6 +129,10 @@ describe('groupClassesByCycle', () => {
     expect(classesBrowserHasActiveQuery({})).toBe(false);
     expect(classesBrowserHasActiveQuery({ search: '  ' })).toBe(false);
     expect(classesBrowserHasActiveQuery({ search: 'p1' })).toBe(true);
+    expect(classesBrowserHasActiveQuery({ academicYear: '2025-2026' })).toBe(true);
+    expect(classesBrowserHasActiveQuery({ cycleId: 10 })).toBe(true);
+    expect(classesBrowserHasActiveQuery({ levelId: 1 })).toBe(true);
+    expect(classesBrowserHasActiveQuery({ status: 'active' })).toBe(true);
     expect(
       resolveClassesBrowserEmptyVariant({
         totalCount: 0,

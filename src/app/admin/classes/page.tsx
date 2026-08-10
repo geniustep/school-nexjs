@@ -19,11 +19,16 @@ import type { Level, SchoolClass } from '@/types/class';
 
 type ClassesPageData = { classes: SchoolClass[]; levels: Level[] };
 
+const CLASSES_BROWSER_QUERY = { page_size: 500 };
+
 export default function AdminClassesPage() {
   const t = useT();
   const [importOpen, setImportOpen] = useState(false);
-  const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
-  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const classesState = useAdminResource<SchoolClass[]>(
+    endpoints.admin.classes,
+    CLASSES_BROWSER_QUERY,
+  );
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, CLASSES_BROWSER_QUERY);
 
   const combinedState = useMemo<ResourceState<ClassesPageData>>(
     () => ({
