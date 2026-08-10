@@ -1,0 +1,219 @@
+/* Calmer students list: reduce visual density without changing contracts or filter state. */
+
+.students-list__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.students-list__more-actions {
+  position: relative;
+}
+
+.students-list__more-actions > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.students-list__more-actions > summary::-webkit-details-marker {
+  display: none;
+}
+
+.students-list__more-actions-menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 6px);
+  z-index: 90;
+  min-width: min(320px, calc(100vw - 32px));
+  padding: 8px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--bg, #fff);
+  box-shadow: 0 14px 36px rgb(15 23 42 / 0.16);
+}
+
+.students-list__more-actions-menu .row {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 6px !important;
+}
+
+.students-list__more-actions-menu .btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Assigned services stay visible, but no longer consume a large card block. */
+.students-list-page .students-service-counts {
+  margin-block: 0 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+
+.students-list-page .students-service-counts__header {
+  margin-bottom: 7px;
+}
+
+.students-list-page .students-service-counts__title {
+  font-size: 0.875rem;
+}
+
+.students-list-page .students-service-counts__hint {
+  display: none;
+}
+
+.students-list-page .students-service-counts__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.students-list-page .students-service-counts__card {
+  flex: 1 1 128px;
+  min-width: 118px;
+  min-height: 48px;
+  padding: 7px 8px;
+  gap: 6px;
+}
+
+.students-list-page .students-service-counts__glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.72rem;
+}
+
+.students-list-page .students-service-counts__name {
+  font-size: 0.78rem;
+}
+
+.students-list-page .students-service-counts__count {
+  font-size: 0.7rem;
+}
+
+.students-list-page .students-service-counts__selected {
+  font-size: 0.6rem;
+  padding: 2px 5px;
+}
+
+.students-list-page .students-service-counts__more {
+  margin-top: 5px;
+}
+
+/* Primary row contains only search + academic drill-down + one More action. */
+.students-list-page .students-list-filters__primary {
+  grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(120px, 1fr)) auto auto;
+  gap: 8px;
+}
+
+.students-list-page .students-list-filters__more--compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+  padding: 9px;
+}
+
+.students-list-page .students-list-filters__more-field {
+  min-width: 0;
+}
+
+.students-list-page .students-list-filters__chips {
+  margin-top: 7px;
+  gap: 5px;
+}
+
+.students-list-page .students-list__toolbar-wrap {
+  gap: 8px;
+}
+
+.students-list-page .students-list__view-toggle {
+  flex-shrink: 0;
+}
+
+/* The row itself is the navigation affordance; no separate arrow column is needed. */
+.students-list-page .students-list__table tbody tr {
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .students-list__header-actions {
+    gap: 6px;
+  }
+
+  .students-list__header-actions .btn {
+    min-height: 38px;
+  }
+
+  .students-list__more-actions-menu {
+    position: fixed;
+    inset-inline: 16px;
+    top: auto;
+    bottom: 20px;
+    min-width: 0;
+  }
+
+  .students-list-page .students-service-counts {
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .students-list-page .students-service-counts__grid {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+  }
+
+  .students-list-page .students-service-counts__card {
+    flex: 0 0 124px;
+    min-width: 124px;
+    min-height: 44px;
+  }
+
+  .students-list-page .students-list-filters__primary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .students-list-page .students-list-filters__primary .students-list-search {
+    grid-column: 1 / -1;
+  }
+
+  .students-list-page .students-list-filters__primary .students-list-filters__cycle,
+  .students-list-page .students-list-filters__primary .students-list-filters__level,
+  .students-list-page .students-list-filters__primary .students-list-filters__class {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .students-list-page .students-list-filters__more--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px;
+    gap: 7px;
+  }
+
+  .students-list-page .students-list-filters__more-label {
+    font-size: 0.72rem;
+  }
+
+  .students-list-page .students-list__toolbar-wrap {
+    gap: 6px;
+  }
+
+  .students-list-page .students-list__view-toggle {
+    align-self: flex-end;
+    width: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .students-list-page .students-list-filters__more--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .students-list-page .students-list__view-toggle {
+    transform: scale(0.94);
+    transform-origin: inline-end center;
+  }
+}
