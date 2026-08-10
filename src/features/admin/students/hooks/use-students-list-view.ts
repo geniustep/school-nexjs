@@ -4,7 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 
 export type StudentsListViewMode = 'list' | 'kanban';
 
-const STORAGE_KEY = 'admin-students-list-view-v1';
+/**
+ * v2 intentionally resets the old saved list preference once so the redesigned
+ * students page opens in cards by default. Preferences chosen afterwards remain sticky.
+ */
+const STORAGE_KEY = 'admin-students-list-view-v2';
 export const STUDENTS_LIST_VIEW_DEFAULT: StudentsListViewMode = 'kanban';
 
 export function parseStudentsListViewPreference(
