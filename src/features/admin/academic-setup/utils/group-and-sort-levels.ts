@@ -66,15 +66,17 @@ function compareLevelCodes(a: string, b: string): number {
 }
 
 function levelSortTuple(level: LevelGroup): [number, number, number, string] {
-  const canonical = getFallbackLevelOrder(level.code);
+  const canonical =
+    getFallbackLevelOrder(level.academic_code) ?? getFallbackLevelOrder(level.code);
   const sequence =
     level.sequence != null && Number.isFinite(level.sequence)
       ? level.sequence
       : Number.POSITIVE_INFINITY;
-  const code = normalizeLevelCode(level.code);
+  const code = normalizeLevelCode(level.academic_code ?? level.code);
 
-  // Known academic codes are authoritative. This prevents reversed API
-  // sequences from flipping PRE1→PRE3 or H_TC→H2 in academic browsers.
+  // Canonical academic identity is authoritative even when a school uses a
+  // local display code (for example PS/MS/GS or TC/1BAC/2BAC). This prevents
+  // reversed API sequences from flipping PRE1→PRE3 or H_TC→H2.
   if (canonical != null) return [0, canonical, sequence, code];
 
   // Unknown/custom school levels keep the API-defined sequence contract.

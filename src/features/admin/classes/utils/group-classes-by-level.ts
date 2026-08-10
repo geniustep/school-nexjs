@@ -114,6 +114,7 @@ export function buildClassLevelGroups(classes: SchoolClass[], levels: Level[]): 
       id: levelId,
       name: first.level?.name ?? '—',
       code: first.level?.code ?? null,
+      academic_code: first.level?.academic_code ?? null,
       display_name: first.level?.display_name ?? null,
       moroccan_display_alias: first.level?.moroccan_display_alias ?? null,
     };

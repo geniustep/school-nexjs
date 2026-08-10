@@ -125,6 +125,31 @@ describe('groupClassesByCycle', () => {
     expect(groups[0].classes).toHaveLength(1);
   });
 
+  it('preserves canonical academic_code for fallback level buckets', () => {
+    const aliases: SchoolClass[] = [
+      {
+        ...classStub(1, 1, 'GS-A', 'GS'),
+        level: { id: 103, name: 'GS', code: 'GS', academic_code: 'PRE3' },
+      },
+      {
+        ...classStub(2, 1, 'MS-A', 'MS'),
+        level: { id: 102, name: 'MS', code: 'MS', academic_code: 'PRE2' },
+      },
+      {
+        ...classStub(3, 1, 'PS-A', 'PS'),
+        level: { id: 101, name: 'PS', code: 'PS', academic_code: 'PRE1' },
+      },
+    ];
+
+    const grouped = groupClassesByCycle(aliases, []);
+    expect(grouped[0].levels.map((level) => level.code)).toEqual(['PS', 'MS', 'GS']);
+    expect(grouped[0].levels.map((level) => level.academic_code)).toEqual([
+      'PRE1',
+      'PRE2',
+      'PRE3',
+    ]);
+  });
+
   it('detects active search and separates no-data from no-match', () => {
     expect(classesBrowserHasActiveQuery({})).toBe(false);
     expect(classesBrowserHasActiveQuery({ search: '  ' })).toBe(false);

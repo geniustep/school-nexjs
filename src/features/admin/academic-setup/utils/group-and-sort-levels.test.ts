@@ -98,6 +98,26 @@ describe('sortLevels', () => {
     ]);
   });
 
+  it('uses canonical academic_code for Nibras school display codes', () => {
+    const input = [
+      level({ id: 1, code: 'GS', academic_code: 'PRE3', name: 'GS', cycle: preschool, sequence: 10 }),
+      level({ id: 2, code: 'MS', academic_code: 'PRE2', name: 'MS', cycle: preschool, sequence: 20 }),
+      level({ id: 3, code: 'PS', academic_code: 'PRE1', name: 'PS', cycle: preschool, sequence: 30 }),
+      level({ id: 4, code: '2BAC', academic_code: 'H2', name: '2BAC', cycle: high, sequence: 130 }),
+      level({ id: 5, code: '1BAC', academic_code: 'H1', name: '1BAC', cycle: high, sequence: 140 }),
+      level({ id: 6, code: 'TC', academic_code: 'H_TC', name: 'TC', cycle: high, sequence: 150 }),
+    ];
+
+    expect(sortLevels(input).map((l) => l.code)).toEqual([
+      'PS',
+      'MS',
+      'GS',
+      'TC',
+      '1BAC',
+      '2BAC',
+    ]);
+  });
+
   it('keeps API sequence for unknown custom level codes', () => {
     const input = [
       level({ id: 1, code: 'CUSTOM-B', name: 'B', sequence: 20 }),
