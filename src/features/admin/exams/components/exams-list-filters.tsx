@@ -78,7 +78,7 @@ export function ExamsListFilters({
             onTermIdChange(next.termId);
           }
         }}
-        showAcademicYear
+        showAcademicYear={false}
         showTerm
         showCycle={false}
         showLevel={false}

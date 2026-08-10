@@ -82,7 +82,7 @@ export function GradebooksListFilters({
             onOfferingIdChange(next.offeringId);
           }
         }}
-        showAcademicYear
+        showAcademicYear={false}
         showTerm
         showCycle={false}
         showLevel={false}

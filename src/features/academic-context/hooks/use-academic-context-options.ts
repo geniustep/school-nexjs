@@ -12,6 +12,7 @@ import {
   selectionToQuery,
   type AcademicContextChangeField,
 } from '@/features/academic-context/utils/academic-context-reset';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { canViewAcademicContext } from '@/lib/permissions/academic-context';
 import type {
@@ -66,6 +67,11 @@ export function useAcademicContextOptions(
   } = args;
 
   const user = useSession();
+  const adminSession = useAdminSession();
+  const globalAcademicYearId =
+    audience === 'admin' ? adminSession.activeAcademicYearId : null;
+  const globalAcademicYearValue =
+    globalAcademicYearId != null ? String(globalAcademicYearId) : '';
   const allowed =
     audience === 'teacher'
       ? Boolean(user) &&
@@ -75,12 +81,19 @@ export function useAcademicContextOptions(
   const [internalSelection, setInternalSelection] = useState<AcademicContextSelection>(() =>
     mergeInitial(initialSelection),
   );
-  const selection = controlledSelection ?? internalSelection;
+  const rawSelection = controlledSelection ?? internalSelection;
+  const selection =
+    audience === 'admin' &&
+    globalAcademicYearValue &&
+    rawSelection.academicYearId !== globalAcademicYearValue
+      ? { ...rawSelection, academicYearId: globalAcademicYearValue }
+      : rawSelection;
+
+  const selectionRef = useRef(selection);
+  selectionRef.current = selection;
 
   const setSelection = useCallback(
     (next: AcademicContextSelection) => {
-      // Keep ref in sync immediately so chained setField calls compose correctly
-      // before the next React render.
       selectionRef.current = next;
       if (controlledSelection) {
         onSelectionChange?.(next);
@@ -100,19 +113,44 @@ export function useAcademicContextOptions(
 
   const requestIdRef = useRef(0);
   const hasLoadedRef = useRef(false);
-  const selectionRef = useRef(selection);
-  selectionRef.current = selection;
+
+  useEffect(() => {
+    if (
+      audience !== 'admin' ||
+      !globalAcademicYearValue ||
+      rawSelection.academicYearId === globalAcademicYearValue
+    ) {
+      return;
+    }
+    setSelection(
+      applyAcademicContextFieldChange(
+        rawSelection,
+        'academicYear',
+        globalAcademicYearValue,
+      ),
+    );
+  }, [
+    audience,
+    globalAcademicYearValue,
+    rawSelection,
+    rawSelection.academicYearId,
+    setSelection,
+  ]);
 
   const fetchOptions = useCallback(async () => {
     if (!enabled || !allowed) return;
     const requestId = ++requestIdRef.current;
     const current = selectionRef.current;
+    const effective =
+      audience === 'admin' && globalAcademicYearValue
+        ? { ...current, academicYearId: globalAcademicYearValue }
+        : current;
     if (hasLoadedRef.current) setRefetching(true);
     else setLoading(true);
     setError(null);
 
     const query = {
-      ...selectionToQuery(current),
+      ...selectionToQuery(effective),
       scope,
       include_inactive: includeInactive,
     };
@@ -141,10 +179,13 @@ export function useAcademicContextOptions(
     hasLoadedRef.current = true;
 
     if (res.data.invalidated_selections.length) {
-      const cleared = applyInvalidatedSelections(
+      let cleared = applyInvalidatedSelections(
         selectionRef.current,
         res.data.invalidated_selections,
       );
+      if (audience === 'admin' && globalAcademicYearValue) {
+        cleared = { ...cleared, academicYearId: globalAcademicYearValue };
+      }
       if (JSON.stringify(cleared) !== JSON.stringify(selectionRef.current)) {
         setSelection(cleared);
       }
@@ -152,7 +193,15 @@ export function useAcademicContextOptions(
 
     setLoading(false);
     setRefetching(false);
-  }, [allowed, audience, enabled, includeInactive, scope, setSelection]);
+  }, [
+    allowed,
+    audience,
+    enabled,
+    globalAcademicYearValue,
+    includeInactive,
+    scope,
+    setSelection,
+  ]);
 
   useEffect(() => {
     if (!enabled || !allowed) {
@@ -179,14 +228,28 @@ export function useAcademicContextOptions(
 
   const setField = useCallback(
     (field: AcademicContextChangeField, value: string) => {
+      if (
+        audience === 'admin' &&
+        field === 'academicYear' &&
+        adminSession.activeSchoolId != null
+      ) {
+        const academicYearId = Number(value);
+        if (!Number.isFinite(academicYearId) || academicYearId <= 0) return;
+        if (!adminSession.setActiveAcademicYear(academicYearId)) return;
+      }
       setSelection(applyAcademicContextFieldChange(selectionRef.current, field, value));
     },
-    [setSelection],
+    [adminSession, audience, setSelection],
   );
 
   const resetSelection = useCallback(() => {
-    setSelection(mergeInitial(initialSelection));
-  }, [initialSelection, setSelection]);
+    const reset = mergeInitial(initialSelection);
+    setSelection(
+      audience === 'admin' && globalAcademicYearValue
+        ? { ...reset, academicYearId: globalAcademicYearValue }
+        : reset,
+    );
+  }, [audience, globalAcademicYearValue, initialSelection, setSelection]);
 
   return {
     selection,

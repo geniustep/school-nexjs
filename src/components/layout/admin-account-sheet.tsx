@@ -6,6 +6,7 @@ import { MobileBottomSheet } from '@/components/ui/mobile-bottom-sheet';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
+import { AcademicYearSwitcher } from '@/components/admin/academic-year-switcher';
 import { RoleSwitcher } from '@/components/auth/role-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
@@ -62,10 +63,18 @@ export function AdminAccountSheet({
           </div>
 
           {resolveEffectiveRole(user) === 'admin' && (
-            <div className="admin-account-sheet__field">
-              <span className="admin-account-sheet__label">{t('admin.activeSchool')}</span>
-              <SchoolSwitcher />
-            </div>
+            <>
+              <div className="admin-account-sheet__field">
+                <span className="admin-account-sheet__label">{t('admin.activeSchool')}</span>
+                <SchoolSwitcher hideLabel />
+              </div>
+              <div className="admin-account-sheet__field">
+                <span className="admin-account-sheet__label">
+                  {t('academicContext.fields.academicYear')}
+                </span>
+                <AcademicYearSwitcher hideLabel />
+              </div>
+            </>
           )}
 
           {shouldShowRoleSwitcher(user) && (

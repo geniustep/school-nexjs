@@ -16,6 +16,7 @@ import { AdminSidebarHost } from '@/components/navigation/admin-sidebar-host';
 import { Avatar } from '@/components/ui/primitives';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
+import { AcademicYearSwitcher } from '@/components/admin/academic-year-switcher';
 import { RoleSwitcher } from '@/components/auth/role-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
@@ -240,6 +241,7 @@ export function AppShell({
           <div className="topbar__right topbar__right--desktop">
             {isAdmin && <AdminStudentSpotlightTrigger variant="desktop" />}
             {isAdmin && <SchoolSwitcher hideLabel />}
+            {isAdmin && <AcademicYearSwitcher hideLabel />}
             {/* Admin desktop: labeled topbar. Teacher/parent: labeled control lives in sidebar only. */}
             {isAdmin && (
               <RoleSwitcher className="role-switcher--topbar" data-testid="role-switcher-topbar" />

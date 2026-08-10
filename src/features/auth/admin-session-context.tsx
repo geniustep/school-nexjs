@@ -2,13 +2,19 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { normalizeAcademicContextOptions } from '@/features/academic-context/utils/normalize-academic-context';
+import { api } from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
 import {
   resolveActiveSchoolId,
   resolveSchoolCatalog,
   resolveSchoolIds,
 } from '@/lib/auth/normalize-user';
 import type { SchoolRef } from '@/types/api';
+import type { AcademicYearOption } from '@/types/academic-context';
 import type { CurrentUser } from '@/types/user';
+
+type AcademicYearContextError = { code: string; message: string };
 
 interface AdminSessionValue {
   activeSchoolId: number | null;
@@ -16,6 +22,11 @@ interface AdminSessionValue {
   requiresActiveSchool: boolean;
   switching: boolean;
   setActiveSchool: (schoolId: number) => Promise<boolean>;
+  activeAcademicYearId: number | null;
+  academicYears: AcademicYearOption[];
+  academicYearLoading: boolean;
+  academicYearError: AcademicYearContextError | null;
+  setActiveAcademicYear: (academicYearId: number) => boolean;
 }
 
 const AdminSessionContext = createContext<AdminSessionValue | null>(null);
@@ -58,6 +69,10 @@ export function AdminSessionProvider({
 
   const [activeSchoolId, setActiveSchoolId] = useState<number | null>(resolvedActiveSchoolId);
   const [switching, setSwitching] = useState(false);
+  const [activeAcademicYearId, setActiveAcademicYearId] = useState<number | null>(null);
+  const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
+  const [academicYearLoading, setAcademicYearLoading] = useState(false);
+  const [academicYearError, setAcademicYearError] = useState<AcademicYearContextError | null>(null);
 
   useEffect(() => {
     if (resolvedActiveSchoolId == null) {
@@ -68,6 +83,62 @@ export function AdminSessionProvider({
       setActiveSchoolId(resolvedActiveSchoolId);
     }
   }, [resolvedActiveSchoolId, activeSchoolId, schoolIds]);
+
+  useEffect(() => {
+    if (activeSchoolId == null) {
+      setActiveAcademicYearId(null);
+      setAcademicYears([]);
+      setAcademicYearError(null);
+      setAcademicYearLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setAcademicYearLoading(true);
+    setAcademicYearError(null);
+    setActiveAcademicYearId(null);
+    setAcademicYears([]);
+
+    void api.get<unknown>(endpoints.admin.academicContextOptions).then((res) => {
+      if (cancelled) return;
+
+      if (!res.success) {
+        setAcademicYearError({ code: res.error.code, message: res.error.message });
+        setAcademicYearLoading(false);
+        return;
+      }
+
+      const data = normalizeAcademicContextOptions(res.data);
+      const years = data.academic_years ?? [];
+      const currentId = data.selected_context?.academic_year_id ?? null;
+      setAcademicYears(years);
+
+      if (currentId == null) {
+        setAcademicYearError({
+          code: 'academic_year_current_missing',
+          message: 'No current academic year is configured for the active school.',
+        });
+        setAcademicYearLoading(false);
+        return;
+      }
+
+      if (!years.some((year) => year.id === currentId)) {
+        setAcademicYearError({
+          code: 'academic_year_current_integrity_error',
+          message: 'The current academic year is not available in the active school context.',
+        });
+        setAcademicYearLoading(false);
+        return;
+      }
+
+      setActiveAcademicYearId(currentId);
+      setAcademicYearLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSchoolId]);
 
   const setActiveSchool = useCallback(
     async (schoolId: number) => {
@@ -80,6 +151,10 @@ export function AdminSessionProvider({
         });
         const body = (await res.json()) as { success?: boolean };
         if (!res.ok || !body.success) return false;
+        setActiveAcademicYearId(null);
+        setAcademicYears([]);
+        setAcademicYearError(null);
+        setAcademicYearLoading(true);
         setActiveSchoolId(schoolId);
         router.refresh();
         return true;
@@ -92,6 +167,16 @@ export function AdminSessionProvider({
     [router],
   );
 
+  const setActiveAcademicYear = useCallback(
+    (academicYearId: number) => {
+      if (!academicYears.some((year) => year.id === academicYearId)) return false;
+      setActiveAcademicYearId(academicYearId);
+      setAcademicYearError(null);
+      return true;
+    },
+    [academicYears],
+  );
+
   const value = useMemo(
     () => ({
       activeSchoolId,
@@ -99,8 +184,24 @@ export function AdminSessionProvider({
       requiresActiveSchool,
       switching,
       setActiveSchool,
+      activeAcademicYearId,
+      academicYears,
+      academicYearLoading,
+      academicYearError,
+      setActiveAcademicYear,
     }),
-    [activeSchoolId, schools, requiresActiveSchool, switching, setActiveSchool],
+    [
+      activeSchoolId,
+      schools,
+      requiresActiveSchool,
+      switching,
+      setActiveSchool,
+      activeAcademicYearId,
+      academicYears,
+      academicYearLoading,
+      academicYearError,
+      setActiveAcademicYear,
+    ],
   );
 
   return (
@@ -117,6 +218,11 @@ export function useAdminSession(): AdminSessionValue {
       requiresActiveSchool: false,
       switching: false,
       setActiveSchool: async () => false,
+      activeAcademicYearId: null,
+      academicYears: [],
+      academicYearLoading: false,
+      academicYearError: null,
+      setActiveAcademicYear: () => false,
     };
   }
   return ctx;

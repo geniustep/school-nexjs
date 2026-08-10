@@ -139,11 +139,8 @@ vi.mock('@/features/admin/teaching-planning/components/teaching-planning-list-se
 
 afterEach(() => cleanup());
 
-describe('Year-scoped term selectors (Exam + Gradebook filters)', () => {
-  it('resets term_id when academic year changes in GradebooksListFilters', async () => {
-    const user = userEvent.setup();
-    const onAcademicYearIdChange = vi.fn();
-    const onTermIdChange = vi.fn();
+describe('Global academic year with year-scoped term selectors', () => {
+  it('GradebooksListFilters hides the duplicate year selector and keeps term', () => {
     render(
       <GradebooksListFilters
         academicYearId="1"
@@ -153,8 +150,8 @@ describe('Year-scoped term selectors (Exam + Gradebook filters)', () => {
         offeringId=""
         stateFilter=""
         hasActiveFilters
-        onAcademicYearIdChange={onAcademicYearIdChange}
-        onTermIdChange={onTermIdChange}
+        onAcademicYearIdChange={vi.fn()}
+        onTermIdChange={vi.fn()}
         onClassIdChange={vi.fn()}
         onSubjectIdChange={vi.fn()}
         onOfferingIdChange={vi.fn()}
@@ -163,18 +160,11 @@ describe('Year-scoped term selectors (Exam + Gradebook filters)', () => {
       />,
     );
 
-    // Drive year change through AcademicContextFilters controller path by selecting year
-    const year = screen.getByLabelText('academicContext.fields.academicYear') as HTMLSelectElement;
-    await user.selectOptions(year, '1');
-    // Simulate parent year change handler contract used by list page
-    onAcademicYearIdChange('2');
-    onTermIdChange('');
-    expect(onTermIdChange).toHaveBeenCalledWith('');
+    expect(screen.queryByLabelText('academicContext.fields.academicYear')).toBeNull();
+    expect(screen.getByLabelText('academicContext.fields.term')).toBeTruthy();
   });
 
-  it('Exam list filters expose year + term and clear term on year change contract', async () => {
-    const onAcademicYearIdChange = vi.fn();
-    const onTermIdChange = vi.fn();
+  it('ExamsListFilters hides the duplicate year selector and keeps term', () => {
     render(
       <ExamsListFilters
         classId="40"
@@ -184,17 +174,14 @@ describe('Year-scoped term selectors (Exam + Gradebook filters)', () => {
         classes={[{ id: 40, name: '6A', code: '6A', academic_year: null, student_count: 0, capacity: null, teachers: [], subjects: [], status: 'active', level: null }]}
         hasActiveFilters
         onClassIdChange={vi.fn()}
-        onAcademicYearIdChange={onAcademicYearIdChange}
-        onTermIdChange={onTermIdChange}
+        onAcademicYearIdChange={vi.fn()}
+        onTermIdChange={vi.fn()}
         onStateFilterChange={vi.fn()}
         onReset={vi.fn()}
       />,
     );
-    expect(screen.getByLabelText('academicContext.fields.academicYear')).toBeTruthy();
+    expect(screen.queryByLabelText('academicContext.fields.academicYear')).toBeNull();
     expect(screen.getByLabelText('academicContext.fields.term')).toBeTruthy();
-    onAcademicYearIdChange('2');
-    onTermIdChange('');
-    expect(onTermIdChange).toHaveBeenCalledWith('');
   });
 });
 
