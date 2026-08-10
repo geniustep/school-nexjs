@@ -30,6 +30,30 @@ function nonEmpty(value: string | null | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+function canonicalPreschoolCode(value: string | null): string | null {
+  if (!value) return null;
+  const normalized = value.trim().toUpperCase();
+  if (normalized === 'PRE1') return 'PS';
+  if (normalized === 'PRE2') return 'MS';
+  if (normalized === 'PRE3') return 'GS';
+  return value;
+}
+
+function canonicalPreschoolName(value: string | null, code: string | null, locale: Locale): string | null {
+  if (!value || !code) return value;
+  const normalized = value.trim().toUpperCase();
+  if (!['PRE1', 'PRE2', 'PRE3'].includes(normalized)) return value;
+  if (locale === 'ar') {
+    if (code === 'PS') return 'الأولى أولي';
+    if (code === 'MS') return 'الثانية أولي';
+    if (code === 'GS') return 'الثالثة أولي';
+  }
+  if (code === 'PS') return 'Petite Section';
+  if (code === 'MS') return 'Moyenne Section';
+  if (code === 'GS') return 'Grande Section';
+  return value;
+}
+
 function sectionSuffixFromCode(classCode: string, levelCode: string | null): string | null {
   if (!levelCode || !classCode.startsWith(levelCode) || classCode.length <= levelCode.length) {
     return null;
@@ -120,16 +144,21 @@ export function formatAcademicLevelLabel(
 ): AcademicLabelParts {
   if (!level) return { primary: '—', secondary: null };
 
-  const code = nonEmpty(level.code ?? null);
-  const name = nonEmpty(level.name ?? null);
-  const alias = nonEmpty(level.display_alias ?? null) ?? nonEmpty(level.moroccan_display_alias ?? null);
-  const display = nonEmpty(level.display_name ?? null);
-  const academicCode = nonEmpty(level.academic_code ?? null);
+  const rawCode = nonEmpty(level.code ?? null);
+  const code = canonicalPreschoolCode(rawCode);
+  const rawName = nonEmpty(level.name ?? null);
+  const name = canonicalPreschoolName(rawName, code, locale);
+  const rawAlias = nonEmpty(level.display_alias ?? null) ?? nonEmpty(level.moroccan_display_alias ?? null);
+  const alias = canonicalPreschoolName(rawAlias, code, locale);
+  const rawDisplay = nonEmpty(level.display_name ?? null);
+  const display = canonicalPreschoolName(rawDisplay, code, locale);
+  const rawAcademicCode = nonEmpty(level.academic_code ?? null);
+  const academicCode = canonicalPreschoolCode(rawAcademicCode);
 
   const primary =
     alias ??
-    (display && display !== code ? display : null) ??
-    (name && name !== code ? name : null) ??
+    (display && display !== rawCode && display !== code ? display : null) ??
+    (name && name !== rawCode && name !== code ? name : null) ??
     academicCode ??
     code ??
     name ??
@@ -154,7 +183,7 @@ export function formatAcademicClassLabel(
   const displayAlias = nonEmpty(cls.display_alias ?? null);
   const displayName = nonEmpty(cls.display_name ?? null);
   const levelParts = formatAcademicLevelLabel(cls.level ?? null, locale);
-  const levelCode = nonEmpty(cls.level?.code ?? null);
+  const levelCode = canonicalPreschoolCode(nonEmpty(cls.level?.code ?? null));
 
   let primary: string;
   if (displayAlias) {
