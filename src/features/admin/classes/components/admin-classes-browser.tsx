@@ -11,7 +11,10 @@ import { useRouter } from 'next/navigation';
 import { EmptyState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
-import { formatAcademicClassLabel, formatAcademicLevelLabel } from '@/features/admin/academic-setup/utils/format-academic-label';
+import {
+  formatAcademicClassLabel,
+  formatAcademicLevelLabel,
+} from '@/features/admin/academic-setup/utils/format-academic-label';
 import {
   ORPHAN_CYCLE_ID,
   normalizeCycleCode,
@@ -31,20 +34,19 @@ import '../admin-classes.css';
 
 const MOBILE_MEDIA = '(max-width: 720px)';
 
-const CYCLE_VISUAL: Record<string, { icon: string; tone: string }> = {
-  preschool: { icon: '🌱', tone: 'preschool' },
-  primary: { icon: '📗', tone: 'primary' },
-  middle_school: { icon: '📘', tone: 'middle' },
-  middle: { icon: '📘', tone: 'middle' },
-  secondary: { icon: '🎓', tone: 'secondary' },
-  high_school: { icon: '🎓', tone: 'secondary' },
-  high: { icon: '🎓', tone: 'secondary' },
-  other: { icon: '📋', tone: 'other' },
+const CYCLE_TONE: Record<string, string> = {
+  preschool: 'preschool',
+  primary: 'primary',
+  middle_school: 'middle',
+  middle: 'middle',
+  secondary: 'secondary',
+  high_school: 'secondary',
+  high: 'secondary',
+  other: 'other',
 };
 
-function cycleVisual(code?: string | null) {
-  const key = normalizeCycleCode(code);
-  return CYCLE_VISUAL[key] ?? CYCLE_VISUAL.other;
+function cycleTone(code?: string | null): string {
+  return CYCLE_TONE[normalizeCycleCode(code)] ?? CYCLE_TONE.other;
 }
 
 function cycleTitle(
@@ -93,39 +95,28 @@ function ClassCard({
         <strong className="classes-browser__class-name" dir="auto" title={label.primary}>
           {label.primary}
         </strong>
-        <Badge tone={isActive ? 'green' : 'slate'}>{statusLabel(t, cls.status)}</Badge>
+        {!isActive ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}
       </div>
 
-      {label.secondary ? (
-        <span className="classes-browser__class-code mono" dir="ltr">
-          {label.secondary}
-        </span>
-      ) : null}
-
-      {cls.track?.name ? (
-        <span className="classes-browser__class-track" dir="auto" title={cls.track.name}>
-          {cls.track.name}
-        </span>
-      ) : null}
-
-      <div className="classes-browser__class-stats">
-        <span
-          className="classes-browser__class-students"
-          data-over-capacity={overCapacity || undefined}
-        >
-          <span className="classes-browser__class-students-icon" aria-hidden>
-            👥
-          </span>
-          <span className="mono" dir="ltr">
-            {studentCount}
-            {cls.capacity ? ` / ${cls.capacity}` : ''}
-          </span>
-        </span>
-        {cls.teachers?.length ? (
-          <span className="classes-browser__class-teachers mono" dir="ltr">
-            {cls.teachers.length} {t('nav.teachers')}
+      <div className="classes-browser__class-meta">
+        {label.secondary ? (
+          <span className="classes-browser__class-code mono" dir="ltr">
+            {label.secondary}
           </span>
         ) : null}
+        {cls.track?.name ? (
+          <span className="classes-browser__class-track" dir="auto" title={cls.track.name}>
+            {cls.track.name}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="classes-browser__class-students" data-over-capacity={overCapacity || undefined}>
+        <span className="classes-browser__class-students-label">{t('nav.students')}</span>
+        <strong className="mono" dir="ltr">
+          {studentCount}
+          {cls.capacity ? ` / ${cls.capacity}` : ''}
+        </strong>
       </div>
 
       {fill != null ? (
@@ -237,6 +228,7 @@ export function AdminClassesBrowser({
     levelId: selectedLevelId,
     status,
   });
+
   const emptyVariant = resolveClassesBrowserEmptyVariant({
     totalCount: classes.length,
     filteredCount: filteredClasses.length,
@@ -312,58 +304,25 @@ export function AdminClassesBrowser({
 
   return (
     <div className="classes-browser">
-      <div className="classes-browser__toolbar">
-        <div className="classes-browser__overview-block">
-          <div className="classes-browser__overview-context" aria-live="polite">
-            <span>
-              {queryActive
-                ? t('common.pagination.totalRecords', { total: filteredClasses.length })
-                : t('admin.classesBrowser.overviewLabel')}
-            </span>
-            {queryActive ? (
-              <span className="mono" dir="ltr">
+      <div className="classes-browser__topbar">
+        <div className="classes-browser__summary" aria-live="polite">
+          <span><strong dir="ltr">{overview.classCount}</strong> {t('nav.classes')}</span>
+          <span aria-hidden>·</span>
+          <span><strong dir="ltr">{overview.levelCount}</strong> {t('nav.levels')}</span>
+          <span aria-hidden>·</span>
+          <span><strong dir="ltr">{overview.studentCount}</strong> {t('nav.students')}</span>
+          {queryActive ? (
+            <>
+              <span aria-hidden>·</span>
+              <span className="classes-browser__summary-filtered mono" dir="ltr">
                 {filteredClasses.length} / {classes.length}
               </span>
-            ) : null}
-          </div>
-
-          <div
-            className="classes-browser__overview"
-            aria-label={t('admin.classesBrowser.overviewLabel')}
-          >
-            <div className="classes-browser__stat">
-              <span className="classes-browser__stat-value" dir="ltr">
-                {overview.classCount}
-              </span>
-              <span className="classes-browser__stat-label">{t('nav.classes')}</span>
-            </div>
-            <div className="classes-browser__stat">
-              <span className="classes-browser__stat-value" dir="ltr">
-                {overview.levelCount}
-              </span>
-              <span className="classes-browser__stat-label">{t('nav.levels')}</span>
-            </div>
-            <div className="classes-browser__stat">
-              <span className="classes-browser__stat-value" dir="ltr">
-                {overview.studentCount}
-              </span>
-              <span className="classes-browser__stat-label">{t('nav.students')}</span>
-            </div>
-            <div className="classes-browser__stat">
-              <span className="classes-browser__stat-value" dir="ltr">
-                {overview.activeCount}
-              </span>
-              <span className="classes-browser__stat-label">
-                {t('admin.classesBrowser.activeClasses')}
-              </span>
-            </div>
-          </div>
+            </>
+          ) : null}
         </div>
 
         <label className="classes-browser__search">
-          <span className="classes-browser__search-icon" aria-hidden>
-            🔍
-          </span>
+          <span className="classes-browser__search-icon" aria-hidden>⌕</span>
           <input
             className="input classes-browser__search-input"
             type="search"
@@ -390,79 +349,63 @@ export function AdminClassesBrowser({
       </div>
 
       <div className="classes-browser__filters">
-        <label className="classes-browser__filter-field">
-          <span>{t('academicContext.fields.academicYear')}</span>
-          <select
-            className="input classes-browser__filter-input"
-            value={academicYear}
-            onChange={(event) => setAcademicYear(event.target.value)}
-            disabled={!academicYears.length}
-          >
-            <option value="">{t('academicContext.fields.academicYear')}</option>
-            {academicYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </label>
+        <select
+          className="input classes-browser__filter-input"
+          value={academicYear}
+          onChange={(event) => setAcademicYear(event.target.value)}
+          disabled={!academicYears.length}
+          aria-label={t('academicContext.fields.academicYear')}
+        >
+          <option value="">{t('academicContext.fields.academicYear')}</option>
+          {academicYears.map((year) => (
+            <option key={year} value={year}>{year}</option>
+          ))}
+        </select>
 
-        <label className="classes-browser__filter-field">
-          <span>{t('academicContext.fields.cycle')}</span>
-          <select
-            className="input classes-browser__filter-input"
-            value={cycleId}
-            onChange={(event) => {
-              setCycleId(event.target.value);
-              setLevelId('');
-            }}
-            disabled={!structureGroups.length}
-          >
-            <option value="">{t('academicContext.fields.cycle')}</option>
-            {structureGroups.map((section) => (
-              <option key={section.cycle.id} value={section.cycle.id}>
-                {cycleTitle(section.cycle, t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <select
+          className="input classes-browser__filter-input"
+          value={cycleId}
+          onChange={(event) => {
+            setCycleId(event.target.value);
+            setLevelId('');
+          }}
+          disabled={!structureGroups.length}
+          aria-label={t('academicContext.fields.cycle')}
+        >
+          <option value="">{t('academicContext.fields.cycle')}</option>
+          {structureGroups.map((section) => (
+            <option key={section.cycle.id} value={section.cycle.id}>
+              {cycleTitle(section.cycle, t)}
+            </option>
+          ))}
+        </select>
 
-        <label className="classes-browser__filter-field">
-          <span>{t('academicContext.fields.level')}</span>
-          <select
-            className="input classes-browser__filter-input"
-            value={levelId}
-            onChange={(event) => setLevelId(event.target.value)}
-            disabled={!levelOptions.length}
-          >
-            <option value="">{t('academicContext.fields.level')}</option>
-            {levelOptions.map((level) => {
-              const label = formatAcademicLevelLabel(level, locale);
-              return (
-                <option key={level.id} value={level.id}>
-                  {label.primary}
-                </option>
-              );
-            })}
-          </select>
-        </label>
+        <select
+          className="input classes-browser__filter-input"
+          value={levelId}
+          onChange={(event) => setLevelId(event.target.value)}
+          disabled={!levelOptions.length}
+          aria-label={t('academicContext.fields.level')}
+        >
+          <option value="">{t('academicContext.fields.level')}</option>
+          {levelOptions.map((level) => {
+            const label = formatAcademicLevelLabel(level, locale);
+            return <option key={level.id} value={level.id}>{label.primary}</option>;
+          })}
+        </select>
 
-        <label className="classes-browser__filter-field">
-          <span>{t('common.status')}</span>
-          <select
-            className="input classes-browser__filter-input"
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            disabled={!statuses.length}
-          >
-            <option value="">{t('common.allStatuses')}</option>
-            {statuses.map((value) => (
-              <option key={value} value={value}>
-                {statusLabel(t, value)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <select
+          className="input classes-browser__filter-input"
+          value={status}
+          onChange={(event) => setStatus(event.target.value)}
+          disabled={!statuses.length}
+          aria-label={t('common.status')}
+        >
+          <option value="">{t('common.allStatuses')}</option>
+          {statuses.map((value) => (
+            <option key={value} value={value}>{statusLabel(t, value)}</option>
+          ))}
+        </select>
 
         {queryActive ? (
           <button
@@ -474,36 +417,6 @@ export function AdminClassesBrowser({
           </button>
         ) : null}
       </div>
-
-      <p className="classes-browser__journey-hint">{t('admin.classesBrowser.journeyHint')}</p>
-
-      {grouped.length > 1 ? (
-        <nav className="classes-browser__journey" aria-label={t('admin.classesBrowser.journeyLabel')}>
-          {grouped.map((section, index) => {
-            const visual = cycleVisual(section.cycle.code);
-            const open = openCycleIds.has(section.cycle.id);
-            return (
-              <button
-                key={section.cycle.id}
-                type="button"
-                className="classes-browser__journey-step"
-                data-tone={visual.tone}
-                data-active={open || undefined}
-                onClick={() => toggleCycle(section.cycle.id)}
-              >
-                <span className="classes-browser__journey-index">{index + 1}</span>
-                <span className="classes-browser__journey-icon" aria-hidden>
-                  {visual.icon}
-                </span>
-                <span className="classes-browser__journey-copy">
-                  <strong dir="auto">{cycleTitle(section.cycle, t)}</strong>
-                  <span dir="ltr">{section.classCount}</span>
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-      ) : null}
 
       {!grouped.length ? (
         <EmptyState
@@ -521,7 +434,7 @@ export function AdminClassesBrowser({
       ) : (
         <div className="classes-browser__cycles">
           {grouped.map((section) => {
-            const visual = cycleVisual(section.cycle.code);
+            const tone = cycleTone(section.cycle.code);
             const open = openCycleIds.has(section.cycle.id);
             const panelId = `classes-cycle-${section.cycle.id}`;
 
@@ -529,7 +442,7 @@ export function AdminClassesBrowser({
               <section
                 key={section.cycle.id}
                 className="classes-browser__cycle"
-                data-tone={visual.tone}
+                data-tone={tone}
                 data-open={open || undefined}
               >
                 <header className="classes-browser__cycle-header">
@@ -540,14 +453,7 @@ export function AdminClassesBrowser({
                     aria-controls={panelId}
                     onClick={() => toggleCycle(section.cycle.id)}
                   >
-                    <span
-                      className="classes-browser__cycle-chevron"
-                      data-open={open || undefined}
-                      aria-hidden
-                    />
-                    <span className="classes-browser__cycle-icon" aria-hidden>
-                      {visual.icon}
-                    </span>
+                    <span className="classes-browser__cycle-marker" aria-hidden />
                     <span className="classes-browser__cycle-copy">
                       <strong className="classes-browser__cycle-title" dir="auto">
                         {cycleTitle(section.cycle, t)}
@@ -561,6 +467,11 @@ export function AdminClassesBrowser({
                         {t('admin.classesBrowser.studentCount', { count: section.studentCount })}
                       </span>
                     </span>
+                    <span
+                      className="classes-browser__cycle-chevron"
+                      data-open={open || undefined}
+                      aria-hidden
+                    />
                   </button>
                 </header>
 
