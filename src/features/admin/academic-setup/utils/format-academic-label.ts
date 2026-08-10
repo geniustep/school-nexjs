@@ -36,9 +36,7 @@ function sectionSuffixFromCode(classCode: string, levelCode: string | null): str
   }
   const suffix = classCode.slice(levelCode.length).trim();
   if (!suffix) return null;
-  if (/^[A-Za-z]$/.test(suffix)) {
-    return suffix.toUpperCase();
-  }
+  if (/^[A-Za-z]$/.test(suffix)) return suffix.toUpperCase();
   return suffix;
 }
 
@@ -53,13 +51,22 @@ function sectionSuffixFromShortName(shortName: string, levelCode: string | null)
   return null;
 }
 
+function formatStoredSectionLabel(section: string, locale: Locale): string {
+  if (locale !== 'ar') return section;
+  const trimmed = section.trim();
+  if (!trimmed) return section;
+  if (trimmed.startsWith('الفوج')) return trimmed;
+  if (trimmed.startsWith('القسم')) return trimmed.replace(/^القسم\s*/, 'الفوج ');
+  return `الفوج ${trimmed}`;
+}
+
 function resolveClassSectionLabel(
   cls: AcademicClassLabelSource,
   locale: Locale,
   levelCode: string | null,
 ): string | null {
   const sectionName = nonEmpty(cls.section_name ?? null);
-  if (sectionName) return sectionName;
+  if (sectionName) return formatStoredSectionLabel(sectionName, locale);
 
   const code = nonEmpty(cls.code ?? null);
   const name = nonEmpty(cls.name ?? null);
@@ -91,60 +98,33 @@ function resolveClassSecondaryLabel(
 }
 
 const LATIN_SECTION_TO_ARABIC: Record<string, string> = {
-  A: 'أ',
-  B: 'ب',
-  C: 'ج',
-  D: 'د',
-  E: 'ه',
-  F: 'و',
-  G: 'ز',
-  H: 'ح',
-  I: 'ط',
-  J: 'ي',
-  K: 'ك',
-  L: 'ل',
-  M: 'م',
-  N: 'ن',
-  O: 'و',
-  P: 'ب',
-  Q: 'ق',
-  R: 'ر',
-  S: 'س',
-  T: 'ت',
-  U: 'ع',
-  V: 'ف',
-  W: 'و',
-  X: 'كس',
-  Y: 'ي',
-  Z: 'ز',
+  A: 'أ', B: 'ب', C: 'ج', D: 'د', E: 'ه', F: 'و', G: 'ز', H: 'ح', I: 'ط', J: 'ي',
+  K: 'ك', L: 'ل', M: 'م', N: 'ن', O: 'و', P: 'ب', Q: 'ق', R: 'ر', S: 'س', T: 'ت',
+  U: 'ع', V: 'ف', W: 'و', X: 'كس', Y: 'ي', Z: 'ز',
 };
 
 function formatSectionLabel(section: string, locale: Locale): string {
   if (/^[A-Z]$/.test(section)) {
     if (locale === 'ar') {
       const arabicLetter = LATIN_SECTION_TO_ARABIC[section] ?? section;
-      return `القسم ${arabicLetter}`;
+      return `الفوج ${arabicLetter}`;
     }
     if (locale === 'fr') return `Section ${section}`;
     if (locale === 'es') return `Sección ${section}`;
     return `Section ${section}`;
   }
-  return section;
+  return locale === 'ar' ? formatStoredSectionLabel(section, locale) : section;
 }
 
 export function formatAcademicLevelLabel(
   level: AcademicLevelLabelSource | null | undefined,
   _locale?: Locale,
 ): AcademicLabelParts {
-  if (!level) {
-    return { primary: '—', secondary: null };
-  }
+  if (!level) return { primary: '—', secondary: null };
 
   const code = nonEmpty(level.code ?? null);
   const name = nonEmpty(level.name ?? null);
-  const alias =
-    nonEmpty(level.display_alias ?? null) ??
-    nonEmpty(level.moroccan_display_alias ?? null);
+  const alias = nonEmpty(level.display_alias ?? null) ?? nonEmpty(level.moroccan_display_alias ?? null);
   const display = nonEmpty(level.display_name ?? null);
   const academicCode = nonEmpty(level.academic_code ?? null);
 
@@ -183,20 +163,14 @@ export function formatAcademicClassLabel(
     primary = displayName;
   } else {
     const section = resolveClassSectionLabel(cls, locale, levelCode);
-
-    if (levelParts.primary !== '—' && section) {
-      primary = `${levelParts.primary} — ${section}`;
-    } else if (levelParts.primary !== '—' && (name || code) && levelParts.primary !== name && levelParts.primary !== code) {
-      primary = levelParts.primary;
-    } else if (name && name !== code) {
-      primary = name;
-    } else {
-      primary = code ?? name ?? '—';
-    }
+    if (levelParts.primary !== '—' && section) primary = `${levelParts.primary} — ${section}`;
+    else if (levelParts.primary !== '—' && (name || code) && levelParts.primary !== name && levelParts.primary !== code) primary = levelParts.primary;
+    else if (name && name !== code) primary = name;
+    else primary = code ?? name ?? '—';
   }
 
   let secondary = resolveClassSecondaryLabel(primary, code, name);
-  if (secondary === primary) secondary = null;
+  if (secondary === primary || locale === 'ar') secondary = null;
 
   return { primary, secondary };
 }

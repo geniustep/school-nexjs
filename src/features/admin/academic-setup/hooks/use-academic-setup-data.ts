@@ -49,10 +49,26 @@ export function useAcademicSetupLists() {
     staffState.reload();
   };
 
-  return useMemo(
-    () => ({
-      levels: (levelsState.data ?? []).map(normalizeLevel),
-      classes: (classesState.data ?? []).map(normalizeSchoolClass),
+  return useMemo(() => {
+    const levels = (levelsState.data ?? []).map(normalizeLevel);
+    const levelById = new Map(levels.map((level) => [level.id, level]));
+    const classes = (classesState.data ?? []).map((rawClass) => {
+      const cls = normalizeSchoolClass(rawClass);
+      const canonicalLevel = cls.level?.id ? levelById.get(cls.level.id) : undefined;
+      if (!canonicalLevel || !cls.level) return cls;
+      return {
+        ...cls,
+        level: {
+          ...cls.level,
+          ...canonicalLevel,
+          cycle: canonicalLevel.cycle ?? cls.level.cycle ?? null,
+        },
+      };
+    });
+
+    return {
+      levels,
+      classes,
       subjects: subjectsState.data ?? [],
       teachers: teachersState.data ?? [],
       staff: staffState.data ?? [],
@@ -61,17 +77,16 @@ export function useAcademicSetupLists() {
       fetching,
       error,
       reload,
-    }),
-    [
-      levelsState.data,
-      classesState.data,
-      subjectsState.data,
-      teachersState.data,
-      staffState.data,
-      loading,
-      initialLoading,
-      fetching,
-      error,
-    ],
-  );
+    };
+  }, [
+    levelsState.data,
+    classesState.data,
+    subjectsState.data,
+    teachersState.data,
+    staffState.data,
+    loading,
+    initialLoading,
+    fetching,
+    error,
+  ]);
 }
