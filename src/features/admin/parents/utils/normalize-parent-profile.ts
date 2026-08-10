@@ -104,9 +104,21 @@ function normalizeLegacyChild(raw: unknown): ParentChild | null {
     [record.first_name, record.last_name].filter((p) => typeof p === 'string' && p.trim()).join(' ').trim() ||
     '';
 
+  const flatRelationship =
+    typeof record.relationship_type === 'string' && record.relationship_type.trim()
+      ? {
+          relationship_id:
+            typeof record.relationship_id === 'number' ? record.relationship_id : undefined,
+          relationship_type: record.relationship_type,
+          state: typeof record.state === 'string' ? record.state : 'active',
+          active: record.active !== false,
+        }
+      : null;
+
   const relationship =
     normalizeChildRelationship(record.relationship) ??
     normalizeChildRelationship(record.guardian_relationship) ??
+    normalizeChildRelationship(flatRelationship) ??
     null;
 
   return {
