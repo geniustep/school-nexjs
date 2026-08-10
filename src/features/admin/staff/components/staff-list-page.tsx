@@ -12,12 +12,10 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { Badge, PageHeader } from '@/components/ui/primitives';
-import { StaffAllowedActionsBadges } from '@/features/admin/staff/components/staff-allowed-actions-bar';
 import { useStaffCenterList } from '@/features/admin/staff/hooks/use-staff-center';
 import {
   isStaffCenterParent,
   resolveStaffDisplayName,
-  resolveStaffPrimarySchoolName,
   resolveStaffUserId,
   staffUserTypeLabelKeys,
 } from '@/features/admin/staff/utils/normalize-staff-center';
@@ -74,71 +72,65 @@ export function StaffListPage() {
       {
         key: 'name',
         header: t('admin.fullName'),
-        render: (member) => (
-          <strong dir="auto">{resolveStaffDisplayName(member)}</strong>
-        ),
+        render: (member) => <strong dir="auto">{resolveStaffDisplayName(member)}</strong>,
       },
       {
-        key: 'type',
+        key: 'role',
         header: t('admin.staffCenter.userTypeLabel'),
-        render: (member) => (
-          <div className="staff-center-type-badges">
-            {staffUserTypeLabelKeys(member).map((key) => (
-              <Badge key={key} tone={isStaffCenterParent(member) ? 'slate' : 'blue'}>
-                {t(key)}
-              </Badge>
-            ))}
-          </div>
-        ),
-      },
-      {
-        key: 'admin_kind',
-        header: t('admin.staffCenter.adminKind'),
-        render: (member) =>
-          // Parents are not admin kinds — ignore misleading admin_kind from Backend.
-          isStaffCenterParent(member) || !member.admin_kind
-            ? t('common.dash')
-            : resolveStaffAdminKindLabel(member.admin_kind, t),
-      },
-      {
-        key: 'school',
-        header: t('admin.staffCenter.primarySchool'),
-        render: (member) => resolveStaffPrimarySchoolName(member) ?? t('common.dash'),
-      },
-      {
-        key: 'status',
-        header: t('academic.status'),
-        render: (member) => (
-          <Badge tone={isStaffInactive(member) ? 'amber' : 'green'}>
-            {statusLabel(t, member.status ?? member.account_status)}
-          </Badge>
-        ),
-      },
-      {
-        key: 'account',
-        header: t('admin.staffCenter.hasAccount'),
-        render: (member) =>
-          member.user_id || member.account || member.login
-            ? t('common.yes')
-            : t('common.no'),
-      },
-      {
-        key: 'teacher',
-        header: t('admin.staffCenter.isTeacher'),
-        render: (member) => (member.is_teacher || member.teacher_id ? t('common.yes') : t('common.no')),
-      },
-      {
-        key: 'warnings',
-        header: t('admin.staffCenter.warningsCount'),
         render: (member) => {
-          const count = staffWarningCount(member);
-          return count ? <Badge tone="amber">{count}</Badge> : t('common.dash');
+          const teacher = member.is_teacher || member.teacher_id;
+          const adminKind = !isStaffCenterParent(member) && member.admin_kind
+            ? resolveStaffAdminKindLabel(member.admin_kind, t)
+            : null;
+
+          if (adminKind) {
+            return (
+              <div className="staff-center-type-badges">
+                <Badge tone="blue">{adminKind}</Badge>
+                {teacher ? <Badge tone="blue">{t('admin.staffCenter.userType.teacher')}</Badge> : null}
+              </div>
+            );
+          }
+
+          return (
+            <div className="staff-center-type-badges">
+              {staffUserTypeLabelKeys(member).map((key) => (
+                <Badge key={key} tone={isStaffCenterParent(member) ? 'slate' : 'blue'}>
+                  {t(key)}
+                </Badge>
+              ))}
+            </div>
+          );
         },
       },
       {
-        key: 'actions',
-        header: t('admin.staffCenter.allowedActions'),
-        render: (member) => <StaffAllowedActionsBadges member={member} />,
+        key: 'status',
+        header: t('common.status'),
+        render: (member) => {
+          const inactive = isStaffInactive(member);
+          const hasAccount = Boolean(member.user_id || member.account || member.login);
+          const warnings = staffWarningCount(member);
+
+          if (!inactive && hasAccount && warnings === 0) return null;
+
+          return (
+            <div className="staff-center-type-badges">
+              {inactive ? (
+                <Badge tone="amber">{statusLabel(t, member.status ?? member.account_status)}</Badge>
+              ) : null}
+              {!hasAccount ? (
+                <Badge tone="slate">
+                  {t('admin.staffCenter.hasAccount')}: {t('common.no')}
+                </Badge>
+              ) : null}
+              {warnings > 0 ? (
+                <Badge tone="amber">
+                  {t('admin.staffCenter.warningsCount')}: {warnings}
+                </Badge>
+              ) : null}
+            </div>
+          );
+        },
       },
     ],
     [t],
@@ -148,7 +140,6 @@ export function StaffListPage() {
     <div className="admin-workspace staff-center-page">
       <PageHeader
         title={t('admin.staffCenter.pageTitle')}
-        subtitle={t('admin.staffCenter.pageSubtitle')}
         actions={
           canManage ? (
             <Link href="/admin/staff/create" className="btn btn--primary btn--sm">
@@ -180,7 +171,7 @@ export function StaffListPage() {
           />
         }
       >
-        {(staff) => (
+        {() => (
           filtered.length === 0 && search.trim() ? (
             <EmptyState
               icon="🔍"
