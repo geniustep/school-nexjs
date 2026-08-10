@@ -39,16 +39,13 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
         </div>
         <div className="parents-family-card__field parents-family-card__field--guardians">
           <span className="parents-family-card__field-label">{t('admin.parentsList.guardiansTitle')}:</span>
-          <ul className="parents-family-card__guardian-lines">{family.guardians.map(({ parent, relationshipType }, guardianIndex) => {
-            const displayRelationshipType = guardianIndex === family.guardians.length - 1 ? 'other' : relationshipType;
-            return <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
-              <span className="parents-family-card__guardian-role">{relationshipTypeLabel(t, displayRelationshipType)}:</span>
-              <div className="parents-family-card__guardian-content">
-                <Link href={`/admin/parents/${parent.id}`} className="parents-family-card__guardian-name" dir="auto">{parent.name}</Link>
-                {parent.phone ?? parent.mobile ? <span className="parents-family-card__guardian-meta"><span className="mono" dir="ltr">{parent.phone ?? parent.mobile}</span></span> : null}
-              </div>
-            </li>;
-          })}</ul>
+          <ul className="parents-family-card__guardian-lines">{family.guardians.map(({ parent, relationshipType }, guardianIndex) => <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
+            <span className="parents-family-card__guardian-role">{relationshipTypeLabel(t, relationshipType)}:</span>
+            <div className="parents-family-card__guardian-content">
+              <Link href={`/admin/parents/${parent.id}`} className="parents-family-card__guardian-name" dir="auto">{parent.name}</Link>
+              {parent.phone ?? parent.mobile ? <span className="parents-family-card__guardian-meta"><span className="mono" dir="ltr">{parent.phone ?? parent.mobile}</span></span> : null}
+            </div>
+          </li>)}</ul>
         </div>
       </div>
     </article>)}
