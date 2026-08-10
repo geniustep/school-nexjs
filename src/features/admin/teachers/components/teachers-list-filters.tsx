@@ -25,6 +25,7 @@ export function TeachersListFilters({
   stateFilter,
   activeFilter,
   hasAssignments,
+  accountFilter,
   operationalPreset,
   hasActiveFilters,
   onSearchChange,
@@ -32,6 +33,7 @@ export function TeachersListFilters({
   onStateFilterChange,
   onActiveFilterChange,
   onHasAssignmentsChange,
+  onAccountFilterChange,
   onOperationalPresetChange,
   onReset,
 }: {
@@ -39,6 +41,7 @@ export function TeachersListFilters({
   stateFilter: string;
   activeFilter: string;
   hasAssignments: string;
+  accountFilter: string;
   operationalPreset: TeacherOperationalPreset;
   hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
@@ -46,6 +49,7 @@ export function TeachersListFilters({
   onStateFilterChange: (value: string) => void;
   onActiveFilterChange: (value: string) => void;
   onHasAssignmentsChange: (value: string) => void;
+  onAccountFilterChange: (value: string) => void;
   onOperationalPresetChange: (value: TeacherOperationalPreset) => void;
   onReset: () => void;
 }) {
@@ -53,10 +57,10 @@ export function TeachersListFilters({
   const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
-    if (stateFilter || activeFilter || hasAssignments || operationalPreset !== 'all') {
+    if (stateFilter || activeFilter || hasAssignments || accountFilter || operationalPreset !== 'all') {
       setMoreOpen(true);
     }
-  }, [stateFilter, activeFilter, hasAssignments, operationalPreset]);
+  }, [stateFilter, activeFilter, hasAssignments, accountFilter, operationalPreset]);
 
   const stateLabel = EMPLOYMENT_STATES.includes(
     stateFilter as (typeof EMPLOYMENT_STATES)[number],
@@ -79,7 +83,7 @@ export function TeachersListFilters({
         : null;
 
   const hasAdvancedActive = Boolean(
-    stateFilter || activeFilter || hasAssignments || operationalPreset !== 'all',
+    stateFilter || activeFilter || hasAssignments || accountFilter || operationalPreset !== 'all',
   );
 
   return (
@@ -184,6 +188,20 @@ export function TeachersListFilters({
               <option value="false">{t('admin.teacherDomain.filters.assignmentsNo')}</option>
             </select>
           </label>
+
+          <label className="teachers-list-filters__field">
+            <span className="teachers-list-filters__label">
+              {t('admin.teacherDomain.columns.account')}
+            </span>
+            <select
+              className="input teachers-list-filters__select"
+              value={accountFilter}
+              onChange={(event) => onAccountFilterChange(event.target.value)}
+            >
+              <option value="">{t('admin.account.filterAll')}</option>
+              <option value="no_account">{t('admin.account.filterNoAccount')}</option>
+            </select>
+          </label>
         </div>
       ) : null}
 
@@ -240,6 +258,16 @@ export function TeachersListFilters({
               {t('admin.teacherDomain.filters.chipHasAssignments', {
                 value: assignmentsLabel,
               })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {accountFilter === 'no_account' ? (
+            <button
+              type="button"
+              className="teachers-list-filters__chip teachers-list-filters__chip--action"
+              onClick={() => onAccountFilterChange('')}
+            >
+              {t('admin.account.filterNoAccount')}
               <span aria-hidden="true">×</span>
             </button>
           ) : null}
