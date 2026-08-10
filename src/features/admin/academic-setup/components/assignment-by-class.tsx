@@ -203,7 +203,7 @@ export function AssignmentByClass({
                 onClick={() => selectCycle(group.key)}
               >
                 <strong dir="auto">{group.label}</strong>
-                <span>{group.levels.length} · {group.classes.length} · {missingCount}</span>
+                {missingCount > 0 ? <span>{t('admin.academicSetup.completeMissing')} ({missingCount})</span> : null}
               </button>
             );
           })}
@@ -214,7 +214,6 @@ export function AssignmentByClass({
         <section className="assignment-filter-step assignment-filter-step--level">
           <div className="assignment-filter-step__head">
             <strong>{levelsLabel}</strong>
-            <span className="tiny muted" dir="auto">{selectedCycle.label}</span>
           </div>
           <div className="assignment-level-filter" role="tablist" aria-label={levelsLabel}>
             {selectedCycle.levels.map((group) => {
@@ -237,7 +236,7 @@ export function AssignmentByClass({
                   onClick={() => setSelectedLevelKey(group.key)}
                 >
                   <strong dir="auto">{group.label}</strong>
-                  <span>{group.classes.length} · {missingCount}</span>
+                  {missingCount > 0 ? <span>{t('admin.academicSetup.completeMissing')} ({missingCount})</span> : null}
                 </button>
               );
             })}
@@ -248,11 +247,7 @@ export function AssignmentByClass({
       {selectedGroup ? (
         <section className="assignment-level-group">
           <header className="assignment-level-group__head">
-            <div>
-              <h3 dir="auto">{selectedGroup.label}</h3>
-              <p className="tiny muted">{selectedGroup.classes.length} {t('admin.academicSetup.viewBy.class')}</p>
-            </div>
-            <span className="assignment-level-group__count">{selectedGroup.classes.length}</span>
+            <h3 dir="auto">{selectedGroup.label}</h3>
           </header>
 
           <div className="assignment-class-grid">
@@ -268,7 +263,6 @@ export function AssignmentByClass({
                   String(b.context?.subject_name ?? b.title ?? ''),
                 ),
               );
-              const assigned = rows.length;
               const classLabel = formatAcademicClassLabel(cls, locale);
 
               return (
@@ -282,24 +276,12 @@ export function AssignmentByClass({
                         </span>
                       ) : null}
                     </div>
-                    <span
-                      className={
-                        missing.length
-                          ? 'assignment-class-card__status assignment-class-card__status--warning'
-                          : 'assignment-class-card__status'
-                      }
-                    >
-                      {assigned}/{assigned + missing.length}
-                    </span>
+                    {missing.length > 0 ? (
+                      <span className="assignment-class-card__status assignment-class-card__status--warning">
+                        {t('admin.academicSetup.completeMissing')} ({missing.length})
+                      </span>
+                    ) : null}
                   </header>
-
-                  <div className="assignment-class-card__meta">
-                    {t('admin.academicSetup.classAssignmentMeta', {
-                      total: assigned + missing.length,
-                      assigned,
-                      missing: missing.length,
-                    })}
-                  </div>
 
                   <div className="assignment-subject-grid">
                     {rows.map((row) => (
