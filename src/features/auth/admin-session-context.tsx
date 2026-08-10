@@ -30,6 +30,45 @@ interface AdminSessionValue {
 }
 
 const AdminSessionContext = createContext<AdminSessionValue | null>(null);
+const ACADEMIC_YEAR_SESSION_KEY_PREFIX = 'raqeem:admin:academic-year:';
+
+function academicYearSessionKey(schoolId: number): string {
+  return `${ACADEMIC_YEAR_SESSION_KEY_PREFIX}${schoolId}`;
+}
+
+function readAcademicYearSessionPreference(schoolId: number): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(academicYearSessionKey(schoolId));
+    if (!raw) return null;
+    const id = Number(raw);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeAcademicYearSessionPreference(schoolId: number, academicYearId: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(
+      academicYearSessionKey(schoolId),
+      String(academicYearId),
+    );
+  } catch {
+    // Session storage is an optimization for preserving the explicit global context.
+    // Odoo remains the source of truth and will resolve the canonical current year.
+  }
+}
+
+function clearAcademicYearSessionPreference(schoolId: number): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(academicYearSessionKey(schoolId));
+  } catch {
+    // Ignore unavailable session storage and fall back to Odoo current-year resolution.
+  }
+}
 
 export function AdminSessionProvider({
   user,
@@ -94,12 +133,29 @@ export function AdminSessionProvider({
     }
 
     let cancelled = false;
+    const preferredYearId = readAcademicYearSessionPreference(activeSchoolId);
     setAcademicYearLoading(true);
     setAcademicYearError(null);
     setActiveAcademicYearId(null);
     setAcademicYears([]);
 
-    void api.get<unknown>(endpoints.admin.academicContextOptions).then((res) => {
+    const load = async () => {
+      let res = await api.get<unknown>(
+        endpoints.admin.academicContextOptions,
+        preferredYearId ? { academic_year_id: preferredYearId } : undefined,
+      );
+
+      // A remembered historical choice can become invalid after configuration changes.
+      // Clear only that user preference and return to Odoo's canonical current resolver.
+      if (!res.success && preferredYearId) {
+        clearAcademicYearSessionPreference(activeSchoolId);
+        res = await api.get<unknown>(endpoints.admin.academicContextOptions);
+      }
+
+      return res;
+    };
+
+    void load().then((res) => {
       if (cancelled) return;
 
       if (!res.success) {
@@ -172,14 +228,21 @@ export function AdminSessionProvider({
 
   const setActiveAcademicYear = useCallback(
     (academicYearId: number) => {
+      if (activeSchoolId == null) return false;
       if (!academicYears.some((year) => year.id === academicYearId)) return false;
       if (academicYearId === activeAcademicYearId) return true;
+
+      writeAcademicYearSessionPreference(activeSchoolId, academicYearId);
       setActiveAcademicYearId(academicYearId);
       setAcademicYearError(null);
-      router.refresh();
+
+      // A full reload remounts client data loaders. On the new page load the
+      // remembered year is sent explicitly to Odoo, so the selection survives
+      // the reload instead of falling back to the canonical current year.
+      window.location.reload();
       return true;
     },
-    [academicYears, activeAcademicYearId, router],
+    [academicYears, activeAcademicYearId, activeSchoolId],
   );
 
   const value = useMemo(
