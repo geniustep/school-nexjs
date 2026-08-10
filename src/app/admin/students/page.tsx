@@ -55,33 +55,12 @@ export default function AdminStudentsPage() {
   const canImportStudents = hasStudentImportCapability(user);
   const canExportStudents = hasPermission(user, 'export_data');
   const canImportCsv = hasPermission(user, 'import_data');
-  const canShowSecondaryActions =
-    canAddStudent || canImportStudents || canExportStudents || canImportCsv;
+  const canShowSecondaryActions = canAddStudent || canImportStudents || canExportStudents || canImportCsv;
   const {
-    search,
-    cycleCode,
-    levelId,
-    classId,
-    statusFilter,
-    accountFilter,
-    serviceId,
-    servicePresence,
-    setSearch,
-    clearSearch,
-    setCycleCode,
-    setLevelId,
-    setClassId,
-    setStatusFilter,
-    setAccountFilter,
-    setServiceId,
-    selectServiceHas,
-    clearServiceFilter,
-    setServicePresence,
-    setPage,
-    resetFilters,
-    hasActiveQuery,
-    hasActiveFilters,
-    appliedQuery,
+    search, cycleCode, levelId, classId, statusFilter, accountFilter, serviceId, servicePresence,
+    setSearch, clearSearch, setCycleCode, setLevelId, setClassId, setStatusFilter, setAccountFilter,
+    setServiceId, selectServiceHas, clearServiceFilter, setServicePresence, setPage, resetFilters,
+    hasActiveQuery, hasActiveFilters, appliedQuery,
   } = useStudentsListFilterState();
   const [importOpen, setImportOpen] = useState(false);
   const [view, setView] = useStudentsListView();
@@ -93,13 +72,10 @@ export default function AdminStudentsPage() {
   const serviceCounts = useStudentsFinancialServiceCounts(appliedQuery);
   const pg = state.meta?.pagination;
 
-  /** Align the service select with count cards (Backend-visible, non-empty set). */
   const serviceFilterOptions = useMemo((): FeeType[] => {
     if (serviceCounts.initialLoading) return feeTypes;
     const byId = new Map(feeTypes.map((ft) => [ft.id, ft]));
-    return serviceCounts.items
-      .map((item) => byId.get(item.service_id))
-      .filter((ft): ft is FeeType => ft != null);
+    return serviceCounts.items.map((item) => byId.get(item.service_id)).filter((ft): ft is FeeType => ft != null);
   }, [feeTypes, serviceCounts.initialLoading, serviceCounts.items]);
 
   useEffect(() => {
@@ -114,240 +90,95 @@ export default function AdminStudentsPage() {
       countServiceIds: serviceCounts.items.map((item) => item.service_id),
     });
     if (stale) clearServiceFilter();
-  }, [
-    serviceId,
-    feeTypes,
-    feeTypesLoading,
-    serviceCounts.initialLoading,
-    serviceCounts.items,
-    clearServiceFilter,
-  ]);
+  }, [serviceId, feeTypes, feeTypesLoading, serviceCounts.initialLoading, serviceCounts.items, clearServiceFilter]);
 
   const listEmptyState = hasActiveQuery ? (
-    <EmptyState
-      icon="🔍"
-      title={t('admin.studentsList.noMatch.title')}
-      description={t('admin.studentsList.noMatch.description')}
-      action={
-        <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-          {t('admin.studentsList.resetFilters')}
-        </button>
-      }
-    />
+    <EmptyState icon="🔍" title={t('admin.studentsList.noMatch.title')} description={t('admin.studentsList.noMatch.description')}
+      action={<button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>{t('admin.studentsList.resetFilters')}</button>} />
   ) : (
-    <EmptyState
-      title={t('admin.studentsList.noData.title')}
-      description={t('admin.studentsList.noData.description')}
-      action={
-        canAddStudent ? (
-          <Link href="/admin/students/new" className="btn btn--primary btn--sm">
-            {t('admin.addStudent')}
-          </Link>
-        ) : undefined
-      }
-    />
+    <EmptyState title={t('admin.studentsList.noData.title')} description={t('admin.studentsList.noData.description')}
+      action={canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm">{t('admin.addStudent')}</Link> : undefined} />
   );
 
-  const columns: Column<Student>[] = useMemo(
-    () => [
-      {
-        key: 'student',
-        header: t('admin.studentsList.columnStudent'),
-        render: (s) => {
-          const name = getStudentDisplayName(s);
-          const ref = s.school_number ?? s.code ?? s.massar_code ?? null;
-          return (
-            <div className="students-list__student-cell">
-              <StudentAvatar name={name} />
-              <div className="students-list__student-text">
-                <strong className="students-list__student-name" title={name} dir="auto">
-                  {name}
-                </strong>
-                {ref ? (
-                  <span className="students-list__student-ref mono muted" dir="auto" title={ref}>
-                    {ref}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          );
-        },
+  const columns: Column<Student>[] = useMemo(() => [
+    {
+      key: 'student', header: t('admin.studentsList.columnStudent'), render: (s) => {
+        const name = getStudentDisplayName(s);
+        const ref = s.school_number ?? s.code ?? s.massar_code ?? null;
+        return <div className="students-list__student-cell"><StudentAvatar name={name} /><div className="students-list__student-text">
+          <strong className="students-list__student-name" title={name} dir="auto">{name}</strong>
+          {ref ? <span className="students-list__student-ref mono muted" dir="auto" title={ref}>{ref}</span> : null}
+        </div></div>;
       },
-      {
-        key: 'class_level',
-        header: t('admin.studentsList.columnClassLevel'),
-        render: (s) => (
-          <span className="students-list__class-level">
-            {studentClassLabel(s.class)}
-            <span className="tiny muted"> · {studentLevelLabel(s.level)}</span>
-          </span>
-        ),
-      },
-      {
-        key: 'status',
-        header: t('academic.status'),
-        render: (s) =>
-          s.status === 'active' ? null : <Badge tone="slate">{statusLabel(t, s.status)}</Badge>,
-      },
-    ],
-    [t],
-  );
+    },
+    {
+      key: 'class_level', header: t('admin.studentsList.columnClassLevel'), render: (s) => <span className="students-list__class-level">
+        {studentClassLabel(s.class)}<span className="tiny muted"> · {studentLevelLabel(s.level)}</span>
+      </span>,
+    },
+    {
+      key: 'status', header: t('academic.status'), render: (s) => s.status === 'active' ? null : <Badge tone="slate">{statusLabel(t, s.status)}</Badge>,
+    },
+  ], [t]);
 
   return (
     <div className="students-list-page">
       <PageHeader
         title={t('nav.students')}
-        actions={
-          canAddStudent || canShowSecondaryActions ? (
-            <div className="students-list__header-actions">
-              {canAddStudent ? (
-                <Link href="/admin/students/new" className="btn btn--primary btn--sm">
-                  {t('admin.addStudent')}
-                </Link>
-              ) : null}
-
-              {canShowSecondaryActions ? (
-                <details className="students-list__more-actions">
-                  <summary className="btn btn--ghost btn--sm">
-                    {t('admin.studentsList.filters.more')}
-                  </summary>
-                  <div className="students-list__more-actions-menu">
-                    <AdminListActions
-                      exportPath={endpoints.admin.studentsExport}
-                      exportFilename="students.csv"
-                      showImport
-                      importOpen={importOpen}
-                      onToggleImport={() => setImportOpen((v) => !v)}
-                      extra={
-                        canImportStudents || canAddStudent ? (
-                          <>
-                            {canAddStudent ? (
-                              <Link
-                                href="/admin/students/family/new"
-                                className="btn btn--ghost btn--sm"
-                              >
-                                {t('admin.student360.familyRegistration.entryFromList')}
-                              </Link>
-                            ) : null}
-                            {canImportStudents ? (
-                              <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
-                                {t('admin.studentImport.openImport')}
-                              </Link>
-                            ) : null}
-                          </>
-                        ) : null
-                      }
-                    />
-                  </div>
-                </details>
-              ) : null}
+        actions={canAddStudent || canShowSecondaryActions ? <div className="students-list__header-actions">
+          {canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm">{t('admin.addStudent')}</Link> : null}
+          {canShowSecondaryActions ? <details className="students-list__more-actions">
+            <summary className="btn btn--ghost btn--sm">المزيد</summary>
+            <div className="students-list__more-actions-menu">
+              <AdminListActions
+                exportPath={endpoints.admin.studentsExport}
+                exportFilename="students.csv"
+                showImport
+                importOpen={importOpen}
+                onToggleImport={() => setImportOpen((v) => !v)}
+                extra={canImportStudents || canAddStudent ? <>
+                  {canAddStudent ? <Link href="/admin/students/family/new" className="btn btn--ghost btn--sm">{t('admin.student360.familyRegistration.entryFromList')}</Link> : null}
+                  {canImportStudents ? <Link href="/admin/students/import" className="btn btn--ghost btn--sm">{t('admin.studentImport.openImport')}</Link> : null}
+                </> : null}
+              />
             </div>
-          ) : null
-        }
+          </details> : null}
+        </div> : null}
       />
 
-      {importOpen ? (
-        <CsvImportPanel
-          importPath={endpoints.admin.studentsImport}
-          instructions={t('admin.studentsImportInstructions')}
-          onDone={() => state.reload()}
-        />
-      ) : null}
+      {importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
 
       <StudentsFinancialServiceCountCards
-        items={serviceCounts.items}
-        totalStudents={serviceCounts.totalStudents}
-        initialLoading={serviceCounts.initialLoading}
-        fetching={serviceCounts.fetching}
-        error={serviceCounts.error}
-        serviceId={serviceId}
-        servicePresence={servicePresence}
-        onSelectAll={clearServiceFilter}
-        onSelectService={selectServiceHas}
-        onRetry={serviceCounts.reload}
+        items={serviceCounts.items} totalStudents={serviceCounts.totalStudents}
+        initialLoading={serviceCounts.initialLoading} fetching={serviceCounts.fetching} error={serviceCounts.error}
+        serviceId={serviceId} servicePresence={servicePresence}
+        onSelectAll={clearServiceFilter} onSelectService={selectServiceHas} onRetry={serviceCounts.reload}
       />
 
       <div className="students-list__toolbar-wrap">
         <StudentsListFilters
-          search={search}
-          cycleCode={cycleCode}
-          levelId={levelId}
-          classId={classId}
-          statusFilter={statusFilter}
-          accountFilter={accountFilter}
-          serviceId={serviceId}
-          servicePresence={servicePresence}
-          levels={levelsState.data ?? []}
-          classes={classesState.data ?? []}
-          feeTypes={serviceFilterOptions}
-          feeTypesLoading={feeTypesLoading || serviceCounts.initialLoading}
-          hasActiveFilters={hasActiveFilters}
-          onSearchChange={setSearch}
-          onSearchClear={clearSearch}
-          onCycleCodeChange={setCycleCode}
-          onLevelIdChange={setLevelId}
-          onClassIdChange={setClassId}
-          onStatusFilterChange={setStatusFilter}
-          onAccountFilterChange={setAccountFilter}
-          onServiceIdChange={setServiceId}
-          onServicePresenceChange={setServicePresence}
-          onReset={resetFilters}
+          search={search} cycleCode={cycleCode} levelId={levelId} classId={classId}
+          statusFilter={statusFilter} accountFilter={accountFilter} serviceId={serviceId} servicePresence={servicePresence}
+          levels={levelsState.data ?? []} classes={classesState.data ?? []} feeTypes={serviceFilterOptions}
+          feeTypesLoading={feeTypesLoading || serviceCounts.initialLoading} hasActiveFilters={hasActiveFilters}
+          onSearchChange={setSearch} onSearchClear={clearSearch} onCycleCodeChange={setCycleCode}
+          onLevelIdChange={setLevelId} onClassIdChange={setClassId} onStatusFilterChange={setStatusFilter}
+          onAccountFilterChange={setAccountFilter} onServiceIdChange={setServiceId}
+          onServicePresenceChange={setServicePresence} onReset={resetFilters}
         />
-
-        <div
-          className="students-list__view-toggle"
-          role="group"
-          aria-label={t('admin.studentsList.viewMode')}
-        >
-          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
-            {t('admin.studentsList.viewList')}
-          </button>
-          <button type="button" aria-pressed={view === 'kanban'} onClick={() => setView('kanban')}>
-            {t('admin.studentsList.viewKanban')}
-          </button>
+        <div className="students-list__view-toggle" role="group" aria-label={t('admin.studentsList.viewMode')}>
+          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>{t('admin.studentsList.viewList')}</button>
+          <button type="button" aria-pressed={view === 'kanban'} onClick={() => setView('kanban')}>{t('admin.studentsList.viewKanban')}</button>
         </div>
       </div>
 
-      {state.fetching ? (
-        <p className="students-list__fetching-hint" aria-live="polite">
-          {t('admin.studentsList.refetching')}
-        </p>
-      ) : null}
-
-      <div
-        className={state.fetching ? 'students-list__results students-list__results--fetching' : 'students-list__results'}
-        aria-busy={state.fetching || undefined}
-      >
-        <ResourceView
-          state={state}
-          loadingLabel={t('common.loading')}
-          isEmpty={(d) => d.length === 0}
-          empty={listEmptyState}
-        >
-          {(students) => (
-            <>
-              {view === 'kanban' ? (
-                <StudentsKanban students={students} />
-              ) : (
-                <div className="students-list__table">
-                  <DataTable
-                    columns={columns}
-                    rows={students}
-                    rowKey={(s) => s.id}
-                    onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
-                  />
-                </div>
-              )}
-              {pg ? (
-                <Pagination
-                  page={pg.page}
-                  totalPages={pg.total_pages}
-                  total={pg.total}
-                  onPage={setPage}
-                />
-              ) : null}
-            </>
-          )}
+      {state.fetching ? <p className="students-list__fetching-hint" aria-live="polite">{t('admin.studentsList.refetching')}</p> : null}
+      <div className={state.fetching ? 'students-list__results students-list__results--fetching' : 'students-list__results'} aria-busy={state.fetching || undefined}>
+        <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={(d) => d.length === 0} empty={listEmptyState}>
+          {(students) => <>
+            {view === 'kanban' ? <StudentsKanban students={students} /> : <div className="students-list__table"><DataTable columns={columns} rows={students} rowKey={(s) => s.id} onRowClick={(s) => router.push(`/admin/students/${s.id}`)} /></div>}
+            {pg ? <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} /> : null}
+          </>}
         </ResourceView>
       </div>
     </div>
