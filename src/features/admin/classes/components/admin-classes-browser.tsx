@@ -104,6 +104,11 @@ function ClassRow({
   const isActive = cls.status === 'active';
   const overCapacity = !!cls.capacity && cls.capacity > 0 && studentCount > cls.capacity;
   const title = classTitle(cls, locale, t('common.class'));
+  const displayCode =
+    cls.recommended_display_code?.trim() ||
+    cls.academic_code?.trim() ||
+    cls.code?.trim() ||
+    '';
 
   return (
     <button
@@ -121,9 +126,9 @@ function ClassRow({
           {!isActive ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}
         </span>
         <span className="classes-browser__class-meta">
-          {cls.code ? (
+          {displayCode ? (
             <span className="classes-browser__class-code mono" dir="ltr">
-              {locale === 'ar' ? `القسم: ${cls.code}` : cls.code}
+              {locale === 'ar' ? `القسم: ${displayCode}` : displayCode}
             </span>
           ) : null}
           {cls.track?.name ? (
