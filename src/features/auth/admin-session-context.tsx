@@ -173,11 +173,13 @@ export function AdminSessionProvider({
   const setActiveAcademicYear = useCallback(
     (academicYearId: number) => {
       if (!academicYears.some((year) => year.id === academicYearId)) return false;
+      if (academicYearId === activeAcademicYearId) return true;
       setActiveAcademicYearId(academicYearId);
       setAcademicYearError(null);
+      router.refresh();
       return true;
     },
-    [academicYears],
+    [academicYears, activeAcademicYearId, router],
   );
 
   const value = useMemo(
