@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
-import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import {
   buildEnabledFeePlanScopeLevels,
   buildFeePlanScopeGroups,
@@ -40,7 +39,6 @@ export function FeePlansFilters({
   hasActiveFilters: boolean;
 }) {
   const t = useT();
-  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(null);
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
@@ -119,27 +117,6 @@ export function FeePlansFilters({
           </label>
 
           <div className="fee-plans-workspace__field-grid">
-            <label className="fee-plans-workspace__field">
-              <span className="fee-plans-workspace__field-label">{t('admin.finance.academicYear')}</span>
-              <select
-                className="input fee-plans-filters__select"
-                value={filters.yearId}
-                onChange={(e) => {
-                  const next = { ...filters, yearId: e.target.value };
-                  onChange({ yearId: e.target.value });
-                  onSearchSubmit(next);
-                }}
-                disabled={yearsLoading}
-              >
-                <option value="">{t('admin.finance.allAcademicYears')}</option>
-                {yearOptions.map((y) => (
-                  <option key={y.id} value={y.id}>
-                    {y.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
             <label className="fee-plans-workspace__field">
               <span className="fee-plans-workspace__field-label">{t('nav.levels')}</span>
               <select

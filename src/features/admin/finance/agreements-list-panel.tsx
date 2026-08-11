@@ -30,7 +30,6 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import { refName } from '@/lib/utils/finance';
-import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import '@/features/admin/finance/receivable-lists.css';
 import '@/features/admin/finance/agreements-list.css';
@@ -47,20 +46,21 @@ export function AgreementsListPanel({
   const t = useT();
   const router = useRouter();
   const { formatDate } = useFormat();
-  const { options: yearOptions } = useAcademicYearOptions(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [stateFilter, setStateFilter] = useState(initialState ?? '');
-  const [yearId, setYearId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const dash = t('common.dash');
 
+  // Student-scoped agreement history is intentionally year-independent in Odoo.
+  // Keep the global year out of this detail/history surface and do not expose a
+  // local year filter that the endpoint does not honor.
   const hasActiveQuery = agreementsListHasActiveQuery({
     search: query,
     stateFilter,
-    yearId,
+    yearId: '',
     dateFrom,
     dateTo,
   });
@@ -72,11 +72,10 @@ export function AgreementsListPanel({
       page_size: AGREEMENTS_PAGE_SIZE,
       search: query || undefined,
       state: stateFilter || undefined,
-      academic_year_id: yearId ? Number(yearId) : undefined,
       agreement_date_from: dateFrom || undefined,
       agreement_date_to: dateTo || undefined,
     }),
-    [page, query, stateFilter, yearId, dateFrom, dateTo],
+    [page, query, stateFilter, dateFrom, dateTo],
   );
 
   const state = useStudentFinancialAgreements(studentId, params);
@@ -94,7 +93,6 @@ export function AgreementsListPanel({
     setSearch('');
     setQuery('');
     setStateFilter('');
-    setYearId('');
     setDateFrom('');
     setDateTo('');
     setPage(1);
@@ -247,22 +245,6 @@ export function AgreementsListPanel({
           <option value="active">{t('admin.finance.agreements.states.active')}</option>
           <option value="cancelled">{t('admin.finance.agreements.states.cancelled')}</option>
         </select>
-        <select
-          className="input"
-          value={yearId}
-          onChange={(e) => {
-            setYearId(e.target.value);
-            setPage(1);
-          }}
-          aria-label={t('admin.finance.agreements.columns.academicYear')}
-        >
-          <option value="">{t('admin.finance.allAcademicYears')}</option>
-          {yearOptions.map((y) => (
-            <option key={y.id} value={y.id}>
-              {y.name}
-            </option>
-          ))}
-        </select>
         <input
           className="input"
           type="date"
@@ -323,22 +305,6 @@ export function AgreementsListPanel({
                 aria-label={t('common.clear')}
                 onClick={() => {
                   setStateFilter('');
-                  setPage(1);
-                }}
-              >
-                ×
-              </button>
-            </span>
-          ) : null}
-          {yearId ? (
-            <span className="finance-receivable-list__chip">
-              {yearOptions.find((y) => String(y.id) === yearId)?.name ?? yearId}
-              <button
-                type="button"
-                className="finance-receivable-list__chip-clear"
-                aria-label={t('common.clear')}
-                onClick={() => {
-                  setYearId('');
                   setPage(1);
                 }}
               >

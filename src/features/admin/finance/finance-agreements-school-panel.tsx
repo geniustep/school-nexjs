@@ -17,6 +17,7 @@ import { ApiErrorView } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import {
   AGREEMENTS_PAGE_SIZE,
   agreementsListHasActiveQuery,
@@ -28,7 +29,6 @@ import { AgreementStateBadge } from '@/features/admin/student-finance/components
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import { refName } from '@/lib/utils/finance';
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
@@ -64,7 +64,7 @@ export function FinanceAgreementsSchoolPanel({
     [page, billingPartnerId],
   );
 
-  const state = useAdminResource<unknown>(endpoints.admin.financeAgreements, params);
+  const state = useGlobalAcademicYearResource<unknown>(endpoints.admin.financeAgreements, params);
   const rows = useMemo(() => parseFinanceList<FinancialAgreement>(state.data), [state.data]);
   const pg = state.meta?.pagination;
   const isRefetching = state.fetching && !state.initialLoading;

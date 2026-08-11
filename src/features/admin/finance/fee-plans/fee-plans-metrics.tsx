@@ -2,14 +2,14 @@
 
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import type { FeePlan } from '@/types/finance';
 import type { ListParams } from '@/types/api';
 
 const KPI_STATES = ['', 'confirmed', 'draft', 'archived'] as const;
 
 function useFeePlanCount(params?: ListParams) {
-  const state = useAdminResource<FeePlan[]>(endpoints.admin.financeFeePlans, {
+  const state = useGlobalAcademicYearResource<FeePlan[]>(endpoints.admin.financeFeePlans, {
     page: 1,
     page_size: 1,
     ...params,

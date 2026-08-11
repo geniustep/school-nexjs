@@ -15,7 +15,7 @@ import { RequireAdminPermission } from '@/components/admin/require-admin-permiss
 import { ResourceView } from '@/components/states/resource';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import {
   FINANCE_VIEW,
   canManageFeeCatalog,
@@ -32,7 +32,6 @@ import { FeePlansHeader } from './fee-plans-header';
 import { FeePlansList } from './fee-plans-list';
 import { FeePlansMetrics } from './fee-plans-metrics';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
-import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { buildFeePlanScopeGroups } from './fee-plan-level-scope';
 import type { FeePlanDrawerMode } from './fee-plan-types';
 import { normalizeFeePlans } from './normalize-fee-plan';
@@ -53,6 +52,9 @@ import './fee-plans-workspace.css';
 
 const EMPTY_FILTERS: FeePlanFiltersState = {
   search: '',
+  // Academic Year is global header context; this legacy field stays empty so
+  // existing client-filter utilities keep their stable shape without exposing
+  // a second year selector in the page.
   yearId: '',
   cycleId: '',
   levelId: '',
@@ -73,7 +75,6 @@ export function FeePlansPage() {
   const canManage = canManageFeePlans(user);
   const canManageCatalog = canManageFeeCatalog(user);
   const canViewCatalog = canManageCatalog || canManage;
-  const { options: yearOptions } = useAcademicYearOptions(null);
 
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FeePlanFiltersState>(EMPTY_FILTERS);
@@ -108,24 +109,18 @@ export function FeePlansPage() {
       page: clientFilterActive ? 1 : page,
       page_size: clientFilterActive ? FEE_PLANS_CLIENT_SEARCH_FETCH_SIZE : FEE_PLANS_LIST_PAGE_SIZE,
       state: query.stateFilter || undefined,
-      academic_year_id: query.yearId || undefined,
       level_id: query.levelId || undefined,
     }),
-    [clientFilterActive, page, query],
+    [clientFilterActive, page, query.stateFilter, query.levelId],
   );
 
-  const state = useAdminResource<FeePlan[]>(endpoints.admin.financeFeePlans, params);
+  const state = useGlobalAcademicYearResource<FeePlan[]>(endpoints.admin.financeFeePlans, params);
   const pg = state.meta?.pagination;
   const isRefetching = state.fetching && !state.initialLoading;
 
   const hasActiveQuery = feePlansListHasActiveQuery(query);
   const emptyVariant = resolveFeePlansListEmptyVariant({ hasActiveQuery });
   const draftHasFilters = feePlansListHasActiveQuery(filters);
-
-  const yearLabel = useMemo(() => {
-    if (!query.yearId) return null;
-    return yearOptions.find((y) => String(y.id) === query.yearId)?.name ?? query.yearId;
-  }, [query.yearId, yearOptions]);
 
   const levelLabel = useMemo(() => {
     if (!query.levelId) return null;
@@ -226,19 +221,6 @@ export function FeePlansPage() {
                   className="fee-plans-workspace__chip-clear"
                   aria-label={t('common.clear')}
                   onClick={() => clearQueryField('search')}
-                >
-                  ×
-                </button>
-              </span>
-            ) : null}
-            {yearLabel ? (
-              <span className="fee-plans-workspace__chip">
-                <span dir="auto">{yearLabel}</span>
-                <button
-                  type="button"
-                  className="fee-plans-workspace__chip-clear"
-                  aria-label={t('common.clear')}
-                  onClick={() => clearQueryField('yearId')}
                 >
                   ×
                 </button>
