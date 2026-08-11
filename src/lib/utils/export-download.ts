@@ -2,6 +2,8 @@
 
 // Official server-side export via BFF (CSV from GET …/export endpoints).
 
+import type { ListParams } from '@/types/api';
+
 const PROXY_BASE = '/api/odoo';
 
 function isFileContentType(contentType: string): boolean {
@@ -29,6 +31,21 @@ function filenameFromDisposition(header: string | null, fallback: string): strin
   return plain?.[1] ?? fallback;
 }
 
+export function buildOfficialExportUrl(path: string, query?: ListParams): string {
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  const question = clean.indexOf('?');
+  const pathname = question >= 0 ? clean.slice(0, question) : clean;
+  const params = new URLSearchParams(question >= 0 ? clean.slice(question + 1) : '');
+
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value == null || value === '') continue;
+    params.set(key, String(value));
+  }
+
+  const qs = params.toString();
+  return `${PROXY_BASE}${pathname}${qs ? `?${qs}` : ''}`;
+}
+
 export type ExportFailReason = 'forbidden' | 'failed' | 'network';
 
 async function readJsonError(res: Response): Promise<{ reason: ExportFailReason; message?: string }> {
@@ -48,10 +65,10 @@ async function readJsonError(res: Response): Promise<{ reason: ExportFailReason;
 export async function downloadOfficialExport(
   path: string,
   filename: string,
+  query?: ListParams,
 ): Promise<{ ok: true } | { ok: false; reason: ExportFailReason; message?: string }> {
   try {
-    const clean = path.startsWith('/') ? path : `/${path}`;
-    const res = await fetch(`${PROXY_BASE}${clean}`, {
+    const res = await fetch(buildOfficialExportUrl(path, query), {
       method: 'GET',
       headers: { Accept: 'text/csv, application/octet-stream, application/json, */*' },
     });

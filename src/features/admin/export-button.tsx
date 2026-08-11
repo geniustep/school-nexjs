@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { downloadOfficialExport } from '@/lib/utils/export-download';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
+import type { ListParams } from '@/types/api';
 
 interface ExportButtonProps {
   path: string;
   filename: string;
   label?: string;
   official?: boolean;
+  query?: ListParams;
 }
 
 export function ExportButton({
@@ -17,6 +19,7 @@ export function ExportButton({
   filename,
   label,
   official = true,
+  query,
 }: ExportButtonProps) {
   const t = useT();
   const toast = useToast();
@@ -24,7 +27,7 @@ export function ExportButton({
 
   async function handleExport() {
     setLoading(true);
-    const res = await downloadOfficialExport(path, filename);
+    const res = await downloadOfficialExport(path, filename, query);
     setLoading(false);
     if (res.ok) {
       toast.success(t('academic.downloadStarted'));

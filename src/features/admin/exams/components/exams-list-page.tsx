@@ -16,6 +16,7 @@ import { DataTable, Pagination, type Column } from '@/components/tables/data-tab
 import { PageHeader } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { ExamsListFilters } from '@/features/admin/exams/components/exams-list-filters';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import {
   EXAMS_PAGE_SIZE,
   examsListHasActiveQuery,
@@ -23,6 +24,7 @@ import {
   formatExamListType,
   resolveExamsListEmptyVariant,
 } from '@/features/admin/exams/utils/exams-list-present';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -44,31 +46,37 @@ export function ExamsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useSession();
+  const { activeAcademicYearId } = useAdminSession();
   const { formatDate } = useFormat();
 
   const [page, setPage] = useState(1);
   const [classId, setClassId] = useState(() => readInitialClassId(searchParams));
-  const [academicYearId, setAcademicYearId] = useState('');
   const [termId, setTermId] = useState('');
   const [stateFilter, setStateFilter] = useState('');
+  const academicYearId = activeAcademicYearId != null ? String(activeAcademicYearId) : '';
 
   useEffect(() => {
     setPage(1);
-  }, [classId, academicYearId, termId, stateFilter]);
+    setTermId('');
+  }, [academicYearId]);
 
-  const hasActiveQuery = examsListHasActiveQuery({ classId, stateFilter }) || Boolean(academicYearId || termId);
+  useEffect(() => {
+    setPage(1);
+  }, [classId, termId, stateFilter]);
+
+  const hasActiveQuery = examsListHasActiveQuery({ classId, stateFilter }) || Boolean(termId);
   const hasActiveFilters = hasActiveQuery;
 
   const params: ListParams = {
     page,
     page_size: EXAMS_PAGE_SIZE,
     class_id: classId || undefined,
-    academic_year_id: academicYearId || undefined,
     term_id: termId || undefined,
     state: stateFilter || undefined,
   };
 
-  const state = useAdminResource<ExamSummary[]>(endpoints.admin.exams, params);
+  const state = useGlobalAcademicYearResource<ExamSummary[]>(endpoints.admin.exams, params);
+  // Class options remain year-independent until their options contract is audited separately.
   const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(
     endpoints.admin.classes,
   );
@@ -82,7 +90,6 @@ export function ExamsListPage() {
 
   const resetFilters = useCallback(() => {
     setClassId('');
-    setAcademicYearId('');
     setTermId('');
     setStateFilter('');
     setPage(1);
@@ -258,6 +265,11 @@ export function ExamsListPage() {
                 managePermission="manage_exams"
                 exportPath={endpoints.admin.examsExport}
                 exportFilename="exams.csv"
+                exportQuery={
+                  activeAcademicYearId != null
+                    ? { academic_year_id: activeAcademicYearId }
+                    : undefined
+                }
               />
             </div>
           ) : null
@@ -272,10 +284,6 @@ export function ExamsListPage() {
         classes={classesState.data ?? []}
         hasActiveFilters={hasActiveFilters}
         onClassIdChange={setClassId}
-        onAcademicYearIdChange={(value) => {
-          setAcademicYearId(value);
-          setTermId('');
-        }}
         onTermIdChange={setTermId}
         onStateFilterChange={setStateFilter}
         onReset={resetFilters}

@@ -7,6 +7,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { isAdminReadOnlyPhase } from '@/lib/admin/phase';
 import { useT } from '@/features/i18n/locale-context';
+import type { ListParams } from '@/types/api';
 import type { Permission } from '@/types/permissions';
 
 interface AdminListActionsProps {
@@ -17,6 +18,7 @@ interface AdminListActionsProps {
   addCapability?: string;
   exportPath?: string;
   exportFilename?: string;
+  exportQuery?: ListParams;
   exportPermission?: Permission;
   showImport?: boolean;
   onToggleImport?: () => void;
@@ -33,6 +35,7 @@ export function AdminListActions({
   addCapability,
   exportPath,
   exportFilename = 'export.csv',
+  exportQuery,
   exportPermission = 'export_data',
   showImport,
   onToggleImport,
@@ -70,7 +73,12 @@ export function AdminListActions({
         </Link>
       )}
       {showExport && (
-        <ExportButton path={exportPath} filename={exportFilename} label={t('admin.exportCsv')} />
+        <ExportButton
+          path={exportPath}
+          filename={exportFilename}
+          label={t('admin.exportCsv')}
+          query={exportQuery}
+        />
       )}
       {showImportBtn && (
         <button type="button" className="btn btn--ghost btn--sm" onClick={onToggleImport}>
