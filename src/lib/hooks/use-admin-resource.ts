@@ -19,6 +19,9 @@ function isStrictGlobalAcademicYearScopedPath(path: string | null): boolean {
   return (
     path === endpoints.admin.dashboard ||
     path === endpoints.admin.executiveDashboard ||
+    // Admissions list/dashboard share the same Odoo year-aware base resolver.
+    path === endpoints.admin.admissions ||
+    path === endpoints.admin.admissionsDashboard ||
     // Weekly/structural timetable list; dated occurrences use different endpoints
     // and remain date-primary.
     path === endpoints.admin.timetable

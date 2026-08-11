@@ -160,7 +160,11 @@ export function useAdmissionsKanbanBoard({
   partitionByApplicationStatus?: boolean;
   enabled?: boolean;
 }) {
-  const { activeSchoolId } = useAdminSession();
+  const {
+    activeSchoolId,
+    activeAcademicYearId,
+    academicYearError,
+  } = useAdminSession();
   const [columnStates, setColumnStates] = useState<Record<string, AdmissionsKanbanColumn>>({});
   const [boardItems, setBoardItems] = useState<AdmissionListItem[]>([]);
   const [boardPage, setBoardPage] = useState(0);
@@ -190,7 +194,12 @@ export function useAdmissionsKanbanBoard({
 
   useEffect(() => {
     const activeColumns = columnsKey ? columnsKey.split(',') : [];
-    if (!enabled || activeSchoolId == null || activeColumns.length === 0) {
+    if (
+      !enabled ||
+      activeSchoolId == null ||
+      activeAcademicYearId == null ||
+      activeColumns.length === 0
+    ) {
       setInitialLoading(false);
       setColumnStates({});
       setBoardItems([]);
@@ -237,6 +246,8 @@ export function useAdmissionsKanbanBoard({
             page: 1,
             page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
             ...resolvedExtraQuery,
+            // Global header year is authoritative over stale/local query state.
+            academic_year_id: activeAcademicYearId,
           }),
         );
         if (cancelled) return;
@@ -277,6 +288,7 @@ export function useAdmissionsKanbanBoard({
               page: 1,
               page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
               ...resolvedExtraQuery,
+              academic_year_id: activeAcademicYearId,
             }),
           );
           if (cancelled) return;
@@ -297,6 +309,7 @@ export function useAdmissionsKanbanBoard({
   }, [
     enabled,
     activeSchoolId,
+    activeAcademicYearId,
     columnsKey,
     searchKey,
     extraQueryKey,
@@ -307,7 +320,7 @@ export function useAdmissionsKanbanBoard({
 
   const loadMore = useCallback(
     async (state: string) => {
-      if (activeSchoolId == null) return;
+      if (activeSchoolId == null || activeAcademicYearId == null) return;
 
       if (partitionByApplicationStatus) {
         if (!boardHasMore) return;
@@ -331,6 +344,7 @@ export function useAdmissionsKanbanBoard({
             page: nextPage,
             page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
             ...resolvedExtraQuery,
+            academic_year_id: activeAcademicYearId,
           }),
         );
 
@@ -381,6 +395,7 @@ export function useAdmissionsKanbanBoard({
           page: nextPage,
           page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
           ...resolvedExtraQuery,
+          academic_year_id: activeAcademicYearId,
         }),
       );
 
@@ -391,6 +406,7 @@ export function useAdmissionsKanbanBoard({
     },
     [
       activeSchoolId,
+      activeAcademicYearId,
       boardHasMore,
       boardItems,
       boardPage,
@@ -427,8 +443,11 @@ export function useAdmissionsKanbanBoard({
   const allItems = useMemo(() => grouped.flatMap((col) => col.items), [grouped]);
 
   const error = useMemo(
-    () => grouped.map((col) => col.error).find((item) => item != null) ?? null,
-    [grouped],
+    () =>
+      grouped.map((col) => col.error).find((item) => item != null) ??
+      academicYearError ??
+      null,
+    [grouped, academicYearError],
   );
 
   return {
