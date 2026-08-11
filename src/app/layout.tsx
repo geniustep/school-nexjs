@@ -3,6 +3,7 @@ import './globals.css';
 import { VercelWebAnalytics } from '@/components/analytics/vercel-web-analytics';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { ibmPlexArabic, plusJakarta } from '@/lib/fonts';
+import { OPERATIONAL_ROBOTS_METADATA } from '@/lib/seo/operational-indexing';
 
 export const metadata: Metadata = {
   title: {
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   },
   description:
     'منصة رَقِيم للإدارة المدرسية · Raqeem School Management Platform',
+  robots: OPERATIONAL_ROBOTS_METADATA,
   icons: {
     icon: [{ url: '/brand/logo.svg', type: 'image/svg+xml' }],
     apple: [{ url: '/brand/logo.svg', type: 'image/svg+xml' }],
