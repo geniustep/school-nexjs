@@ -5,22 +5,31 @@ import { AcademicPageHeader } from '@/features/admin/academic-setup/components/a
 import { AssignmentBoard } from '@/features/admin/academic-setup/components/assignment-board';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { canManageTeachingAssignments } from '@/lib/permissions/academic-setup';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
 
 export default function AcademicSetupAssignmentsPage() {
   const t = useT();
   const user = useSession();
+  const { activeAcademicYearId, academicYearError } = useAdminSession();
   const canManage = canManageTeachingAssignments(user);
   const lists = useAcademicSetupLists();
-  const optionsState = useStudentOptions();
 
-  if (lists.initialLoading) {
+  if (lists.initialLoading || (activeAcademicYearId == null && academicYearError == null)) {
     return (
       <>
         <AcademicPageHeader title={t('admin.academicSetup.nav.assignments')} skeleton />
         <LoadingState label={t('common.loading')} />
+      </>
+    );
+  }
+
+  if (academicYearError) {
+    return (
+      <>
+        <AcademicPageHeader title={t('admin.academicSetup.nav.assignments')} />
+        <ErrorState error={academicYearError} />
       </>
     );
   }
@@ -34,6 +43,8 @@ export default function AcademicSetupAssignmentsPage() {
     );
   }
 
+  if (activeAcademicYearId == null) return null;
+
   return (
     <>
       <AcademicPageHeader
@@ -43,7 +54,7 @@ export default function AcademicSetupAssignmentsPage() {
       <AssignmentBoard
         classes={lists.classes}
         subjects={lists.subjects}
-        academicYears={optionsState.options?.academicYears ?? []}
+        academicYearId={activeAcademicYearId}
         canManage={canManage}
       />
     </>

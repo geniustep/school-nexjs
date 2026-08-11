@@ -14,8 +14,15 @@ function isAdminApiPath(path: string | null): boolean {
   return !!path && path.startsWith('/admin/');
 }
 
-function isDashboardAcademicYearScopedPath(path: string | null): boolean {
-  return path === endpoints.admin.dashboard || path === endpoints.admin.executiveDashboard;
+/** Exact allowlist only: do not broaden this to all /admin routes. */
+function isStrictGlobalAcademicYearScopedPath(path: string | null): boolean {
+  return (
+    path === endpoints.admin.dashboard ||
+    path === endpoints.admin.executiveDashboard ||
+    // Weekly/structural timetable list; dated occurrences use different endpoints
+    // and remain date-primary.
+    path === endpoints.admin.timetable
+  );
 }
 
 export function useAdminResource<T>(
@@ -40,7 +47,7 @@ export function useAdminResource<T>(
     return {
       ...query,
       active_school_id: safeActiveSchoolId,
-      ...(isDashboardAcademicYearScopedPath(path) && activeAcademicYearId != null
+      ...(isStrictGlobalAcademicYearScopedPath(path) && activeAcademicYearId != null
         ? { academic_year_id: activeAcademicYearId }
         : {}),
     };
@@ -49,24 +56,23 @@ export function useAdminResource<T>(
   const pendingActiveSchool =
     !!path && isAdminApiPath(path) && requiresActiveSchool && safeActiveSchoolId == null;
 
-  // Both dashboard endpoints are strict Academic Year consumers. Do not issue an
-  // unscoped request while the global year context is still resolving, otherwise
-  // a remembered historical selection can briefly render the canonical current year.
-  const missingDashboardAcademicYear =
+  // Strict global-year consumers must not issue an unscoped request while the
+  // remembered/header year is still resolving. This prevents a historical
+  // selection from briefly rendering the canonical current year.
+  const missingStrictAcademicYear =
     !!path &&
-    isDashboardAcademicYearScopedPath(path) &&
+    isStrictGlobalAcademicYearScopedPath(path) &&
     safeActiveSchoolId != null &&
     activeAcademicYearId == null;
-  const pendingDashboardAcademicYear =
-    missingDashboardAcademicYear && academicYearError == null;
+  const pendingStrictAcademicYear = missingStrictAcademicYear && academicYearError == null;
 
   const effectivePath =
-    pendingActiveSchool || missingDashboardAcademicYear ? null : path;
+    pendingActiveSchool || missingStrictAcademicYear ? null : path;
 
   const state = useResource<T>(effectivePath, mergedQuery, options);
 
   return useMemo(() => {
-    const waiting = pendingActiveSchool || pendingDashboardAcademicYear || switching;
+    const waiting = pendingActiveSchool || pendingStrictAcademicYear || switching;
     const loading = state.loading || waiting;
     return {
       ...state,
@@ -74,5 +80,5 @@ export function useAdminResource<T>(
       initialLoading: loading && state.data === null,
       fetching: state.fetching && !waiting,
     };
-  }, [pendingActiveSchool, pendingDashboardAcademicYear, switching, state]);
+  }, [pendingActiveSchool, pendingStrictAcademicYear, switching, state]);
 }

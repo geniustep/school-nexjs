@@ -35,12 +35,12 @@ export type AssignmentViewMode = 'class' | 'teacher' | 'subject';
 export function AssignmentBoard({
   classes,
   subjects,
-  academicYears,
+  academicYearId,
   canManage,
 }: {
   classes: SchoolClass[];
   subjects: Subject[];
-  academicYears: { id: number; name: string; is_current?: boolean }[];
+  academicYearId: number;
   canManage: boolean;
 }) {
   const t = useT();
@@ -53,16 +53,14 @@ export function AssignmentBoard({
   const [pickMissing, setPickMissing] = useState<SetupReadinessIssue | null>(null);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(1);
-  const [academicYearId, setAcademicYearId] = useState(() => {
-    const requested = searchParams.get('academic_year_id');
-    return requested ?? '';
-  });
-
-  const effectiveYearId = academicYearId || String(academicYears.find((year) => year.is_current)?.id ?? academicYears[0]?.id ?? '');
+  const effectiveYearId = String(academicYearId);
 
   const query = useMemo(() => {
-    const q: Record<string, string | number> = { page, limit: 50 };
-    if (effectiveYearId) q.academic_year_id = effectiveYearId;
+    const q: Record<string, string | number> = {
+      page,
+      limit: 50,
+      academic_year_id: effectiveYearId,
+    };
     const classId = searchParams.get('class_id');
     const teacherId = searchParams.get('teacher_id');
     const subjectId = searchParams.get('subject_id');
@@ -73,9 +71,7 @@ export function AssignmentBoard({
   }, [searchParams, page, effectiveYearId]);
 
   const { assignments, loading, error, meta, reload } = useTeachingAssignments(query);
-  const readinessState = useSetupReadiness(
-    effectiveYearId ? { academic_year_id: effectiveYearId } : undefined,
-  );
+  const readinessState = useSetupReadiness({ academic_year_id: effectiveYearId });
   const pagination = meta?.pagination;
   const assignedCount = pagination?.total ?? assignments.length;
 
@@ -165,22 +161,6 @@ export function AssignmentBoard({
             ) : null}
           </div>
 
-          <label className="field assignment-workspace__year" style={{ margin: 0 }}>
-            <span>{t('admin.academicSetup.academicYear')}</span>
-            <select
-              value={effectiveYearId}
-              onChange={(event) => {
-                setAcademicYearId(event.target.value);
-                setPage(1);
-                setEditing(null);
-                setPickMissing(null);
-                setFormOpen(false);
-              }}
-            >
-              {academicYears.map((year) => <option key={year.id} value={year.id}>{year.name}</option>)}
-            </select>
-          </label>
-
           <div className="academic-setup-view-tabs" role="tablist">
             {(['class', 'teacher', 'subject'] as const).map((mode) => (
               <button
@@ -239,14 +219,36 @@ export function AssignmentBoard({
             }}
           />
         ) : view === 'teacher' ? (
-          <AssignmentByTeacher assignments={assignments} canManage={canManage} onEdit={(a) => { setEditing(a); setPickMissing(null); setFormOpen(true); }} />
+          <AssignmentByTeacher
+            assignments={assignments}
+            canManage={canManage}
+            onEdit={(a) => {
+              setEditing(a);
+              setPickMissing(null);
+              setFormOpen(true);
+            }}
+          />
         ) : (
-          <AssignmentBySubject assignments={assignments} canManage={canManage} onEdit={(a) => { setEditing(a); setPickMissing(null); setFormOpen(true); }} />
+          <AssignmentBySubject
+            assignments={assignments}
+            canManage={canManage}
+            onEdit={(a) => {
+              setEditing(a);
+              setPickMissing(null);
+              setFormOpen(true);
+            }}
+          />
         )}
       </Card>
 
       {pagination ? (
-        <Pagination page={pagination.page} totalPages={pagination.total_pages} total={pagination.total} pageSize={pagination.page_size || 50} onPage={setPage} />
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.total_pages}
+          total={pagination.total}
+          pageSize={pagination.page_size || 50}
+          onPage={setPage}
+        />
       ) : null}
 
       <AssignmentFormDrawer
@@ -260,7 +262,7 @@ export function AssignmentBoard({
         missingIssue={pickMissing}
         classes={classes}
         subjects={subjects}
-        academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
+        academicYearId={academicYearId}
         canManage={canManage}
         saving={saving}
         onCreate={handleCreate}
