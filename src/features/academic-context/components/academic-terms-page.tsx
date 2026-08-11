@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Academic Terms management — year-scoped list, create, initialize, and edit.
+ * Academic Terms management — global-year-scoped list, create, initialize, and edit.
  * Confirmed (active) terms allow date edits without draft toggle.
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  */
@@ -27,14 +27,19 @@ import {
   canEditAcademicTermIdentity,
   canShowEditAcademicTerm,
 } from '@/features/academic-context/utils/term-editability';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
-import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
 import {
   canManageAcademicTerms,
   canViewAcademicTerms,
 } from '@/lib/permissions/academic-context';
-import { PermissionDeniedState, EmptyState } from '@/components/states/states';
+import {
+  PermissionDeniedState,
+  EmptyState,
+  LoadingState,
+  ErrorState,
+} from '@/components/states/states';
 import { PageHeader } from '@/components/ui/primitives';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -73,9 +78,14 @@ export function AcademicTermsPage() {
   const user = useSession();
   const canView = canViewAcademicTerms(user);
   const canManage = canManageAcademicTerms(user);
-  const { options: yearOptions } = useAcademicYearOptions();
+  const {
+    activeAcademicYearId,
+    academicYears: yearOptions,
+    academicYearLoading,
+    academicYearError,
+  } = useAdminSession();
+  const yearId = activeAcademicYearId != null ? String(activeAcademicYearId) : '';
 
-  const [yearId, setYearId] = useState('');
   const [terms, setTerms] = useState<AcademicTermOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,12 +131,6 @@ export function AcademicTermsPage() {
   useEffect(() => {
     void loadTerms();
   }, [loadTerms]);
-
-  useEffect(() => {
-    if (!yearId && yearOptions.length) {
-      setYearId(String(yearOptions[0].id));
-    }
-  }, [yearId, yearOptions]);
 
   const canInitialize =
     canManage &&
@@ -389,6 +393,14 @@ export function AcademicTermsPage() {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
   }
 
+  if (academicYearLoading || (!activeAcademicYearId && !academicYearError)) {
+    return <LoadingState label={t('common.loading')} />;
+  }
+
+  if (academicYearError) {
+    return <ErrorState error={academicYearError} />;
+  }
+
   const selectedYearName =
     yearOptions.find((y) => String(y.id) === yearId)?.name ?? '—';
 
@@ -400,22 +412,6 @@ export function AcademicTermsPage() {
       />
 
       <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <label className="field" style={{ minWidth: 220 }}>
-          <span>{t('academicContext.fields.academicYear')}</span>
-          <select
-            className="select"
-            value={yearId}
-            onChange={(e) => setYearId(e.target.value)}
-            aria-label={t('academicContext.fields.academicYear')}
-          >
-            <option value="">{t('academicContext.placeholders.academicYear')}</option>
-            {yearOptions.map((year) => (
-              <option key={year.id} value={year.id}>
-                {year.name}
-              </option>
-            ))}
-          </select>
-        </label>
         {canCreate ? (
           <button
             type="button"
