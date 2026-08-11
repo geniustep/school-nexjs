@@ -22,6 +22,9 @@ function isStrictGlobalAcademicYearScopedPath(path: string | null): boolean {
     // Admissions list/dashboard share the same Odoo year-aware base resolver.
     path === endpoints.admin.admissions ||
     path === endpoints.admin.admissionsDashboard ||
+    // Gradebook list is annual operational data. Detail/results stay entity-scoped
+    // through gradebook_id and must not receive blind academic-year injection.
+    path === endpoints.admin.gradebooks ||
     // Weekly/structural timetable list; dated occurrences use different endpoints
     // and remain date-primary.
     path === endpoints.admin.timetable

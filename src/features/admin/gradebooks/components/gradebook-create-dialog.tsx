@@ -5,13 +5,14 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
 import { AcademicContextFilters } from '@/features/academic-context';
 import {
   EMPTY_ACADEMIC_CONTEXT_SELECTION,
 } from '@/features/academic-context/utils/academic-context-reset';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
@@ -30,13 +31,30 @@ export function GradebookCreateDialog({
 }) {
   const t = useT();
   const toast = useToast();
-  const classesState = useAdminResource<Ref[]>(endpoints.admin.classes);
+  const { activeAcademicYearId } = useAdminSession();
+  const classesState = useAdminResource<Ref[]>(
+    activeAcademicYearId != null ? endpoints.admin.classes : null,
+    activeAcademicYearId != null ? { academic_year_id: activeAcademicYearId } : undefined,
+  );
   const [selection, setSelection] = useState<AcademicContextSelection>(
     EMPTY_ACADEMIC_CONTEXT_SELECTION,
   );
   const [schemeId, setSchemeId] = useState('');
   const [teacherId, setTeacherId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const academicYearId = activeAcademicYearId != null ? String(activeAcademicYearId) : '';
+    setSelection((current) => {
+      if (current.academicYearId === academicYearId) return current;
+      return {
+        ...EMPTY_ACADEMIC_CONTEXT_SELECTION,
+        academicYearId,
+      };
+    });
+    setSchemeId('');
+    setTeacherId('');
+  }, [activeAcademicYearId]);
 
   const schemes =
     (classesState.meta?.assessment_schemes as Array<
@@ -67,7 +85,7 @@ export function GradebookCreateDialog({
 
   async function handleCreate() {
     if (
-      !selection.academicYearId ||
+      activeAcademicYearId == null ||
       !selection.termId ||
       !selection.classId ||
       !selection.subjectId ||
@@ -78,7 +96,7 @@ export function GradebookCreateDialog({
     }
     setSubmitting(true);
     const res = await createAdminGradebook({
-      academic_year_id: Number(selection.academicYearId),
+      academic_year_id: activeAcademicYearId,
       term_id: Number(selection.termId),
       class_id: Number(selection.classId),
       subject_id: Number(selection.subjectId),
@@ -123,8 +141,14 @@ export function GradebookCreateDialog({
             scope="gradebook"
             layout="compact"
             selection={selection}
-            onSelectionChange={setSelection}
-            showAcademicYear
+            onSelectionChange={(next) =>
+              setSelection({
+                ...next,
+                academicYearId:
+                  activeAcademicYearId != null ? String(activeAcademicYearId) : '',
+              })
+            }
+            showAcademicYear={false}
             showTerm
             showCycle
             showLevel
@@ -135,7 +159,7 @@ export function GradebookCreateDialog({
             showTeachingLanguage
             showOffering
             showReference={false}
-            requiredFields={['academicYear', 'term', 'class', 'subject']}
+            requiredFields={['term', 'class', 'subject']}
           />
           <label className="field">
             <span>{t('admin.gradebooks.scheme')}</span>

@@ -12,6 +12,7 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
@@ -29,8 +30,9 @@ import '../gradebook-workspace.css';
 
 export function GradebooksListPage() {
   const t = useT();
+  const { activeAcademicYearId } = useAdminSession();
+  const academicYearId = activeAcademicYearId != null ? String(activeAcademicYearId) : '';
   const [page, setPage] = useState(1);
-  const [academicYearId, setAcademicYearId] = useState('');
   const [termId, setTermId] = useState('');
   const [classId, setClassId] = useState('');
   const [subjectId, setSubjectId] = useState('');
@@ -42,8 +44,8 @@ export function GradebooksListPage() {
     setPage(1);
   }, [academicYearId, termId, classId, subjectId, offeringId, stateFilter]);
 
+  // The global academic year is operational context, not a resettable local filter.
   const hasActiveQuery = gradebooksListHasActiveQuery({
-    academicYearId,
     termId,
     classId,
     subjectId,
@@ -53,7 +55,7 @@ export function GradebooksListPage() {
   const params: ListParams = {
     page,
     page_size: GRADEBOOKS_PAGE_SIZE,
-    academic_year_id: academicYearId || undefined,
+    academic_year_id: activeAcademicYearId ?? undefined,
     term_id: termId || undefined,
     class_id: classId || undefined,
     subject_id: subjectId || undefined,
@@ -65,7 +67,6 @@ export function GradebooksListPage() {
   const pg = state.meta?.pagination;
 
   const resetFilters = useCallback(() => {
-    setAcademicYearId('');
     setTermId('');
     setClassId('');
     setSubjectId('');
@@ -168,7 +169,12 @@ export function GradebooksListPage() {
             : t('admin.gradebooks.listSubtitle')
         }
         actions={
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => setCreateOpen(true)}>
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            disabled={activeAcademicYearId == null}
+            onClick={() => setCreateOpen(true)}
+          >
             {t('admin.gradebooks.create.title')}
           </button>
         }
@@ -182,10 +188,6 @@ export function GradebooksListPage() {
         offeringId={offeringId}
         stateFilter={stateFilter}
         hasActiveFilters={hasActiveQuery}
-        onAcademicYearIdChange={(value) => {
-          setAcademicYearId(value);
-          setTermId('');
-        }}
         onTermIdChange={setTermId}
         onClassIdChange={setClassId}
         onSubjectIdChange={setSubjectId}

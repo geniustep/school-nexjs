@@ -22,7 +22,6 @@ export function GradebooksListFilters({
   offeringId,
   stateFilter,
   hasActiveFilters,
-  onAcademicYearIdChange,
   onTermIdChange,
   onClassIdChange,
   onSubjectIdChange,
@@ -37,7 +36,6 @@ export function GradebooksListFilters({
   offeringId?: string;
   stateFilter: string;
   hasActiveFilters: boolean;
-  onAcademicYearIdChange: (value: string) => void;
   onTermIdChange: (value: string) => void;
   onClassIdChange: (value: string) => void;
   onSubjectIdChange: (value: string) => void;
@@ -73,13 +71,15 @@ export function GradebooksListFilters({
         layout="compact"
         selection={selection}
         onSelectionChange={(next) => {
-          setSelection(next);
-          if (next.academicYearId !== academicYearId) onAcademicYearIdChange(next.academicYearId);
-          if (next.termId !== termId) onTermIdChange(next.termId);
-          if (next.classId !== classId) onClassIdChange(next.classId);
-          if (next.subjectId !== subjectId) onSubjectIdChange(next.subjectId);
-          if (onOfferingIdChange && next.offeringId !== (offeringId ?? '')) {
-            onOfferingIdChange(next.offeringId);
+          // The year comes exclusively from the global header context. Keep the
+          // hidden academic-context controller from replacing it with a local/default year.
+          const lockedNext = { ...next, academicYearId };
+          setSelection(lockedNext);
+          if (lockedNext.termId !== termId) onTermIdChange(lockedNext.termId);
+          if (lockedNext.classId !== classId) onClassIdChange(lockedNext.classId);
+          if (lockedNext.subjectId !== subjectId) onSubjectIdChange(lockedNext.subjectId);
+          if (onOfferingIdChange && lockedNext.offeringId !== (offeringId ?? '')) {
+            onOfferingIdChange(lockedNext.offeringId);
           }
         }}
         showAcademicYear={false}

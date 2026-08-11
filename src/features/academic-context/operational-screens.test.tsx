@@ -150,7 +150,6 @@ describe('Global academic year with year-scoped term selectors', () => {
         offeringId=""
         stateFilter=""
         hasActiveFilters
-        onAcademicYearIdChange={vi.fn()}
         onTermIdChange={vi.fn()}
         onClassIdChange={vi.fn()}
         onSubjectIdChange={vi.fn()}
