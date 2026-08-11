@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
@@ -65,7 +66,9 @@ export default function AdminStudentsPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [view, setView] = useStudentsListView();
 
-  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
+  const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
+    endpoints.admin.classes,
+  );
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
   const { feeTypes, loading: feeTypesLoading } = useStudentsListFeeTypeOptions();
   const state = useStudentsListResource(appliedQuery, levelsState.data, levelsState.loading);

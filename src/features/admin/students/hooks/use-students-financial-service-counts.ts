@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ApiErrorBody, ApiMeta } from '@/types/api';
 import {
@@ -24,7 +24,7 @@ export type StudentsFinancialServiceCountsState = {
 
 /**
  * Counts for financial-service cards on the students list.
- * Uses the same academic filters as the list request (no parallel state).
+ * Uses the same academic filters and resolved global academic year as the list request.
  */
 export function useStudentsFinancialServiceCounts(
   filters: Pick<StudentsListFilterValues, 'statusFilter' | 'levelId' | 'classId'>,
@@ -34,7 +34,7 @@ export function useStudentsFinancialServiceCounts(
     [filters.statusFilter, filters.levelId, filters.classId],
   );
 
-  const state = useAdminResource<StudentsFinancialServiceCountsData>(
+  const state = useGlobalAcademicYearResource<StudentsFinancialServiceCountsData>(
     endpoints.admin.studentsFinancialServiceCounts,
     params,
   );
