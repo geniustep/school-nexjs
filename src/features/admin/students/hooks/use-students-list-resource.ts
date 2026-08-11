@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
+import { buildGlobalAcademicYearQuery } from '@/features/academic-context/utils/global-academic-year-query';
 import type { ResourceState } from '@/lib/hooks/use-resource';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { api } from '@/lib/api/client';
@@ -23,6 +24,7 @@ async function fetchAllStudentsForLevel(
   levelId: number,
   filters: StudentsListFilterValues,
   activeSchoolId: number | null | undefined,
+  activeAcademicYearId: number,
 ): Promise<Student[]> {
   const base = buildStudentsListQueryParams({
     search: filters.search,
@@ -40,12 +42,18 @@ async function fetchAllStudentsForLevel(
   let totalPages = 1;
 
   do {
-    const res = await api.get<Student[]>(endpoints.admin.students, {
-      ...base,
-      page,
-      page_size: STUDENTS_LIST_API_PAGE_SIZE_CAP,
-      active_school_id: activeSchoolId ?? undefined,
-    });
+    const res = await api.get<Student[]>(
+      endpoints.admin.students,
+      buildGlobalAcademicYearQuery(
+        {
+          ...base,
+          page,
+          page_size: STUDENTS_LIST_API_PAGE_SIZE_CAP,
+          active_school_id: activeSchoolId ?? undefined,
+        },
+        activeAcademicYearId,
+      ),
+    );
     if (!res.success) {
       throw new Error(res.error?.message ?? 'students_cycle_fetch_failed');
     }
@@ -67,11 +75,20 @@ export function useStudentsListResource(
   levels: Level[] | null,
   levelsLoading: boolean,
 ): ResourceState<Student[]> {
-  const { activeSchoolId, requiresActiveSchool, schools, switching } = useAdminSession();
+  const {
+    activeSchoolId,
+    requiresActiveSchool,
+    schools,
+    switching,
+    activeAcademicYearId,
+    academicYearError,
+  } = useAdminSession();
   const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
   const safeActiveSchoolId =
     activeSchoolId != null && allowedSchoolIds.includes(activeSchoolId) ? activeSchoolId : null;
   const pendingActiveSchool = requiresActiveSchool && safeActiveSchoolId == null;
+  const missingAcademicYear = safeActiveSchoolId != null && activeAcademicYearId == null;
+  const pendingAcademicYear = missingAcademicYear && academicYearError == null;
 
   const clientCycle = studentsListUsesClientCycleFilter(filters);
   const cycleLevelIds = useMemo(
@@ -83,7 +100,7 @@ export function useStudentsListResource(
     () => (clientCycle ? undefined : studentsListToApiParams(filters)),
     [clientCycle, filters],
   );
-  const serverState = useAdminResource<Student[]>(
+  const serverState = useGlobalAcademicYearResource<Student[]>(
     clientCycle || pendingActiveSchool ? null : endpoints.admin.students,
     serverParams,
   );
@@ -106,6 +123,7 @@ export function useStudentsListResource(
         servicePresence: filters.servicePresence,
         levelIds: cycleLevelIds,
         schoolId: safeActiveSchoolId,
+        academicYearId: activeAcademicYearId,
         nonce: clientNonce,
       }),
     [
@@ -118,13 +136,14 @@ export function useStudentsListResource(
       filters.servicePresence,
       cycleLevelIds,
       safeActiveSchoolId,
+      activeAcademicYearId,
       clientNonce,
     ],
   );
 
   useEffect(() => {
-    if (!clientCycle || pendingActiveSchool) return;
-    if (levelsLoading) return;
+    if (!clientCycle || pendingActiveSchool || missingAcademicYear) return;
+    if (levelsLoading || activeAcademicYearId == null) return;
 
     let active = true;
     setClientLoading(true);
@@ -141,7 +160,12 @@ export function useStudentsListResource(
       try {
         const groups = await Promise.all(
           cycleLevelIds.map((levelId) =>
-            fetchAllStudentsForLevel(levelId, filters, safeActiveSchoolId),
+            fetchAllStudentsForLevel(
+              levelId,
+              filters,
+              safeActiveSchoolId,
+              activeAcademicYearId,
+            ),
           ),
         );
         if (!active) return;
@@ -162,9 +186,9 @@ export function useStudentsListResource(
     return () => {
       active = false;
     };
-    // clientFetchKey captures filter/level/school inputs (page excluded).
+    // clientFetchKey captures filter/level/school/year inputs (page excluded).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientCycle, pendingActiveSchool, levelsLoading, clientFetchKey]);
+  }, [clientCycle, pendingActiveSchool, missingAcademicYear, levelsLoading, clientFetchKey]);
 
   const clientPage = useMemo(() => {
     if (mergedRows == null) {
@@ -187,7 +211,7 @@ export function useStudentsListResource(
     };
   }
 
-  const waiting = pendingActiveSchool || switching || levelsLoading;
+  const waiting = pendingActiveSchool || pendingAcademicYear || switching || levelsLoading;
   const loading = clientLoading || waiting;
 
   return {
@@ -196,7 +220,7 @@ export function useStudentsListResource(
     fetching: loading && clientPage.rows !== null,
     data: clientPage.rows,
     meta: clientPage.meta,
-    error: clientError,
+    error: clientError ?? academicYearError,
     reload: reloadClient,
   };
 }

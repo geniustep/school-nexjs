@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import {
   mergeStaffPermissionsPayload,
@@ -17,7 +18,7 @@ import type {
 import type { ListParams } from '@/types/api';
 
 export function useStaffCenterList(query?: ListParams) {
-  const state = useAdminResource<StaffMember[]>(endpoints.admin.staff, query);
+  const state = useGlobalAcademicYearResource<StaffMember[]>(endpoints.admin.staff, query);
   const reload = useCallback(() => state.reload(), [state]);
   const staff = useMemo(
     () => (state.data ?? []).map(normalizeStaffCenterMember),

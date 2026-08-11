@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import type { ResourceState } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader } from '@/components/ui/primitives';
@@ -24,10 +25,11 @@ const CLASSES_BROWSER_QUERY = { page_size: 500 };
 export default function AdminClassesPage() {
   const t = useT();
   const [importOpen, setImportOpen] = useState(false);
-  const classesState = useAdminResource<SchoolClass[]>(
+  const classesState = useGlobalAcademicYearResource<SchoolClass[]>(
     endpoints.admin.classes,
     CLASSES_BROWSER_QUERY,
   );
+  // Levels are reference/options data and remain year-independent.
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, CLASSES_BROWSER_QUERY);
 
   const combinedState = useMemo<ResourceState<ClassesPageData>>(

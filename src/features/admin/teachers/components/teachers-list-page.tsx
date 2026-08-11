@@ -8,7 +8,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -93,7 +93,7 @@ export function TeachersListPage() {
     return next;
   }, [page, debouncedSearch, useCompositionWindow]);
 
-  const state = useAdminResource<TeacherSummary[]>(endpoints.admin.teachers, query, {
+  const state = useGlobalAcademicYearResource<TeacherSummary[]>(endpoints.admin.teachers, query, {
     keepPreviousData: true,
   });
   const teachers = useMemo(
