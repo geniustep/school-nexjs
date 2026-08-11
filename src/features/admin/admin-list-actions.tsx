@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { ExportButton } from '@/features/admin/export-button';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { isAdminReadOnlyPhase } from '@/lib/admin/phase';
+import { endpoints } from '@/lib/api/endpoints';
 import { useT } from '@/features/i18n/locale-context';
 import type { ListParams } from '@/types/api';
 import type { Permission } from '@/types/permissions';
@@ -46,8 +48,16 @@ export function AdminListActions({
 }: AdminListActionsProps) {
   const t = useT();
   const user = useSession();
+  const { activeAcademicYearId } = useAdminSession();
 
   if (readOnly) return null;
+
+  const teacherYearExport = exportPath === endpoints.admin.teachersExport;
+  const effectiveExportQuery =
+    exportQuery ??
+    (teacherYearExport && activeAcademicYearId != null
+      ? { academic_year_id: activeAcademicYearId }
+      : undefined);
 
   const showAdd =
     !!addHref &&
@@ -56,7 +66,10 @@ export function AdminListActions({
       capability: addCapability,
     });
   const showExport =
-    !!exportPath && !!exportPermission && hasPermission(user, exportPermission);
+    !!exportPath &&
+    !!exportPermission &&
+    hasPermission(user, exportPermission) &&
+    (!teacherYearExport || activeAcademicYearId != null);
   const showImportBtn =
     showImport &&
     !!onToggleImport &&
@@ -77,7 +90,7 @@ export function AdminListActions({
           path={exportPath}
           filename={exportFilename}
           label={t('admin.exportCsv')}
-          query={exportQuery}
+          query={effectiveExportQuery}
         />
       )}
       {showImportBtn && (
