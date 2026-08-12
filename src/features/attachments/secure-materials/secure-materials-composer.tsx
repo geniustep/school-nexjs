@@ -70,9 +70,10 @@ function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () =
         type="button"
         className="secure-material__remove"
         onClick={onRemove}
+        title={t('secureMaterials.remove')}
         aria-label={`${t('secureMaterials.remove')} ${item.name}`}
       >
-        ×
+        <span aria-hidden="true">⌫</span>
       </button>
     </article>
   );
