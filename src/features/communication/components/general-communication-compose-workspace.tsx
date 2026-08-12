@@ -835,7 +835,6 @@ export function GeneralCommunicationComposeWorkspace({
                   disabled={inputBusy}
                 />
               </label>
-              <SecureMaterialsComposer controller={materials} disabled={inputBusy} />
               <label className="general-comm__field">
                 <span>{t('communication.body')}</span>
                 <textarea
@@ -848,6 +847,7 @@ export function GeneralCommunicationComposeWorkspace({
                   disabled={inputBusy}
                 />
               </label>
+              <SecureMaterialsComposer controller={materials} disabled={inputBusy} />
               {recipientScope ? (
                 <p className="tiny general-comm__summary" dir="auto">
                   {t('communication.general.beneficiaries')}:{' '}

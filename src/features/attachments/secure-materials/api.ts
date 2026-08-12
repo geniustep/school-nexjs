@@ -41,7 +41,9 @@ export function normalizeMaterial(value: unknown, fallbackClientId: string): Sec
     kind,
     state,
     name:
-      text(raw.original_name ?? raw.safe_name ?? raw.name ?? link.title) ??
+      (kind === 'link'
+        ? text(raw.title ?? raw.display_title ?? link.title ?? raw.safe_name ?? raw.name)
+        : text(raw.original_name ?? raw.safe_name ?? raw.name)) ??
       (kind === 'link' ? text(raw.url) ?? 'Link' : 'File'),
     size: num(raw.file_size ?? raw.size),
     mimetype: detected,

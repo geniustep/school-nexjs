@@ -12,6 +12,7 @@ import {
   uploadSessionFile,
 } from './api';
 import type { SecureMaterial, UploadSessionCredential, UploadSessionPurpose } from './types';
+import { trustedVideoFromUserUrl } from '@/lib/attachments/trusted-smart-link';
 
 export function useSecureMaterials(options: { purpose: UploadSessionPurpose; channelId?: number }) {
   const [materials, setMaterials] = useState<SecureMaterial[]>([]);
@@ -100,6 +101,7 @@ export function useSecureMaterials(options: { purpose: UploadSessionPurpose; cha
       return false;
     }
     const clientItemId = crypto.randomUUID();
+    const video = trustedVideoFromUserUrl(url);
     setMaterials((current) => [...current, {
       id: clientItemId,
       clientItemId,
@@ -107,6 +109,10 @@ export function useSecureMaterials(options: { purpose: UploadSessionPurpose; cha
       state: 'uploading',
       name: url,
       url,
+      provider: video?.provider,
+      embedUrl: video?.embedUrl,
+      canEmbed: Boolean(video),
+      clickToLoad: Boolean(video),
     }]);
     const result = await addSessionLink(session, url, clientItemId);
     setMaterials((current) => current.map((item) =>

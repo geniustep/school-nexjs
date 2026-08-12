@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { SmartLinkRef } from '@/types/smart-link';
 import { safeHttpsUrl, trustedVideoEmbedUrl } from '@/lib/attachments/trusted-smart-link';
+import '@/features/attachments/secure-materials/secure-materials.css';
 
 function record(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -31,30 +32,44 @@ export function normalizeSmartLinks(value: unknown): SmartLinkRef[] {
 
 function SmartLinkCard({ link }: { link: SmartLinkRef }) {
   const t = useT();
-  const [loaded, setLoaded] = useState(false);
   const href = link.canonical_url || link.url;
   const embedUrl = trustedVideoEmbedUrl(link.embed_url);
+  const trustedVideo = Boolean(link.can_embed && embedUrl);
+  const [loaded, setLoaded] = useState(() => trustedVideo);
+  const title = link.title?.trim()
+    || (link.provider === 'youtube' ? 'فيديو YouTube' : link.provider === 'vimeo' ? 'فيديو Vimeo' : null)
+    || link.provider
+    || href;
   return (
-    <article className="secure-material secure-material--link">
+    <article className={`secure-material secure-material--link${trustedVideo && loaded ? ' is-video-open' : ''}`}>
       <div className="secure-material__visual">
-        {link.can_embed && embedUrl && loaded ? (
-          <iframe
-            src={embedUrl}
-            title={link.title || link.provider || href}
-            loading="lazy"
-            sandbox="allow-scripts allow-same-origin allow-presentation"
-            allow="fullscreen; picture-in-picture"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
-        ) : link.can_embed && embedUrl ? (
+        {trustedVideo && embedUrl && loaded ? (
+          <div className="secure-material__video-frame">
+            <iframe
+              src={embedUrl}
+              title={title}
+              loading="lazy"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
+              allow="fullscreen; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+            <button
+              type="button"
+              className="secure-material__video-close"
+              onClick={() => setLoaded(false)}
+              aria-label="إغلاق الفيديو"
+              title="إغلاق الفيديو"
+            >×</button>
+          </div>
+        ) : trustedVideo && embedUrl ? (
           <button type="button" className="secure-material__video-launch" onClick={() => setLoaded(true)}>
             <span aria-hidden="true">▶</span>{t('secureMaterials.loadVideo')}
           </button>
         ) : <span className="secure-material__file-icon" aria-hidden="true">↗</span>}
       </div>
       <div className="secure-material__info">
-        <strong dir="auto">{link.title || link.provider || href}</strong>
-        <a href={href} target="_blank" rel="noopener noreferrer" className="tiny">{t('secureMaterials.openLink')}</a>
+        <strong dir="auto">{title}</strong>
+        {!trustedVideo ? <a href={href} target="_blank" rel="noopener noreferrer" className="tiny">{t('secureMaterials.openLink')}</a> : null}
       </div>
     </article>
   );
