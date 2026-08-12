@@ -8,6 +8,14 @@ const TEACHER_DOMAIN_ERROR_KEYS: Record<string, string> = {
   teacher_archive_reason_required: 'admin.teacherDomain.errors.archiveReasonRequired',
   teacher_employment_end_reason_required:
     'admin.teacherDomain.errors.terminateReasonRequired',
+  teacher_membership_restart_effective_from_required: 'errors.validationFailed',
+  teacher_membership_invalid_date: 'errors.validationFailed',
+  teacher_membership_restart_terminal_state_required:
+    'admin.teacherDomain.errors.teacherInvalidState',
+  teacher_membership_restart_overlap: 'admin.teacherDomain.errors.teacherInvalidState',
+  teacher_membership_open_conflict: 'admin.teacherDomain.errors.teacherInvalidState',
+  teacher_membership_restart_school_scope_mismatch: 'admin.pageForbidden',
+  teacher_membership_person_required: 'admin.teacherDomain.errors.teacherInvalidState',
   teacher_academic_assignment_boundary:
     'admin.teacherDomain.errors.academicAssignmentBoundary',
   teacher_academic_level_cycle_mismatch:
