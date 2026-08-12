@@ -24,10 +24,10 @@ import {
   resolveResourcesListEmptyVariant,
 } from '@/features/admin/resources/utils/resources-list-present';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
-import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -77,8 +77,8 @@ export function ResourcesListPage() {
     resource_type: appliedTypeFilter || undefined,
   };
 
-  const state = useGlobalAcademicYearResource<ResourceSummary[]>(endpoints.admin.resources, params);
-  const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
+  const state = useAdminResource<ResourceSummary[]>(endpoints.admin.resources, params);
+  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
   const pg = state.meta?.pagination;
 
   const canAddResource = canShowAcademicListAdd(user, {

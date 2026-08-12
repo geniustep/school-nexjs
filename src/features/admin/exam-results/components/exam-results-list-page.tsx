@@ -22,10 +22,10 @@ import {
   formatExamResultScore,
   resolveExamResultsListEmptyVariant,
 } from '@/features/admin/exam-results/utils/exam-results-list-present';
-import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -63,8 +63,8 @@ export function ExamResultsListPage() {
     state: stateFilter || undefined,
   };
 
-  const state = useGlobalAcademicYearResource<ExamResult[]>(endpoints.admin.examResults, params);
-  const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
+  const state = useAdminResource<ExamResult[]>(endpoints.admin.examResults, params);
+  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(
     endpoints.admin.classes,
   );
   const pg = state.meta?.pagination;
