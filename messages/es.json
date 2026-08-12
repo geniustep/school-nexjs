@@ -14437,6 +14437,20 @@
       "needsFollowUp": "Requiere seguimiento"
     }
   },
+  "secureMaterials": {
+    "title": "Archivos adjuntos y enlaces",
+    "help": "Las imágenes y documentos se cargan de forma segura antes del envío. La carga directa de vídeo no está disponible.",
+    "addFiles": "Añadir archivos",
+    "addLink": "Añadir enlace",
+    "empty": "Aún no hay archivos adjuntos ni enlaces.",
+    "uploading": "Cargando…",
+    "ready": "Listo",
+    "failed": "Error de carga",
+    "remove": "Eliminar",
+    "openLink": "Abrir enlace",
+    "loadVideo": "Cargar vídeo",
+    "waitForUpload": "Espera a que finalicen todas las cargas antes de enviar."
+  },
   "teachingReviewPublication": {
     "tabs": {
       "label": "Secciones de revisión y publicación",

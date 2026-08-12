@@ -6,6 +6,7 @@ import type { ApiErrorBody, ApiResponse } from '@/types/api';
 import type { SendChannelMessageOutcome } from '@/types/communication';
 import type { Role } from '@/types/user';
 import { classifySendChannelMessageResult } from '@/features/channels/utils/normalize-send-message-result';
+import { clientActiveRoleHeaders } from '@/lib/auth/active-role-client';
 
 const PROXY_BASE = '/api/odoo';
 
@@ -159,5 +160,41 @@ export async function sendChannelMessage(params: {
         details: {},
       },
     };
+  }
+}
+
+export async function finalizeChannelMessage(params: {
+  role: Role;
+  channelId: number;
+  publicId: string;
+  credential: string;
+  idempotencyKey: string;
+  body: string;
+}): Promise<SendChannelMessageResult> {
+  const path = params.role === 'admin'
+    ? `/admin/channels/${params.channelId}/messages/upload-sessions/${params.publicId}/finalize`
+    : `/channels/${params.channelId}/messages/upload-sessions/${params.publicId}/finalize`;
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'POST',
+      headers: {
+        ...clientActiveRoleHeaders(),
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Upload-Session-Credential': params.credential,
+        'Idempotency-Key': params.idempotencyKey,
+      },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body: JSON.stringify({ body: params.body }),
+    });
+    const { response, httpStatus } = await parseWithHttpStatus<unknown>(res);
+    if (!response.success) return { ok: false, error: response.error };
+    const outcome = classifySendChannelMessageResult(response.data, httpStatus);
+    return outcome
+      ? { ok: true, outcome }
+      : { ok: false, error: { code: 'server_error', message: 'Unexpected server response.', details: { status: httpStatus } } };
+  } catch {
+    return { ok: false, error: { code: 'network_error', message: 'Could not reach the server. Please check your connection.', details: {} } };
   }
 }

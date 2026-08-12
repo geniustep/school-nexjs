@@ -199,6 +199,10 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['POST'],
     test: (p) => /^\/channels\/[^/]+\/messages\/recipient-preview$/.test(p),
   },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/channels\/[^/]+\/messages\/upload-sessions\/[^/]+\/finalize$/.test(p),
+  },
   /**
    * B4 staff communication content recipient preview only.
    * Narrow allowlist — not a general /staff/* family.
@@ -210,6 +214,23 @@ const ROUTE_RULES: RouteRule[] = [
   {
     methods: ['GET', 'HEAD'],
     test: (p) => /^\/attachments\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),
+  },
+  { methods: ['POST'], test: (p) => p === '/attachments/upload-sessions' },
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => /^\/attachments\/upload-sessions\/[^/]+$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/attachments\/upload-sessions\/[^/]+\/(?:files|links|cancel)$/.test(p),
+  },
+  {
+    methods: ['DELETE'],
+    test: (p) => /^\/attachments\/upload-sessions\/[^/]+\/materials\/[^/]+$/.test(p),
+  },
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => /^\/attachments\/upload-sessions\/[^/]+\/materials\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),
   },
   /**
    * Governed announcement recipient APIs (Odoo 5D2B / 18.0.1.0.247).

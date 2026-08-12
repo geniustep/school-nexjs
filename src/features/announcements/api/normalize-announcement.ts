@@ -4,6 +4,7 @@ import type {
   AnnouncementMarkReadResult,
   AnnouncementSenderRef,
 } from '@/types/announcement-delivery';
+import { normalizeSmartLinks } from '@/components/attachments/smart-link-cards';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -101,6 +102,7 @@ export function normalizeAnnouncementDelivery(
   if (detail) {
     delivery.body = typeof row.body === 'string' ? row.body : null;
     delivery.attachments = attachments;
+    delivery.links = normalizeSmartLinks(row.links ?? row.smart_links ?? row.link_materials);
   }
 
   return delivery;

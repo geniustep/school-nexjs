@@ -126,6 +126,11 @@ async function handle(request: NextRequest, segments: string[]) {
     query[key] = value;
   });
 
+  // Forward only the two governed attachment-session headers. Never proxy
+  // arbitrary browser headers (cookies and active role are bound server-side).
+  const uploadCredential = request.headers.get('x-upload-session-credential')?.trim();
+  const idempotencyKey = request.headers.get('idempotency-key')?.trim();
+
   let activeSchoolId: number | null | undefined;
   if (path.startsWith('/admin/') || shouldBindActiveSchoolInBody(path, method)) {
     const user = await getCurrentUser(activeRole);
@@ -176,6 +181,8 @@ async function handle(request: NextRequest, segments: string[]) {
     body,
     formData,
     activeRole,
+    ...(uploadCredential ? { uploadSessionCredential: uploadCredential } : {}),
+    ...(idempotencyKey ? { idempotencyKey } : {}),
   });
 
   if (result.kind === 'file') {
@@ -224,7 +231,12 @@ async function handle(request: NextRequest, segments: string[]) {
     }
   }
 
-  return NextResponse.json(result.body, { status: result.status });
+  const response = NextResponse.json(result.body, { status: result.status });
+  if (path.startsWith('/attachments/upload-sessions') || path.includes('/upload-sessions/')) {
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('Pragma', 'no-cache');
+  }
+  return response;
 }
 
 type Ctx = { params: Promise<{ path: string[] }> };

@@ -26,6 +26,7 @@ export interface Channel {
   can_publish?: boolean;
   requires_message_moderation?: boolean;
   is_internal_staff_only?: boolean;
+  allow_attachments?: boolean | null;
   external_member_count?: number;
   /** Backend-driven composer actions (e.g. send_internal, submit_message). */
   allowed_message_actions?: ChannelMessageAction[];

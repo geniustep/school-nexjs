@@ -1,3 +1,5 @@
+import type { SmartLinkRef } from './smart-link';
+
 /**
  * Governed announcement recipient contract (Odoo 5D2B / 18.0.1.0.247).
  * Distinct from lightweight dashboard Announcement previews in message.ts.
@@ -35,6 +37,7 @@ export interface AnnouncementDelivery {
   body?: string | null;
   /** Present on detail only. */
   attachments?: AnnouncementAttachmentRef[];
+  links?: SmartLinkRef[];
 }
 
 export interface AnnouncementMarkReadResult {

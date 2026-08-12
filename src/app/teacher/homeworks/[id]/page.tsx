@@ -6,6 +6,8 @@ import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
+import '@/features/attachments/secure-materials/secure-materials.css';
 import { TeacherHomeworkAttachmentsUpload } from '@/features/teacher/teacher-homework-attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, DefinitionList, InfoBanner } from '@/components/ui/primitives';
@@ -149,6 +151,7 @@ export default function HomeworkDetailPage({
                 )}
               </Card>
             </div>
+            {hw.links?.length ? <div className="section"><h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('secureMaterials.title')}</h2><Card><SmartLinkCards links={hw.links} /></Card></div> : null}
 
             {hw.state === 'closed' && (
               <InfoBanner

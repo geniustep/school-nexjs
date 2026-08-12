@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { sendChannelMessage } from '@/features/channels/api/send-channel-message';
+import { finalizeChannelMessage } from '@/features/channels/api/send-channel-message';
 import { previewChannelMessageRecipients } from '@/features/channels/api/preview-channel-message-recipients';
 import { RecipientPreviewDialog } from '@/features/communication/components/recipient-preview-dialog';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
@@ -18,6 +18,9 @@ import type {
   CommunicationRecipientSummary,
   SendChannelMessageOutcome,
 } from '@/types/communication';
+import { SecureMaterialsComposer } from '@/features/attachments/secure-materials/secure-materials-composer';
+import { useSecureMaterials } from '@/features/attachments/secure-materials/use-secure-materials';
+import { createIdempotencyKey } from '@/features/attachments/secure-materials/api';
 
 type ComposerPhase = 'idle' | 'previewing' | 'confirming' | 'submitting';
 
@@ -26,6 +29,7 @@ export function ChannelMessageComposer({
   canSend,
   autofocus = false,
   composeMode = 'unknown',
+  allowAttachments = true,
   onPublished,
   onPending,
 }: {
@@ -33,6 +37,7 @@ export function ChannelMessageComposer({
   canSend: boolean;
   autofocus?: boolean;
   composeMode?: 'internal' | 'submit' | 'unknown';
+  allowAttachments?: boolean;
   /** Called only when Backend returned a published school.message. */
   onPublished?: (outcome: Extract<SendChannelMessageOutcome, { kind: 'published' }>) => void | Promise<void>;
   /** Called when Backend returned HTTP 202 / pending_review. */
@@ -51,6 +56,8 @@ export function ChannelMessageComposer({
   const [previewBodyKey, setPreviewBodyKey] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inFlightRef = useRef(false);
+  const finalizeKeyRef = useRef(createIdempotencyKey('channel-finalize'));
+  const materials = useSecureMaterials({ purpose: 'channel_message', channelId });
 
   const networkBusy = phase === 'previewing' || phase === 'submitting';
   const composerLocked = phase !== 'idle';
@@ -125,10 +132,28 @@ export function ChannelMessageComposer({
 
     inFlightRef.current = true;
     setPhase('submitting');
-    const result = await sendChannelMessage({
+    if (!materials.ready) {
+      toast.error(materials.error || t('secureMaterials.waitForUpload'));
+      inFlightRef.current = false;
+      setPhase('confirming');
+      return;
+    }
+    let uploadSession;
+    try {
+      uploadSession = await materials.ensureSession();
+    } catch (cause) {
+      inFlightRef.current = false;
+      setPhase('confirming');
+      toast.error(cause instanceof Error ? cause.message : t('channels.sendFailed'));
+      return;
+    }
+    const result = await finalizeChannelMessage({
       role: user.role,
       channelId,
       body: text,
+      publicId: uploadSession.publicId,
+      credential: uploadSession.credential,
+      idempotencyKey: finalizeKeyRef.current,
     });
     inFlightRef.current = false;
 
@@ -149,6 +174,7 @@ export function ChannelMessageComposer({
     }
 
     setBody('');
+    finalizeKeyRef.current = createIdempotencyKey('channel-finalize');
     invalidatePreview();
     setPhase('idle');
 
@@ -192,7 +218,7 @@ export function ChannelMessageComposer({
           placeholder={t('channels.writeMessage')}
           value={body}
           aria-label={t('channels.writeMessage')}
-          disabled={networkBusy}
+          disabled={networkBusy || materials.busy}
           onChange={(e) => onBodyChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -204,7 +230,7 @@ export function ChannelMessageComposer({
         <button
           className="btn btn--primary"
           type="submit"
-          disabled={composerLocked || !body.trim()}
+          disabled={composerLocked || !body.trim() || !materials.ready}
         >
           {phase === 'previewing'
             ? t('communication.recipients.previewLoading')
@@ -213,6 +239,7 @@ export function ChannelMessageComposer({
               : t('channels.send')}
         </button>
       </form>
+      {allowAttachments ? <SecureMaterialsComposer controller={materials} disabled={networkBusy} /> : null}
       <RecipientPreviewDialog
         open={previewOpen}
         summary={previewSummary}

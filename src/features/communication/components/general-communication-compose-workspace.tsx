@@ -17,10 +17,7 @@ import {
   previewAdminRecipientScope,
   previewIndividualCommunication,
 } from '@/features/communication/api/admin-communication-api';
-import {
-  submitGroupGeneralCommunication,
-  submitIndividualGeneralCommunication,
-} from '@/features/communication/api/submit-general-communication';
+import { finalizeGeneralCommunication } from '@/features/communication/api/submit-general-communication';
 import { RecipientPreviewDialog } from '@/features/communication/components/recipient-preview-dialog';
 import {
   buildGroupRecipientScope,
@@ -55,6 +52,9 @@ import type {
   RecipientScope,
 } from '@/types/recipient-scope';
 import './general-communication-compose.css';
+import { SecureMaterialsComposer } from '@/features/attachments/secure-materials/secure-materials-composer';
+import { useSecureMaterials } from '@/features/attachments/secure-materials/use-secure-materials';
+import { createIdempotencyKey } from '@/features/attachments/secure-materials/api';
 
 type ComposeContentType = 'announcement' | 'message';
 type Phase = 'idle' | 'previewing' | 'submitting';
@@ -90,6 +90,10 @@ export function GeneralCommunicationComposeWorkspace({
   const router = useRouter();
   const formId = useId();
   const inFlightRef = useRef(false);
+  const finalizeKeyRef = useRef(createIdempotencyKey('communication-finalize'));
+  const materials = useSecureMaterials({
+    purpose: contentType === 'announcement' ? 'announcement' : 'general_message',
+  });
   const individualPreviewGuardRef = useRef(createRequestGenerationGuard());
   const initialMode: GeneralCommunicationMode | null = contentType === 'announcement' ? 'group' : null;
 
@@ -418,21 +422,30 @@ export function GeneralCommunicationComposeWorkspace({
       }
     }
 
+    if (!materials.ready) {
+      toast.error(materials.error || t('secureMaterials.waitForUpload'));
+      return;
+    }
     inFlightRef.current = true;
     setPhase('submitting');
-    const result =
-      input.scope.scope_type === 'individual'
-        ? await submitIndividualGeneralCommunication({
-            scope: input.scope,
-            subject: input.subject,
-            body: input.body,
-          })
-        : await submitGroupGeneralCommunication({
-            draftId,
-            subject: input.subject,
-            body: input.body,
-            recipient_scope: input.scope,
-          });
+    let uploadSession;
+    try {
+      uploadSession = await materials.ensureSession();
+    } catch (cause) {
+      inFlightRef.current = false;
+      setPhase('idle');
+      toast.error(cause instanceof Error ? cause.message : t('communication.general.submitFailed'));
+      return;
+    }
+    const result = await finalizeGeneralCommunication({
+      publicId: uploadSession.publicId,
+      credential: uploadSession.credential,
+      idempotencyKey: finalizeKeyRef.current,
+      contentType,
+      scope: input.scope,
+      subject: input.subject,
+      body: input.body,
+    });
     inFlightRef.current = false;
 
     if (!result.ok) {
@@ -445,6 +458,7 @@ export function GeneralCommunicationComposeWorkspace({
 
     setPhase('idle');
     setDraftId(null);
+    finalizeKeyRef.current = createIdempotencyKey('communication-finalize');
     invalidatePreview();
     clearIndividualDeliverability();
     toast.success(
@@ -474,7 +488,8 @@ export function GeneralCommunicationComposeWorkspace({
     subject.trim().length > 0 &&
     body.trim().length > 0 &&
     individualCheckStatus !== 'checking' &&
-    individualSubmitAllowed;
+    individualSubmitAllowed &&
+    materials.ready;
   const canManualPreview =
     phase === 'idle' &&
     recipientScope != null &&
@@ -820,6 +835,7 @@ export function GeneralCommunicationComposeWorkspace({
                   disabled={inputBusy}
                 />
               </label>
+              <SecureMaterialsComposer controller={materials} disabled={inputBusy} />
               <label className="general-comm__field">
                 <span>{t('communication.body')}</span>
                 <textarea

@@ -208,6 +208,27 @@ describe('generic /api/odoo proxy active-role transport', () => {
     expect(JSON.stringify(opts)).not.toContain('X-Custom-Evil');
   });
 
+  it('forwards only governed upload-session credentials and idempotency', async () => {
+    const req = new NextRequest('https://app.test/api/odoo/attachments/upload-sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Upload-Session-Credential': 'uss1.secret',
+        'Idempotency-Key': 'attempt-1',
+        Authorization: 'Bearer leak',
+      },
+      body: JSON.stringify({ purpose: 'homework' }),
+    });
+    await POST(req, { params: Promise.resolve({ path: ['attachments', 'upload-sessions'] }) });
+    const opts = odooApiFetchMock.mock.calls[0][1] as {
+      uploadSessionCredential?: string;
+      idempotencyKey?: string;
+    };
+    expect(opts.uploadSessionCredential).toBe('uss1.secret');
+    expect(opts.idempotencyKey).toBe('attempt-1');
+    expect(JSON.stringify(opts)).not.toContain('Bearer leak');
+  });
+
   it('teacher then parent calls stay isolated (no sticky role)', async () => {
     const teacherReq = new NextRequest('https://app.test/api/odoo/teacher/today', {
       headers: { 'X-SSC-Active-Role': 'teacher' },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { useToast } from '@/components/ui/toast';
@@ -11,6 +11,9 @@ import type { HomeworkDetail } from '@/types/homework';
 import type { SchoolClass } from '@/types/class';
 import type { Teacher } from '@/types/teacher';
 import type { Ref } from '@/types/api';
+import { SecureMaterialsComposer } from '@/features/attachments/secure-materials/secure-materials-composer';
+import { useSecureMaterials } from '@/features/attachments/secure-materials/use-secure-materials';
+import { createIdempotencyKey, finalizeUploadSession } from '@/features/attachments/secure-materials/api';
 
 interface HomeworkFormProps {
   homework?: HomeworkDetail;
@@ -34,6 +37,8 @@ export function HomeworkForm({ homework, onSaved, onCancel }: HomeworkFormProps)
   const [requireSubmission, setRequireSubmission] = useState(homework?.require_submission ?? true);
   const [visibleParent, setVisibleParent] = useState(homework?.visible_to_parent ?? true);
   const [visibleStudent, setVisibleStudent] = useState(homework?.visible_to_student ?? true);
+  const materials = useSecureMaterials({ purpose: 'homework' });
+  const finalizeKeyRef = useRef(createIdempotencyKey('admin-homework-finalize'));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,14 +57,34 @@ export function HomeworkForm({ homework, onSaved, onCancel }: HomeworkFormProps)
       visible_to_parent: visibleParent,
       visible_to_student: visibleStudent,
     };
+    if (!homework && !materials.ready) {
+      toast.error(materials.error || t('secureMaterials.waitForUpload'));
+      return;
+    }
     setSaving(true);
-    const res = homework
-      ? await api.post(endpoints.admin.homeworkUpdate(homework.id), payload)
-      : await api.post(endpoints.admin.homeworks, payload);
+    let res;
+    if (homework) {
+      res = await api.post(endpoints.admin.homeworkUpdate(homework.id), payload);
+    } else {
+      try {
+        const session = await materials.ensureSession();
+        res = await finalizeUploadSession<HomeworkDetail>({
+          path: `/admin/homeworks/upload-sessions/${session.publicId}/finalize`,
+          session,
+          idempotencyKey: finalizeKeyRef.current,
+          body: payload,
+        });
+      } catch (cause) {
+        setSaving(false);
+        toast.error(cause instanceof Error ? cause.message : t('errors.serverError'));
+        return;
+      }
+    }
     setSaving(false);
     if (res.success && res.data) {
       toast.success(t('admin.saveSuccess'));
-      const saved = res.data as { id: number };
+      const raw = res.data as { id: number; homework?: { id: number } };
+      const saved = raw.homework ?? raw;
       onSaved(saved.id);
     } else if (!res.success) {
       toast.error(res.error.message);
@@ -112,11 +137,12 @@ export function HomeworkForm({ homework, onSaved, onCancel }: HomeworkFormProps)
             <span className="tiny">{t('admin.visibleStudent')}</span>
           </label>
         </div>
+        {!homework ? <SecureMaterialsComposer controller={materials} disabled={saving} /> : null}
         <div className="row" style={{ gap: 8 }}>
-          <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
+          <button type="submit" className="btn btn--primary btn--sm" disabled={saving || (!homework && !materials.ready)}>
             {saving ? t('common.saving') : t('common.save')}
           </button>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => { if (!homework) void materials.cancel(); onCancel(); }}>
             {t('common.cancel')}
           </button>
         </div>

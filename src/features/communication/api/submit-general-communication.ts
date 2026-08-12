@@ -307,6 +307,57 @@ export async function submitIndividualGeneralCommunication(input: {
   }
 }
 
+/** Atomic create/submit using the governed temporary upload-session contract. */
+export async function finalizeGeneralCommunication(input: {
+  publicId: string;
+  credential: string;
+  idempotencyKey: string;
+  contentType: GeneralCommunicationContentType;
+  scope: RecipientScope;
+  subject: string;
+  body: string;
+}): Promise<GeneralCommunicationSubmitResult> {
+  const individualScope = input.scope.scope_type === 'individual' ? input.scope : null;
+  const path = individualScope
+    ? `/admin/communication/individual/upload-sessions/${input.publicId}/finalize`
+    : input.contentType === 'announcement'
+      ? `/admin/communication/announcements/upload-sessions/${input.publicId}/finalize`
+      : `/admin/communication/content/upload-sessions/${input.publicId}/finalize`;
+  const payload = individualScope
+    ? {
+        recipient_type: individualScope.recipient_type,
+        recipient_id: individualScope.recipient_id,
+        subject: input.subject,
+        body: input.body,
+      }
+    : {
+        subject: input.subject,
+        body: input.body,
+        content_type: input.contentType,
+        recipient_scope: input.scope,
+      };
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'POST',
+      headers: {
+        ...clientActiveRoleHeaders(),
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Upload-Session-Credential': input.credential,
+        'Idempotency-Key': input.idempotencyKey,
+      },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body: JSON.stringify(payload),
+    });
+    const { response, httpStatus } = await parseWithHttpStatus<unknown>(res);
+    if (!response.success) return { ok: false, error: response.error, draftId: null };
+    return { ok: true, draftId: null, outcome: classifyOutcome(response.data, httpStatus) };
+  } catch {
+    return { ok: false, draftId: null, error: { code: 'network_error', message: 'Could not reach the server. Please check your connection.', details: {} } };
+  }
+}
+
 /** @deprecated Prefer submitIndividualGeneralCommunication for status-aware flow. */
 export async function submitIndividualCommunicationLegacy(
   input: Parameters<typeof submitIndividualCommunication>[0],

@@ -2,6 +2,7 @@
 
 import type { Role } from './user';
 import type { Ref } from './api';
+import type { SmartLinkRef } from './smart-link';
 
 export interface MessageSender {
   id: number;
@@ -27,6 +28,7 @@ export interface Message {
   attachment_count?: number | null;
   published_at?: string | null;
   is_read?: boolean | null;
+  links?: SmartLinkRef[];
 }
 
 export interface SendMessageRequest {

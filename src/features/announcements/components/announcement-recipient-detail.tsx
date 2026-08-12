@@ -18,6 +18,8 @@ import { useT } from '@/features/i18n/locale-context';
 import type { ResourceState } from '@/lib/hooks/use-resource';
 import { formatDateTime, stripHtml } from '@/lib/utils/format';
 import type { AnnouncementDelivery } from '@/types/announcement-delivery';
+import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
+import '@/features/attachments/secure-materials/secure-materials.css';
 
 function priorityTone(priority: string): 'red' | 'amber' | 'slate' {
   const p = priority.toLowerCase();
@@ -204,6 +206,12 @@ export function AnnouncementRecipientDetail({
                   )}
                 </Card>
               )}
+              {(item.links?.length ?? 0) > 0 ? (
+                <Card className="mt-3">
+                  <h2 className="tiny" style={{ marginBlockEnd: '0.75rem' }}>{t('secureMaterials.title')}</h2>
+                  <SmartLinkCards links={item.links} />
+                </Card>
+              ) : null}
             </>
           );
         }}

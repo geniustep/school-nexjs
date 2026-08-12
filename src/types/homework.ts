@@ -2,6 +2,7 @@
 
 import type { Ref } from './api';
 import type { AttachmentListMeta, AttachmentMeta } from './attachment';
+import type { SmartLinkRef } from './smart-link';
 
 export type HomeworkState = 'draft' | 'published' | 'closed';
 
@@ -38,6 +39,7 @@ export interface HomeworkDetail extends HomeworkSummary {
   attachments?: AttachmentMeta[];
   submissions?: HomeworkSubmission[];
   my_submission?: MySubmission | null;
+  links?: SmartLinkRef[];
 }
 
 /** Admin list row — GET /admin/homeworks */

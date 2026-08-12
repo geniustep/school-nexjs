@@ -126,6 +126,10 @@ export interface OdooFetchOptions {
    * Never read from request globals here — pass explicitly per call.
    */
   activeRole?: string;
+  /** Governed upload-session credential; never accept an arbitrary header bag. */
+  uploadSessionCredential?: string;
+  /** Governed mutation idempotency key. */
+  idempotencyKey?: string;
 }
 
 async function resolveOdooBaseUrl(opts: OdooFetchOptions): Promise<BackendBaseUrlResolution> {
@@ -206,6 +210,10 @@ export async function odooApiFetch<T = unknown>(
   const outboundHeaders: Record<string, string> = {
     Cookie: `session_id=${opts.sessionId}`,
   };
+  if (opts.uploadSessionCredential) {
+    outboundHeaders['X-Upload-Session-Credential'] = opts.uploadSessionCredential;
+  }
+  if (opts.idempotencyKey) outboundHeaders['Idempotency-Key'] = opts.idempotencyKey;
   const role = typeof opts.activeRole === 'string' ? opts.activeRole.trim().toLowerCase() : '';
   if (role) {
     outboundHeaders['X-SSC-Active-Role'] = role;

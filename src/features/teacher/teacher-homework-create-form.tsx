@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
 import { useClassSubjects } from '@/features/teacher/use-class-subjects';
 import type { HomeworkDetail } from '@/types/homework';
 import type { Ref } from '@/types/api';
+import { SecureMaterialsComposer } from '@/features/attachments/secure-materials/secure-materials-composer';
+import { useSecureMaterials } from '@/features/attachments/secure-materials/use-secure-materials';
+import { createIdempotencyKey, finalizeUploadSession } from '@/features/attachments/secure-materials/api';
 
 interface TeacherHomeworkCreateFormProps {
   classId: number;
@@ -33,6 +34,8 @@ export function TeacherHomeworkCreateForm({
   const [subjectId, setSubjectId] = useState('');
   const [deadline, setDeadline] = useState('');
   const [requireSubmission, setRequireSubmission] = useState(true);
+  const materials = useSecureMaterials({ purpose: 'homework' });
+  const finalizeKeyRef = useRef(createIdempotencyKey('homework-finalize'));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,19 +43,38 @@ export function TeacherHomeworkCreateForm({
       toast.error(t('errors.validationFailed'));
       return;
     }
+    if (!materials.ready) {
+      toast.error(materials.error || t('secureMaterials.waitForUpload'));
+      return;
+    }
     setSaving(true);
-    const res = await api.post<HomeworkDetail>(endpoints.teacher.classHomeworkCreate(classId), {
+    let session;
+    try {
+      session = await materials.ensureSession();
+    } catch (cause) {
+      setSaving(false);
+      toast.error(cause instanceof Error ? cause.message : t('errors.serverError'));
+      return;
+    }
+    const res = await finalizeUploadSession<HomeworkDetail>({
+      path: `/teacher/classes/${classId}/homeworks/upload-sessions/${session.publicId}/finalize`,
+      session,
+      idempotencyKey: finalizeKeyRef.current,
+      body: {
       name: name.trim(),
       description: description.trim() || undefined,
       subject_id: Number(subjectId),
       require_submission: requireSubmission,
       deadline: deadline || undefined,
+      },
     });
     setSaving(false);
     if (res.success && res.data) {
+      const raw = res.data as HomeworkDetail & { homework?: HomeworkDetail };
+      const homework = raw.homework ?? raw;
       toast.success(t('teacher.createHomeworkSuccess'));
       onCreated?.();
-      router.push(`/teacher/homeworks/${res.data.id}`);
+      router.push(`/teacher/homeworks/${homework.id}`);
     } else if (!res.success) {
       toast.error(res.error.message);
     }
@@ -114,15 +136,16 @@ export function TeacherHomeworkCreateForm({
           {t('academic.requiresSubmission')}
         </label>
       </div>
+      <SecureMaterialsComposer controller={materials} disabled={saving} />
       <div className="t-form__actions">
         <button
           type="submit"
           className="btn btn--primary btn--sm"
-          disabled={saving || subjectsLoading || subjectBlocked}
+          disabled={saving || subjectsLoading || subjectBlocked || !materials.ready}
         >
           {saving ? t('common.saving') : t('teacher.createHomework')}
         </button>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={() => { void materials.cancel(); onCancel(); }}>
           {t('common.cancel')}
         </button>
       </div>

@@ -6,8 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const previewIndividualMock = vi.hoisted(() => vi.fn());
 const previewScopeMock = vi.hoisted(() => vi.fn());
-const submitIndividualMock = vi.hoisted(() => vi.fn());
-const submitGroupMock = vi.hoisted(() => vi.fn());
+const finalizeCommunicationMock = vi.hoisted(() => vi.fn());
 const toastError = vi.hoisted(() => vi.fn());
 const toastSuccess = vi.hoisted(() => vi.fn());
 const pushMock = vi.hoisted(() => vi.fn());
@@ -37,8 +36,18 @@ vi.mock('@/features/communication/api/admin-communication-api', () => ({
 }));
 
 vi.mock('@/features/communication/api/submit-general-communication', () => ({
-  submitGroupGeneralCommunication: (...args: unknown[]) => submitGroupMock(...args),
-  submitIndividualGeneralCommunication: (...args: unknown[]) => submitIndividualMock(...args),
+  finalizeGeneralCommunication: (...args: unknown[]) => finalizeCommunicationMock(...args),
+}));
+
+vi.mock('@/features/attachments/secure-materials/secure-materials-composer', () => ({
+  SecureMaterialsComposer: () => <div data-testid="secure-materials" />,
+}));
+vi.mock('@/features/attachments/secure-materials/use-secure-materials', () => ({
+  useSecureMaterials: () => ({
+    materials: [], error: null, busy: false, hasFailure: false, ready: true,
+    ensureSession: vi.fn().mockResolvedValue({ publicId: 'session-1', credential: 'secret' }),
+    addFiles: vi.fn(), addLink: vi.fn(), remove: vi.fn(), cancel: vi.fn(), clearError: vi.fn(),
+  }),
 }));
 
 vi.mock('@/features/admin/students/components/student-search-picker', () => ({
@@ -83,15 +92,10 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
       ok: true,
       preview: { can_submit: true, deliverable_user_count: 1 },
     });
-    submitIndividualMock.mockResolvedValue({
+    finalizeCommunicationMock.mockResolvedValue({
       ok: true,
       draftId: null,
       outcome: { kind: 'accepted', httpStatus: 200, contentId: null, result: null, data: {} },
-    });
-    submitGroupMock.mockResolvedValue({
-      ok: true,
-      draftId: 9,
-      outcome: { kind: 'accepted', httpStatus: 200, contentId: 9, result: null, data: {} },
     });
   });
 
@@ -154,7 +158,7 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
     expect(
       (screen.getByTestId('general-communication-submit') as HTMLButtonElement).disabled,
     ).toBe(true);
-    expect(submitIndividualMock).not.toHaveBeenCalled();
+    expect(finalizeCommunicationMock).not.toHaveBeenCalled();
   });
 
   it('D/E: maps recipient-count and missing portal without raw backend text', async () => {
@@ -203,7 +207,7 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
     await user.click(screen.getByTestId('pick-student'));
     await user.click(screen.getByTestId('pick-student'));
 
-    resolveFirst?.({
+    (resolveFirst as ((value: unknown) => void) | null)?.({
       ok: true,
       preview: { can_submit: true, deliverable_user_count: 1 },
     });
@@ -248,9 +252,8 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
     expect(previewIndividualMock).not.toHaveBeenCalled();
     await user.click(screen.getByTestId('general-communication-submit'));
     await waitFor(() => {
-      expect(submitGroupMock).toHaveBeenCalled();
+      expect(finalizeCommunicationMock).toHaveBeenCalled();
     });
-    expect(submitIndividualMock).not.toHaveBeenCalled();
   });
 
   it('I: successful individual submit redirects to /admin/announcements', async () => {
@@ -267,11 +270,11 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
     ).toBe(false);
     await user.click(screen.getByTestId('general-communication-submit'));
     await waitFor(() => {
-      expect(submitIndividualMock).toHaveBeenCalledWith({
+      expect(finalizeCommunicationMock).toHaveBeenCalledWith(expect.objectContaining({
         scope: { scope_type: 'individual', recipient_type: 'student', recipient_id: 44 },
         subject: 'موضوع',
         body: 'نص الرسالة',
-      });
+      }));
       expect(pushMock).toHaveBeenCalledWith('/admin/announcements');
     });
   });

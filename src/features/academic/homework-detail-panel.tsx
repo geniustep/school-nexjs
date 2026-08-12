@@ -10,6 +10,8 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { canSubmitHomework } from '@/features/academic/utils';
 import type { HomeworkDetail } from '@/types/homework';
+import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
+import '@/features/attachments/secure-materials/secure-materials.css';
 
 interface HomeworkDetailPanelProps {
   hw: HomeworkDetail;
@@ -120,6 +122,9 @@ export function HomeworkDetailPanel({
           </Card>
         </div>
       )}
+      {hw.links?.length ? (
+        <div className="section"><h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('secureMaterials.title')}</h2><Card><SmartLinkCards links={hw.links} /></Card></div>
+      ) : null}
 
       {hw.my_submission && (
         <div className="section">

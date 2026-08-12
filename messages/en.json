@@ -14436,6 +14436,20 @@
       "needsFollowUp": "Needs follow-up"
     }
   },
+  "secureMaterials": {
+    "title": "Attachments and links",
+    "help": "Images and documents are uploaded securely before the final action. Direct video upload is unavailable.",
+    "addFiles": "Add files",
+    "addLink": "Add link",
+    "empty": "No attachments or links yet.",
+    "uploading": "Uploading…",
+    "ready": "Ready",
+    "failed": "Upload failed",
+    "remove": "Remove",
+    "openLink": "Open link",
+    "loadVideo": "Load video",
+    "waitForUpload": "Please wait until all uploads finish before sending."
+  },
   "teachingReviewPublication": {
     "tabs": {
       "label": "Review and publication sections",

@@ -14457,6 +14457,20 @@
       "needsFollowUp": "Suivi nécessaire"
     }
   },
+  "secureMaterials": {
+    "title": "Pièces jointes et liens",
+    "help": "Les images et documents sont téléversés en toute sécurité avant l’envoi. Le téléversement direct de vidéos n’est pas disponible.",
+    "addFiles": "Ajouter des fichiers",
+    "addLink": "Ajouter un lien",
+    "empty": "Aucune pièce jointe ni lien.",
+    "uploading": "Téléversement…",
+    "ready": "Prêt",
+    "failed": "Échec du téléversement",
+    "remove": "Supprimer",
+    "openLink": "Ouvrir le lien",
+    "loadVideo": "Charger la vidéo",
+    "waitForUpload": "Attendez la fin de tous les téléversements avant l’envoi."
+  },
   "teachingReviewPublication": {
     "tabs": {
       "label": "Sections révision et publication",

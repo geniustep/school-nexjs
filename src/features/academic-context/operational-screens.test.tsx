@@ -208,6 +208,8 @@ describe('Assignment form academic context', () => {
         open
         onClose={vi.fn()}
         assignment={null}
+        classes={[]}
+        subjects={[]}
         missingIssue={{
           code: 'assignment_missing',
           severity: 'warning',
@@ -263,6 +265,8 @@ describe('Assignment form academic context', () => {
         open
         onClose={vi.fn()}
         assignment={assignment}
+        classes={[]}
+        subjects={[]}
         missingIssue={null}
         canManage
         saving={false}

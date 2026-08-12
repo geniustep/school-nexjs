@@ -5,6 +5,7 @@ import {
   normalizeRecipientCount,
   normalizeRecipientSummary,
 } from '@/features/communication/utils/normalize-recipient-summary';
+import { normalizeSmartLinks } from '@/components/attachments/smart-link-cards';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -76,6 +77,7 @@ export function normalizePublishedMessage(data: unknown): Message | null {
     attachment_count: asNumber(row.attachment_count),
     published_at: asString(row.published_at),
     is_read: typeof row.is_read === 'boolean' ? row.is_read : null,
+    links: normalizeSmartLinks(row.links ?? row.smart_links ?? row.link_materials),
   };
 }
 

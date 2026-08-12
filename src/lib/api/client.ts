@@ -138,11 +138,11 @@ export const api = {
     }
   },
 
-  async post<T>(path: string, body?: unknown, query?: ListParams): Promise<ApiResponse<T>> {
+  async post<T>(path: string, body?: unknown, query?: ListParams, headers?: Record<string, string>): Promise<ApiResponse<T>> {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'POST',
-        headers: proxyHeaders({ 'Content-Type': 'application/json' }),
+        headers: proxyHeaders({ 'Content-Type': 'application/json', ...headers }),
         credentials: 'same-origin',
         cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
@@ -208,11 +208,11 @@ export const api = {
   },
 
   /** Multipart upload — do not set Content-Type; the browser adds the boundary. */
-  async uploadForm<T>(path: string, formData: FormData, query?: ListParams): Promise<ApiResponse<T>> {
+  async uploadForm<T>(path: string, formData: FormData, query?: ListParams, headers?: Record<string, string>): Promise<ApiResponse<T>> {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'POST',
-        headers: proxyHeaders(),
+        headers: proxyHeaders(headers),
         credentials: 'same-origin',
         cache: 'no-store',
         body: formData,
@@ -231,11 +231,11 @@ export const api = {
     }
   },
 
-  async delete<T>(path: string, query?: ListParams): Promise<ApiResponse<T>> {
+  async delete<T>(path: string, query?: ListParams, headers?: Record<string, string>): Promise<ApiResponse<T>> {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'DELETE',
-        headers: proxyHeaders(),
+        headers: proxyHeaders(headers),
         credentials: 'same-origin',
         cache: 'no-store',
       });

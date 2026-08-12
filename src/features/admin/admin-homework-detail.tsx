@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
+import '@/features/attachments/secure-materials/secure-materials.css';
 import { AttachmentsUpload } from '@/features/attachments/attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
@@ -108,6 +110,7 @@ export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailP
           </Card>
         </div>
       )}
+      {hw.links?.length ? <div className="section"><SectionHead title={t('secureMaterials.title')} /><Card><SmartLinkCards links={hw.links} /></Card></div> : null}
 
       {hw.submissions && hw.submissions.length > 0 && (
         <div className="section">

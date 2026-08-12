@@ -10,7 +10,18 @@ const toastSuccess = vi.fn();
 const toastError = vi.fn();
 
 vi.mock('@/features/channels/api/send-channel-message', () => ({
-  sendChannelMessage: (...args: unknown[]) => sendMock(...args),
+  finalizeChannelMessage: (...args: unknown[]) => sendMock(...args),
+}));
+
+vi.mock('@/features/attachments/secure-materials/secure-materials-composer', () => ({
+  SecureMaterialsComposer: () => <div data-testid="secure-materials" />,
+}));
+vi.mock('@/features/attachments/secure-materials/use-secure-materials', () => ({
+  useSecureMaterials: () => ({
+    materials: [], error: null, busy: false, hasFailure: false, ready: true,
+    ensureSession: vi.fn().mockResolvedValue({ publicId: 'session-1', credential: 'secret' }),
+    addFiles: vi.fn(), addLink: vi.fn(), remove: vi.fn(), cancel: vi.fn(), clearError: vi.fn(),
+  }),
 }));
 
 vi.mock('@/features/channels/api/preview-channel-message-recipients', () => ({
@@ -27,6 +38,7 @@ vi.mock('@/features/auth/session-context', () => ({
 
 vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string) => key,
+  useLocale: () => ({ locale: 'en', dir: 'ltr' }),
 }));
 
 vi.mock('@/components/ui/toast', () => ({
@@ -193,7 +205,9 @@ describe('ChannelMessageComposer', () => {
     render(<ChannelMessageComposer channelId={55} canSend />);
     await user.type(screen.getByLabelText('channels.writeMessage'), 'blocked');
     await user.click(screen.getByRole('button', { name: 'channels.send' }));
-    await waitFor(() => expect(screen.getByText('audience_empty')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText('communication.recipients.notReachable')).toBeTruthy(),
+    );
     const confirm = screen.getByRole('button', {
       name: 'communication.recipients.confirmSend',
     }) as HTMLButtonElement;

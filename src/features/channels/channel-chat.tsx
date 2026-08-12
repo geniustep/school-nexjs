@@ -33,6 +33,7 @@ import { resolveChannelType } from './utils/admin-channel-actions';
 import { ChannelAudienceSummary } from './components/channel-audience-summary';
 import './channels-pending.css';
 import './admin-channels-lifecycle.css';
+import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
 
 /** Published message list refresh while the channel detail stays open and visible. */
 const POLL_MS = 30000;
@@ -198,6 +199,7 @@ export function ChannelChat({
                     <span className="msg__time">{formatDateTime(m.created_at)}</span>
                   </div>
                   <div className="msg__body">{m.body}</div>
+                  <SmartLinkCards links={m.links} />
                 </div>
               ))
             )}
@@ -205,10 +207,12 @@ export function ChannelChat({
 
           {canSend ? (
             <ChannelMessageComposer
+              key={channelId}
               channelId={channelId}
               canSend
               autofocus={composerAutofocus}
               composeMode={channelComposeMode(channel)}
+              allowAttachments={channel.allow_attachments !== false}
               onPublished={async (outcome) => {
                 setMessages((prev) => mergePublishedMessages(prev, [outcome.message]));
                 requestAnimationFrame(() => {
