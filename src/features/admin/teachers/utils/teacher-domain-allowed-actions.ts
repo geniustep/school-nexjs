@@ -4,13 +4,21 @@ export function normalizeAllowedActions(
   raw: AllowedActionsMap | string[] | undefined | null,
 ): AllowedActionsMap {
   if (!raw) return {};
-  if (Array.isArray(raw)) {
-    return Object.fromEntries(raw.filter((k) => typeof k === 'string').map((k) => [k, true]));
-  }
   const out: AllowedActionsMap = {};
-  for (const [key, value] of Object.entries(raw)) {
-    if (value === true) out[key] = true;
+  if (Array.isArray(raw)) {
+    for (const key of raw) {
+      if (typeof key === 'string') out[key] = true;
+    }
+  } else {
+    for (const [key, value] of Object.entries(raw)) {
+      if (value === true) out[key] = true;
+    }
   }
+
+  // Odoo 1C intentionally hides legacy `reactivate` for a terminated teacher and
+  // exposes `restart_membership` instead. The existing profile action remains the
+  // single lifecycle entry point; the dialog distinguishes restart from resume.
+  if (out.restart_membership === true) out.reactivate = true;
   return out;
 }
 
