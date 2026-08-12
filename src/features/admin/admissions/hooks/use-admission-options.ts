@@ -12,7 +12,7 @@ import { normalizeAdmissionOptions } from '../utils/admission-options';
 export function useAdmissionOptions(options?: { enabled?: boolean }) {
   const enabled = options?.enabled !== false;
   const { locale } = useLocale();
-  const { activeSchoolId } = useAdminSession();
+  const { activeSchoolId, activeAcademicYearId } = useAdminSession();
   const [loading, setLoading] = useState(enabled);
   const [optionsState, setOptionsState] = useState<AdmissionOptions | null>(null);
   const [error, setError] = useState<ApiErrorBody | null>(null);
@@ -32,6 +32,7 @@ export function useAdmissionOptions(options?: { enabled?: boolean }) {
 
     const query: Record<string, string | number> = { lang: locale };
     if (activeSchoolId != null) query.active_school_id = activeSchoolId;
+    if (activeAcademicYearId != null) query.academic_year_id = activeAcademicYearId;
 
     api.get<AdmissionOptionsPayload>(endpoints.admin.admissionsOptions, query).then((res) => {
       if (!active) return;
@@ -48,7 +49,7 @@ export function useAdmissionOptions(options?: { enabled?: boolean }) {
     return () => {
       active = false;
     };
-  }, [activeSchoolId, enabled, locale, nonce]);
+  }, [activeAcademicYearId, activeSchoolId, enabled, locale, nonce]);
 
   return { loading, options: optionsState, error, reload };
 }
