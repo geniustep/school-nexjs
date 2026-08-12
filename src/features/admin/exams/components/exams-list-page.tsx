@@ -28,7 +28,6 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -76,8 +75,7 @@ export function ExamsListPage() {
   };
 
   const state = useGlobalAcademicYearResource<ExamSummary[]>(endpoints.admin.exams, params);
-  // Class options remain year-independent until their options contract is audited separately.
-  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(
+  const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
     endpoints.admin.classes,
   );
   const pg = state.meta?.pagination;
