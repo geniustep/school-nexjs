@@ -12,8 +12,10 @@ import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { useToast } from '@/components/ui/toast';
 import { Badge, PageHeader } from '@/components/ui/primitives';
-import { AcademicCalendarCreateDialog } from '@/features/admin/academic-calendars/components/academic-calendar-dialogs';
+import { createAcademicCalendar } from '@/features/admin/academic-calendars/api/academic-calendars-api';
 import {
   academicCalendarsListHasActiveQuery,
   ACADEMIC_CALENDARS_PAGE_SIZE,
@@ -21,50 +23,147 @@ import {
   resolveAcademicCalendarsListEmptyVariant,
 } from '@/features/admin/academic-calendars/utils/academic-calendar-present';
 import { normalizeAcademicCalendars } from '@/features/admin/academic-calendars/utils/normalize-academic-calendar';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
-import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import type { ListParams } from '@/types/api';
-import type { AcademicCalendarSummary } from '@/types/academic-calendar';
+import type { AcademicCalendarDetail, AcademicCalendarSummary } from '@/types/academic-calendar';
 import '@/features/admin/academic-calendars/academic-calendars.css';
 
 const STATE_OPTIONS = ['draft', 'under_review', 'published', 'archived'] as const;
+
+function GlobalAcademicCalendarCreateDialog({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (calendar: AcademicCalendarDetail) => void;
+}) {
+  const t = useT();
+  const toast = useToast();
+  const { activeAcademicYearId, academicYearLoading, academicYearError } = useAdminSession();
+  const [name, setName] = useState('');
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function reset() {
+    setName('');
+    setNotes('');
+    setError(null);
+    setSaving(false);
+  }
+
+  async function confirm() {
+    if (saving) return;
+    const trimmed = name.trim();
+    if (!trimmed || activeAcademicYearId == null) {
+      setError(academicYearError?.message ?? t('admin.academicCalendars.create.missingFields'));
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const res = await createAcademicCalendar({
+      name: trimmed,
+      academic_year_id: activeAcademicYearId,
+      notes: notes.trim() || undefined,
+    });
+    setSaving(false);
+    if (!res.success) {
+      setError(res.error.message);
+      toast.error(res.error.message);
+      return;
+    }
+    toast.success(t('admin.academicCalendars.create.success'));
+    reset();
+    onClose();
+    onCreated(res.data);
+  }
+
+  return (
+    <ConfirmationDialog
+      open={open}
+      title={t('admin.academicCalendars.create.title')}
+      size="form"
+      loading={saving || academicYearLoading}
+      confirmLabel={t('admin.academicCalendars.create.submit')}
+      onConfirm={confirm}
+      onClose={() => {
+        if (saving) return;
+        reset();
+        onClose();
+      }}
+      body={
+        <div className="academic-calendar-form">
+          {(error || academicYearError) && (
+            <p className="form-error">{error ?? academicYearError?.message}</p>
+          )}
+          <div className="field">
+            <label htmlFor="ac-create-name">{t('admin.academicCalendars.fields.name')}</label>
+            <input
+              id="ac-create-name"
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t('admin.academicCalendars.create.namePlaceholder')}
+              disabled={saving || academicYearLoading}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="ac-create-notes">{t('admin.academicCalendars.fields.notes')}</label>
+            <textarea
+              id="ac-create-notes"
+              className="textarea"
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              disabled={saving || academicYearLoading}
+            />
+          </div>
+        </div>
+      }
+    />
+  );
+}
 
 export function AcademicCalendarsListPage() {
   const t = useT();
   const router = useRouter();
   const user = useSession();
   const { formatDate } = useFormat();
-  const { options: yearOptions } = useAcademicYearOptions(null);
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [yearId, setYearId] = useState('');
   const [stateFilter, setStateFilter] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     setPage(1);
-  }, [yearId, stateFilter, search]);
+  }, [stateFilter, search]);
 
-  const hasActiveQuery = academicCalendarsListHasActiveQuery({ yearId, stateFilter, search });
+  const hasActiveQuery = academicCalendarsListHasActiveQuery({
+    yearId: '',
+    stateFilter,
+    search,
+  });
   const emptyVariant = resolveAcademicCalendarsListEmptyVariant({ hasActiveQuery });
 
   const params: ListParams = useMemo(
     () => ({
       page,
       page_size: ACADEMIC_CALENDARS_PAGE_SIZE,
-      academic_year_id: yearId || undefined,
       state: stateFilter || undefined,
     }),
-    [page, yearId, stateFilter],
+    [page, stateFilter],
   );
 
-  const state = useAdminResource<AcademicCalendarSummary[]>(
+  const state = useGlobalAcademicYearResource<AcademicCalendarSummary[]>(
     endpoints.admin.academicCalendars,
     params,
   );
@@ -81,7 +180,6 @@ export function AcademicCalendarsListPage() {
 
   const resetFilters = useCallback(() => {
     setSearch('');
-    setYearId('');
     setStateFilter('');
     setPage(1);
   }, []);
@@ -210,19 +308,6 @@ export function AcademicCalendarsListPage() {
           />
           <select
             className="select"
-            value={yearId}
-            onChange={(e) => setYearId(e.target.value)}
-            aria-label={t('admin.academicCalendars.fields.academicYear')}
-          >
-            <option value="">{t('admin.academicCalendars.filters.yearAll')}</option>
-            {yearOptions.map((year) => (
-              <option key={year.id} value={year.id}>
-                {year.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="select"
             value={stateFilter}
             onChange={(e) => setStateFilter(e.target.value)}
             aria-label={t('admin.academicCalendars.columns.state')}
@@ -276,7 +361,7 @@ export function AcademicCalendarsListPage() {
           }
         </ResourceView>
 
-        <AcademicCalendarCreateDialog
+        <GlobalAcademicCalendarCreateDialog
           open={createOpen}
           onClose={() => setCreateOpen(false)}
           onCreated={(calendar) => {
