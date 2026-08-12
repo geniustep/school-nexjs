@@ -17,10 +17,10 @@ function formatBytes(value?: number): string {
 
 function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () => void }) {
   const t = useT();
-  const [videoOpen, setVideoOpen] = useState(false);
   const image = item.kind === 'file' && (item.mimetype?.startsWith('image/') || item.localPreviewUrl);
   const href = item.canonicalUrl || item.url;
   const embedUrl = trustedVideoEmbedUrl(item.embedUrl);
+  const [videoOpen, setVideoOpen] = useState(() => Boolean(item.canEmbed && embedUrl));
   return (
     <article className={`secure-material secure-material--${item.kind}${videoOpen ? ' is-video-open' : ''}`}>
       <div className="secure-material__visual">

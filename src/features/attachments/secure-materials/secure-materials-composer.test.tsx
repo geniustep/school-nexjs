@@ -55,10 +55,10 @@ describe('SecureMaterialsComposer', () => {
     expect(remove.mock.calls[0]?.[0]).toMatchObject({ clientItemId: 'failed-link', state: 'failed' });
   });
 
-  it('keeps a trusted video preview visible when persistence fails', () => {
+  it('opens a trusted video preview immediately without an extra click', () => {
     const { container } = render(<SecureMaterialsComposer controller={controller()} />);
-    fireEvent.click(screen.getByRole('button', { name: /secureMaterials.loadVideo/ }));
     expect(container.querySelector('.secure-material.is-video-open iframe')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /secureMaterials.loadVideo/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'إغلاق الفيديو' }));
     expect(container.querySelector('.secure-material.is-video-open')).toBeNull();
   });
