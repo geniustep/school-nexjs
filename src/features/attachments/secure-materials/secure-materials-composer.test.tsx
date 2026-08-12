@@ -56,7 +56,10 @@ describe('SecureMaterialsComposer', () => {
   });
 
   it('keeps a trusted video preview visible when persistence fails', () => {
-    render(<SecureMaterialsComposer controller={controller()} />);
-    expect(screen.getByRole('button', { name: /secureMaterials.loadVideo/ })).toBeTruthy();
+    const { container } = render(<SecureMaterialsComposer controller={controller()} />);
+    fireEvent.click(screen.getByRole('button', { name: /secureMaterials.loadVideo/ }));
+    expect(container.querySelector('.secure-material.is-video-open iframe')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'إغلاق الفيديو' }));
+    expect(container.querySelector('.secure-material.is-video-open')).toBeNull();
   });
 });

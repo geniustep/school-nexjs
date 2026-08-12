@@ -22,7 +22,7 @@ function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () =
   const href = item.canonicalUrl || item.url;
   const embedUrl = trustedVideoEmbedUrl(item.embedUrl);
   return (
-    <article className={`secure-material secure-material--${item.kind}`}>
+    <article className={`secure-material secure-material--${item.kind}${videoOpen ? ' is-video-open' : ''}`}>
       <div className="secure-material__visual">
         {image && item.localPreviewUrl ? (
           // Local object URL is used only before finalization and never leaves the browser.
@@ -30,14 +30,23 @@ function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () =
           <img src={item.localPreviewUrl} alt={item.name} />
         ) : item.canEmbed && embedUrl ? (
           videoOpen ? (
-            <iframe
-              src={embedUrl}
-              title={item.name}
-              loading="lazy"
-              allow="fullscreen; picture-in-picture"
-              sandbox="allow-scripts allow-same-origin allow-presentation"
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
+            <div className="secure-material__video-frame">
+              <iframe
+                src={embedUrl}
+                title={item.name}
+                loading="lazy"
+                allow="fullscreen; picture-in-picture"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+              <button
+                type="button"
+                className="secure-material__video-close"
+                onClick={() => setVideoOpen(false)}
+                aria-label="إغلاق الفيديو"
+                title="إغلاق الفيديو"
+              >×</button>
+            </div>
           ) : (
             <button type="button" className="secure-material__video-launch" onClick={() => setVideoOpen(true)}>
               <span aria-hidden="true">▶</span>

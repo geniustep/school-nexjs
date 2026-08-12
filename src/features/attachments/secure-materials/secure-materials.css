@@ -17,6 +17,14 @@
 .secure-material { position: relative; overflow: hidden; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; min-height: 56px; padding: 5px 58px 5px 5px; border: 1px solid var(--c-border); border-radius: 9px; background: var(--c-surface); }
 .secure-material__visual { min-height: 46px; display: grid; place-items: center; overflow: hidden; border-radius: 7px; background: color-mix(in srgb, var(--c-primary) 9%, var(--c-surface)); }
 .secure-material__visual img, .secure-material__visual iframe { width: 100%; height: 100%; min-height: 46px; border: 0; object-fit: cover; }
+.secure-material.is-video-open { grid-template-columns: 1fr; padding: 5px; }
+.secure-material.is-video-open .secure-material__visual { width: 100%; aspect-ratio: 16 / 9; min-height: 0; background: #000; }
+.secure-material.is-video-open .secure-material__video-frame { position: relative; width: 100%; height: 100%; }
+.secure-material.is-video-open .secure-material__visual iframe { display: block; width: 100%; height: 100%; min-height: 0; }
+.secure-material.is-video-open .secure-material__info { padding: 2px 4px 3px 62px; }
+.secure-material.is-video-open .secure-material__remove { inset-block-start: auto; inset-block-end: 7px; }
+.secure-material__video-close { position: absolute; inset-block-start: 7px; inset-inline-start: 7px; z-index: 2; width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.42); border-radius: 8px; background: rgba(0,0,0,.66); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; }
+.secure-material__video-close:hover, .secure-material__video-close:focus-visible { background: rgba(0,0,0,.85); outline: 2px solid rgba(255,255,255,.72); }
 .secure-material__info { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
 .secure-material__info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .secure-material__file-icon { font-size: 20px; color: var(--c-primary); }
