@@ -9,7 +9,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { useAcademicYearOptions, useFeeTypeOptions } from '@/features/admin/finance/use-finance-lookups';
+import { useFeeTypeOptions } from '@/features/admin/finance/use-finance-lookups';
 import { feePlanState } from '@/lib/utils/finance';
 import type { FeePlan } from '@/types/finance';
 import { formValuesFromFeePlan } from './fee-plan-normalizer';
@@ -50,8 +50,9 @@ export function FeePlanDrawer({
 }) {
   const t = useT();
   const toast = useToast();
-  const { activeSchoolId, schools } = useAdminSession();
+  const { activeSchoolId, schools, activeAcademicYearId, academicYears } = useAdminSession();
   const activeSchoolName = schools.find((s) => s.id === activeSchoolId)?.name;
+  const activeAcademicYearName = academicYears.find((y) => y.id === activeAcademicYearId)?.name;
   const [values, setValues] = useState<FeePlanFormValues>(createEmptyFeePlanFormValues());
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -60,7 +61,6 @@ export function FeePlanDrawer({
   const planState = useAdminResource<FeePlan>(
     open && mode !== 'create' && planId ? endpoints.admin.financeFeePlan(planId) : null,
   );
-  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions();
   const { feeTypes, loading: typesLoading, reload: reloadFeeTypes } = useFeeTypeOptions();
   const levelOptionsState = useLevelOptions(open, { include_enabled: 'true' });
   const scopeGroups = useMemo(
@@ -76,7 +76,10 @@ export function FeePlanDrawer({
   useEffect(() => {
     if (!open) return;
     if (mode === 'create') {
-      setValues(createEmptyFeePlanFormValues());
+      setValues({
+        ...createEmptyFeePlanFormValues(),
+        academicYearId: activeAcademicYearId != null ? String(activeAcademicYearId) : '',
+      });
       setFormError(null);
       setFieldErrors(null);
       return;
@@ -84,7 +87,7 @@ export function FeePlanDrawer({
     if (plan && feeTypes.length) {
       setValues(formValuesFromFeePlan(plan, feeTypes));
     }
-  }, [open, mode, plan, feeTypes]);
+  }, [open, mode, plan, feeTypes, activeAcademicYearId]);
 
   useEffect(() => {
     if (!open || scopeGroups.length === 0) return;
@@ -114,7 +117,12 @@ export function FeePlanDrawer({
       setFormError(t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired'));
       return;
     }
-    const validation = validateFeePlanForm(values, { requireLevel: true });
+
+    const effectiveValues =
+      mode === 'create' && activeAcademicYearId != null
+        ? { ...values, academicYearId: String(activeAcademicYearId) }
+        : values;
+    const validation = validateFeePlanForm(effectiveValues, { requireLevel: true });
     if (validation) {
       setFieldErrors(validation);
       setFormError(t(validation.messageKey));
@@ -126,7 +134,7 @@ export function FeePlanDrawer({
 
     let savedId = planId ?? null;
     if (mode === 'create') {
-      const payload = buildCreateFeePlanPayload(values, activeSchoolId, scopeGroups);
+      const payload = buildCreateFeePlanPayload(effectiveValues, activeSchoolId, scopeGroups);
       const res = await api.post<FeePlan>(endpoints.admin.financeFeePlans, payload);
       if (!res.success) {
         setSubmitting(false);
@@ -135,7 +143,7 @@ export function FeePlanDrawer({
       }
       savedId = res.data.id;
     } else if (planId) {
-      const payload = buildUpdateFeePlanPayload(values, scopeGroups);
+      const payload = buildUpdateFeePlanPayload(effectiveValues, scopeGroups);
       const res = await api.put<FeePlan>(endpoints.admin.financeFeePlan(planId), payload);
       if (!res.success) {
         setSubmitting(false);
@@ -240,29 +248,12 @@ export function FeePlanDrawer({
                   {t('admin.finance.feePlansWorkspace.activeSchool')}: <strong>{activeSchoolName}</strong>
                 </p>
               )}
+              {mode === 'create' ? (
+                <p className="muted fee-plan-form__school">
+                  {t('admin.finance.academicYear')}: <strong>{activeAcademicYearName ?? t('common.dash')}</strong>
+                </p>
+              ) : null}
               <div className="fee-plan-form__grid">
-                <label>
-                  {t('admin.finance.academicYear')}
-                  <select
-                    className="input"
-                    required
-                    disabled={readOnly || yearsLoading || mode === 'edit'}
-                    value={values.academicYearId}
-                    onChange={(e) => patchValues({ academicYearId: e.target.value })}
-                  >
-                    <option value="">
-                      {yearsLoading ? t('common.loading') : t('admin.finance.selectAcademicYear')}
-                    </option>
-                    {yearOptions.map((y) => (
-                      <option key={y.id} value={y.id}>
-                        {y.name}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors?.field === 'academicYearId' && (
-                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
-                  )}
-                </label>
                 <label className="fee-plan-form__full">
                   {t('nav.levels')}
                   <FeePlanLevelScopeSelector
@@ -277,8 +268,8 @@ export function FeePlanDrawer({
                   />
                 </label>
               </div>
-              {yearOptions.length === 0 && !yearsLoading && (
-                <p className="muted">{t('admin.finance.academicYearHintFromPlans')}</p>
+              {fieldErrors?.field === 'academicYearId' && (
+                <p className="form-error">{t(fieldErrors.messageKey)}</p>
               )}
               {scopeGroups.length === 0 && !levelOptionsState.loading && (
                 <p className="muted">
