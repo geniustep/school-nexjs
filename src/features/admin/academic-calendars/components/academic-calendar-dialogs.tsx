@@ -6,10 +6,7 @@ import { useToast } from '@/components/ui/toast';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
-import {
-  createAcademicCalendar,
-  duplicateAcademicCalendar,
-} from '@/features/admin/academic-calendars/api/academic-calendars-api';
+import { duplicateAcademicCalendar } from '@/features/admin/academic-calendars/api/academic-calendars-api';
 import {
   ACADEMIC_CALENDAR_DAY_PART_OPTIONS,
   ACADEMIC_CALENDAR_EVENT_TYPE_OPTIONS,
@@ -20,120 +17,6 @@ import type {
   AcademicCalendarEventPayload,
   AcademicCalendarSummary,
 } from '@/types/academic-calendar';
-
-export function AcademicCalendarCreateDialog({
-  open,
-  onClose,
-  onCreated,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onCreated: (calendar: AcademicCalendarDetail) => void;
-}) {
-  const t = useT();
-  const toast = useToast();
-  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(null);
-  const [name, setName] = useState('');
-  const [yearId, setYearId] = useState('');
-  const [notes, setNotes] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function reset() {
-    setName('');
-    setYearId('');
-    setNotes('');
-    setError(null);
-    setSaving(false);
-  }
-
-  async function confirm() {
-    if (saving) return;
-    const trimmed = name.trim();
-    const academicYearId = Number(yearId);
-    if (!trimmed || !Number.isFinite(academicYearId) || academicYearId <= 0) {
-      setError(t('admin.academicCalendars.create.missingFields'));
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    const res = await createAcademicCalendar({
-      name: trimmed,
-      academic_year_id: academicYearId,
-      notes: notes.trim() || undefined,
-    });
-    setSaving(false);
-    if (!res.success) {
-      setError(res.error.message);
-      toast.error(res.error.message);
-      return;
-    }
-    toast.success(t('admin.academicCalendars.create.success'));
-    reset();
-    onClose();
-    onCreated(res.data);
-  }
-
-  return (
-    <ConfirmationDialog
-      open={open}
-      title={t('admin.academicCalendars.create.title')}
-      size="form"
-      loading={saving}
-      confirmLabel={t('admin.academicCalendars.create.submit')}
-      onConfirm={confirm}
-      onClose={() => {
-        if (saving) return;
-        reset();
-        onClose();
-      }}
-      body={
-        <div className="academic-calendar-form">
-          {error && <p className="form-error">{error}</p>}
-          <div className="field">
-            <label htmlFor="ac-create-name">{t('admin.academicCalendars.fields.name')}</label>
-            <input
-              id="ac-create-name"
-              className="input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('admin.academicCalendars.create.namePlaceholder')}
-              disabled={saving}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="ac-create-year">{t('admin.academicCalendars.fields.academicYear')}</label>
-            <select
-              id="ac-create-year"
-              className="select"
-              value={yearId}
-              onChange={(e) => setYearId(e.target.value)}
-              disabled={saving || yearsLoading}
-            >
-              <option value="">{t('admin.academicCalendars.filters.yearAll')}</option>
-              {yearOptions.map((year) => (
-                <option key={year.id} value={year.id}>
-                  {year.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="ac-create-notes">{t('admin.academicCalendars.fields.notes')}</label>
-            <textarea
-              id="ac-create-notes"
-              className="textarea"
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              disabled={saving}
-            />
-          </div>
-        </div>
-      }
-    />
-  );
-}
 
 export function AcademicCalendarDuplicateDialog({
   open,
