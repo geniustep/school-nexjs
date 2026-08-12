@@ -7,7 +7,6 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -31,6 +30,7 @@ import {
   resolveInitialDate,
   todayIso,
 } from '@/features/admin/attendance/admin-attendance-utils';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { useFormat } from '@/features/i18n/use-format';
@@ -61,10 +61,10 @@ function AdminAttendanceInner() {
   const [status, setStatus] = useState('');
   const [classId, setClassId] = useState(initialClassId);
 
-  const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
+  const classesState = useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes);
   const classes = classesState.data ?? [];
 
-  const state = useAdminResource<AttendanceRecord[]>(endpoints.admin.attendance, {
+  const state = useGlobalAcademicYearResource<AttendanceRecord[]>(endpoints.admin.attendance, {
     page,
     page_size: ATTENDANCE_PAGE_SIZE,
     date: date || undefined,
