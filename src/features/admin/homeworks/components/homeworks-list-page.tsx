@@ -23,10 +23,10 @@ import {
   resolveHomeworksListEmptyVariant,
 } from '@/features/admin/homeworks/utils/homeworks-list-present';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -76,8 +76,8 @@ export function HomeworksListPage() {
     state: stateFilter || undefined,
   };
 
-  const state = useAdminResource<AdminHomeworkSummary[]>(endpoints.admin.homeworks, params);
-  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
+  const state = useGlobalAcademicYearResource<AdminHomeworkSummary[]>(endpoints.admin.homeworks, params);
+  const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
   const pg = state.meta?.pagination;
 
   const canAddHomework = canShowAcademicListAdd(user, {
