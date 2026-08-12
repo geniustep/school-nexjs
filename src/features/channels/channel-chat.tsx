@@ -34,6 +34,7 @@ import { ChannelAudienceSummary } from './components/channel-audience-summary';
 import './channels-pending.css';
 import './admin-channels-lifecycle.css';
 import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
+import { AttachmentList } from '@/components/attachments/attachment-list';
 
 /** Published message list refresh while the channel detail stays open and visible. */
 const POLL_MS = 30000;
@@ -199,7 +200,12 @@ export function ChannelChat({
                     <span className="msg__time">{formatDateTime(m.created_at)}</span>
                   </div>
                   <div className="msg__body">{m.body}</div>
-                  <SmartLinkCards links={m.links} />
+                  {(m.attachments?.length ?? 0) > 0 || (m.links?.length ?? 0) > 0 ? (
+                    <div className="channel-message__materials">
+                      <AttachmentList attachments={m.attachments ?? []} />
+                      <SmartLinkCards links={m.links} />
+                    </div>
+                  ) : null}
                 </div>
               ))
             )}

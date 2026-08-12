@@ -37,6 +37,9 @@ import {
   scheduleCommunicationContent,
 } from '@/features/communication/api/admin-communication-api';
 import { RecipientSummaryPanel } from '@/features/communication/components/recipient-summary-panel';
+import { AttachmentList } from '@/components/attachments/attachment-list';
+import { SmartLinkCards } from '@/components/attachments/smart-link-cards';
+import { normalizeCommunicationMaterials } from '@/features/communication/utils/normalize-communication-materials';
 import { normalizeRecipientSummary } from '@/features/communication/utils/normalize-recipient-summary';
 import {
   communicationActorRoleMessageKey,
@@ -190,6 +193,7 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
 
   const actions = item.allowed_actions ?? [];
   const body = item.body || item.current_version?.body || '';
+  const materials = normalizeCommunicationMaterials(item);
   const isSubmitted = item.state === 'submitted';
   const isApprovedAwaitingPublish = item.state === 'approved';
   const canAuthorResubmit = canResubmitPendingContent(item, {
@@ -324,6 +328,14 @@ function AdminCommunicationDetailInner({ id }: { id: number }) {
             <div className="communication-review__body" dir="auto">
               {stripHtmlPreview(body, 4000) || t('common.dash')}
             </div>
+            {materials.attachments.length > 0 || materials.links.length > 0 ? (
+              <div className="communication-detail__materials">
+                {materials.attachments.length > 0 ? (
+                  <AttachmentList attachments={materials.attachments} />
+                ) : null}
+                <SmartLinkCards links={materials.links} />
+              </div>
+            ) : null}
           </Card>
 
           {canEdit ? (
