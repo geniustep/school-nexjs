@@ -1,13 +1,15 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SecureMaterialsComposer } from './secure-materials-composer';
 import type { ReturnTypeUseSecureMaterials } from './view-types';
 
 vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string) => key,
 }));
+
+afterEach(cleanup);
 
 function controller(remove = vi.fn()): ReturnTypeUseSecureMaterials {
   return {
@@ -16,8 +18,11 @@ function controller(remove = vi.fn()): ReturnTypeUseSecureMaterials {
       clientItemId: 'failed-link',
       kind: 'link',
       state: 'failed',
-      name: 'https://www.youtube.com/watch?v=test',
-      url: 'https://www.youtube.com/watch?v=test',
+      name: 'https://www.youtube.com/watch?v=aNFBseqZNUo',
+      url: 'https://www.youtube.com/watch?v=aNFBseqZNUo',
+      provider: 'youtube',
+      embedUrl: 'https://www.youtube-nocookie.com/embed/aNFBseqZNUo',
+      canEmbed: true,
       error: 'تعذر إكمال العملية.',
     }],
     error: null,
@@ -40,7 +45,7 @@ describe('SecureMaterialsComposer', () => {
     render(<SecureMaterialsComposer controller={controller(remove)} />);
 
     const button = screen.getByRole('button', {
-      name: 'secureMaterials.remove https://www.youtube.com/watch?v=test',
+      name: 'secureMaterials.remove https://www.youtube.com/watch?v=aNFBseqZNUo',
     });
     expect(button).toBeTruthy();
     expect(button).not.toHaveProperty('disabled', true);
@@ -48,5 +53,10 @@ describe('SecureMaterialsComposer', () => {
     fireEvent.click(button);
     expect(remove).toHaveBeenCalledTimes(1);
     expect(remove.mock.calls[0]?.[0]).toMatchObject({ clientItemId: 'failed-link', state: 'failed' });
+  });
+
+  it('keeps a trusted video preview visible when persistence fails', () => {
+    render(<SecureMaterialsComposer controller={controller()} />);
+    expect(screen.getByRole('button', { name: /secureMaterials.loadVideo/ })).toBeTruthy();
   });
 });
