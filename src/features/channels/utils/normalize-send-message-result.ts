@@ -1,5 +1,6 @@
 import type { PendingMessageSubmitResult, SendChannelMessageOutcome } from '@/types/communication';
 import type { Message, MessageSender } from '@/types/message';
+import type { AttachmentMeta } from '@/types/attachment';
 import {
   normalizeOptionalBoolean,
   normalizeRecipientCount,
@@ -32,6 +33,34 @@ function normalizeSender(raw: unknown): MessageSender | null {
     name,
     role: (asString(row.role) ?? 'admin') as MessageSender['role'],
   };
+}
+
+function normalizeMessageAttachments(raw: unknown): AttachmentMeta[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<number>();
+
+  return raw.flatMap((entry) => {
+    const row = asRecord(entry);
+    const id = asNumber(row?.id);
+    const name = asString(row?.name)?.trim() ?? '';
+    if (id == null || id <= 0 || !name || seen.has(id)) return [];
+    seen.add(id);
+    const mimetype = asString(row?.mimetype);
+
+    return [{
+      id,
+      name,
+      mimetype,
+      size: asNumber(row?.file_size) ?? asNumber(row?.size),
+      download_url: asString(row?.download_url),
+      preview_url: asString(row?.preview_url),
+      thumbnail_url: asString(row?.thumbnail_url),
+      is_image: row?.is_image === true || mimetype?.startsWith('image/') === true,
+      is_pdf: row?.is_pdf === true || mimetype === 'application/pdf',
+      is_previewable:
+        typeof row?.is_previewable === 'boolean' ? row.is_previewable : undefined,
+    }];
+  });
 }
 
 /** True when payload is a pending-review submission (never a published school.message). */
@@ -75,6 +104,7 @@ export function normalizePublishedMessage(data: unknown): Message | null {
     reply_to_id: asNumber(row.reply_to_id),
     reply_to_message_id: asNumber(row.reply_to_message_id) ?? asNumber(row.reply_to_id),
     attachment_count: asNumber(row.attachment_count),
+    attachments: normalizeMessageAttachments(row.attachments),
     published_at: asString(row.published_at),
     is_read: typeof row.is_read === 'boolean' ? row.is_read : null,
     links: normalizeSmartLinks(row.links ?? row.smart_links ?? row.link_materials),

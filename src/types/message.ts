@@ -3,6 +3,7 @@
 import type { Role } from './user';
 import type { Ref } from './api';
 import type { SmartLinkRef } from './smart-link';
+import type { AttachmentMeta } from './attachment';
 
 export interface MessageSender {
   id: number;
@@ -26,6 +27,7 @@ export interface Message {
   reply_to_id?: number | null;
   reply_to_message_id?: number | null;
   attachment_count?: number | null;
+  attachments?: AttachmentMeta[];
   published_at?: string | null;
   is_read?: boolean | null;
   links?: SmartLinkRef[];

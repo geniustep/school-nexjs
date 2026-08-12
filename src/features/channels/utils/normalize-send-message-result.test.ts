@@ -48,6 +48,81 @@ describe('normalize-send-message-result', () => {
     expect(isPendingMessageSubmitResult(data)).toBe(false);
   });
 
+  it('normalizes authorized channel attachments returned by Odoo 308', () => {
+    const message = normalizePublishedMessage({
+      id: 8,
+      channel_id: 9,
+      sender: { id: 2, name: 'Administrator', role: 'admin' },
+      body: 'ملف وفيديو',
+      created_at: '2026-08-12T23:45:00',
+      attachment_count: 2,
+      attachments: [
+        {
+          id: 901,
+          name: 'document.pdf',
+          mimetype: 'application/pdf',
+          file_size: 24567,
+          download_url: '/api/v1/attachments/901/download',
+          preview_url: '/api/v1/attachments/901/preview',
+          thumbnail_url: '/api/v1/attachments/901/thumbnail',
+          thumbnail_is_resized: false,
+        },
+        {
+          id: 902,
+          name: 'photo.webp',
+          mimetype: 'image/webp',
+          file_size: 1024,
+          is_image: true,
+        },
+      ],
+      links: [{
+        id: 77,
+        provider: 'youtube',
+        title: 'YouTube',
+        canonical_url: 'https://www.youtube.com/watch?v=aNFBseqZNUo',
+        embed_url: 'https://www.youtube-nocookie.com/embed/aNFBseqZNUo',
+        can_embed: true,
+      }],
+    });
+
+    expect(message?.attachment_count).toBe(2);
+    expect(message?.attachments).toEqual([
+      expect.objectContaining({
+        id: 901,
+        name: 'document.pdf',
+        size: 24567,
+        is_pdf: true,
+        preview_url: '/api/v1/attachments/901/preview',
+      }),
+      expect.objectContaining({ id: 902, name: 'photo.webp', is_image: true }),
+    ]);
+    expect(message?.links).toEqual([
+      expect.objectContaining({ provider: 'youtube', can_embed: true }),
+    ]);
+  });
+
+  it('drops malformed and duplicate attachment metadata without inventing files', () => {
+    const message = normalizePublishedMessage({
+      id: 9,
+      channel_id: 9,
+      sender: { id: 2, name: 'Administrator', role: 'admin' },
+      body: 'hello',
+      created_at: '2026-08-12T23:46:00',
+      attachment_count: 3,
+      attachments: [
+        { id: 901, name: 'valid.pdf', file_size: 10 },
+        { id: 901, name: 'duplicate.pdf', file_size: 20 },
+        { id: 'bad', name: 'bad.pdf' },
+        { id: 902, name: '' },
+      ],
+    });
+
+    expect(message?.attachment_count).toBe(3);
+    expect(message?.attachments).toEqual([
+      expect.objectContaining({ id: 901, name: 'valid.pdf', size: 10 }),
+    ]);
+  });
+
   it('does not treat communication_content_id as Message id', () => {
     const pending = normalizePendingMessageSubmitResult({
       pending_review: true,
