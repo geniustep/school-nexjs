@@ -70,11 +70,9 @@ function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () =
         type="button"
         className="secure-material__remove"
         onClick={onRemove}
-        title={t('secureMaterials.remove')}
         aria-label={`${t('secureMaterials.remove')} ${item.name}`}
       >
-        <span aria-hidden="true">×</span>
-        <span>{t('secureMaterials.remove')}</span>
+        ×
       </button>
     </article>
   );
@@ -87,46 +85,21 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
   const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [link, setLink] = useState('');
-  const [linkOpen, setLinkOpen] = useState(false);
 
   async function addLink() {
     const value = link.trim();
     if (!value) return;
-    if (await controller.addLink(value)) {
-      setLink('');
-      setLinkOpen(false);
-    }
+    if (await controller.addLink(value)) setLink('');
   }
 
   return (
     <section className="secure-materials" aria-label={t('secureMaterials.title')}>
       <div className="secure-materials__header">
-        <div className="secure-materials__heading">
+        <div>
           <strong>{t('secureMaterials.title')}</strong>
-          <span className="secure-materials__hint">{t('secureMaterials.help')}</span>
+          <p className="tiny muted">{t('secureMaterials.help')}</p>
         </div>
-        <div className="secure-materials__toolbar">
-          <span className="secure-materials__count">{controller.materials.length}/5</span>
-          <button
-            type="button"
-            className="secure-materials__tool"
-            disabled={disabled || controller.busy || controller.materials.length >= 5}
-            onClick={() => inputRef.current?.click()}
-          >
-            <span aria-hidden="true">＋</span>
-            {t('secureMaterials.addFiles')}
-          </button>
-          <button
-            type="button"
-            className={`secure-materials__tool${linkOpen ? ' is-active' : ''}`}
-            disabled={disabled || controller.busy || controller.materials.length >= 5}
-            aria-expanded={linkOpen}
-            onClick={() => setLinkOpen((current) => !current)}
-          >
-            <span aria-hidden="true">↗</span>
-            {t('secureMaterials.addLink')}
-          </button>
-        </div>
+        <span className="secure-materials__count">{controller.materials.length}/5</span>
       </div>
 
       <input
@@ -142,7 +115,15 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
           void controller.addFiles(files);
         }}
       />
-      {linkOpen ? (
+      <div className="secure-materials__actions">
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          disabled={disabled || controller.busy || controller.materials.length >= 5}
+          onClick={() => inputRef.current?.click()}
+        >
+          {t('secureMaterials.addFiles')}
+        </button>
         <div className="secure-materials__link-row">
           <input
             className="input"
@@ -162,25 +143,14 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
           />
           <button
             type="button"
-            className="btn btn--primary btn--sm"
+            className="btn btn--ghost btn--sm"
             disabled={disabled || controller.busy || !link.trim() || controller.materials.length >= 5}
             onClick={() => void addLink()}
           >
             {t('secureMaterials.addLink')}
           </button>
-          <button
-            type="button"
-            className="secure-materials__link-cancel"
-            aria-label={t('common.cancel')}
-            onClick={() => {
-              setLink('');
-              setLinkOpen(false);
-            }}
-          >
-            ×
-          </button>
         </div>
-      ) : null}
+      </div>
 
       {controller.error ? <p className="secure-materials__alert" role="alert">{controller.error}</p> : null}
       {controller.materials.length ? (
@@ -189,7 +159,9 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
             <MaterialCard key={item.clientItemId} item={item} onRemove={() => void controller.remove(item)} />
           ))}
         </div>
-      ) : null}
+      ) : (
+        <p className="secure-materials__empty">{t('secureMaterials.empty')}</p>
+      )}
       {controller.busy ? <p className="tiny" role="status">{t('secureMaterials.waitForUpload')}</p> : null}
     </section>
   );
