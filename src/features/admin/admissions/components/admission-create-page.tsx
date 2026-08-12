@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
-import { localizeStudentGenderOptions, resolveDefaultAcademicYearId, resolveDefaultNationalityId, todayIsoDate } from '@/features/admin/students/utils/student-profile';
+import { localizeStudentGenderOptions, resolveDefaultNationalityId, todayIsoDate } from '@/features/admin/students/utils/student-profile';
 import { StudentCreateStyledSection } from '@/features/admin/students/components/student-create-section-header';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -52,7 +52,12 @@ export function AdmissionCreatePage() {
   const t = useT();
   const { locale } = useLocale();
   const router = useRouter();
-  const { activeSchoolId } = useAdminSession();
+  const {
+    activeSchoolId,
+    activeAcademicYearId,
+    academicYearLoading,
+    academicYearError,
+  } = useAdminSession();
   const today = useMemo(() => todayIsoDate(), []);
   const [form, setForm] = useState<AdmissionCreateFormState>(() => emptyAdmissionCreateForm(today));
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +68,6 @@ export function AdmissionCreatePage() {
   const admissionOptionsState = useAdmissionOptions();
   const admissionOptions = admissionOptionsState.options;
 
-  const academicYears = admissionOptions?.academic_years ?? [];
   const cycles = admissionOptions?.cycles ?? [];
   const allLevels = admissionOptions?.levels ?? [];
   const allStreams = admissionOptions?.streams ?? [];
@@ -109,20 +113,21 @@ export function AdmissionCreatePage() {
   useEffect(() => {
     if (defaultsApplied || !admissionOptionsState.options) return;
     const sourceId = resolveDefaultAdmissionSourceId(admissionOptionsState.options.sources);
-    const yearIdRaw = resolveDefaultAcademicYearId(admissionOptionsState.options.academic_years);
-    const yearId = yearIdRaw ? Number(yearIdRaw) : undefined;
     setForm((prev) => ({
       ...prev,
       source_id: sourceId ?? prev.source_id,
-      academic_year_id:
-        prev.academic_year_id != null && prev.academic_year_id > 0
-          ? prev.academic_year_id
-          : yearId && Number.isFinite(yearId)
-            ? yearId
-            : prev.academic_year_id,
     }));
     setDefaultsApplied(true);
   }, [admissionOptionsState.options, defaultsApplied]);
+
+  useEffect(() => {
+    if (activeAcademicYearId == null) return;
+    setForm((prev) =>
+      prev.academic_year_id === activeAcademicYearId
+        ? prev
+        : { ...prev, academic_year_id: activeAcademicYearId },
+    );
+  }, [activeAcademicYearId]);
 
   useEffect(() => {
     if (studentOptionsState.loading || !studentOptionsState.options?.nationalities.length) return;
@@ -136,7 +141,10 @@ export function AdmissionCreatePage() {
   }, [studentOptionsState.loading, studentOptionsState.options?.nationalities]);
 
   const lookupError =
-    studentOptionsState.error?.message ?? admissionOptionsState.error?.message ?? null;
+    academicYearError?.message ??
+    studentOptionsState.error?.message ??
+    admissionOptionsState.error?.message ??
+    null;
 
   const relationshipLoadFailed =
     !admissionOptionsState.loading &&
@@ -146,7 +154,7 @@ export function AdmissionCreatePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (activeSchoolId == null) return;
+    if (activeSchoolId == null || activeAcademicYearId == null || academicYearLoading) return;
 
     const guardiansError = validateGuardiansDraft(form.guardians, { mode: 'individual' });
     if (guardiansError) {
@@ -165,7 +173,11 @@ export function AdmissionCreatePage() {
     setSubmitting(true);
     setError(null);
 
-    const payload = buildCreateAdmissionPayload(form, activeSchoolId, allLevels);
+    const payload = buildCreateAdmissionPayload(
+      { ...form, academic_year_id: activeAcademicYearId },
+      activeSchoolId,
+      allLevels,
+    );
     const res = await createAdmission(payload, { active_school_id: activeSchoolId });
     setSubmitting(false);
 
@@ -257,16 +269,18 @@ export function AdmissionCreatePage() {
             intakeContext="admissionCreate"
             academic={{
               cycleMode: 'code',
-              years: academicYears,
+              years: [],
               cycles: filteredCycles.map((c) => ({ mode: 'code' as const, code: c.code, name: c.name })),
               levels: filteredLevels,
               streams: filteredStreams,
               classes: [],
               registrationTypes: studentOptionsState.options?.registrationTypes ?? [],
               levelRequiresStream: showStreamField,
-              optionsLoading: admissionOptionsState.loading || studentOptionsState.loading,
+              optionsLoading:
+                academicYearLoading || admissionOptionsState.loading || studentOptionsState.loading,
               cyclesLoading: admissionOptionsState.loading,
               streamRequired: showStreamField,
+              showAcademicYear: false,
               showClass: false,
             }}
           />
@@ -330,7 +344,11 @@ export function AdmissionCreatePage() {
         </StudentCreateStyledSection>
 
         <div className="student-create-form__actions admissions-create-actions">
-          <button type="submit" className="btn btn--primary" disabled={submitting}>
+          <button
+            type="submit"
+            className="btn btn--primary"
+            disabled={submitting || academicYearLoading || activeAcademicYearId == null}
+          >
             {submitting ? t('admin.admissions.create.submitting') : t('admin.admissions.create.submit')}
           </button>
           <Link href="/admin/admissions" className="btn btn--ghost">
