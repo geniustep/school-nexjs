@@ -8,6 +8,7 @@ import {
   reactivateTeacher,
   terminateTeacher,
 } from '@/features/admin/teachers/api/teacher-domain-api';
+import { hasAllowedAction } from '@/features/admin/teachers/utils/teacher-domain-allowed-actions';
 import { mapTeacherDomainError } from '@/features/admin/teachers/utils/teacher-domain-errors';
 import { useT } from '@/features/i18n/locale-context';
 import type { TeacherDetail, TeacherSummary } from '@/types/teacher-domain';
@@ -29,10 +30,14 @@ export function TeacherLifecycleDialogs({
   const toast = useToast();
   const [reason, setReason] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [restartDate, setRestartDate] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   if (!teacher || !action) return null;
+
+  const isMembershipRestart =
+    action === 'reactivate' && hasAllowedAction(teacher.allowed_actions, 'restart_membership');
 
   async function confirm() {
     if (!teacher) return;
@@ -49,6 +54,11 @@ export function TeacherLifecycleDialogs({
         return;
       }
     }
+    if (isMembershipRestart && !restartDate) {
+      setFieldError(t('errors.validationFailed'));
+      return;
+    }
+
     setSaving(true);
     const res =
       action === 'terminate'
@@ -58,7 +68,10 @@ export function TeacherLifecycleDialogs({
           })
         : action === 'archive'
           ? await archiveTeacher(teacher.id, { reason: reason.trim() })
-          : await reactivateTeacher(teacher.id);
+          : await reactivateTeacher(
+              teacher.id,
+              isMembershipRestart ? { effective_from: restartDate } : undefined,
+            );
     setSaving(false);
     if (!res.success) {
       toast.error(mapTeacherDomainError(res.error, t));
@@ -75,6 +88,7 @@ export function TeacherLifecycleDialogs({
     );
     setReason('');
     setEndDate('');
+    setRestartDate('');
     onSuccess();
     onClose();
   }
@@ -138,12 +152,25 @@ export function TeacherLifecycleDialogs({
                   />
                 </label>
               ) : null}
-              {fieldError ? (
-                <p className="form-error" role="alert" aria-live="polite">
-                  {fieldError}
-                </p>
-              ) : null}
             </>
+          ) : null}
+          {isMembershipRestart ? (
+            <label className="field">
+              <span>{t('common.date')}</span>
+              <input
+                type="date"
+                value={restartDate}
+                onChange={(e) => setRestartDate(e.target.value)}
+                dir="ltr"
+                required
+                aria-invalid={fieldError ? true : undefined}
+              />
+            </label>
+          ) : null}
+          {fieldError ? (
+            <p className="form-error" role="alert" aria-live="polite">
+              {fieldError}
+            </p>
           ) : null}
         </div>
       }
