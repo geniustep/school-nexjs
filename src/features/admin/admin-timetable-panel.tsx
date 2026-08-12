@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { ResourceView } from '@/components/states/resource';
@@ -40,9 +40,9 @@ export function AdminTimetablePanel() {
   const t = useT();
   const toast = useToast();
   const canManage = hasPermission(user, 'manage_timetable');
-  const state = useAdminResource<TimetableSlot[]>(endpoints.admin.timetable);
-  const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
-  const teachersState = useAdminResource<Teacher[]>(endpoints.admin.teachers, {
+  const state = useGlobalAcademicYearResource<TimetableSlot[]>(endpoints.admin.timetable);
+  const classesState = useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes);
+  const teachersState = useGlobalAcademicYearResource<Teacher[]>(endpoints.admin.teachers, {
     page_size: 100,
   });
 
