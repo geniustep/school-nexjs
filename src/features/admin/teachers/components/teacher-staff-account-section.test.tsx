@@ -7,6 +7,7 @@ import type { Teacher } from '@/types/teacher';
 
 vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string) => key,
+  useLocale: () => 'ar',
 }));
 
 vi.mock('@/features/admin/account/account-status-badge', () => ({
