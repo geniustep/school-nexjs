@@ -310,14 +310,14 @@ describe('F-NX-12 mutation origin', () => {
 
 describe('F-NX-08 ODOO_DB default', () => {
   it('defaults to school in development/test and never alwah', () => {
-    expect(resolveOdooDbFallback(undefined, 'development')).toBe('school');
-    expect(resolveOdooDbFallback(undefined, 'test')).toBe('school');
-    expect(resolveOdooDbFallback(undefined, 'development')).not.toBe('alwah');
+    expect(resolveOdooDbFallback('', 'development')).toBe('school');
+    expect(resolveOdooDbFallback('', 'test')).toBe('school');
+    expect(resolveOdooDbFallback('', 'development')).not.toBe('alwah');
   });
 
   it('preserves explicit env and fail-safes production', () => {
     expect(resolveOdooDbFallback('custom-db', 'development')).toBe('custom-db');
-    expect(resolveOdooDbFallback(undefined, 'production')).toBe('');
+    expect(resolveOdooDbFallback('', 'production')).toBe('');
     expect(resolveOdooDbFallback('school', 'production')).toBe('school');
   });
 });
