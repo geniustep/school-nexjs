@@ -1,0 +1,50 @@
+name: Dependency Lock Refresh
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - .github/workflows/dependency-refresh.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-lock:
+    name: refresh-security-lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Pin patched direct dependencies
+        run: |
+          npm pkg set dependencies.next=15.5.23
+          npm pkg set devDependencies.vitest=3.2.7
+
+      - name: Rebuild lockfile without lifecycle scripts
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Apply non-breaking audit fixes to lockfile
+        run: npm audit fix --package-lock-only --ignore-scripts
+
+      - name: Record residual audit findings
+        run: npm audit --audit-level=high || true
+
+      - name: Upload patched manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-patched-manifests
+          path: |
+            package.json
+            package-lock.json
+          if-no-files-found: error
+          retention-days: 1
