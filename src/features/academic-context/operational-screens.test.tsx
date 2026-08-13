@@ -226,9 +226,9 @@ describe('Assignment form academic context', () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByLabelText('academicContext.fields.offering')).toBeTruthy(),
+      expect(screen.getByLabelText('admin.academicSetup.levelSubject')).toBeTruthy(),
     );
-    const offering = screen.getByLabelText('academicContext.fields.offering') as HTMLSelectElement;
+    const offering = screen.getByLabelText('admin.academicSetup.levelSubject') as HTMLSelectElement;
     expect(offering.value).toBe('');
     expect(offering.textContent).toContain('الرياضيات · السادس · العربية');
     expect(offering.textContent).toContain('Mathématiques · 6AP · Français');
