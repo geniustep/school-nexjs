@@ -72,4 +72,7 @@ export type Permission =
   | 'admission.offer'
   | 'admission.prefill'
   | 'admission.link_student'
-  | 'school.manage_branding';
+  | 'school.manage_branding'
+  | 'library.view'
+  | 'library.catalog.manage'
+  | 'library.circulation.manage';
