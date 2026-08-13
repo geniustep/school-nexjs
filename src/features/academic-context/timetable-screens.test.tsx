@@ -41,6 +41,13 @@ vi.mock('@/features/auth/session-context', () => ({
   }),
 }));
 
+vi.mock('@/features/auth/admin-session-context', () => ({
+  useAdminSession: () => ({
+    activeAcademicYearId: 1,
+    academicYearError: null,
+  }),
+}));
+
 vi.mock('@/lib/permissions/permissions', () => ({
   hasPermission: () => true,
 }));
