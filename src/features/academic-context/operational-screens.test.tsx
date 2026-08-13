@@ -235,25 +235,32 @@ describe('Assignment form academic context', () => {
     expect(screen.getByText('academicContext.hints.ambiguousOfferings')).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/res\.lang|endpoints\.admin\.subjects/);
 
-    const confirm = screen.getByRole('button', {
-      name: 'admin.academicSetup.confirmAssignment',
-    });
-    await user.click(confirm);
-    expect(onCreate).not.toHaveBeenCalled();
+    const preview = screen.getByRole('button', {
+      name: 'admin.academicSetup.previewAssignment',
+    }) as HTMLButtonElement;
+    expect(preview.disabled).toBe(true);
 
     await user.click(screen.getByText('pick-eligible-teacher'));
-    await user.click(confirm);
+    expect(preview.disabled).toBe(true);
     expect(onCreate).not.toHaveBeenCalled();
 
     await user.selectOptions(offering, '100');
+    await waitFor(() => expect(preview.disabled).toBe(false));
+    await user.click(preview);
+
+    const confirm = await screen.findByRole('button', {
+      name: 'admin.academicSetup.confirmAssignment',
+    });
     await user.click(confirm);
-    expect(onCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        class_id: 40,
-        subject_id: 11,
-        teacher_id: 3,
-        teaching_offering_id: 100,
-      }),
+    await waitFor(() =>
+      expect(onCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          class_id: 40,
+          subject_id: 11,
+          teacher_id: 3,
+          teaching_offering_id: 100,
+        }),
+      ),
     );
   });
 
@@ -276,11 +283,16 @@ describe('Assignment form academic context', () => {
       />,
     );
     expect(screen.getByText('academicContext.hints.legacyMissingOffering')).toBeTruthy();
-    const save = await screen.findByRole('button', {
+    const preview = await screen.findByRole('button', {
+      name: 'admin.academicSetup.previewAssignment',
+    });
+    await waitFor(() => expect((preview as HTMLButtonElement).disabled).toBe(false));
+    await user.click(preview);
+
+    const confirm = await screen.findByRole('button', {
       name: 'admin.academicSetup.confirmAssignment',
     });
-    await waitFor(() => expect((save as HTMLButtonElement).disabled).toBe(false));
-    await user.click(save);
+    await user.click(confirm);
     await waitFor(() => expect(onUpdate).toHaveBeenCalled());
   });
 });
