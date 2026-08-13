@@ -2,7 +2,9 @@ name: Dependency Lock Refresh
 
 on:
   push:
-    branches: [dev]
+    branches:
+      - dev
+      - fix/dev-ci-targeted-tests-20260813
     paths:
       - .github/workflows/dependency-refresh.yml
   workflow_dispatch:
@@ -27,19 +29,20 @@ jobs:
 
       - name: Pin patched direct dependencies
         run: |
-          npm pkg set dependencies.next=15.5.23
+          npm pkg set dependencies.next=16.3.0
           npm pkg set devDependencies.vitest=3.2.7
 
       - name: Rebuild lockfile without lifecycle scripts
         run: npm install --package-lock-only --ignore-scripts
 
       - name: Apply non-breaking audit fixes to lockfile
-        run: npm audit fix --package-lock-only --ignore-scripts
+        run: npm audit fix --package-lock-only --ignore-scripts || true
 
-      - name: Record residual audit findings
-        run: npm audit --audit-level=high || true
+      - name: Verify no high or critical audit findings remain
+        run: npm audit --audit-level=high
 
       - name: Upload patched manifests
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-patched-manifests
