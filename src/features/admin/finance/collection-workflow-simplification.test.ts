@@ -25,7 +25,7 @@ describe('collection workflow simplification', () => {
 
   it('replaces Single payment in Arabic locale', () => {
     const label = normalizeInstallmentDisplayLabel('Registration — Single payment', 'ar');
-    expect(label).toContain('الدفعة الوحيدة');
+    expect(label).toContain('الأداء لمرة واحدة');
     expect(label).not.toMatch(/single payment/i);
   });
 
