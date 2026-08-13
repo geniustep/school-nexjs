@@ -174,11 +174,18 @@ describe('API contract + normalization', () => {
 });
 
 describe('workspaces and kanban', () => {
-  it('11-13. follow_up and awaiting use application_status kanban columns', () => {
-    const follow = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
-    expect(follow.query.workspace).toBe('follow_up');
-    expect(follow.query.application_status).toBeUndefined();
-    expect(follow.kanbanColumns).toEqual(['new', 'follow_up', 'in_assessment']);
+  it('11-13. status-nav uses application_status kanban columns', () => {
+    const all = buildAdmissionWorkspaceQuery(baseState({ statusFilter: '' }));
+    expect(all.query.workspace).toBeUndefined();
+    expect(all.query.application_status).toBeUndefined();
+    expect(all.kanbanColumns).toContain('new');
+    expect(all.kanbanColumns).toContain('accepted');
+    expect(all.kanbanColumns).toContain('ready_for_registration');
+
+    const follow = buildAdmissionWorkspaceQuery(baseState({ statusFilter: 'follow_up' }));
+    expect(follow.query.workspace).toBeUndefined();
+    expect(follow.query.application_status).toBe('follow_up');
+    expect(follow.kanbanColumns).toEqual(['follow_up']);
     expect(FOLLOW_UP_WORKSPACE_STATES).toEqual([
       'new',
       'follow_up',
@@ -186,15 +193,15 @@ describe('workspaces and kanban', () => {
     ]);
 
     const awaiting = buildAdmissionWorkspaceQuery(
-      baseState({ workspace: 'awaiting_decision' }),
+      baseState({ statusFilter: 'decision_pending' }),
     );
-    expect(awaiting.kanbanColumns).toEqual(['decision_pending', 'waitlisted']);
-    expect(awaiting.query.application_status).toBeUndefined();
+    expect(awaiting.kanbanColumns).toEqual(['decision_pending']);
+    expect(awaiting.query.application_status).toBe('decision_pending');
   });
 
   it('14-15. kanban extra query omits workspace and application_status', () => {
     const extra = buildKanbanWorkspaceExtraQuery(
-      baseState({ workspace: 'follow_up', followStage: 'new' }),
+      baseState({ statusFilter: 'follow_up' }),
     );
     expect(extra).not.toHaveProperty('workspace');
     expect(extra).not.toHaveProperty('processing_stage');
@@ -213,8 +220,9 @@ describe('workspaces and kanban', () => {
     const classes = FOLLOW_UP_WORKSPACE_STATES.map((s) => rawKanbanColumnClass(s));
     expect(new Set(classes).size).toBe(3);
     expect(isRawKanbanDropTarget('in_assessment')).toBe(true);
-    expect(isRawKanbanDropTarget('decision_pending')).toBe(false);
+    expect(isRawKanbanDropTarget('decision_pending')).toBe(true);
     expect(isRawKanbanDropTarget('follow_up')).toBe(true);
+    expect(isRawKanbanDropTarget('registered')).toBe(false);
     expect(
       evaluateManualStageChange(
         { processing_stage: 'new' },
@@ -229,14 +237,13 @@ describe('workspaces and kanban', () => {
     ).toBe(true);
   });
 
-  it('23-24. post_acceptance and closed table only', () => {
+  it('23-24. registered is table-only while rejected remains kanban-addressable', () => {
     expect(
-      buildAdmissionWorkspaceQuery(baseState({ workspace: 'post_acceptance' }))
-        .kanbanAllowed,
+      buildAdmissionWorkspaceQuery(baseState({ statusFilter: 'registered' })).kanbanAllowed,
     ).toBe(false);
     expect(
-      buildAdmissionWorkspaceQuery(baseState({ workspace: 'closed' })).kanbanAllowed,
-    ).toBe(false);
+      buildAdmissionWorkspaceQuery(baseState({ statusFilter: 'rejected' })).kanbanAllowed,
+    ).toBe(true);
   });
 });
 
