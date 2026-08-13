@@ -90,8 +90,19 @@ function slot(overrides: Partial<TimetableSlot> & { teaching_offering_id?: numbe
   };
 }
 
+function nullResource() {
+  return {
+    data: null,
+    loading: false,
+    error: null,
+    reload: vi.fn(),
+    meta: null,
+  };
+}
+
 function mockResources(slots: TimetableSlot[] = [slot()]) {
-  useAdminResource.mockImplementation((path: string) => {
+  useAdminResource.mockImplementation((path: string | null) => {
+    if (!path) return nullResource();
     if (path.includes('timetable') && !path.includes('slots')) {
       return {
         data: slots,
@@ -204,7 +215,8 @@ describe('Timetable Slot create (Requirement-equivalent Academic Context UX)', (
 
   it('clears subject and offering when class changes', async () => {
     const user = userEvent.setup();
-    useAdminResource.mockImplementation((path: string) => {
+    useAdminResource.mockImplementation((path: string | null) => {
+      if (!path) return nullResource();
       if (path.includes('timetable') && !path.includes('slots')) {
         return { data: [], loading: false, error: null, reload: vi.fn(), meta: null };
       }
@@ -278,7 +290,8 @@ describe('Timetable list filters', () => {
         subject: { id: 12, name: 'Science' },
       }),
     ]);
-    useAdminResource.mockImplementation((path: string) => {
+    useAdminResource.mockImplementation((path: string | null) => {
+      if (!path) return nullResource();
       if (path.includes('timetable') && !path.includes('slots')) {
         return {
           data: [
@@ -338,7 +351,8 @@ describe('Timetable list filters', () => {
 
   it('shows no-match empty state when filters exclude all slots', async () => {
     const user = userEvent.setup();
-    useAdminResource.mockImplementation((path: string) => {
+    useAdminResource.mockImplementation((path: string | null) => {
+      if (!path) return nullResource();
       if (path.includes('timetable') && !path.includes('slots')) {
         return { data: [slot()], loading: false, error: null, reload: vi.fn(), meta: null };
       }
