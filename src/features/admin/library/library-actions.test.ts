@@ -15,6 +15,7 @@ import {
   returnLibraryLoan,
   runLibraryCopyAction,
   toOdooDateTime,
+  updateLibraryCopy,
   updateLibraryTitle,
 } from './library-actions';
 
@@ -49,6 +50,24 @@ describe('physical library admin actions', () => {
     await createLibraryCopy({ titleId: 4, accession: ' A-1 ', barcode: ' B-1 ', shelf: ' R2 ' });
     expect(post).toHaveBeenCalledWith('/admin/library/copies', {
       title_id: 4, accession_code: 'A-1', barcode: 'B-1', shelf_location: 'R2',
+    });
+  });
+
+  it('edits only mutable physical copy fields and never patches state or immutable identity', async () => {
+    await updateLibraryCopy(88, { barcode: ' B-88 ', shelf: ' R4 ', policy: 'library_only', condition: 'worn' });
+    expect(patch).toHaveBeenCalledWith('/admin/library/copies/88', {
+      barcode: 'B-88', shelf_location: 'R4', circulation_policy: 'library_only', condition: 'worn',
+    });
+    const payload = patch.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(payload).not.toHaveProperty('state');
+    expect(payload).not.toHaveProperty('title_id');
+    expect(payload).not.toHaveProperty('accession_code');
+  });
+
+  it('clears optional copy barcode and shelf through explicit false values', async () => {
+    await updateLibraryCopy(88, { barcode: ' ', shelf: '', policy: 'loanable', condition: 'good' });
+    expect(patch).toHaveBeenCalledWith('/admin/library/copies/88', {
+      barcode: false, shelf_location: false, circulation_policy: 'loanable', condition: 'good',
     });
   });
 
