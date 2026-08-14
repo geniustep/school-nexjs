@@ -39,9 +39,9 @@ export function mergeUniqueLibraryCopies(...groups: LibraryCopyRow[][]): Library
 
 async function searchCopiesForTitles(titles: LibraryTitleRow[]): Promise<LibraryCopyRow[]> {
   const results = await Promise.all(
-    titles.slice(0, 8).map((title) => api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
+    titles.slice(0, 20).map((title) => api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
       page: 1,
-      page_size: 20,
+      page_size: 50,
       active: 1,
       title_id: title.id,
     })),
@@ -59,6 +59,7 @@ export function LibraryQuickCopyLookup({
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<LibraryCopyRow[]>([]);
+  const [matchedTitles, setMatchedTitles] = useState<LibraryTitleRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
@@ -75,10 +76,12 @@ export function LibraryQuickCopyLookup({
     setLoading(true);
     setError('');
     setSearched(true);
+    setResults([]);
+    setMatchedTitles([]);
 
     const directResult = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
       page: 1,
-      page_size: 20,
+      page_size: 50,
       active: 1,
       search: value,
     });
@@ -99,12 +102,15 @@ export function LibraryQuickCopyLookup({
 
     const titleResult = await api.get<LibraryTitleRow[]>(libraryEndpoints.titles, {
       page: 1,
-      page_size: 8,
+      page_size: 20,
       active: 1,
       search: value,
     });
     const titleRows = titleResult.success && Array.isArray(titleResult.data) ? titleResult.data : [];
+    setMatchedTitles(titleRows);
+
     const titleCopies = titleRows.length ? await searchCopiesForTitles(titleRows) : [];
+    const merged = mergeUniqueLibraryCopies(directRows, titleCopies);
     setLoading(false);
 
     if (!directResult.success && !titleResult.success) {
@@ -113,8 +119,11 @@ export function LibraryQuickCopyLookup({
       return;
     }
 
-    setResults(mergeUniqueLibraryCopies(directRows, titleCopies));
+    setResults(merged);
   }
+
+  const matchedTitleWithoutCopies = !loading && searched && matchedTitles.length > 0 && results.length === 0 && !error;
+  const noTitleOrCopyMatch = !loading && searched && matchedTitles.length === 0 && results.length === 0 && !error;
 
   return (
     <LibraryModal title="إعارة سريعة" onClose={onClose}>
@@ -138,13 +147,24 @@ export function LibraryQuickCopyLookup({
           </div>
         </div>
 
-        <p className="library-form-note">للباركود ورقم الجرد يبقى البحث فوريًا. ويمكنك أيضًا كتابة اسم الكتاب أو اسم المؤلف لعرض النسخ المرتبطة بالعناوين المطابقة.</p>
+        <p className="library-form-note">للباركود ورقم الجرد يبقى البحث فوريًا. ويمكنك أيضًا كتابة جزء من اسم الكتاب أو المؤلف.</p>
         {error ? <p className="library-form-error" role="alert">{error}</p> : null}
 
-        {!loading && searched && results.length === 0 && !error ? (
+        {matchedTitleWithoutCopies ? (
           <div className="state state--compact">
-            <div className="state__title">لم نجد نسخة أو كتابًا مطابقًا</div>
-            <div className="state__desc">تحقق من الباركود أو رقم الجرد، أو جرّب جزءًا من اسم الكتاب أو المؤلف.</div>
+            <div className="state__title">وجدنا الكتاب، لكن لا توجد له نسخة مادية مسجلة</div>
+            <div className="state__desc">
+              {matchedTitles.length === 1
+                ? `العنوان المطابق: ${matchedTitles[0].name}. أضف نسخة مادية أولًا لتصبح الإعارة ممكنة.`
+                : `وجدنا ${matchedTitles.length} عناوين مطابقة، لكنها لا تحتوي على نسخ مادية قابلة للاختيار.`}
+            </div>
+          </div>
+        ) : null}
+
+        {noTitleOrCopyMatch ? (
+          <div className="state state--compact">
+            <div className="state__title">لم نجد عنوانًا أو نسخة مطابقة</div>
+            <div className="state__desc">تحقق من الباركود أو رقم الجرد، أو جرّب جزءًا من اسم الكتاب أو اسم المؤلف.</div>
           </div>
         ) : null}
 
