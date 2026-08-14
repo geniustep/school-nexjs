@@ -9,10 +9,26 @@ export type Messages = typeof en;
 export const MESSAGES: Record<Locale, Messages> = { ar, en, fr, es };
 
 const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
-  ar: { 'nav.library': 'المكتبة' },
-  en: { 'nav.library': 'Library' },
-  fr: { 'nav.library': 'Bibliothèque' },
-  es: { 'nav.library': 'Biblioteca' },
+  ar: {
+    'nav.library': 'المكتبة',
+    'nav.entryRequirements': 'تجهيزات الدخول المدرسي',
+    'nav.curriculumRequirements': 'المقرر والتجهيزات',
+  },
+  en: {
+    'nav.library': 'Library',
+    'nav.entryRequirements': 'School entry requirements',
+    'nav.curriculumRequirements': 'Curriculum & requirements',
+  },
+  fr: {
+    'nav.library': 'Bibliothèque',
+    'nav.entryRequirements': 'Fournitures de rentrée',
+    'nav.curriculumRequirements': 'Programme et fournitures',
+  },
+  es: {
+    'nav.library': 'Biblioteca',
+    'nav.entryRequirements': 'Material escolar',
+    'nav.curriculumRequirements': 'Currículo y materiales',
+  },
 };
 
 export function getMessage(messages: Messages, key: string): string | undefined {
