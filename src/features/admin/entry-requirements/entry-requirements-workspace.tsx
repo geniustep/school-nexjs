@@ -24,8 +24,10 @@ import {
 } from '@/features/entry-requirements/entry-requirements-contract';
 import {
   approvedTeachingOfferings,
-  teachingOfferingSubjects,
+  enabledLevelSubjects,
   teachingOfferingsForSubject,
+  type LevelSubjectOptionRow,
+  type TeachingOfferingSubjectOption,
 } from '@/features/entry-requirements/entry-requirements-offering-options';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
@@ -39,6 +41,10 @@ type RefRow = {
   full_name?: string;
   code?: string;
   level_id?: number;
+};
+
+type SubjectOptionsPayload = {
+  reference_subjects?: LevelSubjectOptionRow[];
 };
 
 type BadgeTone = 'green' | 'red' | 'amber' | 'blue' | 'slate';
@@ -82,7 +88,9 @@ export function AdminEntryRequirementsWorkspace() {
   const [levels, setLevels] = useState<RefRow[]>([]);
   const [classes, setClasses] = useState<RefRow[]>([]);
   const [contextOfferings, setContextOfferings] = useState<TeachingOfferingChoice[]>([]);
+  const [levelSubjects, setLevelSubjects] = useState<TeachingOfferingSubjectOption[]>([]);
   const [offeringsLoading, setOfferingsLoading] = useState(false);
+  const [subjectsLoading, setSubjectsLoading] = useState(false);
 
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -145,27 +153,46 @@ export function AdminEntryRequirementsWorkspace() {
   useEffect(() => {
     if (!selected) {
       setContextOfferings([]);
+      setLevelSubjects([]);
       setOfferingsLoading(false);
+      setSubjectsLoading(false);
       return;
     }
 
     let cancelled = false;
     setOfferingsLoading(true);
-    void api.get<TeachingOfferingChoice[]>(entryRequirementEndpoints.admin.teachingOfferings, {
-      academic_year_id: selected.academic_year_id,
-      level_id: selected.level_id,
-      track_id: selected.track_id ?? undefined,
-      page: 1,
-      page_size: 80,
-    }).then((result) => {
+    setSubjectsLoading(true);
+    void Promise.all([
+      api.get<TeachingOfferingChoice[]>(entryRequirementEndpoints.admin.teachingOfferings, {
+        academic_year_id: selected.academic_year_id,
+        level_id: selected.level_id,
+        track_id: selected.track_id ?? undefined,
+        page: 1,
+        page_size: 80,
+      }),
+      api.get<SubjectOptionsPayload>(endpoints.admin.subjectsOptions, {
+        level_id: selected.level_id,
+        track_id: selected.track_id ?? undefined,
+        include_enabled: 1,
+      }),
+    ]).then(([offeringResult, subjectResult]) => {
       if (cancelled) return;
       setOfferingsLoading(false);
-      if (!result.success) {
+      setSubjectsLoading(false);
+
+      if (offeringResult.success) {
+        setContextOfferings(approvedTeachingOfferings(offeringResult.data));
+      } else {
         setContextOfferings([]);
-        setError(result.error.message);
-        return;
+        setError(offeringResult.error.message);
       }
-      setContextOfferings(approvedTeachingOfferings(result.data));
+
+      if (subjectResult.success) {
+        setLevelSubjects(enabledLevelSubjects(subjectResult.data.reference_subjects ?? []));
+      } else {
+        setLevelSubjects([]);
+        setError(subjectResult.error.message);
+      }
     });
 
     return () => {
@@ -281,7 +308,7 @@ export function AdminEntryRequirementsWorkspace() {
     setNotice('');
     setResolutionItemId(item.id);
     setResolutionSubject(
-      item.subject_id && teachingOfferingSubjects(contextOfferings).some((row) => row.id === item.subject_id)
+      item.subject_id && levelSubjects.some((row) => row.id === item.subject_id)
         ? String(item.subject_id)
         : '',
     );
@@ -361,10 +388,6 @@ export function AdminEntryRequirementsWorkspace() {
   const classesForLevel = useMemo(
     () => classes.filter((row) => !newLevel || !row.level_id || String(row.level_id) === newLevel),
     [classes, newLevel],
-  );
-  const offeringSubjects = useMemo(
-    () => teachingOfferingSubjects(contextOfferings),
-    [contextOfferings],
   );
   const itemOfferings = useMemo(
     () => teachingOfferingsForSubject(contextOfferings, itemSubject),
@@ -495,7 +518,7 @@ export function AdminEntryRequirementsWorkspace() {
         );
       },
     },
-  ], [canManage, editable, contextOfferings]);
+  ], [canManage, editable, levelSubjects]);
 
   const pageSubtitle = currentYear?.name
     ? `السنة الدراسية: ${currentYear.name}`
@@ -687,12 +710,12 @@ export function AdminEntryRequirementsWorkspace() {
                     tone="amber"
                     icon="!"
                     title={`${unresolvedCount} كتابًا يحتاج ربطه بالمقرر`}
-                    description="المواد المعروضة في الربط مأخوذة فقط من المقررات الفعلية لنفس السنة والمستوى، ولا يجري رقيم مطابقة تخمينية."
+                    description="المواد المعروضة مأخوذة من المواد المفعلة لنفس المستوى، ثم تُعرض المقررات المعتمدة للسنة والمادة المختارتين دون مطابقة تخمينية."
                   />
                 ) : null}
 
-                {offeringsLoading && editable ? (
-                  <InfoBanner title="جارٍ تحميل مقررات هذا المستوى…" />
+                {(offeringsLoading || subjectsLoading) && editable ? (
+                  <InfoBanner title="جارٍ تحميل مواد ومقررات هذا المستوى…" />
                 ) : null}
 
                 {addItemOpen && canManage && editable ? (
@@ -730,21 +753,24 @@ export function AdminEntryRequirementsWorkspace() {
                               className="select"
                               required
                               value={itemSubject}
-                              disabled={offeringsLoading}
+                              disabled={subjectsLoading}
                               onChange={(event) => {
                                 setItemSubject(event.target.value);
                                 setOfferingId('');
                               }}
                             >
                               <option value="">اختر مادة هذا المستوى</option>
-                              {offeringSubjects.map((subject) => (
+                              {levelSubjects.map((subject) => (
                                 <option key={subject.id} value={subject.id}>{subject.name}</option>
                               ))}
                             </select>
+                            {!subjectsLoading && levelSubjects.length === 0 ? (
+                              <span className={styles.muted}>لا توجد مواد مفعلة لهذا المستوى. راجع إعدادات مواد المستوى.</span>
+                            ) : null}
                           </label>
                           <label className={`field ${styles.fieldFull}`}>
                             المقرر المعتمد
-                            <select className="select" required value={offeringId} disabled={!itemSubject} onChange={(event) => setOfferingId(event.target.value)}>
+                            <select className="select" required value={offeringId} disabled={!itemSubject || offeringsLoading} onChange={(event) => setOfferingId(event.target.value)}>
                               <option value="">اختر المقرر</option>
                               {itemOfferings.map((offering) => (
                                 <option key={offering.id} value={offering.id}>
@@ -752,8 +778,8 @@ export function AdminEntryRequirementsWorkspace() {
                                 </option>
                               ))}
                             </select>
-                            {itemSubject && itemOfferings.length === 0 ? (
-                              <span className={styles.muted}>لا يوجد مرجع معتمد لهذه المادة في المستوى والسنة المحددين.</span>
+                            {itemSubject && !offeringsLoading && itemOfferings.length === 0 ? (
+                              <span className={styles.muted}>المادة مفعلة، لكن لا يوجد مقرر معتمد لها في السنة والمستوى المحددين.</span>
                             ) : null}
                           </label>
                         </>
@@ -798,7 +824,7 @@ export function AdminEntryRequirementsWorkspace() {
                   <div className={styles.editorPanel}>
                     <div className={styles.editorTitle}>
                       <strong>ربط «{resolvingItem.name}» بالمقرر</strong>
-                      <span className={styles.muted}>اختر من مواد ومراجع {selected.level || 'هذا المستوى'} فقط.</span>
+                      <span className={styles.muted}>اختر مادة مفعلة في {selected.level || 'هذا المستوى'}، ثم المقرر المعتمد إن وُجد.</span>
                     </div>
                     <div className={styles.formGrid}>
                       <label className="field">
@@ -806,24 +832,27 @@ export function AdminEntryRequirementsWorkspace() {
                         <select
                           className="select"
                           value={resolutionSubject}
-                          disabled={offeringsLoading || resolutionSaving}
+                          disabled={subjectsLoading || resolutionSaving}
                           onChange={(event) => {
                             setResolutionSubject(event.target.value);
                             setResolutionOfferingId('');
                           }}
                         >
                           <option value="">اختر مادة هذا المستوى</option>
-                          {offeringSubjects.map((subject) => (
+                          {levelSubjects.map((subject) => (
                             <option key={subject.id} value={subject.id}>{subject.name}</option>
                           ))}
                         </select>
+                        {!subjectsLoading && levelSubjects.length === 0 ? (
+                          <span className={styles.muted}>لا توجد مواد مفعلة لهذا المستوى. راجع إعدادات مواد المستوى.</span>
+                        ) : null}
                       </label>
                       <label className={`field ${styles.fieldFull}`}>
                         المقرر المعتمد
                         <select
                           className="select"
                           value={resolutionOfferingId}
-                          disabled={!resolutionSubject || resolutionSaving}
+                          disabled={!resolutionSubject || offeringsLoading || resolutionSaving}
                           onChange={(event) => setResolutionOfferingId(event.target.value)}
                         >
                           <option value="">اختر المقرر</option>
@@ -833,8 +862,8 @@ export function AdminEntryRequirementsWorkspace() {
                             </option>
                           ))}
                         </select>
-                        {resolutionSubject && resolutionOfferings.length === 0 ? (
-                          <span className={styles.muted}>لا يوجد مرجع معتمد لهذه المادة في هذا المستوى.</span>
+                        {resolutionSubject && !offeringsLoading && resolutionOfferings.length === 0 ? (
+                          <span className={styles.muted}>المادة مفعلة، لكن لا يوجد مقرر معتمد لها في هذه السنة والمستوى.</span>
                         ) : null}
                       </label>
                     </div>
