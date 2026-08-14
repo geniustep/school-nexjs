@@ -5,7 +5,7 @@
  * @design-status adopted
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { EmptyState, LoadingState } from '@/components/states/states';
 import { Pagination } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
@@ -39,6 +39,12 @@ import {
   type LibraryTab,
   type LibraryTitleRow,
 } from './library-contract';
+import {
+  buildLibraryViewSearch,
+  parseLibraryViewSearch,
+  type CatalogPolicyFilter,
+  type CopyStateFilter,
+} from './library-view-state';
 import { PhysicalCopyForm, type PhysicalCopyFormValues } from './physical-copy-form';
 import { LibraryQuickCopyLookup } from './quick-copy-lookup';
 import { LibraryReturnForm, type LibraryReturnValues } from './return-form';
@@ -47,14 +53,22 @@ import './library.css';
 
 const PAGE_SIZE = 50;
 
-type CatalogPolicyFilter = '' | 'loanable' | 'library_only';
-type CopyStateFilter = '' | 'available' | 'on_loan' | 'lost' | 'damaged' | 'repair' | 'withdrawn';
+type LibraryMetrics = {
+  titles: number | null;
+  available: number | null;
+  onLoan: number | null;
+  overdue: number | null;
+};
+
+type HistoryMode = 'push' | 'replace' | 'skip';
 
 const tabs: Array<{ key: LibraryTab; label: string }> = [
   { key: 'catalog', label: 'الفهرس' },
   { key: 'copies', label: 'النسخ المادية' },
   { key: 'circulation', label: 'الإعارات' },
 ];
+
+const initialMetrics: LibraryMetrics = { titles: null, available: null, onLoan: null, overdue: null };
 
 export function LibraryWorkspace() {
   const user = useSession();
@@ -67,6 +81,9 @@ export function LibraryWorkspace() {
   const [copyState, setCopyState] = useState<CopyStateFilter>('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [urlReady, setUrlReady] = useState(false);
+  const historyModeRef = useRef<HistoryMode>('skip');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -74,6 +91,9 @@ export function LibraryWorkspace() {
   const [titles, setTitles] = useState<LibraryTitleRow[]>([]);
   const [copies, setCopies] = useState<LibraryCopyRow[]>([]);
   const [loans, setLoans] = useState<LibraryCirculationRow[]>([]);
+  const [metrics, setMetrics] = useState<LibraryMetrics>(initialMetrics);
+  const [metricsLoading, setMetricsLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const [titleForm, setTitleForm] = useState<'new' | LibraryTitleRow | null>(null);
   const [copyFormOpen, setCopyFormOpen] = useState(false);
@@ -81,6 +101,7 @@ export function LibraryWorkspace() {
   const [openingCopyForm, setOpeningCopyForm] = useState(false);
   const [editCopy, setEditCopy] = useState<LibraryCopyRow | null>(null);
   const [quickLookupOpen, setQuickLookupOpen] = useState(false);
+  const [quickCheckoutFlow, setQuickCheckoutFlow] = useState(false);
   const [checkoutCopy, setCheckoutCopy] = useState<LibraryCopyRow | null>(null);
   const [returnLoan, setReturnLoan] = useState<LibraryCirculationRow | null>(null);
 
@@ -89,6 +110,46 @@ export function LibraryWorkspace() {
   const initialLoading = loading && currentRowsCount === 0;
   const refetching = loading && currentRowsCount > 0;
   const hasActiveFilters = Boolean(query.trim()) || (tab === 'catalog' && Boolean(catalogPolicy)) || (tab === 'copies' && Boolean(copyState)) || (tab === 'circulation' && circulationFilter !== 'checked_out');
+
+  const applyLocationState = useCallback(() => {
+    const next = parseLibraryViewSearch(window.location.search);
+    historyModeRef.current = 'skip';
+    setTab(next.tab);
+    setCirculationFilter(next.circulationFilter);
+    setCatalogPolicy(next.catalogPolicy);
+    setCopyState(next.copyState);
+    setQuery(next.query);
+    setPage(next.page);
+    setUrlReady(true);
+  }, []);
+
+  useEffect(() => {
+    applyLocationState();
+    const onPopState = () => applyLocationState();
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [applyLocationState]);
+
+  useEffect(() => {
+    if (!urlReady) return;
+    const search = buildLibraryViewSearch({ tab, circulationFilter, catalogPolicy, copyState, query, page });
+    const target = `${window.location.pathname}${search ? `?${search}` : ''}`;
+    const current = `${window.location.pathname}${window.location.search}`;
+    const mode = historyModeRef.current;
+    if (mode === 'skip') {
+      historyModeRef.current = 'replace';
+      return;
+    }
+    if (target !== current) {
+      if (mode === 'push') window.history.pushState(null, '', target);
+      else window.history.replaceState(null, '', target);
+    }
+    historyModeRef.current = 'replace';
+  }, [catalogPolicy, circulationFilter, copyState, page, query, tab, urlReady]);
+
+  function markHistoryPush() {
+    if (urlReady) historyModeRef.current = 'push';
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -100,7 +161,7 @@ export function LibraryWorkspace() {
         active: 1,
         policy: catalogPolicy || undefined,
       });
-      if (!result.success) { setError(libraryErrorMessage(result)); }
+      if (!result.success) setError(libraryErrorMessage(result));
       else { setTitles(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     } else if (tab === 'copies') {
       const result = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
@@ -108,20 +169,49 @@ export function LibraryWorkspace() {
         active: 1,
         state: copyState || undefined,
       });
-      if (!result.success) { setError(libraryErrorMessage(result)); }
+      if (!result.success) setError(libraryErrorMessage(result));
       else { setCopies(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     } else {
       const circulationQuery = circulationFilter === 'overdue'
         ? { ...common, overdue: 1 }
         : { ...common, state: circulationFilter };
       const result = await api.get<LibraryCirculationRow[]>(libraryEndpoints.circulations, circulationQuery);
-      if (!result.success) { setError(libraryErrorMessage(result)); }
+      if (!result.success) setError(libraryErrorMessage(result));
       else { setLoans(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     }
     setLoading(false);
   }, [catalogPolicy, circulationFilter, copyState, page, query, tab]);
 
-  useEffect(() => { void load(); }, [load]);
+  const loadMetrics = useCallback(async () => {
+    setMetricsLoading(true);
+    const [titleResult, availableResult, onLoanResult, overdueResult] = await Promise.all([
+      api.get<LibraryTitleRow[]>(libraryEndpoints.titles, { page: 1, page_size: 1, active: 1 }),
+      api.get<LibraryCopyRow[]>(libraryEndpoints.copies, { page: 1, page_size: 1, active: 1, state: 'available' }),
+      api.get<LibraryCopyRow[]>(libraryEndpoints.copies, { page: 1, page_size: 1, active: 1, state: 'on_loan' }),
+      api.get<LibraryCirculationRow[]>(libraryEndpoints.circulations, { page: 1, page_size: 1, overdue: 1 }),
+    ]);
+    setMetrics((current) => ({
+      titles: titleResult.success ? libraryResponseTotal(titleResult, titleResult.data.length) : current.titles,
+      available: availableResult.success ? libraryResponseTotal(availableResult, availableResult.data.length) : current.available,
+      onLoan: onLoanResult.success ? libraryResponseTotal(onLoanResult, onLoanResult.data.length) : current.onLoan,
+      overdue: overdueResult.success ? libraryResponseTotal(overdueResult, overdueResult.data.length) : current.overdue,
+    }));
+    setMetricsLoading(false);
+  }, []);
+
+  useEffect(() => { if (urlReady) void load(); }, [load, urlReady]);
+  useEffect(() => { void loadMetrics(); }, [loadMetrics]);
+
+  useEffect(() => {
+    if (!loading && total > 0 && page > totalPages) {
+      historyModeRef.current = 'replace';
+      setPage(totalPages);
+    }
+  }, [loading, page, total, totalPages]);
+
+  async function refreshAll() {
+    await Promise.all([load(), loadMetrics()]);
+  }
 
   function showMutationError<T>(result: Awaited<ReturnType<typeof api.post<T>>>): boolean {
     if (result.success) return false;
@@ -140,18 +230,26 @@ export function LibraryWorkspace() {
     const wasNew = titleForm === 'new';
     setTitleForm(null);
     setNotice(wasNew ? 'تمت إضافة العنوان.' : 'تم حفظ تعديلات العنوان.');
-    await load();
+    await refreshAll();
   }
 
   async function archiveTitle(row: LibraryTitleRow) {
+    if (pendingAction) return;
     if (!window.confirm(`أرشفة «${row.name}»؟`)) return;
-    const result = await archiveLibraryTitle(row.id);
-    if (showMutationError(result)) return;
-    setNotice('تمت أرشفة العنوان.');
-    await load();
+    const actionKey = `title:${row.id}:archive`;
+    setPendingAction(actionKey);
+    try {
+      const result = await archiveLibraryTitle(row.id);
+      if (showMutationError(result)) return;
+      setNotice('تمت أرشفة العنوان.');
+      await refreshAll();
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   async function openCopyForm() {
+    if (openingCopyForm) return;
     setOpeningCopyForm(true);
     setError('');
     const result = await api.get<LibraryTitleRow[]>(libraryEndpoints.titles, { page: 1, page_size: 200, active: 1 });
@@ -170,7 +268,7 @@ export function LibraryWorkspace() {
     if (showMutationError(result)) return;
     setCopyFormOpen(false);
     setNotice('تمت إضافة النسخة المادية.');
-    await load();
+    await refreshAll();
   }
 
   async function submitCopyEdit(values: LibraryCopyEditValues) {
@@ -179,24 +277,34 @@ export function LibraryWorkspace() {
     if (showMutationError(result)) return;
     setEditCopy(null);
     setNotice('تم حفظ تعديلات النسخة.');
-    await load();
+    await refreshAll();
   }
 
   async function runCopyLifecycle(copy: LibraryCopyRow, action: LibraryCopyAction) {
+    if (pendingAction) return;
     if (!window.confirm(`${libraryCopyActionLabel[action]} للنسخة ${copy.accession}؟`)) return;
-    const result = await runLibraryCopyAction(copy.id, action);
-    if (showMutationError(result)) return;
-    setNotice('تم تحديث حالة النسخة.');
-    await load();
+    const actionKey = `copy:${copy.id}:${action}`;
+    setPendingAction(actionKey);
+    try {
+      const result = await runLibraryCopyAction(copy.id, action);
+      if (showMutationError(result)) return;
+      setNotice('تم تحديث حالة النسخة.');
+      await refreshAll();
+    } finally {
+      setPendingAction(null);
+    }
   }
 
   async function submitCheckout(values: LibraryCheckoutValues) {
     if (!checkoutCopy) return;
+    const continueQuick = quickCheckoutFlow;
     const result = await checkoutLibraryStudent(checkoutCopy.id, values);
     if (showMutationError(result)) return;
     setCheckoutCopy(null);
-    setNotice('تمت إعارة النسخة بنجاح.');
-    await load();
+    setQuickCheckoutFlow(false);
+    setNotice(continueQuick ? 'تمت الإعارة. امسح النسخة التالية.' : 'تمت إعارة النسخة بنجاح.');
+    if (continueQuick) setQuickLookupOpen(true);
+    await refreshAll();
   }
 
   async function submitReturn(values: LibraryReturnValues) {
@@ -205,10 +313,11 @@ export function LibraryWorkspace() {
     if (showMutationError(result)) return;
     setReturnLoan(null);
     setNotice('تم استرجاع النسخة بنجاح.');
-    await load();
+    await refreshAll();
   }
 
   function resetFilters() {
+    markHistoryPush();
     setQuery('');
     setCatalogPolicy('');
     setCopyState('');
@@ -217,6 +326,7 @@ export function LibraryWorkspace() {
   }
 
   function selectTab(nextTab: LibraryTab) {
+    markHistoryPush();
     setTab(nextTab);
     setQuery('');
     setPage(1);
@@ -224,8 +334,35 @@ export function LibraryWorkspace() {
     setError('');
   }
 
+  function selectMetric(metric: 'titles' | 'available' | 'onLoan' | 'overdue') {
+    markHistoryPush();
+    setQuery('');
+    setPage(1);
+    setNotice('');
+    setError('');
+    if (metric === 'titles') {
+      setTab('catalog');
+      setCatalogPolicy('');
+    } else if (metric === 'available') {
+      setTab('copies');
+      setCopyState('available');
+    } else if (metric === 'onLoan') {
+      setTab('copies');
+      setCopyState('on_loan');
+    } else {
+      setTab('circulation');
+      setCirculationFilter('overdue');
+    }
+  }
+
   function selectQuickCheckoutCopy(copy: LibraryCopyRow) {
     setQuickLookupOpen(false);
+    setQuickCheckoutFlow(true);
+    setCheckoutCopy(copy);
+  }
+
+  function selectRegularCheckoutCopy(copy: LibraryCopyRow) {
+    setQuickCheckoutFlow(false);
     setCheckoutCopy(copy);
   }
 
@@ -248,6 +385,36 @@ export function LibraryWorkspace() {
       ? 'ابحث برقم الجرد، الباركود أو الكتاب'
       : 'ابحث عن كتاب أو مستعير';
 
+  const emptyTitle = hasActiveFilters
+    ? 'لا توجد نتائج مطابقة'
+    : tab === 'catalog'
+      ? 'لا توجد عناوين في المكتبة بعد'
+      : tab === 'copies'
+        ? 'لا توجد نسخ مادية بعد'
+        : circulationFilter === 'overdue'
+          ? 'لا توجد إعارات متأخرة'
+          : circulationFilter === 'returned'
+            ? 'لا توجد إعارات مُعادة في هذه النتائج'
+            : 'لا توجد إعارات نشطة';
+
+  const emptyDescription = hasActiveFilters
+    ? 'غيّر البحث أو الفلاتر لعرض نتائج أخرى.'
+    : circulationFilter === 'overdue' && tab === 'circulation'
+      ? 'جميع الإعارات الحالية ضمن مواعيدها.'
+      : tab === 'catalog'
+        ? 'ابدأ بإضافة أول عنوان ثم أضف نسخه المادية.'
+        : tab === 'copies'
+          ? 'أضف نسخة مرتبطة بعنوان موجود في الفهرس.'
+          : undefined;
+
+  const emptyAction = hasActiveFilters ? (
+    <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>مسح الفلاتر</button>
+  ) : tab === 'catalog' && canCatalog ? (
+    <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة أول عنوان</button>
+  ) : tab === 'copies' && canCatalog ? (
+    <button type="button" className="btn btn--primary btn--sm" disabled={openingCopyForm} onClick={() => void openCopyForm()}>إضافة نسخة</button>
+  ) : undefined;
+
   return (
     <div className="admin-workspace library-workspace">
       <PageHeader
@@ -255,6 +422,29 @@ export function LibraryWorkspace() {
         subtitle="إدارة الكتب والنسخ والإعارات."
         actions={headerActions}
       />
+
+      <div className="library-metrics" aria-label="ملخص المكتبة">
+        <button type="button" className="library-metric" onClick={() => selectMetric('titles')}>
+          <span className="library-metric__label">العناوين</span>
+          <strong>{metrics.titles ?? (metricsLoading ? '…' : '—')}</strong>
+          <span className="library-metric__hint">فتح الفهرس</span>
+        </button>
+        <button type="button" className="library-metric" onClick={() => selectMetric('available')}>
+          <span className="library-metric__label">النسخ المتاحة</span>
+          <strong>{metrics.available ?? (metricsLoading ? '…' : '—')}</strong>
+          <span className="library-metric__hint">عرض المتاحة</span>
+        </button>
+        <button type="button" className="library-metric" onClick={() => selectMetric('onLoan')}>
+          <span className="library-metric__label">المعارة</span>
+          <strong>{metrics.onLoan ?? (metricsLoading ? '…' : '—')}</strong>
+          <span className="library-metric__hint">عرض المعارة</span>
+        </button>
+        <button type="button" className="library-metric library-metric--attention" onClick={() => selectMetric('overdue')}>
+          <span className="library-metric__label">المتأخرة</span>
+          <strong>{metrics.overdue ?? (metricsLoading ? '…' : '—')}</strong>
+          <span className="library-metric__hint">فتح المتأخرات</span>
+        </button>
+      </div>
 
       <div className="library-tabs" role="tablist" aria-label="أقسام المكتبة">
         {tabs.map((item) => (
@@ -278,20 +468,20 @@ export function LibraryWorkspace() {
             className="input"
             dir="auto"
             value={query}
-            onChange={(event) => { setQuery(event.target.value); setPage(1); }}
+            onChange={(event) => { historyModeRef.current = 'replace'; setQuery(event.target.value); setPage(1); }}
             placeholder={searchPlaceholder}
             aria-label="بحث"
           />
         </div>
         {tab === 'catalog' ? (
-          <select className="select library-toolbar__select" aria-label="سياسة الإعارة" value={catalogPolicy} onChange={(event) => { setCatalogPolicy(event.target.value as CatalogPolicyFilter); setPage(1); }}>
+          <select className="select library-toolbar__select" aria-label="سياسة الإعارة" value={catalogPolicy} onChange={(event) => { markHistoryPush(); setCatalogPolicy(event.target.value as CatalogPolicyFilter); setPage(1); }}>
             <option value="">كل سياسات الإعارة</option>
             <option value="loanable">قابلة للإعارة</option>
             <option value="library_only">داخل المكتبة فقط</option>
           </select>
         ) : null}
         {tab === 'copies' ? (
-          <select className="select library-toolbar__select" aria-label="حالة النسخة" value={copyState} onChange={(event) => { setCopyState(event.target.value as CopyStateFilter); setPage(1); }}>
+          <select className="select library-toolbar__select" aria-label="حالة النسخة" value={copyState} onChange={(event) => { markHistoryPush(); setCopyState(event.target.value as CopyStateFilter); setPage(1); }}>
             <option value="">كل الحالات</option>
             <option value="available">متاحة</option>
             <option value="on_loan">معارة</option>
@@ -302,7 +492,7 @@ export function LibraryWorkspace() {
           </select>
         ) : null}
         {tab === 'circulation' ? (
-          <select className="select library-toolbar__select" aria-label="حالة الإعارة" value={circulationFilter} onChange={(event) => { setCirculationFilter(event.target.value as LibraryCirculationFilter); setPage(1); }}>
+          <select className="select library-toolbar__select" aria-label="حالة الإعارة" value={circulationFilter} onChange={(event) => { markHistoryPush(); setCirculationFilter(event.target.value as LibraryCirculationFilter); setPage(1); }}>
             <option value="checked_out">النشطة</option>
             <option value="overdue">المتأخرة</option>
             <option value="returned">المُعادة</option>
@@ -313,7 +503,12 @@ export function LibraryWorkspace() {
       </div>
 
       {notice ? <div className="library-feedback library-feedback--success" role="status">✓ {notice}</div> : null}
-      {error ? <div className="library-feedback library-feedback--error" role="alert">! {error}</div> : null}
+      {error ? (
+        <div className="library-feedback library-feedback--error" role="alert">
+          <span>! {error}</span>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => { void load(); void loadMetrics(); }}>إعادة المحاولة</button>
+        </div>
+      ) : null}
       {refetching ? <p className="library-fetching-hint" aria-live="polite">جارٍ تحديث النتائج…</p> : null}
 
       {initialLoading ? (
@@ -321,20 +516,20 @@ export function LibraryWorkspace() {
       ) : currentRowsCount === 0 && !error ? (
         <EmptyState
           icon={hasActiveFilters ? '⌕' : '📚'}
-          title={hasActiveFilters ? 'لا توجد نتائج مطابقة' : tab === 'circulation' ? 'لا توجد إعارات في هذه الحالة' : 'لا توجد بيانات في هذا القسم بعد'}
-          description={hasActiveFilters ? 'غيّر البحث أو الفلاتر لعرض نتائج أخرى.' : undefined}
-          action={hasActiveFilters ? <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>مسح الفلاتر</button> : undefined}
+          title={emptyTitle}
+          description={emptyDescription}
+          action={emptyAction}
         />
       ) : (
         <div className={refetching ? 'library-results library-results--fetching' : 'library-results'} aria-busy={refetching || undefined}>
           {tab === 'catalog' ? (
-            <LibraryCatalogTable rows={titles} onEdit={(row) => setTitleForm(row)} onArchive={(row) => void archiveTitle(row)} />
+            <LibraryCatalogTable rows={titles} pendingAction={pendingAction} onEdit={(row) => setTitleForm(row)} onArchive={(row) => void archiveTitle(row)} />
           ) : tab === 'copies' ? (
-            <LibraryCopiesTable rows={copies} canCirculation={canCirculation} onEdit={setEditCopy} onCheckout={setCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
+            <LibraryCopiesTable rows={copies} canCirculation={canCirculation} pendingAction={pendingAction} onEdit={setEditCopy} onCheckout={selectRegularCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
           ) : (
             <LibraryCirculationsTable rows={loans} canAct={canCirculation} onAction={setReturnLoan} />
           )}
-          <Pagination page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} onPage={setPage} />
+          <Pagination page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} onPage={(nextPage) => { markHistoryPush(); setPage(nextPage); }} />
         </div>
       )}
 
@@ -342,7 +537,7 @@ export function LibraryWorkspace() {
       {copyFormOpen ? <PhysicalCopyForm titles={copyFormTitles} loadError="" onClose={() => setCopyFormOpen(false)} onSubmit={submitCopy} /> : null}
       {editCopy ? <LibraryCopyEditForm copy={editCopy} onClose={() => setEditCopy(null)} onSubmit={submitCopyEdit} /> : null}
       {quickLookupOpen ? <LibraryQuickCopyLookup onClose={() => setQuickLookupOpen(false)} onSelect={selectQuickCheckoutCopy} /> : null}
-      {checkoutCopy ? <LibraryCirculationCreateForm copy={checkoutCopy} onClose={() => setCheckoutCopy(null)} onSubmit={submitCheckout} /> : null}
+      {checkoutCopy ? <LibraryCirculationCreateForm copy={checkoutCopy} onClose={() => { setCheckoutCopy(null); setQuickCheckoutFlow(false); }} onSubmit={submitCheckout} /> : null}
       {returnLoan ? <LibraryReturnForm loan={returnLoan} onClose={() => setReturnLoan(null)} onSubmit={submitReturn} /> : null}
     </div>
   );

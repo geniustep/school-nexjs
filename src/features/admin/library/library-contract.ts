@@ -1,4 +1,7 @@
+import { libraryEndpoints } from '@/lib/api/library-endpoints';
 import type { ApiResponse } from '@/types/api';
+
+export { libraryEndpoints };
 
 export type LibraryTab = 'catalog' | 'copies' | 'circulation';
 export type LibraryCirculationFilter = 'checked_out' | 'overdue' | 'returned';
@@ -46,19 +49,6 @@ export type LibraryCirculationRow = {
   allowed_actions?: LibraryAllowedActions | null;
 };
 
-export const libraryEndpoints = {
-  titles: '/admin/library/titles',
-  title: (id: number) => `/admin/library/titles/${id}`,
-  copies: '/admin/library/copies',
-  copy: (id: number) => `/admin/library/copies/${id}`,
-  circulations: '/admin/library/circulations',
-  circulation: (id: number) => `/admin/library/circulations/${id}`,
-  archiveTitle: (id: number) => `/admin/library/titles/${id}/archive`,
-  copyAction: (id: number, action: string) => `/admin/library/copies/${id}/${action}`,
-  checkout: (id: number) => `/admin/library/copies/${id}/checkout`,
-  returnLoan: (id: number) => `/admin/library/circulations/${id}/return`,
-} as const;
-
 export const libraryStateLabel: Record<string, string> = {
   available: 'متاحة',
   on_loan: 'معارة',
@@ -68,6 +58,13 @@ export const libraryStateLabel: Record<string, string> = {
   withdrawn: 'مسحوبة',
   checked_out: 'نشطة',
   returned: 'مُعادة',
+};
+
+export const libraryConditionLabel: Record<LibraryCopyCondition, string> = {
+  new: 'جديدة',
+  good: 'جيدة',
+  worn: 'مستعملة',
+  damaged: 'متضررة',
 };
 
 export const libraryCopyActionLabel: Record<LibraryCopyAction, string> = {
@@ -105,6 +102,17 @@ export function libraryActionAllowed(
   action: string,
 ): boolean {
   return Boolean(actions?.[action]);
+}
+
+export function libraryCheckoutBlockedReason(copy: LibraryCopyRow): string | null {
+  if (libraryActionAllowed(copy.allowed_actions, 'checkout')) return null;
+  if (copy.circulation_policy === 'library_only') return 'هذه النسخة للاستعمال داخل المكتبة فقط.';
+  if (copy.state === 'on_loan') return 'هذه النسخة معارة حاليًا.';
+  if (copy.state === 'lost') return 'هذه النسخة مسجلة كمفقودة.';
+  if (copy.state === 'damaged') return 'هذه النسخة متضررة وغير متاحة للإعارة.';
+  if (copy.state === 'repair') return 'هذه النسخة قيد الإصلاح.';
+  if (copy.state === 'withdrawn') return 'هذه النسخة مسحوبة من التداول.';
+  return 'هذه النسخة غير متاحة للإعارة حاليًا.';
 }
 
 export function libraryErrorMessage<T>(result: ApiResponse<T>): string {
