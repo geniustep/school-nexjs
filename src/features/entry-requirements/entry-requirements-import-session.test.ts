@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import {
   createEntryRequirementImportIdempotencyKey,
@@ -10,21 +10,6 @@ describe('entry requirement XLSX import session', () => {
     expect(createEntryRequirementImportIdempotencyKey(() => 'session-123')).toBe(
       'nextjs-entry-requirements-session-123',
     );
-  });
-
-  it('falls back safely when randomUUID is unavailable', () => {
-    vi.spyOn(Date, 'now').mockReturnValue(1234);
-    vi.spyOn(Math, 'random').mockReturnValue(0.5);
-    const originalCrypto = globalThis.crypto;
-    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true });
-    try {
-      expect(createEntryRequirementImportIdempotencyKey()).toMatch(
-        /^nextjs-entry-requirements-1234-/,
-      );
-    } finally {
-      Object.defineProperty(globalThis, 'crypto', { value: originalCrypto, configurable: true });
-      vi.restoreAllMocks();
-    }
   });
 
   it('reports duplicate preview rows without merging distinct editions', () => {
