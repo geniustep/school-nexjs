@@ -11,6 +11,7 @@ import {
   libraryErrorMessage,
   libraryStateLabel,
   type LibraryCopyRow,
+  type LibraryTitleRow,
 } from './library-contract';
 import { LibraryModal } from './library-ui';
 
@@ -21,6 +22,31 @@ function normalized(value: string | null | undefined): string {
 export function isExactLibraryCopyIdentifierMatch(copy: LibraryCopyRow, query: string): boolean {
   const needle = normalized(query);
   return normalized(copy.accession) === needle || normalized(copy.barcode) === needle;
+}
+
+export function mergeUniqueLibraryCopies(...groups: LibraryCopyRow[][]): LibraryCopyRow[] {
+  const seen = new Set<number>();
+  const rows: LibraryCopyRow[] = [];
+  for (const group of groups) {
+    for (const copy of group) {
+      if (seen.has(copy.id)) continue;
+      seen.add(copy.id);
+      rows.push(copy);
+    }
+  }
+  return rows;
+}
+
+async function searchCopiesForTitles(titles: LibraryTitleRow[]): Promise<LibraryCopyRow[]> {
+  const results = await Promise.all(
+    titles.slice(0, 8).map((title) => api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
+      page: 1,
+      page_size: 20,
+      active: 1,
+      title_id: title.id,
+    })),
+  );
+  return results.flatMap((result) => result.success && Array.isArray(result.data) ? result.data : []);
 }
 
 export function LibraryQuickCopyLookup({
@@ -49,35 +75,52 @@ export function LibraryQuickCopyLookup({
     setLoading(true);
     setError('');
     setSearched(true);
-    const result = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
+
+    const directResult = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
       page: 1,
-      page_size: 10,
+      page_size: 20,
       active: 1,
       search: value,
     });
-    setLoading(false);
 
-    if (!result.success) {
-      setResults([]);
-      setError(libraryErrorMessage(result));
-      return;
-    }
-
-    const rows = Array.isArray(result.data) ? result.data : [];
-    const exact = rows.filter((copy) => isExactLibraryCopyIdentifierMatch(copy, value));
+    const directRows = directResult.success && Array.isArray(directResult.data) ? directResult.data : [];
+    const exact = directRows.filter((copy) => isExactLibraryCopyIdentifierMatch(copy, value));
     const exactCheckout = exact.filter((copy) => libraryActionAllowed(copy.allowed_actions, 'checkout'));
     if (exactCheckout.length === 1) {
+      setLoading(false);
       onSelect(exactCheckout[0]);
       return;
     }
-    setResults(exact.length > 0 ? exact : rows);
+    if (exact.length > 0) {
+      setLoading(false);
+      setResults(exact);
+      return;
+    }
+
+    const titleResult = await api.get<LibraryTitleRow[]>(libraryEndpoints.titles, {
+      page: 1,
+      page_size: 8,
+      active: 1,
+      search: value,
+    });
+    const titleRows = titleResult.success && Array.isArray(titleResult.data) ? titleResult.data : [];
+    const titleCopies = titleRows.length ? await searchCopiesForTitles(titleRows) : [];
+    setLoading(false);
+
+    if (!directResult.success && !titleResult.success) {
+      setResults([]);
+      setError(libraryErrorMessage(directResult));
+      return;
+    }
+
+    setResults(mergeUniqueLibraryCopies(directRows, titleCopies));
   }
 
   return (
     <LibraryModal title="إعارة سريعة" onClose={onClose}>
       <form className="form-stack" onSubmit={search}>
         <div className="field">
-          <label htmlFor="library-quick-copy">الباركود أو رقم الجرد</label>
+          <label htmlFor="library-quick-copy">الباركود، رقم الجرد، اسم الكتاب أو المؤلف</label>
           <div className="library-quick-search">
             <input
               ref={inputRef}
@@ -87,7 +130,7 @@ export function LibraryQuickCopyLookup({
               dir="auto"
               autoComplete="off"
               enterKeyHint="search"
-              placeholder="امسح الباركود أو اكتب رقم الجرد"
+              placeholder="امسح الباركود أو ابحث بالكتاب أو المؤلف"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -95,13 +138,13 @@ export function LibraryQuickCopyLookup({
           </div>
         </div>
 
-        <p className="library-form-note">قارئ الباركود USB يعمل مباشرة: امسح الرمز ثم Enter. بعد إتمام إعارة سريعة ستعود الخانة جاهزة للنسخة التالية.</p>
+        <p className="library-form-note">للباركود ورقم الجرد يبقى البحث فوريًا. ويمكنك أيضًا كتابة اسم الكتاب أو اسم المؤلف لعرض النسخ المرتبطة بالعناوين المطابقة.</p>
         {error ? <p className="library-form-error" role="alert">{error}</p> : null}
 
         {!loading && searched && results.length === 0 && !error ? (
           <div className="state state--compact">
-            <div className="state__title">لم نجد باركودًا أو رقم جرد مطابقًا</div>
-            <div className="state__desc">تحقق من الرمز ثم أعد المحاولة.</div>
+            <div className="state__title">لم نجد نسخة أو كتابًا مطابقًا</div>
+            <div className="state__desc">تحقق من الباركود أو رقم الجرد، أو جرّب جزءًا من اسم الكتاب أو المؤلف.</div>
           </div>
         ) : null}
 
