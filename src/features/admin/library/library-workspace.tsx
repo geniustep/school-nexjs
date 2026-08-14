@@ -20,6 +20,7 @@ import { LibraryCopyEditForm, type LibraryCopyEditValues } from './copy-edit-for
 import {
   archiveLibraryTitle,
   checkoutLibraryStudent,
+  createGeneratedLibraryCopies,
   createLibraryCopy,
   createLibraryTitle,
   returnLibraryLoan,
@@ -111,7 +112,10 @@ export function LibraryWorkspace() {
   const currentRowsCount = tab === 'catalog' ? titles.length : tab === 'copies' ? copies.length : loans.length;
   const initialLoading = loading && currentRowsCount === 0;
   const refetching = loading && currentRowsCount > 0;
-  const hasActiveFilters = Boolean(query.trim()) || (tab === 'catalog' && Boolean(catalogPolicy)) || (tab === 'copies' && Boolean(copyState)) || (tab === 'circulation' && circulationFilter !== 'checked_out');
+  const hasActiveFilters = Boolean(query.trim())
+    || (tab === 'catalog' && Boolean(catalogPolicy))
+    || (tab === 'copies' && Boolean(copyState))
+    || (tab === 'circulation' && circulationFilter !== 'checked_out');
 
   const applyLocationState = useCallback(() => {
     const next = parseLibraryViewSearch(window.location.search);
@@ -164,7 +168,10 @@ export function LibraryWorkspace() {
         policy: catalogPolicy || undefined,
       });
       if (!result.success) setError(libraryErrorMessage(result));
-      else { setTitles(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
+      else {
+        setTitles(result.data);
+        setTotal(libraryResponseTotal(result, result.data.length));
+      }
     } else if (tab === 'copies') {
       const result = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
         ...common,
@@ -172,14 +179,20 @@ export function LibraryWorkspace() {
         state: copyState || undefined,
       });
       if (!result.success) setError(libraryErrorMessage(result));
-      else { setCopies(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
+      else {
+        setCopies(result.data);
+        setTotal(libraryResponseTotal(result, result.data.length));
+      }
     } else {
       const circulationQuery = circulationFilter === 'overdue'
         ? { ...common, overdue: 1 }
         : { ...common, state: circulationFilter };
       const result = await api.get<LibraryCirculationRow[]>(libraryEndpoints.circulations, circulationQuery);
       if (!result.success) setError(libraryErrorMessage(result));
-      else { setLoans(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
+      else {
+        setLoans(result.data);
+        setTotal(libraryResponseTotal(result, result.data.length));
+      }
     }
     setLoading(false);
   }, [catalogPolicy, circulationFilter, copyState, page, query, tab]);
@@ -223,15 +236,43 @@ export function LibraryWorkspace() {
   }
 
   async function submitTitle(values: LibraryTitleFormValues) {
-    const result = titleForm === 'new'
+    const wasNew = titleForm === 'new';
+    const result = wasNew
       ? await createLibraryTitle(values)
       : titleForm
         ? await updateLibraryTitle(titleForm.id, values)
         : null;
-    if (!result || showMutationError(result)) return;
-    const wasNew = titleForm === 'new';
+    if (!result) return;
+    if (!result.success) {
+      showMutationError(result);
+      return;
+    }
+
+    const requestedCopies = Math.max(wasNew ? 1 : 0, Math.min(50, Math.trunc(values.copiesToAdd)));
+    if (requestedCopies > 0) {
+      const batch = await createGeneratedLibraryCopies(result.data, requestedCopies);
+      if (!batch.success) {
+        setTitleForm(null);
+        const createdCount = batch.created.length;
+        setNotice(
+          wasNew
+            ? `تم حفظ الكتاب وإنشاء ${createdCount} من ${requestedCopies} نسخة.`
+            : `تم حفظ التعديلات وإنشاء ${createdCount} من ${requestedCopies} نسخة جديدة.`,
+        );
+        setError(`تعذر استكمال إنشاء النسخ: ${libraryErrorMessage(batch.error)}`);
+        await refreshAll();
+        return;
+      }
+    }
+
     setTitleForm(null);
-    setNotice(wasNew ? 'تمت إضافة العنوان.' : 'تم حفظ تعديلات العنوان.');
+    setNotice(
+      wasNew
+        ? `تمت إضافة الكتاب وتسجيل ${requestedCopies} نسخة مادية.`
+        : requestedCopies > 0
+          ? `تم حفظ تعديلات الكتاب وإضافة ${requestedCopies} نسخة جديدة.`
+          : 'تم حفظ تعديلات الكتاب.',
+    );
     await refreshAll();
   }
 
@@ -375,7 +416,7 @@ export function LibraryWorkspace() {
   }, []);
 
   const contextAction = tab === 'catalog' && canCatalog ? (
-    <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة عنوان</button>
+    <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة كتاب</button>
   ) : tab === 'copies' && canCatalog ? (
     <button type="button" disabled={openingCopyForm} className="btn btn--primary btn--sm" onClick={() => void openCopyForm()}>{openingCopyForm ? 'جارٍ التحضير…' : 'إضافة نسخة'}</button>
   ) : null;
@@ -410,7 +451,7 @@ export function LibraryWorkspace() {
     : circulationFilter === 'overdue' && tab === 'circulation'
       ? 'جميع الإعارات الحالية ضمن مواعيدها.'
       : tab === 'catalog'
-        ? 'ابدأ بإضافة أول عنوان ثم أضف نسخه المادية.'
+        ? 'ابدأ بإضافة أول كتاب وحدد عدد نسخه المادية في نفس التسجيل.'
         : tab === 'copies'
           ? 'أضف نسخة مرتبطة بعنوان موجود في الفهرس.'
           : undefined;
@@ -418,18 +459,14 @@ export function LibraryWorkspace() {
   const emptyAction = hasActiveFilters ? (
     <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>مسح الفلاتر</button>
   ) : tab === 'catalog' && canCatalog ? (
-    <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة أول عنوان</button>
+    <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة أول كتاب</button>
   ) : tab === 'copies' && canCatalog ? (
     <button type="button" className="btn btn--primary btn--sm" disabled={openingCopyForm} onClick={() => void openCopyForm()}>إضافة نسخة</button>
   ) : undefined;
 
   return (
     <div className="admin-workspace library-workspace">
-      <PageHeader
-        title="المكتبة"
-        subtitle="إدارة الكتب والنسخ والإعارات."
-        actions={headerActions}
-      />
+      <PageHeader title="المكتبة" subtitle="إدارة الكتب والنسخ والإعارات." actions={headerActions} />
 
       <div className="library-metrics" aria-label="ملخص المكتبة">
         <button type="button" className="library-metric" onClick={() => selectMetric('titles')}>
@@ -456,14 +493,7 @@ export function LibraryWorkspace() {
 
       <div className="library-tabs" role="tablist" aria-label="أقسام المكتبة">
         {tabs.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            role="tab"
-            aria-selected={tab === item.key}
-            className="library-tabs__item"
-            onClick={() => selectTab(item.key)}
-          >
+          <button key={item.key} type="button" role="tab" aria-selected={tab === item.key} className="library-tabs__item" onClick={() => selectTab(item.key)}>
             {item.label}
           </button>
         ))}
@@ -522,12 +552,7 @@ export function LibraryWorkspace() {
       {initialLoading ? (
         <LoadingState label="جارٍ تحميل المكتبة…" />
       ) : currentRowsCount === 0 && !error ? (
-        <EmptyState
-          icon={hasActiveFilters ? '⌕' : '📚'}
-          title={emptyTitle}
-          description={emptyDescription}
-          action={emptyAction}
-        />
+        <EmptyState icon={hasActiveFilters ? '⌕' : '📚'} title={emptyTitle} description={emptyDescription} action={emptyAction} />
       ) : (
         <div className={refetching ? 'library-results library-results--fetching' : 'library-results'} aria-busy={refetching || undefined}>
           {tab === 'catalog' ? (
@@ -540,7 +565,14 @@ export function LibraryWorkspace() {
               onArchive={(row) => void archiveTitle(row)}
             />
           ) : tab === 'copies' ? (
-            <LibraryCopiesTable rows={copies} canCirculation={canCirculation} pendingAction={pendingAction} onEdit={setEditCopy} onCheckout={selectRegularCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
+            <LibraryCopiesTable
+              rows={copies}
+              canCirculation={canCirculation}
+              pendingAction={pendingAction}
+              onEdit={setEditCopy}
+              onCheckout={selectRegularCheckoutCopy}
+              onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)}
+            />
           ) : (
             <LibraryCirculationsTable rows={loans} canAct={canCirculation} onAction={setReturnLoan} />
           )}

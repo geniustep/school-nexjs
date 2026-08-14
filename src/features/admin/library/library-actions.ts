@@ -50,6 +50,38 @@ export async function createLibraryCopy(values: PhysicalCopyFormValues) {
   });
 }
 
+export function buildGeneratedLibraryAccession(
+  titleId: number,
+  nonce: string,
+  index: number,
+): string {
+  const safeNonce = nonce.replace(/[^A-Z0-9]/gi, '').toUpperCase() || 'AUTO';
+  return `RQ-LIB-${titleId}-${safeNonce}-${String(index + 1).padStart(2, '0')}`;
+}
+
+export async function createGeneratedLibraryCopies(
+  title: Pick<LibraryTitleRow, 'id' | 'default_circulation_policy'>,
+  count: number,
+) {
+  const requested = Math.max(0, Math.min(50, Math.trunc(count)));
+  const nonce = Date.now().toString(36).toUpperCase();
+  const created: LibraryCopyRow[] = [];
+
+  for (let index = 0; index < requested; index += 1) {
+    const result = await api.post<LibraryCopyRow>(libraryEndpoints.copies, {
+      title_id: title.id,
+      accession_code: buildGeneratedLibraryAccession(title.id, nonce, index),
+      circulation_policy: title.default_circulation_policy,
+    });
+    if (!result.success) {
+      return { success: false as const, created, error: result };
+    }
+    created.push(result.data);
+  }
+
+  return { success: true as const, created };
+}
+
 export async function updateLibraryCopy(copyId: number, values: LibraryCopyEditValues) {
   return api.patch<LibraryCopyRow>(libraryEndpoints.copy(copyId), {
     barcode: values.barcode.trim() || false,

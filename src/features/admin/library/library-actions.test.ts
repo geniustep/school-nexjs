@@ -9,7 +9,9 @@ vi.mock('@/lib/api/client', () => ({ api: { post, patch } }));
 
 import {
   archiveLibraryTitle,
+  buildGeneratedLibraryAccession,
   checkoutLibraryStudent,
+  createGeneratedLibraryCopies,
   createLibraryCopy,
   createLibraryTitle,
   returnLibraryLoan,
@@ -27,18 +29,51 @@ beforeEach(() => {
 });
 
 describe('physical library admin actions', () => {
-  it('maps title form fields to Odoo title fields', async () => {
-    await createLibraryTitle({ name: '  كتاب  ', authors: ' مؤلف ', publisher: ' ناشر ', isbn: ' 123 ', policy: 'loanable' });
+  it('maps title form fields to Odoo title fields without sending the UI copy count', async () => {
+    await createLibraryTitle({ name: '  كتاب  ', authors: ' مؤلف ', publisher: ' ناشر ', isbn: ' 123 ', policy: 'loanable', copiesToAdd: 3 });
     expect(post).toHaveBeenCalledWith('/admin/library/titles', {
       name: 'كتاب', author_names: 'مؤلف', publisher: 'ناشر', isbn: '123', default_circulation_policy: 'loanable',
     });
   });
 
-  it('updates a title through PATCH without sending school_id', async () => {
-    await updateLibraryTitle(7, { name: 'عنوان', authors: '', publisher: '', isbn: '', policy: 'library_only' });
+  it('updates a title through PATCH without sending school_id or copy count', async () => {
+    await updateLibraryTitle(7, { name: 'عنوان', authors: '', publisher: '', isbn: '', policy: 'library_only', copiesToAdd: 2 });
     expect(patch).toHaveBeenCalledWith('/admin/library/titles/7', {
       name: 'عنوان', author_names: undefined, publisher: undefined, isbn: undefined, default_circulation_policy: 'library_only',
     });
+  });
+
+  it('generates stable internal accession formatting for new physical copies', () => {
+    expect(buildGeneratedLibraryAccession(17, 'abc-123', 0)).toBe('RQ-LIB-17-ABC123-01');
+    expect(buildGeneratedLibraryAccession(17, 'abc-123', 8)).toBe('RQ-LIB-17-ABC123-09');
+  });
+
+  it('creates one physical copy record per requested title copy', async () => {
+    post
+      .mockResolvedValueOnce({ success: true, data: { id: 101 }, meta: {} })
+      .mockResolvedValueOnce({ success: true, data: { id: 102 }, meta: {} });
+
+    const result = await createGeneratedLibraryCopies({ id: 7, default_circulation_policy: 'loanable' }, 2);
+
+    expect(result.success).toBe(true);
+    expect(post).toHaveBeenCalledTimes(2);
+    for (const call of post.mock.calls) {
+      expect(call[0]).toBe('/admin/library/copies');
+      expect(call[1]).toMatchObject({ title_id: 7, circulation_policy: 'loanable' });
+      expect(String(call[1].accession_code)).toMatch(/^RQ-LIB-7-[A-Z0-9]+-0[12]$/);
+    }
+  });
+
+  it('stops a generated copy batch on the first backend failure and reports created rows', async () => {
+    post
+      .mockResolvedValueOnce({ success: true, data: { id: 101 }, meta: {} })
+      .mockResolvedValueOnce({ success: false, error: { code: 'library_accession_conflict', message: 'conflict' } });
+
+    const result = await createGeneratedLibraryCopies({ id: 9, default_circulation_policy: 'loanable' }, 3);
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.created).toHaveLength(1);
+    expect(post).toHaveBeenCalledTimes(2);
   });
 
   it('archives a title through the lifecycle endpoint', async () => {
