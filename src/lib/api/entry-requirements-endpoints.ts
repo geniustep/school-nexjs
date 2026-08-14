@@ -12,6 +12,13 @@ export const entryRequirementEndpoints = {
     items: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/items`,
     item: (listId: number | string, itemId: number | string) => `/admin/entry-requirement-lists/${listId}/items/${itemId}`,
     reorderItems: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/items/reorder`,
+    importTemplate: '/admin/entry-requirement-lists/import/template',
+    importPreview: '/admin/entry-requirement-lists/import/preview',
+    importApply: '/admin/entry-requirement-lists/import/apply',
+    attachments: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/attachments`,
+    publicShareLink: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/public-share-link`,
+    rotatePublicShareLink: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/public-share-link/rotate`,
+    revokePublicShareLink: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/public-share-link/revoke`,
   },
   teacher: {
     mine: '/teacher/entry-requirements',
