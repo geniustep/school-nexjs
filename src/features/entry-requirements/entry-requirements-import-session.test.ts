@@ -38,4 +38,31 @@ describe('entry requirement XLSX import session', () => {
 
     expect(duplicates).toEqual([1, 2]);
   });
+
+  it('keeps same notebook label distinct when source-subject notes differ', () => {
+    const duplicates = duplicatePreviewRowNumbers([
+      {
+        row_number: 10,
+        valid: true,
+        item: {
+          item_type: 'notebook',
+          name: 'Cahier de 48 pages',
+          quantity: 1,
+          notes: 'المادة في المصدر: اللغة الفرنسية؛ الغلاف: أحمر',
+        },
+      },
+      {
+        row_number: 11,
+        valid: true,
+        item: {
+          item_type: 'notebook',
+          name: 'Cahier de 48 pages',
+          quantity: 1,
+          notes: 'المادة في المصدر: اللغة الإنجليزية؛ الغلاف: برتقالي',
+        },
+      },
+    ]);
+
+    expect(duplicates).toEqual([]);
+  });
 });
