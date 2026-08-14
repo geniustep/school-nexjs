@@ -18,9 +18,12 @@ export type RequirementImportPreviewRow = {
 };
 
 export function createEntryRequirementImportIdempotencyKey(
-  uuidFactory: () => string = () => globalThis.crypto.randomUUID(),
+  uuidFactory?: () => string,
 ): string {
-  return `nextjs-entry-requirements-${uuidFactory()}`;
+  const uuid = uuidFactory
+    ? uuidFactory()
+    : globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `nextjs-entry-requirements-${uuid}`;
 }
 
 function normalized(value: unknown): string {
