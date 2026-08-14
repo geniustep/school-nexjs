@@ -1,0 +1,422 @@
+.page {
+  min-width: 0;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.feedbackStack {
+  display: grid;
+  gap: 8px;
+}
+
+.createCard {
+  display: grid;
+  gap: 14px;
+}
+
+.createActions,
+.workflowActions,
+.editorActions,
+.operationActions,
+.itemActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.listSection {
+  display: grid;
+  gap: 10px;
+}
+
+.listIdentity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.listName {
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.listScope,
+.muted,
+.operationDescription,
+.itemDescription {
+  color: var(--c-text-muted);
+  font-size: 13px;
+}
+
+.listStatus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.detailContext {
+  display: grid;
+  gap: 14px;
+}
+
+.contextTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.contextIdentity {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.contextIdentity h2 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+.contextBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.contextGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block-start: 1px solid var(--c-border);
+  padding-block-start: 12px;
+  gap: 10px;
+}
+
+.contextMetric {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.contextLabel {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.contextValue {
+  font-size: 14px;
+  font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflowActions {
+  border-block-start: 1px solid var(--c-border);
+  padding-block-start: 12px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(310px, 360px);
+  gap: 16px;
+  align-items: start;
+}
+
+.mainColumn,
+.sideColumn,
+.operationStack {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.panel,
+.operationCard,
+.editorPanel {
+  min-width: 0;
+}
+
+.panelBody {
+  display: grid;
+  gap: 12px;
+}
+
+.panelLead {
+  display: grid;
+  gap: 4px;
+}
+
+.panelLead h3,
+.operationTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summaryTile {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+}
+
+.summaryTile strong {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.summaryTile span {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.itemIdentity {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemName {
+  font-weight: 700;
+  color: var(--c-text);
+  overflow-wrap: break-word;
+}
+
+.itemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  align-items: center;
+  color: var(--c-text-muted);
+  font-size: 12px;
+}
+
+.itemBookMeta {
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.itemActions {
+  justify-content: flex-start;
+}
+
+.editorPanel {
+  display: grid;
+  gap: 12px;
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.editorTitle {
+  display: grid;
+  gap: 3px;
+}
+
+.editorTitle strong {
+  font-size: 14px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.operationCard {
+  display: grid;
+  gap: 12px;
+}
+
+.operationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.operationHeaderText {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.filePicker {
+  display: grid;
+  gap: 8px;
+}
+
+.fileName {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.previewSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.previewMetric {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 9px;
+  background: var(--c-surface-2);
+  display: grid;
+  gap: 1px;
+}
+
+.previewMetric strong {
+  font-size: 17px;
+}
+
+.previewMetric span {
+  color: var(--c-text-muted);
+  font-size: 11px;
+}
+
+.previewIssues {
+  display: grid;
+  gap: 6px;
+  max-height: 280px;
+  overflow: auto;
+  padding-inline-end: 2px;
+}
+
+.issueRow {
+  border-inline-start: 3px solid var(--c-border);
+  padding: 7px 9px;
+  background: var(--c-surface-2);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.issueRow[data-tone='warning'] {
+  border-inline-start-color: var(--c-amber);
+}
+
+.issueRow[data-tone='error'] {
+  border-inline-start-color: var(--c-red);
+}
+
+.attachmentList {
+  display: grid;
+  gap: 6px;
+}
+
+.attachmentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-block-start: 1px solid var(--c-border);
+  padding-block-start: 8px;
+}
+
+.attachmentIdentity {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.attachmentName {
+  font-size: 13px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.emptyInline {
+  color: var(--c-text-muted);
+  font-size: 13px;
+  padding-block: 4px;
+}
+
+.shareField {
+  display: grid;
+  gap: 5px;
+}
+
+.printHint {
+  font-size: 12px;
+  color: var(--c-text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 1000px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sideColumn {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operationStack {
+    display: contents;
+  }
+}
+
+@media (max-width: 720px) {
+  .contextTop,
+  .operationHeader,
+  .attachmentRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .contextGrid,
+  .summaryGrid,
+  .formGrid,
+  .sideColumn {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldFull {
+    grid-column: auto;
+  }
+
+  .headerActions,
+  .workflowActions,
+  .editorActions,
+  .operationActions,
+  .itemActions {
+    align-items: stretch;
+  }
+
+  .headerActions > *,
+  .workflowActions > *,
+  .editorActions > *,
+  .operationActions > * {
+    flex: 1 1 auto;
+  }
+}
