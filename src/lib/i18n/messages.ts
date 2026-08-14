@@ -8,6 +8,13 @@ export type Messages = typeof en;
 
 export const MESSAGES: Record<Locale, Messages> = { ar, en, fr, es };
 
+const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
+  ar: { 'nav.library': 'المكتبة' },
+  en: { 'nav.library': 'Library' },
+  fr: { 'nav.library': 'Bibliothèque' },
+  es: { 'nav.library': 'Biblioteca' },
+};
+
 export function getMessage(messages: Messages, key: string): string | undefined {
   const parts = key.split('.');
   let cur: unknown = messages;
@@ -35,7 +42,9 @@ export function translate(
   const raw = normalizeArabicUiTerm(
     locale,
     getMessage(MESSAGES[locale], key) ??
+      INLINE_MESSAGES[locale][key] ??
       getMessage(MESSAGES.en, key) ??
+      INLINE_MESSAGES.en[key] ??
       key,
   );
   if (!params) return raw;
