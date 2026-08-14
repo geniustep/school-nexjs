@@ -2,6 +2,7 @@
 
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import type { LibraryTitleRow } from './library-contract';
 import { LibraryModal, libraryInputClass, libraryPrimaryButton } from './library-ui';
 
 export type LibraryTitleFormValues = {
@@ -12,12 +13,20 @@ export type LibraryTitleFormValues = {
   policy: 'loanable' | 'library_only';
 };
 
-export function LibraryTitleForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (values: LibraryTitleFormValues) => Promise<void> }) {
-  const [name, setName] = useState('');
-  const [authors, setAuthors] = useState('');
-  const [publisher, setPublisher] = useState('');
-  const [isbn, setIsbn] = useState('');
-  const [policy, setPolicy] = useState<'loanable' | 'library_only'>('loanable');
+export function LibraryTitleForm({
+  initial,
+  onClose,
+  onSubmit,
+}: {
+  initial?: LibraryTitleRow | null;
+  onClose: () => void;
+  onSubmit: (values: LibraryTitleFormValues) => Promise<void>;
+}) {
+  const [name, setName] = useState(initial?.name ?? '');
+  const [authors, setAuthors] = useState(initial?.authors ?? '');
+  const [publisher, setPublisher] = useState(initial?.publisher ?? '');
+  const [isbn, setIsbn] = useState(initial?.isbn ?? '');
+  const [policy, setPolicy] = useState<'loanable' | 'library_only'>(initial?.default_circulation_policy ?? 'loanable');
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent) {
@@ -31,7 +40,7 @@ export function LibraryTitleForm({ onClose, onSubmit }: { onClose: () => void; o
   }
 
   return (
-    <LibraryModal title="إضافة عنوان" onClose={onClose}>
+    <LibraryModal title={initial ? 'تعديل العنوان' : 'إضافة عنوان'} onClose={onClose}>
       <form onSubmit={submit} className="space-y-3">
         <input required className={libraryInputClass} placeholder="عنوان الكتاب" value={name} onChange={(event) => setName(event.target.value)} />
         <input className={libraryInputClass} placeholder="المؤلف أو المؤلفون" value={authors} onChange={(event) => setAuthors(event.target.value)} />
@@ -41,7 +50,7 @@ export function LibraryTitleForm({ onClose, onSubmit }: { onClose: () => void; o
           <option value="loanable">قابلة للإعارة</option>
           <option value="library_only">داخل المكتبة فقط</option>
         </select>
-        <button disabled={busy} className={libraryPrimaryButton}>{busy ? 'جارٍ الحفظ…' : 'حفظ العنوان'}</button>
+        <button disabled={busy || !name.trim()} className={libraryPrimaryButton}>{busy ? 'جارٍ الحفظ…' : initial ? 'حفظ التعديلات' : 'حفظ العنوان'}</button>
       </form>
     </LibraryModal>
   );
