@@ -7,7 +7,7 @@ import { buildGlobalAcademicYearQuery } from '@/features/academic-context/utils/
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Student } from '@/types/student';
-import { LibraryModal, libraryInputClass, libraryPrimaryButton } from './library-ui';
+import { LibraryModal } from './library-ui';
 import type { LibraryCopyRow } from './library-contract';
 
 export type LibraryCheckoutValues = {
@@ -93,32 +93,46 @@ export function LibraryCirculationCreateForm({
 
   return (
     <LibraryModal title="إعارة كتاب" onClose={onClose}>
-      <form onSubmit={submit} className="space-y-3">
-        <div className="rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800">
-          <div className="font-medium">{copy.title.name}</div>
-          <div className="mt-1 text-slate-500">رقم الجرد: {copy.accession}</div>
+      <form onSubmit={submit} className="form-stack">
+        <div className="library-form-summary">
+          <strong dir="auto">{copy.title.name}</strong>
+          <span className="muted tiny">رقم الجرد: <bdi className="mono" dir="auto">{copy.accession}</bdi></span>
         </div>
-        <input
-          className={libraryInputClass}
-          placeholder="ابحث عن التلميذ بالاسم أو الرقم"
-          value={search}
-          onChange={(event) => { setSearch(event.target.value); setStudentId(''); }}
-        />
-        {loadingStudents ? <p className="text-sm text-slate-500">جارٍ البحث…</p> : null}
-        {studentError ? <p className="text-sm text-red-600">{studentError}</p> : null}
+        <div className="field">
+          <label htmlFor="library-checkout-student-search">التلميذ</label>
+          <input
+            id="library-checkout-student-search"
+            className="input"
+            dir="auto"
+            placeholder="ابحث بالاسم أو الرقم"
+            value={search}
+            onChange={(event) => { setSearch(event.target.value); setStudentId(''); }}
+          />
+        </div>
+        {loadingStudents ? <p className="library-form-status">جارٍ البحث…</p> : null}
+        {studentError ? <p className="library-form-error">{studentError}</p> : null}
         {trimmedSearch.length >= 2 && !loadingStudents ? (
-          <select required className={libraryInputClass} value={studentId} onChange={(event) => setStudentId(event.target.value)}>
-            <option value="">اختر التلميذ</option>
-            {students.map((student) => <option key={student.id} value={student.id}>{studentLabel(student)}</option>)}
-          </select>
+          <div className="field">
+            <label htmlFor="library-checkout-student">نتائج البحث</label>
+            <select id="library-checkout-student" required className="select" value={studentId} onChange={(event) => setStudentId(event.target.value)}>
+              <option value="">اختر التلميذ</option>
+              {students.map((student) => <option key={student.id} value={student.id}>{studentLabel(student)}</option>)}
+            </select>
+          </div>
         ) : null}
-        <label className="block space-y-1 text-sm">
-          <span>تاريخ الاستحقاق</span>
-          <input required type="datetime-local" className={libraryInputClass} value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
-        </label>
-        <textarea className={libraryInputClass} placeholder="ملاحظات اختيارية" value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
-        <p className="text-xs text-slate-500">إعارة الموظفين ستُفعّل بعد توفر معرّف علاقة الموظف الموثوق من الـAPI.</p>
-        <button disabled={busy || !studentId || !dueAt} className={libraryPrimaryButton}>{busy ? 'جارٍ تنفيذ الإعارة…' : 'تأكيد الإعارة'}</button>
+        <div className="field">
+          <label htmlFor="library-checkout-due">تاريخ الاستحقاق</label>
+          <input id="library-checkout-due" required type="datetime-local" className="input" dir="ltr" value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="library-checkout-notes">ملاحظات</label>
+          <textarea id="library-checkout-notes" className="textarea" value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
+        </div>
+        <p className="library-form-note">إعارة الموظفين ستُفعّل بعد توفر معرّف علاقة الموظف الموثوق من الـAPI.</p>
+        <div className="form-actions">
+          <button disabled={busy || !studentId || !dueAt} className="btn btn--primary">{busy ? 'جارٍ تنفيذ الإعارة…' : 'تأكيد الإعارة'}</button>
+          <button type="button" className="btn btn--ghost" onClick={onClose}>إلغاء</button>
+        </div>
       </form>
     </LibraryModal>
   );

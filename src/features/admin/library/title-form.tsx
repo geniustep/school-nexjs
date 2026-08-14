@@ -3,7 +3,7 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import type { LibraryTitleRow } from './library-contract';
-import { LibraryModal, libraryInputClass, libraryPrimaryButton } from './library-ui';
+import { LibraryModal } from './library-ui';
 
 export type LibraryTitleFormValues = {
   name: string;
@@ -41,16 +41,36 @@ export function LibraryTitleForm({
 
   return (
     <LibraryModal title={initial ? 'تعديل العنوان' : 'إضافة عنوان'} onClose={onClose}>
-      <form onSubmit={submit} className="space-y-3">
-        <input required className={libraryInputClass} placeholder="عنوان الكتاب" value={name} onChange={(event) => setName(event.target.value)} />
-        <input className={libraryInputClass} placeholder="المؤلف أو المؤلفون" value={authors} onChange={(event) => setAuthors(event.target.value)} />
-        <input className={libraryInputClass} placeholder="الناشر" value={publisher} onChange={(event) => setPublisher(event.target.value)} />
-        <input className={libraryInputClass} placeholder="ISBN" value={isbn} onChange={(event) => setIsbn(event.target.value)} />
-        <select className={libraryInputClass} value={policy} onChange={(event) => setPolicy(event.target.value as 'loanable' | 'library_only')}>
-          <option value="loanable">قابلة للإعارة</option>
-          <option value="library_only">داخل المكتبة فقط</option>
-        </select>
-        <button disabled={busy || !name.trim()} className={libraryPrimaryButton}>{busy ? 'جارٍ الحفظ…' : initial ? 'حفظ التعديلات' : 'حفظ العنوان'}</button>
+      <form onSubmit={submit} className="form-stack">
+        <div className="field">
+          <label htmlFor="library-title-name">عنوان الكتاب</label>
+          <input id="library-title-name" required className="input" dir="auto" value={name} onChange={(event) => setName(event.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="library-title-authors">المؤلف أو المؤلفون</label>
+          <input id="library-title-authors" className="input" dir="auto" value={authors} onChange={(event) => setAuthors(event.target.value)} />
+        </div>
+        <div className="grid grid--form">
+          <div className="field">
+            <label htmlFor="library-title-publisher">الناشر</label>
+            <input id="library-title-publisher" className="input" dir="auto" value={publisher} onChange={(event) => setPublisher(event.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="library-title-isbn">ISBN</label>
+            <input id="library-title-isbn" className="input" dir="ltr" value={isbn} onChange={(event) => setIsbn(event.target.value)} />
+          </div>
+        </div>
+        <div className="field">
+          <label htmlFor="library-title-policy">سياسة الإعارة</label>
+          <select id="library-title-policy" className="select" value={policy} onChange={(event) => setPolicy(event.target.value as 'loanable' | 'library_only')}>
+            <option value="loanable">قابلة للإعارة</option>
+            <option value="library_only">داخل المكتبة فقط</option>
+          </select>
+        </div>
+        <div className="form-actions">
+          <button disabled={busy || !name.trim()} className="btn btn--primary">{busy ? 'جارٍ الحفظ…' : initial ? 'حفظ التعديلات' : 'حفظ العنوان'}</button>
+          <button type="button" className="btn btn--ghost" onClick={onClose}>إلغاء</button>
+        </div>
       </form>
     </LibraryModal>
   );

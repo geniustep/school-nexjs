@@ -1,6 +1,14 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useCallback, useEffect, useState } from 'react';
+import { EmptyState, LoadingState } from '@/components/states/states';
+import { Pagination } from '@/components/tables/data-table';
+import { PageHeader } from '@/components/ui/primitives';
 import { useSession } from '@/features/auth/session-context';
 import { api } from '@/lib/api/client';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -32,12 +40,18 @@ import {
 import { PhysicalCopyForm, type PhysicalCopyFormValues } from './physical-copy-form';
 import { LibraryReturnForm, type LibraryReturnValues } from './return-form';
 import { LibraryTitleForm, type LibraryTitleFormValues } from './title-form';
-import { libraryInputClass, libraryPrimaryButton, librarySecondaryButton } from './library-ui';
+import './library.css';
 
 const PAGE_SIZE = 50;
 
 type CatalogPolicyFilter = '' | 'loanable' | 'library_only';
 type CopyStateFilter = '' | 'available' | 'on_loan' | 'lost' | 'damaged' | 'repair' | 'withdrawn';
+
+const tabs: Array<{ key: LibraryTab; label: string }> = [
+  { key: 'catalog', label: 'الفهرس' },
+  { key: 'copies', label: 'النسخ المادية' },
+  { key: 'circulation', label: 'الإعارات' },
+];
 
 export function LibraryWorkspace() {
   const user = useSession();
@@ -66,6 +80,10 @@ export function LibraryWorkspace() {
   const [returnLoan, setReturnLoan] = useState<LibraryCirculationRow | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentRowsCount = tab === 'catalog' ? titles.length : tab === 'copies' ? copies.length : loans.length;
+  const initialLoading = loading && currentRowsCount === 0;
+  const refetching = loading && currentRowsCount > 0;
+  const hasActiveFilters = Boolean(query.trim()) || (tab === 'catalog' && Boolean(catalogPolicy)) || (tab === 'copies' && Boolean(copyState)) || (tab === 'circulation' && circulationFilter !== 'checked_out');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,7 +95,7 @@ export function LibraryWorkspace() {
         active: 1,
         policy: catalogPolicy || undefined,
       });
-      if (!result.success) { setTitles([]); setTotal(0); setError(libraryErrorMessage(result)); }
+      if (!result.success) { setError(libraryErrorMessage(result)); }
       else { setTitles(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     } else if (tab === 'copies') {
       const result = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
@@ -85,14 +103,14 @@ export function LibraryWorkspace() {
         active: 1,
         state: copyState || undefined,
       });
-      if (!result.success) { setCopies([]); setTotal(0); setError(libraryErrorMessage(result)); }
+      if (!result.success) { setError(libraryErrorMessage(result)); }
       else { setCopies(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     } else {
       const circulationQuery = circulationFilter === 'overdue'
         ? { ...common, overdue: 1 }
         : { ...common, state: circulationFilter };
       const result = await api.get<LibraryCirculationRow[]>(libraryEndpoints.circulations, circulationQuery);
-      if (!result.success) { setLoans([]); setTotal(0); setError(libraryErrorMessage(result)); }
+      if (!result.success) { setError(libraryErrorMessage(result)); }
       else { setLoans(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     }
     setLoading(false);
@@ -114,8 +132,9 @@ export function LibraryWorkspace() {
         ? await updateLibraryTitle(titleForm.id, values)
         : null;
     if (!result || showMutationError(result)) return;
+    const wasNew = titleForm === 'new';
     setTitleForm(null);
-    setNotice(titleForm === 'new' ? 'تمت إضافة العنوان.' : 'تم حفظ تعديلات العنوان.');
+    setNotice(wasNew ? 'تمت إضافة العنوان.' : 'تم حفظ تعديلات العنوان.');
     await load();
   }
 
@@ -175,34 +194,78 @@ export function LibraryWorkspace() {
     await load();
   }
 
+  function resetFilters() {
+    setQuery('');
+    setCatalogPolicy('');
+    setCopyState('');
+    setCirculationFilter('checked_out');
+    setPage(1);
+  }
+
+  function selectTab(nextTab: LibraryTab) {
+    setTab(nextTab);
+    setQuery('');
+    setPage(1);
+    setNotice('');
+    setError('');
+  }
+
   const primaryAction = tab === 'catalog' && canCatalog ? (
-    <button type="button" className={libraryPrimaryButton} onClick={() => setTitleForm('new')}>إضافة عنوان</button>
+    <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة عنوان</button>
   ) : tab === 'copies' && canCatalog ? (
-    <button type="button" disabled={openingCopyForm} className={libraryPrimaryButton} onClick={() => void openCopyForm()}>{openingCopyForm ? 'جارٍ التحضير…' : 'إضافة نسخة'}</button>
+    <button type="button" disabled={openingCopyForm} className="btn btn--primary btn--sm" onClick={() => void openCopyForm()}>{openingCopyForm ? 'جارٍ التحضير…' : 'إضافة نسخة'}</button>
   ) : null;
 
+  const searchPlaceholder = tab === 'catalog'
+    ? 'ابحث عن عنوان، مؤلف أو ISBN'
+    : tab === 'copies'
+      ? 'ابحث برقم الجرد، الباركود أو الكتاب'
+      : 'ابحث عن كتاب أو مستعير';
+
   return (
-    <div dir="rtl" className="mx-auto max-w-7xl space-y-5 p-4 md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><h1 className="text-2xl font-semibold">المكتبة</h1><p className="mt-1 text-sm text-slate-500">الفهرس والنسخ المادية والإعارات داخل المدرسة.</p></div>
-        {primaryAction}
+    <div className="admin-workspace library-workspace">
+      <PageHeader
+        title="المكتبة"
+        subtitle="إدارة الكتب والنسخ والإعارات."
+        actions={primaryAction ? <div className="library-workspace__header-actions">{primaryAction}</div> : undefined}
+      />
+
+      <div className="library-tabs" role="tablist" aria-label="أقسام المكتبة">
+        {tabs.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === item.key}
+            className="library-tabs__item"
+            onClick={() => selectTab(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-        {([['catalog','الفهرس'],['copies','النسخ'],['circulation','الإعارات']] as const).map(([key,label]) => <button key={key} type="button" onClick={() => { setTab(key); setQuery(''); setPage(1); }} className={`rounded-lg px-3 py-2 text-sm ${tab === key ? 'bg-white font-medium shadow-sm dark:bg-slate-950' : 'text-slate-500'}`}>{label}</button>)}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <input className={`${libraryInputClass} min-w-56 flex-1`} value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="بحث" />
+      <div className="library-toolbar">
+        <div className="library-toolbar__search">
+          <span className="library-toolbar__search-icon" aria-hidden="true">⌕</span>
+          <input
+            className="input"
+            dir="auto"
+            value={query}
+            onChange={(event) => { setQuery(event.target.value); setPage(1); }}
+            placeholder={searchPlaceholder}
+            aria-label="بحث"
+          />
+        </div>
         {tab === 'catalog' ? (
-          <select className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" value={catalogPolicy} onChange={(event) => { setCatalogPolicy(event.target.value as CatalogPolicyFilter); setPage(1); }}>
+          <select className="select library-toolbar__select" aria-label="سياسة الإعارة" value={catalogPolicy} onChange={(event) => { setCatalogPolicy(event.target.value as CatalogPolicyFilter); setPage(1); }}>
             <option value="">كل سياسات الإعارة</option>
             <option value="loanable">قابلة للإعارة</option>
             <option value="library_only">داخل المكتبة فقط</option>
           </select>
         ) : null}
         {tab === 'copies' ? (
-          <select className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" value={copyState} onChange={(event) => { setCopyState(event.target.value as CopyStateFilter); setPage(1); }}>
+          <select className="select library-toolbar__select" aria-label="حالة النسخة" value={copyState} onChange={(event) => { setCopyState(event.target.value as CopyStateFilter); setPage(1); }}>
             <option value="">كل الحالات</option>
             <option value="available">متاحة</option>
             <option value="on_loan">معارة</option>
@@ -213,37 +276,41 @@ export function LibraryWorkspace() {
           </select>
         ) : null}
         {tab === 'circulation' ? (
-          <select className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" value={circulationFilter} onChange={(event) => { setCirculationFilter(event.target.value as LibraryCirculationFilter); setPage(1); }}>
+          <select className="select library-toolbar__select" aria-label="حالة الإعارة" value={circulationFilter} onChange={(event) => { setCirculationFilter(event.target.value as LibraryCirculationFilter); setPage(1); }}>
             <option value="checked_out">النشطة</option>
             <option value="overdue">المتأخرة</option>
             <option value="returned">المُعادة</option>
           </select>
         ) : null}
-        <span className="whitespace-nowrap text-sm text-slate-500">{total} نتيجة</span>
+        {hasActiveFilters ? <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>مسح الفلاتر</button> : null}
+        <span className="library-toolbar__meta"><bdi dir="ltr">{total}</bdi> نتيجة</span>
       </div>
 
-      {notice ? <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</div> : null}
-      {error ? <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div> : null}
+      {notice ? <div className="library-feedback library-feedback--success" role="status">✓ {notice}</div> : null}
+      {error ? <div className="library-feedback library-feedback--error" role="alert">! {error}</div> : null}
+      {refetching ? <p className="library-fetching-hint" aria-live="polite">جارٍ تحديث النتائج…</p> : null}
 
-      {loading ? (
-        <div className="py-16 text-center text-slate-500">جارٍ التحميل…</div>
-      ) : tab === 'catalog' ? (
-        <LibraryCatalogTable rows={titles} onEdit={(row) => setTitleForm(row)} onArchive={(row) => void archiveTitle(row)} />
-      ) : tab === 'copies' ? (
-        <LibraryCopiesTable rows={copies} canCirculation={canCirculation} onCheckout={setCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
+      {initialLoading ? (
+        <LoadingState label="جارٍ تحميل المكتبة…" />
+      ) : currentRowsCount === 0 && !error ? (
+        <EmptyState
+          icon={hasActiveFilters ? '⌕' : '📚'}
+          title={hasActiveFilters ? 'لا توجد نتائج مطابقة' : tab === 'circulation' ? 'لا توجد إعارات في هذه الحالة' : 'لا توجد بيانات في هذا القسم بعد'}
+          description={hasActiveFilters ? 'غيّر البحث أو الفلاتر لعرض نتائج أخرى.' : undefined}
+          action={hasActiveFilters ? <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>مسح الفلاتر</button> : undefined}
+        />
       ) : (
-        <LibraryCirculationsTable rows={loans} canAct={canCirculation} onAction={setReturnLoan} />
-      )}
-
-      {!loading && !error && total === 0 ? <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center text-sm text-slate-500 dark:border-slate-700">لا توجد بيانات مطابقة حاليًا.</div> : null}
-
-      {!loading && !error && total > 0 && totalPages > 1 ? (
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <button type="button" className={librarySecondaryButton} disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>السابق</button>
-          <span className="text-slate-500">الصفحة {page} من {totalPages}</span>
-          <button type="button" className={librarySecondaryButton} disabled={page >= totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>التالي</button>
+        <div className={refetching ? 'library-results library-results--fetching' : 'library-results'} aria-busy={refetching || undefined}>
+          {tab === 'catalog' ? (
+            <LibraryCatalogTable rows={titles} onEdit={(row) => setTitleForm(row)} onArchive={(row) => void archiveTitle(row)} />
+          ) : tab === 'copies' ? (
+            <LibraryCopiesTable rows={copies} canCirculation={canCirculation} onCheckout={setCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
+          ) : (
+            <LibraryCirculationsTable rows={loans} canAct={canCirculation} onAction={setReturnLoan} />
+          )}
+          <Pagination page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} onPage={setPage} />
         </div>
-      ) : null}
+      )}
 
       {titleForm ? <LibraryTitleForm initial={titleForm === 'new' ? null : titleForm} onClose={() => setTitleForm(null)} onSubmit={submitTitle} /> : null}
       {copyFormOpen ? <PhysicalCopyForm titles={copyFormTitles} loadError="" onClose={() => setCopyFormOpen(false)} onSubmit={submitCopy} /> : null}
