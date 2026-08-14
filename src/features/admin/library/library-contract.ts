@@ -99,6 +99,7 @@ export function libraryErrorMessage<T>(result: ApiResponse<T>): string {
 
 export function libraryResponseTotal<T>(result: ApiResponse<T>, fallback: number): number {
   if (!result.success) return fallback;
-  const value = Number((result.meta as Record<string, unknown> | undefined)?.total);
+  const pagination = (result.meta as { pagination?: { total?: unknown } } | undefined)?.pagination;
+  const value = Number(pagination?.total);
   return Number.isFinite(value) ? value : fallback;
 }
