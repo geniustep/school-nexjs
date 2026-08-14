@@ -7,13 +7,17 @@ import { libraryActionAllowed, type LibraryTitleRow } from './library-contract';
 export function LibraryCatalogTable({
   rows,
   pendingAction,
+  canCirculation,
   onEdit,
   onArchive,
+  onCheckout,
 }: {
   rows: LibraryTitleRow[];
   pendingAction?: string | null;
+  canCirculation: boolean;
   onEdit: (row: LibraryTitleRow) => void;
   onArchive: (row: LibraryTitleRow) => void;
+  onCheckout: (row: LibraryTitleRow) => void;
 }) {
   const columns: Column<LibraryTitleRow>[] = [
     {
@@ -62,6 +66,17 @@ export function LibraryCatalogTable({
         const rowBusy = pendingAction === archiveKey;
         return (
           <div className="library-actions">
+            {canCirculation ? (
+              <button
+                type="button"
+                disabled={rowBusy || row.copy_count === 0}
+                className="btn btn--primary btn--sm"
+                title={row.copy_count === 0 ? 'لا توجد نسخ مادية لهذا الكتاب' : undefined}
+                onClick={() => onCheckout(row)}
+              >
+                إعارة
+              </button>
+            ) : null}
             {libraryActionAllowed(row.allowed_actions, 'edit') ? (
               <button type="button" disabled={rowBusy} className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>تعديل</button>
             ) : null}

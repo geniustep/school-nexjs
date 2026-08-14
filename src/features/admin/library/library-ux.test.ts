@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { libraryCheckoutBlockedReason, type LibraryCopyRow } from './library-contract';
 import { isLibraryDueAtFuture, libraryDueStatus, minimumLibraryDueAt } from './library-dates';
 import { buildLibraryViewSearch, parseLibraryViewSearch } from './library-view-state';
-import { isExactLibraryCopyIdentifierMatch } from './quick-copy-lookup';
+import { isExactLibraryCopyIdentifierMatch, mergeUniqueLibraryCopies } from './quick-copy-lookup';
 
 function copy(overrides: Partial<LibraryCopyRow> = {}): LibraryCopyRow {
   return {
@@ -65,6 +65,12 @@ describe('physical library UX helpers', () => {
     expect(isExactLibraryCopyIdentifierMatch(copy(), ' bar-1 ')).toBe(true);
     expect(isExactLibraryCopyIdentifierMatch(copy(), 'acc-1')).toBe(true);
     expect(isExactLibraryCopyIdentifierMatch(copy(), 'acc')).toBe(false);
+  });
+
+  it('merges direct copy results with title/author-derived copies without duplicates', () => {
+    const direct = copy({ id: 1, accession: 'A-1' });
+    const fromAuthorSearch = copy({ id: 2, accession: 'A-2', title: { id: 9, name: 'رياضيات' } });
+    expect(mergeUniqueLibraryCopies([direct], [direct, fromAuthorSearch])).toEqual([direct, fromAuthorSearch]);
   });
 
   it('explains why a physical copy cannot be checked out', () => {
