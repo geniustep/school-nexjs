@@ -24,7 +24,7 @@ export function LibraryCopyEditForm({
   const [barcode, setBarcode] = useState(copy.barcode ?? '');
   const [shelf, setShelf] = useState(copy.shelf ?? '');
   const [policy, setPolicy] = useState<'loanable' | 'library_only'>(copy.circulation_policy);
-  const [condition, setCondition] = useState<LibraryCopyCondition>(copy.condition);
+  const [condition, setCondition] = useState<LibraryCopyCondition>(copy.condition ?? 'good');
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent) {
