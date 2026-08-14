@@ -37,6 +37,14 @@ export function mergeUniqueLibraryCopies(...groups: LibraryCopyRow[][]): Library
   return rows;
 }
 
+export function libraryQuickLookupEmptyKind(
+  matchedTitleCount: number,
+  resultCount: number,
+): 'title_without_copies' | 'no_match' | null {
+  if (resultCount > 0) return null;
+  return matchedTitleCount > 0 ? 'title_without_copies' : 'no_match';
+}
+
 async function searchCopiesForTitles(titles: LibraryTitleRow[]): Promise<LibraryCopyRow[]> {
   const results = await Promise.all(
     titles.slice(0, 20).map((title) => api.get<LibraryCopyRow[]>(libraryEndpoints.copies, {
@@ -122,8 +130,9 @@ export function LibraryQuickCopyLookup({
     setResults(merged);
   }
 
-  const matchedTitleWithoutCopies = !loading && searched && matchedTitles.length > 0 && results.length === 0 && !error;
-  const noTitleOrCopyMatch = !loading && searched && matchedTitles.length === 0 && results.length === 0 && !error;
+  const emptyKind = !loading && searched && !error
+    ? libraryQuickLookupEmptyKind(matchedTitles.length, results.length)
+    : null;
 
   return (
     <LibraryModal title="إعارة سريعة" onClose={onClose}>
@@ -150,7 +159,7 @@ export function LibraryQuickCopyLookup({
         <p className="library-form-note">للباركود ورقم الجرد يبقى البحث فوريًا. ويمكنك أيضًا كتابة جزء من اسم الكتاب أو المؤلف.</p>
         {error ? <p className="library-form-error" role="alert">{error}</p> : null}
 
-        {matchedTitleWithoutCopies ? (
+        {emptyKind === 'title_without_copies' ? (
           <div className="state state--compact">
             <div className="state__title">وجدنا الكتاب، لكن لا توجد له نسخة مادية مسجلة</div>
             <div className="state__desc">
@@ -161,7 +170,7 @@ export function LibraryQuickCopyLookup({
           </div>
         ) : null}
 
-        {noTitleOrCopyMatch ? (
+        {emptyKind === 'no_match' ? (
           <div className="state state--compact">
             <div className="state__title">لم نجد عنوانًا أو نسخة مطابقة</div>
             <div className="state__desc">تحقق من الباركود أو رقم الجرد، أو جرّب جزءًا من اسم الكتاب أو اسم المؤلف.</div>
