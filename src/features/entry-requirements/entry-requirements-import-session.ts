@@ -9,6 +9,7 @@ export type RequirementImportPreviewItem = {
   edition?: string | null;
   importance?: string | null;
   provision_source?: string | null;
+  notes?: string | null;
 };
 
 export type RequirementImportPreviewRow = {
@@ -55,6 +56,7 @@ export function previewRowIdentity(row: RequirementImportPreviewRow): string {
     normalized(item.edition),
     normalized(item.importance),
     normalized(item.provision_source),
+    normalized(item.notes),
   ].join('|');
 }
 
