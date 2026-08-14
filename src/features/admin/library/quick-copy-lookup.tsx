@@ -17,7 +17,7 @@ function normalized(value: string | null | undefined): string {
   return (value ?? '').trim().toLocaleLowerCase();
 }
 
-function isExactIdentifierMatch(copy: LibraryCopyRow, query: string): boolean {
+export function isExactLibraryCopyIdentifierMatch(copy: LibraryCopyRow, query: string): boolean {
   const needle = normalized(query);
   return normalized(copy.accession) === needle || normalized(copy.barcode) === needle;
 }
@@ -58,7 +58,7 @@ export function LibraryQuickCopyLookup({
     }
 
     const rows = Array.isArray(result.data) ? result.data : [];
-    const exact = rows.filter((copy) => isExactIdentifierMatch(copy, value));
+    const exact = rows.filter((copy) => isExactLibraryCopyIdentifierMatch(copy, value));
     const exactCheckout = exact.filter((copy) => libraryActionAllowed(copy.allowed_actions, 'checkout'));
     if (exactCheckout.length === 1) {
       onSelect(exactCheckout[0]);
