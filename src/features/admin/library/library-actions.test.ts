@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const post = vi.fn();
-const patch = vi.fn();
+const { post, patch } = vi.hoisted(() => ({
+  post: vi.fn(),
+  patch: vi.fn(),
+}));
 
 vi.mock('@/lib/api/client', () => ({ api: { post, patch } }));
 
