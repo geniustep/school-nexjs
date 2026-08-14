@@ -3,7 +3,7 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import type { LibraryCirculationRow } from './library-contract';
-import { LibraryModal, libraryInputClass, libraryPrimaryButton } from './library-ui';
+import { LibraryModal } from './library-ui';
 
 export type LibraryReturnValues = {
   returnCondition: 'new' | 'good' | 'worn' | 'damaged';
@@ -35,22 +35,28 @@ export function LibraryReturnForm({
 
   return (
     <LibraryModal title="استرجاع كتاب" onClose={onClose}>
-      <form onSubmit={submit} className="space-y-3">
-        <div className="rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800">
-          <div className="font-medium">{loan.title.name}</div>
-          <div className="mt-1 text-slate-500">{loan.patron_name || 'المستعير'} · نسخة {loan.copy.accession}</div>
+      <form onSubmit={submit} className="form-stack">
+        <div className="library-form-summary">
+          <strong dir="auto">{loan.title.name}</strong>
+          <span className="muted tiny"><span dir="auto">{loan.patron_name || 'المستعير'}</span> · نسخة <bdi className="mono" dir="auto">{loan.copy.accession}</bdi></span>
         </div>
-        <label className="block space-y-1 text-sm">
-          <span>حالة الكتاب عند الإرجاع</span>
-          <select className={libraryInputClass} value={returnCondition} onChange={(event) => setReturnCondition(event.target.value as LibraryReturnValues['returnCondition'])}>
+        <div className="field">
+          <label htmlFor="library-return-condition">حالة الكتاب عند الإرجاع</label>
+          <select id="library-return-condition" className="select" value={returnCondition} onChange={(event) => setReturnCondition(event.target.value as LibraryReturnValues['returnCondition'])}>
             <option value="new">جديدة</option>
             <option value="good">جيدة</option>
             <option value="worn">مستعملة</option>
             <option value="damaged">متضررة</option>
           </select>
-        </label>
-        <textarea className={libraryInputClass} placeholder="ملاحظات اختيارية" value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
-        <button disabled={busy} className={libraryPrimaryButton}>{busy ? 'جارٍ الاسترجاع…' : 'تأكيد الاسترجاع'}</button>
+        </div>
+        <div className="field">
+          <label htmlFor="library-return-notes">ملاحظات</label>
+          <textarea id="library-return-notes" className="textarea" value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} />
+        </div>
+        <div className="form-actions">
+          <button disabled={busy} className="btn btn--primary">{busy ? 'جارٍ الاسترجاع…' : 'تأكيد الاسترجاع'}</button>
+          <button type="button" className="btn btn--ghost" onClick={onClose}>إلغاء</button>
+        </div>
       </form>
     </LibraryModal>
   );
