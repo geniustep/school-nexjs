@@ -1,4 +1,7 @@
+import { libraryEndpoints } from '@/lib/api/library-endpoints';
 import type { ApiResponse } from '@/types/api';
+
+export { libraryEndpoints };
 
 export type LibraryTab = 'catalog' | 'copies' | 'circulation';
 export type LibraryCirculationFilter = 'checked_out' | 'overdue' | 'returned';
@@ -45,19 +48,6 @@ export type LibraryCirculationRow = {
   overdue: boolean;
   allowed_actions?: LibraryAllowedActions | null;
 };
-
-export const libraryEndpoints = {
-  titles: '/admin/library/titles',
-  title: (id: number) => `/admin/library/titles/${id}`,
-  copies: '/admin/library/copies',
-  copy: (id: number) => `/admin/library/copies/${id}`,
-  circulations: '/admin/library/circulations',
-  circulation: (id: number) => `/admin/library/circulations/${id}`,
-  archiveTitle: (id: number) => `/admin/library/titles/${id}/archive`,
-  copyAction: (id: number, action: string) => `/admin/library/copies/${id}/${action}`,
-  checkout: (id: number) => `/admin/library/copies/${id}/checkout`,
-  returnLoan: (id: number) => `/admin/library/circulations/${id}/return`,
-} as const;
 
 export const libraryStateLabel: Record<string, string> = {
   available: 'متاحة',
