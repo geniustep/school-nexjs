@@ -242,7 +242,11 @@ export function LibraryWorkspace() {
       : titleForm
         ? await updateLibraryTitle(titleForm.id, values)
         : null;
-    if (!result || showMutationError(result)) return;
+    if (!result) return;
+    if (!result.success) {
+      showMutationError(result);
+      return;
+    }
 
     const requestedCopies = Math.max(wasNew ? 1 : 0, Math.min(50, Math.trunc(values.copiesToAdd)));
     if (requestedCopies > 0) {
