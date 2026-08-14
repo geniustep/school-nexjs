@@ -16,6 +16,7 @@ import { LibraryCatalogTable } from './catalog-table';
 import { LibraryCirculationCreateForm, type LibraryCheckoutValues } from './circulation-create-form';
 import { LibraryCirculationsTable } from './circulations-table';
 import { LibraryCopiesTable } from './copies-table';
+import { LibraryCopyEditForm, type LibraryCopyEditValues } from './copy-edit-form';
 import {
   archiveLibraryTitle,
   checkoutLibraryStudent,
@@ -23,6 +24,7 @@ import {
   createLibraryTitle,
   returnLibraryLoan,
   runLibraryCopyAction,
+  updateLibraryCopy,
   updateLibraryTitle,
 } from './library-actions';
 import {
@@ -38,6 +40,7 @@ import {
   type LibraryTitleRow,
 } from './library-contract';
 import { PhysicalCopyForm, type PhysicalCopyFormValues } from './physical-copy-form';
+import { LibraryQuickCopyLookup } from './quick-copy-lookup';
 import { LibraryReturnForm, type LibraryReturnValues } from './return-form';
 import { LibraryTitleForm, type LibraryTitleFormValues } from './title-form';
 import './library.css';
@@ -76,6 +79,8 @@ export function LibraryWorkspace() {
   const [copyFormOpen, setCopyFormOpen] = useState(false);
   const [copyFormTitles, setCopyFormTitles] = useState<LibraryTitleRow[]>([]);
   const [openingCopyForm, setOpeningCopyForm] = useState(false);
+  const [editCopy, setEditCopy] = useState<LibraryCopyRow | null>(null);
+  const [quickLookupOpen, setQuickLookupOpen] = useState(false);
   const [checkoutCopy, setCheckoutCopy] = useState<LibraryCopyRow | null>(null);
   const [returnLoan, setReturnLoan] = useState<LibraryCirculationRow | null>(null);
 
@@ -168,6 +173,15 @@ export function LibraryWorkspace() {
     await load();
   }
 
+  async function submitCopyEdit(values: LibraryCopyEditValues) {
+    if (!editCopy) return;
+    const result = await updateLibraryCopy(editCopy.id, values);
+    if (showMutationError(result)) return;
+    setEditCopy(null);
+    setNotice('تم حفظ تعديلات النسخة.');
+    await load();
+  }
+
   async function runCopyLifecycle(copy: LibraryCopyRow, action: LibraryCopyAction) {
     if (!window.confirm(`${libraryCopyActionLabel[action]} للنسخة ${copy.accession}؟`)) return;
     const result = await runLibraryCopyAction(copy.id, action);
@@ -210,11 +224,23 @@ export function LibraryWorkspace() {
     setError('');
   }
 
-  const primaryAction = tab === 'catalog' && canCatalog ? (
+  function selectQuickCheckoutCopy(copy: LibraryCopyRow) {
+    setQuickLookupOpen(false);
+    setCheckoutCopy(copy);
+  }
+
+  const contextAction = tab === 'catalog' && canCatalog ? (
     <button type="button" className="btn btn--primary btn--sm" onClick={() => setTitleForm('new')}>إضافة عنوان</button>
   ) : tab === 'copies' && canCatalog ? (
     <button type="button" disabled={openingCopyForm} className="btn btn--primary btn--sm" onClick={() => void openCopyForm()}>{openingCopyForm ? 'جارٍ التحضير…' : 'إضافة نسخة'}</button>
   ) : null;
+
+  const headerActions = canCirculation || contextAction ? (
+    <div className="library-workspace__header-actions">
+      {canCirculation ? <button type="button" className="btn btn--ghost btn--sm" onClick={() => setQuickLookupOpen(true)}>إعارة سريعة</button> : null}
+      {contextAction}
+    </div>
+  ) : undefined;
 
   const searchPlaceholder = tab === 'catalog'
     ? 'ابحث عن عنوان، مؤلف أو ISBN'
@@ -227,7 +253,7 @@ export function LibraryWorkspace() {
       <PageHeader
         title="المكتبة"
         subtitle="إدارة الكتب والنسخ والإعارات."
-        actions={primaryAction ? <div className="library-workspace__header-actions">{primaryAction}</div> : undefined}
+        actions={headerActions}
       />
 
       <div className="library-tabs" role="tablist" aria-label="أقسام المكتبة">
@@ -304,7 +330,7 @@ export function LibraryWorkspace() {
           {tab === 'catalog' ? (
             <LibraryCatalogTable rows={titles} onEdit={(row) => setTitleForm(row)} onArchive={(row) => void archiveTitle(row)} />
           ) : tab === 'copies' ? (
-            <LibraryCopiesTable rows={copies} canCirculation={canCirculation} onCheckout={setCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
+            <LibraryCopiesTable rows={copies} canCirculation={canCirculation} onEdit={setEditCopy} onCheckout={setCheckoutCopy} onLifecycle={(copy, action) => void runCopyLifecycle(copy, action)} />
           ) : (
             <LibraryCirculationsTable rows={loans} canAct={canCirculation} onAction={setReturnLoan} />
           )}
@@ -314,6 +340,8 @@ export function LibraryWorkspace() {
 
       {titleForm ? <LibraryTitleForm initial={titleForm === 'new' ? null : titleForm} onClose={() => setTitleForm(null)} onSubmit={submitTitle} /> : null}
       {copyFormOpen ? <PhysicalCopyForm titles={copyFormTitles} loadError="" onClose={() => setCopyFormOpen(false)} onSubmit={submitCopy} /> : null}
+      {editCopy ? <LibraryCopyEditForm copy={editCopy} onClose={() => setEditCopy(null)} onSubmit={submitCopyEdit} /> : null}
+      {quickLookupOpen ? <LibraryQuickCopyLookup onClose={() => setQuickLookupOpen(false)} onSelect={selectQuickCheckoutCopy} /> : null}
       {checkoutCopy ? <LibraryCirculationCreateForm copy={checkoutCopy} onClose={() => setCheckoutCopy(null)} onSubmit={submitCheckout} /> : null}
       {returnLoan ? <LibraryReturnForm loan={returnLoan} onClose={() => setReturnLoan(null)} onSubmit={submitReturn} /> : null}
     </div>

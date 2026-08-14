@@ -8,6 +8,7 @@ import {
 } from './library-contract';
 import type { LibraryTitleFormValues } from './title-form';
 import type { PhysicalCopyFormValues } from './physical-copy-form';
+import type { LibraryCopyEditValues } from './copy-edit-form';
 import type { LibraryCheckoutValues } from './circulation-create-form';
 import type { LibraryReturnValues } from './return-form';
 
@@ -46,6 +47,15 @@ export async function createLibraryCopy(values: PhysicalCopyFormValues) {
     accession_code: values.accession.trim(),
     barcode: values.barcode.trim() || undefined,
     shelf_location: values.shelf.trim() || undefined,
+  });
+}
+
+export async function updateLibraryCopy(copyId: number, values: LibraryCopyEditValues) {
+  return api.patch<LibraryCopyRow>(libraryEndpoints.copy(copyId), {
+    barcode: values.barcode.trim() || false,
+    shelf_location: values.shelf.trim() || false,
+    circulation_policy: values.policy,
+    condition: values.condition,
   });
 }
 
