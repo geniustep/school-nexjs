@@ -75,4 +75,8 @@ export type Permission =
   | 'school.manage_branding'
   | 'library.view'
   | 'library.catalog.manage'
-  | 'library.circulation.manage';
+  | 'library.circulation.manage'
+  | 'library.policy.manage'
+  | 'library.analytics.view'
+  | 'entry_requirements.manage'
+  | 'entry_requirements.publish';
