@@ -29,11 +29,13 @@ function stateTone(state: string): 'green' | 'red' | 'amber' | 'blue' | 'slate' 
 export function LibraryCopiesTable({
   rows,
   canCirculation,
+  onEdit,
   onCheckout,
   onLifecycle,
 }: {
   rows: LibraryCopyRow[];
   canCirculation: boolean;
+  onEdit: (copy: LibraryCopyRow) => void;
   onCheckout: (copy: LibraryCopyRow) => void;
   onLifecycle: (copy: LibraryCopyRow, action: LibraryCopyAction) => void;
 }) {
@@ -76,11 +78,13 @@ export function LibraryCopiesTable({
       label: 'الإجراءات',
       render: (row) => {
         const allowedLifecycle = lifecycleActions.filter((action) => libraryActionAllowed(row.allowed_actions, action));
+        const canEdit = libraryActionAllowed(row.allowed_actions, 'edit');
         return (
           <div className="library-actions">
             {canCirculation && libraryActionAllowed(row.allowed_actions, 'checkout') ? (
               <button type="button" className="btn btn--primary btn--sm" onClick={() => onCheckout(row)}>إعارة</button>
             ) : null}
+            {canEdit ? <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>تعديل</button> : null}
             {allowedLifecycle.length ? (
               <details className="library-actions-menu">
                 <summary className="btn btn--ghost btn--sm">إجراءات</summary>
