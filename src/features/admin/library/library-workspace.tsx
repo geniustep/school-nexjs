@@ -31,11 +31,11 @@ export function LibraryWorkspace() {
     setError('');
     const common = { page: 1, page_size: 50, search: query || undefined };
     if (tab === 'catalog') {
-      const result = await api.get<LibraryTitleRow[]>(libraryEndpoints.titles, { ...common, active: true });
+      const result = await api.get<LibraryTitleRow[]>(libraryEndpoints.titles, { ...common, active: 1 });
       if (!result.success) { setTitles([]); setTotal(0); setError(libraryErrorMessage(result)); }
       else { setTitles(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     } else if (tab === 'copies') {
-      const result = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, { ...common, active: true });
+      const result = await api.get<LibraryCopyRow[]>(libraryEndpoints.copies, { ...common, active: 1 });
       if (!result.success) { setCopies([]); setTotal(0); setError(libraryErrorMessage(result)); }
       else { setCopies(result.data); setTotal(libraryResponseTotal(result, result.data.length)); }
     } else {
