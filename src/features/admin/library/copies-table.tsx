@@ -1,5 +1,7 @@
 'use client';
 
+import { DataTable, type Column } from '@/components/tables/data-table';
+import { Badge } from '@/components/ui/primitives';
 import {
   libraryActionAllowed,
   libraryCopyActionLabel,
@@ -7,7 +9,6 @@ import {
   type LibraryCopyAction,
   type LibraryCopyRow,
 } from './library-contract';
-import { librarySecondaryButton } from './library-ui';
 
 const lifecycleActions: LibraryCopyAction[] = [
   'mark_lost',
@@ -16,6 +17,14 @@ const lifecycleActions: LibraryCopyAction[] = [
   'restore',
   'withdraw',
 ];
+
+function stateTone(state: string): 'green' | 'red' | 'amber' | 'blue' | 'slate' {
+  if (state === 'available') return 'green';
+  if (state === 'lost' || state === 'damaged') return 'red';
+  if (state === 'repair') return 'amber';
+  if (state === 'on_loan') return 'blue';
+  return 'slate';
+}
 
 export function LibraryCopiesTable({
   rows,
@@ -28,51 +37,67 @@ export function LibraryCopiesTable({
   onCheckout: (copy: LibraryCopyRow) => void;
   onLifecycle: (copy: LibraryCopyRow, action: LibraryCopyAction) => void;
 }) {
-  return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700">
-      <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-500 dark:bg-slate-900">
-          <tr>
-            {['الكتاب', 'رقم الجرد', 'الباركود', 'الرف', 'الحالة', 'السياسة', ''].map((label) => (
-              <th key={label} className="px-4 py-3 text-right font-medium">{label}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            const allowedLifecycle = lifecycleActions.filter((action) => libraryActionAllowed(row.allowed_actions, action));
-            return (
-              <tr key={row.id} className="border-t border-slate-100 dark:border-slate-800">
-                <td className="px-4 py-3 font-medium">{row.title.name}</td>
-                <td className="px-4 py-3">{row.accession}</td>
-                <td className="px-4 py-3">{row.barcode || '—'}</td>
-                <td className="px-4 py-3">{row.shelf || '—'}</td>
-                <td className="px-4 py-3">{libraryStateLabel[row.state] || row.state}</td>
-                <td className="px-4 py-3">{row.circulation_policy === 'loanable' ? 'قابلة للإعارة' : 'داخل المكتبة فقط'}</td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2">
-                    {canCirculation && libraryActionAllowed(row.allowed_actions, 'checkout') ? (
-                      <button type="button" className={librarySecondaryButton} onClick={() => onCheckout(row)}>إعارة</button>
-                    ) : null}
-                    {allowedLifecycle.length ? (
-                      <details className="relative">
-                        <summary className={`${librarySecondaryButton} cursor-pointer list-none`}>إجراءات</summary>
-                        <div className="absolute left-0 z-20 mt-1 min-w-44 rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                          {allowedLifecycle.map((action) => (
-                            <button key={action} type="button" className="block w-full rounded-lg px-3 py-2 text-right text-sm hover:bg-slate-50 dark:hover:bg-slate-800" onClick={() => onLifecycle(row, action)}>
-                              {libraryCopyActionLabel[action]}
-                            </button>
-                          ))}
-                        </div>
-                      </details>
-                    ) : null}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
+  const columns: Column<LibraryCopyRow>[] = [
+    {
+      key: 'book',
+      header: 'الكتاب',
+      render: (row) => (
+        <div className="library-identity">
+          <span className="library-identity__title" dir="auto">{row.title.name}</span>
+          <span className="library-identity__meta">الرف: <span dir="auto">{row.shelf || 'غير محدد'}</span></span>
+        </div>
+      ),
+    },
+    {
+      key: 'copy',
+      header: 'النسخة',
+      render: (row) => (
+        <div className="library-code-stack">
+          <bdi className="mono" dir="auto">{row.accession}</bdi>
+          <span className="tiny muted">{row.barcode ? <bdi dir="ltr">{row.barcode}</bdi> : 'بدون باركود'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'state',
+      header: 'الحالة',
+      render: (row) => <Badge tone={stateTone(row.state)}>{libraryStateLabel[row.state] || row.state}</Badge>,
+    },
+    {
+      key: 'policy',
+      header: 'الإعارة',
+      render: (row) => row.circulation_policy === 'loanable'
+        ? <Badge tone="green">قابلة للإعارة</Badge>
+        : <Badge tone="slate">داخل المكتبة</Badge>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      label: 'الإجراءات',
+      render: (row) => {
+        const allowedLifecycle = lifecycleActions.filter((action) => libraryActionAllowed(row.allowed_actions, action));
+        return (
+          <div className="library-actions">
+            {canCirculation && libraryActionAllowed(row.allowed_actions, 'checkout') ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => onCheckout(row)}>إعارة</button>
+            ) : null}
+            {allowedLifecycle.length ? (
+              <details className="library-actions-menu">
+                <summary className="btn btn--ghost btn--sm">إجراءات</summary>
+                <div className="library-actions-menu__panel">
+                  {allowedLifecycle.map((action) => (
+                    <button key={action} type="button" className={action === 'withdraw' || action === 'mark_lost' ? 'library-action--danger' : undefined} onClick={() => onLifecycle(row, action)}>
+                      {libraryCopyActionLabel[action]}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            ) : null}
+          </div>
+        );
+      },
+    },
+  ];
+
+  return <div className="library-table"><DataTable columns={columns} rows={rows} rowKey={(row) => row.id} /></div>;
 }
