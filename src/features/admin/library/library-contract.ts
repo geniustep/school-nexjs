@@ -4,6 +4,7 @@ export type LibraryTab = 'catalog' | 'copies' | 'circulation';
 export type LibraryCirculationFilter = 'checked_out' | 'overdue' | 'returned';
 export type LibraryAllowedActions = Record<string, boolean>;
 export type LibraryCopyAction = 'mark_lost' | 'mark_damaged' | 'send_to_repair' | 'restore' | 'withdraw';
+export type LibraryCopyCondition = 'new' | 'good' | 'worn' | 'damaged';
 
 export type LibraryTitleRow = {
   id: number;
@@ -27,7 +28,7 @@ export type LibraryCopyRow = {
   shelf?: string | null;
   circulation_policy: 'loanable' | 'library_only';
   state: string;
-  condition?: string | null;
+  condition?: LibraryCopyCondition | null;
   active: boolean;
   allowed_actions?: LibraryAllowedActions | null;
 };
