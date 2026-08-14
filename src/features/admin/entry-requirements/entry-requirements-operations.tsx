@@ -1,9 +1,14 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status review-needed
+ * Operational tools use the adopted primitives; authenticated visual QA remains.
+ */
+
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { api } from '@/lib/api/client';
-import { entryRequirementEndpoints } from '@/lib/api/entry-requirements-endpoints';
+import { Badge, Card, InfoBanner, SectionHead } from '@/components/ui/primitives';
 import {
   authenticatedAttachmentDownloadHref,
   downloadEntryRequirementTemplate,
@@ -21,7 +26,9 @@ import {
   type RequirementItemType,
   type RequirementList,
 } from '@/features/entry-requirements/entry-requirements-contract';
-import styles from '@/features/library/product-workspaces.module.css';
+import { api } from '@/lib/api/client';
+import { entryRequirementEndpoints } from '@/lib/api/entry-requirements-endpoints';
+import styles from './entry-requirements-workspace.module.css';
 
 type PreviewIssue = { code?: string; field?: string; message: string };
 type PreviewRow = RequirementImportPreviewRow & {
@@ -82,10 +89,9 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
   const grouped = new Map<RequirementItemType, RequirementItem[]>();
   for (const type of PRINT_TYPES) grouped.set(type, []);
   if (!blank) {
-    for (const item of list.items ?? []) {
-      grouped.get(item.item_type)?.push(item);
-    }
+    for (const item of list.items ?? []) grouped.get(item.item_type)?.push(item);
   }
+
   const sections = PRINT_TYPES.map((type) => {
     const items = grouped.get(type) ?? [];
     if (!blank && items.length === 0) return '';
@@ -107,7 +113,7 @@ function openPrint(list: RequirementList, blank: boolean): void {
   try {
     popup.history.replaceState(null, '', '/admin/entry-requirements?print=1');
   } catch {
-    // The printable document still works if the browser declines history replacement.
+    // Printing still works if the browser declines history replacement.
   }
   popup.opener = null;
   popup.document.open();
@@ -197,7 +203,9 @@ export function EntryRequirementsOperations({
 
   async function previewImport() {
     if (!importFile || list.state !== 'draft') return;
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       const encoded = importBase64 || await fileToBase64(importFile);
       setImportBase64(encoded);
@@ -218,7 +226,9 @@ export function EntryRequirementsOperations({
 
   async function applyImport() {
     if (!importFile || !preview || !importKey || list.state !== 'draft') return;
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       const encoded = importBase64 || await fileToBase64(importFile);
       setImportBase64(encoded);
@@ -239,7 +249,9 @@ export function EntryRequirementsOperations({
   }
 
   async function downloadTemplate() {
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       await downloadEntryRequirementTemplate(entryRequirementEndpoints.admin.importTemplate);
       setNotice('تم تنزيل نموذج Excel الرسمي.');
@@ -254,7 +266,9 @@ export function EntryRequirementsOperations({
     const files = [...(event.target.files ?? [])];
     event.target.value = '';
     if (!files.length || list.state !== 'draft') return;
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       await uploadEntryRequirementAttachments<AttachmentListResult>(
         entryRequirementEndpoints.admin.attachments(list.id),
@@ -280,7 +294,9 @@ export function EntryRequirementsOperations({
 
   async function issueOrRotateLink(rotate: boolean) {
     if (list.state !== 'published') return;
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       const path = rotate
         ? entryRequirementEndpoints.admin.rotatePublicShareLink(list.id)
@@ -290,8 +306,7 @@ export function EntryRequirementsOperations({
       const token = result.data.link?.token;
       if (!token) throw new Error('أُنشئ الرابط لكن لم يصل رمز المشاركة القابل للنسخ.');
       setPublicLink(result.data.link);
-      const url = shareUrlForToken(token);
-      setShareUrl(url);
+      setShareUrl(shareUrlForToken(token));
       setNotice(rotate ? 'تم تدوير الرابط. الرابط السابق لم يعد صالحًا.' : 'تم إنشاء رابط القراءة.');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'تعذر إنشاء رابط المشاركة.');
@@ -301,7 +316,9 @@ export function EntryRequirementsOperations({
   }
 
   async function revokeLink() {
-    setBusy(true); setError(''); setNotice('');
+    setBusy(true);
+    setError('');
+    setNotice('');
     try {
       const result = await api.post<{ list_id: number; revoked: PublicLink[] }>(
         entryRequirementEndpoints.admin.revokePublicShareLink(list.id),
@@ -333,47 +350,203 @@ export function EntryRequirementsOperations({
     }
   }
 
-  return <div className={styles.list}>
-    {notice ? <div className={`${styles.notice} ${styles.success}`}>{notice}</div> : null}
-    {error ? <div className={`${styles.notice} ${styles.error}`}>{error}</div> : null}
+  const rowsNeedingAttention = preview?.rows.filter(
+    (row) => !row.valid || row.needs_resolution || (row.warnings?.length ?? 0) > 0,
+  ) ?? [];
 
-    {canManage ? <section className={styles.card}>
-      <div className={styles.cardHeader}><div><h3 className={styles.sectionTitle}>استيراد Excel</h3><span className={styles.muted}>استيراد إلى المسودة فقط، مع معاينة قبل التطبيق.</span></div><button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={()=>void downloadTemplate()}>تحميل نموذج Excel</button></div>
-      {list.state === 'draft' ? <>
-        <label className={styles.field}>ملف XLSX<input className="input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={busy} onChange={selectImportFile}/></label>
-        <div className={styles.actions}><button type="button" className="btn btn--ghost" disabled={busy || !importFile} onClick={()=>void previewImport()}>معاينة الاستيراد</button>{preview ? <button type="button" className="btn btn--primary" disabled={busy || preview.summary.valid === 0} onClick={()=>void applyImport()}>تطبيق على المسودة</button> : null}</div>
-        {preview ? <div className={styles.card}>
-          <div className={styles.summary}><div className={styles.summaryItem}><strong>{preview.summary.total}</strong>إجمالي</div><div className={styles.summaryItem}><strong>{preview.summary.valid}</strong>مقبول</div><div className={styles.summaryItem}><strong>{preview.summary.needs_resolution}</strong>يحتاج مراجعة</div><div className={styles.summaryItem}><strong>{preview.summary.invalid}</strong>مرفوض</div><div className={styles.summaryItem}><strong>{duplicateRows.length}</strong>صف متكرر محتمل</div></div>
-          {duplicateRows.length ? <div className={styles.notice}>راجع الصفوف المتكررة المحتملة: {duplicateRows.join('، ')}. هذا تنبيه واجهة فقط؛ Odoo يبقى صاحب قرار التطبيق.</div> : null}
-          {preview.rows.filter(row=>!row.valid || row.needs_resolution || (row.warnings?.length ?? 0)>0).map(row=><div key={row.row_number} className={styles.row}><div className={styles.rowMain}><strong>الصف {row.row_number}: {row.item?.name || 'عنصر'}</strong>{row.needs_resolution?<span className={styles.badge}>يحتاج مراجعة المقرر</span>:null}{row.errors?.map((issue,index)=><span key={`e-${index}`} className={styles.tiny}>{issue.message}</span>)}{row.warnings?.map((issue,index)=><span key={`w-${index}`} className={styles.tiny}>{issue.message}</span>)}</div></div>)}
-          {applyResult ? <div className={`${styles.notice} ${styles.success}`}>طُبق {applyResult.summary.applied}، وتعذر تطبيق {applyResult.summary.blocked}، ويحتاج المراجعة {applyResult.summary.needs_resolution}.</div> : null}
-        </div> : null}
-      </> : <div className={styles.notice}>الاستيراد متاح على المسودة فقط. أنشئ نسخة محدثة إذا كانت اللائحة منشورة.</div>}
-    </section> : null}
+  return (
+    <div className={styles.operationStack}>
+      {notice ? <InfoBanner title={notice} tone="green" icon="✓" /> : null}
+      {error ? <InfoBanner title={error} tone="amber" icon="!" /> : null}
 
-    <section className={styles.card}>
-      <div className={styles.cardHeader}><div><h3 className={styles.sectionTitle}>الوثائق المرفقة</h3><span className={styles.muted}>PDF أو صورة مرجعية للائحة الأصلية؛ لا يتم استخراج محتواها آليًا.</span></div>{canManage && list.state === 'draft' ? <label className="btn btn--ghost btn--sm" style={{cursor:'pointer'}}>إرفاق ملف<input type="file" hidden multiple accept="application/pdf,image/jpeg,image/png" disabled={busy} onChange={uploadAttachments}/></label> : null}</div>
-      {attachments.length ? <div className={styles.list}>{attachments.map(attachment=><div key={attachment.id} className={styles.row}><div className={styles.rowMain}><strong>{attachment.name}</strong><span className={styles.tiny}>{attachment.mimetype || 'ملف'}{formatBytes(attachment.size ?? attachment.file_size) ? ` · ${formatBytes(attachment.size ?? attachment.file_size)}` : ''}</span></div><a className="btn btn--ghost btn--sm" href={authenticatedAttachmentDownloadHref(attachment.id)}>تنزيل</a></div>)}</div> : <div className={styles.empty}>لا توجد وثائق مرفقة.</div>}
-      {list.state !== 'draft' ? <span className={styles.muted}>المرفقات مقفلة مع اللائحة بعد خروجها من المسودة.</span> : null}
-    </section>
+      {canManage ? (
+        <Card className={styles.operationCard}>
+          <div className={styles.operationHeader}>
+            <div className={styles.operationHeaderText}>
+              <span className={styles.operationTitle}>Excel</span>
+              <span className={styles.operationDescription}>ابدأ من النموذج الرسمي، عاين الملف ثم طبّقه على المسودة.</span>
+            </div>
+            <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => void downloadTemplate()}>
+              تحميل النموذج
+            </button>
+          </div>
 
-    <section className={styles.card}>
-      <div className={styles.cardHeader}><div><h3 className={styles.sectionTitle}>الطباعة</h3><span className={styles.muted}>طباعة A4 مباشرة من المتصفح أو الحفظ كـPDF.</span></div></div>
-      <div className={styles.actions}><button type="button" className="btn btn--ghost" onClick={()=>printList(false)}>طباعة اللائحة</button><button type="button" className="btn btn--ghost" onClick={()=>printList(true)}>طباعة نموذج فارغ</button></div>
-    </section>
+          {list.state === 'draft' ? (
+            <div className={styles.filePicker}>
+              <label className="field">
+                ملف XLSX
+                <input
+                  className="input"
+                  type="file"
+                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  disabled={busy}
+                  onChange={selectImportFile}
+                />
+              </label>
+              {importFile ? <span className={styles.fileName} dir="auto">{importFile.name}</span> : null}
+              <div className={styles.operationActions}>
+                <button type="button" className="btn btn--ghost btn--sm" disabled={busy || !importFile} onClick={() => void previewImport()}>
+                  معاينة
+                </button>
+                {preview ? (
+                  <button type="button" className="btn btn--primary btn--sm" disabled={busy || preview.summary.valid === 0} onClick={() => void applyImport()}>
+                    تطبيق على المسودة
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          ) : (
+            <InfoBanner title="الاستيراد متاح على المسودة فقط" description="أنشئ نسخة محدثة قبل استيراد ملف جديد." />
+          )}
 
-    {canPublish ? <section className={styles.card}>
-      <div className={styles.cardHeader}><div><h3 className={styles.sectionTitle}>مشاركة اللائحة</h3><span className={styles.muted}>رابط قراءة مرمّز للنسخة المنشورة فقط، غير مخصص للبحث أو الاكتشاف العام.</span></div></div>
-      {list.state !== 'published' ? <div className={styles.notice}>يصبح رابط المشاركة متاحًا بعد نشر اللائحة.</div> : <>
-        {publicLink ? <div className={styles.notice}>يوجد رابط نشط{publicLink.token_prefix ? ` (${publicLink.token_prefix}…)` : ''}. لا يخزن النظام الرمز الخام؛ إذا لم يكن الرابط ظاهرًا أدناه فدوّره للحصول على رابط جديد قابل للنسخ.</div> : null}
-        {shareUrl ? <label className={styles.field}>الرابط<input className="input" readOnly value={shareUrl} onFocus={event=>event.currentTarget.select()}/></label> : null}
-        <div className={styles.actions}>
-          {!publicLink ? <button type="button" className="btn btn--primary" disabled={busy} onClick={()=>void issueOrRotateLink(false)}>إنشاء رابط قراءة</button> : null}
-          {publicLink ? <button type="button" className="btn btn--ghost" disabled={busy} onClick={()=>void issueOrRotateLink(true)}>تدوير الرابط</button> : null}
-          {shareUrl ? <button type="button" className="btn btn--primary" disabled={busy} onClick={()=>void copyOrShare()}>نسخ / مشاركة</button> : null}
-          {publicLink ? <button type="button" className="btn btn--ghost" disabled={busy} onClick={()=>void revokeLink()}>إبطال الرابط</button> : null}
+          {preview ? (
+            <div className={styles.panelBody}>
+              <div className={styles.previewSummary}>
+                <div className={styles.previewMetric}><strong>{preview.summary.total}</strong><span>إجمالي</span></div>
+                <div className={styles.previewMetric}><strong>{preview.summary.valid}</strong><span>مقبول</span></div>
+                <div className={styles.previewMetric}><strong>{preview.summary.needs_resolution}</strong><span>يحتاج مراجعة</span></div>
+                <div className={styles.previewMetric}><strong>{preview.summary.invalid}</strong><span>مرفوض</span></div>
+              </div>
+
+              {duplicateRows.length ? (
+                <InfoBanner
+                  tone="amber"
+                  icon="!"
+                  title={`${duplicateRows.length} صفوف متكررة محتملة`}
+                  description={`راجع الصفوف: ${duplicateRows.join('، ')}. هذا تنبيه واجهة فقط؛ Odoo يبقى صاحب قرار التطبيق.`}
+                />
+              ) : null}
+
+              {rowsNeedingAttention.length ? (
+                <div className={styles.previewIssues}>
+                  {rowsNeedingAttention.map((row) => {
+                    const tone = !row.valid || (row.errors?.length ?? 0) > 0 ? 'error' : 'warning';
+                    return (
+                      <div key={row.row_number} className={styles.issueRow} data-tone={tone}>
+                        <strong>الصف {row.row_number}: {row.item?.name || 'عنصر'}</strong>
+                        {row.needs_resolution ? <Badge tone="amber">يحتاج ربط المقرر</Badge> : null}
+                        {row.errors?.map((issue, index) => <span key={`error-${index}`}>{issue.message}</span>)}
+                        {row.warnings?.map((issue, index) => <span key={`warning-${index}`}>{issue.message}</span>)}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {applyResult ? (
+                <InfoBanner
+                  tone="green"
+                  icon="✓"
+                  title={`طُبق ${applyResult.summary.applied} صفًا`}
+                  description={`تعذر تطبيق ${applyResult.summary.blocked}، ويحتاج المراجعة ${applyResult.summary.needs_resolution}. لم يتم نشر اللائحة.`}
+                />
+              ) : null}
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
+
+      <Card className={styles.operationCard}>
+        <div className={styles.operationHeader}>
+          <div className={styles.operationHeaderText}>
+            <span className={styles.operationTitle}>الوثائق</span>
+            <span className={styles.operationDescription}>PDF أو صورة مرجعية للائحة الأصلية، منفصلة عن البيانات المنظمة.</span>
+          </div>
+          {canManage && list.state === 'draft' ? (
+            <label className={`btn btn--ghost btn--sm ${styles.uploadControl}`}>
+              إرفاق ملف
+              <input type="file" hidden multiple accept="application/pdf,image/jpeg,image/png" disabled={busy} onChange={uploadAttachments} />
+            </label>
+          ) : null}
         </div>
-      </>}
-    </section> : null}
-  </div>;
+
+        {attachments.length ? (
+          <div className={styles.attachmentList}>
+            {attachments.map((attachment) => (
+              <div key={attachment.id} className={styles.attachmentRow}>
+                <div className={styles.attachmentIdentity}>
+                  <span className={styles.attachmentName} dir="auto">{attachment.name}</span>
+                  <span className={styles.muted}>
+                    {attachment.mimetype || 'ملف'}
+                    {formatBytes(attachment.size ?? attachment.file_size) ? ` · ${formatBytes(attachment.size ?? attachment.file_size)}` : ''}
+                  </span>
+                </div>
+                <a className="btn btn--ghost btn--sm" href={authenticatedAttachmentDownloadHref(attachment.id)}>تنزيل</a>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className={styles.emptyInline}>لا توجد وثائق مرفقة.</span>
+        )}
+
+        {list.state !== 'draft' ? <span className={styles.muted}>المرفقات مقفلة بعد خروج اللائحة من المسودة.</span> : null}
+      </Card>
+
+      <Card className={styles.operationCard}>
+        <SectionHead title="الطباعة" />
+        <span className={styles.operationDescription}>نسخة A4 جاهزة للطباعة أو للحفظ كـPDF، مع نموذج فارغ عند الحاجة.</span>
+        <div className={styles.operationActions}>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => printList(false)}>طباعة اللائحة</button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => printList(true)}>نموذج فارغ</button>
+        </div>
+        <span className={styles.printHint}>
+          إذا أضاف Chrome أو Edge التاريخ أو عنوان الصفحة إلى PDF، عطّل خيار «Headers and footers / En-têtes et pieds de page» من نافذة الطباعة.
+        </span>
+      </Card>
+
+      {canPublish ? (
+        <Card className={styles.operationCard}>
+          <SectionHead title="مشاركة اللائحة" />
+          <span className={styles.operationDescription}>رابط قراءة مرمّز للنسخة المنشورة فقط، غير مخصص للبحث أو الاكتشاف العام.</span>
+
+          {list.state !== 'published' ? (
+            <InfoBanner title="المشاركة متاحة بعد النشر" description="لا يمكن إنشاء رابط عام لمسودة أو نسخة قيد المراجعة." />
+          ) : (
+            <>
+              {publicLink ? (
+                <div className={styles.contextBadges}>
+                  <Badge tone="green">رابط نشط</Badge>
+                  {publicLink.token_prefix ? <Badge tone="slate">{publicLink.token_prefix}…</Badge> : null}
+                </div>
+              ) : null}
+
+              {shareUrl ? (
+                <label className={styles.shareField}>
+                  الرابط
+                  <input className="input" readOnly value={shareUrl} onFocus={(event) => event.currentTarget.select()} />
+                </label>
+              ) : null}
+
+              {publicLink && !shareUrl ? (
+                <span className={styles.muted}>الرمز الخام لا يُخزن. دوّر الرابط للحصول على رابط جديد قابل للنسخ.</span>
+              ) : null}
+
+              <div className={styles.operationActions}>
+                {!publicLink ? (
+                  <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => void issueOrRotateLink(false)}>
+                    إنشاء رابط
+                  </button>
+                ) : null}
+                {publicLink ? (
+                  <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => void issueOrRotateLink(true)}>
+                    تدوير الرابط
+                  </button>
+                ) : null}
+                {shareUrl ? (
+                  <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => void copyOrShare()}>
+                    نسخ / مشاركة
+                  </button>
+                ) : null}
+                {publicLink ? (
+                  <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => void revokeLink()}>
+                    إبطال الرابط
+                  </button>
+                ) : null}
+              </div>
+            </>
+          )}
+        </Card>
+      ) : null}
+    </div>
+  );
 }
