@@ -4,7 +4,15 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { LibraryModal, libraryInputClass, libraryPrimaryButton } from './library-ui';
 
-export function LibraryTitleForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (values: { name: string; authors: string; publisher: string; isbn: string; policy: 'loanable' | 'library_only' }) => Promise<void> }) {
+export type LibraryTitleFormValues = {
+  name: string;
+  authors: string;
+  publisher: string;
+  isbn: string;
+  policy: 'loanable' | 'library_only';
+};
+
+export function LibraryTitleForm({ onClose, onSubmit }: { onClose: () => void; onSubmit: (values: LibraryTitleFormValues) => Promise<void> }) {
   const [name, setName] = useState('');
   const [authors, setAuthors] = useState('');
   const [publisher, setPublisher] = useState('');
@@ -15,8 +23,11 @@ export function LibraryTitleForm({ onClose, onSubmit }: { onClose: () => void; o
   async function submit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
-    await onSubmit({ name, authors, publisher, isbn, policy });
-    setBusy(false);
+    try {
+      await onSubmit({ name, authors, publisher, isbn, policy });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
