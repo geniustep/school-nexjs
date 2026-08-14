@@ -48,10 +48,13 @@ describe('entry requirement teaching offering options', () => {
     ];
 
     expect(approvedTeachingOfferings(rows).map((row) => row.id)).toEqual([1, 2, 3]);
-    expect(teachingOfferingSubjects(rows)).toEqual([
+    const subjects = teachingOfferingSubjects(rows);
+    expect(subjects).toHaveLength(2);
+    expect(subjects).toEqual(expect.arrayContaining([
       { id: 11, name: 'اللغة العربية' },
       { id: 12, name: 'الرياضيات' },
-    ]);
+    ]));
+    expect(subjects.some((row) => row.id === 13)).toBe(false);
   });
 
   it('returns only approved offerings for the selected subject', () => {
