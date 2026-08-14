@@ -1,6 +1,9 @@
 'use client';
 
-/** @raqeem-design docs/design/RAQEEM-DESIGN.md */
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
 import Link from 'next/link';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { LibraryWorkspace } from '@/features/admin/library/library-workspace';
