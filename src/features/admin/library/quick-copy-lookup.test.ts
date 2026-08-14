@@ -5,7 +5,6 @@ import type { LibraryCopyRow } from './library-contract';
 function copy(overrides: Partial<LibraryCopyRow> = {}): LibraryCopyRow {
   return {
     id: 1,
-    school_id: 1,
     title: { id: 2, name: 'كتاب' },
     accession: 'A-001',
     barcode: '9780001',
@@ -14,9 +13,6 @@ function copy(overrides: Partial<LibraryCopyRow> = {}): LibraryCopyRow {
     state: 'available',
     condition: 'good',
     active: true,
-    acquired_on: null,
-    notes: null,
-    current_circulation: null,
     allowed_actions: { checkout: true },
     ...overrides,
   };
