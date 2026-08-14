@@ -2,6 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TeacherLifecycleDialogs } from './teacher-lifecycle-dialogs';
 
 vi.mock('@/features/i18n/locale-context', () => ({
@@ -81,6 +82,7 @@ describe('TeacherLifecycleDialogs', () => {
   });
 
   it('requires effective_from for a terminated membership restart', async () => {
+    const user = userEvent.setup();
     reactivateTeacher.mockResolvedValue({ success: true, data: { id: 1, name: 'أستاذ', code: 'T1', status: 'active' }, meta: {} });
     render(
       <TeacherLifecycleDialogs
@@ -90,13 +92,15 @@ describe('TeacherLifecycleDialogs', () => {
         onSuccess={vi.fn()}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherDomain.lifecycle.reactivate' }));
+    const dialog = screen.getByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'admin.teacherDomain.lifecycle.reactivate' }));
     expect(reactivateTeacher).not.toHaveBeenCalled();
     expect(screen.getByText('errors.validationFailed')).toBeTruthy();
 
-    const dateInput = screen.getByRole('dialog').querySelector('input[type="date"]') as HTMLInputElement;
+    const dateInput = dialog.querySelector('input[type="date"]') as HTMLInputElement;
     fireEvent.change(dateInput, { target: { value: '2026-09-01' } });
-    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherDomain.lifecycle.reactivate' }));
+    await waitFor(() => expect(dateInput.value).toBe('2026-09-01'));
+    await user.click(within(dialog).getByRole('button', { name: 'admin.teacherDomain.lifecycle.reactivate' }));
     await waitFor(() => expect(reactivateTeacher).toHaveBeenCalledWith(1, { effective_from: '2026-09-01' }));
   });
 });

@@ -1,0 +1,11 @@
+import './admission-assessment-workflow-ux.journey-1';
+import './admission-assessment-workflow-ux.journey-2';
+import './admission-assessment-workflow-ux.journey-3';
+import './admission-assessment-workflow-ux.journey-4';
+import './admission-assessment-workflow-ux.journey-5';
+import './admission-assessment-workflow-ux.primary-1';
+import './admission-assessment-workflow-ux.primary-2';
+import './admission-assessment-workflow-ux.primary-3';
+import './admission-assessment-workflow-ux.primary-4';
+import './admission-assessment-workflow-ux.primary-5';
+import './admission-assessment-workflow-ux.primary-6';
