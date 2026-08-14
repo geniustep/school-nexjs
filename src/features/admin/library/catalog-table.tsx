@@ -6,10 +6,12 @@ import { libraryActionAllowed, type LibraryTitleRow } from './library-contract';
 
 export function LibraryCatalogTable({
   rows,
+  pendingAction,
   onEdit,
   onArchive,
 }: {
   rows: LibraryTitleRow[];
+  pendingAction?: string | null;
   onEdit: (row: LibraryTitleRow) => void;
   onArchive: (row: LibraryTitleRow) => void;
 }) {
@@ -55,16 +57,22 @@ export function LibraryCatalogTable({
       key: 'actions',
       header: '',
       label: 'الإجراءات',
-      render: (row) => (
-        <div className="library-actions">
-          {libraryActionAllowed(row.allowed_actions, 'edit') ? (
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>تعديل</button>
-          ) : null}
-          {libraryActionAllowed(row.allowed_actions, 'archive') ? (
-            <button type="button" className="btn btn--ghost btn--sm library-action--danger" onClick={() => onArchive(row)}>أرشفة</button>
-          ) : null}
-        </div>
-      ),
+      render: (row) => {
+        const archiveKey = `title:${row.id}:archive`;
+        const rowBusy = pendingAction === archiveKey;
+        return (
+          <div className="library-actions">
+            {libraryActionAllowed(row.allowed_actions, 'edit') ? (
+              <button type="button" disabled={rowBusy} className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>تعديل</button>
+            ) : null}
+            {libraryActionAllowed(row.allowed_actions, 'archive') ? (
+              <button type="button" disabled={rowBusy} className="btn btn--ghost btn--sm library-action--danger" onClick={() => onArchive(row)}>
+                {rowBusy ? 'جارٍ الأرشفة…' : 'أرشفة'}
+              </button>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 

@@ -2,6 +2,7 @@
 
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { Badge } from '@/components/ui/primitives';
+import { libraryDueStatus } from './library-dates';
 import { libraryStateLabel, type LibraryCirculationRow } from './library-contract';
 
 export function LibraryCirculationsTable({
@@ -32,12 +33,21 @@ export function LibraryCirculationsTable({
     {
       key: 'dates',
       header: 'المدة',
-      render: (row) => (
-        <div className="library-code-stack">
-          <span><bdi dir="ltr">{row.checked_out_at?.slice(0, 10) || '—'}</bdi></span>
-          <span className={row.overdue ? 'tiny library-overdue' : 'tiny muted'}>حتى <bdi dir="ltr">{row.due_at?.slice(0, 10) || '—'}</bdi></span>
-        </div>
-      ),
+      render: (row) => {
+        const due = libraryDueStatus(row.due_at, row.overdue, row.state);
+        const dueClass = due.tone === 'overdue'
+          ? 'tiny library-overdue'
+          : due.tone === 'today'
+            ? 'tiny library-due-today'
+            : 'tiny muted';
+        return (
+          <div className="library-code-stack">
+            <span>من <bdi dir="ltr">{row.checked_out_at?.slice(0, 10) || '—'}</bdi></span>
+            <span className="tiny muted">حتى <bdi dir="ltr">{row.due_at?.slice(0, 10) || '—'}</bdi></span>
+            <span className={dueClass}>{due.label}</span>
+          </div>
+        );
+      },
     },
     {
       key: 'state',

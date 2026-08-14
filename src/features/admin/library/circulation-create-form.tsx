@@ -7,6 +7,7 @@ import { buildGlobalAcademicYearQuery } from '@/features/academic-context/utils/
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Student } from '@/types/student';
+import { isLibraryDueAtFuture, minimumLibraryDueAt } from './library-dates';
 import { LibraryModal } from './library-ui';
 import type { LibraryCopyRow } from './library-contract';
 
@@ -36,12 +37,15 @@ export function LibraryCirculationCreateForm({
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
   const [dueAt, setDueAt] = useState('');
+  const [dueError, setDueError] = useState('');
+  const [minimumDue] = useState(() => minimumLibraryDueAt());
   const [notes, setNotes] = useState('');
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [studentError, setStudentError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const trimmedSearch = useMemo(() => search.trim(), [search]);
+  const dueInvalid = Boolean(dueAt) && !isLibraryDueAtFuture(dueAt);
 
   useEffect(() => {
     if (trimmedSearch.length < 2 || activeAcademicYearId == null) {
@@ -82,7 +86,12 @@ export function LibraryCirculationCreateForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!studentId || !dueAt) return;
+    if (!studentId || !dueAt || busy) return;
+    if (!isLibraryDueAtFuture(dueAt)) {
+      setDueError('اختر موعد استحقاق لاحقًا لوقت الإعارة الحالي.');
+      return;
+    }
+    setDueError('');
     setBusy(true);
     try {
       await onSubmit({ studentId: Number(studentId), dueAt, notes });
@@ -122,7 +131,18 @@ export function LibraryCirculationCreateForm({
         ) : null}
         <div className="field">
           <label htmlFor="library-checkout-due">تاريخ الاستحقاق</label>
-          <input id="library-checkout-due" required type="datetime-local" className="input" dir="ltr" value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
+          <input
+            id="library-checkout-due"
+            required
+            type="datetime-local"
+            className="input"
+            dir="ltr"
+            min={minimumDue}
+            aria-invalid={dueInvalid || Boolean(dueError)}
+            value={dueAt}
+            onChange={(event) => { setDueAt(event.target.value); setDueError(''); }}
+          />
+          {dueInvalid || dueError ? <p className="library-form-error">{dueError || 'موعد الاستحقاق يجب أن يكون بعد وقت الإعارة الحالي.'}</p> : null}
         </div>
         <div className="field">
           <label htmlFor="library-checkout-notes">ملاحظات</label>
@@ -130,7 +150,7 @@ export function LibraryCirculationCreateForm({
         </div>
         <p className="library-form-note">إعارة الموظفين ستُفعّل بعد توفر معرّف علاقة الموظف الموثوق من الـAPI.</p>
         <div className="form-actions">
-          <button disabled={busy || !studentId || !dueAt} className="btn btn--primary">{busy ? 'جارٍ تنفيذ الإعارة…' : 'تأكيد الإعارة'}</button>
+          <button disabled={busy || !studentId || !dueAt || dueInvalid} className="btn btn--primary">{busy ? 'جارٍ تنفيذ الإعارة…' : 'تأكيد الإعارة'}</button>
           <button type="button" className="btn btn--ghost" onClick={onClose}>إلغاء</button>
         </div>
       </form>

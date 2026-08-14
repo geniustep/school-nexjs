@@ -4,6 +4,7 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { Badge } from '@/components/ui/primitives';
 import {
   libraryActionAllowed,
+  libraryConditionLabel,
   libraryCopyActionLabel,
   libraryStateLabel,
   type LibraryCopyAction,
@@ -29,12 +30,14 @@ function stateTone(state: string): 'green' | 'red' | 'amber' | 'blue' | 'slate' 
 export function LibraryCopiesTable({
   rows,
   canCirculation,
+  pendingAction,
   onEdit,
   onCheckout,
   onLifecycle,
 }: {
   rows: LibraryCopyRow[];
   canCirculation: boolean;
+  pendingAction?: string | null;
   onEdit: (copy: LibraryCopyRow) => void;
   onCheckout: (copy: LibraryCopyRow) => void;
   onLifecycle: (copy: LibraryCopyRow, action: LibraryCopyAction) => void;
@@ -63,7 +66,12 @@ export function LibraryCopiesTable({
     {
       key: 'state',
       header: 'الحالة',
-      render: (row) => <Badge tone={stateTone(row.state)}>{libraryStateLabel[row.state] || row.state}</Badge>,
+      render: (row) => (
+        <div className="library-code-stack">
+          <Badge tone={stateTone(row.state)}>{libraryStateLabel[row.state] || row.state}</Badge>
+          <span className="tiny muted">فيزيائيًا: {row.condition ? libraryConditionLabel[row.condition] : 'غير محددة'}</span>
+        </div>
+      ),
     },
     {
       key: 'policy',
@@ -79,21 +87,32 @@ export function LibraryCopiesTable({
       render: (row) => {
         const allowedLifecycle = lifecycleActions.filter((action) => libraryActionAllowed(row.allowed_actions, action));
         const canEdit = libraryActionAllowed(row.allowed_actions, 'edit');
+        const rowBusy = Boolean(pendingAction?.startsWith(`copy:${row.id}:`));
         return (
           <div className="library-actions">
             {canCirculation && libraryActionAllowed(row.allowed_actions, 'checkout') ? (
-              <button type="button" className="btn btn--primary btn--sm" onClick={() => onCheckout(row)}>إعارة</button>
+              <button type="button" disabled={rowBusy} className="btn btn--primary btn--sm" onClick={() => onCheckout(row)}>إعارة</button>
             ) : null}
-            {canEdit ? <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>تعديل</button> : null}
+            {canEdit ? <button type="button" disabled={rowBusy} className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>تعديل</button> : null}
             {allowedLifecycle.length ? (
               <details className="library-actions-menu">
                 <summary className="btn btn--ghost btn--sm">إجراءات</summary>
                 <div className="library-actions-menu__panel">
-                  {allowedLifecycle.map((action) => (
-                    <button key={action} type="button" className={action === 'withdraw' || action === 'mark_lost' ? 'library-action--danger' : undefined} onClick={() => onLifecycle(row, action)}>
-                      {libraryCopyActionLabel[action]}
-                    </button>
-                  ))}
+                  {allowedLifecycle.map((action) => {
+                    const actionKey = `copy:${row.id}:${action}`;
+                    const actionBusy = pendingAction === actionKey;
+                    return (
+                      <button
+                        key={action}
+                        type="button"
+                        disabled={rowBusy}
+                        className={action === 'withdraw' || action === 'mark_lost' ? 'library-action--danger' : undefined}
+                        onClick={() => onLifecycle(row, action)}
+                      >
+                        {actionBusy ? 'جارٍ التنفيذ…' : libraryCopyActionLabel[action]}
+                      </button>
+                    );
+                  })}
                 </div>
               </details>
             ) : null}

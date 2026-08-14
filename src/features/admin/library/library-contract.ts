@@ -70,6 +70,13 @@ export const libraryStateLabel: Record<string, string> = {
   returned: 'مُعادة',
 };
 
+export const libraryConditionLabel: Record<LibraryCopyCondition, string> = {
+  new: 'جديدة',
+  good: 'جيدة',
+  worn: 'مستعملة',
+  damaged: 'متضررة',
+};
+
 export const libraryCopyActionLabel: Record<LibraryCopyAction, string> = {
   mark_lost: 'تحديد كمفقودة',
   mark_damaged: 'تحديد كمتضررة',
@@ -105,6 +112,17 @@ export function libraryActionAllowed(
   action: string,
 ): boolean {
   return Boolean(actions?.[action]);
+}
+
+export function libraryCheckoutBlockedReason(copy: LibraryCopyRow): string | null {
+  if (libraryActionAllowed(copy.allowed_actions, 'checkout')) return null;
+  if (copy.circulation_policy === 'library_only') return 'هذه النسخة للاستعمال داخل المكتبة فقط.';
+  if (copy.state === 'on_loan') return 'هذه النسخة معارة حاليًا.';
+  if (copy.state === 'lost') return 'هذه النسخة مسجلة كمفقودة.';
+  if (copy.state === 'damaged') return 'هذه النسخة متضررة وغير متاحة للإعارة.';
+  if (copy.state === 'repair') return 'هذه النسخة قيد الإصلاح.';
+  if (copy.state === 'withdrawn') return 'هذه النسخة مسحوبة من التداول.';
+  return 'هذه النسخة غير متاحة للإعارة حاليًا.';
 }
 
 export function libraryErrorMessage<T>(result: ApiResponse<T>): string {
