@@ -5,11 +5,10 @@ import { PageHeader } from '@/components/ui/primitives';
 import { api } from '@/lib/api/client';
 import { entryRequirementEndpoints } from '@/lib/api/entry-requirements-endpoints';
 import { familyRequirementItems, requirementItemTypeLabel, requirementProgressLabel, type ParentRequirementChild, type ParentRequirementFamily, type RequirementItem, type RequirementProgress } from '@/features/entry-requirements/entry-requirements-contract';
+import { buildFamilyRequirementAggregate } from '@/features/entry-requirements/family-requirement-aggregate';
 import styles from '@/features/library/product-workspaces.module.css';
 
 function groupLabel(key: string): string { return ({books:'الكتب',notebooks:'الدفاتر',stationery:'الأدوات',uniform:'الزي',materials:'المستلزمات',other:'أخرى'} as Record<string,string>)[key] ?? key; }
-
-type FamilyAggregateRow = { key:string; name:string; quantity:number; type:string; children:Array<{name:string;quantity:number}> };
 
 export function ParentEntryRequirementsWorkspace() {
   const [family, setFamily] = useState<ParentRequirementFamily | null>(null);
@@ -22,20 +21,7 @@ export function ParentEntryRequirementsWorkspace() {
   useEffect(() => { void loadFamily(); }, []);
 
   const progress = useMemo(() => new Map((child?.progress ?? []).map(p => [p.item_stable_key,p.status])), [child]);
-  const familyAggregate = useMemo<FamilyAggregateRow[]>(() => {
-    if (!family) return [];
-    const map = new Map<string, FamilyAggregateRow>();
-    for (const c of family.children) {
-      for (const item of familyRequirementItems(c).filter((row) => row.provision_source === 'family')) {
-        const key = `${item.item_type}|${item.name.trim().toLocaleLowerCase()}`;
-        const row = map.get(key) ?? { key, name:item.name, quantity:0, type:requirementItemTypeLabel(item.item_type), children:[] };
-        row.quantity += Number(item.quantity) || 0;
-        row.children.push({ name:c.student.name, quantity:Number(item.quantity) || 0 });
-        map.set(key,row);
-      }
-    }
-    return [...map.values()].sort((a,b)=>a.type.localeCompare(b.type,'ar') || a.name.localeCompare(b.name,'ar'));
-  }, [family]);
+  const familyAggregate = useMemo(() => family ? buildFamilyRequirementAggregate(family) : [], [family]);
 
   async function setProgress(item: RequirementItem, status: RequirementProgress) {
     if (!child) return; setBusyKey(item.stable_key);
