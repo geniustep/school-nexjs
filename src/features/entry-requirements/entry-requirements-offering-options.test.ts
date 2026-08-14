@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { TeachingOfferingChoice } from '@/features/entry-requirements/entry-requirements-contract';
 import {
   approvedTeachingOfferings,
+  enabledLevelSubjects,
   teachingOfferingSubjects,
   teachingOfferingsForSubject,
 } from './entry-requirements-offering-options';
@@ -39,6 +40,28 @@ function offering(
 }
 
 describe('entry requirement teaching offering options', () => {
+  it('keeps enabled level subjects visible even when a subject has no approved offering', () => {
+    const subjects = enabledLevelSubjects([
+      { id: 101, name: 'اللغة العربية', enabled: true, school_subject_id: 11 },
+      { id: 102, name: 'الرياضيات', enabled: true, school_subject_id: 12 },
+      { id: 103, name: 'الفرنسية', enabled: true, school_subject_id: 13 },
+      { id: 104, name: 'مادة غير مفعلة', enabled: false, school_subject_id: null },
+    ]);
+
+    expect(subjects).toHaveLength(3);
+    expect(subjects).toEqual(expect.arrayContaining([
+      { id: 11, name: 'اللغة العربية' },
+      { id: 12, name: 'الرياضيات' },
+      { id: 13, name: 'الفرنسية' },
+    ]));
+
+    const offerings = [
+      offering(1, 11, 'اللغة العربية', 'كتابي في اللغة العربية'),
+      offering(2, 13, 'الفرنسية', 'Mes apprentissages'),
+    ];
+    expect(teachingOfferingsForSubject(offerings, 12)).toEqual([]);
+  });
+
   it('derives subjects only from approved offerings already scoped by year and level', () => {
     const rows = [
       offering(1, 11, 'اللغة العربية', 'كتابي في اللغة العربية'),
