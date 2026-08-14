@@ -2,11 +2,13 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import { ToastProvider } from '@/components/ui/toast';
 import { TeacherStaffAccountSection } from './teacher-staff-account-section';
 import type { Teacher } from '@/types/teacher';
 
 vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string) => key,
+  useLocale: () => 'ar',
 }));
 
 vi.mock('@/features/admin/account/account-status-badge', () => ({
@@ -42,9 +44,17 @@ function teacherFixture(overrides: Partial<Teacher> = {}): Teacher {
   };
 }
 
+function renderSection(teacher: Teacher) {
+  return render(
+    <ToastProvider>
+      <TeacherStaffAccountSection teacher={teacher} />
+    </ToastProvider>,
+  );
+}
+
 describe('TeacherStaffAccountSection', () => {
   it('shows account status for linked user_id without Staff Center navigation', () => {
-    const { container } = render(<TeacherStaffAccountSection teacher={teacherFixture()} />);
+    const { container } = renderSection(teacherFixture());
     expect(screen.getByTestId('teacher-account-status-card')).toBeTruthy();
     expect(screen.getByTestId('account-status').textContent).toBe('password_setup_required');
     expect(screen.getByTestId('teacher-account-password-setup-hint')).toBeTruthy();
@@ -54,20 +64,16 @@ describe('TeacherStaffAccountSection', () => {
   });
 
   it('does not render when teacher has no linked user_id', () => {
-    const { container } = render(
-      <TeacherStaffAccountSection teacher={teacherFixture({ user_id: null })} />,
-    );
+    const { container } = renderSection(teacherFixture({ user_id: null }));
     expect(container.querySelector('[data-testid="teacher-account-status-card"]')).toBeNull();
   });
 
   it('keeps status visible for active linked accounts without inventing staff eligibility', () => {
-    const { container } = render(
-      <TeacherStaffAccountSection
-        teacher={teacherFixture({
-          user_id: 99,
-          account: { user_id: 99, status: 'active', login: 'existing.teacher' },
-        })}
-      />,
+    const { container } = renderSection(
+      teacherFixture({
+        user_id: 99,
+        account: { user_id: 99, status: 'active', login: 'existing.teacher' },
+      }),
     );
     expect(screen.getByTestId('account-status').textContent).toBe('active');
     expect(screen.queryByTestId('teacher-account-password-setup-hint')).toBeNull();

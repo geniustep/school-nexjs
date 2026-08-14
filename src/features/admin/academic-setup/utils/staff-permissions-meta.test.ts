@@ -71,13 +71,13 @@ describe('resolveAdminKindMetadata', () => {
     });
   });
 
-  it('falls back to legacy defaults when options missing', () => {
+  it('falls back to current defaults when options are missing', () => {
     expect(resolveAdminKindMetadata('admin_staff')).toEqual({
       permissions_mode: 'assigned',
       capabilities_editable: true,
     });
     expect(resolveAdminKindMetadata('pedagogical_director')).toEqual({
-      permissions_mode: 'scoped',
+      permissions_mode: 'assigned',
       capabilities_editable: true,
     });
   });

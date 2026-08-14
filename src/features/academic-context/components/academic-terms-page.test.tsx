@@ -29,6 +29,15 @@ vi.mock('@/features/auth/session-context', () => ({
   useSession: () => sessionUser(),
 }));
 
+vi.mock('@/features/auth/admin-session-context', () => ({
+  useAdminSession: () => ({
+    activeAcademicYearId: 1,
+    academicYears: [{ id: 1, name: '2026-2027' }],
+    academicYearLoading: false,
+    academicYearError: null,
+  }),
+}));
+
 vi.mock('@/components/ui/toast', () => ({
   useToast: () => toast,
 }));
