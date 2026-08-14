@@ -32,8 +32,11 @@ export function PhysicalCopyForm({
   async function submit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
-    await onSubmit({ titleId: Number(titleId), accession, barcode, shelf });
-    setBusy(false);
+    try {
+      await onSubmit({ titleId: Number(titleId), accession, barcode, shelf });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
