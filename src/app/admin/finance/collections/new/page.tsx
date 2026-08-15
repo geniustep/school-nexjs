@@ -11,6 +11,7 @@ import {
   shouldUseBillingAccountStudentSelector,
 } from '@/features/admin/finance/billing-account-collection-selection';
 import '@/features/admin/finance/finance-ui.css';
+import './collection-new-page.css';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
@@ -40,33 +41,44 @@ export default function AdminFinanceCollectionNewPage() {
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
-      <Link href={returnTo} className="back-link">
-        ‹ {resolveBackLabel(returnTo, t)}
-      </Link>
-      <PageHeader title={t('admin.finance.recordCollection')} subtitle={t('admin.finance.recordCollectionDesc')} />
-      <div className="finance-collection-new-page">
-        {useAccountSelector ? (
-          <BillingAccountCollectionContext
-            billingPartnerId={billingPartnerId}
-            academicYearId={academicYearId || undefined}
-            onDone={(id) =>
-              router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
-            }
-            onCancel={() => router.push(returnTo)}
-          />
-        ) : (
-          <FinanceCollectionForm
-            initialStudentId={studentId || undefined}
-            initialBillingPartnerId={billingPartnerId || undefined}
-            initialAcademicYearId={academicYearId || undefined}
-            lockStudent={!!studentId}
-            onDone={(id) =>
-              router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
-            }
-            onCancel={() => router.push(returnTo)}
-          />
-        )}
-      </div>
+      <main className="finance-collection-new-shell">
+        <header className="finance-collection-new-header">
+          <Link href={returnTo} className="back-link finance-collection-new-header__back">
+            ‹ {resolveBackLabel(returnTo, t)}
+          </Link>
+
+          <div className="finance-collection-new-header__title">
+            <PageHeader
+              title={t('admin.finance.recordCollection')}
+              subtitle={t('admin.finance.recordCollectionDesc')}
+            />
+          </div>
+        </header>
+
+        <div className="finance-collection-new-page">
+          {useAccountSelector ? (
+            <BillingAccountCollectionContext
+              billingPartnerId={billingPartnerId}
+              academicYearId={academicYearId || undefined}
+              onDone={(id) =>
+                router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
+              }
+              onCancel={() => router.push(returnTo)}
+            />
+          ) : (
+            <FinanceCollectionForm
+              initialStudentId={studentId || undefined}
+              initialBillingPartnerId={billingPartnerId || undefined}
+              initialAcademicYearId={academicYearId || undefined}
+              lockStudent={!!studentId}
+              onDone={(id) =>
+                router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
+              }
+              onCancel={() => router.push(returnTo)}
+            />
+          )}
+        </div>
+      </main>
     </RequireAdminPermission>
   );
 }
