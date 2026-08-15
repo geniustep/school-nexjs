@@ -41,10 +41,15 @@ const textbook: RequirementItem = {
 
 const list: RequirementList = {
   id: 5,
+  school_id: 3,
   name: 'تجهيزات الدخول المدرسي',
   state: 'draft',
   revision: 1,
   is_current: false,
+  supersedes_id: null,
+  published_at: null,
+  active: true,
+  notes: null,
   academic_year_id: 2,
   academic_year: '2026/2027',
   level_id: 6,
