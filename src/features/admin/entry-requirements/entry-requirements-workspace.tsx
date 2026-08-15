@@ -29,6 +29,7 @@ import {
   type TeachingOfferingChoice,
 } from '@/features/entry-requirements/entry-requirements-contract';
 import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requirements-display';
+import { withRequirementCoverColor } from '@/features/entry-requirements/entry-requirements-presentation';
 import {
   approvedTeachingOfferings,
   enabledLevelSubjects,
@@ -380,6 +381,25 @@ export function AdminEntryRequirementsWorkspace() {
     }
 
     setNotice('تم تحديث الكمية.');
+    await openList(selected.id);
+    return true;
+  }
+
+  async function updateItemCover(item: RequirementItem, color: string | null) {
+    if (!selected || !['textbook', 'book', 'notebook'].includes(item.item_type)) return false;
+
+    setError('');
+    setNotice('');
+    const result = await api.patch<RequirementItem>(
+      entryRequirementEndpoints.admin.item(selected.id, item.id),
+      { notes: withRequirementCoverColor(item.notes, color) },
+    );
+    if (!result.success) {
+      setError(result.error.message);
+      return false;
+    }
+
+    setNotice(color ? `تم ربط غلاف ${color} بالعنصر.` : 'تمت إزالة الغلاف من العنصر.');
     await openList(selected.id);
     return true;
   }
@@ -937,6 +957,7 @@ export function AdminEntryRequirementsWorkspace() {
                     onManualLink={startResolution}
                     onDelete={(item) => void deleteItem(item)}
                     onQuantityChange={updateItemQuantity}
+                    onCoverChange={updateItemCover}
                   />
                 ) : (
                   <EmptyState

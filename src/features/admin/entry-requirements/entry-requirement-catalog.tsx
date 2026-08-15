@@ -15,6 +15,7 @@ import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requ
 import {
   groupRequirementItems,
   notebookPresentation,
+  requirementCoverColor,
 } from '@/features/entry-requirements/entry-requirements-presentation';
 import styles from './entry-requirement-catalog.module.css';
 
@@ -26,7 +27,10 @@ type Props = {
   onManualLink: (item: RequirementItem) => void;
   onDelete: (item: RequirementItem) => void;
   onQuantityChange: (item: RequirementItem, quantity: number) => Promise<boolean>;
+  onCoverChange: (item: RequirementItem, color: string | null) => Promise<boolean>;
 };
+
+const COVER_COLORS = ['شفاف', 'أحمر', 'أزرق', 'أخضر', 'أصفر', 'برتقالي', 'وردي', 'بنفسجي', 'أسود', 'أبيض'];
 
 function formatQuantity(value: number): string {
   return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
@@ -117,6 +121,92 @@ function QuantityControl({
   );
 }
 
+function CoverControl({
+  item,
+  canManage,
+  editable,
+  onCoverChange,
+}: Pick<Props, 'canManage' | 'editable' | 'onCoverChange'> & { item: RequirementItem }) {
+  const current = requirementCoverColor(item);
+  const [editing, setEditing] = useState(false);
+  const [color, setColor] = useState(current ?? 'شفاف');
+  const [saving, setSaving] = useState(false);
+
+  if (!editing) {
+    return (
+      <span className={styles.coverControl}>
+        {current ? (
+          <span className={styles.coverValue}>
+            <i className={styles.coverColorDot} data-color={current} aria-hidden="true" />
+            غلاف: {current} ×<bdi dir="ltr">{formatQuantity(item.quantity)}</bdi>
+          </span>
+        ) : null}
+        {canManage && editable ? (
+          <button
+            type="button"
+            className={styles.coverEditButton}
+            aria-label={`${current ? 'تعديل' : 'إضافة'} غلاف لـ ${item.title?.trim() || item.name}`}
+            onClick={() => {
+              setColor(current ?? 'شفاف');
+              setEditing(true);
+            }}
+          >
+            {current ? 'تغيير' : '+ غلاف'}
+          </button>
+        ) : null}
+      </span>
+    );
+  }
+
+  return (
+    <span className={styles.coverEditor}>
+      <label>
+        <span className="sr-only">لون الغلاف</span>
+        <select
+          className="input"
+          value={color}
+          disabled={saving}
+          aria-label={`لون غلاف ${item.title?.trim() || item.name}`}
+          onChange={(event) => setColor(event.target.value)}
+        >
+          {COVER_COLORS.map((value) => <option key={value} value={value}>{value}</option>)}
+        </select>
+      </label>
+      <button
+        type="button"
+        className="btn btn--primary btn--sm"
+        disabled={saving || color === current}
+        onClick={async () => {
+          setSaving(true);
+          const saved = await onCoverChange(item, color);
+          setSaving(false);
+          if (saved) setEditing(false);
+        }}
+      >
+        {saving ? 'جارٍ الحفظ…' : 'حفظ'}
+      </button>
+      {current ? (
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          disabled={saving}
+          onClick={async () => {
+            setSaving(true);
+            const saved = await onCoverChange(item, null);
+            setSaving(false);
+            if (saved) setEditing(false);
+          }}
+        >
+          إزالة
+        </button>
+      ) : null}
+      <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={() => setEditing(false)}>
+        إلغاء
+      </button>
+    </span>
+  );
+}
+
 function SectionHeader({ title, count, description }: { title: string; count: number; description: string }) {
   return (
     <div className={styles.sectionHeader}>
@@ -194,6 +284,7 @@ function BookCard(props: Props & { item: RequirementItem; index: number }) {
         <div className={styles.bookFooter}>
           <div className={styles.compactFacts}>
             <QuantityControl {...props} item={item} />
+            <CoverControl {...props} item={item} />
             <span>{itemProvision(item)}</span>
             {item.reusable ? <span>قابل لإعادة الاستعمال</span> : null}
           </div>
@@ -223,12 +314,6 @@ function NotebookCard(props: Props & { item: RequirementItem }) {
             <h4 dir="auto">{item.title?.trim() || item.name}</h4>
             <div className={styles.notebookFacts}>
               {presentation.pages ? <span><strong>{presentation.pages}</strong> صفحة</span> : null}
-              {presentation.cover ? (
-                <span className={styles.coverFact}>
-                  <i className={styles.coverDot} data-tone={presentation.coverTone} aria-hidden="true" />
-                  الغلاف: {presentation.cover}
-                </span>
-              ) : null}
               {presentation.purpose ? <span>الغرض: {presentation.purpose}</span> : null}
               {item.subject ? <span>{item.subject}</span> : null}
             </div>
@@ -239,6 +324,7 @@ function NotebookCard(props: Props & { item: RequirementItem }) {
         <div className={styles.notebookFooter}>
           <div className={styles.compactFacts}>
             <QuantityControl {...props} item={item} />
+            <CoverControl {...props} item={item} />
             <span>{itemProvision(item)}</span>
           </div>
           {props.canManage && props.editable ? (
@@ -304,7 +390,7 @@ export function EntryRequirementCatalog(props: Props) {
           <SectionHeader
             title="الدفاتر"
             count={groups.notebooks.length}
-            description="عدد الصفحات والغلاف في المقدمة، ثم الغرض والكمية دون تكرار النصوص."
+            description="عدد الصفحات أولًا، مع إمكانية ربط غلاف ملوّن بكل دفتر."
           />
           <div className={styles.notebooksGrid}>
             {groups.notebooks.map((item) => <NotebookCard key={item.id} {...props} item={item} />)}

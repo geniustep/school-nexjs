@@ -197,7 +197,10 @@
 }
 
 .quantityControl,
-.quantityEditor {
+.quantityEditor,
+.coverControl,
+.coverEditor,
+.coverValue {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -214,6 +217,27 @@
   cursor: pointer;
 }
 
+.coverEditButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--c-primary);
+  padding: 0;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.coverEditButton:hover {
+  text-decoration: underline;
+}
+
+.coverEditButton:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 .quantityEditButton:hover {
   text-decoration: underline;
 }
@@ -227,6 +251,38 @@
 .quantityEditor {
   flex-wrap: wrap;
 }
+
+.coverEditor {
+  flex-wrap: wrap;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+}
+
+.coverEditor select {
+  width: 106px;
+  min-height: 32px;
+  padding: 5px 8px;
+}
+
+.coverColorDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+}
+
+.coverColorDot[data-color='أحمر'] { background: #ef4444; }
+.coverColorDot[data-color='أزرق'] { background: #3b82f6; }
+.coverColorDot[data-color='أخضر'] { background: #22c55e; }
+.coverColorDot[data-color='أصفر'] { background: #eab308; }
+.coverColorDot[data-color='برتقالي'] { background: #f97316; }
+.coverColorDot[data-color='وردي'] { background: #ec4899; }
+.coverColorDot[data-color='بنفسجي'] { background: #8b5cf6; }
+.coverColorDot[data-color='أسود'] { background: #0f172a; }
+.coverColorDot[data-color='أبيض'] { background: #fff; }
 
 .quantityEditor input {
   width: 78px;
