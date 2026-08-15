@@ -7,8 +7,9 @@ import {
   notebookCoverTone,
   notebookPageCount,
   notebookPresentation,
+  requirementCoverAllocations,
   requirementCoverColor,
-  withRequirementCoverColor,
+  withRequirementCoverAllocations,
 } from './entry-requirements-presentation';
 
 function item(partial: Partial<RequirementItem>): RequirementItem {
@@ -79,11 +80,27 @@ describe('entry requirement catalog presentation', () => {
     expect(notebookCoverTone(null)).toBe('neutral');
   });
 
-  it('adds, replaces, and removes a linked cover without losing other notes', () => {
+  it('adds, replaces, and removes distributed covers without losing other notes', () => {
     const book = item({ item_type: 'textbook', notes: 'ملاحظة مهمة\nالغلاف: أحمر\nالغرض: القراءة' });
     expect(requirementCoverColor(book)).toBe('أحمر');
-    expect(withRequirementCoverColor(book.notes, 'أزرق')).toBe('ملاحظة مهمة\nالغرض: القراءة\nغلاف: أزرق');
-    expect(withRequirementCoverColor(book.notes, null)).toBe('ملاحظة مهمة\nالغرض: القراءة');
+    expect(withRequirementCoverAllocations(book.notes, [
+      { color: 'أزرق', quantity: 1 },
+      { color: 'أخضر', quantity: 2 },
+    ])).toBe('ملاحظة مهمة\nالغرض: القراءة\nأغلفة: أزرق ×1، أخضر ×2');
+    expect(withRequirementCoverAllocations(book.notes, [])).toBe('ملاحظة مهمة\nالغرض: القراءة');
+  });
+
+  it('reads legacy one-color covers and new color distributions', () => {
+    expect(requirementCoverAllocations(item({
+      item_type: 'notebook', quantity: 3, notes: 'غلاف: أحمر',
+    }))).toEqual([{ color: 'أحمر', quantity: 3 }]);
+    expect(requirementCoverAllocations(item({
+      item_type: 'notebook', quantity: 3, notes: 'أغلفة: أحمر ×1، أزرق ×1، أخضر ×1',
+    }))).toEqual([
+      { color: 'أحمر', quantity: 1 },
+      { color: 'أزرق', quantity: 1 },
+      { color: 'أخضر', quantity: 1 },
+    ]);
   });
 
   it('aggregates linked covers by color using the parent item quantity', () => {
@@ -91,10 +108,12 @@ describe('entry requirement catalog presentation', () => {
       item({ id: 1, item_type: 'textbook', quantity: 2, notes: 'غلاف: أحمر' }),
       item({ id: 2, item_type: 'notebook', quantity: 3, notes: 'الغلاف: أحمر' }),
       item({ id: 3, item_type: 'book', quantity: 1, notes: 'غلاف: أزرق' }),
+      item({ id: 5, item_type: 'notebook', quantity: 3, notes: 'أغلفة: أحمر ×1، أخضر ×2' }),
       item({ id: 4, item_type: 'stationery', quantity: 20, notes: 'غلاف: أحمر' }),
     ])).toEqual([
-      { color: 'أحمر', quantity: 5 },
+      { color: 'أحمر', quantity: 6 },
       { color: 'أزرق', quantity: 1 },
+      { color: 'أخضر', quantity: 2 },
     ]);
   });
 });
