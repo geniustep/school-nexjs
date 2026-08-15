@@ -23,6 +23,15 @@ const TONE_LABEL: Record<ExecutiveTone, string> = {
   indigo: 'exec-kpi--indigo',
 };
 
+const ATTENDANCE_TODAY_HREF = '/admin/attendance?date=today';
+
+export function shouldRenderExecutiveKpiCard(href: string | undefined, value: ReactNode): boolean {
+  // Attendance is an optional daily pulse. A placeholder means coverage is
+  // incomplete or unavailable, so keep the executive strip quiet instead of
+  // promoting an untrustworthy percentage.
+  return !(href === ATTENDANCE_TODAY_HREF && value === '—');
+}
+
 export function ExecutiveKpiMoney({
   amount,
   currency,
@@ -61,6 +70,8 @@ export function ExecutiveKpiCard({
   href?: string;
   empty?: boolean;
 }) {
+  if (!shouldRenderExecutiveKpiCard(href, value)) return null;
+
   const className = cn(
     'exec-kpi',
     TONE_LABEL[tone],
