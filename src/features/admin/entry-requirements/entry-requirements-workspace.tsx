@@ -365,6 +365,25 @@ export function AdminEntryRequirementsWorkspace() {
     await openList(selected.id);
   }
 
+  async function updateItemQuantity(item: RequirementItem, quantity: number) {
+    if (!selected || !Number.isFinite(quantity) || quantity <= 0) return false;
+
+    setError('');
+    setNotice('');
+    const result = await api.patch<RequirementItem>(
+      entryRequirementEndpoints.admin.item(selected.id, item.id),
+      { quantity },
+    );
+    if (!result.success) {
+      setError(result.error.message);
+      return false;
+    }
+
+    setNotice('تم تحديث الكمية.');
+    await openList(selected.id);
+    return true;
+  }
+
   async function publish() {
     if (!selected) return;
     setError('');
@@ -917,6 +936,7 @@ export function AdminEntryRequirementsWorkspace() {
                     }}
                     onManualLink={startResolution}
                     onDelete={(item) => void deleteItem(item)}
+                    onQuantityChange={updateItemQuantity}
                   />
                 ) : (
                   <EmptyState
