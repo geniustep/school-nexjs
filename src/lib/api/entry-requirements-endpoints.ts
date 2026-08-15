@@ -11,6 +11,8 @@ export const entryRequirementEndpoints = {
     teachingOfferings: '/admin/entry-requirement-lists/teaching-offerings',
     items: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/items`,
     item: (listId: number | string, itemId: number | string) => `/admin/entry-requirement-lists/${listId}/items/${itemId}`,
+    adoptTextbookAndLink: (listId: number | string, itemId: number | string) =>
+      `/admin/entry-requirement-lists/${listId}/items/${itemId}/adopt-textbook-and-link`,
     reorderItems: (listId: number | string) => `/admin/entry-requirement-lists/${listId}/items/reorder`,
     importTemplate: '/admin/entry-requirement-lists/import/template',
     importPreview: '/admin/entry-requirement-lists/import/preview',
