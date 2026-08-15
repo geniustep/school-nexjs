@@ -76,6 +76,7 @@ function LinkFlowHarness() {
         onManualLink={() => undefined}
         onDelete={() => undefined}
         onQuantityChange={async () => true}
+        onCoverChange={async () => true}
       />
       {adoptItem ? (
         <EntryRequirementAdoptDialog
