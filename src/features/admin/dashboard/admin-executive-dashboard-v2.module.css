@@ -10,6 +10,10 @@
   display: none;
 }
 
+.shell :global(.admin-executive-dashboard) {
+  margin-block-start: 12px;
+}
+
 .shell :global(.director-command-hero) {
   position: relative;
   isolation: isolate;
@@ -119,7 +123,8 @@
 }
 
 /* Executive pulse: stable signals stay visible, but as a light strip rather
-   than a second row of heavy cards. */
+   than a second row of heavy cards. Attendance joins only when the daily value
+   is trustworthy; admissions and non-action placeholders stay out. */
 .shell :global(.exec-zone) {
   gap: 5px;
 }
@@ -140,7 +145,6 @@
 }
 
 .shell :global(.exec-kpi[href='/admin/admissions']),
-.shell :global(.exec-kpi[href='/admin/attendance?date=today']),
 .shell :global(.exec-kpi:not(.exec-kpi--link)) {
   display: none;
 }
