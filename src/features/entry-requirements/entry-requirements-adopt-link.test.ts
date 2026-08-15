@@ -2,15 +2,51 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildAdoptTextbookAndLinkPayload,
+  isTextbookEffectivelyLinked,
   parseAdoptAmbiguity,
   shouldShowAdoptTextbookAction,
 } from './entry-requirements-adopt-link';
 
 describe('entry requirement adopt-and-link UI contract', () => {
-  it('shows the preferred action for every unresolved textbook, even when an offering is already linked', () => {
-    expect(shouldShowAdoptTextbookAction({ item_type: 'textbook', needs_resolution: true })).toBe(true);
-    expect(shouldShowAdoptTextbookAction({ item_type: 'textbook', needs_resolution: false })).toBe(false);
-    expect(shouldShowAdoptTextbookAction({ item_type: 'notebook', needs_resolution: true })).toBe(false);
+  it('shows the link action only for unresolved textbooks that do not already have an offering', () => {
+    expect(shouldShowAdoptTextbookAction({
+      item_type: 'textbook',
+      needs_resolution: true,
+      teaching_offering_id: null,
+    })).toBe(true);
+
+    expect(shouldShowAdoptTextbookAction({
+      item_type: 'textbook',
+      needs_resolution: true,
+      teaching_offering_id: 547,
+    })).toBe(false);
+
+    expect(shouldShowAdoptTextbookAction({
+      item_type: 'textbook',
+      needs_resolution: false,
+      teaching_offering_id: null,
+    })).toBe(false);
+
+    expect(shouldShowAdoptTextbookAction({
+      item_type: 'notebook',
+      needs_resolution: true,
+      teaching_offering_id: null,
+    })).toBe(false);
+  });
+
+  it('treats an existing teaching offering as an effective textbook link even with legacy needs_resolution data', () => {
+    expect(isTextbookEffectivelyLinked({
+      item_type: 'textbook',
+      teaching_offering_id: 547,
+    })).toBe(true);
+    expect(isTextbookEffectivelyLinked({
+      item_type: 'textbook',
+      teaching_offering_id: null,
+    })).toBe(false);
+    expect(isTextbookEffectivelyLinked({
+      item_type: 'notebook',
+      teaching_offering_id: 547,
+    })).toBe(false);
   });
 
   it('builds only positive confirmed identifiers into the backend payload', () => {
