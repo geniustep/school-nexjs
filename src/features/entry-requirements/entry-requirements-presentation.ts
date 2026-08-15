@@ -57,6 +57,42 @@ function explicitLabelValue(notes: string | null | undefined, labels: string[]):
   return null;
 }
 
+const COVER_LABELS = ['الغلاف', 'غلاف', 'cover', 'couverture'];
+
+export function requirementCoverColor(item: RequirementItem): string | null {
+  if (!['textbook', 'book', 'notebook'].includes(item.item_type)) return null;
+  return explicitLabelValue(item.notes, COVER_LABELS);
+}
+
+export function withRequirementCoverColor(notes: string | null | undefined, color: string | null): string | null {
+  const lines = (notes ?? '')
+    .split(/[\n\r]+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !COVER_LABELS.some((label) => {
+      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`^${escaped}\\s*[:：-]`, 'i').test(line);
+    }));
+  const normalized = color?.trim();
+  if (normalized) lines.push(`غلاف: ${normalized}`);
+  return lines.length ? lines.join('\n') : null;
+}
+
+export function aggregateRequirementCovers(items: RequirementItem[]): Array<{ color: string; quantity: number }> {
+  const totals = new Map<string, { color: string; quantity: number }>();
+  for (const item of items) {
+    const color = requirementCoverColor(item);
+    if (!color || !Number.isFinite(item.quantity) || item.quantity <= 0) continue;
+    const key = color.trim().toLocaleLowerCase('ar');
+    const current = totals.get(key);
+    totals.set(key, {
+      color: current?.color ?? color.trim(),
+      quantity: (current?.quantity ?? 0) + item.quantity,
+    });
+  }
+  return [...totals.values()].sort((left, right) => left.color.localeCompare(right.color, 'ar'));
+}
+
 export function notebookPageCount(item: RequirementItem): string | null {
   const source = normalizeDigits([item.title, item.name, item.notes].filter(Boolean).join(' · '));
   const match = source.match(/\b(\d{1,4})\s*(?:صفحة|صفحات|pages?|p\.?)/i);
@@ -77,7 +113,7 @@ export function notebookCoverTone(cover: string | null): NotebookPresentation['c
 }
 
 export function notebookPresentation(item: RequirementItem): NotebookPresentation {
-  const cover = explicitLabelValue(item.notes, ['الغلاف', 'غلاف', 'cover', 'couverture']);
+  const cover = requirementCoverColor(item);
   const purpose = explicitLabelValue(item.notes, ['الغرض', 'purpose', 'usage']);
   return {
     pages: notebookPageCount(item),

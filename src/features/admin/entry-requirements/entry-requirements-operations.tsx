@@ -26,6 +26,10 @@ import {
   type RequirementItemType,
   type RequirementList,
 } from '@/features/entry-requirements/entry-requirements-contract';
+import {
+  aggregateRequirementCovers,
+  withRequirementCoverColor,
+} from '@/features/entry-requirements/entry-requirements-presentation';
 import { api } from '@/lib/api/client';
 import { entryRequirementEndpoints } from '@/lib/api/entry-requirements-endpoints';
 import styles from './entry-requirements-workspace.module.css';
@@ -98,13 +102,21 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
     const compact = type === 'stationery' || type === 'material';
     const body = blank
       ? '<div class="blank-lines"><span></span><span></span><span></span></div>'
-      : `<ul>${items.map((item) => `<li><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span>× ${escapeHtml(item.quantity)}</span>` : ''}${item.subject ? ` <small>— ${escapeHtml(item.subject)}</small>` : ''}${item.notes ? `<div class="note">${escapeHtml(item.notes)}</div>` : ''}</li>`).join('')}</ul>`;
+      : `<ul>${items.map((item) => {
+        const printableNotes = withRequirementCoverColor(item.notes, null);
+        return `<li><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span>× ${escapeHtml(item.quantity)}</span>` : ''}${item.subject ? ` <small>— ${escapeHtml(item.subject)}</small>` : ''}${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
+      }).join('')}</ul>`;
     return `<section class="${compact ? 'compact' : ''}"><h2>${escapeHtml(requirementItemTypeLabel(type))}</h2>${body}</section>`;
   }).join('');
 
+  const covers = blank ? [] : aggregateRequirementCovers(list.items ?? []);
+  const coversSection = covers.length
+    ? `<section class="covers"><h2>الأغلفة</h2><ul>${covers.map((cover) => `<li><strong>${escapeHtml(cover.color)}</strong> <span>× ${escapeHtml(cover.quantity)}</span></li>`).join('')}</ul><div class="covers-total">المجموع: ${escapeHtml(covers.reduce((total, cover) => total + cover.quantity, 0))}</div></section>`
+    : '';
+
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</title><style>
-    @page{size:A4;margin:0}*{box-sizing:border-box}html,body{padding:0;margin:0}body{font-family:Arial,Tahoma,sans-serif;color:#111;line-height:1.4;background:#fff}.page{width:210mm;min-height:297mm;margin:0 auto;padding:10mm 11mm 9mm}header{border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:10px}h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;margin:10px 0 5px;border-bottom:1px solid #bbb;padding-bottom:3px}.meta{font-size:11.5px;color:#444}.meta span{margin-left:12px}section{break-inside:auto}ul{margin:0;padding:0 18px}li{font-size:12.5px;margin:3px 0;break-inside:avoid}.note{font-size:10.5px;color:#555;line-height:1.3}.compact ul{columns:2;column-gap:22px}.compact li{break-inside:avoid-column;margin:2px 0}.blank-lines span{display:block;border-bottom:1px dotted #777;height:24px}.footer{margin-top:14px;padding-top:5px;border-top:1px solid #ddd;font-size:9.5px;color:#666}.screen-actions{max-width:210mm;margin:12px auto 0;padding:0 11mm}.screen-actions button{padding:7px 18px;font:inherit;cursor:pointer}@media screen{body{background:#f3f4f6}.page{background:#fff;box-shadow:0 1px 10px #0002}.screen-actions{display:block}}@media print{body{background:#fff}.page{margin:0;box-shadow:none}.screen-actions{display:none}}
-  </style></head><body><div class="screen-actions"><button onclick="window.print()">طباعة</button></div><main class="page"><header><h1>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</h1><div class="meta"><span>السنة الدراسية: ${escapeHtml(list.academic_year ?? '')}</span><span>المستوى: ${escapeHtml(list.level ?? '')}</span>${list.class_name ? `<span>القسم: ${escapeHtml(list.class_name)}</span>` : ''}${!blank ? `<span>النسخة: ${escapeHtml(list.revision)}</span>` : ''}</div></header>${sections}<div class="footer">تم إعداد هذا المستند من واجهة رقيم المدرسية.</div></main></body></html>`;
+    @page{size:A4;margin:0}*{box-sizing:border-box}html,body{padding:0;margin:0}body{font-family:Arial,Tahoma,sans-serif;color:#111;line-height:1.4;background:#fff}.page{width:210mm;min-height:297mm;margin:0 auto;padding:10mm 11mm 9mm}header{border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:10px}h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;margin:10px 0 5px;border-bottom:1px solid #bbb;padding-bottom:3px}.meta{font-size:11.5px;color:#444}.meta span{margin-left:12px}section{break-inside:auto}ul{margin:0;padding:0 18px}li{font-size:12.5px;margin:3px 0;break-inside:avoid}.note{font-size:10.5px;color:#555;line-height:1.3}.compact ul{columns:2;column-gap:22px}.compact li{break-inside:avoid-column;margin:2px 0}.covers{break-inside:avoid}.covers ul{columns:2;column-gap:22px}.covers-total{font-size:11px;font-weight:700;margin:5px 18px 0}.blank-lines span{display:block;border-bottom:1px dotted #777;height:24px}.footer{margin-top:14px;padding-top:5px;border-top:1px solid #ddd;font-size:9.5px;color:#666}.screen-actions{max-width:210mm;margin:12px auto 0;padding:0 11mm}.screen-actions button{padding:7px 18px;font:inherit;cursor:pointer}@media screen{body{background:#f3f4f6}.page{background:#fff;box-shadow:0 1px 10px #0002}.screen-actions{display:block}}@media print{body{background:#fff}.page{margin:0;box-shadow:none}.screen-actions{display:none}}
+  </style></head><body><div class="screen-actions"><button onclick="window.print()">طباعة</button></div><main class="page"><header><h1>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</h1><div class="meta"><span>السنة الدراسية: ${escapeHtml(list.academic_year ?? '')}</span><span>المستوى: ${escapeHtml(list.level ?? '')}</span>${list.class_name ? `<span>القسم: ${escapeHtml(list.class_name)}</span>` : ''}${!blank ? `<span>النسخة: ${escapeHtml(list.revision)}</span>` : ''}</div></header>${sections}${coversSection}<div class="footer">تم إعداد هذا المستند من واجهة رقيم المدرسية.</div></main></body></html>`;
 }
 
 function openPrint(list: RequirementList, blank: boolean): void {
