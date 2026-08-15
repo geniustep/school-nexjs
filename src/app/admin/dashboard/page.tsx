@@ -9,7 +9,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
-import { AdminExecutiveDashboard } from '@/features/admin/dashboard/admin-executive-dashboard';
+import { AdminDirectorDashboard } from '@/features/admin/dashboard/admin-director-focus-dashboard';
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
@@ -109,7 +109,7 @@ export default function AdminDashboardPage() {
       {scopeBanner}
 
       <ResourceView state={state} loadingLabel={t('common.loading')}>
-        {(d) => <AdminExecutiveDashboard data={d} user={user} />}
+        {(d) => <AdminDirectorDashboard data={d} user={user} />}
       </ResourceView>
     </div>
   );
