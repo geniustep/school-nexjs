@@ -78,10 +78,20 @@ function positiveInt(value: string | number | null | undefined): number | undefi
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
-export function shouldShowAdoptTextbookAction(
-  item: Pick<RequirementItem, 'item_type' | 'needs_resolution'>,
+export function isTextbookEffectivelyLinked(
+  item: Pick<RequirementItem, 'item_type' | 'teaching_offering_id'>,
 ): boolean {
-  return item.item_type === 'textbook' && item.needs_resolution;
+  return item.item_type === 'textbook' && Boolean(item.teaching_offering_id);
+}
+
+export function shouldShowAdoptTextbookAction(
+  item: Pick<RequirementItem, 'item_type' | 'needs_resolution' | 'teaching_offering_id'>,
+): boolean {
+  return (
+    item.item_type === 'textbook'
+    && item.needs_resolution
+    && !item.teaching_offering_id
+  );
 }
 
 export function buildAdoptTextbookAndLinkPayload(input: {
