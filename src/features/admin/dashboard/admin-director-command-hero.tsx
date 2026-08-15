@@ -10,7 +10,6 @@ import {
   canViewFinance,
   canViewPayments,
 } from '@/lib/permissions/finance';
-import { resolveDashboardWidgets } from '@/lib/admin/dashboard-registry';
 import { todayIso } from '@/features/admin/dashboard/dashboard-interventions';
 import type { CurrentUser } from '@/types/user';
 
@@ -18,17 +17,14 @@ type HeroAction = {
   id: string;
   label: string;
   icon: string;
-  href?: string;
-  onClick?: () => void;
+  href: string;
 };
 
 export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
   const t = useT();
   const { formatDate } = useFormat();
-  const widgets = resolveDashboardWidgets(user);
 
   const actions = useMemo<HeroAction[]>(() => {
-    const quickActions = new Set(widgets.quickActions);
     const candidates: HeroAction[] = [];
 
     if (canComposeGeneralCommunication(user)) {
@@ -56,47 +52,8 @@ export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
       });
     }
 
-    if (quickActions.has('attendance')) {
-      candidates.push({
-        id: 'attendance',
-        label: t('nav.attendance'),
-        icon: '🗓️',
-        href: '/admin/attendance?date=today',
-      });
-    }
-
-    candidates.push({
-      id: 'attention',
-      label: t('admin.executive.interventionTitle'),
-      icon: '◎',
-      onClick: () => {
-        document.querySelector('.exec-decision-panel')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      },
-    });
-
-    if (quickActions.has('classes')) {
-      candidates.push({
-        id: 'classes',
-        label: t('nav.classes'),
-        icon: '🏫',
-        href: '/admin/classes',
-      });
-    }
-
-    if (quickActions.has('add-student')) {
-      candidates.push({
-        id: 'students',
-        label: t('nav.students'),
-        icon: '🎓',
-        href: '/admin/students',
-      });
-    }
-
-    return candidates.slice(0, 4);
-  }, [user, widgets.quickActions, t]);
+    return candidates;
+  }, [user, t]);
 
   return (
     <header className="director-command-hero">
@@ -108,30 +65,18 @@ export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
         </h1>
       </div>
 
-      <nav className="director-command-hero__actions" aria-label={t('common.actions')}>
-        {actions.map((action) =>
-          action.href ? (
+      {actions.length > 0 ? (
+        <nav className="director-command-hero__actions" aria-label={t('common.actions')}>
+          {actions.map((action) => (
             <Link key={action.id} href={action.href} className="director-command-hero__action">
               <span className="director-command-hero__action-icon" aria-hidden="true">
                 {action.icon}
               </span>
               <span>{action.label}</span>
             </Link>
-          ) : (
-            <button
-              key={action.id}
-              type="button"
-              className="director-command-hero__action"
-              onClick={action.onClick}
-            >
-              <span className="director-command-hero__action-icon" aria-hidden="true">
-                {action.icon}
-              </span>
-              <span>{action.label}</span>
-            </button>
-          ),
-        )}
-      </nav>
+          ))}
+        </nav>
+      ) : null}
     </header>
   );
 }
