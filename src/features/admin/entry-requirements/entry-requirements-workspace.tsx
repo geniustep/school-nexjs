@@ -22,6 +22,7 @@ import {
   type RequirementList,
   type TeachingOfferingChoice,
 } from '@/features/entry-requirements/entry-requirements-contract';
+import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requirements-display';
 import {
   approvedTeachingOfferings,
   enabledLevelSubjects,
@@ -463,16 +464,20 @@ export function AdminEntryRequirementsWorkspace() {
     {
       key: 'academic',
       header: 'المادة / المرجع',
-      render: (item) => (
-        <div className={styles.itemBookMeta}>
-          <span>{item.subject || '—'}</span>
-          {item.item_type === 'textbook' && item.teaching_offering_id ? (
-            <span>
-              {[item.publisher, item.edition].filter(Boolean).join(' · ') || 'مقرر مرتبط'}
-            </span>
-          ) : null}
-        </div>
-      ),
+      render: (item) => {
+        const referenceTitle = textbookReferenceTitle(item);
+        return (
+          <div className={styles.itemBookMeta}>
+            <span>{item.subject || '—'}</span>
+            {referenceTitle ? <span dir="auto">{referenceTitle}</span> : null}
+            {item.item_type === 'textbook' && item.teaching_offering_id ? (
+              <span>
+                {[item.publisher, item.edition].filter(Boolean).join(' · ') || 'مقرر مرتبط'}
+              </span>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: 'quantity',
