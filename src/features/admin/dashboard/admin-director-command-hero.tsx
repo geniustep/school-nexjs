@@ -5,7 +5,11 @@ import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { canComposeGeneralCommunication } from '@/lib/permissions/communication';
-import { canViewFinance } from '@/lib/permissions/finance';
+import {
+  canCollectPayments,
+  canViewFinance,
+  canViewPayments,
+} from '@/lib/permissions/finance';
 import { resolveDashboardWidgets } from '@/lib/admin/dashboard-registry';
 import { todayIso } from '@/features/admin/dashboard/dashboard-interventions';
 import type { CurrentUser } from '@/types/user';
@@ -36,7 +40,14 @@ export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
       });
     }
 
-    if (canViewFinance(user)) {
+    if (canCollectPayments(user) && canViewPayments(user)) {
+      candidates.push({
+        id: 'payment',
+        label: t('admin.finance.recordCollection'),
+        icon: '💳',
+        href: '/admin/finance/collections/new',
+      });
+    } else if (canViewFinance(user)) {
       candidates.push({
         id: 'finance',
         label: t('nav.finance'),
