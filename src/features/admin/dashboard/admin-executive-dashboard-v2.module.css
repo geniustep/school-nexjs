@@ -4,7 +4,8 @@
 }
 
 /* The legacy executive hero explains the page. V2 replaces it with a compact
-   command surface that greets the director and exposes four high-value actions. */
+   command surface that greets the director and exposes only the actions kept
+   intentionally prominent in this iteration. */
 .shell :global(.exec-hero) {
   display: none;
 }
@@ -13,7 +14,7 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(220px, 0.72fr) minmax(520px, 1.28fr);
+  grid-template-columns: minmax(220px, 0.72fr) minmax(360px, 1.28fr);
   align-items: center;
   gap: 22px;
   padding: 20px 22px;
@@ -64,8 +65,8 @@
 
 .shell :global(.director-command-hero__actions) {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   min-width: 0;
 }
 
@@ -73,7 +74,7 @@
   appearance: none;
   min-width: 0;
   min-height: 52px;
-  padding: 9px 10px;
+  padding: 9px 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 13px;
   display: flex;
@@ -202,8 +203,9 @@
   display: none;
 }
 
-/* Finance remains the durable executive detail. Admissions is retained in
-   its domain page for Phase 1 and will return contextually in Phase 2. */
+/* Finance remains the durable executive detail. The live executive contract
+   exposes both collected_today and collected_month, so V2 separates cash-flow
+   timing from the broader remaining/overdue position instead of mixing them. */
 .shell :global(.exec-insights-grid) {
   grid-template-columns: 1fr;
   gap: var(--director-v2-gap);
@@ -213,9 +215,67 @@
   display: none;
 }
 
+.shell :global(.exec-finance-snapshot) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.shell :global(.exec-finance-snapshot__group) {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 13px;
+  background: var(--c-surface);
+}
+
+.shell :global(.exec-finance-snapshot__group--collections) {
+  border-color: color-mix(in srgb, var(--raqeem-primary) 22%, var(--c-border));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--raqeem-primary) 4%, var(--c-surface)) 0%,
+    var(--c-surface) 78%
+  );
+}
+
+.shell :global(.exec-finance-snapshot__group--position) {
+  background: color-mix(in srgb, var(--c-surface) 94%, var(--c-surface-2));
+}
+
+.shell :global(.exec-finance-snapshot__group-label) {
+  display: block;
+  margin-block-end: 8px;
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.shell :global(.exec-finance-snapshot__pair) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.shell :global(.exec-finance-snapshot .exec-metric-tile) {
+  min-height: 86px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  background: var(--c-surface);
+}
+
+.shell :global(.exec-finance-snapshot .exec-metric-tile__label) {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.shell :global(.exec-finance-snapshot .exec-metric-tile__value) {
+  margin-block-start: 6px;
+  font-size: clamp(17px, 1.6vw, 21px);
+}
+
 @media (max-width: 1100px) {
   .shell :global(.director-command-hero) {
-    grid-template-columns: minmax(200px, 0.62fr) minmax(460px, 1.38fr);
+    grid-template-columns: minmax(200px, 0.62fr) minmax(360px, 1.38fr);
     gap: 16px;
   }
 
@@ -248,7 +308,7 @@
   }
 
   .shell :global(.director-command-hero__actions) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .shell :global(.director-command-hero__action) {
@@ -261,6 +321,16 @@
 
   .shell :global(.exec-kpi) {
     min-height: 0;
+  }
+
+  .shell :global(.exec-finance-snapshot) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell :global(.exec-finance-snapshot__pair) {
+    grid-template-columns: 1fr;
   }
 }
 
