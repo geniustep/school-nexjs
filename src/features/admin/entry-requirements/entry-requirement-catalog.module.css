@@ -253,6 +253,9 @@
 }
 
 .coverEditor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
   flex-wrap: wrap;
   padding: 4px;
   border-radius: 8px;
@@ -265,6 +268,33 @@
   min-height: 32px;
   padding: 5px 8px;
 }
+
+.coverAllocationList {
+  display: grid;
+  gap: 5px;
+  min-width: min(100%, 320px);
+}
+
+.coverAllocationRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.coverAllocationRow input {
+  width: 66px;
+  min-height: 32px;
+  padding: 5px 8px;
+}
+
+.coverAllocationSummary,
+.coverAllocationError {
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.coverAllocationSummary { color: var(--c-text-muted); }
+.coverAllocationError { color: var(--c-danger, #b91c1c); }
 
 .coverColorDot {
   width: 9px;
