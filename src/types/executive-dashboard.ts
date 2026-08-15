@@ -1,6 +1,13 @@
 // Executive director dashboard — Odoo GET /admin/dashboard/executive contract.
 
 export type ExecutiveAlertSeverity = 'info' | 'warning' | 'critical';
+export type ExecutiveSchoolDayStatus =
+  | 'school_day'
+  | 'partial_school_day'
+  | 'non_school_day'
+  | 'unknown';
+export type ExecutiveSchoolDayMode = 'full' | 'morning_only' | 'afternoon_only' | 'closed';
+export type ExecutiveClosureKind = 'none' | 'full' | 'partial';
 
 export interface ExecutiveAcademicYear {
   id: number;
@@ -35,6 +42,19 @@ export interface ExecutiveAttendanceGaps {
   attendance_rate_today: number;
 }
 
+export interface ExecutiveSchoolDayContext {
+  date: string;
+  academic_year_id: number | null;
+  status: ExecutiveSchoolDayStatus;
+  is_school_day: boolean | null;
+  attendance_expected: boolean | null;
+  day_mode: ExecutiveSchoolDayMode | null;
+  reason_code: string;
+  closure_kind: ExecutiveClosureKind | null;
+  warnings: string[];
+  timezone: string;
+}
+
 export interface ExecutiveStaffAlert {
   code: string;
   message: string;
@@ -67,6 +87,7 @@ export interface AdminExecutiveDashboard {
   finance_summary: ExecutiveFinanceSummary | null;
   admissions_summary: ExecutiveAdmissionsSummary | null;
   attendance_gaps: ExecutiveAttendanceGaps | null;
+  school_day_context: ExecutiveSchoolDayContext | null;
   staff_alerts: ExecutiveStaffAlert[];
   important_alerts: ExecutiveImportantAlert[];
   data_quality: ExecutiveDataQuality | null;

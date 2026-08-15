@@ -164,6 +164,17 @@
   gap: var(--director-v2-gap);
 }
 
+/* When Odoo does not explicitly expect attendance today, keep the command
+   surface quiet: no substitute sidebar card is promoted into attendance's
+   place, and the decision/finance column uses the full available width. */
+.shell :global(.exec-layout.exec-layout--without-attendance) {
+  grid-template-columns: 1fr;
+}
+
+.shell :global(.exec-layout--without-attendance .exec-layout__aside) {
+  display: none;
+}
+
 .shell :global(.exec-layout__main),
 .shell :global(.exec-layout__aside) {
   gap: var(--director-v2-gap);
@@ -316,6 +327,10 @@
   .shell :global(.exec-layout) {
     grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.8fr);
   }
+
+  .shell :global(.exec-layout.exec-layout--without-attendance) {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -331,6 +346,10 @@
   .shell :global(.exec-layout__aside) {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .shell :global(.exec-layout--without-attendance .exec-layout__aside) {
+    display: none;
   }
 }
 

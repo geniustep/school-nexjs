@@ -33,6 +33,7 @@ import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lo
 import { AdminCommandDashboard } from '@/features/admin/command-center/admin-command-dashboard';
 import {
   buildExecutiveDataQualityItems,
+  isExecutiveAttendanceExpected,
   mergeExecutiveInterventions,
   normalizeExecutiveDashboard,
 } from '@/lib/admin/executive-dashboard-contract';
@@ -240,6 +241,8 @@ function ExecutiveDirectorView({
   const newAdmissionsCount = resolveNewAdmissionsCount(admissionsDashboardCounts);
   const executiveAdmissions = executiveAvailable ? executive?.admissions_summary ?? null : null;
   const attendanceGaps = executiveAvailable ? executive?.attendance_gaps ?? null : null;
+  const attendanceExpected = isExecutiveAttendanceExpected(executive);
+  const showAttendanceOperations = widgets.attendanceOperations && attendanceExpected;
 
   const dashboardItems = useMemo(
     () =>
@@ -614,7 +617,7 @@ function ExecutiveDirectorView({
       }
     }
 
-    if (widgets.heroAttendance) {
+    if (widgets.heroAttendance && attendanceExpected) {
       cards.push({
         id: 'attendance',
         label: t('admin.executive.kpiAttendance'),
@@ -672,6 +675,7 @@ function ExecutiveDirectorView({
     financeState.loading,
     financeTotals,
     activeYearLabel,
+    attendanceExpected,
     useLegacyAttendance,
     attendanceKpi,
     attendanceGaps,
@@ -765,7 +769,7 @@ function ExecutiveDirectorView({
         </div>
       </section>
 
-      <div className="exec-layout">
+      <div className={cn('exec-layout', !showAttendanceOperations && 'exec-layout--without-attendance')}>
         <div className="exec-layout__main">
           <ExecutivePanel
             variant="attention"
@@ -1058,7 +1062,7 @@ function ExecutiveDirectorView({
         </div>
 
         <aside className="exec-layout__aside">
-          {widgets.attendanceOperations && (
+          {showAttendanceOperations && (
             <ExecutivePanel
               title={t('admin.executive.dailyOpsTitle')}
               description={t('admin.executive.dailyOpsDesc')}

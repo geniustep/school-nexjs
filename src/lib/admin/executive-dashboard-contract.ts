@@ -4,7 +4,10 @@ import type { AdminActionItem } from '@/features/admin/command-center/primitives
 import type {
   AdminExecutiveDashboard,
   ExecutiveAlertSeverity,
+  ExecutiveClosureKind,
   ExecutiveImportantAlert,
+  ExecutiveSchoolDayMode,
+  ExecutiveSchoolDayStatus,
   ExecutiveStaffAlert,
 } from '@/types/executive-dashboard';
 import type { Locale } from '@/lib/i18n/config';
@@ -33,6 +36,10 @@ function readNullableNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function readNullableBoolean(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null;
+}
+
 function readString(value: unknown, fallback = '', locale: Locale | string = DEFAULT_LOCALE): string {
   return normalizeLocalizedText(value, locale, { fallback }) ?? fallback;
 }
@@ -46,6 +53,35 @@ function readNullableString(value: unknown, locale: Locale | string = DEFAULT_LO
 function readSeverity(value: unknown): ExecutiveAlertSeverity {
   if (value === 'critical' || value === 'warning' || value === 'info') return value;
   return 'info';
+}
+
+function readSchoolDayStatus(value: unknown): ExecutiveSchoolDayStatus {
+  if (
+    value === 'school_day' ||
+    value === 'partial_school_day' ||
+    value === 'non_school_day' ||
+    value === 'unknown'
+  ) {
+    return value;
+  }
+  return 'unknown';
+}
+
+function readSchoolDayMode(value: unknown): ExecutiveSchoolDayMode | null {
+  if (
+    value === 'full' ||
+    value === 'morning_only' ||
+    value === 'afternoon_only' ||
+    value === 'closed'
+  ) {
+    return value;
+  }
+  return null;
+}
+
+function readClosureKind(value: unknown): ExecutiveClosureKind | null {
+  if (value === 'none' || value === 'full' || value === 'partial') return value;
+  return null;
 }
 
 function readAcademicYear(
@@ -100,6 +136,29 @@ function readAttendanceGaps(raw: unknown): AdminExecutiveDashboard['attendance_g
     absent_today_count: readNumber(o.absent_today_count),
     late_today_count: readNumber(o.late_today_count),
     attendance_rate_today: readNumber(o.attendance_rate_today),
+  };
+}
+
+function readSchoolDayContext(raw: unknown): AdminExecutiveDashboard['school_day_context'] {
+  if (raw == null || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const warnings = Array.isArray(o.warnings)
+    ? o.warnings
+        .map((warning) => readString(warning).trim())
+        .filter((warning): warning is string => warning.length > 0)
+    : [];
+
+  return {
+    date: readString(o.date).trim(),
+    academic_year_id: readNullableNumber(o.academic_year_id),
+    status: readSchoolDayStatus(o.status),
+    is_school_day: readNullableBoolean(o.is_school_day),
+    attendance_expected: readNullableBoolean(o.attendance_expected),
+    day_mode: readSchoolDayMode(o.day_mode),
+    reason_code: readString(o.reason_code).trim(),
+    closure_kind: readClosureKind(o.closure_kind),
+    warnings,
+    timezone: readString(o.timezone).trim(),
   };
 }
 
@@ -198,11 +257,18 @@ export function normalizeExecutiveDashboard(
     finance_summary: readFinanceSummary(o.finance_summary),
     admissions_summary: readAdmissionsSummary(o.admissions_summary),
     attendance_gaps: readAttendanceGaps(o.attendance_gaps),
+    school_day_context: readSchoolDayContext(o.school_day_context),
     staff_alerts: staffAlerts,
     important_alerts: importantAlerts,
     data_quality: readDataQuality(o.data_quality),
     quick_links: quickLinks,
   };
+}
+
+export function isExecutiveAttendanceExpected(
+  executive: AdminExecutiveDashboard | null | undefined,
+): boolean {
+  return executive?.school_day_context?.attendance_expected === true;
 }
 
 function severityTone(severity: ExecutiveAlertSeverity): AdminActionItem['tone'] {
@@ -215,14 +281,20 @@ function severityIcon(severity: ExecutiveAlertSeverity): string {
   return 'ℹ️';
 }
 
+function isMissingAttendanceAlert(code: string): boolean {
+  return code === 'classes_missing_attendance_today' || code === 'attendance-classes-missing';
+}
+
 function collectExecutiveInterventionCandidates(
   executive: AdminExecutiveDashboard,
   t: TranslateFn,
   locale: Locale,
 ): DashboardAlertCandidate[] {
   const candidates: DashboardAlertCandidate[] = [];
+  const attendanceExpected = isExecutiveAttendanceExpected(executive);
 
   for (const alert of executive.important_alerts) {
+    if (!attendanceExpected && isMissingAttendanceAlert(alert.code)) continue;
     candidates.push(
       enrichDashboardAlertItem(
         {
@@ -313,7 +385,7 @@ function collectExecutiveInterventionCandidates(
   }
 
   const attendanceCount = executive.attendance_gaps?.classes_without_attendance_count;
-  if (attendanceCount != null && attendanceCount > 0) {
+  if (attendanceExpected && attendanceCount != null && attendanceCount > 0) {
     const item = buildRegistryDashboardAlert('attendance-classes-missing', t, locale, {
       executive,
       count: attendanceCount,
@@ -428,6 +500,8 @@ export function buildExecutiveAttendanceInterventions(
   t: TranslateFn,
   locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
+  if (!isExecutiveAttendanceExpected(executive)) return [];
+
   const gaps = executive.attendance_gaps;
   if (!gaps) return [];
 
