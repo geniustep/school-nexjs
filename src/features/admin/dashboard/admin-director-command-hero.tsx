@@ -55,14 +55,18 @@ export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
     return candidates;
   }, [user, t]);
 
+  const userName = user.name?.trim() ?? '';
+  const hasTechnicalAdminName = !userName || /^(administrator|admin)$/i.test(userName);
+  const heading = hasTechnicalAdminName
+    ? t('nav.dashboard')
+    : t('dashboard.welcome', { name: userName });
+
   return (
     <header className="director-command-hero">
       <div className="director-command-hero__glow" aria-hidden="true" />
       <div className="director-command-hero__intro">
         <span className="director-command-hero__date">{formatDate(todayIso())}</span>
-        <h1 className="director-command-hero__welcome">
-          {t('dashboard.welcome', { name: user.name })}
-        </h1>
+        <h1 className="director-command-hero__welcome">{heading}</h1>
       </div>
 
       {actions.length > 0 ? (

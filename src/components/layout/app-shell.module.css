@@ -1,7 +1,7 @@
 .adminTopbar {
   box-shadow: none;
-  gap: 12px;
-  padding-inline: 18px;
+  gap: 0;
+  padding-inline: 24px;
 }
 
 .adminTopbarStart {
@@ -10,16 +10,19 @@
 }
 
 .adminTopbarControls {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
+  width: 100%;
   min-width: 0;
   gap: 8px;
   justify-content: flex-start;
 }
 
 .searchSlot {
-  flex: 1 1 360px;
-  min-width: 260px;
-  max-width: 520px;
+  flex: 0 1 360px;
+  width: 360px;
+  min-width: 280px;
+  max-width: 360px;
+  margin-inline-end: auto;
 }
 
 .searchSlot :global(.student-spotlight-trigger) {
