@@ -118,7 +118,6 @@ export function EntryRequirementAdoptDialog({
   onClose,
   onSuccess,
 }: Props) {
-  const [mounted, setMounted] = useState(false);
   const [subjectId, setSubjectId] = useState('');
   const [languageId, setLanguageId] = useState('');
   const [languages, setLanguages] = useState<TeachingLanguageOption[]>([]);
@@ -131,11 +130,6 @@ export function EntryRequirementAdoptDialog({
   const [advancedReview, setAdvancedReview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -295,7 +289,7 @@ export function EntryRequirementAdoptDialog({
   const stepTwoDone = !needsChoice && Boolean(subjectId);
   const activeStep = needsChoice ? 2 : 1;
 
-  if (!mounted || !open) return null;
+  if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
     <ConfirmationDialog
