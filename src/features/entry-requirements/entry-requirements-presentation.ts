@@ -13,6 +13,11 @@ export type NotebookPresentation = {
   coverTone: 'blue' | 'pink' | 'yellow' | 'green' | 'red' | 'dark' | 'light' | 'neutral';
 };
 
+export type RequirementCoverAllocation = {
+  color: string;
+  quantity: number;
+};
+
 function ordered(items: RequirementItem[]): RequirementItem[] {
   return [...items].sort((left, right) => {
     const bySequence = (left.sequence ?? 0) - (right.sequence ?? 0);
@@ -57,14 +62,37 @@ function explicitLabelValue(notes: string | null | undefined, labels: string[]):
   return null;
 }
 
-const COVER_LABELS = ['الغلاف', 'غلاف', 'cover', 'couverture'];
+const COVER_LABELS = ['الأغلفة', 'اغلفة', 'أغلفة', 'الغلاف', 'غلاف', 'covers', 'cover', 'couvertures', 'couverture'];
 
-export function requirementCoverColor(item: RequirementItem): string | null {
-  if (!['textbook', 'book', 'notebook'].includes(item.item_type)) return null;
-  return explicitLabelValue(item.notes, COVER_LABELS);
+function parseCoverAllocationPart(value: string, fallbackQuantity: number): RequirementCoverAllocation | null {
+  const normalized = normalizeDigits(value).trim();
+  const match = normalized.match(/^(.+?)\s*(?:[×x*]\s*(\d+))?$/i);
+  const color = match?.[1]?.trim();
+  if (!color) return null;
+  const quantity = match?.[2] ? Number(match[2]) : fallbackQuantity;
+  if (!Number.isSafeInteger(quantity) || quantity <= 0) return null;
+  return { color, quantity };
 }
 
-export function withRequirementCoverColor(notes: string | null | undefined, color: string | null): string | null {
+export function requirementCoverAllocations(item: RequirementItem): RequirementCoverAllocation[] {
+  if (!['textbook', 'book', 'notebook'].includes(item.item_type)) return [];
+  const value = explicitLabelValue(item.notes, COVER_LABELS);
+  if (!value) return [];
+  return value
+    .split(/[،,]+/)
+    .map((part) => parseCoverAllocationPart(part, item.quantity))
+    .filter((allocation): allocation is RequirementCoverAllocation => allocation !== null);
+}
+
+export function requirementCoverColor(item: RequirementItem): string | null {
+  const allocations = requirementCoverAllocations(item);
+  return allocations.length === 1 ? allocations[0].color : allocations.map((row) => row.color).join('، ') || null;
+}
+
+export function withRequirementCoverAllocations(
+  notes: string | null | undefined,
+  allocations: RequirementCoverAllocation[],
+): string | null {
   const lines = (notes ?? '')
     .split(/[\n\r]+/)
     .map((line) => line.trim())
@@ -73,22 +101,30 @@ export function withRequirementCoverColor(notes: string | null | undefined, colo
       const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return new RegExp(`^${escaped}\\s*[:：-]`, 'i').test(line);
     }));
-  const normalized = color?.trim();
-  if (normalized) lines.push(`غلاف: ${normalized}`);
+  const normalized = allocations
+    .map((allocation) => ({ color: allocation.color.trim(), quantity: allocation.quantity }))
+    .filter((allocation) => allocation.color && Number.isSafeInteger(allocation.quantity) && allocation.quantity > 0);
+  if (normalized.length) {
+    lines.push(`أغلفة: ${normalized.map((allocation) => `${allocation.color} ×${allocation.quantity}`).join('، ')}`);
+  }
   return lines.length ? lines.join('\n') : null;
+}
+
+export function withRequirementCoverColor(notes: string | null | undefined, color: string | null): string | null {
+  return withRequirementCoverAllocations(notes, color ? [{ color, quantity: 1 }] : []);
 }
 
 export function aggregateRequirementCovers(items: RequirementItem[]): Array<{ color: string; quantity: number }> {
   const totals = new Map<string, { color: string; quantity: number }>();
   for (const item of items) {
-    const color = requirementCoverColor(item);
-    if (!color || !Number.isFinite(item.quantity) || item.quantity <= 0) continue;
-    const key = color.trim().toLocaleLowerCase('ar');
-    const current = totals.get(key);
-    totals.set(key, {
-      color: current?.color ?? color.trim(),
-      quantity: (current?.quantity ?? 0) + item.quantity,
-    });
+    for (const allocation of requirementCoverAllocations(item)) {
+      const key = allocation.color.trim().toLocaleLowerCase('ar');
+      const current = totals.get(key);
+      totals.set(key, {
+        color: current?.color ?? allocation.color.trim(),
+        quantity: (current?.quantity ?? 0) + allocation.quantity,
+      });
+    }
   }
   return [...totals.values()].sort((left, right) => left.color.localeCompare(right.color, 'ar'));
 }
