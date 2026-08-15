@@ -14,6 +14,7 @@ import { Badge, Card, InfoBanner, PageHeader, SectionHead } from '@/components/u
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { EntryRequirementAdoptDialog } from '@/features/admin/entry-requirements/entry-requirement-adopt-dialog';
+import { EntryRequirementCatalog } from '@/features/admin/entry-requirements/entry-requirement-catalog';
 import { EntryRequirementsOperations } from '@/features/admin/entry-requirements/entry-requirements-operations';
 import {
   isTextbookEffectivelyLinked,
@@ -905,7 +906,18 @@ export function AdminEntryRequirementsWorkspace() {
                 ) : null}
 
                 {selected.items?.length ? (
-                  <DataTable columns={itemColumns} rows={selected.items} rowKey={(item) => item.id} />
+                  <EntryRequirementCatalog
+                    items={selected.items}
+                    canManage={canManage}
+                    editable={editable}
+                    onLink={(item) => {
+                      setError('');
+                      setNotice('');
+                      setAdoptItemId(item.id);
+                    }}
+                    onManualLink={startResolution}
+                    onDelete={(item) => void deleteItem(item)}
+                  />
                 ) : (
                   <EmptyState
                     icon="📚"
