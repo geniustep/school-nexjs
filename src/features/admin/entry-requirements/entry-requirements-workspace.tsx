@@ -15,7 +15,10 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { EntryRequirementAdoptDialog } from '@/features/admin/entry-requirements/entry-requirement-adopt-dialog';
 import { EntryRequirementsOperations } from '@/features/admin/entry-requirements/entry-requirements-operations';
-import { shouldShowAdoptTextbookAction } from '@/features/entry-requirements/entry-requirements-adopt-link';
+import {
+  isTextbookEffectivelyLinked,
+  shouldShowAdoptTextbookAction,
+} from '@/features/entry-requirements/entry-requirements-adopt-link';
 import {
   requirementItemTypeLabel,
   requirementStateLabel,
@@ -504,13 +507,12 @@ export function AdminEntryRequirementsWorkspace() {
       header: 'الحالة والإجراء',
       render: (item) => {
         const unresolved = shouldShowAdoptTextbookAction(item);
+        const linked = isTextbookEffectivelyLinked(item);
         const manualLinkAvailable = unresolved && !item.teaching_offering_id;
         return (
           <div className={styles.itemActions}>
-            {unresolved ? <Badge tone="amber">يحتاج اعتمادًا وربطًا</Badge> : null}
-            {item.item_type === 'textbook' && item.teaching_offering_id && !item.needs_resolution ? (
-              <Badge tone="green">مرتبط بالمقرر</Badge>
-            ) : null}
+            {unresolved ? <Badge tone="amber">يحتاج إلى ربط</Badge> : null}
+            {linked ? <Badge tone="green">مرتبط بالمقرر</Badge> : null}
             {unresolved && canManage && editable ? (
               <button
                 type="button"
@@ -521,12 +523,12 @@ export function AdminEntryRequirementsWorkspace() {
                   setAdoptItemId(item.id);
                 }}
               >
-                اعتماد وربط
+                ربط
               </button>
             ) : null}
             {manualLinkAvailable && canManage && editable ? (
               <button type="button" className="btn btn--ghost btn--sm" onClick={() => startResolution(item)}>
-                ربط بمقرر موجود
+                اختيار مقرر موجود
               </button>
             ) : null}
             {canManage && editable ? (
@@ -651,7 +653,7 @@ export function AdminEntryRequirementsWorkspace() {
                 <div className={styles.contextBadges}>
                   <Badge tone={stateTone(selected.state)}>{requirementStateLabel(selected.state)}</Badge>
                   {selected.state === 'published' && selected.is_current ? <Badge tone="green">النسخة الحالية</Badge> : null}
-                  {unresolvedCount > 0 ? <Badge tone="amber">{unresolvedCount} تحتاج اعتمادًا وربطًا</Badge> : null}
+                  {unresolvedCount > 0 ? <Badge tone="amber">{unresolvedCount} تحتاج إلى ربط</Badge> : null}
                 </div>
               </div>
             </div>
@@ -729,8 +731,8 @@ export function AdminEntryRequirementsWorkspace() {
                   <InfoBanner
                     tone="amber"
                     icon="!"
-                    title={`${unresolvedCount} كتابًا يحتاج اعتمادًا وربطًا`}
-                    description="اعتمد الكتاب مباشرة من هنا، وسيعيد النظام استخدام المرجع والمقرر المناسبين أو ينشئهما وفق العقد الأكاديمي."
+                    title={`${unresolvedCount} كتابًا يحتاج إلى ربط`}
+                    description="اضغط «ربط» لعرض معلومات الكتاب وإكمال الخطوات المطلوبة دون مغادرة اللائحة."
                   />
                 ) : null}
 
@@ -947,7 +949,7 @@ export function AdminEntryRequirementsWorkspace() {
           onSuccess={async () => {
             setAdoptItemId(null);
             setError('');
-            setNotice('تم اعتماد الكتاب وربطه بالمقرر بنجاح.');
+            setNotice('تم ربط الكتاب بالمقرر بنجاح.');
             await loadLists();
             await openList(selected.id);
           }}
