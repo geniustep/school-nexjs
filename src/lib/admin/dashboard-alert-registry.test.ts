@@ -92,6 +92,10 @@ describe('dashboard alert deduplication', () => {
 
   it('keeps specific attendance alert over generic attendance message', () => {
     const executive = normalizeExecutiveDashboard({
+      school_day_context: {
+        status: 'school_day',
+        attendance_expected: true,
+      },
       attendance_gaps: {
         classes_without_attendance_count: 10,
         absent_today_count: 0,
