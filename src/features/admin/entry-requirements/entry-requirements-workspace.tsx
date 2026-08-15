@@ -29,7 +29,10 @@ import {
   type TeachingOfferingChoice,
 } from '@/features/entry-requirements/entry-requirements-contract';
 import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requirements-display';
-import { withRequirementCoverColor } from '@/features/entry-requirements/entry-requirements-presentation';
+import {
+  withRequirementCoverAllocations,
+  type RequirementCoverAllocation,
+} from '@/features/entry-requirements/entry-requirements-presentation';
 import {
   approvedTeachingOfferings,
   enabledLevelSubjects,
@@ -385,21 +388,23 @@ export function AdminEntryRequirementsWorkspace() {
     return true;
   }
 
-  async function updateItemCover(item: RequirementItem, color: string | null) {
+  async function updateItemCover(item: RequirementItem, allocations: RequirementCoverAllocation[]) {
     if (!selected || !['textbook', 'book', 'notebook'].includes(item.item_type)) return false;
+    const total = allocations.reduce((sum, allocation) => sum + allocation.quantity, 0);
+    if (total > item.quantity) return false;
 
     setError('');
     setNotice('');
     const result = await api.patch<RequirementItem>(
       entryRequirementEndpoints.admin.item(selected.id, item.id),
-      { notes: withRequirementCoverColor(item.notes, color) },
+      { notes: withRequirementCoverAllocations(item.notes, allocations) },
     );
     if (!result.success) {
       setError(result.error.message);
       return false;
     }
 
-    setNotice(color ? `تم ربط غلاف ${color} بالعنصر.` : 'تمت إزالة الغلاف من العنصر.');
+    setNotice(allocations.length ? 'تم حفظ توزيع ألوان الأغلفة.' : 'تمت إزالة الأغلفة من العنصر.');
     await openList(selected.id);
     return true;
   }
