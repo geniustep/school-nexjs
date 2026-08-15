@@ -10,6 +10,7 @@ import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
 import { AdminExecutiveDashboard } from '@/features/admin/dashboard/admin-executive-dashboard';
+import { AdminDirectorCommandHero } from '@/features/admin/dashboard/admin-director-command-hero';
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
@@ -112,6 +113,7 @@ export default function AdminDashboardPage() {
       <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(d) => (
           <div className={v2Styles.shell}>
+            <AdminDirectorCommandHero user={user} />
             <AdminExecutiveDashboard data={d} user={user} />
           </div>
         )}
