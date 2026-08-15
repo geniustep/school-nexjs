@@ -15,7 +15,8 @@ import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requ
 import {
   groupRequirementItems,
   notebookPresentation,
-  requirementCoverColor,
+  requirementCoverAllocations,
+  type RequirementCoverAllocation,
 } from '@/features/entry-requirements/entry-requirements-presentation';
 import styles from './entry-requirement-catalog.module.css';
 
@@ -27,7 +28,7 @@ type Props = {
   onManualLink: (item: RequirementItem) => void;
   onDelete: (item: RequirementItem) => void;
   onQuantityChange: (item: RequirementItem, quantity: number) => Promise<boolean>;
-  onCoverChange: (item: RequirementItem, color: string | null) => Promise<boolean>;
+  onCoverChange: (item: RequirementItem, allocations: RequirementCoverAllocation[]) => Promise<boolean>;
 };
 
 const COVER_COLORS = ['شفاف', 'أحمر', 'أزرق', 'أخضر', 'أصفر', 'برتقالي', 'وردي', 'بنفسجي', 'أسود', 'أبيض'];
@@ -127,31 +128,41 @@ function CoverControl({
   editable,
   onCoverChange,
 }: Pick<Props, 'canManage' | 'editable' | 'onCoverChange'> & { item: RequirementItem }) {
-  const current = requirementCoverColor(item);
+  const current = requirementCoverAllocations(item);
   const [editing, setEditing] = useState(false);
-  const [color, setColor] = useState(current ?? 'شفاف');
+  const [allocations, setAllocations] = useState<RequirementCoverAllocation[]>(current);
   const [saving, setSaving] = useState(false);
+  const total = allocations.reduce((sum, allocation) => sum + allocation.quantity, 0);
+  const colors = allocations.map((allocation) => allocation.color);
+  const uniqueColors = new Set(colors).size === colors.length;
+  const valid = allocations.every((allocation) => (
+    allocation.color && Number.isSafeInteger(allocation.quantity) && allocation.quantity > 0
+  )) && uniqueColors && total <= item.quantity;
+
+  function updateAllocation(index: number, patch: Partial<RequirementCoverAllocation>) {
+    setAllocations((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, ...patch } : row));
+  }
 
   if (!editing) {
     return (
       <span className={styles.coverControl}>
-        {current ? (
-          <span className={styles.coverValue}>
-            <i className={styles.coverColorDot} data-color={current} aria-hidden="true" />
-            غلاف: {current} ×<bdi dir="ltr">{formatQuantity(item.quantity)}</bdi>
+        {current.map((allocation) => (
+          <span className={styles.coverValue} key={allocation.color}>
+            <i className={styles.coverColorDot} data-color={allocation.color} aria-hidden="true" />
+            {allocation.color} ×<bdi dir="ltr">{formatQuantity(allocation.quantity)}</bdi>
           </span>
-        ) : null}
+        ))}
         {canManage && editable ? (
           <button
             type="button"
             className={styles.coverEditButton}
-            aria-label={`${current ? 'تعديل' : 'إضافة'} غلاف لـ ${item.title?.trim() || item.name}`}
+            aria-label={`${current.length ? 'تعديل' : 'إضافة'} غلاف لـ ${item.title?.trim() || item.name}`}
             onClick={() => {
-              setColor(current ?? 'شفاف');
+              setAllocations(current.length ? current : [{ color: 'شفاف', quantity: item.quantity }]);
               setEditing(true);
             }}
           >
-            {current ? 'تغيير' : '+ غلاف'}
+            {current.length ? 'توزيع الألوان' : '+ غلاف'}
           </button>
         ) : null}
       </span>
@@ -160,46 +171,76 @@ function CoverControl({
 
   return (
     <span className={styles.coverEditor}>
-      <label>
-        <span className="sr-only">لون الغلاف</span>
-        <select
-          className="input"
-          value={color}
-          disabled={saving}
-          aria-label={`لون غلاف ${item.title?.trim() || item.name}`}
-          onChange={(event) => setColor(event.target.value)}
-        >
-          {COVER_COLORS.map((value) => <option key={value} value={value}>{value}</option>)}
-        </select>
-      </label>
+      <span className={styles.coverAllocationList}>
+        {allocations.map((allocation, index) => (
+          <span className={styles.coverAllocationRow} key={`${index}-${allocation.color}`}>
+            <label>
+              <span className="sr-only">لون الغلاف {index + 1}</span>
+              <select
+                className="input"
+                value={allocation.color}
+                disabled={saving}
+                aria-label={`لون الغلاف ${index + 1} لـ ${item.title?.trim() || item.name}`}
+                onChange={(event) => updateAllocation(index, { color: event.target.value })}
+              >
+                {COVER_COLORS.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label>
+              <span className="sr-only">كمية الغلاف {index + 1}</span>
+              <input
+                className="input"
+                type="number"
+                min="1"
+                step="1"
+                value={allocation.quantity}
+                disabled={saving}
+                aria-label={`كمية الغلاف ${index + 1} لـ ${item.title?.trim() || item.name}`}
+                onChange={(event) => updateAllocation(index, { quantity: Number(event.target.value) })}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              disabled={saving}
+              aria-label={`حذف لون الغلاف ${index + 1}`}
+              onClick={() => setAllocations((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}
+            >
+              حذف
+            </button>
+          </span>
+        ))}
+        {allocations.length < COVER_COLORS.length && total < item.quantity ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={saving}
+            onClick={() => {
+              const nextColor = COVER_COLORS.find((value) => !colors.includes(value)) ?? 'شفاف';
+              setAllocations((rows) => [...rows, { color: nextColor, quantity: 1 }]);
+            }}
+          >
+            + لون آخر
+          </button>
+        ) : null}
+        <span className={total > item.quantity ? styles.coverAllocationError : styles.coverAllocationSummary}>
+          تم توزيع <bdi dir="ltr">{total}</bdi> من <bdi dir="ltr">{formatQuantity(item.quantity)}</bdi>
+        </span>
+        {!uniqueColors ? <span className={styles.coverAllocationError}>لا يمكن تكرار اللون نفسه.</span> : null}
+      </span>
       <button
         type="button"
         className="btn btn--primary btn--sm"
-        disabled={saving || color === current}
+        disabled={saving || !valid}
         onClick={async () => {
           setSaving(true);
-          const saved = await onCoverChange(item, color);
+          const saved = await onCoverChange(item, allocations);
           setSaving(false);
           if (saved) setEditing(false);
         }}
       >
         {saving ? 'جارٍ الحفظ…' : 'حفظ'}
       </button>
-      {current ? (
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          disabled={saving}
-          onClick={async () => {
-            setSaving(true);
-            const saved = await onCoverChange(item, null);
-            setSaving(false);
-            if (saved) setEditing(false);
-          }}
-        >
-          إزالة
-        </button>
-      ) : null}
       <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={() => setEditing(false)}>
         إلغاء
       </button>
