@@ -13,7 +13,9 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { Badge, Card, InfoBanner, PageHeader, SectionHead } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
+import { EntryRequirementAdoptDialog } from '@/features/admin/entry-requirements/entry-requirement-adopt-dialog';
 import { EntryRequirementsOperations } from '@/features/admin/entry-requirements/entry-requirements-operations';
+import { shouldShowAdoptTextbookAction } from '@/features/entry-requirements/entry-requirements-adopt-link';
 import {
   requirementItemTypeLabel,
   requirementStateLabel,
@@ -116,6 +118,7 @@ export function AdminEntryRequirementsWorkspace() {
   const [resolutionSubject, setResolutionSubject] = useState('');
   const [resolutionOfferingId, setResolutionOfferingId] = useState('');
   const [resolutionSaving, setResolutionSaving] = useState(false);
+  const [adoptItemId, setAdoptItemId] = useState<number | null>(null);
 
   const loadLists = useCallback(async () => {
     if (!activeAcademicYearId) return;
@@ -208,6 +211,7 @@ export function AdminEntryRequirementsWorkspace() {
     setResolutionItemId(null);
     setResolutionSubject('');
     setResolutionOfferingId('');
+    setAdoptItemId(null);
   }, [selected?.id]);
 
   async function openList(id: number) {
@@ -399,9 +403,8 @@ export function AdminEntryRequirementsWorkspace() {
     [contextOfferings, resolutionSubject],
   );
   const resolvingItem = selected?.items?.find((item) => item.id === resolutionItemId) ?? null;
-  const unresolvedCount = selected?.items?.filter(
-    (item) => item.item_type === 'textbook' && item.needs_resolution && !item.teaching_offering_id,
-  ).length ?? 0;
+  const adoptItem = selected?.items?.find((item) => item.id === adoptItemId) ?? null;
+  const unresolvedCount = selected?.items?.filter(shouldShowAdoptTextbookAction).length ?? 0;
   const textbookCount = selected?.items?.filter((item) => item.item_type === 'textbook').length ?? 0;
   const notebookCount = selected?.items?.filter((item) => item.item_type === 'notebook').length ?? 0;
 
@@ -500,18 +503,30 @@ export function AdminEntryRequirementsWorkspace() {
       key: 'actions',
       header: 'الحالة والإجراء',
       render: (item) => {
-        const unresolved = item.item_type === 'textbook'
-          && item.needs_resolution
-          && !item.teaching_offering_id;
+        const unresolved = shouldShowAdoptTextbookAction(item);
+        const manualLinkAvailable = unresolved && !item.teaching_offering_id;
         return (
           <div className={styles.itemActions}>
-            {unresolved ? <Badge tone="amber">يحتاج ربطًا بالمقرر</Badge> : null}
-            {item.item_type === 'textbook' && item.teaching_offering_id ? (
+            {unresolved ? <Badge tone="amber">يحتاج اعتمادًا وربطًا</Badge> : null}
+            {item.item_type === 'textbook' && item.teaching_offering_id && !item.needs_resolution ? (
               <Badge tone="green">مرتبط بالمقرر</Badge>
             ) : null}
             {unresolved && canManage && editable ? (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => {
+                  setError('');
+                  setNotice('');
+                  setAdoptItemId(item.id);
+                }}
+              >
+                اعتماد وربط
+              </button>
+            ) : null}
+            {manualLinkAvailable && canManage && editable ? (
               <button type="button" className="btn btn--ghost btn--sm" onClick={() => startResolution(item)}>
-                ربط
+                ربط بمقرر موجود
               </button>
             ) : null}
             {canManage && editable ? (
@@ -636,7 +651,7 @@ export function AdminEntryRequirementsWorkspace() {
                 <div className={styles.contextBadges}>
                   <Badge tone={stateTone(selected.state)}>{requirementStateLabel(selected.state)}</Badge>
                   {selected.state === 'published' && selected.is_current ? <Badge tone="green">النسخة الحالية</Badge> : null}
-                  {unresolvedCount > 0 ? <Badge tone="amber">{unresolvedCount} تحتاج ربطًا</Badge> : null}
+                  {unresolvedCount > 0 ? <Badge tone="amber">{unresolvedCount} تحتاج اعتمادًا وربطًا</Badge> : null}
                 </div>
               </div>
             </div>
@@ -714,8 +729,8 @@ export function AdminEntryRequirementsWorkspace() {
                   <InfoBanner
                     tone="amber"
                     icon="!"
-                    title={`${unresolvedCount} كتابًا يحتاج ربطه بالمقرر`}
-                    description="المواد المعروضة مأخوذة من المواد المفعلة لنفس المستوى، ثم تُعرض المقررات المعتمدة للسنة والمادة المختارتين دون مطابقة تخمينية."
+                    title={`${unresolvedCount} كتابًا يحتاج اعتمادًا وربطًا`}
+                    description="اعتمد الكتاب مباشرة من هنا، وسيعيد النظام استخدام المرجع والمقرر المناسبين أو ينشئهما وفق العقد الأكاديمي."
                   />
                 ) : null}
 
@@ -921,6 +936,23 @@ export function AdminEntryRequirementsWorkspace() {
           </div>
         </>
       )}
+
+      {selected && adoptItem ? (
+        <EntryRequirementAdoptDialog
+          open
+          list={selected}
+          item={adoptItem}
+          subjects={levelSubjects}
+          onClose={() => setAdoptItemId(null)}
+          onSuccess={async () => {
+            setAdoptItemId(null);
+            setError('');
+            setNotice('تم اعتماد الكتاب وربطه بالمقرر بنجاح.');
+            await loadLists();
+            await openList(selected.id);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
