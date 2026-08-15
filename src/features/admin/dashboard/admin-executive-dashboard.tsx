@@ -818,8 +818,12 @@ function ExecutiveDirectorView({
           <div className="exec-insights-grid">
             {widgets.financeSummary && (
               <ExecutivePanel
-                title={t('admin.executive.financeTitle')}
-                description={t('admin.executive.financeDesc')}
+                title={t('admin.director.financeTitle')}
+                description={
+                  executiveFinance
+                    ? t('admin.director.financeDesc')
+                    : t('admin.executive.financeDesc')
+                }
                 icon="◈"
                 footer={
                   <Link href="/admin/finance" className="exec-panel-link">
@@ -830,41 +834,78 @@ function ExecutiveDirectorView({
                 {executiveState.loading && executiveFinance == null && !executiveFailed ? (
                   <ExecutiveEmpty icon="…" title={t('common.loading')} />
                 ) : executiveFinance ? (
-                  <div className="exec-metric-grid">
-                    {[
-                      {
-                        key: 'collected',
-                        label: t('admin.executive.financeCollected'),
-                        value: executiveFinance.collected_month,
-                      },
-                      {
-                        key: 'remaining',
-                        label: t('admin.executive.financeRemaining'),
-                        value: executiveFinance.remaining,
-                      },
-                      {
-                        key: 'overdue',
-                        label: t('admin.executive.financeOverdue'),
-                        value: executiveFinance.overdue,
-                        warn: true,
-                      },
-                    ].map((m) => {
-                      const raw = normalizeMoneyValue(m.value);
-                      return (
-                        <ExecutiveMetricTile
-                          key={m.key}
-                          label={m.label}
-                          warn={!!(m.warn && raw != null && raw > 0)}
-                          value={
-                            raw != null ? (
-                              <FinanceMoney amount={raw} currency={executiveFinance.currency} />
-                            ) : (
-                              t('common.dash')
-                            )
-                          }
-                        />
-                      );
-                    })}
+                  <div className="exec-finance-snapshot">
+                    <section className="exec-finance-snapshot__group exec-finance-snapshot__group--collections">
+                      <span className="exec-finance-snapshot__group-label">
+                        {t('admin.director.financeCollectionsGroup')}
+                      </span>
+                      <div className="exec-finance-snapshot__pair">
+                        {[
+                          {
+                            key: 'collected-today',
+                            label: t('admin.director.financeCollectedToday'),
+                            value: executiveFinance.collected_today,
+                          },
+                          {
+                            key: 'collected-month',
+                            label: t('admin.director.financeCollectedMonth'),
+                            value: executiveFinance.collected_month,
+                          },
+                        ].map((m) => {
+                          const raw = normalizeMoneyValue(m.value);
+                          return (
+                            <ExecutiveMetricTile
+                              key={m.key}
+                              label={m.label}
+                              value={
+                                raw != null ? (
+                                  <FinanceMoney amount={raw} currency={executiveFinance.currency} />
+                                ) : (
+                                  t('common.dash')
+                                )
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </section>
+
+                    <section className="exec-finance-snapshot__group exec-finance-snapshot__group--position">
+                      <span className="exec-finance-snapshot__group-label">
+                        {t('admin.director.financePositionGroup')}
+                      </span>
+                      <div className="exec-finance-snapshot__pair">
+                        {[
+                          {
+                            key: 'remaining',
+                            label: t('admin.executive.financeRemaining'),
+                            value: executiveFinance.remaining,
+                          },
+                          {
+                            key: 'overdue',
+                            label: t('admin.executive.financeOverdue'),
+                            value: executiveFinance.overdue,
+                            warn: true,
+                          },
+                        ].map((m) => {
+                          const raw = normalizeMoneyValue(m.value);
+                          return (
+                            <ExecutiveMetricTile
+                              key={m.key}
+                              label={m.label}
+                              warn={!!(m.warn && raw != null && raw > 0)}
+                              value={
+                                raw != null ? (
+                                  <FinanceMoney amount={raw} currency={executiveFinance.currency} />
+                                ) : (
+                                  t('common.dash')
+                                )
+                              }
+                            />
+                          );
+                        })}
+                      </div>
+                    </section>
                   </div>
                 ) : financeState.loading ? (
                   <ExecutiveEmpty icon="…" title={t('common.loading')} />
