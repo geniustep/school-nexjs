@@ -54,12 +54,10 @@ function ItemActions({
   canManage,
   editable,
   onLink,
-  onManualLink,
   onDelete,
 }: Props & { item: RequirementItem }) {
   const unresolved = shouldShowAdoptTextbookAction(item);
   const linked = isTextbookEffectivelyLinked(item);
-  const manualLinkAvailable = unresolved && !item.teaching_offering_id;
 
   return (
     <div className={styles.actions}>
@@ -68,11 +66,6 @@ function ItemActions({
       {unresolved && canManage && editable ? (
         <button type="button" className="btn btn--primary btn--sm" onClick={() => onLink(item)}>
           ربط
-        </button>
-      ) : null}
-      {manualLinkAvailable && canManage && editable ? (
-        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onManualLink(item)}>
-          اختيار مقرر موجود
         </button>
       ) : null}
       {canManage && editable ? (
