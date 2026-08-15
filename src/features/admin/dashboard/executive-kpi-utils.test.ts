@@ -66,6 +66,30 @@ describe('executive attendance KPI semantics', () => {
     expect(resolveAttendanceTone(70)).toBe('red');
   });
 
+  it('Case D — missing classes force a partial state even when a provisional rate exists', () => {
+    const zeroCounts = resolveExecutiveAttendanceKpi({
+      classes_without_attendance_count: 24,
+      absent_today_count: 0,
+      late_today_count: 0,
+      attendance_rate_today: 0,
+    });
+    expect(zeroCounts.displayValue).toBe('—');
+    expect(zeroCounts.state).toBe('partial');
+    expect(zeroCounts.rate).toBeNull();
+    expect(zeroCounts.tone).toBe('amber');
+
+    const provisionalRate = resolveExecutiveAttendanceKpi({
+      classes_without_attendance_count: 3,
+      absent_today_count: 1,
+      late_today_count: 2,
+      attendance_rate_today: 93.4,
+    });
+    expect(provisionalRate.displayValue).toBe('—');
+    expect(provisionalRate.state).toBe('partial');
+    expect(provisionalRate.rate).toBeNull();
+    expect(provisionalRate.tone).toBe('amber');
+  });
+
   it('normalizes fractional attendance rates and assigns partial amber tone', () => {
     const fractional = resolveExecutiveAttendanceKpi({
       classes_without_attendance_count: 0,

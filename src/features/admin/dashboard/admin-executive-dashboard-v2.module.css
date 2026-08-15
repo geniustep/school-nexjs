@@ -113,8 +113,10 @@
   line-height: 1;
 }
 
-/* Executive pulse: active students stays the first stable institutional
-   signal. Admissions remains outside the main pulse for now. */
+/* Executive pulse: keep only stable, non-duplicated manager signals here.
+   Active students and overdue balances remain; admissions, attendance and
+   intervention live in their dedicated sections below. Loading-only KPI cards
+   are suppressed so the row does not reshuffle while data resolves. */
 .shell :global(.exec-zone) {
   gap: 7px;
 }
@@ -125,11 +127,16 @@
 }
 
 .shell :global(.exec-kpi-grid) {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 280px));
+  justify-content: start;
+  align-content: start;
+  min-height: 104px;
   gap: 10px;
 }
 
-.shell :global(.exec-kpi[href='/admin/admissions']) {
+.shell :global(.exec-kpi[href='/admin/admissions']),
+.shell :global(.exec-kpi[href='/admin/attendance?date=today']),
+.shell :global(.exec-kpi:not(.exec-kpi--link)) {
   display: none;
 }
 
@@ -177,6 +184,33 @@
 
 .shell :global(.exec-panel__body) {
   padding: 0 15px 14px;
+}
+
+/* When attendance coverage is incomplete, do not repeat provisional zero
+   absent/late counts. Keep the missing-class message as the dominant signal. */
+.shell :global(
+    .exec-panel:has(.exec-attendance-grid--compact + .exec-attendance-foot):not(:has(.exec-attendance-highlight__pct))
+  ) {
+  border-color: color-mix(in srgb, #f59e0b 34%, var(--c-border));
+}
+
+.shell :global(
+    .exec-panel:has(.exec-attendance-grid--compact + .exec-attendance-foot):not(:has(.exec-attendance-highlight__pct)) .exec-attendance-grid--compact
+  ) {
+  display: none;
+}
+
+.shell :global(
+    .exec-panel:has(.exec-attendance-grid--compact + .exec-attendance-foot):not(:has(.exec-attendance-highlight__pct)) .exec-attendance-foot
+  ) {
+  margin-block-start: 2px;
+  padding: 12px 13px;
+  border: 1px solid color-mix(in srgb, #f59e0b 28%, var(--c-border));
+  border-radius: 11px;
+  background: color-mix(in srgb, #f59e0b 7%, var(--c-surface));
+  color: var(--c-text);
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 /* The first intervention acts as the Spotlight. Two more signals remain
@@ -317,6 +351,8 @@
 
   .shell :global(.exec-kpi-grid) {
     grid-template-columns: 1fr;
+    justify-content: stretch;
+    min-height: 0;
   }
 
   .shell :global(.exec-kpi) {
