@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { Badge } from '@/components/ui/primitives';
 import {
   isTextbookEffectivelyLinked,
@@ -23,6 +25,7 @@ type Props = {
   onLink: (item: RequirementItem) => void;
   onManualLink: (item: RequirementItem) => void;
   onDelete: (item: RequirementItem) => void;
+  onQuantityChange: (item: RequirementItem, quantity: number) => Promise<boolean>;
 };
 
 function formatQuantity(value: number): string {
@@ -35,6 +38,83 @@ function itemProvision(item: RequirementItem): string {
 
 function bookTitle(item: RequirementItem): string {
   return textbookReferenceTitle(item) || item.title?.trim() || item.name;
+}
+
+function QuantityControl({
+  item,
+  canManage,
+  editable,
+  onQuantityChange,
+}: Pick<Props, 'canManage' | 'editable' | 'onQuantityChange'> & { item: RequirementItem }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(String(item.quantity));
+  const [saving, setSaving] = useState(false);
+  const parsed = Number(value);
+  const valid = Number.isFinite(parsed) && parsed > 0;
+
+  if (!editing) {
+    return (
+      <span className={styles.quantityControl}>
+        <span>الكمية: <bdi dir="ltr">{formatQuantity(item.quantity)}</bdi></span>
+        {canManage && editable ? (
+          <button
+            type="button"
+            className={styles.quantityEditButton}
+            aria-label={`تعديل كمية ${item.title?.trim() || item.name}`}
+            onClick={() => {
+              setValue(String(item.quantity));
+              setEditing(true);
+            }}
+          >
+            تعديل
+          </button>
+        ) : null}
+      </span>
+    );
+  }
+
+  return (
+    <span className={styles.quantityEditor}>
+      <label>
+        <span className="sr-only">الكمية</span>
+        <input
+          className="input"
+          type="number"
+          min="0.01"
+          step="1"
+          inputMode="decimal"
+          value={value}
+          disabled={saving}
+          aria-label={`كمية ${item.title?.trim() || item.name}`}
+          onChange={(event) => setValue(event.target.value)}
+        />
+      </label>
+      <button
+        type="button"
+        className="btn btn--primary btn--sm"
+        disabled={!valid || saving || parsed === item.quantity}
+        onClick={async () => {
+          setSaving(true);
+          const saved = await onQuantityChange(item, parsed);
+          setSaving(false);
+          if (saved) setEditing(false);
+        }}
+      >
+        {saving ? 'جارٍ الحفظ…' : 'حفظ'}
+      </button>
+      <button
+        type="button"
+        className="btn btn--ghost btn--sm"
+        disabled={saving}
+        onClick={() => {
+          setValue(String(item.quantity));
+          setEditing(false);
+        }}
+      >
+        إلغاء
+      </button>
+    </span>
+  );
 }
 
 function SectionHeader({ title, count, description }: { title: string; count: number; description: string }) {
@@ -113,7 +193,7 @@ function BookCard(props: Props & { item: RequirementItem; index: number }) {
 
         <div className={styles.bookFooter}>
           <div className={styles.compactFacts}>
-            <span><bdi dir="ltr">{formatQuantity(item.quantity)}</bdi> نسخة</span>
+            <QuantityControl {...props} item={item} />
             <span>{itemProvision(item)}</span>
             {item.reusable ? <span>قابل لإعادة الاستعمال</span> : null}
           </div>
@@ -158,7 +238,7 @@ function NotebookCard(props: Props & { item: RequirementItem }) {
 
         <div className={styles.notebookFooter}>
           <div className={styles.compactFacts}>
-            <span>الكمية: <bdi dir="ltr">{formatQuantity(item.quantity)}</bdi></span>
+            <QuantityControl {...props} item={item} />
             <span>{itemProvision(item)}</span>
           </div>
           {props.canManage && props.editable ? (
@@ -184,7 +264,9 @@ function ToolsList(props: Props & { items: RequirementItem[] }) {
           <Badge tone={item.item_type === 'uniform' ? 'amber' : 'slate'}>
             {requirementItemTypeLabel(item.item_type)}
           </Badge>
-          <span className={styles.toolQuantity}>× <bdi dir="ltr">{formatQuantity(item.quantity)}</bdi></span>
+          <span className={styles.toolQuantity}>
+            <QuantityControl {...props} item={item} />
+          </span>
           <span className={styles.toolProvision}>{itemProvision(item)}</span>
           {props.canManage && props.editable ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => props.onDelete(item)}>
