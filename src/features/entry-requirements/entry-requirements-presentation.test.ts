@@ -3,9 +3,12 @@ import { describe, expect, it } from 'vitest';
 import type { RequirementItem } from './entry-requirements-contract';
 import {
   groupRequirementItems,
+  aggregateRequirementCovers,
   notebookCoverTone,
   notebookPageCount,
   notebookPresentation,
+  requirementCoverColor,
+  withRequirementCoverColor,
 } from './entry-requirements-presentation';
 
 function item(partial: Partial<RequirementItem>): RequirementItem {
@@ -74,5 +77,24 @@ describe('entry requirement catalog presentation', () => {
     expect(notebookCoverTone('Green')).toBe('green');
     expect(notebookCoverTone('مزخرف')).toBe('neutral');
     expect(notebookCoverTone(null)).toBe('neutral');
+  });
+
+  it('adds, replaces, and removes a linked cover without losing other notes', () => {
+    const book = item({ item_type: 'textbook', notes: 'ملاحظة مهمة\nالغلاف: أحمر\nالغرض: القراءة' });
+    expect(requirementCoverColor(book)).toBe('أحمر');
+    expect(withRequirementCoverColor(book.notes, 'أزرق')).toBe('ملاحظة مهمة\nالغرض: القراءة\nغلاف: أزرق');
+    expect(withRequirementCoverColor(book.notes, null)).toBe('ملاحظة مهمة\nالغرض: القراءة');
+  });
+
+  it('aggregates linked covers by color using the parent item quantity', () => {
+    expect(aggregateRequirementCovers([
+      item({ id: 1, item_type: 'textbook', quantity: 2, notes: 'غلاف: أحمر' }),
+      item({ id: 2, item_type: 'notebook', quantity: 3, notes: 'الغلاف: أحمر' }),
+      item({ id: 3, item_type: 'book', quantity: 1, notes: 'غلاف: أزرق' }),
+      item({ id: 4, item_type: 'stationery', quantity: 20, notes: 'غلاف: أحمر' }),
+    ])).toEqual([
+      { color: 'أحمر', quantity: 5 },
+      { color: 'أزرق', quantity: 1 },
+    ]);
   });
 });
