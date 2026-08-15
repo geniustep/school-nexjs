@@ -6,6 +6,7 @@ import {
   resolveExecutiveAttendanceKpi,
   resolveLegacyAttendanceKpi,
 } from '@/features/admin/dashboard/executive-kpi-utils';
+import { shouldRenderExecutiveKpiCard } from '@/features/admin/dashboard/executive-dashboard-ui';
 
 describe('executive attendance KPI semantics', () => {
   it('Case A — no attendance records does not show 0%', () => {
@@ -108,6 +109,21 @@ describe('executive attendance KPI semantics', () => {
     });
     expect(partial.state).toBe('partial');
     expect(partial.tone).toBe('amber');
+  });
+});
+
+describe('executive attendance KPI visibility', () => {
+  it('hides missing or partial attendance placeholders from the manager pulse', () => {
+    expect(shouldRenderExecutiveKpiCard('/admin/attendance?date=today', '—')).toBe(false);
+  });
+
+  it('shows trustworthy attendance values, including a real recorded 0%', () => {
+    expect(shouldRenderExecutiveKpiCard('/admin/attendance?date=today', '94%')).toBe(true);
+    expect(shouldRenderExecutiveKpiCard('/admin/attendance?date=today', '0%')).toBe(true);
+  });
+
+  it('does not suppress placeholders for unrelated KPI cards', () => {
+    expect(shouldRenderExecutiveKpiCard('/admin/students', '—')).toBe(true);
   });
 });
 
