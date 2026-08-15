@@ -67,8 +67,8 @@
   opacity: 0.9;
 }
 
-/* Executive pulse: three useful signals, not a census row. The two static
-   navigation KPIs remain available in their domain pages and lower panels. */
+/* Executive pulse: restore the active-students card as the first stable
+   institutional signal. Admissions stays out of the main pulse for now. */
 .shell :global(.exec-zone) {
   gap: 7px;
 }
@@ -79,11 +79,10 @@
 }
 
 .shell :global(.exec-kpi-grid) {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
-.shell :global(.exec-kpi[href='/admin/students']),
 .shell :global(.exec-kpi[href='/admin/admissions']) {
   display: none;
 }
