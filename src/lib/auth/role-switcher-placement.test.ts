@@ -10,12 +10,14 @@ function read(rel: string): string {
 
 describe('Role Switcher placement contract', () => {
   const shell = read('src/components/layout/app-shell.tsx');
-  const account = read('src/components/layout/admin-account-sheet.tsx');
-  const css = read('src/app/admin-workspace.css');
+  const desktopAccount = read('src/components/layout/admin-account-menu.tsx');
+  const mobileAccount = read('src/components/layout/admin-account-sheet.tsx');
 
-  it('shows a labeled topbar switcher for admin desktop only', () => {
-    expect(shell).toMatch(/isAdmin && \(\s*<RoleSwitcher className="role-switcher--topbar"/);
-    expect(shell).not.toMatch(/RoleSwitcher hideLabel className="role-switcher--topbar"/);
+  it('keeps the admin desktop role switcher inside the account menu instead of the topbar', () => {
+    expect(shell).toContain('<AdminAccountMenu');
+    expect(shell).not.toContain('role-switcher--topbar');
+    expect(desktopAccount).toContain('shouldShowRoleSwitcher');
+    expect(desktopAccount).toContain('role-switcher-account-menu');
   });
 
   it('hosts a labeled sidebar switcher for teacher/parent shells', () => {
@@ -30,11 +32,13 @@ describe('Role Switcher placement contract', () => {
   });
 
   it('keeps mobile account-sheet access for all multi-role users', () => {
-    expect(account).toContain('shouldShowRoleSwitcher');
-    expect(account).toContain('role-switcher-account-sheet');
+    expect(mobileAccount).toContain('shouldShowRoleSwitcher');
+    expect(mobileAccount).toContain('role-switcher-account-sheet');
   });
 
-  it('hides admin topbar switcher on narrow viewports (account sheet remains)', () => {
-    expect(css).toMatch(/@media \(max-width: 900px\)[\s\S]*\.role-switcher--topbar[\s\S]*display:\s*none/);
+  it('keeps multi-school switching available without putting the school selector back in the topbar', () => {
+    expect(shell).not.toContain('<SchoolSwitcher');
+    expect(desktopAccount).toContain('isMultiSchoolAdmin');
+    expect(desktopAccount).toContain('<SchoolSwitcher hideLabel />');
   });
 });
