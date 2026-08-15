@@ -69,7 +69,7 @@ describe('Entry Requirements quantity edit', () => {
     expect(screen.queryByRole('button', { name: 'تعديل كمية دفتر من فئة 96 صفحة' })).toBeNull();
   });
 
-  it('links a colored cover to a notebook from its card', async () => {
+  it('distributes a notebook quantity across multiple cover colors', async () => {
     const onCoverChange = vi.fn(async () => true);
     render(
       <EntryRequirementCatalog
@@ -85,11 +85,21 @@ describe('Entry Requirements quantity edit', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'إضافة غلاف لـ دفتر من فئة 96 صفحة' }));
-    fireEvent.change(screen.getByRole('combobox', { name: 'لون غلاف دفتر من فئة 96 صفحة' }), {
+    fireEvent.change(screen.getByRole('combobox', { name: 'لون الغلاف 1 لـ دفتر من فئة 96 صفحة' }), {
       target: { value: 'أحمر' },
+    });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'كمية الغلاف 1 لـ دفتر من فئة 96 صفحة' }), {
+      target: { value: '1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '+ لون آخر' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'لون الغلاف 2 لـ دفتر من فئة 96 صفحة' }), {
+      target: { value: 'أزرق' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
 
-    await waitFor(() => expect(onCoverChange).toHaveBeenCalledWith(notebook, 'أحمر'));
+    await waitFor(() => expect(onCoverChange).toHaveBeenCalledWith(notebook, [
+      { color: 'أحمر', quantity: 1 },
+      { color: 'أزرق', quantity: 1 },
+    ]));
   });
 });
