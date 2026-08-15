@@ -112,8 +112,8 @@ describe('entry requirement catalog presentation', () => {
       item({ id: 4, item_type: 'stationery', quantity: 20, notes: 'غلاف: أحمر' }),
     ])).toEqual([
       { color: 'أحمر', quantity: 6 },
-      { color: 'أزرق', quantity: 1 },
       { color: 'أخضر', quantity: 2 },
+      { color: 'أزرق', quantity: 1 },
     ]);
   });
 });
