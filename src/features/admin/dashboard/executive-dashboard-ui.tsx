@@ -5,14 +5,33 @@
  * @design-status adopted
  */
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Badge, type Tone } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useLocale } from '@/features/i18n/locale-context';
+import type { Locale } from '@/lib/i18n/config';
 import { formatExecutiveKpiMoneyParts } from '@/features/admin/dashboard/executive-kpi-utils';
 
 export type ExecutiveTone = 'blue' | 'green' | 'amber' | 'red' | 'neutral' | 'indigo';
+
+export type ExecutiveInterventionItemData = {
+  id: string;
+  label: string;
+  hint?: string;
+  href?: string;
+  icon?: string;
+  tone?: 'amber' | 'default';
+};
+
+type AttentionCopy = {
+  title: string;
+  viewAll: string;
+  drawerTitle: string;
+  close: string;
+  open: string;
+  arrow: string;
+};
 
 const TONE_LABEL: Record<ExecutiveTone, string> = {
   blue: 'exec-kpi--blue',
@@ -23,6 +42,41 @@ const TONE_LABEL: Record<ExecutiveTone, string> = {
   indigo: 'exec-kpi--indigo',
 };
 
+const ATTENTION_COPY: Record<Locale, AttentionCopy> = {
+  ar: {
+    title: 'يحتاج انتباهك اليوم',
+    viewAll: 'عرض الكل',
+    drawerTitle: 'كل الأولويات',
+    close: 'إغلاق',
+    open: 'فتح',
+    arrow: '←',
+  },
+  fr: {
+    title: "À surveiller aujourd’hui",
+    viewAll: 'Tout afficher',
+    drawerTitle: 'Toutes les priorités',
+    close: 'Fermer',
+    open: 'Ouvrir',
+    arrow: '→',
+  },
+  en: {
+    title: 'Needs your attention today',
+    viewAll: 'View all',
+    drawerTitle: 'All priorities',
+    close: 'Close',
+    open: 'Open',
+    arrow: '→',
+  },
+  es: {
+    title: 'Requiere tu atención hoy',
+    viewAll: 'Ver todo',
+    drawerTitle: 'Todas las prioridades',
+    close: 'Cerrar',
+    open: 'Abrir',
+    arrow: '→',
+  },
+};
+
 const ATTENDANCE_TODAY_HREF = '/admin/attendance?date=today';
 
 export function shouldRenderExecutiveKpiCard(href: string | undefined, value: ReactNode): boolean {
@@ -30,6 +84,21 @@ export function shouldRenderExecutiveKpiCard(href: string | undefined, value: Re
   // incomplete or unavailable, so keep the executive strip quiet instead of
   // promoting an untrustworthy percentage.
   return !(href === ATTENDANCE_TODAY_HREF && value === '—');
+}
+
+export function normalizeExecutiveInterventionLabel(label: string, locale: Locale): string {
+  if (locale !== 'ar') return label;
+
+  return label
+    .replace('حسابًا تحتاج اتصال تحصيل', 'حسابًا بحاجة إلى متابعة التحصيل')
+    .replace('حسابات تحتاج اتصال تحصيل', 'حسابات بحاجة إلى متابعة التحصيل')
+    .replace('حسابان يحتاجان اتصال تحصيل', 'حسابان بحاجة إلى متابعة التحصيل')
+    .replace('حساب واحد يحتاج اتصال تحصيل', 'حساب واحد بحاجة إلى متابعة التحصيل')
+    .replace('طلبات تحتاج متابعة', 'طلبات تسجيل بحاجة إلى متابعة')
+    .replace('طلبان يحتاجان متابعة', 'طلبا تسجيل بحاجة إلى متابعة')
+    .replace('طلب واحد يحتاج متابعة', 'طلب تسجيل واحد بحاجة إلى متابعة')
+    .replace('تلميذًا بدون ولي مرتبط', 'تلميذًا دون ولي أمر مرتبط')
+    .replace('تلاميذ بدون ولي مرتبط', 'تلاميذ دون ولي أمر مرتبط');
 }
 
 export function ExecutiveKpiMoney({
@@ -119,6 +188,12 @@ export function ExecutivePanel({
   children: ReactNode;
   className?: string;
 }) {
+  const { locale } = useLocale();
+  const isAttentionPanel = className?.split(/\s+/).includes('exec-decision-panel') ?? false;
+  const resolvedTitle = isAttentionPanel ? ATTENTION_COPY[locale].title : title;
+  const resolvedDescription = isAttentionPanel ? undefined : description;
+  const resolvedFooter = isAttentionPanel ? undefined : footer;
+
   return (
     <article
       className={cn(
@@ -135,12 +210,12 @@ export function ExecutivePanel({
               {icon}
             </span>
           ) : null}
-          <h3 className="exec-panel__title">{title}</h3>
+          <h3 className="exec-panel__title">{resolvedTitle}</h3>
         </div>
-        {description ? <p className="exec-panel__desc">{description}</p> : null}
+        {resolvedDescription ? <p className="exec-panel__desc">{resolvedDescription}</p> : null}
       </header>
       <div className="exec-panel__body">{children}</div>
-      {footer ? <footer className="exec-panel__foot">{footer}</footer> : null}
+      {resolvedFooter ? <footer className="exec-panel__foot">{resolvedFooter}</footer> : null}
     </article>
   );
 }
@@ -172,16 +247,14 @@ export function ExecutiveEmpty({
 export function ExecutiveInterventionItem({
   item,
 }: {
-  item: {
-    id: string;
-    label: string;
-    hint?: string;
-    href?: string;
-    icon?: string;
-    tone?: 'amber' | 'default';
-  };
+  item: ExecutiveInterventionItemData;
 }) {
+  const { locale } = useLocale();
+  const copy = ATTENTION_COPY[locale];
   const severity = item.tone === 'amber' ? 'high' : 'normal';
+  const label = normalizeExecutiveInterventionLabel(item.label, locale);
+  const linkedAction = item.href ? item.hint || copy.open : null;
+
   const inner = (
     <>
       <span className={cn('exec-decision__severity', `exec-decision__severity--${severity}`)} />
@@ -191,10 +264,14 @@ export function ExecutiveInterventionItem({
         </span>
       ) : null}
       <span className="exec-decision__copy">
-        <span className="exec-decision__label">{item.label}</span>
-        {item.hint ? <span className="exec-decision__hint">{item.hint}</span> : null}
+        <span className="exec-decision__label">{label}</span>
+        {!item.href && item.hint ? <span className="exec-decision__hint">{item.hint}</span> : null}
       </span>
-      {item.href ? <span className="exec-decision__arrow" aria-hidden="true" /> : null}
+      {linkedAction ? (
+        <span className="exec-decision__action" aria-hidden="true">
+          {linkedAction} <span>{copy.arrow}</span>
+        </span>
+      ) : null}
     </>
   );
 
@@ -220,27 +297,100 @@ export function ExecutiveDecisionList({
   emptyTitle,
   emptyDescription,
 }: {
-  items: {
-    id: string;
-    label: string;
-    hint?: string;
-    href?: string;
-    icon?: string;
-    tone?: 'amber' | 'default';
-  }[];
+  items: ExecutiveInterventionItemData[];
   emptyTitle: string;
   emptyDescription?: string;
 }) {
+  const { locale } = useLocale();
+  const copy = ATTENTION_COPY[locale];
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // The main intervention list is the call-site that supplies a real empty-state
+  // title. The data-quality sub-list intentionally passes an empty title and
+  // therefore remains a plain list without summary truncation or a drawer.
+  const summaryMode = emptyTitle.trim().length > 0;
+  const visibleItems = summaryMode ? items.slice(0, 3) : items;
+  const canOpenDrawer = summaryMode && items.length > 3;
+
+  useEffect(() => {
+    if (!drawerOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDrawerOpen(false);
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [drawerOpen]);
+
   if (!items.length) {
     return <ExecutiveEmpty icon="✓" title={emptyTitle} description={emptyDescription} />;
   }
 
   return (
-    <ul className="exec-decision-list">
-      {items.map((item) => (
-        <ExecutiveInterventionItem key={item.id} item={item} />
-      ))}
-    </ul>
+    <div className={cn('exec-decision-list-wrap', summaryMode && 'exec-decision-list-wrap--summary')}>
+      {canOpenDrawer ? (
+        <button
+          type="button"
+          className="exec-decision-list__view-all"
+          aria-haspopup="dialog"
+          aria-expanded={drawerOpen}
+          onClick={() => setDrawerOpen(true)}
+        >
+          {copy.viewAll} ({items.length})
+        </button>
+      ) : null}
+
+      <ul className={cn('exec-decision-list', summaryMode && 'exec-decision-list--summary')}>
+        {visibleItems.map((item) => (
+          <ExecutiveInterventionItem key={item.id} item={item} />
+        ))}
+      </ul>
+
+      {canOpenDrawer && drawerOpen ? (
+        <>
+          <div
+            className="exec-attention-drawer__backdrop"
+            role="presentation"
+            onMouseDown={() => setDrawerOpen(false)}
+          />
+          <aside
+            className="exec-attention-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label={copy.drawerTitle}
+          >
+            <header className="exec-attention-drawer__head">
+              <div>
+                <h2>{copy.drawerTitle}</h2>
+                <span className="exec-attention-drawer__count">{items.length}</span>
+              </div>
+              <button
+                type="button"
+                className="exec-attention-drawer__close"
+                aria-label={copy.close}
+                onClick={() => setDrawerOpen(false)}
+                autoFocus
+              >
+                ×
+              </button>
+            </header>
+            <div className="exec-attention-drawer__body">
+              <ul className="exec-decision-list exec-decision-list--drawer">
+                {items.map((item) => (
+                  <ExecutiveInterventionItem key={item.id} item={item} />
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </>
+      ) : null}
+    </div>
   );
 }
 
