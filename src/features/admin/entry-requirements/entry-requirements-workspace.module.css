@@ -231,6 +231,126 @@
   padding: 14px;
 }
 
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 42%);
+  backdrop-filter: blur(2px);
+}
+
+.itemDialog {
+  width: min(100%, 620px);
+  max-height: min(760px, calc(100vh - 40px));
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  box-shadow: 0 24px 64px rgb(15 23 42 / 24%);
+}
+
+.dialogHeader {
+  position: sticky;
+  inset-block-start: -18px;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: -18px -18px 0;
+  padding: 16px 18px 12px;
+  border-block-end: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+
+.dialogClose {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border: 1px solid var(--c-border);
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dialogClose:hover {
+  border-color: var(--c-text-muted);
+}
+
+.dialogFooter {
+  position: sticky;
+  inset-block-end: -18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 -18px -18px;
+  padding: 12px 18px 16px;
+  border-block-start: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+
+.inlineSuccess {
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--c-green) 40%, var(--c-border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--c-green) 10%, var(--c-surface));
+  color: var(--c-green);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.fieldError {
+  color: var(--c-red);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.coverRow {
+  display: grid;
+  gap: 4px;
+}
+
+.sizeChoice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.sizeChoice button {
+  min-height: 38px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.sizeChoice button[data-active='true'] {
+  border-color: var(--c-primary);
+  background: color-mix(in srgb, var(--c-primary) 10%, var(--c-surface));
+  color: var(--c-primary);
+}
+
+.itemDialog [aria-invalid='true'] {
+  border-color: var(--c-red);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-red) 12%, transparent);
+}
+
 .editorTitle {
   display: grid;
   gap: 3px;
@@ -442,6 +562,21 @@
   .workflowActions > *,
   .editorActions > *,
   .operationActions > * {
+    flex: 1 1 auto;
+  }
+
+  .dialogBackdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .itemDialog {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .dialogFooter > * {
     flex: 1 1 auto;
   }
 }

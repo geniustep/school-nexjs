@@ -62,6 +62,15 @@ type SubjectOptionsPayload = {
 
 type BadgeTone = 'green' | 'red' | 'amber' | 'blue' | 'slate';
 
+type ItemEditorErrors = {
+  subject?: string;
+  offering?: string;
+  name?: string;
+  quantity?: string;
+  covers?: string;
+  coverRows: Record<number, string>;
+};
+
 const ITEM_TYPES: RequirementItemType[] = [
   'textbook',
   'book',
@@ -128,6 +137,8 @@ export function AdminEntryRequirementsWorkspace() {
   const [itemReusable, setItemReusable] = useState<'yes' | 'no' | ''>('');
   const [itemCovers, setItemCovers] = useState<RequirementCoverAllocation[]>([]);
   const [itemNotebookSize, setItemNotebookSize] = useState<NotebookSize>('large');
+  const [itemEditorErrors, setItemEditorErrors] = useState<ItemEditorErrors>({ coverRows: {} });
+  const [itemSavedNotice, setItemSavedNotice] = useState('');
   const [listNotes, setListNotes] = useState('');
   const [notesSaving, setNotesSaving] = useState(false);
 
@@ -282,26 +293,41 @@ export function AdminEntryRequirementsWorkspace() {
     await openList(result.data.id);
   }
 
-  async function addItem(event: FormEvent) {
+  async function addItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
 
-    const quantity = Number(itemQty) || 1;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const keepAddingNotebook = itemType === 'notebook' && submitter?.value === 'add-another';
+    const quantity = Number(itemQty);
     const requiresSubject = SUBJECT_ITEM_TYPES.includes(itemType);
     const coverTotal = itemCovers.reduce((sum, allocation) => sum + allocation.quantity, 0);
-    const coverColors = itemCovers.map((allocation) => allocation.color);
-    if (requiresSubject && !itemSubject) {
-      setError('اختر المادة المرتبطة بهذا الكتاب أو الدفتر.');
+    const colorCounts = itemCovers.reduce<Record<string, number>>((counts, allocation) => {
+      const color = allocation.color.trim();
+      if (color) counts[color] = (counts[color] ?? 0) + 1;
+      return counts;
+    }, {});
+    const coverRows = itemCovers.reduce<Record<number, string>>((rows, allocation, index) => {
+      if (!allocation.color.trim()) rows[index] = 'اختر لون الغلاف.';
+      else if (!Number.isSafeInteger(allocation.quantity) || allocation.quantity <= 0) rows[index] = 'أدخل كمية صحيحة أكبر من صفر.';
+      else if ((colorCounts[allocation.color.trim()] ?? 0) > 1) rows[index] = `اللون «${allocation.color}» مكرر.`;
+      return rows;
+    }, {});
+    const validation: ItemEditorErrors = { coverRows };
+    if (!Number.isFinite(quantity) || quantity <= 0 || (requiresSubject && !Number.isSafeInteger(quantity))) {
+      validation.quantity = requiresSubject ? 'أدخل عددًا صحيحًا لا يقل عن 1.' : 'أدخل كمية أكبر من صفر.';
+    }
+    if (requiresSubject && !itemSubject) validation.subject = 'اختر المادة المرتبطة بهذا العنصر.';
+    if (itemType === 'textbook' && !offeringId) validation.offering = 'اختر المقرر المعتمد.';
+    if (itemType !== 'textbook' && !itemName.trim()) validation.name = 'أدخل اسم العنصر.';
+    if (coverTotal > quantity && !validation.quantity) {
+      validation.covers = `مجموع الأغلفة ${coverTotal}، بينما كمية العنصر ${quantity}. خفّض كميات الأغلفة.`;
+    }
+    if (Object.keys(coverRows).length || Object.keys(validation).some((key) => key !== 'coverRows')) {
+      setItemEditorErrors(validation);
       return;
     }
-    if (
-      itemCovers.some((allocation) => !allocation.color || !Number.isSafeInteger(allocation.quantity) || allocation.quantity <= 0)
-      || new Set(coverColors).size !== coverColors.length
-      || coverTotal > quantity
-    ) {
-      setError('تحقق من ألوان الأغلفة وكمياتها؛ لا يجوز تكرار اللون أو تجاوز كمية العنصر.');
-      return;
-    }
+    setItemEditorErrors({ coverRows: {} });
 
     const body: Record<string, unknown> = {
       item_type: itemType,
@@ -319,19 +345,13 @@ export function AdminEntryRequirementsWorkspace() {
     };
 
     if (itemType === 'textbook') {
-      if (!offeringId) {
-        setError('اختر المقرر المعتمد أولًا.');
-        return;
-      }
+      if (!offeringId) return;
       const offering = teachingOfferingsForSubject(contextOfferings, itemSubject)
         .find((row) => String(row.id) === offeringId);
       body.teaching_offering_id = Number(offeringId);
       body.name = offering?.reference.title || 'كتاب مقرر';
     } else {
-      if (!itemName.trim()) {
-        setError('أدخل اسم العنصر.');
-        return;
-      }
+      if (!itemName.trim()) return;
       body.name = itemName.trim();
     }
 
@@ -345,13 +365,23 @@ export function AdminEntryRequirementsWorkspace() {
       return;
     }
 
+    const savedSubject = itemSubject;
     setItemName('');
-    setItemSubject('');
     setOfferingId('');
     setItemCovers([]);
-    setItemNotebookSize('large');
-    setAddItemOpen(false);
-    setNotice('تمت إضافة العنصر وربطه بالمادة مع أغلفته.');
+    setItemEditorErrors({ coverRows: {} });
+    if (keepAddingNotebook) {
+      setItemSubject(savedSubject);
+      setItemQty('1');
+      setItemNotebookSize((size) => size === 'large' ? 'small' : 'large');
+      setItemSavedNotice('تمت إضافة الدفتر. يمكنك الآن إضافة دفتر آخر للمادة نفسها.');
+    } else {
+      setItemSubject('');
+      setItemNotebookSize('large');
+      setAddItemOpen(false);
+      setItemSavedNotice('');
+      setNotice('تمت إضافة العنصر وربطه بالمادة مع أغلفته.');
+    }
     await openList(selected.id);
   }
 
@@ -368,10 +398,9 @@ export function AdminEntryRequirementsWorkspace() {
     setItemQty('1');
     setItemCovers([]);
     setItemNotebookSize('large');
+    setItemEditorErrors({ coverRows: {} });
+    setItemSavedNotice('');
     setAddItemOpen(true);
-    window.requestAnimationFrame(() => {
-      document.getElementById('entry-requirement-item-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
   }
 
   function startResolution(item: RequirementItem) {
@@ -547,6 +576,15 @@ export function AdminEntryRequirementsWorkspace() {
     await loadLists();
     await openList(selected.id);
   }
+
+  useEffect(() => {
+    if (!addItemOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setAddItemOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [addItemOpen]);
 
   const editable = selected?.state === 'draft';
   const currentYear = academicYears.find((year) => year.id === activeAcademicYearId);
@@ -872,8 +910,12 @@ export function AdminEntryRequirementsWorkspace() {
                 <SectionHead
                   title="عناصر اللائحة"
                   action={canManage && editable ? (
-                    <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddItemOpen((open) => !open)}>
-                      {addItemOpen ? 'إغلاق الإضافة' : '+ إضافة عنصر'}
+                    <button type="button" className="btn btn--primary btn--sm" onClick={() => {
+                      setItemEditorErrors({ coverRows: {} });
+                      setItemSavedNotice('');
+                      setAddItemOpen(true);
+                    }}>
+                      + إضافة عنصر
                     </button>
                   ) : undefined}
                 />
@@ -898,11 +940,25 @@ export function AdminEntryRequirementsWorkspace() {
                 ) : null}
 
                 {addItemOpen && canManage && editable ? (
-                  <form id="entry-requirement-item-editor" className={styles.editorPanel} onSubmit={addItem}>
-                    <div className={styles.editorTitle}>
-                      <strong>إضافة تجهيز إلى مادة</strong>
-                      <span className={styles.muted}>أدخل الكتاب أو الدفتر، اربطه بالمادة، وحدد أغلفته قبل الحفظ.</span>
-                    </div>
+                  <div className={styles.dialogBackdrop} role="presentation" onMouseDown={(event) => {
+                    if (event.target === event.currentTarget) setAddItemOpen(false);
+                  }}>
+                    <form
+                      id="entry-requirement-item-editor"
+                      className={styles.itemDialog}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="entry-requirement-item-editor-title"
+                      onSubmit={addItem}
+                    >
+                      <div className={styles.dialogHeader}>
+                        <div className={styles.editorTitle}>
+                          <strong id="entry-requirement-item-editor-title">إضافة تجهيز إلى مادة</strong>
+                          <span className={styles.muted}>كتاب أو دفتر واحد مع أغلفته.</span>
+                        </div>
+                        <button type="button" className={styles.dialogClose} aria-label="إغلاق" onClick={() => setAddItemOpen(false)}>×</button>
+                      </div>
+                      {itemSavedNotice ? <div className={styles.inlineSuccess} role="status">{itemSavedNotice}</div> : null}
                     <div className={styles.formGrid}>
                       <label className="field">
                         النوع
@@ -929,8 +985,13 @@ export function AdminEntryRequirementsWorkspace() {
                           min={SUBJECT_ITEM_TYPES.includes(itemType) ? '1' : '0.1'}
                           step={SUBJECT_ITEM_TYPES.includes(itemType) ? '1' : '0.1'}
                           value={itemQty}
-                          onChange={(event) => setItemQty(event.target.value)}
+                          aria-invalid={Boolean(itemEditorErrors.quantity)}
+                          onChange={(event) => {
+                            setItemQty(event.target.value);
+                            setItemEditorErrors((current) => ({ ...current, quantity: undefined, covers: undefined }));
+                          }}
                         />
+                        {itemEditorErrors.quantity ? <span className={styles.fieldError}>{itemEditorErrors.quantity}</span> : null}
                       </label>
 
                       {SUBJECT_ITEM_TYPES.includes(itemType) ? (
@@ -941,9 +1002,11 @@ export function AdminEntryRequirementsWorkspace() {
                             required
                             value={itemSubject}
                             disabled={subjectsLoading}
+                            aria-invalid={Boolean(itemEditorErrors.subject)}
                             onChange={(event) => {
                               setItemSubject(event.target.value);
                               setOfferingId('');
+                              setItemEditorErrors((current) => ({ ...current, subject: undefined, offering: undefined }));
                             }}
                           >
                             <option value="">اختر مادة هذا المستوى</option>
@@ -951,6 +1014,7 @@ export function AdminEntryRequirementsWorkspace() {
                               <option key={subject.id} value={subject.id}>{subject.name}</option>
                             ))}
                           </select>
+                          {itemEditorErrors.subject ? <span className={styles.fieldError}>{itemEditorErrors.subject}</span> : null}
                           {!subjectsLoading && levelSubjects.length === 0 ? (
                             <span className={styles.muted}>لا توجد مواد مفعلة لهذا المستوى. راجع إعدادات مواد المستوى.</span>
                           ) : null}
@@ -960,7 +1024,17 @@ export function AdminEntryRequirementsWorkspace() {
                       {itemType === 'textbook' ? (
                         <label className={'field ' + styles.fieldFull}>
                           المقرر المعتمد
-                          <select className="select" required value={offeringId} disabled={!itemSubject || offeringsLoading} onChange={(event) => setOfferingId(event.target.value)}>
+                          <select
+                            className="select"
+                            required
+                            value={offeringId}
+                            disabled={!itemSubject || offeringsLoading}
+                            aria-invalid={Boolean(itemEditorErrors.offering)}
+                            onChange={(event) => {
+                              setOfferingId(event.target.value);
+                              setItemEditorErrors((current) => ({ ...current, offering: undefined }));
+                            }}
+                          >
                             <option value="">اختر المقرر</option>
                             {itemOfferings.map((offering) => (
                               <option key={offering.id} value={offering.id}>
@@ -968,6 +1042,7 @@ export function AdminEntryRequirementsWorkspace() {
                               </option>
                             ))}
                           </select>
+                          {itemEditorErrors.offering ? <span className={styles.fieldError}>{itemEditorErrors.offering}</span> : null}
                           {itemSubject && !offeringsLoading && itemOfferings.length === 0 ? (
                             <span className={styles.muted}>المادة مفعلة، لكن لا يوجد مقرر معتمد لها في السنة والمستوى المحددين.</span>
                           ) : null}
@@ -979,19 +1054,24 @@ export function AdminEntryRequirementsWorkspace() {
                             className="input"
                             required
                             value={itemName}
-                            onChange={(event) => setItemName(event.target.value)}
+                            aria-invalid={Boolean(itemEditorErrors.name)}
+                            onChange={(event) => {
+                              setItemName(event.target.value);
+                              setItemEditorErrors((current) => ({ ...current, name: undefined }));
+                            }}
                             placeholder={itemType === 'notebook' ? 'مثال: دفتر 96 صفحة' : 'اسم الكتاب أو العنصر'}
                           />
+                          {itemEditorErrors.name ? <span className={styles.fieldError}>{itemEditorErrors.name}</span> : null}
                         </label>
                       )}
 
                       {itemType === 'notebook' ? (
                         <label className="field">
                           حجم الدفتر
-                          <select className="select" required value={itemNotebookSize} onChange={(event) => setItemNotebookSize(event.target.value as NotebookSize)}>
-                            <option value="large">كبير</option>
-                            <option value="small">صغير</option>
-                          </select>
+                          <div className={styles.sizeChoice}>
+                            <button type="button" data-active={itemNotebookSize === 'large'} onClick={() => setItemNotebookSize('large')}>كبير</button>
+                            <button type="button" data-active={itemNotebookSize === 'small'} onClick={() => setItemNotebookSize('small')}>صغير</button>
+                          </div>
                         </label>
                       ) : null}
 
@@ -999,14 +1079,18 @@ export function AdminEntryRequirementsWorkspace() {
                         <div className={'field ' + styles.fieldFull}>
                           <span>{itemType === 'notebook' ? `أغلفة الدفاتر ${itemNotebookSize === 'large' ? 'الكبيرة' : 'الصغيرة'}` : 'أغلفة الكتب'}</span>
                           {itemCovers.map((allocation, index) => (
-                            <div className={styles.editorActions} key={index + '-' + allocation.color}>
+                            <div className={styles.coverRow} key={index + '-' + allocation.color}>
+                              <div className={styles.editorActions}>
                               <select
                                 className="select"
                                 aria-label={'لون الغلاف ' + (index + 1)}
                                 value={allocation.color}
-                                onChange={(event) => setItemCovers((rows) => rows.map((row, rowIndex) => (
-                                  rowIndex === index ? { ...row, color: event.target.value } : row
-                                )))}
+                                onChange={(event) => {
+                                  setItemCovers((rows) => rows.map((row, rowIndex) => (
+                                    rowIndex === index ? { ...row, color: event.target.value } : row
+                                  )));
+                                  setItemEditorErrors((current) => ({ ...current, coverRows: {}, covers: undefined }));
+                                }}
                               >
                                 {COVER_COLORS.map((color) => <option key={color} value={color}>{color}</option>)}
                               </select>
@@ -1017,15 +1101,24 @@ export function AdminEntryRequirementsWorkspace() {
                                 step="1"
                                 aria-label={'كمية الغلاف ' + (index + 1)}
                                 value={allocation.quantity}
-                                onChange={(event) => setItemCovers((rows) => rows.map((row, rowIndex) => (
-                                  rowIndex === index ? { ...row, quantity: Number(event.target.value) } : row
-                                )))}
+                                onChange={(event) => {
+                                  setItemCovers((rows) => rows.map((row, rowIndex) => (
+                                    rowIndex === index ? { ...row, quantity: Number(event.target.value) } : row
+                                  )));
+                                  setItemEditorErrors((current) => ({ ...current, coverRows: {}, covers: undefined }));
+                                }}
                               />
-                              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setItemCovers((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                              <button type="button" className="btn btn--ghost btn--sm" onClick={() => {
+                                setItemCovers((rows) => rows.filter((_, rowIndex) => rowIndex !== index));
+                                setItemEditorErrors((current) => ({ ...current, covers: undefined, coverRows: {} }));
+                              }}>
                                 حذف
                               </button>
+                              </div>
+                              {itemEditorErrors.coverRows[index] ? <span className={styles.fieldError}>{itemEditorErrors.coverRows[index]}</span> : null}
                             </div>
                           ))}
+                          {itemEditorErrors.covers ? <span className={styles.fieldError}>{itemEditorErrors.covers}</span> : null}
                           <div className={styles.editorActions}>
                             <button
                               type="button"
@@ -1075,11 +1168,17 @@ export function AdminEntryRequirementsWorkspace() {
                         </select>
                       </label>
                     </div>
-                    <div className={styles.editorActions}>
-                      <button className="btn btn--primary" type="submit">إضافة إلى المسودة</button>
-                      <button type="button" className="btn btn--ghost" onClick={() => setAddItemOpen(false)}>إلغاء</button>
-                    </div>
-                  </form>
+                      <div className={styles.dialogFooter}>
+                        <button className="btn btn--primary" type="submit">إضافة إلى المسودة</button>
+                        {itemType === 'notebook' ? (
+                          <button className="btn btn--ghost" type="submit" name="submitMode" value="add-another">
+                            حفظ وإضافة دفتر آخر
+                          </button>
+                        ) : null}
+                        <button type="button" className="btn btn--ghost" onClick={() => setAddItemOpen(false)}>إلغاء</button>
+                      </div>
+                    </form>
+                  </div>
                 ) : null}
 
                 {resolvingItem && editable && canManage ? (
