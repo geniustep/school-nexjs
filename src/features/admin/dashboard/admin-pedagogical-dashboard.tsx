@@ -35,11 +35,15 @@ import './admin-pedagogical-dashboard-phase-a.css';
 const FOCUS_METRIC_ORDER: PedagogicalDashboardMetricId[] = [
   'attendance',
   'timetable',
-  'homeworks',
   'exams',
+  'examResults',
 ];
 
 const FOCUS_METRIC_IDS = new Set<PedagogicalDashboardMetricId>(FOCUS_METRIC_ORDER);
+const REFERENCE_EXCLUDED_METRIC_IDS = new Set<PedagogicalDashboardMetricId>([
+  ...FOCUS_METRIC_ORDER,
+  'homeworks',
+]);
 
 const FOCUS_ACTION_ORDER: PedagogicalDashboardActionId[] = [
   'channels',
@@ -125,7 +129,9 @@ export function AdminPedagogicalDashboard() {
     const reference = metricGroups
       .map((group) => ({
         ...group,
-        metrics: group.metrics.filter((metric) => !FOCUS_METRIC_IDS.has(metric.id)),
+        metrics: group.metrics.filter(
+          (metric) => !REFERENCE_EXCLUDED_METRIC_IDS.has(metric.id),
+        ),
       }))
       .filter((group) => group.metrics.length > 0);
 
@@ -471,9 +477,16 @@ export function AdminPedagogicalDashboard() {
                 {canReview ? (homeworkReviewLoading ? '…' : homeworkReviewCount) : publishedHomeworkValue}
               </strong>
               <span className="admin-pedagogical-focus-card__status">
-                {canReview
-                  ? t('communication.filter.submitted')
-                  : t('admin.pedagogicalDashboard.metrics.homeworks')}
+                {canReview ? (
+                  <>
+                    {t('communication.filter.submitted')} ·{' '}
+                    {t('admin.pedagogicalDashboard.homeworkPublishedCompact', {
+                      count: publishedHomeworkValue,
+                    })}
+                  </>
+                ) : (
+                  t('dashboard.publishedHomeworks')
+                )}
               </span>
             </Link>
           ) : null}
@@ -527,7 +540,7 @@ export function AdminPedagogicalDashboard() {
         >
           <div className="admin-pedagogical-dashboard__section-head">
             <h2 id="pedagogical-metrics" className="admin-pedagogical-dashboard__section-title">
-              {t('admin.pedagogicalDashboard.metricsTitle')}
+              {t('admin.pedagogicalDashboard.dailyPulseTitle')}
             </h2>
           </div>
           <div className="admin-pedagogical-dashboard__pulse-grid">
