@@ -43,13 +43,31 @@ function SubjectControl({
   editable,
   onSubjectChange,
 }: Pick<Props, 'subjects' | 'canManage' | 'editable' | 'onSubjectChange'> & { item: RequirementItem }) {
-  const [subjectId, setSubjectId] = useState('');
+  const linkedSubjectId = item.subject_id ? String(item.subject_id) : '';
+  const [editing, setEditing] = useState(!item.subject_id);
+  const [subjectId, setSubjectId] = useState(linkedSubjectId);
   const [saving, setSaving] = useState(false);
 
-  if (item.subject_id || !canManage || !editable || !onSubjectChange) return null;
+  if (!canManage || !editable || !onSubjectChange) return null;
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        className={styles.subjectChangeButton}
+        aria-label={`تغيير مادة ${item.title?.trim() || item.name}`}
+        onClick={() => setEditing(true)}
+      >
+        تغيير المادة
+      </button>
+    );
+  }
+
+  const isChanging = Boolean(item.subject_id);
+  const canSave = Boolean(subjectId) && subjectId !== linkedSubjectId && !saving;
 
   return (
-    <div className={styles.subjectControl}>
+    <div className={styles.subjectControl} data-compact={isChanging || undefined}>
       <label>
         <span>المادة</span>
         <select
@@ -68,15 +86,29 @@ function SubjectControl({
       <button
         type="button"
         className="btn btn--primary btn--sm"
-        disabled={!subjectId || saving}
+        disabled={isChanging ? !canSave : !subjectId || saving}
         onClick={async () => {
           setSaving(true);
-          await onSubjectChange(item, Number(subjectId));
+          const changed = await onSubjectChange(item, Number(subjectId));
           setSaving(false);
+          if (changed && isChanging) setEditing(false);
         }}
       >
-        {saving ? 'جارٍ الربط…' : 'ربط بالمادة'}
+        {saving ? 'جارٍ الحفظ…' : isChanging ? 'حفظ' : 'ربط بالمادة'}
       </button>
+      {isChanging ? (
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          disabled={saving}
+          onClick={() => {
+            setSubjectId(linkedSubjectId);
+            setEditing(false);
+          }}
+        >
+          إلغاء
+        </button>
+      ) : null}
       {subjects.length === 0 ? <span className={styles.subjectControlHint}>لا توجد مواد مفعلة لهذا المستوى.</span> : null}
     </div>
   );
