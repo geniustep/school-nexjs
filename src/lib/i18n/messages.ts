@@ -23,6 +23,11 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'منشورة: {count}',
     'admin.pedagogicalDashboard.readMessages': 'قراءة الرسائل',
     'admin.pedagogicalDashboard.unreadMessages': 'رسائل غير مقروءة',
+    'admin.pedagogicalDashboard.pendingReview': 'بانتظار المراجعة',
+    'admin.pedagogicalDashboard.reviewMessages': 'مراجعة الرسائل',
+    'admin.pedagogicalDashboard.reviewHomeworks': 'مراجعة الواجبات',
+    'admin.pedagogicalDashboard.viewHomeworks': 'عرض الواجبات',
+    'admin.pedagogicalDashboard.published': 'منشورة',
   },
   en: {
     'nav.library': 'Library',
@@ -38,6 +43,11 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Published: {count}',
     'admin.pedagogicalDashboard.readMessages': 'Read messages',
     'admin.pedagogicalDashboard.unreadMessages': 'Unread messages',
+    'admin.pedagogicalDashboard.pendingReview': 'Pending review',
+    'admin.pedagogicalDashboard.reviewMessages': 'Review messages',
+    'admin.pedagogicalDashboard.reviewHomeworks': 'Review homework',
+    'admin.pedagogicalDashboard.viewHomeworks': 'View homework',
+    'admin.pedagogicalDashboard.published': 'Published',
   },
   fr: {
     'nav.library': 'Bibliothèque',
@@ -53,6 +63,11 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publiés : {count}',
     'admin.pedagogicalDashboard.readMessages': 'Lire les messages',
     'admin.pedagogicalDashboard.unreadMessages': 'Messages non lus',
+    'admin.pedagogicalDashboard.pendingReview': 'En attente de révision',
+    'admin.pedagogicalDashboard.reviewMessages': 'Réviser les messages',
+    'admin.pedagogicalDashboard.reviewHomeworks': 'Réviser les devoirs',
+    'admin.pedagogicalDashboard.viewHomeworks': 'Voir les devoirs',
+    'admin.pedagogicalDashboard.published': 'Publiés',
   },
   es: {
     'nav.library': 'Biblioteca',
@@ -68,6 +83,11 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publicadas: {count}',
     'admin.pedagogicalDashboard.readMessages': 'Leer mensajes',
     'admin.pedagogicalDashboard.unreadMessages': 'Mensajes no leídos',
+    'admin.pedagogicalDashboard.pendingReview': 'Pendiente de revisión',
+    'admin.pedagogicalDashboard.reviewMessages': 'Revisar mensajes',
+    'admin.pedagogicalDashboard.reviewHomeworks': 'Revisar tareas',
+    'admin.pedagogicalDashboard.viewHomeworks': 'Ver tareas',
+    'admin.pedagogicalDashboard.published': 'Publicadas',
   },
 };
 
