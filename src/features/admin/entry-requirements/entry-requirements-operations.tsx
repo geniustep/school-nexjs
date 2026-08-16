@@ -122,8 +122,10 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
     const body = blank
       ? '<div class="blank-lines"><span></span><span></span><span></span></div>'
       : `<ul>${items.map((item) => {
-        const printableNotes = withRequirementCoverColor(item.notes, null);
-        return `<li><div class="item-line"><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span class="quantity">× ${escapeHtml(item.quantity)}</span>` : ''}${item.subject ? ` <small>— ${escapeHtml(item.subject)}</small>` : ''}</div>${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
+        const rawNotes = withRequirementCoverColor(item.notes, null);
+        const normalizedNotes = (rawNotes ?? '').replace(/المادة\\s+في\\s+المصدر\\s*:/gu, 'المادة:');
+        const printableNotes = normalizedNotes || (item.subject ? `المادة: ${item.subject}` : '');
+        return `<li><div class="item-line"><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span class="quantity">× ${escapeHtml(item.quantity)}</span>` : ''}</div>${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
       }).join('')}</ul>`;
     return `<section class="${compact ? 'compact' : ''}"><h2><span>${escapeHtml(requirementItemTypeLabel(type))}</span><b>${blank ? '' : escapeHtml(items.length)}</b></h2>${body}</section>`;
   }).join('');
