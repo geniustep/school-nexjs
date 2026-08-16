@@ -7,11 +7,9 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { EmptyState, SchoolEmptyState } from '@/components/states/states';
-import { AdminQuickAction } from '@/features/admin/command-center/primitives';
+import { SchoolEmptyState } from '@/components/states/states';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useSession } from '@/features/auth/session-context';
-import { useAdminSession } from '@/features/auth/admin-session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { useT } from '@/features/i18n/locale-context';
@@ -53,7 +51,7 @@ type MetricPresentation = {
   loading: boolean;
 };
 
-function PedagogicalMetricCard({
+function PedagogicalMetricLink({
   metric,
   presentation,
   t,
@@ -79,14 +77,9 @@ function PedagogicalMetricCard({
       href={metric.href}
       className={`admin-pedagogical-metric admin-pedagogical-metric--${variant}`}
     >
-      <div className="admin-pedagogical-metric__head">
-        <span className="admin-pedagogical-metric__icon" aria-hidden="true">
-          {metric.icon}
-        </span>
-        <span className="admin-pedagogical-metric__label">{t(metric.labelKey)}</span>
-      </div>
+      <span className="admin-pedagogical-metric__label">{t(metric.labelKey)}</span>
       {statusText ? (
-        <p
+        <span
           className={
             showValue
               ? 'admin-pedagogical-metric__value'
@@ -95,16 +88,14 @@ function PedagogicalMetricCard({
           aria-busy={presentation?.loading || undefined}
         >
           {statusText}
-        </p>
+        </span>
       ) : null}
-      <p className="admin-pedagogical-metric__hint">{t(metric.hintKey)}</p>
     </Link>
   );
 }
 
 export function AdminPedagogicalDashboard() {
   const user = useSession();
-  const { activeSchoolId } = useAdminSession();
   const t = useT();
 
   const metricGroups = useMemo(() => resolvePedagogicalDashboardMetricGroups(user), [user]);
@@ -116,9 +107,10 @@ export function AdminPedagogicalDashboard() {
   const { focusMetrics, referenceMetricGroups } = useMemo(() => {
     const metrics = metricGroups.flatMap((group) => group.metrics);
     const byId = new Map(metrics.map((metric) => [metric.id, metric]));
-    const focus = FOCUS_METRIC_ORDER.map((id) => byId.get(id)).filter(
-      (metric): metric is PedagogicalDashboardMetric => Boolean(metric),
-    );
+    const focus = FOCUS_METRIC_ORDER.flatMap((id) => {
+      const metric = byId.get(id);
+      return metric ? [metric] : [];
+    });
     const reference = metricGroups
       .map((group) => ({
         ...group,
@@ -129,21 +121,19 @@ export function AdminPedagogicalDashboard() {
     return { focusMetrics: focus, referenceMetricGroups: reference };
   }, [metricGroups]);
 
-  const { focusActions, otherActions } = useMemo(() => {
+  const focusActions = useMemo(() => {
     const available = [...primaryActions, ...secondaryActions];
     const byId = new Map(available.map((action) => [action.id, action]));
-    const preferred = FOCUS_ACTION_ORDER.map((id) => byId.get(id)).filter(Boolean);
-    const preferredIds = new Set(preferred.map((action) => action!.id));
+    const preferred = FOCUS_ACTION_ORDER.flatMap((id) => {
+      const action = byId.get(id);
+      return action ? [action] : [];
+    });
+    const preferredIds = new Set(preferred.map((action) => action.id));
     const fallback = available
       .filter((action) => !preferredIds.has(action.id))
       .slice(0, Math.max(0, 3 - preferred.length));
-    const focus = [...preferred, ...fallback].filter(Boolean).slice(0, 3);
-    const focusIds = new Set(focus.map((action) => action!.id));
 
-    return {
-      focusActions: focus.map((action) => action!),
-      otherActions: available.filter((action) => !focusIds.has(action.id)),
-    };
+    return [...preferred, ...fallback].slice(0, 3);
   }, [primaryActions, secondaryActions]);
 
   const dashState = useAdminResource<AdminDashboard>(
@@ -334,12 +324,7 @@ export function AdminPedagogicalDashboard() {
     timetableState,
   ]);
 
-  const schoolLabel =
-    user.school?.name ??
-    (activeSchoolId != null ? `${t('admin.activeSchool')} #${activeSchoolId}` : '');
-
-  const hasContent =
-    metricGroups.length > 0 || focusActions.length > 0 || otherActions.length > 0;
+  const hasContent = metricGroups.length > 0 || focusActions.length > 0;
 
   if (!hasContent) {
     return <SchoolEmptyState description={t('admin.pedagogicalDashboard.emptyWorkspace')} />;
@@ -354,24 +339,20 @@ export function AdminPedagogicalDashboard() {
       ) : null}
 
       <header className="admin-pedagogical-dashboard__hero admin-pedagogical-dashboard__hero--compact">
-        {schoolLabel ? (
-          <p className="admin-pedagogical-dashboard__school" dir="auto">
-            {schoolLabel}
-          </p>
-        ) : null}
         <h1 className="admin-pedagogical-dashboard__title">
           {t('admin.pedagogicalDashboard.title')}
         </h1>
       </header>
 
       <section
-        className="admin-pedagogical-dashboard__attention admin-pedagogical-dashboard__attention--priority"
-        aria-labelledby="pedagogical-attention"
+        className="admin-pedagogical-dashboard__attention admin-pedagogical-dashboard__attention--quiet"
+        aria-label={t('admin.pedagogicalDashboard.attentionTitle')}
+        role="status"
       >
-        <h2 id="pedagogical-attention" className="admin-pedagogical-dashboard__section-title">
-          {t('admin.pedagogicalDashboard.attentionTitle')}
-        </h2>
-        <EmptyState compact icon="✓" title={t('admin.pedagogicalDashboard.attentionEmpty')} />
+        <span className="admin-pedagogical-dashboard__attention-check" aria-hidden="true">✓</span>
+        <span className="admin-pedagogical-dashboard__attention-copy">
+          {t('admin.pedagogicalDashboard.attentionEmpty')}
+        </span>
       </section>
 
       {focusMetrics.length > 0 ? (
@@ -383,13 +364,10 @@ export function AdminPedagogicalDashboard() {
             <h2 id="pedagogical-metrics" className="admin-pedagogical-dashboard__section-title">
               {t('admin.pedagogicalDashboard.metricsTitle')}
             </h2>
-            <p className="admin-pedagogical-dashboard__section-lead">
-              {t('admin.pedagogicalDashboard.metricsLead')}
-            </p>
           </div>
           <div className="admin-pedagogical-dashboard__pulse-grid">
             {focusMetrics.map((metric) => (
-              <PedagogicalMetricCard
+              <PedagogicalMetricLink
                 key={metric.id}
                 metric={metric}
                 presentation={metricPresentation[metric.id]}
@@ -401,57 +379,28 @@ export function AdminPedagogicalDashboard() {
         </section>
       ) : null}
 
-      {focusActions.length > 0 || otherActions.length > 0 ? (
+      {focusActions.length > 0 ? (
         <section
-          className="admin-pedagogical-dashboard__work-center admin-pedagogical-dashboard__work-center--focused"
+          className="admin-pedagogical-dashboard__work-strip"
           aria-labelledby="pedagogical-work"
         >
-          <div className="admin-pedagogical-dashboard__section-head">
-            <h2 id="pedagogical-work" className="admin-pedagogical-dashboard__section-title">
-              {t('admin.pedagogicalDashboard.workCenterTitle')}
-            </h2>
-            <p className="admin-pedagogical-dashboard__section-lead">
-              {t('admin.pedagogicalDashboard.workCenterLead')}
-            </p>
-          </div>
-
-          {focusActions.length > 0 ? (
-            <div className="admin-pedagogical-dashboard__primary-actions">
-              {focusActions.map((action) => (
-                <Link key={action.id} href={action.href} className="admin-pedagogical-primary-action">
-                  <span className="admin-pedagogical-primary-action__icon" aria-hidden="true">
-                    {action.icon}
-                  </span>
-                  <span className="admin-pedagogical-primary-action__copy">
-                    <strong className="admin-pedagogical-primary-action__label">
-                      {t(action.labelKey)}
-                    </strong>
-                    <span className="admin-pedagogical-primary-action__desc">
-                      {t(action.descriptionKey)}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          ) : null}
-
-          {otherActions.length > 0 ? (
-            <div className="admin-pedagogical-dashboard__secondary-wrap">
-              <p className="admin-pedagogical-dashboard__secondary-label">
-                {t('admin.pedagogicalDashboard.secondaryActionsTitle')}
-              </p>
-              <div className="admin-pedagogical-dashboard__secondary-actions">
-                {otherActions.map((action) => (
-                  <AdminQuickAction
-                    key={action.id}
-                    href={action.href}
-                    icon={action.icon}
-                    label={t(action.labelKey)}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <h2 id="pedagogical-work" className="admin-pedagogical-dashboard__work-strip-title">
+            {t('admin.pedagogicalDashboard.workCenterTitle')}
+          </h2>
+          <nav
+            className="admin-pedagogical-dashboard__work-strip-actions"
+            aria-label={t('admin.pedagogicalDashboard.workCenterTitle')}
+          >
+            {focusActions.map((action) => (
+              <Link
+                key={action.id}
+                href={action.href}
+                className="admin-pedagogical-work-action"
+              >
+                <span>{t(action.labelKey)}</span>
+              </Link>
+            ))}
+          </nav>
         </section>
       ) : null}
 
@@ -466,7 +415,7 @@ export function AdminPedagogicalDashboard() {
                 <h3 className="admin-pedagogical-metric-group__title">{t(group.titleKey)}</h3>
                 <div className="admin-pedagogical-metric-group__grid">
                   {group.metrics.map((metric) => (
-                    <PedagogicalMetricCard
+                    <PedagogicalMetricLink
                       key={metric.id}
                       metric={metric}
                       presentation={metricPresentation[metric.id]}
