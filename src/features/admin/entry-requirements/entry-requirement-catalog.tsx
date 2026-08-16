@@ -31,9 +31,56 @@ type Props = {
   onDelete: (item: RequirementItem) => void;
   onQuantityChange: (item: RequirementItem, quantity: number) => Promise<boolean>;
   onCoverChange: (item: RequirementItem, allocations: RequirementCoverAllocation[]) => Promise<boolean>;
+  onSubjectChange?: (item: RequirementItem, subjectId: number) => Promise<boolean>;
   subjects?: TeachingOfferingSubjectOption[];
   onAddToSubject?: (subjectId: number, itemType: Extract<RequirementItemType, 'textbook' | 'book' | 'notebook'>) => void;
 };
+
+function SubjectControl({
+  item,
+  subjects = [],
+  canManage,
+  editable,
+  onSubjectChange,
+}: Pick<Props, 'subjects' | 'canManage' | 'editable' | 'onSubjectChange'> & { item: RequirementItem }) {
+  const [subjectId, setSubjectId] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  if (item.subject_id || !canManage || !editable || !onSubjectChange) return null;
+
+  return (
+    <div className={styles.subjectControl}>
+      <label>
+        <span>المادة</span>
+        <select
+          className="input"
+          value={subjectId}
+          disabled={saving || subjects.length === 0}
+          aria-label={`المادة المرتبطة بـ ${item.title?.trim() || item.name}`}
+          onChange={(event) => setSubjectId(event.target.value)}
+        >
+          <option value="">اختر المادة</option>
+          {subjects.map((subject) => (
+            <option key={subject.id} value={subject.id}>{subject.name}</option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        className="btn btn--primary btn--sm"
+        disabled={!subjectId || saving}
+        onClick={async () => {
+          setSaving(true);
+          await onSubjectChange(item, Number(subjectId));
+          setSaving(false);
+        }}
+      >
+        {saving ? 'جارٍ الربط…' : 'ربط بالمادة'}
+      </button>
+      {subjects.length === 0 ? <span className={styles.subjectControlHint}>لا توجد مواد مفعلة لهذا المستوى.</span> : null}
+    </div>
+  );
+}
 
 const COVER_COLORS = ['شفاف', 'أحمر', 'أزرق', 'أخضر', 'أصفر', 'برتقالي', 'وردي', 'بنفسجي', 'أسود', 'أبيض'];
 
@@ -333,6 +380,7 @@ function BookCard(props: Props & { item: RequirementItem; index: number }) {
             <span>{itemProvision(item)}</span>
             {item.reusable ? <span>قابل لإعادة الاستعمال</span> : null}
           </div>
+          <SubjectControl {...props} item={item} />
           <ItemActions {...props} />
         </div>
       </div>
@@ -372,6 +420,7 @@ function NotebookCard(props: Props & { item: RequirementItem }) {
             <CoverControl {...props} item={item} />
             <span>{itemProvision(item)}</span>
           </div>
+          <SubjectControl {...props} item={item} />
           {props.canManage && props.editable ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => props.onDelete(item)}>
               حذف
