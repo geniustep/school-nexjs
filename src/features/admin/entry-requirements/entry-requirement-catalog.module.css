@@ -3,6 +3,27 @@
   gap: 22px;
 }
 
+.notebookSizeControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.notebookSizeControl select {
+  width: auto;
+  min-width: 76px;
+  min-height: 30px;
+  padding-block: 3px;
+}
+
+.coverKind {
+  font-size: 10px;
+  font-weight: 750;
+  color: var(--c-text-muted);
+}
+
 .catalogSection {
   display: grid;
   gap: 12px;

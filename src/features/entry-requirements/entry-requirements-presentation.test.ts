@@ -7,9 +7,11 @@ import {
   notebookCoverTone,
   notebookPageCount,
   notebookPresentation,
+  notebookSize,
   requirementCoverAllocations,
   requirementCoverColor,
   withRequirementCoverAllocations,
+  withNotebookSize,
 } from './entry-requirements-presentation';
 
 function item(partial: Partial<RequirementItem>): RequirementItem {
@@ -66,10 +68,18 @@ describe('entry requirement catalog presentation', () => {
       notes: 'الغلاف: وردي\nالغرض: التعبير الكتابي',
     }))).toEqual({
       pages: '48',
+      size: null,
       cover: 'وردي',
       purpose: 'التعبير الكتابي',
       coverTone: 'pink',
     });
+  });
+
+  it('stores notebook size independently and infers legacy large/small formats', () => {
+    expect(notebookSize(item({ item_type: 'notebook', name: 'دفتر كبير 96 صفحة' }))).toBe('large');
+    expect(notebookSize(item({ item_type: 'notebook', name: 'Cahier petit format' }))).toBe('small');
+    expect(withNotebookSize('غلاف: أحمر\nملاحظة', 'small')).toBe('غلاف: أحمر\nملاحظة\nحجم الدفتر: صغير');
+    expect(withNotebookSize('حجم الدفتر: صغير\nغلاف: أحمر', 'large')).toBe('غلاف: أحمر\nحجم الدفتر: كبير');
   });
 
   it('supports Arabic and French/English cover colors while keeping unknown covers neutral', () => {
@@ -103,17 +113,19 @@ describe('entry requirement catalog presentation', () => {
     ]);
   });
 
-  it('aggregates linked covers by color using the parent item quantity', () => {
+  it('keeps covers separate by item kind and notebook size', () => {
     expect(aggregateRequirementCovers([
       item({ id: 1, item_type: 'textbook', quantity: 2, notes: 'غلاف: أحمر' }),
-      item({ id: 2, item_type: 'notebook', quantity: 3, notes: 'الغلاف: أحمر' }),
+      item({ id: 2, item_type: 'notebook', quantity: 3, notes: 'حجم الدفتر: كبير\nالغلاف: أحمر' }),
       item({ id: 3, item_type: 'book', quantity: 1, notes: 'غلاف: أزرق' }),
-      item({ id: 5, item_type: 'notebook', quantity: 3, notes: 'أغلفة: أحمر ×1، أخضر ×2' }),
+      item({ id: 5, item_type: 'notebook', quantity: 3, notes: 'حجم الدفتر: صغير\nأغلفة: أحمر ×1، أخضر ×2' }),
       item({ id: 4, item_type: 'stationery', quantity: 20, notes: 'غلاف: أحمر' }),
     ])).toEqual([
-      { color: 'أحمر', quantity: 6 },
-      { color: 'أخضر', quantity: 2 },
-      { color: 'أزرق', quantity: 1 },
+      { kind: 'book', notebookSize: null, label: 'غلاف كتاب', color: 'أحمر', quantity: 2 },
+      { kind: 'book', notebookSize: null, label: 'غلاف كتاب', color: 'أزرق', quantity: 1 },
+      { kind: 'notebook', notebookSize: 'large', label: 'غلاف دفتر كبير', color: 'أحمر', quantity: 3 },
+      { kind: 'notebook', notebookSize: 'small', label: 'غلاف دفتر صغير', color: 'أحمر', quantity: 1 },
+      { kind: 'notebook', notebookSize: 'small', label: 'غلاف دفتر صغير', color: 'أخضر', quantity: 2 },
     ]);
   });
 });

@@ -17,7 +17,9 @@ import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requ
 import {
   groupRequirementItems,
   notebookPresentation,
+  notebookSizeLabel,
   requirementCoverAllocations,
+  type NotebookSize,
   type RequirementCoverAllocation,
 } from '@/features/entry-requirements/entry-requirements-presentation';
 import styles from './entry-requirement-catalog.module.css';
@@ -31,6 +33,7 @@ type Props = {
   onDelete: (item: RequirementItem) => void;
   onQuantityChange: (item: RequirementItem, quantity: number) => Promise<boolean>;
   onCoverChange: (item: RequirementItem, allocations: RequirementCoverAllocation[]) => Promise<boolean>;
+  onNotebookSizeChange?: (item: RequirementItem, size: NotebookSize) => Promise<boolean>;
   onSubjectChange?: (item: RequirementItem, subjectId: number) => Promise<boolean>;
   subjects?: TeachingOfferingSubjectOption[];
   onAddToSubject?: (subjectId: number, itemType: Extract<RequirementItemType, 'textbook' | 'book' | 'notebook'>) => void;
@@ -122,6 +125,11 @@ function formatQuantity(value: number): string {
 
 function itemProvision(item: RequirementItem): string {
   return item.provision_source === 'school' ? 'توفره المدرسة' : 'توفره الأسرة';
+}
+
+function coverKindLabel(item: RequirementItem): string {
+  if (item.item_type !== 'notebook') return 'غلاف كتاب';
+  return `غلاف دفتر ${notebookSizeLabel(notebookPresentation(item).size)}`;
 }
 
 function bookTitle(item: RequirementItem): string {
@@ -229,6 +237,7 @@ function CoverControl({
   if (!editing) {
     return (
       <span className={styles.coverControl}>
+        <span className={styles.coverKind}>{coverKindLabel(item)}</span>
         {current.map((allocation) => (
           <span className={styles.coverValue} key={allocation.color}>
             <i className={styles.coverColorDot} data-color={allocation.color} aria-hidden="true" />
@@ -254,6 +263,7 @@ function CoverControl({
 
   return (
     <span className={styles.coverEditor}>
+      <span className={styles.coverKind}>{coverKindLabel(item)}</span>
       <span className={styles.coverAllocationList}>
         {allocations.map((allocation, index) => (
           <span className={styles.coverAllocationRow} key={`${index}-${allocation.color}`}>
@@ -423,6 +433,8 @@ function BookCard(props: Props & { item: RequirementItem; index: number }) {
 function NotebookCard(props: Props & { item: RequirementItem }) {
   const { item } = props;
   const presentation = notebookPresentation(item);
+  const [size, setSize] = useState<NotebookSize>(presentation.size ?? 'large');
+  const [savingSize, setSavingSize] = useState(false);
 
   return (
     <article className={styles.notebookCard}>
@@ -439,6 +451,7 @@ function NotebookCard(props: Props & { item: RequirementItem }) {
             <h4 dir="auto">{item.title?.trim() || item.name}</h4>
             <div className={styles.notebookFacts}>
               {presentation.pages ? <span><strong>{presentation.pages}</strong> صفحة</span> : null}
+              <span>الحجم: {notebookSizeLabel(presentation.size)}</span>
               {presentation.purpose ? <span>الغرض: {presentation.purpose}</span> : null}
               {item.subject ? <span>{item.subject}</span> : null}
             </div>
@@ -450,6 +463,28 @@ function NotebookCard(props: Props & { item: RequirementItem }) {
           <div className={styles.compactFacts}>
             <QuantityControl {...props} item={item} />
             <CoverControl {...props} item={item} />
+            {props.canManage && props.editable && props.onNotebookSizeChange ? (
+              <label className={styles.notebookSizeControl}>
+                <span>حجم الدفتر والغلاف</span>
+                <select
+                  className="input"
+                  value={size}
+                  disabled={savingSize}
+                  aria-label={`حجم الدفتر ${item.title?.trim() || item.name}`}
+                  onChange={async (event) => {
+                    const next = event.target.value as NotebookSize;
+                    setSize(next);
+                    setSavingSize(true);
+                    const saved = await props.onNotebookSizeChange?.(item, next);
+                    setSavingSize(false);
+                    if (!saved) setSize(presentation.size ?? 'large');
+                  }}
+                >
+                  <option value="large">كبير</option>
+                  <option value="small">صغير</option>
+                </select>
+              </label>
+            ) : null}
             <span>{itemProvision(item)}</span>
           </div>
           <SubjectControl {...props} item={item} />

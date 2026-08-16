@@ -162,7 +162,7 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
 
   const covers = blank ? [] : aggregateRequirementCovers(list.items ?? []);
   const coversSection = covers.length
-    ? `<section class="covers"><h2><span>الأغلفة</span><b>${escapeHtml(covers.length)}</b></h2><ul>${covers.map((cover) => `<li><i style="--cover-color:${printableCoverColor(cover.color)}"></i><strong>${escapeHtml(cover.color)}</strong><span>× ${escapeHtml(cover.quantity)}</span></li>`).join('')}</ul><div class="covers-total"><span>إجمالي الأغلفة</span><strong>${escapeHtml(covers.reduce((total, cover) => total + cover.quantity, 0))}</strong></div></section>`
+    ? `<section class="covers"><h2><span>الأغلفة حسب النوع والحجم</span><b>${escapeHtml(covers.length)}</b></h2><ul>${covers.map((cover) => `<li><i style="--cover-color:${printableCoverColor(cover.color)}"></i><strong>${escapeHtml(cover.label)} — ${escapeHtml(cover.color)}</strong><span>× ${escapeHtml(cover.quantity)}</span></li>`).join('')}</ul><div class="covers-total"><span>إجمالي الأغلفة</span><strong>${escapeHtml(covers.reduce((total, cover) => total + cover.quantity, 0))}</strong></div></section>`
     : '';
 
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</title><style>

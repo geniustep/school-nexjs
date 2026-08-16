@@ -30,6 +30,8 @@ import {
 } from '@/features/entry-requirements/entry-requirements-contract';
 import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requirements-display';
 import {
+  type NotebookSize,
+  withNotebookSize,
   withRequirementCoverAllocations,
   type RequirementCoverAllocation,
 } from '@/features/entry-requirements/entry-requirements-presentation';
@@ -125,6 +127,7 @@ export function AdminEntryRequirementsWorkspace() {
   const [itemProvision, setItemProvision] = useState<'family' | 'school'>('family');
   const [itemReusable, setItemReusable] = useState<'yes' | 'no' | ''>('');
   const [itemCovers, setItemCovers] = useState<RequirementCoverAllocation[]>([]);
+  const [itemNotebookSize, setItemNotebookSize] = useState<NotebookSize>('large');
   const [listNotes, setListNotes] = useState('');
   const [notesSaving, setNotesSaving] = useState(false);
 
@@ -308,7 +311,10 @@ export function AdminEntryRequirementsWorkspace() {
       reusable_allowed: itemReusable || undefined,
       subject_id: requiresSubject ? Number(itemSubject) : undefined,
       notes: SUBJECT_ITEM_TYPES.includes(itemType)
-        ? withRequirementCoverAllocations(null, itemCovers)
+        ? withRequirementCoverAllocations(
+          itemType === 'notebook' ? withNotebookSize(null, itemNotebookSize) : null,
+          itemCovers,
+        )
         : undefined,
     };
 
@@ -343,6 +349,7 @@ export function AdminEntryRequirementsWorkspace() {
     setItemSubject('');
     setOfferingId('');
     setItemCovers([]);
+    setItemNotebookSize('large');
     setAddItemOpen(false);
     setNotice('تمت إضافة العنصر وربطه بالمادة مع أغلفته.');
     await openList(selected.id);
@@ -360,6 +367,7 @@ export function AdminEntryRequirementsWorkspace() {
     setItemName('');
     setItemQty('1');
     setItemCovers([]);
+    setItemNotebookSize('large');
     setAddItemOpen(true);
     window.requestAnimationFrame(() => {
       document.getElementById('entry-requirement-item-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -474,6 +482,23 @@ export function AdminEntryRequirementsWorkspace() {
     }
 
     setNotice(allocations.length ? 'تم حفظ توزيع ألوان الأغلفة.' : 'تمت إزالة الأغلفة من العنصر.');
+    await openList(selected.id);
+    return true;
+  }
+
+  async function updateNotebookSize(item: RequirementItem, size: NotebookSize) {
+    if (!selected || item.item_type !== 'notebook') return false;
+    setError('');
+    setNotice('');
+    const result = await api.patch<RequirementItem>(
+      entryRequirementEndpoints.admin.item(selected.id, item.id),
+      { notes: withNotebookSize(item.notes, size) },
+    );
+    if (!result.success) {
+      setError(result.error.message);
+      return false;
+    }
+    setNotice('تم تحديث حجم الدفتر وربط غلافه بالحجم الصحيح.');
     await openList(selected.id);
     return true;
   }
@@ -890,6 +915,7 @@ export function AdminEntryRequirementsWorkspace() {
                             setItemSubject('');
                             setOfferingId('');
                             setItemCovers([]);
+                            setItemNotebookSize('large');
                           }}
                         >
                           {ITEM_TYPES.map((type) => <option key={type} value={type}>{requirementItemTypeLabel(type)}</option>)}
@@ -959,9 +985,19 @@ export function AdminEntryRequirementsWorkspace() {
                         </label>
                       )}
 
+                      {itemType === 'notebook' ? (
+                        <label className="field">
+                          حجم الدفتر
+                          <select className="select" required value={itemNotebookSize} onChange={(event) => setItemNotebookSize(event.target.value as NotebookSize)}>
+                            <option value="large">كبير</option>
+                            <option value="small">صغير</option>
+                          </select>
+                        </label>
+                      ) : null}
+
                       {SUBJECT_ITEM_TYPES.includes(itemType) ? (
                         <div className={'field ' + styles.fieldFull}>
-                          <span>الأغلفة</span>
+                          <span>{itemType === 'notebook' ? `أغلفة الدفاتر ${itemNotebookSize === 'large' ? 'الكبيرة' : 'الصغيرة'}` : 'أغلفة الكتب'}</span>
                           {itemCovers.map((allocation, index) => (
                             <div className={styles.editorActions} key={index + '-' + allocation.color}>
                               <select
@@ -1124,6 +1160,7 @@ export function AdminEntryRequirementsWorkspace() {
                     onDelete={(item) => void deleteItem(item)}
                     onQuantityChange={updateItemQuantity}
                     onCoverChange={updateItemCover}
+                    onNotebookSizeChange={updateNotebookSize}
                     onSubjectChange={updateItemSubject}
                   />
                 ) : (

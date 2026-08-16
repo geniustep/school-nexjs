@@ -8,14 +8,23 @@ export type RequirementCatalogGroups = {
 
 export type NotebookPresentation = {
   pages: string | null;
+  size: NotebookSize | null;
   cover: string | null;
   purpose: string | null;
   coverTone: 'blue' | 'pink' | 'yellow' | 'green' | 'red' | 'dark' | 'light' | 'neutral';
 };
 
+export type NotebookSize = 'large' | 'small';
+
 export type RequirementCoverAllocation = {
   color: string;
   quantity: number;
+};
+
+export type AggregatedRequirementCover = RequirementCoverAllocation & {
+  kind: 'book' | 'notebook';
+  notebookSize: NotebookSize | null;
+  label: string;
 };
 
 function ordered(items: RequirementItem[]): RequirementItem[] {
@@ -63,6 +72,7 @@ function explicitLabelValue(notes: string | null | undefined, labels: string[]):
 }
 
 const COVER_LABELS = ['الأغلفة', 'اغلفة', 'أغلفة', 'الغلاف', 'غلاف', 'covers', 'cover', 'couvertures', 'couverture'];
+const NOTEBOOK_SIZE_LABELS = ['حجم الدفتر', 'قياس الدفتر', 'notebook size', 'format du cahier'];
 
 function parseCoverAllocationPart(value: string, fallbackQuantity: number): RequirementCoverAllocation | null {
   const normalized = normalizeDigits(value).trim();
@@ -114,19 +124,56 @@ export function withRequirementCoverColor(notes: string | null | undefined, colo
   return withRequirementCoverAllocations(notes, color ? [{ color, quantity: 1 }] : []);
 }
 
-export function aggregateRequirementCovers(items: RequirementItem[]): Array<{ color: string; quantity: number }> {
-  const totals = new Map<string, { color: string; quantity: number }>();
+export function notebookSize(item: RequirementItem): NotebookSize | null {
+  if (item.item_type !== 'notebook') return null;
+  const explicit = explicitLabelValue(item.notes, NOTEBOOK_SIZE_LABELS);
+  const source = explicit || [item.title, item.name, item.notes].filter(Boolean).join(' · ');
+  if (/(?:كبير(?:ة)?|حجم\s*كبير|grand(?:e)?(?:\s+format)?|large)/i.test(source)) return 'large';
+  if (/(?:صغير(?:ة)?|حجم\s*صغير|petit(?:e)?(?:\s+format)?|small)/i.test(source)) return 'small';
+  return null;
+}
+
+export function notebookSizeLabel(size: NotebookSize | null): string {
+  return size === 'large' ? 'كبير' : size === 'small' ? 'صغير' : 'غير محدد';
+}
+
+export function withNotebookSize(notes: string | null | undefined, size: NotebookSize | null): string | null {
+  const lines = (notes ?? '')
+    .split(/[\n\r]+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !NOTEBOOK_SIZE_LABELS.some((label) => {
+      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`^${escaped}\\s*[:：-]`, 'i').test(line);
+    }));
+  if (size) lines.push(`حجم الدفتر: ${notebookSizeLabel(size)}`);
+  return lines.length ? lines.join('\n') : null;
+}
+
+export function aggregateRequirementCovers(items: RequirementItem[]): AggregatedRequirementCover[] {
+  const totals = new Map<string, AggregatedRequirementCover>();
   for (const item of items) {
+    const kind = item.item_type === 'notebook' ? 'notebook' : 'book';
+    const size = kind === 'notebook' ? notebookSize(item) : null;
+    const label = kind === 'book' ? 'غلاف كتاب' : `غلاف دفتر ${notebookSizeLabel(size)}`;
     for (const allocation of requirementCoverAllocations(item)) {
-      const key = allocation.color.trim().toLocaleLowerCase('ar');
+      const key = `${kind}:${size ?? 'unspecified'}:${allocation.color.trim().toLocaleLowerCase('ar')}`;
       const current = totals.get(key);
       totals.set(key, {
+        kind,
+        notebookSize: size,
+        label,
         color: current?.color ?? allocation.color.trim(),
         quantity: (current?.quantity ?? 0) + allocation.quantity,
       });
     }
   }
-  return [...totals.values()].sort((left, right) => left.color.localeCompare(right.color, 'ar'));
+  const rank = (cover: AggregatedRequirementCover) => (
+    cover.kind === 'book' ? 0 : cover.notebookSize === 'large' ? 1 : cover.notebookSize === 'small' ? 2 : 3
+  );
+  return [...totals.values()].sort((left, right) => (
+    rank(left) - rank(right) || left.color.localeCompare(right.color, 'ar')
+  ));
 }
 
 export function notebookPageCount(item: RequirementItem): string | null {
@@ -153,6 +200,7 @@ export function notebookPresentation(item: RequirementItem): NotebookPresentatio
   const purpose = explicitLabelValue(item.notes, ['الغرض', 'purpose', 'usage']);
   return {
     pages: notebookPageCount(item),
+    size: notebookSize(item),
     cover,
     purpose,
     coverTone: notebookCoverTone(cover),
