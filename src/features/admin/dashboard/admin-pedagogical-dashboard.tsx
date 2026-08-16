@@ -220,25 +220,27 @@ export function AdminPedagogicalDashboard() {
     { page: 1, page_size: 50, state: 'submitted', content_type: 'homework' },
   );
   const channelsState = useAdminResource<AdminChannel[]>(
-    !canReview && canViewChannels ? endpoints.admin.channels : null,
+    canViewChannels ? endpoints.admin.channels : null,
     { page: 1, page_size: CHANNELS_LIST_PAGE_SIZE },
   );
 
-  const communicationQueueCount = canReview
+  const unreadMessageCount = (channelsState.data ?? []).reduce(
+    (total, channel) => total + Math.max(0, channel.unread_count ?? 0),
+    0,
+  );
+  const communicationReviewCount = canReview
     ? safeTotal(communicationReviewState.meta) ?? communicationReviewState.data?.length ?? 0
-    : (channelsState.data ?? []).reduce(
-        (total, channel) => total + Math.max(0, channel.unread_count ?? 0),
-        0,
-      );
+    : 0;
   const homeworkReviewCount = canReview
     ? safeTotal(homeworkReviewState.meta) ?? homeworkReviewState.data?.length ?? 0
     : 0;
-  const attentionCount = communicationQueueCount + homeworkReviewCount;
-  const communicationLoading = canReview
-    ? communicationReviewState.loading && !communicationReviewState.data
-    : channelsState.loading && !channelsState.data;
+  const attentionCount = unreadMessageCount + communicationReviewCount + homeworkReviewCount;
+  const unreadMessagesLoading = canViewChannels && channelsState.loading && !channelsState.data;
+  const communicationReviewLoading =
+    canReview && communicationReviewState.loading && !communicationReviewState.data;
   const homeworkReviewLoading = canReview && homeworkReviewState.loading && !homeworkReviewState.data;
-  const attentionLoading = communicationLoading || homeworkReviewLoading;
+  const attentionLoading =
+    unreadMessagesLoading || communicationReviewLoading || homeworkReviewLoading;
 
   const metricPresentation = useMemo(() => {
     const d = dashState.data;
@@ -377,11 +379,13 @@ export function AdminPedagogicalDashboard() {
   const publishedHomeworkValue = metricPresentation.homeworks?.loading
     ? '…'
     : metricPresentation.homeworks?.value ?? '0';
-  const communicationSpotlightHref = canComposeCommunication
-    ? '/admin/communication/compose'
-    : canReview
-      ? '/admin/communication?filter=submitted'
-      : '/admin/channels';
+  const communicationPrimaryValue = canViewChannels
+    ? unreadMessagesLoading
+      ? '…'
+      : String(unreadMessageCount)
+    : communicationReviewLoading
+      ? '…'
+      : String(communicationReviewCount);
 
   if (!hasContent) {
     return <SchoolEmptyState description={t('admin.pedagogicalDashboard.emptyWorkspace')} />;
@@ -418,10 +422,16 @@ export function AdminPedagogicalDashboard() {
             t('common.loading')
           ) : attentionCount > 0 ? (
             <>
-              {communicationQueueCount > 0 ? (
+              {unreadMessageCount > 0 ? (
                 <span className="admin-pedagogical-dashboard__attention-item">
-                  {t('channels.schoolCommunicationTitle')}: <strong>{communicationQueueCount}</strong>{' '}
-                  {canReview ? t('communication.filter.submitted') : t('badges.unread')}
+                  {t('channels.schoolCommunicationTitle')}: <strong>{unreadMessageCount}</strong>{' '}
+                  {t('admin.pedagogicalDashboard.unreadMessages')}
+                </span>
+              ) : null}
+              {communicationReviewCount > 0 ? (
+                <span className="admin-pedagogical-dashboard__attention-item">
+                  {t('channels.schoolCommunicationTitle')}: <strong>{communicationReviewCount}</strong>{' '}
+                  {t('communication.filter.submitted')}
                 </span>
               ) : null}
               {homeworkReviewCount > 0 ? (
@@ -443,25 +453,55 @@ export function AdminPedagogicalDashboard() {
           aria-label={t('admin.pedagogicalDashboard.attentionTitle')}
         >
           {showCommunicationSpotlight ? (
-            <Link
-              href={communicationSpotlightHref}
-              className="admin-pedagogical-focus-card admin-pedagogical-focus-card--communication"
-            >
+            <div className="admin-pedagogical-focus-card admin-pedagogical-focus-card--communication">
               <span className="admin-pedagogical-focus-card__topline">
                 <span className="admin-pedagogical-focus-card__title">
                   {t('channels.schoolCommunicationTitle')}
                 </span>
-                <span className="admin-pedagogical-focus-card__cta">
-                  {canComposeCommunication ? t('channels.createMessage') : t('common.view')}
-                </span>
+                {canComposeCommunication ? (
+                  <Link
+                    href="/admin/communication/compose"
+                    className="admin-pedagogical-focus-card__cta"
+                  >
+                    {t('channels.createMessage')}
+                  </Link>
+                ) : null}
               </span>
               <strong className="admin-pedagogical-focus-card__value">
-                {communicationLoading ? '…' : communicationQueueCount}
+                {communicationPrimaryValue}
               </strong>
               <span className="admin-pedagogical-focus-card__status">
-                {canReview ? t('communication.filter.submitted') : t('badges.unread')}
+                {canViewChannels ? (
+                  <>
+                    <Link href="/admin/channels" className="admin-pedagogical-focus-card__cta">
+                      {t('admin.pedagogicalDashboard.readMessages')}
+                    </Link>{' '}
+                    · {t('admin.pedagogicalDashboard.unreadMessages')}
+                    {canReview ? (
+                      <>
+                        {' '}·{' '}
+                        <Link
+                          href="/admin/communication?filter=submitted"
+                          className="admin-pedagogical-focus-card__cta"
+                        >
+                          {communicationReviewLoading ? '…' : communicationReviewCount}{' '}
+                          {t('communication.filter.submitted')}
+                        </Link>
+                      </>
+                    ) : null}
+                  </>
+                ) : canReview ? (
+                  <Link
+                    href="/admin/communication?filter=submitted"
+                    className="admin-pedagogical-focus-card__cta"
+                  >
+                    {t('communication.filter.submitted')}
+                  </Link>
+                ) : (
+                  t('channels.schoolCommunicationTitle')
+                )}
               </span>
-            </Link>
+            </div>
           ) : null}
 
           {showHomeworkSpotlight ? (
