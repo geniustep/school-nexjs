@@ -587,7 +587,7 @@ export function EntryRequirementCatalog(props: Props) {
                     <div className={styles.subjectBody}>
                       <div className={styles.subjectSectionHead}>
                         <div><strong>الكتب</strong><span>{books.length ? `${books.length} عناصر` : 'لا توجد كتب بعد'}</span></div>
-                        {props.canManage && props.editable && props.onAddToSubject ? (
+                        {props.canManage && props.onAddToSubject ? (
                           <div className={styles.subjectAddActions}>
                             <button type="button" className="btn btn--primary btn--sm" onClick={() => props.onAddToSubject?.(subject.id, 'textbook')}>+ كتاب مقرر</button>
                             <button type="button" className="btn btn--ghost btn--sm" onClick={() => props.onAddToSubject?.(subject.id, 'book')}>+ كتاب آخر</button>
@@ -602,7 +602,7 @@ export function EntryRequirementCatalog(props: Props) {
 
                       <div className={styles.subjectSectionHead}>
                         <div><strong>الدفاتر</strong><span>{notebooks.length ? `${notebooks.length} عناصر` : 'لا توجد دفاتر بعد'}</span></div>
-                        {props.canManage && props.editable && props.onAddToSubject ? (
+                        {props.canManage && props.onAddToSubject ? (
                           <button type="button" className="btn btn--ghost btn--sm" onClick={() => props.onAddToSubject?.(subject.id, 'notebook')}>+ إضافة دفتر</button>
                         ) : null}
                       </div>
