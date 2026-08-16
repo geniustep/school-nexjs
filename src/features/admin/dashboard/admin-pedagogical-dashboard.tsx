@@ -47,10 +47,10 @@ const REFERENCE_EXCLUDED_METRIC_IDS = new Set<PedagogicalDashboardMetricId>([
 ]);
 
 const FOCUS_ACTION_ORDER: PedagogicalDashboardActionId[] = [
-  'channels',
   'homeworks',
   'attendance',
   'timetable',
+  'examResults',
 ];
 
 function safeTotal(meta: { pagination?: { total?: number } } | null | undefined): number | null {
@@ -149,7 +149,7 @@ export function AdminPedagogicalDashboard() {
     });
     const preferredIds = new Set(preferred.map((action) => action.id));
     const fallback = available
-      .filter((action) => !preferredIds.has(action.id))
+      .filter((action) => action.id !== 'channels' && !preferredIds.has(action.id))
       .slice(0, Math.max(0, 4 - preferred.length));
 
     return [...preferred, ...fallback].slice(0, 4);
@@ -419,20 +419,20 @@ export function AdminPedagogicalDashboard() {
             <>
               {unreadMessageCount > 0 ? (
                 <span className="admin-pedagogical-dashboard__attention-item">
-                  {t('channels.schoolCommunicationTitle')}: <strong>{unreadMessageCount}</strong>{' '}
+                  <strong>{unreadMessageCount}</strong>{' '}
                   {t('admin.pedagogicalDashboard.unreadMessages')}
                 </span>
               ) : null}
               {communicationReviewCount > 0 ? (
                 <span className="admin-pedagogical-dashboard__attention-item">
-                  {t('channels.schoolCommunicationTitle')}: <strong>{communicationReviewCount}</strong>{' '}
-                  {t('communication.filter.submitted')}
+                  <strong>{communicationReviewCount}</strong>{' '}
+                  {t('admin.pedagogicalDashboard.pendingReview')}
                 </span>
               ) : null}
               {homeworkReviewCount > 0 ? (
                 <span className="admin-pedagogical-dashboard__attention-item">
                   {t('nav.homework')}: <strong>{homeworkReviewCount}</strong>{' '}
-                  {t('communication.filter.submitted')}
+                  {t('admin.pedagogicalDashboard.pendingReview')}
                 </span>
               ) : null}
             </>
@@ -474,7 +474,10 @@ export function AdminPedagogicalDashboard() {
 
               <div className="admin-pedagogical-focus-card__actions">
                 {canViewChannels ? (
-                  <Link href="/admin/channels" className="admin-pedagogical-focus-action">
+                  <Link
+                    href="/admin/channels?filter=unread"
+                    className="admin-pedagogical-focus-action"
+                  >
                     {t('admin.pedagogicalDashboard.readMessages')}
                   </Link>
                 ) : null}
@@ -545,39 +548,22 @@ export function AdminPedagogicalDashboard() {
       {focusActions.length > 0 ? (
         <section
           className="admin-pedagogical-dashboard__work-strip"
-          aria-labelledby="pedagogical-work"
+          aria-label={t('dashboard.shortcuts')}
         >
-          <h2 id="pedagogical-work" className="admin-pedagogical-dashboard__work-strip-title">
-            {t('dashboard.shortcuts')}
-          </h2>
           <nav
             className="admin-pedagogical-dashboard__work-strip-actions"
             aria-label={t('dashboard.shortcuts')}
           >
-            {focusActions.map((action) => {
-              const communicationAction = action.id === 'channels';
-              const href =
-                communicationAction && canComposeCommunication
-                  ? '/admin/communication/compose'
-                  : action.href;
-              const label =
-                communicationAction && canComposeCommunication
-                  ? t('channels.createMessage')
-                  : communicationAction
-                    ? t('channels.schoolCommunicationTitle')
-                    : t(action.labelKey);
-
-              return (
-                <Link
-                  key={action.id}
-                  href={href}
-                  className={`admin-pedagogical-work-action admin-pedagogical-work-action--${action.id}`}
-                >
-                  <span className="admin-pedagogical-work-action__mark" aria-hidden="true" />
-                  <span className="admin-pedagogical-work-action__label">{label}</span>
-                </Link>
-              );
-            })}
+            {focusActions.map((action) => (
+              <Link
+                key={action.id}
+                href={action.href}
+                className={`admin-pedagogical-work-action admin-pedagogical-work-action--${action.id}`}
+              >
+                <span className="admin-pedagogical-work-action__mark" aria-hidden="true" />
+                <span className="admin-pedagogical-work-action__label">{t(action.labelKey)}</span>
+              </Link>
+            ))}
           </nav>
         </section>
       ) : null}

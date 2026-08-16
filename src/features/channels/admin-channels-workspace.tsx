@@ -67,6 +67,7 @@ export function AdminChannelsWorkspace() {
   const toast = useToast();
   const { activeRole } = useActiveRole();
   const { activeSchoolId } = useAdminSession();
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   const listQuery = useMemo(
     () => ({
@@ -99,6 +100,10 @@ export function AdminChannelsWorkspace() {
   function openCreateChannel() {
     setForm({ mode: 'create' });
   }
+
+  useEffect(() => {
+    setUnreadOnly(new URLSearchParams(window.location.search).get('filter') === 'unread');
+  }, []);
 
   // Drop stale dialogs only on real Active Role / school changes — not mount or same-value reconfirm.
   useEffect(() => {
@@ -199,7 +204,7 @@ export function AdminChannelsWorkspace() {
         <ResourceView
           state={state}
           loadingLabel={t('channels.loadingChannels')}
-          isEmpty={(d) => d.length === 0}
+          isEmpty={(d) => !unreadOnly && d.length === 0}
           empty={
             <EmptyState
               icon="✉"
@@ -220,7 +225,14 @@ export function AdminChannelsWorkspace() {
             />
           }
         >
-          {(channels) => (
+          {(channels) =>
+            unreadOnly && !channels.some((channel) => channelHasUnread(channel)) ? (
+              <EmptyState
+                icon="✉"
+                title={t('admin.pedagogicalDashboard.unreadMessages')}
+                description={t('admin.pedagogicalDashboard.attentionEmpty')}
+              />
+            ) : (
             <div
               className={cn(
                 'channels-list__grid',
@@ -228,7 +240,7 @@ export function AdminChannelsWorkspace() {
               )}
               aria-busy={state.fetching || undefined}
             >
-              {channels.map((channel) => {
+              {(unreadOnly ? channels.filter((channel) => channelHasUnread(channel)) : channels).map((channel) => {
                 const channelType = resolveChannelType(channel);
                 const access = resolveChannelAccessPresentation(channel);
                 const archived = channel.is_archived === true;
