@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import { useLocale, type TranslateFn } from '@/features/i18n/locale-context';
 import type { Locale } from '@/lib/i18n/config';
 import { formatCardStatCount } from '@/lib/i18n/count-plural';
+import type { FeeType } from '@/types/finance';
 import type { StudentsListServicePresence } from '../utils/students-list-url';
 import {
   sliceVisibleServiceCounts,
@@ -19,6 +20,49 @@ import {
   resolveStudentsServiceCountTone,
   studentsServiceCountToneClass,
 } from '../utils/students-service-count-tones';
+
+const SERVICE_CATEGORY_LABEL_KEYS: Record<string, string> = {
+  registration: 'admin.studentsList.serviceCategory.registration',
+  tuition: 'admin.studentsList.serviceCategory.tuition',
+  transport: 'admin.studentsList.serviceCategory.transport',
+  canteen: 'admin.studentsList.serviceCategory.canteen',
+  meals: 'admin.studentsList.serviceCategory.meals',
+  activities: 'admin.studentsList.serviceCategory.activities',
+  activity: 'admin.studentsList.serviceCategory.activity',
+  books: 'admin.studentsList.serviceCategory.books',
+};
+
+const LEGACY_SERVICE_NAME_TO_CATEGORY: Record<string, string> = {
+  'التسجيل': 'registration',
+  'رسوم التسجيل': 'registration',
+  'التمدرس': 'tuition',
+  'واجبات التمدرس': 'tuition',
+  'النقل': 'transport',
+  'نقل': 'transport',
+  'المطعم': 'canteen',
+  'الوجبات': 'meals',
+  'الكتب': 'books',
+  'الأنشطة': 'activities',
+};
+
+function serviceDisplayName(
+  t: TranslateFn,
+  item: StudentsFinancialServiceCountItem,
+  feeType: FeeType | undefined,
+): string {
+  const explicitCategory = feeType?.category?.trim().toLowerCase();
+  const legacyCategory = LEGACY_SERVICE_NAME_TO_CATEGORY[item.name.trim()];
+  const category =
+    explicitCategory && SERVICE_CATEGORY_LABEL_KEYS[explicitCategory]
+      ? explicitCategory
+      : legacyCategory;
+  const key = category ? SERVICE_CATEGORY_LABEL_KEYS[category] : undefined;
+  if (key) {
+    const label = t(key);
+    if (label !== key) return label;
+  }
+  return feeType?.name?.trim() || item.name.trim() || item.code?.trim() || '—';
+}
 
 function serviceGlyph(name: string): string {
   const trimmed = name.trim();
@@ -38,6 +82,7 @@ function hasServiceCountLabel(t: TranslateFn, locale: Locale, count: number): st
 
 export type StudentsFinancialServiceCountCardsProps = {
   items: StudentsFinancialServiceCountItem[];
+  feeTypes?: FeeType[];
   totalStudents: number;
   initialLoading: boolean;
   fetching?: boolean;
@@ -51,6 +96,7 @@ export type StudentsFinancialServiceCountCardsProps = {
 
 export function StudentsFinancialServiceCountCards({
   items,
+  feeTypes = [],
   totalStudents,
   initialLoading,
   fetching = false,
@@ -67,6 +113,10 @@ export function StudentsFinancialServiceCountCards({
   const visibleItems = useMemo(
     () => sliceVisibleServiceCounts(items, expanded),
     [items, expanded],
+  );
+  const feeTypeById = useMemo(
+    () => new Map(feeTypes.map((feeType) => [feeType.id, feeType])),
+    [feeTypes],
   );
   const canExpand = items.length > STUDENTS_SERVICE_COUNTS_INITIAL_VISIBLE;
   const allSelected = !serviceId;
@@ -196,6 +246,7 @@ export function StudentsFinancialServiceCountCards({
             clarifyHasCount && active
               ? hasServiceCountLabel(t, locale, item.student_count)
               : studentCountLabel(t, locale, item.student_count);
+          const displayName = serviceDisplayName(t, item, feeTypeById.get(item.service_id));
 
           return (
             <button
@@ -215,11 +266,11 @@ export function StudentsFinancialServiceCountCards({
               onClick={() => onSelectService(id)}
             >
               <span className="students-service-counts__glyph" aria-hidden="true">
-                {serviceGlyph(item.name)}
+                {serviceGlyph(displayName)}
               </span>
               <span className="students-service-counts__body">
-                <span className="students-service-counts__name" title={item.name} dir="auto">
-                  {item.name}
+                <span className="students-service-counts__name" title={displayName} dir="auto">
+                  {displayName}
                 </span>
                 <span className="students-service-counts__count">{countText}</span>
               </span>
