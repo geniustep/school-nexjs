@@ -10,7 +10,9 @@ import {
 import {
   requirementItemTypeLabel,
   type RequirementItem,
+  type RequirementItemType,
 } from '@/features/entry-requirements/entry-requirements-contract';
+import type { TeachingOfferingSubjectOption } from '@/features/entry-requirements/entry-requirements-offering-options';
 import { textbookReferenceTitle } from '@/features/entry-requirements/entry-requirements-display';
 import {
   groupRequirementItems,
@@ -29,6 +31,8 @@ type Props = {
   onDelete: (item: RequirementItem) => void;
   onQuantityChange: (item: RequirementItem, quantity: number) => Promise<boolean>;
   onCoverChange: (item: RequirementItem, allocations: RequirementCoverAllocation[]) => Promise<boolean>;
+  subjects?: TeachingOfferingSubjectOption[];
+  onAddToSubject?: (subjectId: number, itemType: Extract<RequirementItemType, 'textbook' | 'book' | 'notebook'>) => void;
 };
 
 const COVER_COLORS = ['شفاف', 'أحمر', 'أزرق', 'أخضر', 'أصفر', 'برتقالي', 'وردي', 'بنفسجي', 'أسود', 'أبيض'];
@@ -408,33 +412,109 @@ function ToolsList(props: Props & { items: RequirementItem[] }) {
 
 export function EntryRequirementCatalog(props: Props) {
   const groups = groupRequirementItems(props.items);
+  const curriculumItems = [...groups.books, ...groups.notebooks];
+  const subjectRows = (() => {
+    const rows = new Map<number, TeachingOfferingSubjectOption>();
+    for (const subject of props.subjects ?? []) rows.set(subject.id, subject);
+    for (const item of curriculumItems) {
+      if (item.subject_id && !rows.has(item.subject_id)) {
+        rows.set(item.subject_id, { id: item.subject_id, name: item.subject || `المادة #${item.subject_id}` });
+      }
+    }
+    return [...rows.values()].sort((left, right) => left.name.localeCompare(right.name, 'ar'));
+  })();
+  const [openSubjectId, setOpenSubjectId] = useState<number | null>(() => subjectRows[0]?.id ?? null);
+  const unlinkedItems = curriculumItems.filter((item) => !item.subject_id);
 
   return (
     <div className={styles.catalog}>
-      {groups.books.length ? (
+      {subjectRows.length ? (
         <section className={styles.catalogSection}>
           <SectionHeader
-            title="الكتب والمقررات"
-            count={groups.books.length}
-            description="الكتاب أولًا: العنوان والمادة وحالة الربط، مع غلاف بصري سريع للتعرّف عليه."
+            title="تجهيز المواد"
+            count={subjectRows.length}
+            description="افتح مادة واحدة لإضافة كتبها ودفاترها وأغلفة كل عنصر على حدة."
           />
-          <div className={styles.booksGrid}>
-            {groups.books.map((item, index) => (
-              <BookCard key={item.id} {...props} item={item} index={index} />
-            ))}
+          <div className={styles.subjectList}>
+            {subjectRows.map((subject) => {
+              const subjectItems = curriculumItems.filter((item) => item.subject_id === subject.id);
+              const books = subjectItems.filter((item) => item.item_type === 'textbook' || item.item_type === 'book');
+              const notebooks = subjectItems.filter((item) => item.item_type === 'notebook');
+              const covers = subjectItems.reduce((sum, item) => (
+                sum + requirementCoverAllocations(item).reduce((coverSum, allocation) => coverSum + allocation.quantity, 0)
+              ), 0);
+              const open = openSubjectId === subject.id;
+
+              return (
+                <article className={styles.subjectCard} data-open={open ? 'true' : 'false'} key={subject.id}>
+                  <button
+                    type="button"
+                    className={styles.subjectTrigger}
+                    aria-expanded={open}
+                    onClick={() => setOpenSubjectId((current) => current === subject.id ? null : subject.id)}
+                  >
+                    <span className={styles.subjectIdentity}>
+                      <strong>{subject.name}</strong>
+                      <span>
+                        {subjectItems.length
+                          ? `${books.length} كتب · ${notebooks.length} دفاتر · ${covers} أغلفة`
+                          : 'لم تُجهّز بعد'}
+                      </span>
+                    </span>
+                    <span className={styles.subjectStatus} data-complete={subjectItems.length ? 'true' : 'false'}>
+                      {subjectItems.length ? '✓ مجهزة' : 'ابدأ التجهيز'}
+                    </span>
+                    <span className={styles.subjectChevron} aria-hidden="true">⌄</span>
+                  </button>
+
+                  {open ? (
+                    <div className={styles.subjectBody}>
+                      <div className={styles.subjectSectionHead}>
+                        <div><strong>الكتب</strong><span>{books.length ? `${books.length} عناصر` : 'لا توجد كتب بعد'}</span></div>
+                        {props.canManage && props.editable && props.onAddToSubject ? (
+                          <div className={styles.subjectAddActions}>
+                            <button type="button" className="btn btn--primary btn--sm" onClick={() => props.onAddToSubject?.(subject.id, 'textbook')}>+ كتاب مقرر</button>
+                            <button type="button" className="btn btn--ghost btn--sm" onClick={() => props.onAddToSubject?.(subject.id, 'book')}>+ كتاب آخر</button>
+                          </div>
+                        ) : null}
+                      </div>
+                      {books.length ? (
+                        <div className={styles.booksGrid}>
+                          {books.map((item, index) => <BookCard key={item.id} {...props} item={item} index={index} />)}
+                        </div>
+                      ) : <p className={styles.subjectEmpty}>أضف الكتاب، ثم حدد غلافه إن كان مطلوبًا.</p>}
+
+                      <div className={styles.subjectSectionHead}>
+                        <div><strong>الدفاتر</strong><span>{notebooks.length ? `${notebooks.length} عناصر` : 'لا توجد دفاتر بعد'}</span></div>
+                        {props.canManage && props.editable && props.onAddToSubject ? (
+                          <button type="button" className="btn btn--ghost btn--sm" onClick={() => props.onAddToSubject?.(subject.id, 'notebook')}>+ إضافة دفتر</button>
+                        ) : null}
+                      </div>
+                      {notebooks.length ? (
+                        <div className={styles.notebooksGrid}>
+                          {notebooks.map((item) => <NotebookCard key={item.id} {...props} item={item} />)}
+                        </div>
+                      ) : <p className={styles.subjectEmpty}>أضف كل دفتر على حدة لتحديد كميته ولون غلافه بدقة.</p>}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         </section>
       ) : null}
 
-      {groups.notebooks.length ? (
+      {unlinkedItems.length ? (
         <section className={styles.catalogSection}>
           <SectionHeader
-            title="الدفاتر"
-            count={groups.notebooks.length}
-            description="عدد الصفحات أولًا، مع إمكانية ربط غلاف ملوّن بكل دفتر."
+            title="عناصر تحتاج إلى مادة"
+            count={unlinkedItems.length}
+            description="هذه عناصر قديمة أو مستوردة؛ اربطها بالمادة قبل النشر."
           />
-          <div className={styles.notebooksGrid}>
-            {groups.notebooks.map((item) => <NotebookCard key={item.id} {...props} item={item} />)}
+          <div className={styles.booksGrid}>
+            {unlinkedItems.map((item, index) => item.item_type === 'notebook'
+              ? <NotebookCard key={item.id} {...props} item={item} />
+              : <BookCard key={item.id} {...props} item={item} index={index} />)}
           </div>
         </section>
       ) : null}

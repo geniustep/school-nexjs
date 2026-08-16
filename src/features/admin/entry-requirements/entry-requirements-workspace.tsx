@@ -125,6 +125,8 @@ export function AdminEntryRequirementsWorkspace() {
   const [itemProvision, setItemProvision] = useState<'family' | 'school'>('family');
   const [itemReusable, setItemReusable] = useState<'yes' | 'no' | ''>('');
   const [itemCovers, setItemCovers] = useState<RequirementCoverAllocation[]>([]);
+  const [listNotes, setListNotes] = useState('');
+  const [notesSaving, setNotesSaving] = useState(false);
 
   const [resolutionItemId, setResolutionItemId] = useState<number | null>(null);
   const [resolutionSubject, setResolutionSubject] = useState('');
@@ -225,6 +227,10 @@ export function AdminEntryRequirementsWorkspace() {
     setResolutionOfferingId('');
     setAdoptItemId(null);
   }, [selected?.id]);
+
+  useEffect(() => {
+    setListNotes(selected?.notes ?? '');
+  }, [selected?.id, selected?.notes]);
 
   async function openList(id: number) {
     setError('');
@@ -342,6 +348,24 @@ export function AdminEntryRequirementsWorkspace() {
     await openList(selected.id);
   }
 
+  function openSubjectItemEditor(
+    subjectId: number,
+    type: Extract<RequirementItemType, 'textbook' | 'book' | 'notebook'>,
+  ) {
+    setError('');
+    setNotice('');
+    setItemType(type);
+    setItemSubject(String(subjectId));
+    setOfferingId('');
+    setItemName('');
+    setItemQty('1');
+    setItemCovers([]);
+    setAddItemOpen(true);
+    window.requestAnimationFrame(() => {
+      document.getElementById('entry-requirement-item-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
   function startResolution(item: RequirementItem) {
     setError('');
     setNotice('');
@@ -433,6 +457,24 @@ export function AdminEntryRequirementsWorkspace() {
     setNotice(allocations.length ? 'تم حفظ توزيع ألوان الأغلفة.' : 'تمت إزالة الأغلفة من العنصر.');
     await openList(selected.id);
     return true;
+  }
+
+  async function saveListNotes() {
+    if (!selected || !editable) return;
+    setNotesSaving(true);
+    setError('');
+    setNotice('');
+    const result = await api.patch<RequirementList>(entryRequirementEndpoints.admin.list(selected.id), {
+      notes: listNotes.trim() || null,
+    });
+    setNotesSaving(false);
+    if (!result.success) {
+      setError(result.error.message);
+      return;
+    }
+    setSelected(result.data);
+    setNotice('تم حفظ ملاحظات اللائحة.');
+    await loadLists();
   }
 
   async function publish() {
@@ -812,7 +854,7 @@ export function AdminEntryRequirementsWorkspace() {
                 ) : null}
 
                 {addItemOpen && canManage && editable ? (
-                  <form className={styles.editorPanel} onSubmit={addItem}>
+                  <form id="entry-requirement-item-editor" className={styles.editorPanel} onSubmit={addItem}>
                     <div className={styles.editorTitle}>
                       <strong>إضافة تجهيز إلى مادة</strong>
                       <span className={styles.muted}>أدخل الكتاب أو الدفتر، اربطه بالمادة، وحدد أغلفته قبل الحفظ.</span>
@@ -1050,8 +1092,10 @@ export function AdminEntryRequirementsWorkspace() {
                 {selected.items?.length ? (
                   <EntryRequirementCatalog
                     items={selected.items}
+                    subjects={levelSubjects}
                     canManage={canManage}
                     editable={editable}
+                    onAddToSubject={openSubjectItemEditor}
                     onLink={(item) => {
                       setError('');
                       setNotice('');
@@ -1070,6 +1114,35 @@ export function AdminEntryRequirementsWorkspace() {
                     compact
                   />
                 )}
+
+                <section className={styles.notesEditor}>
+                  <div className={styles.editorTitle}>
+                    <strong>الملاحظات</strong>
+                    <span className={styles.muted}>تعليمات عامة تظهر للأسر بعد الكتب والدفاتر والأدوات.</span>
+                  </div>
+                  {canManage && editable ? (
+                    <>
+                      <textarea
+                        className="input"
+                        rows={4}
+                        value={listNotes}
+                        disabled={notesSaving}
+                        placeholder="مثال: يرجى عدم كتابة اسم التلميذ قبل التأكد من اللائحة."
+                        onChange={(event) => setListNotes(event.target.value)}
+                      />
+                      <div className={styles.editorActions}>
+                        <button
+                          type="button"
+                          className="btn btn--primary btn--sm"
+                          disabled={notesSaving || listNotes.trim() === (selected.notes ?? '').trim()}
+                          onClick={() => void saveListNotes()}
+                        >
+                          {notesSaving ? 'جارٍ الحفظ…' : 'حفظ الملاحظات'}
+                        </button>
+                      </div>
+                    </>
+                  ) : selected.notes ? <p className={styles.savedNotes}>{selected.notes}</p> : <p className={styles.muted}>لا توجد ملاحظات.</p>}
+                </section>
               </Card>
 
               {!editable ? (
