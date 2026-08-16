@@ -70,6 +70,9 @@ const ITEM_TYPES: RequirementItemType[] = [
   'other',
 ];
 
+const COVER_COLORS = ['شفاف', 'أحمر', 'أزرق', 'أخضر', 'أصفر', 'برتقالي', 'وردي', 'بنفسجي', 'أسود', 'أبيض'];
+const SUBJECT_ITEM_TYPES: RequirementItemType[] = ['textbook', 'book', 'notebook'];
+
 function stateTone(state: RequirementList['state']): BadgeTone {
   if (state === 'published') return 'green';
   if (state === 'under_review') return 'blue';
@@ -121,6 +124,7 @@ export function AdminEntryRequirementsWorkspace() {
   const [itemImportance, setItemImportance] = useState<'required' | 'optional'>('required');
   const [itemProvision, setItemProvision] = useState<'family' | 'school'>('family');
   const [itemReusable, setItemReusable] = useState<'yes' | 'no' | ''>('');
+  const [itemCovers, setItemCovers] = useState<RequirementCoverAllocation[]>([]);
 
   const [resolutionItemId, setResolutionItemId] = useState<number | null>(null);
   const [resolutionSubject, setResolutionSubject] = useState('');
@@ -273,12 +277,33 @@ export function AdminEntryRequirementsWorkspace() {
     event.preventDefault();
     if (!selected) return;
 
+    const quantity = Number(itemQty) || 1;
+    const requiresSubject = SUBJECT_ITEM_TYPES.includes(itemType);
+    const coverTotal = itemCovers.reduce((sum, allocation) => sum + allocation.quantity, 0);
+    const coverColors = itemCovers.map((allocation) => allocation.color);
+    if (requiresSubject && !itemSubject) {
+      setError('اختر المادة المرتبطة بهذا الكتاب أو الدفتر.');
+      return;
+    }
+    if (
+      itemCovers.some((allocation) => !allocation.color || !Number.isSafeInteger(allocation.quantity) || allocation.quantity <= 0)
+      || new Set(coverColors).size !== coverColors.length
+      || coverTotal > quantity
+    ) {
+      setError('تحقق من ألوان الأغلفة وكمياتها؛ لا يجوز تكرار اللون أو تجاوز كمية العنصر.');
+      return;
+    }
+
     const body: Record<string, unknown> = {
       item_type: itemType,
-      quantity: Number(itemQty) || 1,
+      quantity,
       importance: itemImportance,
       provision_source: itemProvision,
       reusable_allowed: itemReusable || undefined,
+      subject_id: requiresSubject ? Number(itemSubject) : undefined,
+      notes: SUBJECT_ITEM_TYPES.includes(itemType)
+        ? withRequirementCoverAllocations(null, itemCovers)
+        : undefined,
     };
 
     if (itemType === 'textbook') {
@@ -311,8 +336,9 @@ export function AdminEntryRequirementsWorkspace() {
     setItemName('');
     setItemSubject('');
     setOfferingId('');
+    setItemCovers([]);
     setAddItemOpen(false);
-    setNotice('تمت إضافة العنصر.');
+    setNotice('تمت إضافة العنصر وربطه بالمادة مع أغلفته.');
     await openList(selected.id);
   }
 
@@ -788,8 +814,8 @@ export function AdminEntryRequirementsWorkspace() {
                 {addItemOpen && canManage && editable ? (
                   <form className={styles.editorPanel} onSubmit={addItem}>
                     <div className={styles.editorTitle}>
-                      <strong>إضافة عنصر إلى المسودة</strong>
-                      <span className={styles.muted}>أضف كتابًا مقررًا من المراجع المعتمدة أو عنصرًا يدويًا.</span>
+                      <strong>إضافة تجهيز إلى مادة</strong>
+                      <span className={styles.muted}>أدخل الكتاب أو الدفتر، اربطه بالمادة، وحدد أغلفته قبل الحفظ.</span>
                     </div>
                     <div className={styles.formGrid}>
                       <label className="field">
@@ -802,6 +828,7 @@ export function AdminEntryRequirementsWorkspace() {
                             setItemType(next);
                             setItemSubject('');
                             setOfferingId('');
+                            setItemCovers([]);
                           }}
                         >
                           {ITEM_TYPES.map((type) => <option key={type} value={type}>{requirementItemTypeLabel(type)}</option>)}
@@ -812,50 +839,110 @@ export function AdminEntryRequirementsWorkspace() {
                         <input className="input" type="number" min="0.1" step="0.1" value={itemQty} onChange={(event) => setItemQty(event.target.value)} />
                       </label>
 
+                      {SUBJECT_ITEM_TYPES.includes(itemType) ? (
+                        <label className="field">
+                          المادة
+                          <select
+                            className="select"
+                            required
+                            value={itemSubject}
+                            disabled={subjectsLoading}
+                            onChange={(event) => {
+                              setItemSubject(event.target.value);
+                              setOfferingId('');
+                            }}
+                          >
+                            <option value="">اختر مادة هذا المستوى</option>
+                            {levelSubjects.map((subject) => (
+                              <option key={subject.id} value={subject.id}>{subject.name}</option>
+                            ))}
+                          </select>
+                          {!subjectsLoading && levelSubjects.length === 0 ? (
+                            <span className={styles.muted}>لا توجد مواد مفعلة لهذا المستوى. راجع إعدادات مواد المستوى.</span>
+                          ) : null}
+                        </label>
+                      ) : null}
+
                       {itemType === 'textbook' ? (
-                        <>
-                          <label className="field">
-                            المادة
-                            <select
-                              className="select"
-                              required
-                              value={itemSubject}
-                              disabled={subjectsLoading}
-                              onChange={(event) => {
-                                setItemSubject(event.target.value);
-                                setOfferingId('');
-                              }}
-                            >
-                              <option value="">اختر مادة هذا المستوى</option>
-                              {levelSubjects.map((subject) => (
-                                <option key={subject.id} value={subject.id}>{subject.name}</option>
-                              ))}
-                            </select>
-                            {!subjectsLoading && levelSubjects.length === 0 ? (
-                              <span className={styles.muted}>لا توجد مواد مفعلة لهذا المستوى. راجع إعدادات مواد المستوى.</span>
-                            ) : null}
-                          </label>
-                          <label className={`field ${styles.fieldFull}`}>
-                            المقرر المعتمد
-                            <select className="select" required value={offeringId} disabled={!itemSubject || offeringsLoading} onChange={(event) => setOfferingId(event.target.value)}>
-                              <option value="">اختر المقرر</option>
-                              {itemOfferings.map((offering) => (
-                                <option key={offering.id} value={offering.id}>
-                                  {offering.reference.title}{offering.reference.edition ? ` — ${offering.reference.edition}` : ''}{offering.language ? ` — ${offering.language}` : ''}
-                                </option>
-                              ))}
-                            </select>
-                            {itemSubject && !offeringsLoading && itemOfferings.length === 0 ? (
-                              <span className={styles.muted}>المادة مفعلة، لكن لا يوجد مقرر معتمد لها في السنة والمستوى المحددين.</span>
-                            ) : null}
-                          </label>
-                        </>
+                        <label className={'field ' + styles.fieldFull}>
+                          المقرر المعتمد
+                          <select className="select" required value={offeringId} disabled={!itemSubject || offeringsLoading} onChange={(event) => setOfferingId(event.target.value)}>
+                            <option value="">اختر المقرر</option>
+                            {itemOfferings.map((offering) => (
+                              <option key={offering.id} value={offering.id}>
+                                {offering.reference.title}{offering.reference.edition ? ' — ' + offering.reference.edition : ''}{offering.language ? ' — ' + offering.language : ''}
+                              </option>
+                            ))}
+                          </select>
+                          {itemSubject && !offeringsLoading && itemOfferings.length === 0 ? (
+                            <span className={styles.muted}>المادة مفعلة، لكن لا يوجد مقرر معتمد لها في السنة والمستوى المحددين.</span>
+                          ) : null}
+                        </label>
                       ) : (
-                        <label className={`field ${styles.fieldFull}`}>
+                        <label className={'field ' + styles.fieldFull}>
                           اسم العنصر
-                          <input className="input" required value={itemName} onChange={(event) => setItemName(event.target.value)} placeholder="مثال: دفتر 100 ورقة" />
+                          <input
+                            className="input"
+                            required
+                            value={itemName}
+                            onChange={(event) => setItemName(event.target.value)}
+                            placeholder={itemType === 'notebook' ? 'مثال: دفتر 96 صفحة' : 'اسم الكتاب أو العنصر'}
+                          />
                         </label>
                       )}
+
+                      {SUBJECT_ITEM_TYPES.includes(itemType) ? (
+                        <div className={'field ' + styles.fieldFull}>
+                          <span>الأغلفة</span>
+                          {itemCovers.map((allocation, index) => (
+                            <div className={styles.editorActions} key={index + '-' + allocation.color}>
+                              <select
+                                className="select"
+                                aria-label={'لون الغلاف ' + (index + 1)}
+                                value={allocation.color}
+                                onChange={(event) => setItemCovers((rows) => rows.map((row, rowIndex) => (
+                                  rowIndex === index ? { ...row, color: event.target.value } : row
+                                )))}
+                              >
+                                {COVER_COLORS.map((color) => <option key={color} value={color}>{color}</option>)}
+                              </select>
+                              <input
+                                className="input"
+                                type="number"
+                                min="1"
+                                step="1"
+                                aria-label={'كمية الغلاف ' + (index + 1)}
+                                value={allocation.quantity}
+                                onChange={(event) => setItemCovers((rows) => rows.map((row, rowIndex) => (
+                                  rowIndex === index ? { ...row, quantity: Number(event.target.value) } : row
+                                )))}
+                              />
+                              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setItemCovers((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                                حذف
+                              </button>
+                            </div>
+                          ))}
+                          <div className={styles.editorActions}>
+                            <button
+                              type="button"
+                              className="btn btn--ghost btn--sm"
+                              onClick={() => {
+                                const used = itemCovers.map((row) => row.color);
+                                const color = COVER_COLORS.find((value) => !used.includes(value)) ?? 'شفاف';
+                                const remaining = Math.max(1, Math.floor((Number(itemQty) || 1) - itemCovers.reduce((sum, row) => sum + row.quantity, 0)));
+                                setItemCovers((rows) => [...rows, { color, quantity: remaining }]);
+                              }}
+                            >
+                              + إضافة غلاف
+                            </button>
+                            {itemCovers.length ? (
+                              <span className={styles.muted}>
+                                مجموع الأغلفة: {itemCovers.reduce((sum, row) => sum + row.quantity, 0)} من {Number(itemQty) || 1}
+                              </span>
+                            ) : <span className={styles.muted}>اتركه فارغًا إذا كان العنصر لا يحتاج إلى غلاف.</span>}
+                          </div>
+                        </div>
+                      ) : null}
 
                       <label className="field">
                         الأهمية
