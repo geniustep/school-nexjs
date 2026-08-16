@@ -103,6 +103,35 @@ describe('Entry Requirements quantity edit', () => {
     await waitFor(() => expect(onSubjectChange).toHaveBeenCalledWith(notebook, 8));
   });
 
+  it('lets a manager move a linked item to another subject', async () => {
+    const linkedNotebook = { ...notebook, subject_id: 7, subject: 'اللغة الفرنسية' };
+    const onSubjectChange = vi.fn(async () => true);
+    render(
+      <EntryRequirementCatalog
+        items={[linkedNotebook]}
+        subjects={[{ id: 7, name: 'اللغة الفرنسية' }, { id: 8, name: 'الرياضيات' }]}
+        canManage
+        editable
+        onSubjectChange={onSubjectChange}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    const frenchSubject = screen.getByRole('button', { name: /اللغة الفرنسية/ });
+    if (frenchSubject.getAttribute('aria-expanded') !== 'true') fireEvent.click(frenchSubject);
+    fireEvent.click(screen.getByRole('button', { name: 'تغيير مادة دفتر من فئة 96 صفحة' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'المادة المرتبطة بـ دفتر من فئة 96 صفحة' }), {
+      target: { value: '8' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+
+    await waitFor(() => expect(onSubjectChange).toHaveBeenCalledWith(linkedNotebook, 8));
+  });
+
   it('does not expose quantity editing on a non-editable list', () => {
     render(
       <EntryRequirementCatalog
