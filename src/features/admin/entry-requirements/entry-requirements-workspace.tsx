@@ -1085,11 +1085,12 @@ export function AdminEntryRequirementsWorkspace() {
                                 className="select"
                                 aria-label={'لون الغلاف ' + (index + 1)}
                                 value={allocation.color}
-                                onChange={(event) => setItemCovers((rows) => rows.map((row, rowIndex) => (
-                                  rowIndex === index ? { ...row, color: event.target.value } : row
-                                )));
-                                setItemEditorErrors((current) => ({ ...current, coverRows: {}, covers: undefined }));
-                              }}
+                                onChange={(event) => {
+                                  setItemCovers((rows) => rows.map((row, rowIndex) => (
+                                    rowIndex === index ? { ...row, color: event.target.value } : row
+                                  )));
+                                  setItemEditorErrors((current) => ({ ...current, coverRows: {}, covers: undefined }));
+                                }}
                               >
                                 {COVER_COLORS.map((color) => <option key={color} value={color}>{color}</option>)}
                               </select>
@@ -1100,11 +1101,12 @@ export function AdminEntryRequirementsWorkspace() {
                                 step="1"
                                 aria-label={'كمية الغلاف ' + (index + 1)}
                                 value={allocation.quantity}
-                                onChange={(event) => setItemCovers((rows) => rows.map((row, rowIndex) => (
-                                  rowIndex === index ? { ...row, quantity: Number(event.target.value) } : row
-                                )));
-                                setItemEditorErrors((current) => ({ ...current, coverRows: {}, covers: undefined }));
-                              }}
+                                onChange={(event) => {
+                                  setItemCovers((rows) => rows.map((row, rowIndex) => (
+                                    rowIndex === index ? { ...row, quantity: Number(event.target.value) } : row
+                                  )));
+                                  setItemEditorErrors((current) => ({ ...current, coverRows: {}, covers: undefined }));
+                                }}
                               />
                               <button type="button" className="btn btn--ghost btn--sm" onClick={() => {
                                 setItemCovers((rows) => rows.filter((_, rowIndex) => rowIndex !== index));
