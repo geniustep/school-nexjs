@@ -1,125 +1,150 @@
-/* Pedagogical director dashboard — V3 surface balance.
-   Keep the Phase A information hierarchy and contracts, while restoring
-   modern SaaS depth through restrained surfaces, grouping, and spacing. */
+/* Pedagogical director dashboard — V4 command surface.
+   Keep the current data, routes, and permission contracts unchanged while
+   strengthening the first viewport and removing ambiguous visual cues. */
 
 .admin-pedagogical-dashboard--phase-a {
   display: grid;
   width: min(100%, 1100px);
   margin-inline: auto;
   padding-block: 10px 28px;
-  gap: 18px;
+  gap: 16px;
 }
 
+/* Keep one semantic page heading for accessibility without showing the
+   redundant "لوحة المدير التربوي" title in the visual hierarchy. */
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__hero--compact {
-  overflow: visible;
-  padding: 2px 2px 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__hero--compact .admin-pedagogical-dashboard__title {
-  margin: 0;
-  color: var(--c-text);
-  font-size: clamp(26px, 2.4vw, 32px);
-  font-weight: 760;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-}
-
+/* Strong opening surface, borrowing the visual authority of the manager
+   dashboard without fabricating new pedagogical data. */
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--quiet {
-  display: flex;
-  width: 100%;
-  min-height: 52px;
+  display: grid;
+  min-height: 92px;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'check label'
+    'check copy';
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border: 1px solid color-mix(in srgb, var(--raqeem-secondary) 26%, var(--c-border));
-  border-radius: calc(var(--radius) + 2px);
-  background: color-mix(in srgb, var(--raqeem-secondary) 5%, var(--c-surface));
-  box-shadow: var(--shadow-sm);
-  color: var(--c-text);
+  column-gap: 13px;
+  row-gap: 3px;
+  padding: 18px 20px;
+  border: 0;
+  border-radius: calc(var(--radius) + 6px);
+  background: linear-gradient(112deg, var(--raqeem-primary), var(--raqeem-secondary));
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--raqeem-primary) 17%, transparent);
+  color: var(--c-surface);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--quiet::before {
+  content: attr(aria-label);
+  grid-area: label;
+  color: var(--c-surface);
+  font-size: 15px;
+  font-weight: 780;
+  line-height: 1.35;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-check {
   display: inline-flex;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 38px;
+  height: 38px;
+  grid-area: check;
   align-items: center;
   justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--c-surface) 24%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--raqeem-secondary) 14%, var(--c-surface));
-  color: var(--raqeem-secondary);
-  font-size: 13px;
-  font-weight: 800;
+  background: color-mix(in srgb, var(--c-surface) 14%, transparent);
+  color: var(--c-surface);
+  font-size: 16px;
+  font-weight: 850;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-copy {
-  color: var(--c-text-muted);
+  grid-area: copy;
+  color: color-mix(in srgb, var(--c-surface) 82%, transparent);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 620;
   line-height: 1.5;
 }
 
+/* One composed daily pulse surface: visually rich, but not a wall of cards. */
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse {
   overflow: hidden;
   padding: 0;
-  border: 1px solid var(--c-border);
-  border-radius: calc(var(--radius) + 4px);
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 9%, var(--c-border));
+  border-radius: calc(var(--radius) + 5px);
   background: var(--c-surface);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--raqeem-primary) 7%, transparent);
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse .admin-pedagogical-dashboard__section-head {
+  position: relative;
   margin: 0;
-  padding: 15px 17px 8px;
+  padding: 15px 18px 11px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 78%, transparent);
+  background: color-mix(in srgb, var(--raqeem-primary) 2.5%, var(--c-surface));
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse .admin-pedagogical-dashboard__section-head::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-start: 18px;
+  width: 42px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--raqeem-secondary);
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse .admin-pedagogical-dashboard__section-title {
   margin: 0;
   color: var(--c-text);
   font-size: 14px;
-  font-weight: 720;
+  font-weight: 760;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  padding: 4px 6px 8px;
+  gap: 8px;
+  padding: 12px;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse {
   display: flex;
   min-width: 0;
-  min-height: 88px;
+  min-height: 94px;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border: 0;
-  border-inline-end: 1px solid color-mix(in srgb, var(--c-border) 86%, transparent);
-  border-radius: 0;
-  background: transparent;
+  gap: 9px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 7%, var(--c-border));
+  border-radius: calc(var(--radius) + 1px);
+  background: color-mix(in srgb, var(--c-surface-2) 52%, var(--c-surface));
   box-shadow: none;
-  transition: background-color 160ms ease;
-}
-
-.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:last-child {
-  border-inline-end: 0;
+  transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:hover {
-  background: color-mix(in srgb, var(--c-surface-2) 58%, transparent);
+  border-color: color-mix(in srgb, var(--raqeem-primary) 20%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-primary) 4%, var(--c-surface));
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:focus-visible,
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference:focus-visible,
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--raqeem-primary) 52%, transparent);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse .admin-pedagogical-metric__label {
@@ -127,7 +152,7 @@
   min-width: 0;
   color: var(--c-text-muted);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 680;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -136,8 +161,8 @@
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse .admin-pedagogical-metric__status {
   margin: 0;
   color: var(--c-text);
-  font-size: clamp(26px, 2.5vw, 31px);
-  font-weight: 780;
+  font-size: clamp(28px, 2.7vw, 34px);
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   white-space: nowrap;
@@ -150,14 +175,16 @@
   line-height: 1.35;
 }
 
+/* Clear, compact quick tasks. The visible Arabic wording replaces the
+   ambiguous "مركز العمل اليومي" without changing route or permission logic. */
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip {
   display: flex;
-  min-height: 58px;
+  min-height: 66px;
   align-items: center;
-  gap: 16px;
-  padding: 11px 13px;
+  gap: 18px;
+  padding: 12px 15px;
   border: 1px solid var(--c-border);
-  border-radius: calc(var(--radius) + 2px);
+  border-radius: calc(var(--radius) + 3px);
   background: var(--c-surface);
   box-shadow: var(--shadow-sm);
 }
@@ -165,10 +192,15 @@
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-title {
   margin: 0;
   flex: 0 0 auto;
-  color: var(--c-text);
-  font-size: 13px;
-  font-weight: 720;
+  font-size: 0;
   white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-title::after {
+  content: 'مهام سريعة';
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 760;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions {
@@ -182,34 +214,42 @@
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 38px;
   align-items: center;
-  gap: 7px;
-  padding: 7px 11px;
-  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 12%, var(--c-border));
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--raqeem-primary) 3.5%, var(--c-surface));
+  justify-content: center;
+  padding: 8px 13px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 14%, var(--c-border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--raqeem-primary) 4%, var(--c-surface));
   color: var(--raqeem-primary);
   font-size: 12.5px;
-  font-weight: 720;
+  font-weight: 740;
   line-height: 1.35;
   white-space: nowrap;
   transition: background-color 160ms ease, border-color 160ms ease;
 }
 
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions .admin-pedagogical-work-action:first-child {
+  border-color: var(--raqeem-primary);
+  background: var(--raqeem-primary);
+  color: var(--c-surface);
+}
+
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action:hover {
-  border-color: color-mix(in srgb, var(--raqeem-primary) 26%, var(--c-border));
-  background: color-mix(in srgb, var(--raqeem-primary) 7%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--raqeem-primary) 30%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-primary) 8%, var(--c-surface));
 }
 
-html[dir='rtl'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action::after {
-  content: '←';
-  font-size: 12px;
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions .admin-pedagogical-work-action:first-child:hover {
+  border-color: color-mix(in srgb, var(--raqeem-primary) 88%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-primary) 90%, var(--c-text));
+  color: var(--c-surface);
 }
 
+/* Explicitly remove the directional arrows that made the actions ambiguous. */
+html[dir='rtl'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action::after,
 html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action::after {
-  content: '→';
-  font-size: 12px;
+  content: none;
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference {
@@ -225,10 +265,10 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group {
   overflow: hidden;
   padding: 0;
-  border: 1px solid var(--c-border);
-  border-radius: calc(var(--radius) + 3px);
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 6%, var(--c-border));
+  border-radius: calc(var(--radius) + 4px);
   background: var(--c-surface);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--raqeem-primary) 5%, transparent);
 }
 
 .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group__title {
@@ -236,11 +276,12 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding: 13px 14px 10px;
+  padding: 13px 14px 11px;
   border-block-end: 1px solid color-mix(in srgb, var(--c-border) 80%, transparent);
+  background: color-mix(in srgb, var(--c-surface-2) 40%, var(--c-surface));
   color: var(--c-text);
   font-size: 13px;
-  font-weight: 740;
+  font-weight: 760;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -287,7 +328,7 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
   min-width: 0;
   color: var(--c-text-muted);
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 620;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -297,7 +338,7 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
   margin: 0;
   color: var(--c-text);
   font-size: 13.5px;
-  font-weight: 760;
+  font-weight: 770;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -306,6 +347,25 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
   color: var(--c-text-muted);
   font-size: 11.5px;
   font-weight: 600;
+}
+
+/* Pedagogical hierarchy: level first, then classes, then subjects.
+   :has() scopes the order to the academic-organization card only. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric-group__grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric--reference[href='/admin/levels'] {
+  order: 1;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric--reference[href='/admin/classes'] {
+  order: 2;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric--reference[href='/admin/subjects'] {
+  order: 3;
 }
 
 @media (max-width: 920px) {
@@ -317,18 +377,10 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:nth-child(2n) {
-    border-inline-end: 0;
-  }
-
-  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:nth-child(n + 3) {
-    border-block-start: 1px solid color-mix(in srgb, var(--c-border) 86%, transparent);
-  }
-
   .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip {
     align-items: flex-start;
     flex-direction: column;
-    gap: 8px;
+    gap: 9px;
   }
 }
 
@@ -344,23 +396,18 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
     gap: 12px;
   }
 
-  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__hero--compact .admin-pedagogical-dashboard__title {
-    font-size: 24px;
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--quiet {
+    min-height: 82px;
+    padding: 15px 16px;
   }
 
   .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse-grid {
     grid-template-columns: 1fr;
-    padding-inline: 4px;
+    padding: 8px;
   }
 
-  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse,
-  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:nth-child(2n) {
-    min-height: 72px;
-    border-inline-end: 0;
-  }
-
-  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse + .admin-pedagogical-metric--pulse {
-    border-block-start: 1px solid color-mix(in srgb, var(--c-border) 86%, transparent);
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse {
+    min-height: 76px;
   }
 
   .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions {
@@ -369,7 +416,6 @@ html[dir='ltr'] .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-ac
 
   .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action {
     flex: 1 1 auto;
-    justify-content: center;
   }
 }
 
