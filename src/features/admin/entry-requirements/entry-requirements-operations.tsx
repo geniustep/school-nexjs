@@ -115,18 +115,48 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
     for (const item of list.items ?? []) grouped.get(item.item_type)?.push(item);
   }
 
+  function printableNotes(item: RequirementItem, includeSubject: boolean): string {
+    const rawNotes = withRequirementCoverColor(item.notes, null) ?? '';
+    const lines = rawNotes
+      .split(/[\\n\\r]+/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((line) => !/^المادة(?:\\s+في\\s+المصدر)?\\s*:/u.test(line));
+    if (includeSubject && item.subject) lines.unshift(`المادة: ${item.subject}`);
+    return lines.join(' · ');
+  }
+
+  function printableItem(item: RequirementItem, includeSubject = false): string {
+    const notes = printableNotes(item, includeSubject);
+    return `<li><div class="item-line"><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span class="quantity">× ${escapeHtml(item.quantity)}</span>` : ''}</div>${notes ? `<div class="note">${escapeHtml(notes)}</div>` : ''}</li>`;
+  }
+
+  const subjectTypes = new Set<RequirementItemType>(['textbook', 'book', 'notebook']);
+  const subjectGroups = new Map<string, { subject: string; books: RequirementItem[]; notebooks: RequirementItem[] }>();
+  if (!blank) {
+    for (const item of list.items ?? []) {
+      if (!item.subject || !subjectTypes.has(item.item_type)) continue;
+      const key = `${item.subject_id ?? 'name'}:${item.subject.trim().toLocaleLowerCase('ar')}`;
+      const group = subjectGroups.get(key) ?? { subject: item.subject, books: [], notebooks: [] };
+      if (item.item_type === 'notebook') group.notebooks.push(item);
+      else group.books.push(item);
+      subjectGroups.set(key, group);
+    }
+  }
+
+  const curriculumSection = !blank && subjectGroups.size
+    ? `<section class="curriculum"><h2><span>الكتب والدفاتر حسب المادة</span><b>${escapeHtml(subjectGroups.size)}</b></h2><div class="subject-table"><div class="subject-head"><span>المادة</span><span>الكتب</span><span>الدفاتر</span></div>${[...subjectGroups.values()].map((group) => `<article class="subject-row"><h3>${escapeHtml(group.subject)}</h3><div class="subject-cell">${group.books.length ? `<ul>${group.books.map((item) => printableItem(item)).join('')}</ul>` : '<span class="empty-cell">—</span>'}</div><div class="subject-cell">${group.notebooks.length ? `<ul>${group.notebooks.map((item) => printableItem(item)).join('')}</ul>` : '<span class="empty-cell">—</span>'}</div></article>`).join('')}</div></section>`
+    : '';
+
   const sections = PRINT_TYPES.map((type) => {
-    const items = grouped.get(type) ?? [];
+    const items = (grouped.get(type) ?? []).filter(
+      (item) => blank || !item.subject || !subjectTypes.has(item.item_type),
+    );
     if (!blank && items.length === 0) return '';
     const compact = type === 'stationery' || type === 'material';
     const body = blank
       ? '<div class="blank-lines"><span></span><span></span><span></span></div>'
-      : `<ul>${items.map((item) => {
-        const rawNotes = withRequirementCoverColor(item.notes, null);
-        const normalizedNotes = (rawNotes ?? '').replace(/المادة\\s+في\\s+المصدر\\s*:/gu, 'المادة:');
-        const printableNotes = normalizedNotes || (item.subject ? `المادة: ${item.subject}` : '');
-        return `<li><div class="item-line"><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span class="quantity">× ${escapeHtml(item.quantity)}</span>` : ''}</div>${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
-      }).join('')}</ul>`;
+      : `<ul>${items.map((item) => printableItem(item, true)).join('')}</ul>`;
     return `<section class="${compact ? 'compact' : ''}"><h2><span>${escapeHtml(requirementItemTypeLabel(type))}</span><b>${blank ? '' : escapeHtml(items.length)}</b></h2>${body}</section>`;
   }).join('');
 
@@ -136,8 +166,8 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
     : '';
 
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</title><style>
-    @page{size:A4;margin:8mm 10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{padding:0;margin:0}body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#172d32;line-height:1.35;background:#fff}.page{width:190mm;margin:0 auto}header{position:relative;overflow:hidden;border:1px solid #dce8e8;border-radius:12px;padding:13px 16px 11px;margin-bottom:9px;background:linear-gradient(135deg,#f4faf9 0%,#fff 64%)}header:before{content:"";position:absolute;inset:0 0 0 auto;width:5px;background:#168477}.brand{color:#168477;font-size:10px;font-weight:800;letter-spacing:.3px;margin-bottom:2px}h1{font-size:21px;line-height:1.2;margin:0 0 9px;color:#143f45}.meta{display:flex;flex-wrap:wrap;gap:5px;font-size:10.5px;color:#465d61}.meta span{display:inline-flex;gap:3px;border:1px solid #dfe9e9;border-radius:999px;padding:3px 8px;background:#fff}.meta strong{color:#23474d}section{break-inside:auto;margin-top:8px}h2{display:flex;align-items:center;gap:7px;font-size:13px;margin:0 0 5px;color:#174c50}h2:after{content:"";height:1px;background:#dce8e8;flex:1}h2 b{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e8f4f2;color:#168477;font-size:9.5px}ul{margin:0;padding:0 17px 0 0}li{font-size:11.5px;margin:2.5px 0;break-inside:avoid;padding-right:1px}.item-line{display:inline}.quantity{display:inline-block;border-radius:5px;padding:0 5px;background:#eef5f4;color:#176c65;font-weight:750}small{font-size:10.5px;color:#53686c}.note{font-size:9.5px;color:#6a797c;line-height:1.3;margin-top:1px}.compact ul{columns:2;column-gap:24px;column-rule:1px solid #edf1f1}.compact li{break-inside:avoid-column;margin:2px 0}.covers{break-inside:avoid;border:1px solid #d9e7e6;border-radius:10px;padding:8px 10px;background:#f8fbfb}.covers h2{margin-bottom:7px}.covers ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:0;list-style:none}.covers li{display:flex;align-items:center;gap:6px;margin:0;padding:5px 7px;border:1px solid #e2ebeb;border-radius:7px;background:#fff}.covers li i{width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:var(--cover-color);border:1px solid #0002}.covers li span{margin-right:auto;color:#466064;font-weight:750}.covers-total{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;margin-top:7px;padding-top:6px;border-top:1px solid #dce7e7;color:#496064}.covers-total strong{font-size:13px;color:#174c50}.blank-lines span{display:block;border-bottom:1px dashed #a9b8b9;height:23px}.footer{break-inside:avoid;margin-top:9px;padding-top:5px;border-top:1px solid #dce7e7;font-size:8.5px;color:#7a8b8e;text-align:center}.screen-actions{max-width:210mm;margin:12px auto;padding:0 10mm}.screen-actions button{border:0;border-radius:8px;background:#168477;color:#fff;padding:8px 20px;font:700 13px inherit;cursor:pointer}@media screen{body{background:#eef2f2;padding-bottom:18px}.page{background:#fff;padding:8mm 10mm;box-shadow:0 8px 28px #19383d1f}.screen-actions{display:block}}@media print{body{background:#fff}.page{width:auto;margin:0;box-shadow:none}.footer{position:fixed;right:0;bottom:-6mm;left:0;margin:0;padding-top:2mm}.screen-actions{display:none}}
-  </style></head><body><div class="screen-actions"><button onclick="window.print()">طباعة اللائحة</button></div><main class="page"><header><div class="brand">رقيم المدرسية</div><h1>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</h1><div class="meta"><span><strong>السنة الدراسية</strong> ${escapeHtml(list.academic_year ?? '')}</span><span><strong>المستوى</strong> ${escapeHtml(list.level ?? '')}</span>${list.class_name ? `<span><strong>القسم</strong> ${escapeHtml(list.class_name)}</span>` : ''}${!blank ? `<span><strong>النسخة</strong> ${escapeHtml(list.revision)}</span>` : ''}</div></header>${sections}${coversSection}<div class="footer">تم إعداد هذه اللائحة عبر منصة رقيم المدرسية.</div></main></body></html>`;
+    @page{size:A4;margin:8mm 10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{padding:0;margin:0}body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#172d32;line-height:1.35;background:#fff}.page{width:190mm;margin:0 auto}header{position:relative;overflow:hidden;border:1px solid #dce8e8;border-radius:12px;padding:13px 16px 11px;margin-bottom:9px;background:linear-gradient(135deg,#f4faf9 0%,#fff 64%)}header:before{content:"";position:absolute;inset:0 0 0 auto;width:5px;background:#168477}.brand{color:#168477;font-size:10px;font-weight:800;letter-spacing:.3px;margin-bottom:2px}h1{font-size:21px;line-height:1.2;margin:0 0 9px;color:#143f45}.meta{display:flex;flex-wrap:wrap;gap:5px;font-size:10.5px;color:#465d61}.meta span{display:inline-flex;gap:3px;border:1px solid #dfe9e9;border-radius:999px;padding:3px 8px;background:#fff}.meta strong{color:#23474d}section{break-inside:auto;margin-top:8px}h2{display:flex;align-items:center;gap:7px;font-size:13px;margin:0 0 5px;color:#174c50}h2:after{content:"";height:1px;background:#dce8e8;flex:1}h2 b{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e8f4f2;color:#168477;font-size:9.5px}ul{margin:0;padding:0 17px 0 0}li{font-size:11.5px;margin:2.5px 0;break-inside:avoid;padding-right:1px}.item-line{display:inline}.quantity{display:inline-block;border-radius:5px;padding:0 5px;background:#eef5f4;color:#176c65;font-weight:750}small{font-size:10.5px;color:#53686c}.note{font-size:9.5px;color:#6a797c;line-height:1.3;margin-top:1px}.compact ul{columns:2;column-gap:24px;column-rule:1px solid #edf1f1}.compact li{break-inside:avoid-column;margin:2px 0}.covers{break-inside:avoid;border:1px solid #d9e7e6;border-radius:10px;padding:8px 10px;background:#f8fbfb}.covers h2{margin-bottom:7px}.covers ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:0;list-style:none}.covers li{display:flex;align-items:center;gap:6px;margin:0;padding:5px 7px;border:1px solid #e2ebeb;border-radius:7px;background:#fff}.covers li i{width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:var(--cover-color);border:1px solid #0002}.covers li span{margin-right:auto;color:#466064;font-weight:750}.covers-total{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;margin-top:7px;padding-top:6px;border-top:1px solid #dce7e7;color:#496064}.covers-total strong{font-size:13px;color:#174c50}.curriculum{margin-top:7px}.subject-table{overflow:hidden;border:1px solid #d9e6e5;border-radius:9px}.subject-head,.subject-row{display:grid;grid-template-columns:18% 47% 35%}.subject-head{background:#edf6f4;color:#176b64;font-size:9.5px;font-weight:800}.subject-head span{padding:5px 7px}.subject-row{break-inside:avoid;border-top:1px solid #e3ebea;align-items:stretch}.subject-row h3{display:flex;align-items:flex-start;margin:0;padding:6px 7px;background:#f8fbfb;color:#174c50;font-size:10.5px;line-height:1.3}.subject-cell{padding:4px 7px;border-right:1px solid #e3ebea;min-width:0}.subject-cell ul{padding-right:13px}.subject-cell li{font-size:10px;line-height:1.25;margin:1.5px 0}.subject-cell .note{font-size:8.5px}.empty-cell{color:#a6b2b4}.blank-lines span{display:block;border-bottom:1px dashed #a9b8b9;height:23px}.footer{break-inside:avoid;margin-top:9px;padding-top:5px;border-top:1px solid #dce7e7;font-size:8.5px;color:#7a8b8e;text-align:center}.screen-actions{max-width:210mm;margin:12px auto;padding:0 10mm}.screen-actions button{border:0;border-radius:8px;background:#168477;color:#fff;padding:8px 20px;font:700 13px inherit;cursor:pointer}@media screen{body{background:#eef2f2;padding-bottom:18px}.page{background:#fff;padding:8mm 10mm;box-shadow:0 8px 28px #19383d1f}.screen-actions{display:block}}@media print{body{background:#fff}.page{width:auto;margin:0;box-shadow:none}.footer{position:fixed;right:0;bottom:-6mm;left:0;margin:0;padding-top:2mm}.screen-actions{display:none}}
+  </style></head><body><div class="screen-actions"><button onclick="window.print()">طباعة اللائحة</button></div><main class="page"><header><div class="brand">رقيم المدرسية</div><h1>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</h1><div class="meta"><span><strong>السنة الدراسية</strong> ${escapeHtml(list.academic_year ?? '')}</span><span><strong>المستوى</strong> ${escapeHtml(list.level ?? '')}</span>${list.class_name ? `<span><strong>القسم</strong> ${escapeHtml(list.class_name)}</span>` : ''}${!blank ? `<span><strong>النسخة</strong> ${escapeHtml(list.revision)}</span>` : ''}</div></header>${curriculumSection}${sections}${coversSection}<div class="footer">تم إعداد هذه اللائحة عبر منصة رقيم المدرسية.</div></main></body></html>`;
 }
 
 function openPrint(list: RequirementList, blank: boolean): void {
