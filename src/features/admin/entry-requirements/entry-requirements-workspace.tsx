@@ -385,12 +385,28 @@ export function AdminEntryRequirementsWorkspace() {
     await openList(selected.id);
   }
 
-  function openSubjectItemEditor(
+  async function openSubjectItemEditor(
     subjectId: number,
     type: Extract<RequirementItemType, 'textbook' | 'book' | 'notebook'>,
   ) {
+    if (!selected) return;
+
     setError('');
     setNotice('');
+    if (selected.state !== 'draft') {
+      const revisionResult = await api.post<RequirementList>(
+        entryRequirementEndpoints.admin.createRevision(selected.id),
+        {},
+      );
+      if (!revisionResult.success) {
+        setError(revisionResult.error.message);
+        return;
+      }
+      setSelected(revisionResult.data);
+      await loadLists();
+      setNotice('تم إنشاء نسخة محدثة قابلة للتعديل.');
+    }
+
     setItemType(type);
     setItemSubject(String(subjectId));
     setOfferingId('');
