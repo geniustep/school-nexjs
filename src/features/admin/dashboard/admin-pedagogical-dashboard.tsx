@@ -12,7 +12,10 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
-import { canReviewCommunication } from '@/lib/permissions/communication';
+import {
+  canComposeGeneralCommunication,
+  canReviewCommunication,
+} from '@/lib/permissions/communication';
 import { useT } from '@/features/i18n/locale-context';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { endpoints } from '@/lib/api/endpoints';
@@ -104,6 +107,7 @@ export function AdminPedagogicalDashboard() {
   const t = useT();
   const canReview = canReviewCommunication(user);
   const canViewChannels = hasPermission(user, 'view_channels');
+  const canComposeCommunication = canComposeGeneralCommunication(user);
 
   const metricGroups = useMemo(() => resolvePedagogicalDashboardMetricGroups(user), [user]);
   const { primary: primaryActions, secondary: secondaryActions } = useMemo(
@@ -361,12 +365,17 @@ export function AdminPedagogicalDashboard() {
   ]);
 
   const hasContent = metricGroups.length > 0 || focusActions.length > 0;
-  const showCommunicationSpotlight = canReview || canViewChannels;
+  const showCommunicationSpotlight = canReview || canViewChannels || canComposeCommunication;
   const showHomeworkSpotlight = canReview || hasPermission(user, 'view_homeworks');
   const showSpotlight = showCommunicationSpotlight || showHomeworkSpotlight;
   const publishedHomeworkValue = metricPresentation.homeworks?.loading
     ? '…'
     : metricPresentation.homeworks?.value ?? '0';
+  const communicationSpotlightHref = canComposeCommunication
+    ? '/admin/communication/compose'
+    : canReview
+      ? '/admin/communication?filter=submitted'
+      : '/admin/channels';
 
   if (!hasContent) {
     return <SchoolEmptyState description={t('admin.pedagogicalDashboard.emptyWorkspace')} />;
@@ -429,14 +438,16 @@ export function AdminPedagogicalDashboard() {
         >
           {showCommunicationSpotlight ? (
             <Link
-              href={canReview ? '/admin/communication?filter=submitted' : '/admin/channels'}
+              href={communicationSpotlightHref}
               className="admin-pedagogical-focus-card admin-pedagogical-focus-card--communication"
             >
               <span className="admin-pedagogical-focus-card__topline">
                 <span className="admin-pedagogical-focus-card__title">
                   {t('channels.schoolCommunicationTitle')}
                 </span>
-                <span className="admin-pedagogical-focus-card__cta">{t('common.view')}</span>
+                <span className="admin-pedagogical-focus-card__cta">
+                  {canComposeCommunication ? t('channels.createMessage') : t('common.view')}
+                </span>
               </span>
               <strong className="admin-pedagogical-focus-card__value">
                 {communicationLoading ? '…' : communicationQueueCount}
@@ -475,23 +486,36 @@ export function AdminPedagogicalDashboard() {
           aria-labelledby="pedagogical-work"
         >
           <h2 id="pedagogical-work" className="admin-pedagogical-dashboard__work-strip-title">
-            {t('admin.pedagogicalDashboard.workCenterTitle')}
+            {t('dashboard.shortcuts')}
           </h2>
           <nav
             className="admin-pedagogical-dashboard__work-strip-actions"
-            aria-label={t('admin.pedagogicalDashboard.workCenterTitle')}
+            aria-label={t('dashboard.shortcuts')}
           >
-            {focusActions.map((action) => (
-              <Link
-                key={action.id}
-                href={action.href}
-                className="admin-pedagogical-work-action"
-              >
-                <span>
-                  {action.id === 'channels' ? t('channels.schoolCommunicationTitle') : t(action.labelKey)}
-                </span>
-              </Link>
-            ))}
+            {focusActions.map((action) => {
+              const communicationAction = action.id === 'channels';
+              const href =
+                communicationAction && canComposeCommunication
+                  ? '/admin/communication/compose'
+                  : action.href;
+              const label =
+                communicationAction && canComposeCommunication
+                  ? t('channels.createMessage')
+                  : communicationAction
+                    ? t('channels.schoolCommunicationTitle')
+                    : t(action.labelKey);
+
+              return (
+                <Link
+                  key={action.id}
+                  href={href}
+                  className={`admin-pedagogical-work-action admin-pedagogical-work-action--${action.id}`}
+                >
+                  <span className="admin-pedagogical-work-action__mark" aria-hidden="true" />
+                  <span className="admin-pedagogical-work-action__label">{label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </section>
       ) : null}
