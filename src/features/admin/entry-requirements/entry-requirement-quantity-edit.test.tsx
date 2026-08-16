@@ -78,6 +78,31 @@ describe('Entry Requirements quantity edit', () => {
     await waitFor(() => expect(screen.queryByRole('spinbutton')).toBeNull());
   });
 
+  it('lets a manager assign an unlinked item to a level subject', async () => {
+    const onSubjectChange = vi.fn(async () => true);
+    render(
+      <EntryRequirementCatalog
+        items={[notebook]}
+        subjects={[{ id: 7, name: 'اللغة الفرنسية' }, { id: 8, name: 'الرياضيات' }]}
+        canManage
+        editable
+        onSubjectChange={onSubjectChange}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'المادة المرتبطة بـ دفتر من فئة 96 صفحة' }), {
+      target: { value: '8' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'ربط بالمادة' }));
+
+    await waitFor(() => expect(onSubjectChange).toHaveBeenCalledWith(notebook, 8));
+  });
+
   it('does not expose quantity editing on a non-editable list', () => {
     render(
       <EntryRequirementCatalog

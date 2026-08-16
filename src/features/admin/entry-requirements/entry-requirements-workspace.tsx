@@ -438,6 +438,25 @@ export function AdminEntryRequirementsWorkspace() {
     return true;
   }
 
+  async function updateItemSubject(item: RequirementItem, subjectId: number) {
+    if (!selected || !Number.isInteger(subjectId) || subjectId <= 0) return false;
+
+    setError('');
+    setNotice('');
+    const result = await api.patch<RequirementItem>(
+      entryRequirementEndpoints.admin.item(selected.id, item.id),
+      { subject_id: subjectId },
+    );
+    if (!result.success) {
+      setError(result.error.message);
+      return false;
+    }
+
+    setNotice('تم ربط العنصر بالمادة ونقله إلى بطاقتها.');
+    await openList(selected.id);
+    return true;
+  }
+
   async function updateItemCover(item: RequirementItem, allocations: RequirementCoverAllocation[]) {
     if (!selected || !['textbook', 'book', 'notebook'].includes(item.item_type)) return false;
     const total = allocations.reduce((sum, allocation) => sum + allocation.quantity, 0);
@@ -1105,6 +1124,7 @@ export function AdminEntryRequirementsWorkspace() {
                     onDelete={(item) => void deleteItem(item)}
                     onQuantityChange={updateItemQuantity}
                     onCoverChange={updateItemCover}
+                    onSubjectChange={updateItemSubject}
                   />
                 ) : (
                   <EmptyState

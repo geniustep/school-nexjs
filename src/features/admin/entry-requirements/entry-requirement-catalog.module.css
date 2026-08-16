@@ -90,6 +90,34 @@
   text-align: center;
 }
 
+.subjectControl {
+  display: flex;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-warning, #d99a1d) 28%, var(--c-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c-warning, #d99a1d) 7%, var(--c-surface));
+}
+
+.subjectControl label {
+  display: grid;
+  flex: 1 1 190px;
+  gap: 5px;
+  min-width: 0;
+}
+
+.subjectControl label > span,
+.subjectControlHint {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.subjectControlHint { flex-basis: 100%; }
+
 .sectionHeader {
   display: flex;
   align-items: flex-end;
