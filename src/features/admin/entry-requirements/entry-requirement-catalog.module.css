@@ -8,6 +8,88 @@
   gap: 12px;
 }
 
+.subjectList { display: grid; gap: 10px; }
+
+.subjectCard {
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  background: var(--c-surface);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.subjectCard[data-open='true'] {
+  border-color: color-mix(in srgb, var(--c-primary) 38%, var(--c-border));
+  box-shadow: var(--shadow-sm);
+}
+
+.subjectTrigger {
+  width: 100%;
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 24px;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 15px;
+  border: 0;
+  background: transparent;
+  color: var(--c-text);
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+}
+
+.subjectTrigger:hover { background: var(--c-surface-2); }
+.subjectIdentity { min-width: 0; display: grid; gap: 4px; }
+.subjectIdentity strong { font-size: 15px; font-weight: 800; }
+.subjectIdentity span,
+.subjectSectionHead span,
+.subjectEmpty { color: var(--c-text-muted); font-size: 12px; }
+
+.subjectStatus {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.subjectStatus[data-complete='true'] {
+  color: var(--c-green);
+  background: color-mix(in srgb, var(--c-green) 10%, var(--c-surface));
+}
+
+.subjectChevron { font-size: 20px; line-height: 1; transition: transform 160ms ease; }
+.subjectCard[data-open='true'] .subjectChevron { transform: rotate(180deg); }
+
+.subjectBody {
+  display: grid;
+  gap: 14px;
+  padding: 15px;
+  border-block-start: 1px solid var(--c-border);
+  background: color-mix(in srgb, var(--c-surface-2) 58%, var(--c-surface));
+}
+
+.subjectSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subjectSectionHead > div:first-child { display: grid; gap: 2px; }
+.subjectAddActions { display: flex; flex-wrap: wrap; gap: 7px; }
+.subjectEmpty {
+  margin: 0;
+  padding: 13px;
+  border: 1px dashed var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface);
+  text-align: center;
+}
+
 .sectionHeader {
   display: flex;
   align-items: flex-end;
@@ -468,6 +550,11 @@
 }
 
 @media (max-width: 760px) {
+  .subjectTrigger { grid-template-columns: minmax(0, 1fr) 20px; }
+  .subjectStatus { display: none; }
+  .subjectSectionHead { align-items: stretch; flex-direction: column; }
+  .subjectAddActions > * { flex: 1 1 auto; }
+
   .sectionHeader,
   .bookFooter,
   .notebookFooter,

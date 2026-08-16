@@ -27,6 +27,32 @@ const notebook: RequirementItem = {
 afterEach(cleanup);
 
 describe('Entry Requirements quantity edit', () => {
+  it('organizes the level by subject and starts an item inside the chosen subject', () => {
+    const onAddToSubject = vi.fn();
+    render(
+      <EntryRequirementCatalog
+        items={[{ ...notebook, subject_id: 7, subject: 'اللغة الفرنسية' }]}
+        subjects={[{ id: 7, name: 'اللغة الفرنسية' }, { id: 8, name: 'الرياضيات' }]}
+        canManage
+        editable
+        onAddToSubject={onAddToSubject}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    const mathSubject = screen.getByRole('button', { name: /الرياضيات/ });
+    const frenchSubject = screen.getByRole('button', { name: /اللغة الفرنسية/ });
+    if (frenchSubject.getAttribute('aria-expanded') !== 'true') fireEvent.click(frenchSubject);
+    expect(frenchSubject.getAttribute('aria-expanded')).toBe('true');
+    expect(mathSubject.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(screen.getByRole('button', { name: '+ إضافة دفتر' }));
+    expect(onAddToSubject).toHaveBeenCalledWith(7, 'notebook');
+  });
+
   it('lets a manager update the quantity of a draft item', async () => {
     const onQuantityChange = vi.fn(async () => true);
 
