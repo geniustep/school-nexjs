@@ -1,4 +1,5 @@
 import type { Locale } from './config';
+import { FRENCH_VALUE_REPLACEMENTS } from './fr-value-replacements';
 import ar from '../../../messages/ar.json';
 import en from '../../../messages/en.json';
 import es from '../../../messages/es.json';
@@ -13,6 +14,17 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'nav.library': 'المكتبة',
     'nav.entryRequirements': 'تجهيزات الدخول المدرسي',
     'nav.curriculumRequirements': 'المقرر والتجهيزات',
+    'common.more': 'المزيد',
+    'admin.createClass': 'إضافة قسم',
+    'admin.studentsList.serviceCategory.registration': 'التسجيل',
+    'admin.studentsList.serviceCategory.tuition': 'التمدرس',
+    'admin.studentsList.serviceCategory.transport': 'النقل',
+    'admin.studentsList.serviceCategory.canteen': 'المطعم',
+    'admin.studentsList.serviceCategory.meals': 'الوجبات',
+    'admin.studentsList.serviceCategory.activities': 'الأنشطة',
+    'admin.studentsList.serviceCategory.activity': 'نشاط',
+    'admin.studentsList.serviceCategory.books': 'الكتب',
+    'admin.studentsList.serviceCategory.other': 'خدمة أخرى',
     'admin.director.financeTitle': 'المالية والتحصيل',
     'admin.director.financeDesc': 'تحصيل اليوم وهذا الشهر، مع المتبقي والمتأخرات.',
     'admin.director.financeCollectionsGroup': 'التحصيل',
@@ -33,6 +45,17 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'nav.library': 'Library',
     'nav.entryRequirements': 'School entry requirements',
     'nav.curriculumRequirements': 'Curriculum & requirements',
+    'common.more': 'More',
+    'admin.createClass': 'Add class',
+    'admin.studentsList.serviceCategory.registration': 'Registration',
+    'admin.studentsList.serviceCategory.tuition': 'Tuition',
+    'admin.studentsList.serviceCategory.transport': 'Transport',
+    'admin.studentsList.serviceCategory.canteen': 'Canteen',
+    'admin.studentsList.serviceCategory.meals': 'Meals',
+    'admin.studentsList.serviceCategory.activities': 'Activities',
+    'admin.studentsList.serviceCategory.activity': 'Activity',
+    'admin.studentsList.serviceCategory.books': 'Books',
+    'admin.studentsList.serviceCategory.other': 'Other service',
     'admin.director.financeTitle': 'Finance & collections',
     'admin.director.financeDesc': 'Collections today and this month, with remaining and overdue balances.',
     'admin.director.financeCollectionsGroup': 'Collections',
@@ -53,6 +76,20 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'nav.library': 'Bibliothèque',
     'nav.entryRequirements': 'Fournitures de rentrée',
     'nav.curriculumRequirements': 'Programme et fournitures',
+    'common.more': 'Plus',
+    'admin.createClass': 'Ajouter une classe',
+    'admin.academicSetup.guided.category.middle_school': 'Collège',
+    'admin.academicSetup.guided.category.secondary': 'Lycée',
+    'admin.academicSetup.guided.category.high_school': 'Lycée',
+    'admin.studentsList.serviceCategory.registration': 'Inscription',
+    'admin.studentsList.serviceCategory.tuition': 'Scolarité',
+    'admin.studentsList.serviceCategory.transport': 'Transport',
+    'admin.studentsList.serviceCategory.canteen': 'Cantine',
+    'admin.studentsList.serviceCategory.meals': 'Repas',
+    'admin.studentsList.serviceCategory.activities': 'Activités',
+    'admin.studentsList.serviceCategory.activity': 'Activité',
+    'admin.studentsList.serviceCategory.books': 'Livres',
+    'admin.studentsList.serviceCategory.other': 'Autre service',
     'admin.director.financeTitle': 'Finances et encaissements',
     'admin.director.financeDesc': 'Encaissements du jour et du mois, avec le restant et les impayés.',
     'admin.director.financeCollectionsGroup': 'Encaissements',
@@ -73,6 +110,17 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'nav.library': 'Biblioteca',
     'nav.entryRequirements': 'Material escolar',
     'nav.curriculumRequirements': 'Currículo y materiales',
+    'common.more': 'Más',
+    'admin.createClass': 'Añadir clase',
+    'admin.studentsList.serviceCategory.registration': 'Matrícula',
+    'admin.studentsList.serviceCategory.tuition': 'Escolaridad',
+    'admin.studentsList.serviceCategory.transport': 'Transporte',
+    'admin.studentsList.serviceCategory.canteen': 'Comedor',
+    'admin.studentsList.serviceCategory.meals': 'Comidas',
+    'admin.studentsList.serviceCategory.activities': 'Actividades',
+    'admin.studentsList.serviceCategory.activity': 'Actividad',
+    'admin.studentsList.serviceCategory.books': 'Libros',
+    'admin.studentsList.serviceCategory.other': 'Otro servicio',
     'admin.director.financeTitle': 'Finanzas y cobros',
     'admin.director.financeDesc': 'Cobros de hoy y de este mes, junto con el saldo pendiente y los atrasos.',
     'admin.director.financeCollectionsGroup': 'Cobros',
@@ -81,10 +129,10 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financeCollectedMonth': 'Cobrado este mes',
     'admin.pedagogicalDashboard.dailyPulseTitle': 'Pulso de hoy',
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publicadas: {count}',
-    'admin.pedagogicalDashboard.readMessages': 'Leer mensajes',
+    'admin.pedagogicalDashboard.readMessages': 'Leer los mensajes',
     'admin.pedagogicalDashboard.unreadMessages': 'Mensajes no leídos',
     'admin.pedagogicalDashboard.pendingReview': 'Pendiente de revisión',
-    'admin.pedagogicalDashboard.reviewMessages': 'Revisar mensajes',
+    'admin.pedagogicalDashboard.reviewMessages': 'Revisar los mensajes',
     'admin.pedagogicalDashboard.reviewHomeworks': 'Revisar tareas',
     'admin.pedagogicalDashboard.viewHomeworks': 'Ver tareas',
     'admin.pedagogicalDashboard.published': 'Publicadas',
@@ -101,7 +149,8 @@ export function getMessage(messages: Messages, key: string): string | undefined 
   return typeof cur === 'string' ? cur : undefined;
 }
 
-function normalizeArabicUiTerm(locale: Locale, value: string): string {
+function normalizeLocalizedUiTerm(locale: Locale, value: string): string {
+  if (locale === 'fr') return FRENCH_VALUE_REPLACEMENTS[value] ?? value;
   if (locale !== 'ar') return value;
   if (value === 'عوامل تصفية إضافية') return 'فلاتر أخرى';
   if (value === 'إخفاء عوامل التصفية الإضافية') return 'إخفاء الفلاتر';
@@ -115,7 +164,7 @@ export function translate(
   key: string,
   params?: Record<string, string | number>,
 ): string {
-  const raw = normalizeArabicUiTerm(
+  const raw = normalizeLocalizedUiTerm(
     locale,
     getMessage(MESSAGES[locale], key) ??
       INLINE_MESSAGES[locale][key] ??

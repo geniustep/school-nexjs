@@ -13,15 +13,56 @@ import {
   filterSchoolClassesByLevel,
   isLevelInCycle,
   isSchoolClassInLevel,
-  resolveCycleLabel,
   sortCyclesForFilter,
   sortSchoolClassesForFilter,
 } from '../utils/students-list-filter-options';
 import type { StudentsListServicePresence } from '../utils/students-list-url';
 import { StudentsListSearchField } from './students-list-search-field';
 import { useT } from '@/features/i18n/locale-context';
-import type { Level, SchoolClass } from '@/types/class';
+import type { Level, LevelCycle, SchoolClass } from '@/types/class';
 import type { FeeType } from '@/types/finance';
+
+const CYCLE_I18N_ALIASES: Record<string, string> = {
+  preschool: 'preschool',
+  primary: 'primary',
+  middle_school: 'middle',
+  middle: 'middle',
+  secondary: 'high',
+  high_school: 'high',
+  high: 'high',
+};
+
+const SERVICE_CATEGORY_LABEL_KEYS: Record<string, string> = {
+  registration: 'admin.studentsList.serviceCategory.registration',
+  tuition: 'admin.studentsList.serviceCategory.tuition',
+  transport: 'admin.studentsList.serviceCategory.transport',
+  canteen: 'admin.studentsList.serviceCategory.canteen',
+  meals: 'admin.studentsList.serviceCategory.meals',
+  activities: 'admin.studentsList.serviceCategory.activities',
+  activity: 'admin.studentsList.serviceCategory.activity',
+  books: 'admin.studentsList.serviceCategory.books',
+};
+
+function localizedCycleLabel(t: ReturnType<typeof useT>, cycle: LevelCycle): string {
+  const code = cycle.code?.trim().toLowerCase() ?? '';
+  const alias = CYCLE_I18N_ALIASES[code];
+  if (alias) {
+    const key = `admin.academicSetup.guided.category.${alias}`;
+    const localized = t(key);
+    if (localized !== key) return localized;
+  }
+  return cycle.name?.trim() || cycle.code?.trim() || '—';
+}
+
+function localizedServiceLabel(t: ReturnType<typeof useT>, feeType: FeeType): string {
+  const category = feeType.category?.trim().toLowerCase() ?? '';
+  const key = SERVICE_CATEGORY_LABEL_KEYS[category];
+  if (key) {
+    const localized = t(key);
+    if (localized !== key) return localized;
+  }
+  return feeType.name?.trim() || feeType.code?.trim() || '—';
+}
 
 export type StudentsListFiltersState = {
   search: string;
@@ -126,10 +167,13 @@ export function StudentsListFilters({
     if (statusFilter || accountFilter || serviceId) setMoreOpen(true);
   }, [statusFilter, accountFilter, serviceId]);
 
-  const selectedCycleLabel = useMemo(
-    () => resolveCycleLabel(cycleOptions, cycleCode),
-    [cycleOptions, cycleCode],
-  );
+  const selectedCycleLabel = useMemo(() => {
+    if (!cycleCode) return null;
+    const cycle = cycleOptions.find(
+      (item) => (item.code ?? '').trim().toLowerCase() === cycleCode.trim().toLowerCase(),
+    );
+    return cycle ? localizedCycleLabel(t, cycle) : cycleCode;
+  }, [cycleOptions, cycleCode, t]);
 
   const selectedLevelLabel = useMemo(() => {
     if (!levelId) return null;
@@ -146,8 +190,8 @@ export function StudentsListFilters({
   const selectedServiceLabel = useMemo(() => {
     if (!serviceId) return null;
     const feeType = sortedFeeTypes.find((item) => String(item.id) === serviceId);
-    return feeType?.name?.trim() || null;
-  }, [serviceId, sortedFeeTypes]);
+    return feeType ? localizedServiceLabel(t, feeType) : null;
+  }, [serviceId, sortedFeeTypes, t]);
 
   function handleCycleChange(nextCycleCode: string) {
     onCycleCodeChange(nextCycleCode);
@@ -191,7 +235,7 @@ export function StudentsListFilters({
           <option value="">{t('admin.studentsList.filters.allCycles')}</option>
           {cycleOptions.map((cycle) => (
             <option key={cycle.id} value={cycle.code}>
-              {cycle.name}
+              {localizedCycleLabel(t, cycle)}
             </option>
           ))}
         </select>
@@ -277,7 +321,7 @@ export function StudentsListFilters({
               <option value="">{t('admin.studentsList.filters.allServices')}</option>
               {sortedFeeTypes.map((feeType) => (
                 <option key={feeType.id} value={feeType.id}>
-                  {feeType.name}
+                  {localizedServiceLabel(t, feeType)}
                 </option>
               ))}
             </select>
