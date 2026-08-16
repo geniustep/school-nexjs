@@ -21,6 +21,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financeCollectedMonth': 'محصل هذا الشهر',
     'admin.pedagogicalDashboard.dailyPulseTitle': 'نبض اليوم',
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'منشورة: {count}',
+    'admin.pedagogicalDashboard.readMessages': 'قراءة الرسائل',
+    'admin.pedagogicalDashboard.unreadMessages': 'رسائل غير مقروءة',
   },
   en: {
     'nav.library': 'Library',
@@ -34,6 +36,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financeCollectedMonth': 'Collected this month',
     'admin.pedagogicalDashboard.dailyPulseTitle': "Today's pulse",
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Published: {count}',
+    'admin.pedagogicalDashboard.readMessages': 'Read messages',
+    'admin.pedagogicalDashboard.unreadMessages': 'Unread messages',
   },
   fr: {
     'nav.library': 'Bibliothèque',
@@ -47,6 +51,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financeCollectedMonth': 'Encaissé ce mois',
     'admin.pedagogicalDashboard.dailyPulseTitle': 'Le pouls du jour',
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publiés : {count}',
+    'admin.pedagogicalDashboard.readMessages': 'Lire les messages',
+    'admin.pedagogicalDashboard.unreadMessages': 'Messages non lus',
   },
   es: {
     'nav.library': 'Biblioteca',
@@ -60,6 +66,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financeCollectedMonth': 'Cobrado este mes',
     'admin.pedagogicalDashboard.dailyPulseTitle': 'Pulso de hoy',
     'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publicadas: {count}',
+    'admin.pedagogicalDashboard.readMessages': 'Leer mensajes',
+    'admin.pedagogicalDashboard.unreadMessages': 'Mensajes no leídos',
   },
 };
 
