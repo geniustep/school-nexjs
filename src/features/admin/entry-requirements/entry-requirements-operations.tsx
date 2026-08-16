@@ -89,6 +89,25 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", '&#039;');
 }
 
+function printableCoverColor(color: string): string {
+  const normalized = color.trim().toLocaleLowerCase();
+  const palette: Array<[string[], string]> = [
+    [['أحمر', 'احمر', 'rouge', 'red'], '#dc4c4c'],
+    [['أخضر', 'اخضر', 'vert', 'green'], '#3f986c'],
+    [['أزرق', 'ازرق', 'bleu', 'blue'], '#4387c5'],
+    [['سماوي', 'bleu ciel', 'sky'], '#73b9d6'],
+    [['أصفر', 'اصفر', 'jaune', 'yellow'], '#e7b93f'],
+    [['وردي', 'rose', 'pink'], '#dc83a7'],
+    [['برتقالي', 'orange'], '#df8845'],
+    [['بنفسجي', 'violet', 'purple'], '#8668b6'],
+    [['رمادي', 'رمادي', 'gris', 'gray', 'grey'], '#89929e'],
+    [['أسود', 'اسود', 'noir', 'black'], '#343a40'],
+    [['أبيض', 'ابيض', 'blanc', 'white'], '#f8fafc'],
+    [['شفاف', 'transparent'], '#e8f0f2'],
+  ];
+  return palette.find(([names]) => names.some((name) => normalized.includes(name)))?.[1] ?? '#7b8794';
+}
+
 function printableListHtml(list: RequirementList, blank: boolean): string {
   const grouped = new Map<RequirementItemType, RequirementItem[]>();
   for (const type of PRINT_TYPES) grouped.set(type, []);
@@ -104,19 +123,19 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
       ? '<div class="blank-lines"><span></span><span></span><span></span></div>'
       : `<ul>${items.map((item) => {
         const printableNotes = withRequirementCoverColor(item.notes, null);
-        return `<li><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span>× ${escapeHtml(item.quantity)}</span>` : ''}${item.subject ? ` <small>— ${escapeHtml(item.subject)}</small>` : ''}${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
+        return `<li><div class="item-line"><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span class="quantity">× ${escapeHtml(item.quantity)}</span>` : ''}${item.subject ? ` <small>— ${escapeHtml(item.subject)}</small>` : ''}</div>${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
       }).join('')}</ul>`;
-    return `<section class="${compact ? 'compact' : ''}"><h2>${escapeHtml(requirementItemTypeLabel(type))}</h2>${body}</section>`;
+    return `<section class="${compact ? 'compact' : ''}"><h2><span>${escapeHtml(requirementItemTypeLabel(type))}</span><b>${blank ? '' : escapeHtml(items.length)}</b></h2>${body}</section>`;
   }).join('');
 
   const covers = blank ? [] : aggregateRequirementCovers(list.items ?? []);
   const coversSection = covers.length
-    ? `<section class="covers"><h2>الأغلفة</h2><ul>${covers.map((cover) => `<li><strong>${escapeHtml(cover.color)}</strong> <span>× ${escapeHtml(cover.quantity)}</span></li>`).join('')}</ul><div class="covers-total">المجموع: ${escapeHtml(covers.reduce((total, cover) => total + cover.quantity, 0))}</div></section>`
+    ? `<section class="covers"><h2><span>الأغلفة</span><b>${escapeHtml(covers.length)}</b></h2><ul>${covers.map((cover) => `<li><i style="--cover-color:${printableCoverColor(cover.color)}"></i><strong>${escapeHtml(cover.color)}</strong><span>× ${escapeHtml(cover.quantity)}</span></li>`).join('')}</ul><div class="covers-total"><span>إجمالي الأغلفة</span><strong>${escapeHtml(covers.reduce((total, cover) => total + cover.quantity, 0))}</strong></div></section>`
     : '';
 
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</title><style>
-    @page{size:A4;margin:0}*{box-sizing:border-box}html,body{padding:0;margin:0}body{font-family:Arial,Tahoma,sans-serif;color:#111;line-height:1.4;background:#fff}.page{width:210mm;min-height:297mm;margin:0 auto;padding:10mm 11mm 9mm}header{border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:10px}h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;margin:10px 0 5px;border-bottom:1px solid #bbb;padding-bottom:3px}.meta{font-size:11.5px;color:#444}.meta span{margin-left:12px}section{break-inside:auto}ul{margin:0;padding:0 18px}li{font-size:12.5px;margin:3px 0;break-inside:avoid}.note{font-size:10.5px;color:#555;line-height:1.3}.compact ul{columns:2;column-gap:22px}.compact li{break-inside:avoid-column;margin:2px 0}.covers{break-inside:avoid}.covers ul{columns:2;column-gap:22px}.covers-total{font-size:11px;font-weight:700;margin:5px 18px 0}.blank-lines span{display:block;border-bottom:1px dotted #777;height:24px}.footer{margin-top:14px;padding-top:5px;border-top:1px solid #ddd;font-size:9.5px;color:#666}.screen-actions{max-width:210mm;margin:12px auto 0;padding:0 11mm}.screen-actions button{padding:7px 18px;font:inherit;cursor:pointer}@media screen{body{background:#f3f4f6}.page{background:#fff;box-shadow:0 1px 10px #0002}.screen-actions{display:block}}@media print{body{background:#fff}.page{margin:0;box-shadow:none}.screen-actions{display:none}}
-  </style></head><body><div class="screen-actions"><button onclick="window.print()">طباعة</button></div><main class="page"><header><h1>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</h1><div class="meta"><span>السنة الدراسية: ${escapeHtml(list.academic_year ?? '')}</span><span>المستوى: ${escapeHtml(list.level ?? '')}</span>${list.class_name ? `<span>القسم: ${escapeHtml(list.class_name)}</span>` : ''}${!blank ? `<span>النسخة: ${escapeHtml(list.revision)}</span>` : ''}</div></header>${sections}${coversSection}<div class="footer">تم إعداد هذا المستند من واجهة رقيم المدرسية.</div></main></body></html>`;
+    @page{size:A4;margin:8mm 10mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}html,body{padding:0;margin:0}body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#172d32;line-height:1.35;background:#fff}.page{width:190mm;margin:0 auto}header{position:relative;overflow:hidden;border:1px solid #dce8e8;border-radius:12px;padding:13px 16px 11px;margin-bottom:9px;background:linear-gradient(135deg,#f4faf9 0%,#fff 64%)}header:before{content:"";position:absolute;inset:0 0 0 auto;width:5px;background:#168477}.brand{color:#168477;font-size:10px;font-weight:800;letter-spacing:.3px;margin-bottom:2px}h1{font-size:21px;line-height:1.2;margin:0 0 9px;color:#143f45}.meta{display:flex;flex-wrap:wrap;gap:5px;font-size:10.5px;color:#465d61}.meta span{display:inline-flex;gap:3px;border:1px solid #dfe9e9;border-radius:999px;padding:3px 8px;background:#fff}.meta strong{color:#23474d}section{break-inside:auto;margin-top:8px}h2{display:flex;align-items:center;gap:7px;font-size:13px;margin:0 0 5px;color:#174c50}h2:after{content:"";height:1px;background:#dce8e8;flex:1}h2 b{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#e8f4f2;color:#168477;font-size:9.5px}ul{margin:0;padding:0 17px 0 0}li{font-size:11.5px;margin:2.5px 0;break-inside:avoid;padding-right:1px}.item-line{display:inline}.quantity{display:inline-block;border-radius:5px;padding:0 5px;background:#eef5f4;color:#176c65;font-weight:750}small{font-size:10.5px;color:#53686c}.note{font-size:9.5px;color:#6a797c;line-height:1.3;margin-top:1px}.compact ul{columns:2;column-gap:24px;column-rule:1px solid #edf1f1}.compact li{break-inside:avoid-column;margin:2px 0}.covers{break-inside:avoid;border:1px solid #d9e7e6;border-radius:10px;padding:8px 10px;background:#f8fbfb}.covers h2{margin-bottom:7px}.covers ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:0;list-style:none}.covers li{display:flex;align-items:center;gap:6px;margin:0;padding:5px 7px;border:1px solid #e2ebeb;border-radius:7px;background:#fff}.covers li i{width:11px;height:11px;flex:0 0 11px;border-radius:50%;background:var(--cover-color);border:1px solid #0002}.covers li span{margin-right:auto;color:#466064;font-weight:750}.covers-total{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;margin-top:7px;padding-top:6px;border-top:1px solid #dce7e7;color:#496064}.covers-total strong{font-size:13px;color:#174c50}.blank-lines span{display:block;border-bottom:1px dashed #a9b8b9;height:23px}.footer{break-inside:avoid;margin-top:9px;padding-top:5px;border-top:1px solid #dce7e7;font-size:8.5px;color:#7a8b8e;text-align:center}.screen-actions{max-width:210mm;margin:12px auto;padding:0 10mm}.screen-actions button{border:0;border-radius:8px;background:#168477;color:#fff;padding:8px 20px;font:700 13px inherit;cursor:pointer}@media screen{body{background:#eef2f2;padding-bottom:18px}.page{background:#fff;padding:8mm 10mm;box-shadow:0 8px 28px #19383d1f}.screen-actions{display:block}}@media print{body{background:#fff}.page{width:auto;margin:0;box-shadow:none}.screen-actions{display:none}}
+  </style></head><body><div class="screen-actions"><button onclick="window.print()">طباعة اللائحة</button></div><main class="page"><header><div class="brand">رقيم المدرسية</div><h1>${escapeHtml(blank ? 'نموذج تجهيزات الدخول المدرسي' : list.name)}</h1><div class="meta"><span><strong>السنة الدراسية</strong> ${escapeHtml(list.academic_year ?? '')}</span><span><strong>المستوى</strong> ${escapeHtml(list.level ?? '')}</span>${list.class_name ? `<span><strong>القسم</strong> ${escapeHtml(list.class_name)}</span>` : ''}${!blank ? `<span><strong>النسخة</strong> ${escapeHtml(list.revision)}</span>` : ''}</div></header>${sections}${coversSection}<div class="footer">تم إعداد هذه اللائحة عبر منصة رقيم المدرسية.</div></main></body></html>`;
 }
 
 function openPrint(list: RequirementList, blank: boolean): void {
