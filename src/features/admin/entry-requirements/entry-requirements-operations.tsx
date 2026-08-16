@@ -123,7 +123,7 @@ function printableListHtml(list: RequirementList, blank: boolean): string {
       ? '<div class="blank-lines"><span></span><span></span><span></span></div>'
       : `<ul>${items.map((item) => {
         const rawNotes = withRequirementCoverColor(item.notes, null);
-        const normalizedNotes = rawNotes.replace(/المادة\\s+في\\s+المصدر\\s*:/gu, 'المادة:');
+        const normalizedNotes = (rawNotes ?? '').replace(/المادة\\s+في\\s+المصدر\\s*:/gu, 'المادة:');
         const printableNotes = normalizedNotes || (item.subject ? `المادة: ${item.subject}` : '');
         return `<li><div class="item-line"><strong>${escapeHtml(item.name)}</strong>${item.quantity !== 1 ? ` <span class="quantity">× ${escapeHtml(item.quantity)}</span>` : ''}</div>${printableNotes ? `<div class="note">${escapeHtml(printableNotes)}</div>` : ''}</li>`;
       }).join('')}</ul>`;
