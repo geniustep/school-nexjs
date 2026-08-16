@@ -19,6 +19,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financePositionGroup': 'الوضع المالي',
     'admin.director.financeCollectedToday': 'محصل اليوم',
     'admin.director.financeCollectedMonth': 'محصل هذا الشهر',
+    'admin.pedagogicalDashboard.dailyPulseTitle': 'نبض اليوم',
+    'admin.pedagogicalDashboard.homeworkPublishedCompact': 'منشورة: {count}',
   },
   en: {
     'nav.library': 'Library',
@@ -30,6 +32,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financePositionGroup': 'Financial position',
     'admin.director.financeCollectedToday': 'Collected today',
     'admin.director.financeCollectedMonth': 'Collected this month',
+    'admin.pedagogicalDashboard.dailyPulseTitle': "Today's pulse",
+    'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Published: {count}',
   },
   fr: {
     'nav.library': 'Bibliothèque',
@@ -41,6 +45,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financePositionGroup': 'Situation financière',
     'admin.director.financeCollectedToday': "Encaissé aujourd'hui",
     'admin.director.financeCollectedMonth': 'Encaissé ce mois',
+    'admin.pedagogicalDashboard.dailyPulseTitle': 'Le pouls du jour',
+    'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publiés : {count}',
   },
   es: {
     'nav.library': 'Biblioteca',
@@ -52,6 +58,8 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.director.financePositionGroup': 'Situación financiera',
     'admin.director.financeCollectedToday': 'Cobrado hoy',
     'admin.director.financeCollectedMonth': 'Cobrado este mes',
+    'admin.pedagogicalDashboard.dailyPulseTitle': 'Pulso de hoy',
+    'admin.pedagogicalDashboard.homeworkPublishedCompact': 'Publicadas: {count}',
   },
 };
 
