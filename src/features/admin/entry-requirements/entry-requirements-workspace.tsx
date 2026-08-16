@@ -836,7 +836,14 @@ export function AdminEntryRequirementsWorkspace() {
                       </label>
                       <label className="field">
                         الكمية
-                        <input className="input" type="number" min="0.1" step="0.1" value={itemQty} onChange={(event) => setItemQty(event.target.value)} />
+                        <input
+                          className="input"
+                          type="number"
+                          min={SUBJECT_ITEM_TYPES.includes(itemType) ? '1' : '0.1'}
+                          step={SUBJECT_ITEM_TYPES.includes(itemType) ? '1' : '0.1'}
+                          value={itemQty}
+                          onChange={(event) => setItemQty(event.target.value)}
+                        />
                       </label>
 
                       {SUBJECT_ITEM_TYPES.includes(itemType) ? (
@@ -926,6 +933,10 @@ export function AdminEntryRequirementsWorkspace() {
                             <button
                               type="button"
                               className="btn btn--ghost btn--sm"
+                              disabled={
+                                itemCovers.length >= COVER_COLORS.length
+                                || itemCovers.reduce((sum, row) => sum + row.quantity, 0) >= (Number(itemQty) || 1)
+                              }
                               onClick={() => {
                                 const used = itemCovers.map((row) => row.color);
                                 const color = COVER_COLORS.find((value) => !used.includes(value)) ?? 'شفاف';
