@@ -31,6 +31,7 @@ import type { AdminDashboard } from '@/types/dashboard';
 import type { AdminChannel } from '@/types/admin-channel';
 import type { CommunicationContent } from '@/types/communication';
 import './admin-pedagogical-dashboard-phase-a.css';
+import './admin-pedagogical-dashboard-mini-workspaces.css';
 
 const FOCUS_METRIC_ORDER: PedagogicalDashboardMetricId[] = [
   'attendance',
@@ -111,6 +112,7 @@ export function AdminPedagogicalDashboard() {
   const t = useT();
   const canReview = canReviewCommunication(user);
   const canViewChannels = hasPermission(user, 'view_channels');
+  const canViewHomeworks = hasPermission(user, 'view_homeworks');
   const canComposeCommunication = canComposeGeneralCommunication(user);
 
   const metricGroups = useMemo(() => resolvePedagogicalDashboardMetricGroups(user), [user]);
@@ -185,7 +187,7 @@ export function AdminPedagogicalDashboard() {
     { page: 1, page_size: 1 },
   );
   const homeworksState = useAdminResource<unknown[]>(
-    hasPermission(user, 'view_homeworks') ? endpoints.admin.homeworks : null,
+    canViewHomeworks ? endpoints.admin.homeworks : null,
     { page: 1, page_size: 1 },
   );
   const resourcesState = useAdminResource<unknown[]>(
@@ -374,18 +376,11 @@ export function AdminPedagogicalDashboard() {
 
   const hasContent = metricGroups.length > 0 || focusActions.length > 0;
   const showCommunicationSpotlight = canReview || canViewChannels || canComposeCommunication;
-  const showHomeworkSpotlight = canReview || hasPermission(user, 'view_homeworks');
+  const showHomeworkSpotlight = canReview || canViewHomeworks;
   const showSpotlight = showCommunicationSpotlight || showHomeworkSpotlight;
   const publishedHomeworkValue = metricPresentation.homeworks?.loading
     ? '…'
     : metricPresentation.homeworks?.value ?? '0';
-  const communicationPrimaryValue = canViewChannels
-    ? unreadMessagesLoading
-      ? '…'
-      : String(unreadMessageCount)
-    : communicationReviewLoading
-      ? '…'
-      : String(communicationReviewCount);
 
   if (!hasContent) {
     return <SchoolEmptyState description={t('admin.pedagogicalDashboard.emptyWorkspace')} />;
@@ -453,82 +448,96 @@ export function AdminPedagogicalDashboard() {
           aria-label={t('admin.pedagogicalDashboard.attentionTitle')}
         >
           {showCommunicationSpotlight ? (
-            <div className="admin-pedagogical-focus-card admin-pedagogical-focus-card--communication">
-              <span className="admin-pedagogical-focus-card__topline">
-                <span className="admin-pedagogical-focus-card__title">
+            <article className="admin-pedagogical-focus-card admin-pedagogical-focus-card--communication admin-pedagogical-focus-card--workspace">
+              <div className="admin-pedagogical-focus-card__topline">
+                <h2 className="admin-pedagogical-focus-card__title">
                   {t('channels.schoolCommunicationTitle')}
-                </span>
+                </h2>
+              </div>
+
+              {canViewChannels || canReview ? (
+                <div className="admin-pedagogical-focus-card__metrics">
+                  {canViewChannels ? (
+                    <div className="admin-pedagogical-focus-card__metric">
+                      <strong>{unreadMessagesLoading ? '…' : unreadMessageCount}</strong>
+                      <span>{t('admin.pedagogicalDashboard.unreadMessages')}</span>
+                    </div>
+                  ) : null}
+                  {canReview ? (
+                    <div className="admin-pedagogical-focus-card__metric">
+                      <strong>{communicationReviewLoading ? '…' : communicationReviewCount}</strong>
+                      <span>{t('admin.pedagogicalDashboard.pendingReview')}</span>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="admin-pedagogical-focus-card__actions">
+                {canViewChannels ? (
+                  <Link href="/admin/channels" className="admin-pedagogical-focus-action">
+                    {t('admin.pedagogicalDashboard.readMessages')}
+                  </Link>
+                ) : null}
+                {canReview ? (
+                  <Link
+                    href="/admin/communication?filter=submitted_messages"
+                    className="admin-pedagogical-focus-action"
+                  >
+                    {t('admin.pedagogicalDashboard.reviewMessages')}
+                  </Link>
+                ) : null}
                 {canComposeCommunication ? (
                   <Link
                     href="/admin/communication/compose"
-                    className="admin-pedagogical-focus-card__cta"
+                    className="admin-pedagogical-focus-action admin-pedagogical-focus-action--primary"
                   >
                     {t('channels.createMessage')}
                   </Link>
                 ) : null}
-              </span>
-              <strong className="admin-pedagogical-focus-card__value">
-                {communicationPrimaryValue}
-              </strong>
-              <span className="admin-pedagogical-focus-card__status">
-                {canViewChannels ? (
-                  <>
-                    <Link href="/admin/channels" className="admin-pedagogical-focus-card__cta">
-                      {t('admin.pedagogicalDashboard.readMessages')}
-                    </Link>{' '}
-                    · {t('admin.pedagogicalDashboard.unreadMessages')}
-                    {canReview ? (
-                      <>
-                        {' '}·{' '}
-                        <Link
-                          href="/admin/communication?filter=submitted"
-                          className="admin-pedagogical-focus-card__cta"
-                        >
-                          {communicationReviewLoading ? '…' : communicationReviewCount}{' '}
-                          {t('communication.filter.submitted')}
-                        </Link>
-                      </>
-                    ) : null}
-                  </>
-                ) : canReview ? (
-                  <Link
-                    href="/admin/communication?filter=submitted"
-                    className="admin-pedagogical-focus-card__cta"
-                  >
-                    {t('communication.filter.submitted')}
-                  </Link>
-                ) : (
-                  t('channels.schoolCommunicationTitle')
-                )}
-              </span>
-            </div>
+              </div>
+            </article>
           ) : null}
 
           {showHomeworkSpotlight ? (
-            <Link
-              href={canReview ? '/admin/communication?filter=submitted' : '/admin/homeworks'}
-              className="admin-pedagogical-focus-card admin-pedagogical-focus-card--homework"
-            >
-              <span className="admin-pedagogical-focus-card__topline">
-                <span className="admin-pedagogical-focus-card__title">{t('nav.homework')}</span>
-                <span className="admin-pedagogical-focus-card__cta">{t('common.view')}</span>
-              </span>
-              <strong className="admin-pedagogical-focus-card__value">
-                {canReview ? (homeworkReviewLoading ? '…' : homeworkReviewCount) : publishedHomeworkValue}
-              </strong>
-              <span className="admin-pedagogical-focus-card__status">
+            <article className="admin-pedagogical-focus-card admin-pedagogical-focus-card--homework admin-pedagogical-focus-card--workspace">
+              <div className="admin-pedagogical-focus-card__topline">
+                <h2 className="admin-pedagogical-focus-card__title">{t('nav.homework')}</h2>
+              </div>
+
+              <div className="admin-pedagogical-focus-card__metrics">
                 {canReview ? (
-                  <>
-                    {t('communication.filter.submitted')} ·{' '}
-                    {t('admin.pedagogicalDashboard.homeworkPublishedCompact', {
-                      count: publishedHomeworkValue,
-                    })}
-                  </>
-                ) : (
-                  t('dashboard.publishedHomeworks')
-                )}
-              </span>
-            </Link>
+                  <div className="admin-pedagogical-focus-card__metric">
+                    <strong>{homeworkReviewLoading ? '…' : homeworkReviewCount}</strong>
+                    <span>{t('admin.pedagogicalDashboard.pendingReview')}</span>
+                  </div>
+                ) : null}
+                {canViewHomeworks ? (
+                  <div className="admin-pedagogical-focus-card__metric">
+                    <strong>{publishedHomeworkValue}</strong>
+                    <span>{t('admin.pedagogicalDashboard.published')}</span>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="admin-pedagogical-focus-card__actions">
+                {canReview ? (
+                  <Link
+                    href="/admin/communication?filter=submitted_homework"
+                    className="admin-pedagogical-focus-action"
+                  >
+                    {t('admin.pedagogicalDashboard.reviewHomeworks')}
+                  </Link>
+                ) : null}
+                {canViewHomeworks ? (
+                  <Link
+                    href="/admin/homeworks"
+                    className="admin-pedagogical-focus-action admin-pedagogical-focus-action--primary-secondary"
+                  >
+                    {t('admin.pedagogicalDashboard.viewHomeworks')}
+                  </Link>
+                ) : null}
+              </div>
+            </article>
           ) : null}
         </section>
       ) : null}
