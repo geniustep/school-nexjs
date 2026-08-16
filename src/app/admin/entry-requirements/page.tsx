@@ -1,6 +1,7 @@
 'use client';
 
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { EntryRequirementsLocalizationBoundary } from '@/features/admin/entry-requirements/entry-requirements-localization-boundary';
 import { AdminEntryRequirementsWorkspace } from '@/features/admin/entry-requirements/entry-requirements-workspace';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -13,7 +14,9 @@ export default function AdminEntryRequirementsPage() {
 
   return (
     <RequireAdminPermission permission={permission}>
-      <AdminEntryRequirementsWorkspace />
+      <EntryRequirementsLocalizationBoundary>
+        <AdminEntryRequirementsWorkspace />
+      </EntryRequirementsLocalizationBoundary>
     </RequireAdminPermission>
   );
 }
