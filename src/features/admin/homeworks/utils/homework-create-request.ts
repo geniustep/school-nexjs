@@ -26,6 +26,18 @@ export type HomeworkCreateRequest =
       body: HomeworkCreateFields & { targets: HomeworkCreateTarget[] };
     };
 
+export type HomeworkFinalizeRequest =
+  | {
+      mode: 'single';
+      path: `/admin/homeworks/upload-sessions/${string}/finalize`;
+      body: HomeworkCreateFields & HomeworkCreateTarget;
+    }
+  | {
+      mode: 'batch';
+      path: `/admin/homeworks/upload-sessions/${string}/finalize-batch`;
+      body: HomeworkCreateFields & { targets: HomeworkCreateTarget[] };
+    };
+
 function positiveInteger(value: number, field: string): number {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${field} must be a positive integer`);
@@ -33,10 +45,10 @@ function positiveInteger(value: number, field: string): number {
   return value;
 }
 
-export function buildHomeworkCreateRequest(
+function normalizeHomeworkCreateInput(
   fields: HomeworkCreateFields,
   targets: HomeworkCreateTarget[],
-): HomeworkCreateRequest {
+): { fields: HomeworkCreateFields; targets: HomeworkCreateTarget[] } {
   const name = fields.name.trim();
   const deadline = fields.deadline.trim();
   if (!name) throw new Error('name is required');
@@ -45,24 +57,33 @@ export function buildHomeworkCreateRequest(
   positiveInteger(fields.academic_year_id, 'academic_year_id');
   if (targets.length === 0) throw new Error('at least one target is required');
 
-  const normalizedFields: HomeworkCreateFields = {
-    ...fields,
-    name,
-    description: fields.description?.trim() || undefined,
-    deadline,
+  return {
+    fields: {
+      ...fields,
+      name,
+      description: fields.description?.trim() || undefined,
+      deadline,
+    },
+    targets: targets.map((target) => ({
+      class_id: positiveInteger(target.class_id, 'class_id'),
+      teacher_id: positiveInteger(target.teacher_id, 'teacher_id'),
+    })),
   };
-  const normalizedTargets = targets.map((target) => ({
-    class_id: positiveInteger(target.class_id, 'class_id'),
-    teacher_id: positiveInteger(target.teacher_id, 'teacher_id'),
-  }));
+}
 
-  if (normalizedTargets.length === 1) {
+export function buildHomeworkCreateRequest(
+  fields: HomeworkCreateFields,
+  targets: HomeworkCreateTarget[],
+): HomeworkCreateRequest {
+  const normalized = normalizeHomeworkCreateInput(fields, targets);
+
+  if (normalized.targets.length === 1) {
     return {
       mode: 'single',
       path: '/admin/homeworks',
       body: {
-        ...normalizedFields,
-        ...normalizedTargets[0],
+        ...normalized.fields,
+        ...normalized.targets[0],
       },
     };
   }
@@ -71,8 +92,38 @@ export function buildHomeworkCreateRequest(
     mode: 'batch',
     path: '/admin/homeworks/batch',
     body: {
-      ...normalizedFields,
-      targets: normalizedTargets,
+      ...normalized.fields,
+      targets: normalized.targets,
+    },
+  };
+}
+
+export function buildHomeworkFinalizeRequest(
+  publicId: string,
+  fields: HomeworkCreateFields,
+  targets: HomeworkCreateTarget[],
+): HomeworkFinalizeRequest {
+  const normalizedPublicId = publicId.trim();
+  if (!normalizedPublicId) throw new Error('publicId is required');
+  const normalized = normalizeHomeworkCreateInput(fields, targets);
+
+  if (normalized.targets.length === 1) {
+    return {
+      mode: 'single',
+      path: `/admin/homeworks/upload-sessions/${normalizedPublicId}/finalize`,
+      body: {
+        ...normalized.fields,
+        ...normalized.targets[0],
+      },
+    };
+  }
+
+  return {
+    mode: 'batch',
+    path: `/admin/homeworks/upload-sessions/${normalizedPublicId}/finalize-batch`,
+    body: {
+      ...normalized.fields,
+      targets: normalized.targets,
     },
   };
 }
