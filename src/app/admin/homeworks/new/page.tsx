@@ -229,7 +229,9 @@ export default function AdminHomeworkCreatePage() {
     classes.forEach((item) => {
       if (item.level?.cycle?.id === Number(cycleId)) byId.set(item.level.id, item.level);
     });
-    return [...byId.values()].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+    return [...byId.values()].sort((a, b) =>
+      (a.display_name ?? a.name).localeCompare(b.display_name ?? b.name),
+    );
   }, [classes, cycleId]);
 
   const levelClasses = useMemo(() => {
