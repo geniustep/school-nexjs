@@ -5,12 +5,17 @@
  * @design-status review-needed
  */
 
-import Link from 'next/link';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { Badge, Card, InfoBanner, PageHeader } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
+import { SecureMaterialsComposer } from '@/features/attachments/secure-materials/secure-materials-composer';
+import { useSecureMaterials } from '@/features/attachments/secure-materials/use-secure-materials';
+import {
+  createIdempotencyKey,
+  finalizeUploadSession,
+} from '@/features/attachments/secure-materials/api';
 import { useAcademicContextOptions } from '@/features/academic-context/hooks/use-academic-context-options';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -23,6 +28,7 @@ import type { EffectiveSubjectOption } from '@/types/academic-context';
 import type { SchoolClass } from '@/types/class';
 import {
   buildHomeworkCreateRequest,
+  buildHomeworkFinalizeRequest,
   type HomeworkCreateTarget,
 } from '@/features/admin/homeworks/utils/homework-create-request';
 import '@/features/admin/homeworks/homework-create.css';
@@ -43,12 +49,18 @@ const COPY = {
     subtitle: 'حدد الأقسام والمادة، اكتب الواجب، ثم راجع المستلمين قبل الإرسال.',
     back: 'العودة إلى الواجبات',
     audience: 'لمن سيُرسل الواجب؟',
-    audienceHint: 'ابدأ بالسلك ثم المستوى. يمكنك اختيار قسم واحد أو كل أقسام المستوى.',
+    audienceHint: 'ابدأ بالسلك ثم المستوى، ثم اختر قسمًا واحدًا أو أي مجموعة من الأقسام.',
     cycle: 'السلك',
     level: 'المستوى',
     section: 'القسم',
     subject: 'المادة',
     allSections: 'كل أقسام المستوى',
+    sections: 'الأقسام',
+    sectionsHint: 'اختر الأقسام التي سيصل إليها الواجب. يمكنك اختيار قسمين أو أكثر بشكل مستقل.',
+    selectAll: 'تحديد الكل',
+    clearSelection: 'إلغاء التحديد',
+    selectedCount: 'المحدد',
+    attachments: 'المرفقات',
     details: 'محتوى الواجب',
     detailsHint: 'اكتب عنوانًا واضحًا وتعليمات مختصرة، ثم حدد آخر أجل للتسليم.',
     homeworkTitle: 'عنوان الواجب',
@@ -90,12 +102,18 @@ const COPY = {
     subtitle: 'Choisissez les classes et la matière, rédigez le devoir puis vérifiez les destinataires.',
     back: 'Retour aux devoirs',
     audience: 'À qui envoyer le devoir ?',
-    audienceHint: 'Commencez par le cycle puis le niveau. Choisissez une classe ou toutes les classes du niveau.',
+    audienceHint: 'Commencez par le cycle puis le niveau, puis choisissez une ou plusieurs classes.',
     cycle: 'Cycle',
     level: 'Niveau',
     section: 'Classe',
     subject: 'Matière',
     allSections: 'Toutes les classes du niveau',
+    sections: 'Classes',
+    sectionsHint: 'Sélectionnez librement une ou plusieurs classes destinataires.',
+    selectAll: 'Tout sélectionner',
+    clearSelection: 'Effacer',
+    selectedCount: 'Sélectionnées',
+    attachments: 'Pièces jointes',
     details: 'Contenu du devoir',
     detailsHint: 'Ajoutez un titre clair, des consignes concises et une date limite.',
     homeworkTitle: 'Titre du devoir',
@@ -137,12 +155,18 @@ const COPY = {
     subtitle: 'Choose the classes and subject, write the homework, then review recipients before sending.',
     back: 'Back to homework',
     audience: 'Who should receive it?',
-    audienceHint: 'Start with cycle and level. Choose one class or every class in the level.',
+    audienceHint: 'Start with cycle and level, then choose one or any combination of classes.',
     cycle: 'Cycle',
     level: 'Level',
     section: 'Class',
     subject: 'Subject',
     allSections: 'All classes in the level',
+    sections: 'Classes',
+    sectionsHint: 'Select one or any combination of target classes.',
+    selectAll: 'Select all',
+    clearSelection: 'Clear',
+    selectedCount: 'Selected',
+    attachments: 'Attachments',
     details: 'Homework content',
     detailsHint: 'Add a clear title, concise instructions, and a deadline.',
     homeworkTitle: 'Homework title',
@@ -184,12 +208,18 @@ const COPY = {
     subtitle: 'Elige las clases y la materia, redacta la tarea y revisa los destinatarios antes de enviarla.',
     back: 'Volver a tareas',
     audience: '¿A quién se enviará?',
-    audienceHint: 'Empieza por ciclo y nivel. Elige una clase o todas las clases del nivel.',
+    audienceHint: 'Empieza por ciclo y nivel y luego elige una o varias clases.',
     cycle: 'Ciclo',
     level: 'Nivel',
     section: 'Clase',
     subject: 'Materia',
     allSections: 'Todas las clases del nivel',
+    sections: 'Clases',
+    sectionsHint: 'Selecciona libremente una o varias clases destinatarias.',
+    selectAll: 'Seleccionar todas',
+    clearSelection: 'Limpiar',
+    selectedCount: 'Seleccionadas',
+    attachments: 'Adjuntos',
     details: 'Contenido de la tarea',
     detailsHint: 'Añade un título claro, instrucciones breves y una fecha límite.',
     homeworkTitle: 'Título de la tarea',
@@ -266,7 +296,7 @@ export default function AdminHomeworkCreatePage() {
     enabled: activeAcademicYearId != null,
   });
 
-  const [classSelection, setClassSelection] = useState('all');
+  const [selectedClassIds, setSelectedClassIds] = useState<number[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -274,6 +304,8 @@ export default function AdminHomeworkCreatePage() {
   const [visibleToParent, setVisibleToParent] = useState(true);
   const [requireSubmission, setRequireSubmission] = useState(true);
   const [saving, setSaving] = useState(false);
+  const materials = useSecureMaterials({ purpose: 'homework' });
+  const finalizeKeyRef = useRef(createIdempotencyKey('admin-homework-finalize'));
 
   const cycleId = academicContext.selection.cycleId;
   const levelId = academicContext.selection.levelId;
@@ -283,13 +315,6 @@ export default function AdminHomeworkCreatePage() {
   const contextSubjects = academicContext.options?.subjects ?? [];
   const classes = classesState.data ?? [];
 
-  useEffect(() => {
-    if (classSelection === 'all') return;
-    if (academicContext.selection.classId !== classSelection) {
-      setClassSelection('all');
-    }
-  }, [academicContext.selection.classId, classSelection]);
-
   const levelClasses = useMemo(() => {
     if (!levelId) return [];
     return classes
@@ -297,11 +322,20 @@ export default function AdminHomeworkCreatePage() {
       .sort((a, b) => (a.display_name ?? a.name).localeCompare(b.display_name ?? b.name));
   }, [classes, levelId]);
 
+  useEffect(() => {
+    setSelectedClassIds((current) => {
+      const allowed = new Set(levelClasses.map((item) => item.id));
+      const next = current.filter((id) => allowed.has(id));
+      return next.length === current.length && next.every((id, index) => id === current[index])
+        ? current
+        : next;
+    });
+  }, [levelClasses]);
+
   const selectedClasses = useMemo(() => {
-    if (classSelection === 'all') return levelClasses;
-    const id = Number(classSelection);
-    return levelClasses.filter((item) => item.id === id);
-  }, [classSelection, levelClasses]);
+    const selected = new Set(selectedClassIds);
+    return levelClasses.filter((item) => selected.has(item.id));
+  }, [levelClasses, selectedClassIds]);
 
   const availableSubjects = useMemo(
     () => commonSubjects(selectedClasses, contextSubjects),
@@ -360,6 +394,7 @@ export default function AdminHomeworkCreatePage() {
     assignmentsReady &&
     !academicContext.refetching &&
     !assignmentsState.loading &&
+    materials.ready &&
     !saving;
 
   const selectedCycle = cycles.find((item) => String(item.id) === cycleId);
@@ -368,9 +403,13 @@ export default function AdminHomeworkCreatePage() {
   const selectedClassLabel =
     selectedClasses.length === 0
       ? copy.notSelected
-      : classSelection === 'all'
+      : selectedClasses.length === levelClasses.length
         ? `${copy.allSections} · ${selectedClasses.length}`
-        : selectedClasses[0]?.display_name ?? selectedClasses[0]?.name ?? copy.notSelected;
+        : selectedClasses.length === 1
+          ? selectedClasses[0]?.display_name ?? selectedClasses[0]?.name ?? copy.notSelected
+          : `${selectedClasses.length} · ${selectedClasses
+              .map((item) => item.display_name ?? item.name)
+              .join('، ')}`;
 
   const loadErrorMessage =
     classesState.error?.message ??
@@ -379,18 +418,41 @@ export default function AdminHomeworkCreatePage() {
     (academicContext.permissionDenied ? copy.loadFailed : null);
 
   function handleCycleChange(nextCycleId: string) {
-    setClassSelection('all');
+    setSelectedClassIds([]);
     academicContext.setField('cycle', nextCycleId);
   }
 
   function handleLevelChange(nextLevelId: string) {
-    setClassSelection('all');
+    setSelectedClassIds([]);
     academicContext.setField('level', nextLevelId);
   }
 
-  function handleClassSelection(nextClassSelection: string) {
-    setClassSelection(nextClassSelection);
-    academicContext.setField('class', nextClassSelection === 'all' ? '' : nextClassSelection);
+  function applyClassSelection(nextIds: number[]) {
+    const requested = new Set(nextIds);
+    const normalized = levelClasses
+      .filter((item) => requested.has(item.id))
+      .map((item) => item.id);
+    setSelectedClassIds(normalized);
+
+    if (subjectId) {
+      const nextClasses = levelClasses.filter((item) => requested.has(item.id));
+      const nextSubjects = commonSubjects(nextClasses, contextSubjects);
+      if (!nextSubjects.some((subject) => String(subject.id) === subjectId)) {
+        academicContext.setField('subject', '');
+      }
+    }
+  }
+
+  function toggleClass(classId: number, checked: boolean) {
+    const next = checked
+      ? [...selectedClassIds, classId]
+      : selectedClassIds.filter((id) => id !== classId);
+    applyClassSelection(next);
+  }
+
+  async function handleCancel() {
+    await materials.cancel();
+    router.push('/admin/homeworks');
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -405,28 +467,39 @@ export default function AdminHomeworkCreatePage() {
       teacher_id: preview.assignment!.teacher.id,
     }));
 
-    let request;
-    try {
-      request = buildHomeworkCreateRequest(
-        {
-          name,
-          description,
-          subject_id: Number(subjectId),
-          academic_year_id: activeAcademicYearId,
-          deadline,
-          visible_to_student: visibleToStudent,
-          visible_to_parent: visibleToParent,
-          require_submission: requireSubmission,
-        },
-        targets,
-      );
-    } catch {
-      toast.error(copy.invalidForm);
-      return;
-    }
+    const fields = {
+      name,
+      description,
+      subject_id: Number(subjectId),
+      academic_year_id: activeAcademicYearId,
+      deadline,
+      visible_to_student: visibleToStudent,
+      visible_to_parent: visibleToParent,
+      require_submission: requireSubmission,
+    };
 
     setSaving(true);
-    const response = await api.post<unknown>(request.path, request.body);
+    let response;
+    try {
+      const useUploadFinalize = materials.materials.length > 0 || materials.session != null;
+      if (useUploadFinalize) {
+        const session = await materials.ensureSession();
+        const request = buildHomeworkFinalizeRequest(session.publicId, fields, targets);
+        response = await finalizeUploadSession<unknown>({
+          path: request.path,
+          session,
+          idempotencyKey: finalizeKeyRef.current,
+          body: request.body,
+        });
+      } else {
+        const request = buildHomeworkCreateRequest(fields, targets);
+        response = await api.post<unknown>(request.path, request.body);
+      }
+    } catch (cause) {
+      setSaving(false);
+      toast.error(cause instanceof Error ? cause.message : copy.invalidForm);
+      return;
+    }
     setSaving(false);
 
     if (!response.success) {
@@ -458,9 +531,9 @@ export default function AdminHomeworkCreatePage() {
   if (loadErrorMessage) {
     return (
       <div className="admin-workspace homework-create-page">
-        <Link href="/admin/homeworks" className="back-link homework-create__back">
+        <button type="button" className="back-link homework-create__back" onClick={() => void handleCancel()}>
           ‹ {copy.back}
-        </Link>
+        </button>
         <PageHeader title={copy.title} subtitle={copy.subtitle} />
         <Card>
           <p className="form-error">{loadErrorMessage}</p>
@@ -471,9 +544,9 @@ export default function AdminHomeworkCreatePage() {
 
   return (
     <div className="admin-workspace homework-create-page">
-      <Link href="/admin/homeworks" className="back-link homework-create__back">
+      <button type="button" className="back-link homework-create__back" onClick={() => void handleCancel()}>
         ‹ {copy.back}
-      </Link>
+      </button>
       <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
       <form onSubmit={handleSubmit}>
@@ -504,7 +577,7 @@ export default function AdminHomeworkCreatePage() {
                 </label>
 
                 <label className="field homework-create__field">
-                  <span>{copy.level}</span>
+                  <span >{copy.level}</span>
                   <select
                     className="select"
                     value={levelId}
@@ -512,7 +585,7 @@ export default function AdminHomeworkCreatePage() {
                     onChange={(event) => handleLevelChange(event.target.value)}
                   >
                     <option value="">{copy.selectLevel}</option>
-                    {levels.map((level) => (
+                   {levels.map((level) => (
                       <option key={level.id} value={level.id}>
                         {level.display_label ?? level.display_name ?? level.name}
                       </option>
@@ -520,22 +593,54 @@ export default function AdminHomeworkCreatePage() {
                   </select>
                 </label>
 
-                <label className="field homework-create__field">
-                  <span>{copy.section}</span>
-                  <select
-                    className="select"
-                    value={classSelection}
-                    disabled={!levelId || levelClasses.length === 0 || academicContext.refetching}
-                    onChange={(event) => handleClassSelection(event.target.value)}
-                  >
-                    <option value="all">{copy.allSections}</option>
-                    {levelClasses.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.display_name ?? item.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <fieldset
+                  className="homework-create__section-picker"
+                  disabled={!levelId || levelClasses.length === 0 || academicContext.refetching}
+                >
+                  <legend>{copy.sections}</legend>
+                  <div className="homework-create__section-picker-head">
+                    <p>{copy.sectionsHint}</p>
+                    <div className="homework-create__section-picker-tools">
+                      <span className="homework-create__selection-count" dir="ltr">
+                        {selectedClassIds.length}/{levelClasses.length}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        disabled={levelClasses.length === 0 || selectedClassIds.length === levelClasses.length}
+                        onClick={() => applyClassSelection(levelClasses.map((item) => item.id))}
+                      >
+                        {copy.selectAll}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        disabled={selectedClassIds.length === 0}
+                        onClick={() => applyClassSelection([])}
+                      >
+                        {copy.clearSelection}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="homework-create__section-options">
+                    {levelClasses.map((item) => {
+                      const checked = selectedClassIds.includes(item.id);
+                      return (
+                        <label
+                          key={item.id}
+                          className={`homework-create__section-option ${checked ? 'is-selected' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(event) => toggleClass(item.id, event.target.checked)}
+                          />
+                          <span dir="auto">{item.display_name ?? item.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
 
                 <label className="field homework-create__field">
                   <span>{copy.subject}</span>
@@ -666,6 +771,10 @@ export default function AdminHomeworkCreatePage() {
                   onChange={(event) => setDescription(event.target.value)}
                 />
               </label>
+
+              <div className="homework-create__materials">
+                <SecureMaterialsComposer controller={materials} disabled={saving} />
+              </div>
             </Card>
           </div>
 
@@ -700,6 +809,10 @@ export default function AdminHomeworkCreatePage() {
                   <dd className="numeric-text" dir="ltr">
                     {selectedClasses.length > 0 ? `${readyTeacherCount}/${selectedClasses.length}` : '—'}
                   </dd>
+                </div>
+                <div>
+                  <dt>{copy.attachments}</dt>
+                  <dd className="numeric-text" dir="ltr">{materials.materials.length}/5</dd>
                 </div>
               </dl>
 
@@ -746,9 +859,9 @@ export default function AdminHomeworkCreatePage() {
                 <button type="submit" className="btn btn--primary" disabled={!formReady}>
                   {saving ? copy.sending : copy.send}
                 </button>
-                <Link href="/admin/homeworks" className="btn btn--ghost">
+                <button type="button" className="btn btn--ghost" onClick={() => void handleCancel()}>
                   {t('common.cancel')}
-                </Link>
+                </button>
               </div>
             </Card>
           </aside>
