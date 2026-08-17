@@ -1,0 +1,388 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status review-needed
+ */
+
+.homework-create-page {
+  width: 100%;
+  max-width: min(100%, 1180px);
+  margin-inline: auto;
+}
+
+.homework-create__back {
+  display: inline-flex;
+  margin-block-end: 2px;
+}
+
+.homework-create__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(286px, 326px);
+  gap: 16px;
+  align-items: start;
+}
+
+.homework-create__main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.homework-create__section {
+  min-width: 0;
+}
+
+.homework-create__section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-block-end: 18px;
+}
+
+.homework-create__section-head h2,
+.homework-create__summary-head h2,
+.homework-create__preview-head h3,
+.homework-create__settings h3 {
+  margin: 0;
+  color: var(--c-text, #0f172a);
+}
+
+.homework-create__section-head h2,
+.homework-create__summary-head h2 {
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.homework-create__section-head p,
+.homework-create__preview-head p {
+  margin: 4px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.homework-create__step {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 24%, var(--c-border, #e2e8f0));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 7%, #fff);
+  color: var(--raqeem-primary, #243b6b);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.homework-create__scope-grid,
+.homework-create__details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.homework-create__field {
+  min-width: 0;
+  margin: 0;
+}
+
+.homework-create__field > span {
+  color: var(--c-text, #0f172a);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.homework-create__field .input,
+.homework-create__field .select,
+.homework-create__field .textarea {
+  width: 100%;
+}
+
+.homework-create__field--title {
+  min-width: 0;
+}
+
+.homework-create__description {
+  margin-block-start: 14px;
+}
+
+.homework-create__description .textarea {
+  min-height: 190px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.homework-create__refreshing {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 12px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.homework-create__preview {
+  margin-block-start: 18px;
+  padding: 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--c-surface-2, #eef2f8);
+}
+
+.homework-create__preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.homework-create__preview-head h3,
+.homework-create__settings h3 {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.homework-create__preview-count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 46px;
+  block-size: 28px;
+  padding-inline: 9px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 999px;
+  background: var(--c-surface, #fff);
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.homework-create__teacher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-block-start: 12px;
+}
+
+.homework-create__teacher-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 82%, transparent);
+  border-radius: 9px;
+  background: var(--c-surface, #fff);
+}
+
+.homework-create__teacher-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.homework-create__teacher-copy strong {
+  overflow: hidden;
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homework-create__teacher-copy span {
+  overflow: hidden;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homework-create__side {
+  min-width: 0;
+}
+
+.homework-create__summary-card {
+  position: sticky;
+  top: 18px;
+}
+
+.homework-create__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 15px;
+}
+
+.homework-create__summary-dot {
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 999px;
+  background: var(--c-border, #e2e8f0);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-border, #e2e8f0) 42%, transparent);
+}
+
+.homework-create__summary-dot.is-ready {
+  background: #16a34a;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #16a34a 15%, transparent);
+}
+
+.homework-create__summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+}
+
+.homework-create__summary-list > div {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.72fr) minmax(0, 1.28fr);
+  gap: 10px;
+  align-items: baseline;
+  padding-block: 8px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 78%, transparent);
+}
+
+.homework-create__summary-list > div:last-child {
+  border-block-end: 0;
+}
+
+.homework-create__summary-list dt,
+.homework-create__summary-list dd {
+  margin: 0;
+}
+
+.homework-create__summary-list dt {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.73rem;
+}
+
+.homework-create__summary-list dd {
+  overflow: hidden;
+  color: var(--c-text, #0f172a);
+  font-size: 0.79rem;
+  font-weight: 650;
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homework-create__divider {
+  block-size: 1px;
+  margin-block: 15px;
+  background: var(--c-border, #e2e8f0);
+}
+
+.homework-create__settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.homework-create__settings h3 {
+  margin-block-end: 3px;
+}
+
+.homework-create__setting {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-block-size: 38px;
+  padding: 8px 9px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 9px;
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #0f172a);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.homework-create__setting:hover {
+  background: var(--c-surface-2, #eef2f8);
+}
+
+.homework-create__setting input {
+  inline-size: 16px;
+  block-size: 16px;
+  accent-color: var(--raqeem-primary, #243b6b);
+}
+
+.homework-create__readiness {
+  margin: 0;
+  padding: 10px 11px;
+  border-radius: 9px;
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.homework-create__readiness.is-ready {
+  background: color-mix(in srgb, #16a34a 8%, #fff);
+  color: #166534;
+}
+
+.homework-create__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin-block-start: 12px;
+}
+
+.homework-create__actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.homework-create__loading-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--c-text-muted, #64748b);
+}
+
+@media (max-width: 960px) {
+  .homework-create__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .homework-create__summary-card {
+    position: static;
+  }
+
+  .homework-create__summary-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .homework-create__scope-grid,
+  .homework-create__details-grid,
+  .homework-create__summary-list {
+    grid-template-columns: 1fr;
+  }
+
+  .homework-create__section-head {
+    gap: 10px;
+  }
+
+  .homework-create__teacher-row,
+  .homework-create__preview-head {
+    align-items: flex-start;
+  }
+
+  .homework-create__teacher-row {
+    flex-direction: column;
+  }
+
+  .homework-create__summary-list > div {
+    grid-template-columns: minmax(100px, 0.8fr) minmax(0, 1.2fr);
+  }
+}
