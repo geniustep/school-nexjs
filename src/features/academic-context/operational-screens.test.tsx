@@ -246,6 +246,8 @@ describe('Assignment form academic context', () => {
     expect(onCreate).not.toHaveBeenCalled();
 
     await user.selectOptions(offering, '100');
+    expect(preview.disabled).toBe(true);
+    await user.click(screen.getByText('pick-eligible-teacher'));
     await waitFor(() => expect(preview.disabled).toBe(false));
     await user.click(preview);
 
