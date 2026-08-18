@@ -95,12 +95,12 @@ describe('RecipientAnnouncementsDashboardSection', () => {
       </LocaleProvider>,
     );
 
-    expect(useAnnouncementsList).toHaveBeenCalledWith({ pageSize: 3 });
+    expect(vi.mocked(useAnnouncementsList)).toHaveBeenCalledWith({ pageSize: 3 });
     expect(screen.getByTestId('recipient-announcements-dashboard')).toBeTruthy();
     expect(screen.getByTestId('recipient-announcements-inbox')).toBeTruthy();
     expect(screen.getAllByTestId('recipient-announcement-inbox-item')).toHaveLength(3);
     expect(screen.getByText('إعلان اختباري')).toBeTruthy();
-    expect(screen.getByText('إدارة المؤسسة')).toBeTruthy();
+    expect(screen.getAllByText('إدارة المؤسسة')).toHaveLength(3);
     expect(screen.getByTestId('recipient-announcement-unread-dot')).toBeTruthy();
     expect(screen.queryByText('إعلان رابع')).toBeNull();
     expect(container.querySelector('a[href="/teacher/announcements"]')).toBeTruthy();
