@@ -34,6 +34,7 @@ const TEACHER_DOMAIN_ERROR_KEYS: Record<string, string> = {
   assignment_scope_mismatch: 'admin.teacherDomain.errors.assignmentScopeMismatch',
   assignment_date_invalid: 'admin.teacherDomain.errors.assignmentDateInvalid',
   assignment_offering_mismatch: 'admin.teacherDomain.errors.assignmentOfferingMismatch',
+  class_subject_mismatch: 'admin.academicSetup.errors.classSubjectMismatch',
   assignment_termination_reason_required:
     'admin.teacherDomain.errors.assignmentTerminationReasonRequired',
   teaching_assignment_termination_reason_required:
@@ -63,6 +64,8 @@ const TEACHER_DOMAIN_ERROR_KEYS: Record<string, string> = {
     'admin.teacherDomain.eligibleTeachers.errors.candidateNotEligible',
 };
 
+const LEGACY_CLASS_SUBJECT_MISMATCH = /^Subject .+ is not available for class .+\.?$/i;
+
 export function teacherDomainErrorKey(code: string | undefined | null): string | null {
   if (!code) return null;
   return TEACHER_DOMAIN_ERROR_KEYS[code] ?? null;
@@ -78,7 +81,15 @@ export function mapTeacherDomainError(
     const translated = t(key);
     if (translated !== key) return translated;
   }
-  return sanitizeUserFacingErrorMessage(error.message, t('errors.generic'));
+
+  const message = error.message?.trim() ?? '';
+  if (LEGACY_CLASS_SUBJECT_MISMATCH.test(message)) {
+    const mismatchKey = 'admin.academicSetup.errors.classSubjectMismatch';
+    const translated = t(mismatchKey);
+    if (translated !== mismatchKey) return translated;
+  }
+
+  return sanitizeUserFacingErrorMessage(message, t('errors.generic'));
 }
 
 export function teacherDomainFieldErrors(
