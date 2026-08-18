@@ -19,11 +19,12 @@ import { AnnouncementsRecipientFeed } from '@/features/announcements/components/
 import { useSession } from '@/features/auth/session-context';
 import { fetchCommunicationContentList } from '@/features/communication/api/admin-communication-api';
 import {
+  communicationActorRoleMessageKey,
   communicationContentTypeMessageKey,
   communicationStateMessageKey,
   stripHtmlPreview,
 } from '@/features/communication/utils/communication-labels';
-import { useT } from '@/features/i18n/locale-context';
+import { useT, type TranslateFn } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import {
   COMMUNICATION_CAPABILITIES,
@@ -44,6 +45,8 @@ const COMMUNICATION_FILTERS: ReadonlyArray<{
   { id: 'announcement', labelKey: 'communication.contentType.announcement' },
   { id: 'message', labelKey: 'communication.contentType.message' },
 ];
+
+const TECHNICAL_INDIVIDUAL_AUDIENCE = /^individual:(guardian|parent|teacher|student):(\d+)$/i;
 
 function isGeneralCommunication(item: CommunicationContent): boolean {
   return (
@@ -101,6 +104,37 @@ function communicationBody(item: CommunicationContent): string | null | undefine
 
 function canOfferEdit(item: CommunicationContent): boolean {
   return (item.allowed_actions ?? []).includes('edit');
+}
+
+function individualAudienceLabel(raw: string, t: TranslateFn): string | null {
+  const match = TECHNICAL_INDIVIDUAL_AUDIENCE.exec(raw.trim());
+  if (!match) return null;
+
+  const role = match[1].toLowerCase() === 'parent' ? 'guardian' : match[1].toLowerCase();
+  const roleKey = communicationActorRoleMessageKey(role);
+  const roleLabel = roleKey ? t(roleKey) : t('common.dash');
+  return `${roleLabel} · #${match[2]}`;
+}
+
+function audienceDisplay(item: CommunicationContent, t: TranslateFn): { label: string; count: number | null } {
+  const rawLabel = item.audience_summary?.label?.trim();
+  const technicalIndividual = rawLabel ? individualAudienceLabel(rawLabel, t) : null;
+  const frozenLabels = (item.recipient_summary?.audience_labels ?? []).filter(
+    (label): label is string => typeof label === 'string' && label.trim().length > 0,
+  );
+  const label =
+    technicalIndividual ??
+    (rawLabel && !rawLabel.includes(':') ? rawLabel : null) ??
+    (frozenLabels.length > 0 ? frozenLabels.join(' / ') : null) ??
+    t('common.dash');
+
+  const count =
+    item.recipient_summary?.total_people_count ??
+    item.recipient_summary?.deliverable_user_count ??
+    item.audience_recipient_count ??
+    null;
+
+  return { label, count: typeof count === 'number' ? count : null };
 }
 
 function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode }) {
@@ -219,11 +253,19 @@ function AdminCommunicationWorkspace({ actions }: { actions?: React.ReactNode })
         key: 'audience',
         header: t('communication.general.beneficiaries'),
         width: '16%',
-        render: (item) => (
-          <span className="tiny" dir="auto">
-            {item.audience_summary?.label || t('common.dash')}
-          </span>
-        ),
+        render: (item) => {
+          const audience = audienceDisplay(item, t);
+          return (
+            <div className="communication-list__audience" dir="auto">
+              <span className="tiny">{audience.label}</span>
+              {audience.count != null ? (
+                <span className="tiny muted numeric-text" dir="ltr">
+                  {audience.count}
+                </span>
+              ) : null}
+            </div>
+          );
+        },
       },
       {
         key: 'date',
