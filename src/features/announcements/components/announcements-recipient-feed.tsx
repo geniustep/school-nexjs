@@ -144,18 +144,12 @@ export function AnnouncementsRecipientFeed({
           subtitle={subtitle ?? t('announcements.subtitle')}
           actions={actions}
         />
-        {list.data ? (
+        {unread > 0 ? (
           <div className={styles.summary} aria-live="polite">
-            <span className={styles.summaryItem}>
-              <strong>{list.data.total}</strong>
-              <span>{pageTitle}</span>
+            <span className={`${styles.summaryItem} ${styles.summaryUnread}`}>
+              <span className={styles.unreadDot} aria-hidden="true" />
+              <span>{t('announcements.unreadCount', { count: String(unread) })}</span>
             </span>
-            {unread > 0 ? (
-              <span className={`${styles.summaryItem} ${styles.summaryUnread}`}>
-                <span className={styles.unreadDot} aria-hidden="true" />
-                <span>{t('announcements.unreadCount', { count: String(unread) })}</span>
-              </span>
-            ) : null}
           </div>
         ) : null}
       </div>
