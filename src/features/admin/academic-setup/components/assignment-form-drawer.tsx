@@ -15,6 +15,7 @@ import {
   eligibleTeachersSelectionValid,
   type EligibleTeachersPickerValue,
 } from '@/features/admin/teachers/components/eligible-teachers-picker';
+import { resolveGuidedAssignmentClasses } from '../utils/assignment-class-options';
 import { SetupDrawer } from './setup-drawer';
 
 export type AssignmentFormCreatePayload = {
@@ -162,6 +163,15 @@ export function AssignmentFormDrawer({
   const selectedOffering = offerings.find((offering) => String(offering.id) === offeringId);
   const contextBusy = context.loading || context.refetching;
   const isGuidedCreate = !assignment && !missingIssue;
+  const guidedClasses = resolveGuidedAssignmentClasses(
+    classes,
+    contextClasses,
+    {
+      cycleId: context.selection.cycleId,
+      levelId: context.selection.levelId,
+    },
+    academicYearId,
+  );
 
   useEffect(() => {
     if (!open || !classId || !subjectId || contextBusy) return;
@@ -186,7 +196,9 @@ export function AssignmentFormDrawer({
   const offeringBlocksCreate = !assignment && offeringAmbiguous && !offeringId;
   const canSubmit = canManage && selectionValid && !offeringBlocksCreate && !saving;
 
-  const selectedClass = contextClasses.find((item) => item.id === classId);
+  const selectedClass =
+    contextClasses.find((item) => item.id === classId) ??
+    guidedClasses.find((item) => item.id === classId);
   const selectedSubject = contextSubjects.find((item) => item.id === subjectId);
   const selectedClassName =
     selectedClass?.display_alias ??
@@ -289,7 +301,7 @@ export function AssignmentFormDrawer({
                 onChange={(event) => updateGuidedContext('class', event.target.value)}
               >
                 <option value="">{t('academicContext.placeholders.class')}</option>
-                {contextClasses.map((item) => (
+                {guidedClasses.map((item) => (
                   <option key={item.id} value={item.id} dir="auto">
                     {item.display_alias || item.display_name || item.name}
                   </option>
