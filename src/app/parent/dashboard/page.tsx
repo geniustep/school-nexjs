@@ -2,23 +2,48 @@
 
 import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
+import type { ResourceState } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { PageHeader, Card, SectionHead, Avatar } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
+import { AnnouncementsListCard } from '@/features/announcements/components/announcement-list-item';
+import { useAnnouncementsList } from '@/features/announcements/hooks/use-announcements-list';
 import { ChildAcademicActions } from '@/features/parent/child-academic-actions';
 import { useSession } from '@/features/auth/session-context';
-import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import type { AnnouncementListPage } from '@/types/announcement-delivery';
 import type { ParentDashboard } from '@/types/dashboard';
 
 export default function ParentDashboardPage() {
   const user = useSession();
   const t = useT();
-  const { formatDateTime } = useFormat();
   const state = useResource<ParentDashboard>(endpoints.parent.dashboard);
+  const announcements = useAnnouncementsList({ pageSize: 5 });
+
+  const announcementsState: ResourceState<AnnouncementListPage> = {
+    loading: announcements.loading,
+    initialLoading: announcements.initialLoading,
+    fetching: announcements.fetching,
+    data: announcements.data,
+    meta: announcements.data
+      ? {
+          pagination: {
+            page: announcements.data.page,
+            page_size: announcements.data.page_size,
+            total: announcements.data.total,
+            total_pages: announcements.data.total_pages,
+          },
+          unread_count: announcements.data.unread_count,
+        }
+      : null,
+    error: announcements.error,
+    reload: announcements.reload,
+  };
+
+  const unreadAnnouncements = announcements.data?.unread_count ?? 0;
 
   return (
     <>
@@ -84,32 +109,43 @@ export default function ParentDashboardPage() {
               />
             )}
 
-            {d.latest_messages?.length ? (
-              <div className="section">
-                <SectionHead
-                  title={t('dashboard.latestMessages')}
-                  action={
-                    <Link className="btn btn--ghost btn--sm" href="/parent/channels">
-                      {t('dashboard.allChannels')}
-                    </Link>
-                  }
-                />
-                <Card pad={false}>
-                  <div className="msg-feed">
-                    {d.latest_messages.map((m) => (
-                      <div key={m.id} className="msg-feed__item">
-                        <div className="msg-feed__meta">
-                          <span className="msg-feed__channel">{m.channel}</span>
-                          <span className="msg-feed__time">{formatDateTime(m.created_at)}</span>
-                        </div>
-                        <div className="msg-feed__sender">{m.sender}</div>
-                        <div className="msg-feed__body">{m.body}</div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            ) : null}
+            <div className="section">
+              <SectionHead
+                title={t('dashboard.latestMessages')}
+                action={
+                  <Link className="btn btn--ghost btn--sm" href="/parent/announcements">
+                    {t('common.viewAll')}
+                  </Link>
+                }
+              />
+              {unreadAnnouncements > 0 && (
+                <div className="tiny muted mb-2">
+                  {t('announcements.unreadCount', { count: String(unreadAnnouncements) })}
+                </div>
+              )}
+              <ResourceView
+                state={announcementsState}
+                loadingLabel={t('announcements.loading')}
+                isEmpty={(page) => page.items.length === 0}
+                empty={
+                  <Card>
+                    <EmptyState
+                      compact
+                      icon="📣"
+                      title={t('dashboard.latestMessages')}
+                      description={t('announcements.empty')}
+                    />
+                  </Card>
+                }
+              >
+                {(page) => (
+                  <AnnouncementsListCard
+                    items={page.items}
+                    hrefFor={(id) => `/parent/announcements/${id}`}
+                  />
+                )}
+              </ResourceView>
+            </div>
           </>
         )}
       </ResourceView>
