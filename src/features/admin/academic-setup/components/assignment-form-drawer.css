@@ -1,11 +1,11 @@
 .academic-setup-assignment-drawer.academic-setup-drawer--wide {
-  width: min(980px, calc(100vw - 24px));
-  inset-block: 12px;
-  inset-inline-end: 12px;
+  width: min(820px, calc(100vw - 40px));
+  inset-block: 20px;
+  inset-inline-end: 20px;
   height: auto;
-  max-height: calc(100dvh - 24px);
+  max-height: calc(100dvh - 40px);
   border: 1px solid color-mix(in srgb, var(--c-border) 82%, transparent);
-  border-radius: 22px;
+  border-radius: 18px;
   overflow: hidden;
   background: var(--c-surface, #fff);
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.2);
