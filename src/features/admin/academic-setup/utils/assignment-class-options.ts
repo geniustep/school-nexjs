@@ -1,7 +1,7 @@
 import type { SchoolClass } from '@/types/class';
 import type { AcademicContextOptionsResponse } from '@/types/academic-context';
 
-type ContextClass = AcademicContextOptionsResponse['classes'][number];
+type ContextClass = NonNullable<AcademicContextOptionsResponse['classes']>[number];
 
 type AssignmentClassOption = Pick<SchoolClass, 'id' | 'name' | 'display_name' | 'display_alias'> & {
   academic_year_id?: number | null;
