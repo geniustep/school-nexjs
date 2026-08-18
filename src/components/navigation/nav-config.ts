@@ -170,6 +170,23 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/resources',
     icon: '📂',
   });
+  pushIf(learningItems, canShowAdminNavPermission(user, 'library.view'), {
+    labelKey: 'nav.library',
+    href: '/admin/library',
+    icon: '📚',
+    isActive: (pathname) => pathname === '/admin/library' || pathname.startsWith('/admin/library/'),
+  });
+  pushIf(
+    learningItems,
+    canShowAdminNavPermission(user, 'entry_requirements.manage') ||
+      canShowAdminNavPermission(user, 'entry_requirements.publish'),
+    {
+      labelKey: 'nav.entryRequirements',
+      href: '/admin/entry-requirements',
+      icon: '🎒',
+      isActive: (pathname) => pathname === '/admin/entry-requirements' || pathname.startsWith('/admin/entry-requirements/'),
+    },
+  );
   pushIf(learningItems, canShowAdminNavPermission(user, 'view_exams'), {
     labelKey: 'nav.exams',
     href: '/admin/exams',
@@ -245,7 +262,6 @@ function adminNav(user: CurrentUser): NavSection[] {
       icon: '💬',
       isActive: (pathname) => pathname.startsWith('/admin/channels'),
     });
-    // Highlight school communication feed when composing general messages.
     const schoolComm = communicationItems.find((item) => item.href === '/admin/announcements');
     if (schoolComm) {
       schoolComm.isActive = (pathname) =>
@@ -313,6 +329,7 @@ function teacherNav(): NavSection[] {
       items: [
         { labelKey: 'nav.homework', href: '/teacher/homeworks', icon: '📝' },
         { labelKey: 'nav.teacherResources', href: '/teacher/resources', icon: '📚' },
+        { labelKey: 'nav.curriculumRequirements', href: '/teacher/entry-requirements', icon: '📘' },
       ],
     },
     {
@@ -371,6 +388,7 @@ function parentNav(): NavSection[] {
       titleKey: 'nav.family',
       items: [
         { labelKey: 'nav.myChildren', href: '/parent/children', icon: '👧' },
+        { labelKey: 'nav.entryRequirements', href: '/parent/entry-requirements', icon: '🎒' },
         { labelKey: 'nav.finance', href: '/parent/finance', icon: '💰' },
       ],
     },
@@ -393,6 +411,7 @@ function studentNav(): NavSection[] {
         { labelKey: 'nav.myProfile', href: '/student/profile', icon: '🧑‍🎓' },
         { labelKey: 'nav.attendance', href: '/student/attendance', icon: '🗓️' },
         { labelKey: 'nav.timetable', href: '/student/timetable', icon: '📅' },
+        { labelKey: 'nav.library', href: '/student/library', icon: '📚' },
       ],
     },
     {
@@ -416,6 +435,8 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.channels' },
   { permission: 'view_homeworks', href: '/admin/homeworks', labelKey: 'nav.homework' },
   { permission: 'view_resources', href: '/admin/resources', labelKey: 'nav.resources' },
+  { permission: 'library.view', href: '/admin/library', labelKey: 'nav.library' },
+  { permission: 'entry_requirements.manage', href: '/admin/entry-requirements', labelKey: 'nav.entryRequirements' },
   { permission: 'view_exams', href: '/admin/exams', labelKey: 'nav.exams' },
   { permission: 'view_exam_results', href: '/admin/exam-results', labelKey: 'nav.examResultsNav' },
   { permission: 'view_timetable', href: '/admin/timetable', labelKey: 'nav.timetable' },

@@ -15,16 +15,15 @@ import { navForUser } from '@/components/navigation/nav-config';
 import { AdminSidebarHost } from '@/components/navigation/admin-sidebar-host';
 import { Avatar } from '@/components/ui/primitives';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
-import { SchoolSwitcher } from '@/components/admin/school-switcher';
 import { AcademicYearSwitcher } from '@/components/admin/academic-year-switcher';
 import { RoleSwitcher } from '@/components/auth/role-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
-import { isMultiSchoolAdmin, isAdminKind } from '@/lib/admin/admin-ux';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isScopedAdmin } from '@/lib/permissions/scope';
 import { BrandLogo } from '@/components/brand/brand-logo';
 import { IconMenu } from '@/components/icons/admin-icons';
+import { AdminAccountMenu } from '@/components/layout/admin-account-menu';
 import { AdminAccountSheet } from '@/components/layout/admin-account-sheet';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
@@ -34,6 +33,7 @@ import {
   AdminStudentSpotlightHost,
   AdminStudentSpotlightTrigger,
 } from '@/features/admin/students/components/admin-student-spotlight-host';
+import styles from './app-shell.module.css';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
   const effective = resolveEffectiveRole(user);
@@ -83,13 +83,7 @@ export function AppShell({
   const scopeDesc = scopeDescription(user, t);
   const isTeacher = shouldUseTeacherWorkspace(user);
   const isAdmin = user.role === 'admin' && !isTeacher;
-  const multiSchoolPm =
-    isAdmin && isMultiSchoolAdmin(user) && isAdminKind(user, 'project_manager');
-  const topbarTitle = isTeacher
-    ? t('teacher.workspaceTitle')
-    : multiSchoolPm
-      ? t('admin.multiSchoolContext')
-      : formatSchoolLabel(user.school, t);
+  const topbarTitle = isTeacher ? t('teacher.workspaceTitle') : formatSchoolLabel(user.school, t);
   const roleLabel = roleSubtitle(user, t);
 
   useBodyScrollLock(mainDrawerOpen);
@@ -224,8 +218,20 @@ export function AppShell({
       )}
 
       <div className="main">
-        <header className={cn('topbar', isTeacher && 'topbar--teacher', 'admin-mobile-header')}>
-          <div className="topbar__start topbar__context">
+        <header
+          className={cn(
+            'topbar',
+            isTeacher && 'topbar--teacher',
+            'admin-mobile-header',
+            isAdmin && styles.adminTopbar,
+          )}
+        >
+          <div
+            className={cn(
+              'topbar__start topbar__context',
+              isAdmin && styles.adminTopbarStart,
+            )}
+          >
             <button
               type="button"
               className="btn btn--ghost btn--sm menu-toggle admin-mobile-menu-trigger"
@@ -236,27 +242,49 @@ export function AppShell({
             >
               <IconMenu size={20} />
             </button>
-            <span className="topbar__title admin-mobile-header__title">{topbarTitle}</span>
+            {!isAdmin ? (
+              <span className="topbar__title admin-mobile-header__title">{topbarTitle}</span>
+            ) : null}
           </div>
-          <div className="topbar__right topbar__right--desktop">
-            {isAdmin && <AdminStudentSpotlightTrigger variant="desktop" />}
-            {isAdmin && <SchoolSwitcher hideLabel />}
-            {isAdmin && <AcademicYearSwitcher hideLabel />}
-            {/* Admin desktop: labeled topbar. Teacher/parent: labeled control lives in sidebar only. */}
-            {isAdmin && (
-              <RoleSwitcher className="role-switcher--topbar" data-testid="role-switcher-topbar" />
+          <div
+            className={cn(
+              'topbar__right topbar__right--desktop',
+              isAdmin && styles.adminTopbarControls,
             )}
-            <LocaleSwitcher compact />
-            {!isTeacher && (
-              <div className="user-chip">
-                <Avatar name={user.name} />
-                <div className="col" style={{ gap: 0 }}>
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
-                  <span className="topbar__role">{roleLabel}</span>
+          >
+            {isAdmin ? (
+              <>
+                <div className={styles.searchSlot}>
+                  <AdminStudentSpotlightTrigger variant="desktop" />
                 </div>
-              </div>
+                <div className={styles.yearSlot}>
+                  <AcademicYearSwitcher hideLabel />
+                </div>
+                <div className={styles.localeSlot}>
+                  <LocaleSwitcher compact />
+                </div>
+                <AdminAccountMenu
+                  user={user}
+                  roleLabel={roleLabel}
+                  loggingOut={loggingOut}
+                  onLogout={logout}
+                />
+              </>
+            ) : (
+              <>
+                <LocaleSwitcher compact />
+                {!isTeacher && (
+                  <div className="user-chip">
+                    <Avatar name={user.name} />
+                    <div className="col" style={{ gap: 0 }}>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
+                      <span className="topbar__role">{roleLabel}</span>
+                    </div>
+                  </div>
+                )}
+                <SignOutButton loggingOut={loggingOut} onClick={logout} size="sm" />
+              </>
             )}
-            <SignOutButton loggingOut={loggingOut} onClick={logout} size="sm" />
           </div>
           <div className="topbar__right topbar__right--mobile">
             {isAdmin && <AdminStudentSpotlightTrigger variant="mobile" />}

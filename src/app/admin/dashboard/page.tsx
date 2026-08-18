@@ -10,6 +10,7 @@ import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
 import { AdminExecutiveDashboard } from '@/features/admin/dashboard/admin-executive-dashboard';
+import { AdminDirectorCommandHero } from '@/features/admin/dashboard/admin-director-command-hero';
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
@@ -23,6 +24,7 @@ import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
+import v2Styles from '@/features/admin/dashboard/admin-executive-dashboard-v2.module.css';
 
 export default function AdminDashboardPage() {
   const user = useSession();
@@ -109,7 +111,12 @@ export default function AdminDashboardPage() {
       {scopeBanner}
 
       <ResourceView state={state} loadingLabel={t('common.loading')}>
-        {(d) => <AdminExecutiveDashboard data={d} user={user} />}
+        {(d) => (
+          <div className={v2Styles.shell}>
+            <AdminDirectorCommandHero user={user} />
+            <AdminExecutiveDashboard data={d} user={user} />
+          </div>
+        )}
       </ResourceView>
     </div>
   );

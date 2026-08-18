@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Africa/Casablanca
+    open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary

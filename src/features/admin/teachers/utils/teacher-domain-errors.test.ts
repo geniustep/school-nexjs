@@ -15,6 +15,9 @@ describe('teacher-domain-errors', () => {
     expect(teacherDomainErrorKey('assignment_offering_mismatch')).toBe(
       'admin.teacherDomain.errors.assignmentOfferingMismatch',
     );
+    expect(teacherDomainErrorKey('class_subject_mismatch')).toBe(
+      'admin.academicSetup.errors.classSubjectMismatch',
+    );
     expect(teacherDomainErrorKey('offering_archived')).toBe(
       'admin.teacherDomain.errors.offeringArchived',
     );
@@ -39,6 +42,18 @@ describe('teacher-domain-errors', () => {
     expect(mapTeacherDomainError({ code: 'teacher_not_found', message: 'x' }, t)).toBe(
       'tr:admin.teacherDomain.errors.teacherNotFound',
     );
+  });
+
+  it('localizes the legacy class-subject mismatch before exposing backend English', () => {
+    expect(
+      mapTeacherDomainError(
+        {
+          code: 'unexpected_assignment_error',
+          message: 'Subject التربية الإسلامية is not available for class 5APG-2.',
+        },
+        t,
+      ),
+    ).toBe('tr:admin.academicSetup.errors.classSubjectMismatch');
   });
 
   it('sanitizes unknown messages and extracts field errors', () => {

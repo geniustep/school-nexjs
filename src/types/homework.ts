@@ -2,11 +2,19 @@
 
 import type { Ref } from './api';
 import type { AttachmentListMeta, AttachmentMeta } from './attachment';
+import type { CommunicationContentState } from './communication';
 import type { SmartLinkRef } from './smart-link';
 
 export type HomeworkState = 'draft' | 'published' | 'closed';
 
-export interface HomeworkSummary extends AttachmentListMeta {
+export interface HomeworkCommunicationFields {
+  communication_content_id?: number | null;
+  communication_state?: CommunicationContentState | null;
+  is_family_visible?: boolean;
+  pending_approval?: boolean;
+}
+
+export interface HomeworkSummary extends AttachmentListMeta, HomeworkCommunicationFields {
   id: number;
   name: string;
   description_short?: string | null;
@@ -43,7 +51,7 @@ export interface HomeworkDetail extends HomeworkSummary {
 }
 
 /** Admin list row — GET /admin/homeworks */
-export interface AdminHomeworkSummary extends AttachmentListMeta {
+export interface AdminHomeworkSummary extends AttachmentListMeta, HomeworkCommunicationFields {
   id: number;
   name: string;
   class: Ref;

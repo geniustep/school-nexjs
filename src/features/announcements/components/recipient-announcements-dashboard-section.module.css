@@ -1,0 +1,144 @@
+.shell {
+  inline-size: 100%;
+  max-inline-size: 46rem;
+  margin-inline-end: auto;
+}
+
+.list {
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  background: var(--c-surface);
+}
+
+.item {
+  display: flex;
+  min-block-size: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 120ms ease;
+}
+
+.item + .item {
+  border-block-start: 1px solid var(--c-border);
+}
+
+.item:hover,
+.item:focus-visible {
+  background: var(--c-surface-2);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--raqeem-primary, var(--c-primary));
+  outline-offset: -2px;
+}
+
+.unread {
+  background: var(--c-surface-2);
+}
+
+.main {
+  min-inline-size: 0;
+  flex: 1;
+}
+
+.titleLine {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unreadDot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--raqeem-primary, var(--c-primary));
+}
+
+.title {
+  min-inline-size: 0;
+  overflow: hidden;
+  flex: 0 1 auto;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.read .title {
+  font-weight: 600;
+}
+
+.unread .title {
+  font-weight: 750;
+}
+
+.markers {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.marker {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.meta {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block-start: 0.35rem;
+}
+
+.sender {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  opacity: 0.45;
+}
+
+.empty {
+  padding: 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  background: var(--c-surface);
+}
+
+@media (max-width: 640px) {
+  .shell {
+    max-inline-size: none;
+  }
+
+  .item {
+    padding-inline: 0.75rem;
+  }
+
+  .titleLine,
+  .meta {
+    flex-wrap: wrap;
+  }
+
+  .title {
+    white-space: normal;
+  }
+}

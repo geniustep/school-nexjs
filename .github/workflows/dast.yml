@@ -1,0 +1,38 @@
+name: DAST
+
+on:
+  push:
+    branches: [dev]
+  schedule:
+    - cron: "41 3 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    name: zap-passive-baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verify dev target is reachable
+        env:
+          TARGET_URL: https://school-nexjs.vercel.app
+        run: |
+          set -euo pipefail
+          status="$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' --max-time 20 "$TARGET_URL")"
+          echo "HTTP status: $status"
+          case "$status" in
+            2*|3*) ;;
+            *) echo "Dev target is not publicly reachable for DAST" >&2; exit 1 ;;
+          esac
+
+      - name: ZAP passive baseline
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: https://school-nexjs.vercel.app
+          fail_action: false
+          allow_issue_writing: false
+          artifact_name: school-nexjs-zap-baseline
+          cmd_options: -m 1 -T 5 -I

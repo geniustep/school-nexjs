@@ -17,7 +17,12 @@ import {
 } from '@/features/admin/staff/utils/staff-permission-merge';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
 import { isStaffCenterParent } from '@/features/admin/staff/utils/normalize-staff-center';
+import { useStaffResponsibilityPermissionExplanation } from '@/features/admin/staff/hooks/use-staff-responsibility-assignments';
+import { STAFF_RESPONSIBILITY_COPY } from '@/features/admin/staff/utils/staff-responsibility-copy';
 import { useLocale, useT } from '@/features/i18n/locale-context';
+import type {
+  StaffResponsibilityAssignmentSource,
+} from '@/features/admin/staff/api/staff-responsibility-assignments-api';
 import type { StaffEffectivePermissionsPayload, StaffMember } from '@/types/academic-setup';
 
 function LabeledCapabilityList({
@@ -46,6 +51,90 @@ function LabeledCapabilityList({
   );
 }
 
+function sourceScopeLabel(
+  source: StaffResponsibilityAssignmentSource,
+  copy: (typeof STAFF_RESPONSIBILITY_COPY)['ar'],
+): string {
+  if (source.scope_type === 'school') return copy.scopeSchool;
+  if (source.scope_type === 'cycle') {
+    return `${copy.scopeCycle}: ${copy.selectedCount(source.cycle_ids?.length ?? 0)}`;
+  }
+  if (source.scope_type === 'levels') {
+    return `${copy.scopeLevels}: ${copy.selectedCount(source.level_ids?.length ?? 0)}`;
+  }
+  if (source.scope_type === 'classes') {
+    return `${copy.scopeClasses}: ${copy.selectedCount(source.class_ids?.length ?? 0)}`;
+  }
+  return copy.unknownScope;
+}
+
+function StaffResponsibilityPermissionSources({ userId }: { userId: number }) {
+  const t = useT();
+  const { locale } = useLocale();
+  const copy = STAFF_RESPONSIBILITY_COPY[locale];
+  const explanation = useStaffResponsibilityPermissionExplanation(userId);
+  const capabilities = explanation.payload?.capabilities ?? [];
+  const explained = capabilities.filter((capability) => (capability.assignment_sources ?? []).length > 0);
+
+  if (explanation.loading && !explanation.payload) {
+    return <p className="muted">{copy.loading}</p>;
+  }
+  if (explanation.error || !explained.length) {
+    return null;
+  }
+
+  return (
+    <div style={{ marginTop: 14 }} data-testid="staff-effective-permission-sources">
+      <SectionHead title={copy.sourceTitle} />
+      <p className="muted" style={{ marginTop: 0 }}>{copy.sourceDescription}</p>
+      <div className="col" style={{ gap: 10 }}>
+        {explained.map((capability) => {
+          const capabilityLabel =
+            resolveStaffPermissionLabel(capability.code, locale, t) ?? capability.label ?? capability.code;
+          return (
+            <article
+              key={capability.code}
+              style={{ border: '1px solid var(--c-border)', borderRadius: 10, padding: 10 }}
+            >
+              <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                <Badge tone="blue">{capabilityLabel}</Badge>
+              </div>
+              <div className="col" style={{ gap: 7 }}>
+                {(capability.assignment_sources ?? []).map((source) => (
+                  <div
+                    key={source.assignment_id}
+                    data-testid={`permission-source-${capability.code}-${source.assignment_id}`}
+                    style={{ display: 'grid', gap: 3 }}
+                  >
+                    <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                      <Badge tone={source.origin === 'manual' ? 'blue' : 'slate'}>
+                        {source.origin === 'manual' ? copy.manual : copy.legacy}
+                      </Badge>
+                      <span>{sourceScopeLabel(source, copy)}</span>
+                    </div>
+                    <div className="tiny muted">
+                      {copy.yearPolicy}:{' '}
+                      {source.year_policy === 'bound'
+                        ? copy.yearBound
+                        : source.year_policy === 'unbounded'
+                          ? copy.yearUnbounded
+                          : copy.yearFollowsContext}
+                    </div>
+                    <div className="tiny muted">
+                      {copy.dates}: {copy.from} {source.effective_from ?? '—'} · {copy.to}{' '}
+                      {source.effective_to ?? copy.openEnded}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function StaffPermissionsSection({
   member,
   payload,
@@ -63,6 +152,7 @@ export function StaffPermissionsSection({
   const effectivePerms = payload?.effective_permissions ?? member.effective_permissions ?? member.permissions;
   const permissionWarnings = payload?.warnings ?? member.warnings;
   const roleLabel = resolveStaffRoleDisplayLabel(member, t);
+  const userId = member.user_id ?? member.id;
 
   return (
     <Card className="staff-center-section">
@@ -117,6 +207,7 @@ export function StaffPermissionsSection({
           },
         ]}
       />
+      <StaffResponsibilityPermissionSources userId={userId} />
     </Card>
   );
 }

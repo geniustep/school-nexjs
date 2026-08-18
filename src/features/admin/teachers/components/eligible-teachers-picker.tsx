@@ -57,7 +57,7 @@ export function EligibleTeachersPicker({
   const requestIdRef = useRef(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [includeIneligible, setIncludeIneligible] = useState(false);
+  const [includeIneligible, setIncludeIneligible] = useState(true);
   const [candidates, setCandidates] = useState<TeachingAssignmentCandidate[]>([]);
   const [summary, setSummary] = useState<TeachingAssignmentCandidatesSummary | null>(null);
   const [allowed, setAllowed] = useState<TeachingAssignmentCandidatesAllowedActions>({});

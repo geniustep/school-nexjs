@@ -16,7 +16,7 @@ describe('formatAcademicLevelLabel', () => {
       'ar',
     );
     expect(parts.primary).toBe('الأولى إعدادي');
-    expect(parts.secondary).toBe('M1');
+    expect(parts.secondary).toBe('المستوى: M1');
   });
 
   it('falls back to code when no readable label exists', () => {
@@ -38,7 +38,7 @@ describe('formatAcademicClassLabel', () => {
       'ar',
     );
     expect(parts.primary).toBe('الأولى إعدادي — القسم أ');
-    expect(parts.secondary).toBe('M1A');
+    expect(parts.secondary).toBe('القسم: M1A');
   });
 
   it('builds readable class label from level alias and section suffix', () => {
@@ -51,7 +51,7 @@ describe('formatAcademicClassLabel', () => {
       'ar',
     );
     expect(parts.primary).toBe('الأولى إعدادي — القسم أ');
-    expect(parts.secondary).toBe('M1A');
+    expect(parts.secondary).toBe('القسم: 2025-M1-M1A');
   });
 
   it('supports search by readable and technical labels', () => {

@@ -175,7 +175,7 @@ describe('StudentsFinancialServiceCountCards', () => {
     const transport = document.querySelector('[data-service-id="1310"]') as HTMLElement;
     expect(transport.getAttribute('aria-pressed')).toBe('true');
     expect(within(transport).getByText(/لديهم هذه الخدمة/)).toBeTruthy();
-    expect(screen.getByText(/الفلتر الحالي: لا يملك الخدمة/)).toBeTruthy();
+    expect(screen.getByText(/عامل التصفية الحالي: لا يملك الخدمة/)).toBeTruthy();
   });
 
   it('shows zero-count services without hiding them', () => {

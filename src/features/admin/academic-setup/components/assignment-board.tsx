@@ -91,6 +91,19 @@ export function AssignmentBoard({
     return mapAcademicSetupApiError(error, t, 'assignment');
   }
 
+  function showMutationWarnings(warnings: Array<{ code: string; severity?: 'warning' | 'error' | 'info' }> | undefined) {
+    warnings?.forEach((warning) => {
+      const message = mapWarningCode(warning.code, t);
+      if (warning.severity === 'error') {
+        toast.error(message);
+      } else if (warning.severity === 'info') {
+        toast.show(message, 'info');
+      } else {
+        toast.warning(message);
+      }
+    });
+  }
+
   async function handleCreate(payload: AssignmentFormCreatePayload) {
     if (saving) return;
     setSaving(true);
@@ -100,7 +113,7 @@ export function AssignmentBoard({
       toast.error(mapAssignmentMutationError(res.error));
       return;
     }
-    res.data.warnings?.forEach((w) => toast.error(mapWarningCode(w.code, t)));
+    showMutationWarnings(res.data.warnings);
     toast.success(t('admin.saveSuccess'));
     setFormOpen(false);
     setPickMissing(null);
@@ -116,7 +129,7 @@ export function AssignmentBoard({
       toast.error(mapAssignmentMutationError(res.error));
       return;
     }
-    res.data.warnings?.forEach((w) => toast.error(mapWarningCode(w.code, t)));
+    showMutationWarnings(res.data.warnings);
     toast.success(t('admin.saveSuccess'));
     setFormOpen(false);
     setEditing(null);

@@ -1,12 +1,12 @@
 'use client';
 
-// Minimal toast system for action feedback (success/error). No dependencies.
-// Each toast has a dismiss button; auto-dismisses after 4s on success, 6s on error.
+// Minimal toast system for action feedback (success/warning/error/info). No dependencies.
+// Each toast has a dismiss button; warnings stay readable without looking like failures.
 
 import { createContext, useCallback, useContext, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 
-type ToastTone = 'success' | 'error' | 'info';
+type ToastTone = 'success' | 'warning' | 'error' | 'info';
 interface Toast {
   id: number;
   message: string;
@@ -16,6 +16,7 @@ interface Toast {
 interface ToastApi {
   show: (message: string, tone?: ToastTone) => void;
   success: (message: string) => void;
+  warning: (message: string) => void;
   error: (message: string) => void;
 }
 
@@ -37,7 +38,12 @@ function ToastHost({
           role="alert"
           className={`toast ${toast.tone === 'error' ? 'toast--error' : ''} ${
             toast.tone === 'success' ? 'toast--success' : ''
-          }`}
+          } ${toast.tone === 'warning' ? 'toast--warning' : ''}`}
+          style={
+            toast.tone === 'warning'
+              ? { background: 'var(--c-amber, #d97706)', color: '#fff' }
+              : undefined
+          }
         >
           <span className="toast__body">{toast.message}</span>
           <button
@@ -63,8 +69,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const show = useCallback((message: string, tone: ToastTone = 'info') => {
     const id = Date.now() + Math.random();
     setToasts((t) => [...t, { id, message, tone }]);
-    // Errors stay longer so users can read them.
-    const delay = tone === 'error' ? 6000 : 4000;
+    const delay = tone === 'error' ? 6000 : tone === 'warning' ? 5000 : 4000;
     setTimeout(() => {
       setToasts((t) => t.filter((x) => x.id !== id));
     }, delay);
@@ -73,6 +78,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const api: ToastApi = {
     show,
     success: (m) => show(m, 'success'),
+    warning: (m) => show(m, 'warning'),
     error: (m) => show(m, 'error'),
   };
 

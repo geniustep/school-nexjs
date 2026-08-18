@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
+import { HomeworkFamilyAccessBadge } from '@/features/admin/homeworks/components/homework-communication-status';
 import { HomeworksListFilters } from '@/features/admin/homeworks/components/homeworks-list-filters';
 import {
   formatHomeworkListDate,
@@ -84,8 +85,7 @@ export function HomeworksListPage() {
     legacyPermission: 'manage_homeworks',
     capability: 'manage_homeworks',
   });
-  const canShowListActions =
-    canAddHomework || hasPermission(user, 'export_data');
+  const canShowListActions = canAddHomework || hasPermission(user, 'export_data');
 
   const resetFilters = useCallback(() => {
     setSearch('');
@@ -179,6 +179,11 @@ export function HomeworksListPage() {
         key: 'state',
         header: t('academic.status'),
         render: (h) => <WorkflowBadge state={h.state} />,
+      },
+      {
+        key: 'family_access',
+        header: t('nav.family'),
+        render: (h) => <HomeworkFamilyAccessBadge item={h} />,
       },
       {
         key: 'publish_date',

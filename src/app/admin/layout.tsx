@@ -3,6 +3,7 @@ import { isSchoolAccessSuspended } from '@/lib/auth/admin-access-status';
 import { PortalLayout } from '@/components/layout/portal-layout';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { Card } from '@/components/ui/primitives';
+import { RecipientAnnouncementsDashboardSlot } from '@/features/announcements/components/recipient-announcements-dashboard-slot';
 
 function SuspendedAdminNotice() {
   return (
@@ -32,7 +33,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <PortalLayout user={user}>
-      <AdminPageGuard>{children}</AdminPageGuard>
+      <AdminPageGuard>
+        {children}
+        <RecipientAnnouncementsDashboardSlot
+          dashboardPath="/admin/dashboard"
+          basePath="/admin/announcements"
+          className="admin-dashboard-recipient-announcements"
+        />
+      </AdminPageGuard>
     </PortalLayout>
   );
 }

@@ -1,0 +1,185 @@
+// @vitest-environment happy-dom
+
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { EntryRequirementCatalog } from './entry-requirement-catalog';
+import type { RequirementItem } from '@/features/entry-requirements/entry-requirements-contract';
+
+const notebook: RequirementItem = {
+  id: 34,
+  stable_key: 'notebook-34',
+  sequence: 1,
+  item_type: 'notebook',
+  name: 'دفتر من فئة 96 صفحة',
+  quantity: 2,
+  subject_id: null,
+  subject: null,
+  importance: 'required',
+  provision_source: 'family',
+  provided_by_school: false,
+  reusable_allowed: null,
+  reusable: false,
+  notes: null,
+  needs_resolution: false,
+};
+
+afterEach(cleanup);
+
+describe('Entry Requirements quantity edit', () => {
+  it('organizes the level by subject and starts an item inside the chosen subject', () => {
+    const onAddToSubject = vi.fn();
+    render(
+      <EntryRequirementCatalog
+        items={[{ ...notebook, subject_id: 7, subject: 'اللغة الفرنسية' }]}
+        subjects={[{ id: 7, name: 'اللغة الفرنسية' }, { id: 8, name: 'الرياضيات' }]}
+        canManage
+        editable
+        onAddToSubject={onAddToSubject}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    const mathSubject = screen.getByRole('button', { name: /الرياضيات/ });
+    const frenchSubject = screen.getByRole('button', { name: /اللغة الفرنسية/ });
+    if (frenchSubject.getAttribute('aria-expanded') !== 'true') fireEvent.click(frenchSubject);
+    expect(frenchSubject.getAttribute('aria-expanded')).toBe('true');
+    expect(mathSubject.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(screen.getByRole('button', { name: '+ إضافة دفتر' }));
+    expect(onAddToSubject).toHaveBeenCalledWith(7, 'notebook');
+  });
+
+  it('lets a manager update the quantity of a draft item', async () => {
+    const onQuantityChange = vi.fn(async () => true);
+
+    render(
+      <EntryRequirementCatalog
+        items={[notebook]}
+        canManage
+        editable
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={onQuantityChange}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'تعديل كمية دفتر من فئة 96 صفحة' }));
+    const input = screen.getByRole('spinbutton', { name: 'كمية دفتر من فئة 96 صفحة' });
+    fireEvent.change(input, { target: { value: '3' } });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+
+    await waitFor(() => expect(onQuantityChange).toHaveBeenCalledWith(notebook, 3));
+    await waitFor(() => expect(screen.queryByRole('spinbutton')).toBeNull());
+  });
+
+  it('lets a manager assign an unlinked item to a level subject', async () => {
+    const onSubjectChange = vi.fn(async () => true);
+    render(
+      <EntryRequirementCatalog
+        items={[notebook]}
+        subjects={[{ id: 7, name: 'اللغة الفرنسية' }, { id: 8, name: 'الرياضيات' }]}
+        canManage
+        editable
+        onSubjectChange={onSubjectChange}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'المادة المرتبطة بـ دفتر من فئة 96 صفحة' }), {
+      target: { value: '8' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'ربط بالمادة' }));
+
+    await waitFor(() => expect(onSubjectChange).toHaveBeenCalledWith(notebook, 8));
+  });
+
+  it('lets a manager move a linked item to another subject', async () => {
+    const linkedNotebook = { ...notebook, subject_id: 7, subject: 'اللغة الفرنسية' };
+    const onSubjectChange = vi.fn(async () => true);
+    render(
+      <EntryRequirementCatalog
+        items={[linkedNotebook]}
+        subjects={[{ id: 7, name: 'اللغة الفرنسية' }, { id: 8, name: 'الرياضيات' }]}
+        canManage
+        editable
+        onSubjectChange={onSubjectChange}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    const frenchSubject = screen.getByRole('button', { name: /اللغة الفرنسية/ });
+    if (frenchSubject.getAttribute('aria-expanded') !== 'true') fireEvent.click(frenchSubject);
+    fireEvent.click(screen.getByRole('button', { name: 'تغيير مادة دفتر من فئة 96 صفحة' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'المادة المرتبطة بـ دفتر من فئة 96 صفحة' }), {
+      target: { value: '8' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+
+    await waitFor(() => expect(onSubjectChange).toHaveBeenCalledWith(linkedNotebook, 8));
+  });
+
+  it('does not expose quantity editing on a non-editable list', () => {
+    render(
+      <EntryRequirementCatalog
+        items={[notebook]}
+        canManage
+        editable={false}
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={async () => true}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'تعديل كمية دفتر من فئة 96 صفحة' })).toBeNull();
+  });
+
+  it('distributes a notebook quantity across multiple cover colors', async () => {
+    const onCoverChange = vi.fn(async () => true);
+    render(
+      <EntryRequirementCatalog
+        items={[notebook]}
+        canManage
+        editable
+        onLink={() => undefined}
+        onManualLink={() => undefined}
+        onDelete={() => undefined}
+        onQuantityChange={async () => true}
+        onCoverChange={onCoverChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'إضافة غلاف لـ دفتر من فئة 96 صفحة' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'لون الغلاف 1 لـ دفتر من فئة 96 صفحة' }), {
+      target: { value: 'أحمر' },
+    });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'كمية الغلاف 1 لـ دفتر من فئة 96 صفحة' }), {
+      target: { value: '1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '+ لون آخر' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'لون الغلاف 2 لـ دفتر من فئة 96 صفحة' }), {
+      target: { value: 'أزرق' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
+
+    await waitFor(() => expect(onCoverChange).toHaveBeenCalledWith(notebook, [
+      { color: 'أحمر', quantity: 1 },
+      { color: 'أزرق', quantity: 1 },
+    ]));
+  });
+});

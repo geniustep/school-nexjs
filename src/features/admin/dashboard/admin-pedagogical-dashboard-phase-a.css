@@ -1,0 +1,643 @@
+/* Pedagogical director dashboard — V6 action clarity + compact reference row.
+   Keep the current contracts authoritative while giving operational actions
+   clear button affordance and a stronger dashboard rhythm. */
+
+.admin-pedagogical-dashboard--phase-a {
+  display: grid;
+  width: min(100%, 1100px);
+  margin-inline: auto;
+  padding-block: 10px 28px;
+  gap: 15px;
+}
+
+/* Keep one semantic page heading for accessibility without showing the
+   redundant page title in the visual hierarchy. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__hero--compact {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Strong opening surface. It reflects real communication/homework queue
+   counts when available instead of presenting a static empty state. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--quiet {
+  display: grid;
+  min-height: 92px;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'check label'
+    'check copy';
+  align-items: center;
+  column-gap: 13px;
+  row-gap: 4px;
+  padding: 18px 20px;
+  border: 0;
+  border-radius: calc(var(--radius) + 6px);
+  background: linear-gradient(112deg, var(--raqeem-primary), var(--raqeem-secondary));
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--raqeem-primary) 17%, transparent);
+  color: var(--c-surface);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--active {
+  box-shadow: 0 16px 38px color-mix(in srgb, var(--raqeem-primary) 22%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--quiet::before {
+  content: attr(aria-label);
+  grid-area: label;
+  color: var(--c-surface);
+  font-size: 15px;
+  font-weight: 780;
+  line-height: 1.35;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-check {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  grid-area: check;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--c-surface) 26%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-surface) 15%, transparent);
+  color: var(--c-surface);
+  font-size: 16px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-copy {
+  display: flex;
+  min-width: 0;
+  grid-area: copy;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  color: color-mix(in srgb, var(--c-surface) 84%, transparent);
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-item {
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-item strong {
+  color: var(--c-surface);
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-item + .admin-pedagogical-dashboard__attention-item::before {
+  content: '·';
+  margin-inline: 9px;
+  color: color-mix(in srgb, var(--c-surface) 55%, transparent);
+}
+
+/* Communication and homework are the two operational spotlight cards. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__spotlight {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card {
+  position: relative;
+  display: grid;
+  min-height: 128px;
+  grid-template-rows: auto 1fr auto;
+  gap: 9px;
+  overflow: hidden;
+  padding: 16px 17px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 9%, var(--c-border));
+  border-radius: calc(var(--radius) + 5px);
+  background: var(--c-surface);
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--raqeem-primary) 6%, transparent);
+  color: var(--c-text);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--raqeem-primary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card--communication {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--raqeem-primary) 5%, var(--c-surface)),
+    var(--c-surface) 58%
+  );
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card--homework {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--raqeem-secondary) 7%, var(--c-surface)),
+    var(--c-surface) 58%
+  );
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card--homework::after {
+  background: var(--raqeem-secondary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card:hover {
+  border-color: color-mix(in srgb, var(--raqeem-primary) 24%, var(--c-border));
+  box-shadow: 0 13px 30px color-mix(in srgb, var(--raqeem-primary) 10%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card:focus-visible,
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:focus-visible,
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference:focus-visible,
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--raqeem-primary) 52%, transparent);
+  outline-offset: 2px;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card__topline {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card__title {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 780;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card__cta {
+  flex: 0 0 auto;
+  color: var(--raqeem-primary);
+  font-size: 11.5px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card--homework .admin-pedagogical-focus-card__cta {
+  color: var(--raqeem-secondary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card__value {
+  align-self: end;
+  color: var(--c-text);
+  font-size: clamp(32px, 3vw, 40px);
+  font-weight: 830;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card__status {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+/* Real action buttons, not filter chips. The title is now rendered by JSX
+   through the shared translated dashboard.shortcuts key. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 14px 15px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 8%, var(--c-border));
+  border-radius: calc(var(--radius) + 4px);
+  background: var(--c-surface);
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--raqeem-primary) 5%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-title {
+  margin: 0;
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 780;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action {
+  --action-accent: var(--raqeem-primary);
+  display: flex;
+  min-width: 0;
+  min-height: 54px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--action-accent) 18%, var(--c-border));
+  border-radius: 12px;
+  background: var(--c-surface);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--action-accent) 7%, transparent);
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 740;
+  line-height: 1.3;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action--channels {
+  border-color: var(--raqeem-primary);
+  background: var(--raqeem-primary);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--raqeem-primary) 18%, transparent);
+  color: var(--c-surface);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action--homeworks {
+  --action-accent: var(--raqeem-secondary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action--attendance {
+  --action-accent: var(--raqeem-accent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action__mark {
+  position: relative;
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--action-accent) 10%, var(--c-surface-2));
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action__mark::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--action-accent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action--channels .admin-pedagogical-work-action__mark {
+  background: color-mix(in srgb, var(--c-surface) 16%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action--channels .admin-pedagogical-work-action__mark::after {
+  background: var(--c-surface);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action__label {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action:hover {
+  border-color: color-mix(in srgb, var(--action-accent) 36%, var(--c-border));
+  background: color-mix(in srgb, var(--action-accent) 5%, var(--c-surface));
+  box-shadow: 0 7px 16px color-mix(in srgb, var(--action-accent) 10%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action--channels:hover {
+  border-color: color-mix(in srgb, var(--raqeem-primary) 88%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-primary) 90%, var(--c-text));
+  color: var(--c-surface);
+}
+
+/* One composed daily pulse surface: operational state, not navigation. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse {
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 9%, var(--c-border));
+  border-radius: calc(var(--radius) + 5px);
+  background: var(--c-surface);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--raqeem-primary) 7%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse .admin-pedagogical-dashboard__section-head {
+  position: relative;
+  margin: 0;
+  padding: 15px 18px 11px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 78%, transparent);
+  background: color-mix(in srgb, var(--raqeem-primary) 2.5%, var(--c-surface));
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse .admin-pedagogical-dashboard__section-head::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-start: 18px;
+  width: 42px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--raqeem-secondary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse .admin-pedagogical-dashboard__section-title {
+  margin: 0;
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 760;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse {
+  display: flex;
+  min-width: 0;
+  min-height: 94px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 7%, var(--c-border));
+  border-radius: calc(var(--radius) + 1px);
+  background: color-mix(in srgb, var(--c-surface-2) 52%, var(--c-surface));
+  box-shadow: none;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse:hover {
+  border-color: color-mix(in srgb, var(--raqeem-primary) 20%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-primary) 4%, var(--c-surface));
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse .admin-pedagogical-metric__label {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse .admin-pedagogical-metric__value,
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse .admin-pedagogical-metric__status {
+  margin: 0;
+  color: var(--c-text);
+  font-size: clamp(28px, 2.7vw, 34px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse .admin-pedagogical-metric__status {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+/* Four compact domain cards on desktop: one card per operational domain. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference {
+  padding: 0;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference-groups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group {
+  --group-accent: var(--raqeem-secondary);
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 188px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--group-accent) 10%, var(--c-border));
+  border-radius: calc(var(--radius) + 5px);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--group-accent) 3.5%, var(--c-surface)),
+    var(--c-surface) 48%
+  );
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--group-accent) 6%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group:nth-child(2) {
+  --group-accent: var(--raqeem-primary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group:nth-child(3) {
+  --group-accent: var(--raqeem-accent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group:nth-child(4) {
+  --group-accent: var(--raqeem-secondary);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3px;
+  background: var(--group-accent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 15px 14px 11px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 78%, transparent);
+  background: color-mix(in srgb, var(--group-accent) 3%, var(--c-surface));
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 780;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group__title::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: var(--group-accent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference .admin-pedagogical-metric-group__grid {
+  display: flex;
+  min-height: 132px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 7px 10px 9px;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 5px;
+  border: 0;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 68%, transparent);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 160ms ease;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference:last-child {
+  border-block-end: 0;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference:hover {
+  background: color-mix(in srgb, var(--group-accent) 4%, transparent);
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference .admin-pedagogical-metric__label {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--c-text-muted);
+  font-size: 11.75px;
+  font-weight: 640;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference .admin-pedagogical-metric__value,
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference .admin-pedagogical-metric__status {
+  margin: 0;
+  color: var(--c-text);
+  font-size: 14.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference .admin-pedagogical-metric__status {
+  color: var(--c-text-muted);
+  font-size: 10.75px;
+  font-weight: 600;
+}
+
+/* Pedagogical hierarchy: level first, then classes, then subjects. */
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric--reference[href='/admin/levels'] {
+  order: 1;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric--reference[href='/admin/classes'] {
+  order: 2;
+}
+
+.admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric-group:has(.admin-pedagogical-metric--reference[href='/admin/classes']) .admin-pedagogical-metric--reference[href='/admin/subjects'] {
+  order: 3;
+}
+
+@media (max-width: 1180px) {
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .admin-pedagogical-dashboard--phase-a {
+    width: 100%;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__spotlight {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-pedagogical-dashboard--phase-a {
+    padding-block-start: 4px;
+    gap: 12px;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention--quiet {
+    min-height: 84px;
+    padding: 15px 16px;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-copy {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__attention-item + .admin-pedagogical-dashboard__attention-item::before {
+    content: none;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card {
+    min-height: 112px;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse-grid,
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__reference-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__pulse-grid {
+    padding: 8px;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse {
+    min-height: 76px;
+  }
+
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-dashboard__work-strip-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-focus-card,
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--pulse,
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-metric--reference,
+  .admin-pedagogical-dashboard--phase-a .admin-pedagogical-work-action {
+    transition: none;
+  }
+}
