@@ -194,7 +194,7 @@ describe('staff responsibility assignment UI write contract', () => {
     const payload = buildStaffResponsibilityWritePayload({
       ...emptyStaffResponsibilityForm(),
       capabilityCodes: ['view_students'],
-    }) as Record<string, unknown>;
+    }) as unknown as Record<string, unknown>;
     for (const key of ['origin', 'scope_id', 'user_id', 'school_id', 'assigned_by']) {
       expect(key in payload).toBe(false);
     }
