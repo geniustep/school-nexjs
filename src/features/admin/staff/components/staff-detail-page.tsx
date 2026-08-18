@@ -17,6 +17,7 @@ import {
   StaffRoleTemplatesSection,
   StaffScopesSection,
 } from '@/features/admin/staff/components/staff-permissions-section';
+import { StaffResponsibilityAssignmentsSection } from '@/features/admin/staff/components/staff-responsibility-assignments-section';
 import { StaffTeacherSection } from '@/features/admin/staff/components/staff-teacher-section';
 import { StaffAccountPasswordBanner } from '@/features/admin/staff/components/staff-account-password-banner';
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
@@ -219,6 +220,12 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               <>
             <StaffRoleTemplatesSection member={member} />
             <StaffScopesSection member={member} />
+            <StaffResponsibilityAssignmentsSection
+              userId={staffUserId}
+              options={optionsState.options ?? undefined}
+              canManage={canManage}
+              onChanged={() => detailState.reload()}
+            />
             <StaffPermissionsSection member={member} payload={detailState.permissionsPayload} />
               </>
             ) : null}
