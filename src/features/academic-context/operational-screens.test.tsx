@@ -117,10 +117,19 @@ vi.mock('@/features/admin/teachers/components/eligible-teachers-picker', () => (
 }));
 
 vi.mock('@/features/admin/academic-setup/components/setup-drawer', () => ({
-  SetupDrawer: ({ children, title }: { children: React.ReactNode; title: string }) => (
+  SetupDrawer: ({
+    children,
+    title,
+    footer,
+  }: {
+    children: React.ReactNode;
+    title: string;
+    footer?: React.ReactNode;
+  }) => (
     <div>
       <h2>{title}</h2>
       {children}
+      {footer}
     </div>
   ),
 }));
