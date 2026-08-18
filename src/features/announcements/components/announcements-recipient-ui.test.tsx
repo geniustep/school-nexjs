@@ -73,7 +73,7 @@ describe('announcements recipient UI', () => {
           },
         ],
         page: 1,
-        page_size: 20,
+        page_size: 12,
         total: 1,
         total_pages: 1,
         unread_count: 1,
@@ -90,7 +90,7 @@ describe('announcements recipient UI', () => {
     expect(screen.getByLabelText(/announcements.unread/)).toBeTruthy();
     expect(screen.queryByText(/recipient_summary|audience|snapshot/i)).toBeNull();
     expect(listMock).toHaveBeenCalledWith(
-      expect.objectContaining({ page: 1, page_size: 20, student_id: undefined }),
+      expect.objectContaining({ page: 1, page_size: 12, student_id: undefined }),
     );
   });
 
@@ -100,7 +100,7 @@ describe('announcements recipient UI', () => {
       data: {
         items: [],
         page: 1,
-        page_size: 20,
+        page_size: 12,
         total: 0,
         total_pages: 1,
         unread_count: 0,
