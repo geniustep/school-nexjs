@@ -88,7 +88,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-workspace admin-workspace--dashboard">
-      {shouldShowDashboardContextPanel(user) && (
+      {variant.id !== 'admin_staff' && shouldShowDashboardContextPanel(user) && (
         <AdminDashboardContextPanel user={user} schoolLabel={schoolLabel} />
       )}
       {variant.showMultiSchoolPortfolioNotice && (
