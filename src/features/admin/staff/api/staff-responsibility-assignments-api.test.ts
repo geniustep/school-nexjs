@@ -5,7 +5,9 @@ import {
   canEndStaffResponsibilityAssignment,
   createStaffResponsibilityAssignment,
   endStaffResponsibilityAssignment,
+  fetchStaffEffectivePermissionExplanation,
   fetchStaffResponsibilityAssignments,
+  fetchStaffResponsibilityAssignmentsSummary,
   staffResponsibilityAssignmentEndpoints,
   updateStaffResponsibilityAssignment,
   type StaffResponsibilityAssignment,
@@ -42,7 +44,7 @@ function assignment(overrides: Partial<StaffResponsibilityAssignment> = {}): Sta
   };
 }
 
-describe('staff responsibility assignment contract', () => {
+describe('staff responsibility assignment API contract', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -65,8 +67,63 @@ describe('staff responsibility assignment contract', () => {
     expect(mockedApi.get).toHaveBeenCalledWith('/admin/staff/8151/responsibility-assignments');
   });
 
+  it('reads assignments_summary from direct staff detail without recomputing it', async () => {
+    mockedApi.get.mockResolvedValue({
+      success: true,
+      data: {
+        id: 8151,
+        assignments_summary: { total: 4, active: 3, manual_count: 2, legacy_header_count: 1 },
+      },
+      meta: {},
+    });
+    const response = await fetchStaffResponsibilityAssignmentsSummary(8151);
+    expect(mockedApi.get).toHaveBeenCalledWith('/admin/staff/8151');
+    expect(response.success && response.data).toEqual({
+      total: 4,
+      active: 3,
+      manual_count: 2,
+      legacy_header_count: 1,
+    });
+  });
+
+  it('reads assignments_summary from an item envelope', async () => {
+    mockedApi.get.mockResolvedValue({
+      success: true,
+      data: {
+        item: {
+          id: 8151,
+          assignments_summary: { total: 2, active: 1, manual_count: 0, legacy_header_count: 1 },
+        },
+      },
+      meta: {},
+    });
+    const response = await fetchStaffResponsibilityAssignmentsSummary(8151);
+    expect(response.success && response.data).toEqual({
+      total: 2,
+      active: 1,
+      manual_count: 0,
+      legacy_header_count: 1,
+    });
+  });
+
+  it('keeps a missing summary nullable instead of inventing local counts', async () => {
+    mockedApi.get.mockResolvedValue({ success: true, data: { id: 8151 }, meta: {} });
+    const response = await fetchStaffResponsibilityAssignmentsSummary(8151);
+    expect(response.success && response.data).toBeNull();
+  });
+
+  it('fetches effective permission explanation from the canonical endpoint', async () => {
+    mockedApi.get.mockResolvedValue({ success: true, data: { capabilities: [] }, meta: {} });
+    await fetchStaffEffectivePermissionExplanation(8151);
+    expect(mockedApi.get).toHaveBeenCalledWith('/admin/staff/8151/effective-permissions');
+  });
+
   it('uses POST for create', async () => {
-    mockedApi.post.mockResolvedValue({ success: true, data: { item: assignment({ id: 91, origin: 'manual' }) }, meta: {} });
+    mockedApi.post.mockResolvedValue({
+      success: true,
+      data: { item: assignment({ id: 91, origin: 'manual' }) },
+      meta: {},
+    });
     const payload = {
       scope_type: 'school' as const,
       capability_codes: ['view_exams'],
@@ -80,7 +137,11 @@ describe('staff responsibility assignment contract', () => {
   });
 
   it('uses PATCH for update', async () => {
-    mockedApi.patch.mockResolvedValue({ success: true, data: { item: assignment({ id: 91, origin: 'manual' }) }, meta: {} });
+    mockedApi.patch.mockResolvedValue({
+      success: true,
+      data: { item: assignment({ id: 91, origin: 'manual' }) },
+      meta: {},
+    });
     const payload = { capability_codes: ['view_attendance'] };
     await updateStaffResponsibilityAssignment(8151, 91, payload);
     expect(mockedApi.patch).toHaveBeenCalledWith(
@@ -90,7 +151,11 @@ describe('staff responsibility assignment contract', () => {
   });
 
   it('uses POST /end and never models end as delete', async () => {
-    mockedApi.post.mockResolvedValue({ success: true, data: { item: assignment({ id: 91, origin: 'manual', active: false }) }, meta: {} });
+    mockedApi.post.mockResolvedValue({
+      success: true,
+      data: { item: assignment({ id: 91, origin: 'manual', active: false }) },
+      meta: {},
+    });
     await endStaffResponsibilityAssignment(8151, 91, { end_reason: 'test_end' });
     expect(mockedApi.post).toHaveBeenCalledWith(
       '/admin/staff/8151/responsibility-assignments/91/end',
@@ -104,7 +169,7 @@ describe('staff responsibility assignment contract', () => {
     expect(canEndStaffResponsibilityAssignment(legacy)).toBe(false);
   });
 
-  it('allows manual actions only when backend allowed_actions explicitly permits them', () => {
+  it('allows active manual actions only when backend allowed_actions explicitly permits them', () => {
     const manual = assignment({
       id: 91,
       origin: 'manual',
@@ -114,5 +179,18 @@ describe('staff responsibility assignment contract', () => {
     expect(canEndStaffResponsibilityAssignment(manual)).toBe(true);
     expect(canEditStaffResponsibilityAssignment({ ...manual, allowed_actions: { edit: false } })).toBe(false);
     expect(canEndStaffResponsibilityAssignment({ ...manual, allowed_actions: { end: false } })).toBe(false);
+  });
+
+  it('never offers patch or end for an ended manual assignment', () => {
+    const ended = assignment({
+      id: 91,
+      origin: 'manual',
+      active: false,
+      state: 'cancelled',
+      is_effective: false,
+      allowed_actions: { view: true, edit: true, end: true },
+    });
+    expect(canEditStaffResponsibilityAssignment(ended)).toBe(false);
+    expect(canEndStaffResponsibilityAssignment(ended)).toBe(false);
   });
 });
