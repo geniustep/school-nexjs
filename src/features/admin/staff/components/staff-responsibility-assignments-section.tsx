@@ -1,9 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Badge, Card, SectionHead } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
+import { fetchAdminAcademicContextOptions } from '@/features/academic-context/api/academic-context-api';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { resolveStaffPermissionLabel } from '@/features/admin/staff/utils/staff-center-present';
 import { useStaffResponsibilityAssignments } from '@/features/admin/staff/hooks/use-staff-responsibility-assignments';
@@ -12,265 +13,33 @@ import {
   canEndStaffResponsibilityAssignment,
   type StaffResponsibilityAssignment,
   type StaffResponsibilityAssignmentScopeType,
-  type StaffResponsibilityAssignmentWritePayload,
 } from '@/features/admin/staff/api/staff-responsibility-assignments-api';
-import type { Locale } from '@/lib/i18n/config';
+import {
+  buildStaffResponsibilityWritePayload,
+  classifyStaffResponsibilityError,
+  emptyStaffResponsibilityForm,
+  staffResponsibilityFormFromAssignment,
+  toggleStaffResponsibilityNumber,
+  toggleStaffResponsibilityString,
+  validateStaffResponsibilityForm,
+  type StaffResponsibilityFormState,
+} from '@/features/admin/staff/utils/staff-responsibility-assignment-contract';
+import {
+  STAFF_RESPONSIBILITY_COPY,
+  staffResponsibilityErrorMessage,
+} from '@/features/admin/staff/utils/staff-responsibility-copy';
 import type { StaffOptions } from '@/types/academic-setup';
+import type { AcademicContextOptionsResponse } from '@/types/academic-context';
 
-const COPY: Record<Locale, Record<string, string>> = {
-  ar: {
-    title: 'المسؤوليات والصلاحيات',
-    description: 'المسؤوليات الممنوحة لهذا الموظف والنطاق الذي تعمل داخله. الصلاحيات الفعلية أدناه تبقى مرجع التنفيذ النهائي.',
-    add: 'إضافة مسؤولية',
-    edit: 'تعديل',
-    end: 'إنهاء المسؤولية',
-    inherited: 'مسؤولية أساسية',
-    manual: 'مسؤولية إضافية',
-    readOnly: 'موروثة — للقراءة فقط',
-    effective: 'فعالة الآن',
-    inactive: 'غير فعالة',
-    scope: 'النطاق',
-    scopeSchool: 'المدرسة',
-    scopeCycle: 'السلك',
-    scopeLevels: 'المستويات',
-    scopeClasses: 'الأقسام',
-    capabilities: 'الصلاحيات',
-    dates: 'فترة السريان',
-    from: 'من',
-    to: 'إلى',
-    openEnded: 'مفتوحة',
-    empty: 'لا توجد مسؤوليات مسجلة في هذا السياق المدرسي.',
-    loading: 'جارٍ تحميل المسؤوليات…',
-    retry: 'إعادة المحاولة',
-    createTitle: 'إضافة مسؤولية',
-    editTitle: 'تعديل المسؤولية',
-    save: 'حفظ',
-    cancel: 'إلغاء',
-    chooseScope: 'مجال المسؤولية',
-    chooseCapabilities: 'اختر الصلاحيات',
-    noGrantableCapabilities: 'لا توجد صلاحيات متاحة للإسناد في السياق الحالي.',
-    effectiveFrom: 'تاريخ البداية',
-    effectiveTo: 'تاريخ النهاية (اختياري)',
-    cycleReadonly: 'هذه مسؤولية على مستوى السلك. يمكن تعديل صلاحياتها وتواريخها أو نقلها إلى نطاق مدعوم من هذه الواجهة.',
-    selectAtLeastOneCapability: 'اختر صلاحية واحدة على الأقل.',
-    selectScopeTargets: 'اختر عناصر النطاق المطلوبة.',
-    created: 'تمت إضافة المسؤولية.',
-    updated: 'تم تحديث المسؤولية.',
-    ended: 'تم إنهاء المسؤولية.',
-    endTitle: 'إنهاء المسؤولية',
-    endBody: 'سيتم إيقاف هذه المسؤولية ولن تعود فعالة. سيبقى السجل محفوظًا للتدقيق.',
-    endConfirm: 'إنهاء',
-    legacyError: 'المسؤولية الأساسية للقراءة فقط ولا يمكن تعديلها.',
-    outsideSchoolError: 'يتضمن النطاق عنصرًا خارج المدرسة النشطة.',
-    genericError: 'تعذر حفظ التغيير. راجع البيانات وحاول مرة أخرى.',
-  },
-  en: {
-    title: 'Responsibilities & permissions',
-    description: 'Assigned responsibilities and their scope. Effective permissions below remain the final execution view.',
-    add: 'Add responsibility',
-    edit: 'Edit',
-    end: 'End responsibility',
-    inherited: 'Base responsibility',
-    manual: 'Additional responsibility',
-    readOnly: 'Inherited — read only',
-    effective: 'Effective now',
-    inactive: 'Not effective',
-    scope: 'Scope',
-    scopeSchool: 'School',
-    scopeCycle: 'Cycle',
-    scopeLevels: 'Levels',
-    scopeClasses: 'Classes',
-    capabilities: 'Permissions',
-    dates: 'Effective period',
-    from: 'From',
-    to: 'To',
-    openEnded: 'Open-ended',
-    empty: 'No responsibilities are recorded in this school context.',
-    loading: 'Loading responsibilities…',
-    retry: 'Retry',
-    createTitle: 'Add responsibility',
-    editTitle: 'Edit responsibility',
-    save: 'Save',
-    cancel: 'Cancel',
-    chooseScope: 'Responsibility scope',
-    chooseCapabilities: 'Choose permissions',
-    noGrantableCapabilities: 'No grantable permissions are available in the current context.',
-    effectiveFrom: 'Start date',
-    effectiveTo: 'End date (optional)',
-    cycleReadonly: 'This is a cycle-level responsibility. Its permissions and dates can be edited, or it can be moved to a scope supported by this screen.',
-    selectAtLeastOneCapability: 'Select at least one permission.',
-    selectScopeTargets: 'Select the required scope items.',
-    created: 'Responsibility added.',
-    updated: 'Responsibility updated.',
-    ended: 'Responsibility ended.',
-    endTitle: 'End responsibility',
-    endBody: 'This responsibility will stop being effective. The record remains available for audit.',
-    endConfirm: 'End',
-    legacyError: 'Base responsibilities are read-only and cannot be edited.',
-    outsideSchoolError: 'The selected scope contains an item outside the active school.',
-    genericError: 'The change could not be saved. Review the data and try again.',
-  },
-  fr: {
-    title: 'Responsabilités et autorisations',
-    description: 'Responsabilités attribuées et leur périmètre. Les autorisations effectives ci-dessous restent la référence d’exécution.',
-    add: 'Ajouter une responsabilité',
-    edit: 'Modifier',
-    end: 'Mettre fin',
-    inherited: 'Responsabilité de base',
-    manual: 'Responsabilité supplémentaire',
-    readOnly: 'Héritée — lecture seule',
-    effective: 'Effective maintenant',
-    inactive: 'Non effective',
-    scope: 'Périmètre',
-    scopeSchool: 'Établissement',
-    scopeCycle: 'Cycle',
-    scopeLevels: 'Niveaux',
-    scopeClasses: 'Classes',
-    capabilities: 'Autorisations',
-    dates: 'Période d’effet',
-    from: 'Du',
-    to: 'Au',
-    openEnded: 'Sans date de fin',
-    empty: 'Aucune responsabilité enregistrée dans ce contexte scolaire.',
-    loading: 'Chargement des responsabilités…',
-    retry: 'Réessayer',
-    createTitle: 'Ajouter une responsabilité',
-    editTitle: 'Modifier la responsabilité',
-    save: 'Enregistrer',
-    cancel: 'Annuler',
-    chooseScope: 'Périmètre de responsabilité',
-    chooseCapabilities: 'Choisir les autorisations',
-    noGrantableCapabilities: 'Aucune autorisation attribuable dans le contexte actuel.',
-    effectiveFrom: 'Date de début',
-    effectiveTo: 'Date de fin (facultative)',
-    cycleReadonly: 'Responsabilité au niveau du cycle : les autorisations et dates peuvent être modifiées, ou le périmètre peut être déplacé vers un type pris en charge ici.',
-    selectAtLeastOneCapability: 'Sélectionnez au moins une autorisation.',
-    selectScopeTargets: 'Sélectionnez les éléments requis du périmètre.',
-    created: 'Responsabilité ajoutée.',
-    updated: 'Responsabilité mise à jour.',
-    ended: 'Responsabilité terminée.',
-    endTitle: 'Mettre fin à la responsabilité',
-    endBody: 'Cette responsabilité cessera d’être effective. Le registre restera conservé pour l’audit.',
-    endConfirm: 'Mettre fin',
-    legacyError: 'Les responsabilités de base sont en lecture seule.',
-    outsideSchoolError: 'Le périmètre choisi contient un élément hors de l’établissement actif.',
-    genericError: 'Impossible d’enregistrer la modification. Vérifiez les données puis réessayez.',
-  },
-  es: {
-    title: 'Responsabilidades y permisos',
-    description: 'Responsabilidades asignadas y su alcance. Los permisos efectivos de abajo siguen siendo la referencia final de ejecución.',
-    add: 'Añadir responsabilidad',
-    edit: 'Editar',
-    end: 'Finalizar responsabilidad',
-    inherited: 'Responsabilidad base',
-    manual: 'Responsabilidad adicional',
-    readOnly: 'Heredada — solo lectura',
-    effective: 'Efectiva ahora',
-    inactive: 'No efectiva',
-    scope: 'Alcance',
-    scopeSchool: 'Centro',
-    scopeCycle: 'Ciclo',
-    scopeLevels: 'Niveles',
-    scopeClasses: 'Clases',
-    capabilities: 'Permisos',
-    dates: 'Periodo efectivo',
-    from: 'Desde',
-    to: 'Hasta',
-    openEnded: 'Sin fecha final',
-    empty: 'No hay responsabilidades registradas en este contexto escolar.',
-    loading: 'Cargando responsabilidades…',
-    retry: 'Reintentar',
-    createTitle: 'Añadir responsabilidad',
-    editTitle: 'Editar responsabilidad',
-    save: 'Guardar',
-    cancel: 'Cancelar',
-    chooseScope: 'Alcance de la responsabilidad',
-    chooseCapabilities: 'Elegir permisos',
-    noGrantableCapabilities: 'No hay permisos asignables en el contexto actual.',
-    effectiveFrom: 'Fecha de inicio',
-    effectiveTo: 'Fecha final (opcional)',
-    cycleReadonly: 'Esta responsabilidad corresponde al ciclo. Se pueden modificar permisos y fechas, o moverla a un alcance admitido por esta pantalla.',
-    selectAtLeastOneCapability: 'Selecciona al menos un permiso.',
-    selectScopeTargets: 'Selecciona los elementos de alcance requeridos.',
-    created: 'Responsabilidad añadida.',
-    updated: 'Responsabilidad actualizada.',
-    ended: 'Responsabilidad finalizada.',
-    endTitle: 'Finalizar responsabilidad',
-    endBody: 'Esta responsabilidad dejará de ser efectiva. El registro se conservará para auditoría.',
-    endConfirm: 'Finalizar',
-    legacyError: 'Las responsabilidades base son de solo lectura.',
-    outsideSchoolError: 'El alcance seleccionado contiene un elemento fuera del centro activo.',
-    genericError: 'No se pudo guardar el cambio. Revisa los datos e inténtalo de nuevo.',
-  },
-};
-
-type FormState = {
-  scopeType: StaffResponsibilityAssignmentScopeType;
-  cycleIds: number[];
-  levelIds: number[];
-  classIds: number[];
-  capabilityCodes: string[];
-  yearPolicy: StaffResponsibilityAssignment['year_policy'];
-  academicYearId: number | null;
-  effectiveFrom: string;
-  effectiveTo: string;
-};
-
-function emptyForm(): FormState {
-  return {
-    scopeType: 'school',
-    cycleIds: [],
-    levelIds: [],
-    classIds: [],
-    capabilityCodes: [],
-    yearPolicy: 'follows_request_context',
-    academicYearId: null,
-    effectiveFrom: '',
-    effectiveTo: '',
-  };
-}
-
-function formFromAssignment(item: StaffResponsibilityAssignment): FormState {
-  return {
-    scopeType: item.scope_type,
-    cycleIds: item.cycle_ids ?? [],
-    levelIds: item.level_ids ?? [],
-    classIds: item.class_ids ?? [],
-    capabilityCodes: item.capability_codes ?? [],
-    yearPolicy: item.year_policy,
-    academicYearId: item.academic_year_id,
-    effectiveFrom: item.effective_from ?? '',
-    effectiveTo: item.effective_to ?? '',
-  };
-}
-
-function toggleNumber(values: number[], value: number): number[] {
-  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
-}
-
-function toggleString(values: string[], value: string): string[] {
-  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
-}
-
-function buildWritePayload(form: FormState): StaffResponsibilityAssignmentWritePayload {
-  const payload: StaffResponsibilityAssignmentWritePayload = {
-    scope_type: form.scopeType,
-    cycle_ids: form.scopeType === 'cycle' ? form.cycleIds : [],
-    level_ids: form.scopeType === 'levels' ? form.levelIds : [],
-    class_ids: form.scopeType === 'classes' ? form.classIds : [],
-    capability_codes: form.capabilityCodes,
-    year_policy: form.yearPolicy,
-    effective_from: form.effectiveFrom || null,
-    effective_to: form.effectiveTo || null,
-  };
-  if (form.yearPolicy === 'bound') payload.academic_year_id = form.academicYearId;
-  return payload;
-}
-
-function resolveErrorMessage(code: string | undefined, fallback: string | undefined, copy: Record<string, string>) {
-  if (code === 'responsibility_assignment_legacy_read_only') return copy.legacyError;
-  if (code === 'responsibility_assignment_outside_school') return copy.outsideSchoolError;
-  return fallback || copy.genericError;
+function validationMessage(
+  code: ReturnType<typeof validateStaffResponsibilityForm>,
+  copy: (typeof STAFF_RESPONSIBILITY_COPY)['ar'],
+): string | null {
+  if (!code) return null;
+  if (code === 'capability_required') return copy.selectAtLeastOneCapability;
+  if (code === 'scope_target_required') return copy.selectScopeTargets;
+  if (code === 'academic_year_required') return copy.error.year_required;
+  return copy.error.period_invalid;
 }
 
 export function StaffResponsibilityAssignmentsSection({
@@ -286,14 +55,33 @@ export function StaffResponsibilityAssignmentsSection({
 }) {
   const t = useT();
   const { locale } = useLocale();
-  const copy = COPY[locale];
+  const copy = STAFF_RESPONSIBILITY_COPY[locale];
   const toast = useToast();
   const assignments = useStaffResponsibilityAssignments(userId);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<StaffResponsibilityAssignment | null>(null);
-  const [form, setForm] = useState<FormState>(emptyForm);
+  const [form, setForm] = useState<StaffResponsibilityFormState>(emptyStaffResponsibilityForm);
   const [saving, setSaving] = useState(false);
   const [endTarget, setEndTarget] = useState<StaffResponsibilityAssignment | null>(null);
+  const [academicOptions, setAcademicOptions] = useState<AcademicContextOptionsResponse | null>(null);
+  const [academicOptionsError, setAcademicOptionsError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchAdminAcademicContextOptions({ scope: 'assignment' }).then((response) => {
+      if (cancelled) return;
+      if (response.success) {
+        setAcademicOptions(response.data);
+        setAcademicOptionsError(false);
+      } else {
+        setAcademicOptions(null);
+        setAcademicOptionsError(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const grantableCapabilities = useMemo(
     () => (options?.capabilities ?? []).filter((option) => option.grantable !== false),
@@ -307,79 +95,86 @@ export function StaffResponsibilityAssignmentsSection({
     () => new Map((options?.classes ?? []).map((item) => [item.id, item.name])),
     [options?.classes],
   );
+  const cycleName = useMemo(
+    () => new Map((academicOptions?.cycles ?? []).map((item) => [item.id, item.name])),
+    [academicOptions?.cycles],
+  );
+  const academicYearName = useMemo(
+    () => new Map((academicOptions?.academic_years ?? []).map((item) => [item.id, item.name])),
+    [academicOptions?.academic_years],
+  );
 
-  const supportedScopes = useMemo(() => {
-    const fromOptions = (options?.scope_types ?? [])
-      .filter((item) => ['school', 'levels', 'classes'].includes(item.value))
-      .map((item) => ({ value: item.value as StaffResponsibilityAssignmentScopeType, label: item.label }));
-    if (fromOptions.length) return fromOptions;
-    return [
-      { value: 'school' as const, label: copy.scopeSchool },
-      { value: 'levels' as const, label: copy.scopeLevels },
-      { value: 'classes' as const, label: copy.scopeClasses },
-    ];
-  }, [options?.scope_types, copy]);
+  const scopeOptions: Array<{ value: StaffResponsibilityAssignmentScopeType; label: string }> = [
+    { value: 'school', label: copy.scopeSchool },
+    { value: 'cycle', label: copy.scopeCycle },
+    { value: 'levels', label: copy.scopeLevels },
+    { value: 'classes', label: copy.scopeClasses },
+  ];
 
   function capabilityLabel(code: string): string {
     return resolveStaffPermissionLabel(code, locale, t) ?? code;
   }
 
+  function namedTargets(ids: number[], names: Map<number, string>): string {
+    const resolved = ids.map((id) => names.get(id)).filter((value): value is string => Boolean(value));
+    if (resolved.length === ids.length && resolved.length) return resolved.join(', ');
+    return ids.length ? copy.selectedCount(ids.length) : copy.unknownScope;
+  }
+
   function scopeLabel(item: StaffResponsibilityAssignment): string {
     if (item.scope_type === 'school') return copy.scopeSchool;
     if (item.scope_type === 'cycle') {
-      return `${copy.scopeCycle}: ${(item.cycle_ids ?? []).map((id) => `#${id}`).join(', ') || '—'}`;
+      return `${copy.scopeCycle}: ${namedTargets(item.cycle_ids ?? [], cycleName)}`;
     }
     if (item.scope_type === 'levels') {
-      const names = (item.level_ids ?? []).map((id) => levelName.get(id) ?? `#${id}`);
-      return `${copy.scopeLevels}: ${names.join(', ') || '—'}`;
+      return `${copy.scopeLevels}: ${namedTargets(item.level_ids ?? [], levelName)}`;
     }
     if (item.scope_type === 'classes') {
-      const names = (item.class_ids ?? []).map((id) => className.get(id) ?? `#${id}`);
-      return `${copy.scopeClasses}: ${names.join(', ') || '—'}`;
+      return `${copy.scopeClasses}: ${namedTargets(item.class_ids ?? [], className)}`;
     }
-    return item.scope_type;
+    return copy.unknownScope;
+  }
+
+  function yearLabel(item: StaffResponsibilityAssignment): string {
+    if (item.year_policy === 'unbounded') return copy.yearUnbounded;
+    if (item.year_policy === 'follows_request_context') return copy.yearFollowsContext;
+    if (item.year_policy === 'bound') {
+      return item.academic_year_id
+        ? academicYearName.get(item.academic_year_id) ?? copy.yearBound
+        : copy.yearBound;
+    }
+    return copy.yearFollowsContext;
   }
 
   function openCreate() {
     setEditing(null);
-    setForm(emptyForm());
+    setForm(emptyStaffResponsibilityForm());
     setFormOpen(true);
   }
 
   function openEdit(item: StaffResponsibilityAssignment) {
     if (!canEditStaffResponsibilityAssignment(item)) return;
     setEditing(item);
-    setForm(formFromAssignment(item));
+    setForm(staffResponsibilityFormFromAssignment(item));
     setFormOpen(true);
   }
 
-  function validateForm(): boolean {
-    if (!form.capabilityCodes.length) {
-      toast.error(copy.selectAtLeastOneCapability);
-      return false;
-    }
-    if (
-      (form.scopeType === 'cycle' && !form.cycleIds.length) ||
-      (form.scopeType === 'levels' && !form.levelIds.length) ||
-      (form.scopeType === 'classes' && !form.classIds.length)
-    ) {
-      toast.error(copy.selectScopeTargets);
-      return false;
-    }
-    return true;
-  }
-
   async function saveForm() {
-    if (!validateForm()) return;
+    const validation = validateStaffResponsibilityForm(form);
+    if (validation) {
+      toast.error(validationMessage(validation, copy) ?? copy.error.generic);
+      return;
+    }
     setSaving(true);
     try {
-      const payload = buildWritePayload(form);
+      const payload = buildStaffResponsibilityWritePayload(form);
       const response = editing
         ? await assignments.update(editing.id, payload)
         : await assignments.create(payload);
       if (!response) return;
       if (!response.success) {
-        toast.error(resolveErrorMessage(response.error.code, response.error.message, copy));
+        const kind = classifyStaffResponsibilityError(response.error.code);
+        toast.error(staffResponsibilityErrorMessage(copy, kind, response.error.message));
         return;
       }
       toast.success(editing ? copy.updated : copy.created);
@@ -398,7 +193,8 @@ export function StaffResponsibilityAssignmentsSection({
     });
     if (!response) return;
     if (!response.success) {
-      toast.error(resolveErrorMessage(response.error.code, response.error.message, copy));
+      const kind = classifyStaffResponsibilityError(response.error.code);
+      toast.error(staffResponsibilityErrorMessage(copy, kind, response.error.message));
       return;
     }
     toast.success(copy.ended);
@@ -420,10 +216,46 @@ export function StaffResponsibilityAssignmentsSection({
       />
       <p className="muted" style={{ marginTop: 0 }}>{copy.description}</p>
 
+      {assignments.summary ? (
+        <div
+          data-testid="responsibility-summary"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          {[
+            [copy.summaryTotal, assignments.summary.total],
+            [copy.summaryActive, assignments.summary.active],
+            [copy.summaryManual, assignments.summary.manual_count],
+            [copy.summaryLegacy, assignments.summary.legacy_header_count],
+          ].map(([label, value]) => (
+            <div key={String(label)} className="info-banner" style={{ padding: '8px 10px' }}>
+              <div className="tiny muted">{label}</div>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {academicOptionsError ? (
+        <div className="info-banner" style={{ marginBottom: 10 }}>
+          <span className="muted">{copy.academicContextUnavailable}</span>
+        </div>
+      ) : null}
+
       {assignments.loading ? <p className="muted">{copy.loading}</p> : null}
       {assignments.error ? (
         <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span className="muted">{resolveErrorMessage(assignments.error.code, assignments.error.message, copy)}</span>
+          <span className="muted">
+            {staffResponsibilityErrorMessage(
+              copy,
+              classifyStaffResponsibilityError(assignments.error.code),
+              assignments.error.message,
+            )}
+          </span>
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => void assignments.reload()}>
             {copy.retry}
           </button>
@@ -441,6 +273,7 @@ export function StaffResponsibilityAssignmentsSection({
           return (
             <article
               key={item.id}
+              data-testid={`responsibility-assignment-${item.id}`}
               style={{
                 border: '1px solid var(--c-border)',
                 borderRadius: 12,
@@ -452,14 +285,16 @@ export function StaffResponsibilityAssignmentsSection({
               <div className="between" style={{ gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
                   <Badge tone={item.origin === 'manual' ? 'blue' : 'slate'}>
-                    {item.origin === 'manual' ? copy.manual : copy.inherited}
+                    {item.origin === 'manual' ? copy.manual : copy.legacy}
                   </Badge>
                   <Badge tone={item.is_effective ? 'green' : 'amber'}>
                     {item.is_effective ? copy.effective : copy.inactive}
                   </Badge>
-                  {item.origin !== 'manual' ? <span className="tiny muted">{copy.readOnly}</span> : null}
+                  {item.origin !== 'manual' || !item.active || item.state !== 'active' ? (
+                    <span className="tiny muted">{copy.readOnly}</span>
+                  ) : null}
                 </div>
-                {(canEdit || canEnd) ? (
+                {canEdit || canEnd ? (
                   <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
                     {canEdit ? (
                       <button type="button" className="btn btn--ghost btn--sm" onClick={() => openEdit(item)}>
@@ -483,6 +318,7 @@ export function StaffResponsibilityAssignmentsSection({
                     <Badge key={code} tone="blue">{capabilityLabel(code)}</Badge>
                   ))}
                 </div>
+                <div className="muted tiny">{copy.yearPolicy}: {yearLabel(item)}</div>
                 <div className="muted tiny">
                   {copy.dates}: {copy.from} {item.effective_from ?? '—'} · {copy.to} {item.effective_to ?? copy.openEnded}
                 </div>
@@ -525,15 +361,31 @@ export function StaffResponsibilityAssignmentsSection({
                   }));
                 }}
               >
-                {editing?.scope_type === 'cycle' ? <option value="cycle">{copy.scopeCycle}</option> : null}
-                {supportedScopes.map((scope) => (
+                {scopeOptions.map((scope) => (
                   <option key={scope.value} value={scope.value}>{scope.label}</option>
                 ))}
               </select>
             </label>
 
             {form.scopeType === 'cycle' ? (
-              <div className="muted">{copy.cycleReadonly}</div>
+              <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
+                <legend className="field__label">{copy.scopeCycle}</legend>
+                <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+                  {(academicOptions?.cycles ?? []).map((cycle) => (
+                    <label key={cycle.id} className="row" style={{ gap: 5 }}>
+                      <input
+                        type="checkbox"
+                        checked={form.cycleIds.includes(cycle.id)}
+                        onChange={() => setForm((current) => ({
+                          ...current,
+                          cycleIds: toggleStaffResponsibilityNumber(current.cycleIds, cycle.id),
+                        }))}
+                      />
+                      <span>{cycle.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
             ) : null}
 
             {form.scopeType === 'levels' ? (
@@ -545,7 +397,10 @@ export function StaffResponsibilityAssignmentsSection({
                       <input
                         type="checkbox"
                         checked={form.levelIds.includes(level.id)}
-                        onChange={() => setForm((current) => ({ ...current, levelIds: toggleNumber(current.levelIds, level.id) }))}
+                        onChange={() => setForm((current) => ({
+                          ...current,
+                          levelIds: toggleStaffResponsibilityNumber(current.levelIds, level.id),
+                        }))}
                       />
                       <span>{level.name}</span>
                     </label>
@@ -563,7 +418,10 @@ export function StaffResponsibilityAssignmentsSection({
                       <input
                         type="checkbox"
                         checked={form.classIds.includes(klass.id)}
-                        onChange={() => setForm((current) => ({ ...current, classIds: toggleNumber(current.classIds, klass.id) }))}
+                        onChange={() => setForm((current) => ({
+                          ...current,
+                          classIds: toggleStaffResponsibilityNumber(current.classIds, klass.id),
+                        }))}
                       />
                       <span>{klass.name}</span>
                     </label>
@@ -583,7 +441,10 @@ export function StaffResponsibilityAssignmentsSection({
                         checked={form.capabilityCodes.includes(capability.code)}
                         onChange={() => setForm((current) => ({
                           ...current,
-                          capabilityCodes: toggleString(current.capabilityCodes, capability.code),
+                          capabilityCodes: toggleStaffResponsibilityString(
+                            current.capabilityCodes,
+                            capability.code,
+                          ),
                         }))}
                       />
                       <span>{capabilityLabel(capability.code)}</span>
@@ -594,6 +455,45 @@ export function StaffResponsibilityAssignmentsSection({
                 <span className="muted">{copy.noGrantableCapabilities}</span>
               )}
             </fieldset>
+
+            <label className="field">
+              <span className="field__label">{copy.yearPolicy}</span>
+              <select
+                className="input"
+                value={form.yearPolicy}
+                onChange={(event) => {
+                  const next = event.target.value as StaffResponsibilityFormState['yearPolicy'];
+                  setForm((current) => ({
+                    ...current,
+                    yearPolicy: next,
+                    academicYearId: next === 'bound' ? current.academicYearId : null,
+                  }));
+                }}
+              >
+                <option value="follows_request_context">{copy.yearFollowsContext}</option>
+                <option value="bound">{copy.yearBound}</option>
+                <option value="unbounded">{copy.yearUnbounded}</option>
+              </select>
+            </label>
+
+            {form.yearPolicy === 'bound' ? (
+              <label className="field">
+                <span className="field__label">{copy.academicYear}</span>
+                <select
+                  className="input"
+                  value={form.academicYearId ?? ''}
+                  onChange={(event) => setForm((current) => ({
+                    ...current,
+                    academicYearId: event.target.value ? Number(event.target.value) : null,
+                  }))}
+                >
+                  <option value="">{copy.selectAcademicYear}</option>
+                  {(academicOptions?.academic_years ?? []).map((year) => (
+                    <option key={year.id} value={year.id}>{year.name}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
               <label className="field">
