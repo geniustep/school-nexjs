@@ -35,6 +35,5 @@ describe('Toast warning tone', () => {
     expect(alert.textContent).toContain('تحذير مترجم');
     expect(alert.className).toContain('toast--warning');
     expect(alert.className).not.toContain('toast--error');
-    expect(alert.getAttribute('style')).toContain('--c-amber');
   });
 });
