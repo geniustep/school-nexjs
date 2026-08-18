@@ -11,7 +11,7 @@ vi.mock('@/features/i18n/locale-context', () => ({
 
 afterEach(cleanup);
 
-function controller(remove = vi.fn()): ReturnTypeUseSecureMaterials {
+function controller(overrides: Partial<ReturnTypeUseSecureMaterials> = {}): ReturnTypeUseSecureMaterials {
   return {
     materials: [{
       id: 'failed-link',
@@ -33,16 +33,19 @@ function controller(remove = vi.fn()): ReturnTypeUseSecureMaterials {
     ensureSession: vi.fn(),
     addFiles: vi.fn(),
     addLink: vi.fn(),
-    remove,
+    remove: vi.fn(async () => true),
+    replaceFile: vi.fn(async () => true),
+    retryFile: vi.fn(async () => true),
     cancel: vi.fn(),
     clearError: vi.fn(),
+    ...overrides,
   };
 }
 
 describe('SecureMaterialsComposer', () => {
   it('shows a clear remove control and removes a failed material', () => {
-    const remove = vi.fn();
-    render(<SecureMaterialsComposer controller={controller(remove)} />);
+    const remove = vi.fn(async () => true);
+    render(<SecureMaterialsComposer controller={controller({ remove })} />);
 
     const button = screen.getByRole('button', {
       name: 'secureMaterials.remove https://www.youtube.com/watch?v=aNFBseqZNUo',
@@ -61,5 +64,71 @@ describe('SecureMaterialsComposer', () => {
     expect(screen.queryByRole('button', { name: /secureMaterials.loadVideo/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'إغلاق الفيديو' }));
     expect(container.querySelector('.secure-material.is-video-open')).toBeNull();
+  });
+
+  it('accepts files dropped on the composer', () => {
+    const addFiles = vi.fn();
+    render(<SecureMaterialsComposer controller={controller({ materials: [], addFiles, hasFailure: false, ready: true })} />);
+
+    const file = new File(['hello'], 'lesson.pdf', { type: 'application/pdf' });
+    const area = screen.getByRole('region', { name: 'secureMaterials.title' });
+    fireEvent.drop(area, {
+      dataTransfer: {
+        files: [file],
+        types: ['Files'],
+      },
+    });
+
+    expect(addFiles).toHaveBeenCalledTimes(1);
+    expect(addFiles.mock.calls[0]?.[0]?.[0]?.name).toBe('lesson.pdf');
+  });
+
+  it('opens a local image preview without an external URL', () => {
+    render(
+      <SecureMaterialsComposer
+        controller={controller({
+          materials: [{
+            id: 41,
+            clientItemId: 'image-41',
+            kind: 'file',
+            state: 'ready',
+            name: 'exercise.png',
+            mimetype: 'image/png',
+            localPreviewUrl: 'blob:raqeem-preview',
+          }],
+          hasFailure: false,
+          ready: true,
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'attachments.preview exercise.png' }));
+    expect(screen.getByRole('dialog', { name: 'attachments.preview exercise.png' })).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'exercise.png' }).getAttribute('src')).toBe('blob:raqeem-preview');
+  });
+
+  it('offers retry for a failed file and delegates only that item', () => {
+    const retryFile = vi.fn(async () => true);
+    const failed = {
+      id: 51,
+      clientItemId: 'failed-file',
+      kind: 'file' as const,
+      state: 'failed' as const,
+      name: 'worksheet.pdf',
+      mimetype: 'application/pdf',
+      error: 'فشل الرفع',
+    };
+
+    render(
+      <SecureMaterialsComposer
+        controller={controller({
+          materials: [failed],
+          retryFile,
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'common.retry' }));
+    expect(retryFile).toHaveBeenCalledWith(failed);
   });
 });
