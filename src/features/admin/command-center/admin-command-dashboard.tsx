@@ -70,6 +70,7 @@ export function AdminCommandDashboard({
   const widgets = resolveDashboardWidgets(effectiveUser);
   const hideSchoolWideKpis = variant.hideSchoolWideKpis;
   const scopedMode = variant.scopedMode;
+  const staffMode = variant.id === 'admin_staff';
 
   const actionItems = useMemo(() => buildDashboardActionItems(d, t, locale), [d, t, locale]);
   const dataQualityItems = useMemo(() => buildDataQualityItems(d, t, locale), [d, t, locale]);
@@ -125,181 +126,209 @@ export function AdminCommandDashboard({
     return widgets.quickActions.map((id) => ({ id, ...catalog[id] }));
   }, [widgets.quickActions, t]);
 
-  return (
-    <>
-      <AdminCommandHero
-        eyebrow={t('admin.cmd.operationsEyebrow')}
-        title={t('admin.cmd.operationsTitle')}
-        meta={
-          <>
-            <span>{schoolName}</span>
-            <span>{formatDate(today)}</span>
-          </>
-        }
-        summary={scopedMode ? t('admin.cmd.scopedOperationsSummary') : t('admin.cmd.operationsSummary')}
-        kpis={
-          widgets.heroAttendance && hasAttendance ? (
-            widgets.attendanceOperations ? (
-              <span className="admin-hero__kpi admin-hero__kpi--summary">
-                {pct != null ? (
-                  t('admin.cmd.presentRate', { pct: Math.round(pct) })
-                ) : (
-                  <>
-                    <strong>{totalRecorded}</strong>
-                    <span>{t('admin.totalRecorded')}</span>
-                  </>
-                )}
-              </span>
-            ) : (
-              <>
-                {ATT_KEYS.map((k) => (
-                  <AdminHeroKpi
-                    key={k}
-                    label={t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`)}
-                    value={att?.[k] ?? 0}
-                    tone={ATT_TONE[k]}
-                  />
-                ))}
-                <AdminHeroKpi label={t('admin.totalRecorded')} value={totalRecorded} tone="none" />
-              </>
-            )
-          ) : (
-            <span className="admin-hero__kpi">
-              {widgets.heroAttendance ? t('admin.cmd.attendanceUnavailable') : t('admin.cmd.attendanceNoAccess')}
-            </span>
-          )
-        }
-        primaryAction={
-          widgets.heroAttendance ? (
-            <AdminHeroButton href="/admin/attendance?date=today" variant="primary">
-              {t('admin.cmd.openAttendance')}
-            </AdminHeroButton>
-          ) : undefined
-        }
-        secondaryAction={
-          widgets.heroCorrectAttendance ? (
-            <AdminHeroButton href="/admin/attendance?date=today&correct=1" variant="ghost">
-              {t('admin.cmd.correctAttendance')}
-            </AdminHeroButton>
-          ) : undefined
-        }
-      />
+  const structureCells = [
+    widgets.schoolStructureStudents && {
+      href: '/admin/students',
+      label: t('nav.students'),
+      value: d.total_students,
+      icon: '🎓',
+    },
+    widgets.schoolStructureTeachers && {
+      href: '/admin/teachers',
+      label: t('nav.teachers'),
+      value: d.total_teachers,
+      icon: '👩‍🏫',
+    },
+    widgets.schoolStructureParents && {
+      href: '/admin/parents',
+      label: t('nav.parents'),
+      value: d.total_parents,
+      icon: '👪',
+    },
+    widgets.schoolStructureClasses && {
+      href: '/admin/classes',
+      label: t('nav.classes'),
+      value: d.total_classes,
+      icon: '🏫',
+    },
+  ].filter(Boolean) as { href: string; label: string; value: number | undefined; icon: string }[];
 
-      <div className="admin-ops-grid">
-        {widgets.attendanceOperations && (
-          <AdminOperationCard
-            title={t('admin.cmd.attendanceOpsTitle')}
-            description={t('admin.cmd.attendanceOpsDesc')}
-            accent
-            footer={
-              <Link className="admin-section__action" href="/admin/attendance?date=today">
-                {t('common.viewAll')} →
-              </Link>
-            }
-          >
-            {hasAttendance ? (
-              <AdminKpiStrip
-                items={ATT_KEYS.map((k) => ({
-                  key: k,
-                  label: t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`),
-                  value: att?.[k] ?? 0,
-                  tone: ATT_TONE[k],
-                }))}
-                foot={
-                  <>
-                    <span>
-                      {t('admin.totalRecorded')}: <strong>{totalRecorded}</strong>
-                    </span>
-                    {pct != null && (
-                      <span className="admin-kpi-strip__pct">
-                        {t('admin.cmd.presentRate', { pct })}
-                      </span>
-                    )}
-                    {((att?.absent ?? 0) > 0 || (att?.late ?? 0) > 0) && (
-                      <span>
-                        {t('admin.cmd.attendanceHighlights', {
-                          absent: att?.absent ?? 0,
-                          late: att?.late ?? 0,
-                        })}
-                      </span>
-                    )}
-                  </>
-                }
+  const attendanceOperation = widgets.attendanceOperations ? (
+    <AdminOperationCard
+      title={t('admin.cmd.attendanceOpsTitle')}
+      description={t('admin.cmd.attendanceOpsDesc')}
+      accent
+      footer={
+        <Link className="admin-section__action" href="/admin/attendance?date=today">
+          {t('common.viewAll')} →
+        </Link>
+      }
+    >
+      {hasAttendance ? (
+        <AdminKpiStrip
+          items={ATT_KEYS.map((k) => ({
+            key: k,
+            label: t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`),
+            value: att?.[k] ?? 0,
+            tone: ATT_TONE[k],
+          }))}
+          foot={
+            <>
+              <span>
+                {t('admin.totalRecorded')}: <strong>{totalRecorded}</strong>
+              </span>
+              {pct != null && (
+                <span className="admin-kpi-strip__pct">
+                  {t('admin.cmd.presentRate', { pct })}
+                </span>
+              )}
+              {((att?.absent ?? 0) > 0 || (att?.late ?? 0) > 0) && (
+                <span>
+                  {t('admin.cmd.attendanceHighlights', {
+                    absent: att?.absent ?? 0,
+                    late: att?.late ?? 0,
+                  })}
+                </span>
+              )}
+            </>
+          }
+        />
+      ) : (
+        <p className="admin-empty-hint">{t('admin.cmd.attendanceUnavailable')}</p>
+      )}
+    </AdminOperationCard>
+  ) : null;
+
+  const interventionOperation = (
+    <div
+      className={cn(
+        'admin-intervention-card',
+        hasInterventionIssues
+          ? 'admin-intervention-card--active'
+          : 'admin-intervention-card--neutral',
+      )}
+    >
+      <AdminOperationCard
+        title={t('admin.cmd.interventionTitle')}
+        description={interventionDescription}
+        intervention={hasInterventionIssues}
+      >
+        <div className="admin-intervention-section">
+          <p className="admin-intervention-section__label">{t('admin.cmd.urgentSectionLabel')}</p>
+          <AdminActionList items={actionItems} emptyLabel={t('admin.cmd.noInterventions')} />
+        </div>
+
+        {widgets.dataQuality && (
+          <div className="admin-intervention-dq">
+            <p className="admin-intervention-section__label">{t('admin.cmd.dataQualitySectionLabel')}</p>
+            {hasDataQualityIssues ? (
+              <AdminActionList
+                items={dataQualityItems}
+                emptyLabel={t('admin.cmd.noSpecificReviewItems')}
               />
             ) : (
-              <p className="admin-empty-hint">{t('admin.cmd.attendanceUnavailable')}</p>
+              <p className="admin-empty-hint">{t('admin.cmd.noDataQualityIssuesFromDashboard')}</p>
             )}
-          </AdminOperationCard>
-        )}
-
-        <div
-          className={cn(
-            'admin-intervention-card',
-            hasInterventionIssues
-              ? 'admin-intervention-card--active'
-              : 'admin-intervention-card--neutral',
-          )}
-        >
-          <AdminOperationCard
-            title={t('admin.cmd.interventionTitle')}
-            description={interventionDescription}
-            intervention={hasInterventionIssues}
-          >
-          <div className="admin-intervention-section">
-            <p className="admin-intervention-section__label">{t('admin.cmd.urgentSectionLabel')}</p>
-            <AdminActionList items={actionItems} emptyLabel={t('admin.cmd.noInterventions')} />
+            <Link href="/admin/students" className="admin-card__secondary-link admin-intervention-dq__link">
+              {t('admin.cmd.openStudentsList')}
+            </Link>
           </div>
+        )}
+      </AdminOperationCard>
+    </div>
+  );
 
-          {widgets.dataQuality && (
-            <div className="admin-intervention-dq">
-              <p className="admin-intervention-section__label">{t('admin.cmd.dataQualitySectionLabel')}</p>
-              {hasDataQualityIssues ? (
-                <AdminActionList
-                  items={dataQualityItems}
-                  emptyLabel={t('admin.cmd.noSpecificReviewItems')}
-                />
+  return (
+    <>
+      {!staffMode && (
+        <AdminCommandHero
+          eyebrow={t('admin.cmd.operationsEyebrow')}
+          title={t('admin.cmd.operationsTitle')}
+          meta={
+            <>
+              <span>{schoolName}</span>
+              <span>{formatDate(today)}</span>
+            </>
+          }
+          summary={scopedMode ? t('admin.cmd.scopedOperationsSummary') : t('admin.cmd.operationsSummary')}
+          kpis={
+            widgets.heroAttendance && hasAttendance ? (
+              widgets.attendanceOperations ? (
+                <span className="admin-hero__kpi admin-hero__kpi--summary">
+                  {pct != null ? (
+                    t('admin.cmd.presentRate', { pct: Math.round(pct) })
+                  ) : (
+                    <>
+                      <strong>{totalRecorded}</strong>
+                      <span>{t('admin.totalRecorded')}</span>
+                    </>
+                  )}
+                </span>
               ) : (
-                <p className="admin-empty-hint">{t('admin.cmd.noDataQualityIssuesFromDashboard')}</p>
-              )}
-              <Link href="/admin/students" className="admin-card__secondary-link admin-intervention-dq__link">
-                {t('admin.cmd.openStudentsList')}
-              </Link>
-            </div>
-          )}
-        </AdminOperationCard>
-        </div>
+                <>
+                  {ATT_KEYS.map((k) => (
+                    <AdminHeroKpi
+                      key={k}
+                      label={t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`)}
+                      value={att?.[k] ?? 0}
+                      tone={ATT_TONE[k]}
+                    />
+                  ))}
+                  <AdminHeroKpi label={t('admin.totalRecorded')} value={totalRecorded} tone="none" />
+                </>
+              )
+            ) : (
+              <span className="admin-hero__kpi">
+                {widgets.heroAttendance ? t('admin.cmd.attendanceUnavailable') : t('admin.cmd.attendanceNoAccess')}
+              </span>
+            )
+          }
+          primaryAction={
+            widgets.heroAttendance ? (
+              <AdminHeroButton href="/admin/attendance?date=today" variant="primary">
+                {t('admin.cmd.openAttendance')}
+              </AdminHeroButton>
+            ) : undefined
+          }
+          secondaryAction={
+            widgets.heroCorrectAttendance ? (
+              <AdminHeroButton href="/admin/attendance?date=today&correct=1" variant="ghost">
+                {t('admin.cmd.correctAttendance')}
+              </AdminHeroButton>
+            ) : undefined
+          }
+        />
+      )}
+
+      <div className="admin-ops-grid">
+        {staffMode ? (
+          <>
+            {interventionOperation}
+            {attendanceOperation}
+          </>
+        ) : (
+          <>
+            {attendanceOperation}
+            {interventionOperation}
+          </>
+        )}
       </div>
 
       {widgets.schoolStructure && (
         <AdminSection title={t('admin.cmd.schoolStructureTitle')}>
-          <AdminSchoolStrip
-            cells={[
-              widgets.schoolStructureStudents && {
-                href: '/admin/students',
-                label: t('nav.students'),
-                value: d.total_students,
-                icon: '🎓',
-              },
-              widgets.schoolStructureTeachers && {
-                href: '/admin/teachers',
-                label: t('nav.teachers'),
-                value: d.total_teachers,
-                icon: '👩‍🏫',
-              },
-              widgets.schoolStructureParents && {
-                href: '/admin/parents',
-                label: t('nav.parents'),
-                value: d.total_parents,
-                icon: '👪',
-              },
-              widgets.schoolStructureClasses && {
-                href: '/admin/classes',
-                label: t('nav.classes'),
-                value: d.total_classes,
-                icon: '🏫',
-              },
-            ].filter(Boolean) as { href: string; label: string; value: number | undefined; icon: string }[]}
-          />
+          {staffMode ? (
+            <div className="admin-quick-row">
+              {structureCells.map((cell) => (
+                <Link key={cell.href} href={cell.href} className="admin-quick-action">
+                  <span aria-hidden="true">{cell.icon}</span>
+                  <strong>{cell.value ?? '—'}</strong>
+                  <span>{cell.label}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <AdminSchoolStrip cells={structureCells} />
+          )}
         </AdminSection>
       )}
 
