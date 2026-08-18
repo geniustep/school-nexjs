@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/toast';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { HomeworkWorkflowActions } from '@/features/admin/admin-workflow-actions';
+import { HomeworkCommunicationDetails } from '@/features/admin/homeworks/components/homework-communication-status';
 import { endpoints } from '@/lib/api/endpoints';
 import { canUploadAdminAttachments } from '@/lib/attachments/admin-upload';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -85,6 +86,13 @@ export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailP
           </div>
         )}
       </Card>
+
+      <div className="section">
+        <SectionHead title={t('nav.communication')} />
+        <Card>
+          <HomeworkCommunicationDetails item={hw} />
+        </Card>
+      </div>
 
       {(hw.attachments?.length || canUploadAdminAttachments(hw.state)) && (
         <div className="section">
