@@ -117,16 +117,19 @@ export function resolveExecutiveAttendanceKpi(
   const hasValidRate = Number.isFinite(rawRate);
   const rate = hasValidRate ? normalizeAttendanceRate(rawRate!) : null;
 
+  // A school-wide attendance rate is not trustworthy while any class is still
+  // missing attendance. Treat the signal as partial even if the backend also
+  // returns a provisional rate or zero absent/late counts.
+  if (missingClasses > 0) {
+    return { state: 'partial', displayValue: '—', rate: null, tone: 'amber' };
+  }
+
   if (!hasValidRate && hasActivityEvidence) {
     return { state: 'partial', displayValue: '—', rate: null, tone: 'amber' };
   }
 
-  if ((rate == null || rate === 0) && !hasActivityEvidence && missingClasses <= 0) {
+  if ((rate == null || rate === 0) && !hasActivityEvidence) {
     return { state: 'unavailable', displayValue: '—', rate: null, tone: 'neutral' };
-  }
-
-  if ((rate == null || rate === 0) && !hasActivityEvidence && missingClasses > 0) {
-    return { state: 'partial', displayValue: '—', rate: null, tone: 'amber' };
   }
 
   if (rate === 0 && hasActivityEvidence) {

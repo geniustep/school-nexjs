@@ -16,6 +16,10 @@ const workflowSource = readFileSync(
   resolve('src/features/admin/finance/family-collection-workflow-form.tsx'),
   'utf8',
 );
+const smartSummarySource = readFileSync(
+  resolve('src/features/admin/finance/family-collection-smart-summary.tsx'),
+  'utf8',
+);
 
 describe('finance service catalog simplification', () => {
   it('shows collection priority selector with first, normal, last', () => {
@@ -58,16 +62,16 @@ describe('finance service catalog simplification', () => {
 });
 
 describe('family collection suggestion UX', () => {
-  it('uses explicit suggest action without auto-allocation on load', () => {
+  it('auto-builds the priority suggestion and exposes it through the smart summary', () => {
     expect(workflowSource).toContain('buildSuggestedFamilyAllocations');
-    expect(workflowSource).toContain('suggestAllocationAction');
-    expect(workflowSource).toContain('function applySuggestedAllocation');
-    expect(workflowSource).not.toContain('buildSuggestedFamilyAllocations(context');
+    expect(workflowSource).toContain('canAutoSuggest');
+    expect(workflowSource).toContain('FamilyCollectionSmartSummary');
+    expect(workflowSource).toContain("allocationSource !== 'auto'");
   });
 
   it('shows policy-based explainability without hardcoded registration-first text', () => {
-    expect(workflowSource).toContain('suggestionExplainability');
-    expect(workflowSource).not.toContain('registration');
-    expect(workflowSource).not.toContain('التسجيل أولًا');
+    expect(smartSummarySource).toContain('smartSummary.explainability');
+    expect(smartSummarySource).not.toContain('التسجيل أولًا');
+    expect(smartSummarySource).not.toContain('registration fees first');
   });
 });

@@ -43,6 +43,8 @@ export const BFF_ADMIN_FAMILIES = [
   'attachments',
   'exams',
   'resources',
+  'library',
+  'entry-requirement-lists',
   'timetable',
   'exam-results',
   'assessment',
@@ -72,9 +74,10 @@ const BFF_TEACHER_FAMILIES = [
   'teaching-progress-summary',
   /** V3 remaining / suggested-next / decision under /teacher/teaching/* */
   'teaching',
+  'entry-requirements',
 ] as const;
 
-const BFF_PARENT_FAMILIES = ['dashboard', 'children', 'finance'] as const;
+const BFF_PARENT_FAMILIES = ['dashboard', 'children', 'finance', 'entry-requirements'] as const;
 
 const BFF_STUDENT_FAMILIES = [
   'dashboard',
@@ -85,6 +88,7 @@ const BFF_STUDENT_FAMILIES = [
   'exams',
   'exam-results',
   'timetable',
+  'library',
 ] as const;
 
 const DENIED_SEGMENTS = new Set([
@@ -120,6 +124,8 @@ const BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES = new Set([
   'timetable',
   'homeworks',
   'resources',
+  'library',
+  'entry-requirement-lists',
   'exams',
   'exam-results',
   'assessment',

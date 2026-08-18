@@ -5,6 +5,7 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { LoadingState } from '@/components/states/states';
 import { ApiErrorView } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
+import { RecipientAnnouncementsDashboardSection } from '@/features/announcements/components/recipient-announcements-dashboard-section';
 import { ClassCard } from '@/features/teacher/class-card';
 import {
   TeacherCommandHero,
@@ -12,7 +13,6 @@ import {
   TeacherSection,
   TeacherWorkspaceCard,
   TeacherEmptyState,
-  TeacherMessageItem,
   TeacherQuickChip,
 } from '@/features/teacher/ui/teacher-primitives';
 import { TeacherLinkingState } from '@/features/teacher/teacher-linking-state';
@@ -33,7 +33,7 @@ function pendingForClass(d: TeacherDashboard, classId: number): number {
 export default function TeacherDashboardPage() {
   const user = useSession();
   const t = useT();
-  const { formatDateTime, formatDateLong } = useFormat();
+  const { formatDateLong } = useFormat();
   const state = useResource<TeacherDashboard>(endpoints.teacher.dashboard);
 
   const todayLabel = formatDateLong(new Date().toISOString().slice(0, 10));
@@ -90,7 +90,6 @@ export default function TeacherDashboardPage() {
     : d.assigned_classes?.[0]?.id
       ? `/teacher/classes/${d.assigned_classes[0].id}/exam-results`
       : '/teacher/exam-results';
-  const messageCount = d.latest_messages?.length ?? 0;
   const previewClasses = d.assigned_classes ?? [];
   const nextClassId = d.next_class?.class?.id;
   const heroCta = nextClassId ? (
@@ -148,10 +147,10 @@ export default function TeacherDashboardPage() {
         />
         <TeacherStatCard
           label={t('dashboard.latestMessages')}
-          value={messageCount}
-          icon="💬"
-          tone={messageCount > 0 ? 'blue' : 'none'}
-          href={messageCount > 0 ? '/teacher/channels' : undefined}
+          value={t('common.view')}
+          icon="📣"
+          tone="blue"
+          href="/teacher/announcements"
         />
         {(d.submissions_to_review ?? 0) > 0 && (
           <TeacherStatCard
@@ -240,36 +239,10 @@ export default function TeacherDashboardPage() {
         </div>
 
         <aside className="t-workspace-aside">
-          <TeacherWorkspaceCard
-            title={t('dashboard.latestMessages')}
-            icon="💬"
-            action={
-              <Link className="btn btn--ghost btn--sm" href="/teacher/channels">
-                {t('dashboard.allChannels')}
-              </Link>
-            }
-          >
-            {d.latest_messages?.length ? (
-              <div className="t-msg-feed">
-                {d.latest_messages.slice(0, 5).map((m) => (
-                  <TeacherMessageItem
-                    key={m.id}
-                    channel={m.channel}
-                    sender={m.sender}
-                    body={m.body}
-                    time={formatDateTime(m.created_at)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <TeacherEmptyState
-                compact
-                icon="💬"
-                title={t('empty.messages')}
-                description={t('teacher.messagesEmptyDesc')}
-              />
-            )}
-          </TeacherWorkspaceCard>
+          <RecipientAnnouncementsDashboardSection
+            basePath="/teacher/announcements"
+            className="t-dashboard-announcements"
+          />
 
           <TeacherWorkspaceCard title={t('teacher.quickActions')} icon="⚡">
             <div className="t-quick-grid">

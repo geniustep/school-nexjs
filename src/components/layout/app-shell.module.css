@@ -1,0 +1,219 @@
+.adminTopbar {
+  box-shadow: none;
+  gap: 0;
+  padding-inline: 24px;
+}
+
+.adminTopbarStart {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.adminTopbarControls {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.searchSlot {
+  flex: 0 1 360px;
+  width: 360px;
+  min-width: 280px;
+  max-width: 360px;
+  margin-inline-end: auto;
+}
+
+.searchSlot :global(.student-spotlight-trigger) {
+  width: 100%;
+  min-height: 38px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-inline: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: #f5f7fb;
+  color: var(--c-text-muted);
+  box-shadow: none;
+}
+
+.searchSlot :global(.student-spotlight-trigger:hover) {
+  background: #eef2f8;
+  color: var(--c-text);
+}
+
+.searchSlot :global(.student-spotlight-trigger__label) {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+}
+
+.searchSlot :global(.student-spotlight-trigger__kbd) {
+  color: var(--c-text-faint);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.yearSlot,
+.localeSlot {
+  flex: 0 0 auto;
+}
+
+.yearSlot :global(.school-switcher) {
+  margin: 0;
+}
+
+.yearSlot :global(.school-switcher__select) {
+  min-height: 38px;
+  min-width: 142px;
+  border-radius: 9px;
+  background: var(--c-surface);
+}
+
+.localeSlot :global(.locale-switcher) {
+  margin: 0;
+}
+
+.localeSlot :global(.locale-switcher__select) {
+  min-height: 38px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.localeSlot :global(.locale-switcher__select:hover),
+.localeSlot :global(.locale-switcher__select:focus) {
+  border-color: var(--c-border);
+  background: var(--c-surface-2);
+}
+
+.accountMenu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.accountTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 2px 7px 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.accountTrigger:hover,
+.accountTrigger[aria-expanded='true'] {
+  border-color: var(--c-border);
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.accountTrigger:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.accountTrigger :global(.avatar) {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.accountChevron {
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.accountPanel {
+  position: absolute;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 60;
+  width: min(292px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.accountProfile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 12px;
+  border-block-end: 1px solid var(--c-border);
+}
+
+.accountProfileCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.accountProfileCopy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-text);
+  font-size: 13px;
+}
+
+.accountProfileCopy span {
+  color: var(--c-text-muted);
+  font-size: 11px;
+}
+
+.accountField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block: 10px;
+  border-block-end: 1px solid var(--c-border);
+}
+
+.accountFieldLabel {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.accountField :global(.school-switcher),
+.accountField :global(.role-switcher) {
+  width: 100%;
+}
+
+.accountField :global(select) {
+  width: 100%;
+}
+
+.accountLogout {
+  margin-block-start: 10px;
+}
+
+:global(.exec-kpi-zone > .exec-zone-label) {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .adminTopbar {
+    padding-inline: 12px;
+  }
+
+  .adminTopbarControls {
+    display: none;
+  }
+}

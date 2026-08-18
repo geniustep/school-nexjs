@@ -15,19 +15,53 @@ function formatBytes(value?: number): string {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () => void }) {
+function MaterialCard({
+  item,
+  disabled,
+  onRemove,
+  onRetry,
+  onReplace,
+  onPreview,
+}: {
+  item: SecureMaterial;
+  disabled: boolean;
+  onRemove: () => Promise<boolean>;
+  onRetry: () => Promise<boolean>;
+  onReplace: (file: File) => Promise<boolean>;
+  onPreview: (item: SecureMaterial) => void;
+}) {
   const t = useT();
+  const replaceRef = useRef<HTMLInputElement>(null);
+  const [working, setWorking] = useState(false);
   const image = item.kind === 'file' && (item.mimetype?.startsWith('image/') || item.localPreviewUrl);
   const href = item.canonicalUrl || item.url;
   const embedUrl = trustedVideoEmbedUrl(item.embedUrl);
   const [videoOpen, setVideoOpen] = useState(() => Boolean(item.canEmbed && embedUrl));
+  const controlsDisabled = disabled || working || item.state === 'uploading';
+
+  async function run(action: () => Promise<boolean>) {
+    setWorking(true);
+    try {
+      await action();
+    } finally {
+      setWorking(false);
+    }
+  }
+
   return (
     <article className={`secure-material secure-material--${item.kind}${videoOpen ? ' is-video-open' : ''}`}>
       <div className="secure-material__visual">
         {image && item.localPreviewUrl ? (
-          // Local object URL is used only before finalization and never leaves the browser.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.localPreviewUrl} alt={item.name} />
+          <button
+            type="button"
+            className="secure-material__image-preview"
+            onClick={() => onPreview(item)}
+            aria-label={`${t('attachments.preview')} ${item.name}`}
+          >
+            {/* Local object URL is used only before finalization and never leaves the browser. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={item.localPreviewUrl} alt={item.name} />
+          </button>
         ) : item.canEmbed && embedUrl ? (
           videoOpen ? (
             <div className="secure-material__video-frame">
@@ -59,6 +93,7 @@ function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () =
           </span>
         )}
       </div>
+
       <div className="secure-material__info">
         <strong dir="auto">{item.name}</strong>
         <span className="tiny muted">
@@ -74,11 +109,48 @@ function MaterialCard({ item, onRemove }: { item: SecureMaterial; onRemove: () =
             {t('secureMaterials.openLink')}
           </a>
         ) : null}
+        {item.kind === 'file' && item.state !== 'uploading' ? (
+          <div className="secure-material__actions">
+            {item.state === 'failed' ? (
+              <button
+                type="button"
+                className="secure-material__action"
+                disabled={controlsDisabled}
+                onClick={() => void run(onRetry)}
+              >
+                {t('common.retry')}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="secure-material__action"
+              disabled={controlsDisabled}
+              onClick={() => replaceRef.current?.click()}
+            >
+              {t('attachments.replace')}
+            </button>
+          </div>
+        ) : null}
       </div>
+
+      <input
+        ref={replaceRef}
+        type="file"
+        accept={ACCEPT}
+        hidden
+        disabled={controlsDisabled}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (file) void run(() => onReplace(file));
+        }}
+      />
+
       <button
         type="button"
         className="secure-material__remove"
-        onClick={onRemove}
+        disabled={controlsDisabled}
+        onClick={() => void run(onRemove)}
         title={t('secureMaterials.remove')}
         aria-label={`${t('secureMaterials.remove')} ${item.name}`}
       >
@@ -95,8 +167,12 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
 }) {
   const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
+  const dragDepthRef = useRef(0);
   const [link, setLink] = useState('');
   const [linkOpen, setLinkOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [preview, setPreview] = useState<SecureMaterial | null>(null);
+  const canAdd = !disabled && !controller.busy && controller.materials.length < 5;
 
   async function addLink() {
     const value = link.trim();
@@ -107,8 +183,47 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
     }
   }
 
+  function handleDrop(files: FileList | null) {
+    const items = Array.from(files ?? []);
+    if (!canAdd || items.length === 0) return;
+    void controller.addFiles(items);
+  }
+
   return (
-    <section className="secure-materials" aria-label={t('secureMaterials.title')}>
+    <section
+      className={`secure-materials${dragging ? ' is-dragging' : ''}`}
+      aria-label={t('secureMaterials.title')}
+      onDragEnter={(event) => {
+        if (!canAdd || !event.dataTransfer.types.includes('Files')) return;
+        event.preventDefault();
+        dragDepthRef.current += 1;
+        setDragging(true);
+      }}
+      onDragOver={(event) => {
+        if (!canAdd || !event.dataTransfer.types.includes('Files')) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+      }}
+      onDragLeave={(event) => {
+        if (!dragging) return;
+        event.preventDefault();
+        dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+        if (dragDepthRef.current === 0) setDragging(false);
+      }}
+      onDrop={(event) => {
+        if (!canAdd) return;
+        event.preventDefault();
+        dragDepthRef.current = 0;
+        setDragging(false);
+        handleDrop(event.dataTransfer.files);
+      }}
+    >
+      {dragging ? (
+        <div className="secure-materials__drop-hint" aria-hidden="true">
+          {t('secureMaterials.addFiles')}
+        </div>
+      ) : null}
+
       <div className="secure-materials__header">
         <div className="secure-materials__heading">
           <strong>{t('secureMaterials.title')}</strong>
@@ -119,7 +234,7 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
           <button
             type="button"
             className="secure-materials__tool"
-            disabled={disabled || controller.busy || controller.materials.length >= 5}
+            disabled={!canAdd}
             onClick={() => inputRef.current?.click()}
           >
             <span aria-hidden="true">＋</span>
@@ -128,7 +243,7 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
           <button
             type="button"
             className={`secure-materials__tool${linkOpen ? ' is-active' : ''}`}
-            disabled={disabled || controller.busy || controller.materials.length >= 5}
+            disabled={!canAdd}
             aria-expanded={linkOpen}
             onClick={() => setLinkOpen((current) => !current)}
           >
@@ -144,13 +259,14 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
         accept={ACCEPT}
         multiple
         hidden
-        disabled={disabled || controller.materials.length >= 5}
+        disabled={!canAdd}
         onChange={(event) => {
           const files = Array.from(event.target.files ?? []);
           event.target.value = '';
           void controller.addFiles(files);
         }}
       />
+
       {linkOpen ? (
         <div className="secure-materials__link-row">
           <input
@@ -160,7 +276,7 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
             dir="ltr"
             placeholder="https://"
             value={link}
-            disabled={disabled || controller.busy || controller.materials.length >= 5}
+            disabled={!canAdd}
             onChange={(event) => setLink(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
@@ -172,7 +288,7 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
           <button
             type="button"
             className="btn btn--primary btn--sm"
-            disabled={disabled || controller.busy || !link.trim() || controller.materials.length >= 5}
+            disabled={!canAdd || !link.trim()}
             onClick={() => void addLink()}
           >
             {t('secureMaterials.addLink')}
@@ -192,14 +308,48 @@ export function SecureMaterialsComposer({ controller, disabled = false }: {
       ) : null}
 
       {controller.error ? <p className="secure-materials__alert" role="alert">{controller.error}</p> : null}
+
       {controller.materials.length ? (
         <div className="secure-materials__grid">
           {controller.materials.map((item) => (
-            <MaterialCard key={item.clientItemId} item={item} onRemove={() => void controller.remove(item)} />
+            <MaterialCard
+              key={item.clientItemId}
+              item={item}
+              disabled={disabled}
+              onRemove={() => controller.remove(item)}
+              onRetry={() => controller.retryFile(item)}
+              onReplace={(file) => controller.replaceFile(item, file)}
+              onPreview={setPreview}
+            />
           ))}
         </div>
       ) : null}
+
       {controller.busy ? <p className="tiny" role="status">{t('secureMaterials.waitForUpload')}</p> : null}
+
+      {preview?.localPreviewUrl ? (
+        <div
+          className="secure-materials__preview-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${t('attachments.preview')} ${preview.name}`}
+          onClick={() => setPreview(null)}
+        >
+          <div className="secure-materials__preview-panel" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className="secure-materials__preview-close"
+              aria-label={t('common.close')}
+              onClick={() => setPreview(null)}
+            >
+              ×
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview.localPreviewUrl} alt={preview.name} />
+            <strong dir="auto">{preview.name}</strong>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -9,7 +9,9 @@ import {
   shouldShowDashboardContextPanel,
 } from '@/lib/admin/executive-dashboard';
 import {
+  buildExecutiveAttendanceInterventions,
   buildExecutiveDataQualityItems,
+  isExecutiveAttendanceExpected,
   mergeExecutiveInterventions,
   normalizeExecutiveDashboard,
 } from '@/lib/admin/executive-dashboard-contract';
@@ -107,8 +109,112 @@ describe('executive dashboard contract', () => {
     expect(parsed.finance_summary).toBeNull();
     expect(parsed.admissions_summary?.open).toBe(4);
     expect(parsed.attendance_gaps?.attendance_rate_today).toBe(91.5);
+    expect(parsed.school_day_context).toBeNull();
     expect(parsed.important_alerts).toHaveLength(1);
     expect(parsed.data_quality?.students_missing_guardian_count).toBe(3);
+  });
+
+  it('normalizes the canonical Odoo school-day context without recomputing it', () => {
+    const parsed = normalizeExecutiveDashboard({
+      school_day_context: {
+        date: '2026-08-15',
+        academic_year_id: 7,
+        status: 'partial_school_day',
+        is_school_day: true,
+        attendance_expected: true,
+        day_mode: 'morning_only',
+        reason_code: 'partial_day',
+        closure_kind: 'partial',
+        warnings: ['provisional_event'],
+        timezone: 'Africa/Casablanca',
+      },
+    });
+
+    expect(parsed.school_day_context).toEqual({
+      date: '2026-08-15',
+      academic_year_id: 7,
+      status: 'partial_school_day',
+      is_school_day: true,
+      attendance_expected: true,
+      day_mode: 'morning_only',
+      reason_code: 'partial_day',
+      closure_kind: 'partial',
+      warnings: ['provisional_event'],
+      timezone: 'Africa/Casablanca',
+    });
+    expect(isExecutiveAttendanceExpected(parsed)).toBe(true);
+  });
+
+  it('fails safe for false, null, unknown, or missing attendance expectation', () => {
+    const nonSchoolDay = normalizeExecutiveDashboard({
+      school_day_context: {
+        status: 'non_school_day',
+        attendance_expected: false,
+      },
+    });
+    const unknownDay = normalizeExecutiveDashboard({
+      school_day_context: {
+        status: 'unknown',
+        attendance_expected: null,
+      },
+    });
+    const missingContext = normalizeExecutiveDashboard({});
+
+    expect(isExecutiveAttendanceExpected(nonSchoolDay)).toBe(false);
+    expect(isExecutiveAttendanceExpected(unknownDay)).toBe(false);
+    expect(isExecutiveAttendanceExpected(missingContext)).toBe(false);
+  });
+
+  it('builds attendance intervention only when Odoo explicitly expects attendance', () => {
+    const base = {
+      attendance_gaps: {
+        classes_without_attendance_count: 24,
+        absent_today_count: 0,
+        late_today_count: 0,
+        attendance_rate_today: 0,
+      },
+    };
+    const notExpected = normalizeExecutiveDashboard({
+      ...base,
+      school_day_context: { status: 'non_school_day', attendance_expected: false },
+    });
+    const unknown = normalizeExecutiveDashboard({
+      ...base,
+      school_day_context: { status: 'unknown', attendance_expected: null },
+    });
+    const expected = normalizeExecutiveDashboard({
+      ...base,
+      school_day_context: { status: 'school_day', attendance_expected: true },
+    });
+
+    expect(buildExecutiveAttendanceInterventions(notExpected, (key) => key)).toEqual([]);
+    expect(buildExecutiveAttendanceInterventions(unknown, (key) => key)).toEqual([]);
+    expect(buildExecutiveAttendanceInterventions(expected, (key) => key).map((item) => item.id)).toEqual([
+      'attendance-classes-missing',
+    ]);
+  });
+
+  it('suppresses an inconsistent raw missing-attendance alert outside a school day', () => {
+    const executive = normalizeExecutiveDashboard({
+      school_day_context: { status: 'non_school_day', attendance_expected: false },
+      attendance_gaps: {
+        classes_without_attendance_count: 24,
+        absent_today_count: 0,
+        late_today_count: 0,
+        attendance_rate_today: 0,
+      },
+      important_alerts: [
+        {
+          type: 'attendance',
+          code: 'classes_missing_attendance_today',
+          message: '24 classes missing attendance',
+          href: '/admin/attendance?date=today',
+          severity: 'warning',
+        },
+      ],
+    });
+
+    expect(mergeExecutiveInterventions(executive, (key) => key)).toEqual([]);
   });
 
   it('deduplicates executive interventions by alert code', () => {

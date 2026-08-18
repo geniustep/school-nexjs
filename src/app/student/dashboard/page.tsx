@@ -5,8 +5,8 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Card, StatCard, SectionHead, Badge, Avatar } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
+import { RecipientAnnouncementsDashboardSection } from '@/features/announcements/components/recipient-announcements-dashboard-section';
 import { useSession } from '@/features/auth/session-context';
-import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -41,7 +41,6 @@ function todayStatus(
 export default function StudentDashboardPage() {
   const user = useSession();
   const t = useT();
-  const { formatDateTime } = useFormat();
   const state = useResource<StudentDashboard>(endpoints.student.dashboard);
 
   return (
@@ -52,7 +51,6 @@ export default function StudentDashboardPage() {
       />
       <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(d) => {
-          const announcements = d.announcements ?? d.latest_announcements ?? [];
           const status = todayStatus(d.today_attendance);
 
           return (
@@ -131,38 +129,10 @@ export default function StudentDashboardPage() {
                 </div>
               )}
 
-              <div className="section">
-                <SectionHead
-                  title={t('dashboard.recentAnnouncements')}
-                  action={
-                    <Link className="btn btn--ghost btn--sm" href="/student/announcements">
-                      {t('common.viewAll')}
-                    </Link>
-                  }
-                />
-                {announcements.length ? (
-                  <Card pad={false}>
-                    <div className="msg-feed">
-                      {announcements.map((a) => (
-                        <div key={a.id} className="msg-feed__item">
-                          <div className="msg-feed__meta">
-                            <span className="msg-feed__channel">
-                              {typeof a.channel === 'string' ? a.channel : a.channel?.name}
-                            </span>
-                            <span className="msg-feed__time">{formatDateTime(a.created_at)}</span>
-                          </div>
-                          <div className="msg-feed__sender">{a.sender}</div>
-                          <div className="msg-feed__body">{a.body}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
-                ) : (
-                  <Card>
-                    <p className="muted">{t('dashboard.noAnnouncements')}</p>
-                  </Card>
-                )}
-              </div>
+              <RecipientAnnouncementsDashboardSection
+                basePath="/student/announcements"
+                title={t('dashboard.recentAnnouncements')}
+              />
             </>
           );
         }}

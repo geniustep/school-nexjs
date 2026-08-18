@@ -7,24 +7,51 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { EmptyState, SchoolEmptyState } from '@/components/states/states';
-import { Badge } from '@/components/ui/primitives';
-import { AdminQuickAction } from '@/features/admin/command-center/primitives';
+import { SchoolEmptyState } from '@/components/states/states';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useSession } from '@/features/auth/session-context';
-import { useAdminSession } from '@/features/auth/admin-session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
+import {
+  canComposeGeneralCommunication,
+  canReviewCommunication,
+} from '@/lib/permissions/communication';
 import { useT } from '@/features/i18n/locale-context';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { endpoints } from '@/lib/api/endpoints';
+import { CHANNELS_LIST_PAGE_SIZE } from '@/features/channels/utils/channels-list-present';
 import {
   resolvePedagogicalDashboardActions,
   resolvePedagogicalDashboardMetricGroups,
   type PedagogicalDashboardMetric,
   type PedagogicalDashboardMetricId,
+  type PedagogicalDashboardActionId,
 } from '@/lib/admin/pedagogical-dashboard';
 import type { AdminDashboard } from '@/types/dashboard';
+import type { AdminChannel } from '@/types/admin-channel';
+import type { CommunicationContent } from '@/types/communication';
+import './admin-pedagogical-dashboard-phase-a.css';
+import './admin-pedagogical-dashboard-mini-workspaces.css';
+
+const FOCUS_METRIC_ORDER: PedagogicalDashboardMetricId[] = [
+  'attendance',
+  'timetable',
+  'exams',
+  'examResults',
+];
+
+const FOCUS_METRIC_IDS = new Set<PedagogicalDashboardMetricId>(FOCUS_METRIC_ORDER);
+const REFERENCE_EXCLUDED_METRIC_IDS = new Set<PedagogicalDashboardMetricId>([
+  ...FOCUS_METRIC_ORDER,
+  'homeworks',
+]);
+
+const FOCUS_ACTION_ORDER: PedagogicalDashboardActionId[] = [
+  'homeworks',
+  'attendance',
+  'timetable',
+  'examResults',
+];
 
 function safeTotal(meta: { pagination?: { total?: number } } | null | undefined): number | null {
   const total = meta?.pagination?.total;
@@ -37,35 +64,35 @@ type MetricPresentation = {
   loading: boolean;
 };
 
-function PedagogicalMetricCard({
+function PedagogicalMetricLink({
   metric,
   presentation,
   t,
+  variant,
 }: {
   metric: PedagogicalDashboardMetric;
   presentation: MetricPresentation | undefined;
   t: (key: string) => string;
+  variant: 'pulse' | 'reference';
 }) {
   const showValue = presentation?.value != null;
   const showEmpty = !showValue && !presentation?.loading && presentation?.emptyHint;
   const statusText = presentation?.loading
     ? '…'
     : showValue
-      ? presentation?.value
+      ? presentation.value
       : showEmpty
-        ? t(presentation?.emptyHint ?? metric.emptyKey)
+        ? t(presentation.emptyHint ?? metric.emptyKey)
         : null;
 
   return (
-    <Link href={metric.href} className="admin-pedagogical-metric">
-      <div className="admin-pedagogical-metric__head">
-        <span className="admin-pedagogical-metric__icon" aria-hidden="true">
-          {metric.icon}
-        </span>
-        <span className="admin-pedagogical-metric__label">{t(metric.labelKey)}</span>
-      </div>
+    <Link
+      href={metric.href}
+      className={`admin-pedagogical-metric admin-pedagogical-metric--${variant}`}
+    >
+      <span className="admin-pedagogical-metric__label">{t(metric.labelKey)}</span>
       {statusText ? (
-        <p
+        <span
           className={
             showValue
               ? 'admin-pedagogical-metric__value'
@@ -74,23 +101,59 @@ function PedagogicalMetricCard({
           aria-busy={presentation?.loading || undefined}
         >
           {statusText}
-        </p>
+        </span>
       ) : null}
-      <p className="admin-pedagogical-metric__hint">{t(metric.hintKey)}</p>
     </Link>
   );
 }
 
 export function AdminPedagogicalDashboard() {
   const user = useSession();
-  const { activeSchoolId } = useAdminSession();
   const t = useT();
+  const canReview = canReviewCommunication(user);
+  const canViewChannels = hasPermission(user, 'view_channels');
+  const canViewHomeworks = hasPermission(user, 'view_homeworks');
+  const canComposeCommunication = canComposeGeneralCommunication(user);
 
   const metricGroups = useMemo(() => resolvePedagogicalDashboardMetricGroups(user), [user]);
   const { primary: primaryActions, secondary: secondaryActions } = useMemo(
     () => resolvePedagogicalDashboardActions(user),
     [user],
   );
+
+  const { focusMetrics, referenceMetricGroups } = useMemo(() => {
+    const metrics = metricGroups.flatMap((group) => group.metrics);
+    const byId = new Map(metrics.map((metric) => [metric.id, metric]));
+    const focus = FOCUS_METRIC_ORDER.flatMap((id) => {
+      const metric = byId.get(id);
+      return metric ? [metric] : [];
+    });
+    const reference = metricGroups
+      .map((group) => ({
+        ...group,
+        metrics: group.metrics.filter(
+          (metric) => !REFERENCE_EXCLUDED_METRIC_IDS.has(metric.id),
+        ),
+      }))
+      .filter((group) => group.metrics.length > 0);
+
+    return { focusMetrics: focus, referenceMetricGroups: reference };
+  }, [metricGroups]);
+
+  const focusActions = useMemo(() => {
+    const available = [...primaryActions, ...secondaryActions];
+    const byId = new Map(available.map((action) => [action.id, action]));
+    const preferred = FOCUS_ACTION_ORDER.flatMap((id) => {
+      const action = byId.get(id);
+      return action ? [action] : [];
+    });
+    const preferredIds = new Set(preferred.map((action) => action.id));
+    const fallback = available
+      .filter((action) => action.id !== 'channels' && !preferredIds.has(action.id))
+      .slice(0, Math.max(0, 4 - preferred.length));
+
+    return [...preferred, ...fallback].slice(0, 4);
+  }, [primaryActions, secondaryActions]);
 
   const dashState = useAdminResource<AdminDashboard>(
     hasPermission(user, 'view_dashboard') ? endpoints.admin.dashboard : null,
@@ -124,7 +187,7 @@ export function AdminPedagogicalDashboard() {
     { page: 1, page_size: 1 },
   );
   const homeworksState = useAdminResource<unknown[]>(
-    hasPermission(user, 'view_homeworks') ? endpoints.admin.homeworks : null,
+    canViewHomeworks ? endpoints.admin.homeworks : null,
     { page: 1, page_size: 1 },
   );
   const resourcesState = useAdminResource<unknown[]>(
@@ -149,6 +212,37 @@ export function AdminPedagogicalDashboard() {
       : null,
     { page: 1, page_size: 1 },
   );
+
+  const communicationReviewState = useAdminResource<CommunicationContent[]>(
+    canReview ? endpoints.admin.communicationContent : null,
+    { page: 1, page_size: 50, state: 'submitted', content_type: 'message' },
+  );
+  const homeworkReviewState = useAdminResource<CommunicationContent[]>(
+    canReview ? endpoints.admin.communicationContent : null,
+    { page: 1, page_size: 50, state: 'submitted', content_type: 'homework' },
+  );
+  const channelsState = useAdminResource<AdminChannel[]>(
+    canViewChannels ? endpoints.admin.channels : null,
+    { page: 1, page_size: CHANNELS_LIST_PAGE_SIZE },
+  );
+
+  const unreadMessageCount = (channelsState.data ?? []).reduce(
+    (total, channel) => total + Math.max(0, channel.unread_count ?? 0),
+    0,
+  );
+  const communicationReviewCount = canReview
+    ? safeTotal(communicationReviewState.meta) ?? communicationReviewState.data?.length ?? 0
+    : 0;
+  const homeworkReviewCount = canReview
+    ? safeTotal(homeworkReviewState.meta) ?? homeworkReviewState.data?.length ?? 0
+    : 0;
+  const attentionCount = unreadMessageCount + communicationReviewCount + homeworkReviewCount;
+  const unreadMessagesLoading = canViewChannels && channelsState.loading && !channelsState.data;
+  const communicationReviewLoading =
+    canReview && communicationReviewState.loading && !communicationReviewState.data;
+  const homeworkReviewLoading = canReview && homeworkReviewState.loading && !homeworkReviewState.data;
+  const attentionLoading =
+    unreadMessagesLoading || communicationReviewLoading || homeworkReviewLoading;
 
   const metricPresentation = useMemo(() => {
     const d = dashState.data;
@@ -280,71 +374,241 @@ export function AdminPedagogicalDashboard() {
     timetableState,
   ]);
 
-  const schoolLabel =
-    user.school?.name ??
-    (activeSchoolId != null ? `${t('admin.activeSchool')} #${activeSchoolId}` : '');
-
-  const hasContent =
-    metricGroups.length > 0 || primaryActions.length > 0 || secondaryActions.length > 0;
+  const hasContent = metricGroups.length > 0 || focusActions.length > 0;
+  const showCommunicationSpotlight = canReview || canViewChannels || canComposeCommunication;
+  const showHomeworkSpotlight = canReview || canViewHomeworks;
+  const showSpotlight = showCommunicationSpotlight || showHomeworkSpotlight;
+  const publishedHomeworkValue = metricPresentation.homeworks?.loading
+    ? '…'
+    : metricPresentation.homeworks?.value ?? '0';
 
   if (!hasContent) {
     return <SchoolEmptyState description={t('admin.pedagogicalDashboard.emptyWorkspace')} />;
   }
 
   return (
-    <div className="admin-pedagogical-dashboard">
+    <div className="admin-pedagogical-dashboard admin-pedagogical-dashboard--phase-a">
       {dashState.error ? (
         <p className="admin-pedagogical-dashboard__error muted" role="status">
           {sanitizeUserFacingErrorMessage(dashState.error.message, t('errors.loadFailedRetry'))}
         </p>
       ) : null}
 
-      <header className="admin-pedagogical-dashboard__hero">
-        <div className="admin-pedagogical-dashboard__hero-accent" aria-hidden="true" />
-        <div className="admin-pedagogical-dashboard__hero-grid">
-          <div className="admin-pedagogical-dashboard__hero-main">
-            {schoolLabel ? (
-              <p className="admin-pedagogical-dashboard__school" dir="auto">
-                {schoolLabel}
-              </p>
-            ) : null}
-            <h1 className="admin-pedagogical-dashboard__title">
-              {t('admin.pedagogicalDashboard.title')}
-            </h1>
-            <p className="admin-pedagogical-dashboard__subtitle">
-              {t('admin.pedagogicalDashboard.subtitle')}
-            </p>
-          </div>
-          <aside className="admin-pedagogical-dashboard__role-card">
-            <Badge tone="blue">{t('roles.adminKind.pedagogical_director')}</Badge>
-            <p className="admin-pedagogical-dashboard__role-desc">
-              {t('admin.pedagogicalDashboard.roleDescription')}
-            </p>
-          </aside>
-        </div>
+      <header className="admin-pedagogical-dashboard__hero admin-pedagogical-dashboard__hero--compact">
+        <h1 className="admin-pedagogical-dashboard__title">
+          {t('admin.pedagogicalDashboard.title')}
+        </h1>
       </header>
 
-      {metricGroups.length > 0 ? (
-        <section className="admin-pedagogical-dashboard__section" aria-labelledby="pedagogical-metrics">
+      <section
+        className={
+          attentionCount > 0
+            ? 'admin-pedagogical-dashboard__attention admin-pedagogical-dashboard__attention--quiet admin-pedagogical-dashboard__attention--active'
+            : 'admin-pedagogical-dashboard__attention admin-pedagogical-dashboard__attention--quiet'
+        }
+        aria-label={t('admin.pedagogicalDashboard.attentionTitle')}
+        role="status"
+      >
+        <span className="admin-pedagogical-dashboard__attention-check" aria-hidden="true">
+          {attentionLoading ? '…' : attentionCount > 0 ? String(attentionCount) : '✓'}
+        </span>
+        <span className="admin-pedagogical-dashboard__attention-copy">
+          {attentionLoading ? (
+            t('common.loading')
+          ) : attentionCount > 0 ? (
+            <>
+              {unreadMessageCount > 0 ? (
+                <span className="admin-pedagogical-dashboard__attention-item">
+                  <strong>{unreadMessageCount}</strong>{' '}
+                  {t('admin.pedagogicalDashboard.unreadMessages')}
+                </span>
+              ) : null}
+              {communicationReviewCount > 0 ? (
+                <span className="admin-pedagogical-dashboard__attention-item">
+                  <strong>{communicationReviewCount}</strong>{' '}
+                  {t('admin.pedagogicalDashboard.pendingReview')}
+                </span>
+              ) : null}
+              {homeworkReviewCount > 0 ? (
+                <span className="admin-pedagogical-dashboard__attention-item">
+                  {t('nav.homework')}: <strong>{homeworkReviewCount}</strong>{' '}
+                  {t('admin.pedagogicalDashboard.pendingReview')}
+                </span>
+              ) : null}
+            </>
+          ) : (
+            t('admin.pedagogicalDashboard.attentionEmpty')
+          )}
+        </span>
+      </section>
+
+      {showSpotlight ? (
+        <section
+          className="admin-pedagogical-dashboard__spotlight"
+          aria-label={t('admin.pedagogicalDashboard.attentionTitle')}
+        >
+          {showCommunicationSpotlight ? (
+            <article className="admin-pedagogical-focus-card admin-pedagogical-focus-card--communication admin-pedagogical-focus-card--workspace">
+              <div className="admin-pedagogical-focus-card__topline">
+                <h2 className="admin-pedagogical-focus-card__title">
+                  {t('channels.schoolCommunicationTitle')}
+                </h2>
+              </div>
+
+              {canViewChannels || canReview ? (
+                <div className="admin-pedagogical-focus-card__metrics">
+                  {canViewChannels ? (
+                    <div className="admin-pedagogical-focus-card__metric">
+                      <strong>{unreadMessagesLoading ? '…' : unreadMessageCount}</strong>
+                      <span>{t('admin.pedagogicalDashboard.unreadMessages')}</span>
+                    </div>
+                  ) : null}
+                  {canReview ? (
+                    <div className="admin-pedagogical-focus-card__metric">
+                      <strong>{communicationReviewLoading ? '…' : communicationReviewCount}</strong>
+                      <span>{t('admin.pedagogicalDashboard.pendingReview')}</span>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="admin-pedagogical-focus-card__actions">
+                {canViewChannels ? (
+                  <Link
+                    href="/admin/channels?filter=unread"
+                    className="admin-pedagogical-focus-action"
+                  >
+                    {t('admin.pedagogicalDashboard.readMessages')}
+                  </Link>
+                ) : null}
+                {canReview ? (
+                  <Link
+                    href="/admin/communication?filter=submitted_messages"
+                    className="admin-pedagogical-focus-action"
+                  >
+                    {t('admin.pedagogicalDashboard.reviewMessages')}
+                  </Link>
+                ) : null}
+                {canComposeCommunication ? (
+                  <Link
+                    href="/admin/communication/compose"
+                    className="admin-pedagogical-focus-action admin-pedagogical-focus-action--primary"
+                  >
+                    {t('channels.createMessage')}
+                  </Link>
+                ) : null}
+              </div>
+            </article>
+          ) : null}
+
+          {showHomeworkSpotlight ? (
+            <article className="admin-pedagogical-focus-card admin-pedagogical-focus-card--homework admin-pedagogical-focus-card--workspace">
+              <div className="admin-pedagogical-focus-card__topline">
+                <h2 className="admin-pedagogical-focus-card__title">{t('nav.homework')}</h2>
+              </div>
+
+              <div className="admin-pedagogical-focus-card__metrics">
+                {canReview ? (
+                  <div className="admin-pedagogical-focus-card__metric">
+                    <strong>{homeworkReviewLoading ? '…' : homeworkReviewCount}</strong>
+                    <span>{t('admin.pedagogicalDashboard.pendingReview')}</span>
+                  </div>
+                ) : null}
+                {canViewHomeworks ? (
+                  <div className="admin-pedagogical-focus-card__metric">
+                    <strong>{publishedHomeworkValue}</strong>
+                    <span>{t('admin.pedagogicalDashboard.published')}</span>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="admin-pedagogical-focus-card__actions">
+                {canReview ? (
+                  <Link
+                    href="/admin/communication?filter=submitted_homework"
+                    className="admin-pedagogical-focus-action"
+                  >
+                    {t('admin.pedagogicalDashboard.reviewHomeworks')}
+                  </Link>
+                ) : null}
+                {canViewHomeworks ? (
+                  <Link
+                    href="/admin/homeworks"
+                    className="admin-pedagogical-focus-action admin-pedagogical-focus-action--primary-secondary"
+                  >
+                    {t('admin.pedagogicalDashboard.viewHomeworks')}
+                  </Link>
+                ) : null}
+              </div>
+            </article>
+          ) : null}
+        </section>
+      ) : null}
+
+      {focusActions.length > 0 ? (
+        <section
+          className="admin-pedagogical-dashboard__work-strip"
+          aria-label={t('dashboard.shortcuts')}
+        >
+          <nav
+            className="admin-pedagogical-dashboard__work-strip-actions"
+            aria-label={t('dashboard.shortcuts')}
+          >
+            {focusActions.map((action) => (
+              <Link
+                key={action.id}
+                href={action.href}
+                className={`admin-pedagogical-work-action admin-pedagogical-work-action--${action.id}`}
+              >
+                <span className="admin-pedagogical-work-action__mark" aria-hidden="true" />
+                <span className="admin-pedagogical-work-action__label">{t(action.labelKey)}</span>
+              </Link>
+            ))}
+          </nav>
+        </section>
+      ) : null}
+
+      {focusMetrics.length > 0 ? (
+        <section
+          className="admin-pedagogical-dashboard__section admin-pedagogical-dashboard__pulse"
+          aria-labelledby="pedagogical-metrics"
+        >
           <div className="admin-pedagogical-dashboard__section-head">
             <h2 id="pedagogical-metrics" className="admin-pedagogical-dashboard__section-title">
-              {t('admin.pedagogicalDashboard.metricsTitle')}
+              {t('admin.pedagogicalDashboard.dailyPulseTitle')}
             </h2>
-            <p className="admin-pedagogical-dashboard__section-lead">
-              {t('admin.pedagogicalDashboard.metricsLead')}
-            </p>
           </div>
-          <div className="admin-pedagogical-dashboard__metric-groups">
-            {metricGroups.map((group) => (
+          <div className="admin-pedagogical-dashboard__pulse-grid">
+            {focusMetrics.map((metric) => (
+              <PedagogicalMetricLink
+                key={metric.id}
+                metric={metric}
+                presentation={metricPresentation[metric.id]}
+                t={t}
+                variant="pulse"
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {referenceMetricGroups.length > 0 ? (
+        <section
+          className="admin-pedagogical-dashboard__reference"
+          aria-label={t('admin.pedagogicalDashboard.metricsLead')}
+        >
+          <div className="admin-pedagogical-dashboard__reference-groups">
+            {referenceMetricGroups.map((group) => (
               <div key={group.id} className="admin-pedagogical-metric-group">
                 <h3 className="admin-pedagogical-metric-group__title">{t(group.titleKey)}</h3>
                 <div className="admin-pedagogical-metric-group__grid">
                   {group.metrics.map((metric) => (
-                    <PedagogicalMetricCard
+                    <PedagogicalMetricLink
                       key={metric.id}
                       metric={metric}
                       presentation={metricPresentation[metric.id]}
                       t={t}
+                      variant="reference"
                     />
                   ))}
                 </div>
@@ -353,67 +617,6 @@ export function AdminPedagogicalDashboard() {
           </div>
         </section>
       ) : null}
-
-      {primaryActions.length > 0 || secondaryActions.length > 0 ? (
-        <section
-          className="admin-pedagogical-dashboard__work-center"
-          aria-labelledby="pedagogical-work"
-        >
-          <div className="admin-pedagogical-dashboard__section-head">
-            <h2 id="pedagogical-work" className="admin-pedagogical-dashboard__section-title">
-              {t('admin.pedagogicalDashboard.workCenterTitle')}
-            </h2>
-            <p className="admin-pedagogical-dashboard__section-lead">
-              {t('admin.pedagogicalDashboard.workCenterLead')}
-            </p>
-          </div>
-
-          {primaryActions.length > 0 ? (
-            <div className="admin-pedagogical-dashboard__primary-actions">
-              {primaryActions.map((action) => (
-                <Link key={action.id} href={action.href} className="admin-pedagogical-primary-action">
-                  <span className="admin-pedagogical-primary-action__icon" aria-hidden="true">
-                    {action.icon}
-                  </span>
-                  <span className="admin-pedagogical-primary-action__copy">
-                    <strong className="admin-pedagogical-primary-action__label">
-                      {t(action.labelKey)}
-                    </strong>
-                    <span className="admin-pedagogical-primary-action__desc">
-                      {t(action.descriptionKey)}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-          ) : null}
-
-          {secondaryActions.length > 0 ? (
-            <div className="admin-pedagogical-dashboard__secondary-wrap">
-              <p className="admin-pedagogical-dashboard__secondary-label">
-                {t('admin.pedagogicalDashboard.secondaryActionsTitle')}
-              </p>
-              <div className="admin-pedagogical-dashboard__secondary-actions">
-                {secondaryActions.map((action) => (
-                  <AdminQuickAction
-                    key={action.id}
-                    href={action.href}
-                    icon={action.icon}
-                    label={t(action.labelKey)}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      <section className="admin-pedagogical-dashboard__attention" aria-labelledby="pedagogical-attention">
-        <h2 id="pedagogical-attention" className="admin-pedagogical-dashboard__section-title">
-          {t('admin.pedagogicalDashboard.attentionTitle')}
-        </h2>
-        <EmptyState compact icon="✓" title={t('admin.pedagogicalDashboard.attentionEmpty')} />
-      </section>
     </div>
   );
 }

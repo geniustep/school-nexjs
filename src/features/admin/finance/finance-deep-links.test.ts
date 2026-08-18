@@ -176,11 +176,13 @@ describe('finance pages URL contract', () => {
     expect(source.includes('searchParams')).toBe(true);
   });
 
-  it('cheques page uses quick param and list normalizer', () => {
-    const source = fs.readFileSync(path.resolve('src/app/admin/finance/cheques/page.tsx'), 'utf8');
-    expect(source.includes('parseFinanceQuickListResponse')).toBe(true);
-    expect(source.includes('due_next_7_days')).toBe(true);
-    expect(source.includes("state: 'received'")).toBe(false);
-    expect(source.includes('useChequeCount')).toBe(false);
+  it('cheques page keeps URL handling in the page and list normalization in the panel', () => {
+    const pageSource = fs.readFileSync(path.resolve('src/app/admin/finance/cheques/page.tsx'), 'utf8');
+    const panelSource = fs.readFileSync(path.resolve('src/features/admin/finance/cheques-list-panel.tsx'), 'utf8');
+    expect(pageSource.includes("quick: searchParams.get('quick')")).toBe(true);
+    expect(panelSource.includes('parseFinanceQuickListResponse')).toBe(true);
+    expect(panelSource.includes('due_next_7_days')).toBe(true);
+    expect(pageSource.includes("state: 'received'")).toBe(false);
+    expect(panelSource.includes('useChequeCount')).toBe(false);
   });
 });

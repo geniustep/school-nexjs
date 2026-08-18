@@ -87,6 +87,21 @@ const FILTERS = [
   },
 ] as const;
 
+const DASHBOARD_FILTERS = [
+  {
+    id: 'submitted_messages',
+    state: 'submitted',
+    contentType: 'message',
+    labelKey: 'admin.pedagogicalDashboard.reviewMessages',
+  },
+  {
+    id: 'submitted_homework',
+    state: 'submitted',
+    contentType: 'homework',
+    labelKey: 'admin.pedagogicalDashboard.reviewHomeworks',
+  },
+] as const;
+
 const DEFAULT_FILTER = FILTERS.find((filter) => filter.id === 'submitted') ?? FILTERS[0];
 
 function stateTone(state: string): 'amber' | 'green' | 'slate' {
@@ -114,7 +129,8 @@ function AdminCommunicationReviewInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filterId = searchParams.get('filter') || 'submitted';
-  const active = FILTERS.find((filter) => filter.id === filterId) ?? DEFAULT_FILTER;
+  const active =
+    [...FILTERS, ...DASHBOARD_FILTERS].find((filter) => filter.id === filterId) ?? DEFAULT_FILTER;
 
   const [items, setItems] = useState<CommunicationContent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,7 +167,7 @@ function AdminCommunicationReviewInner() {
     );
   }
 
-  const isReviewQueue = active.id === 'submitted';
+  const isReviewQueue = active.state === 'submitted';
 
   return (
     <div className="admin-workspace communication-review">
@@ -165,7 +181,7 @@ function AdminCommunicationReviewInner() {
           <div className="communication-review__queue-copy">
             <span className="communication-review__queue-marker" aria-hidden="true" />
             <div>
-              <h2 id="review-queue-title">{t('communication.filter.submitted')}</h2>
+              <h2 id="review-queue-title">{t(active.labelKey)}</h2>
               <p>{t('communication.reviewSubtitle')}</p>
             </div>
           </div>
@@ -179,7 +195,8 @@ function AdminCommunicationReviewInner() {
         aria-label={t('communication.filters')}
       >
         {FILTERS.map((filter) => {
-          const selected = filter.id === active.id;
+          const selected =
+            filter.id === active.id || (filter.id === 'submitted' && active.state === 'submitted');
           return (
             <button
               key={filter.id}
@@ -208,11 +225,7 @@ function AdminCommunicationReviewInner() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={isReviewQueue ? '✓' : '📣'}
-          title={
-            isReviewQueue
-              ? t('communication.filter.submitted')
-              : t('communication.emptyTitle')
-          }
+          title={isReviewQueue ? t(active.labelKey) : t('communication.emptyTitle')}
           description={t('communication.emptyDesc')}
         />
       ) : (

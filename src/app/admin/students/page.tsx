@@ -131,7 +131,7 @@ export default function AdminStudentsPage() {
         actions={canAddStudent || canShowSecondaryActions ? <div className="students-list__header-actions">
           {canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm">{t('admin.addStudent')}</Link> : null}
           {canShowSecondaryActions ? <details className="students-list__more-actions">
-            <summary className="btn btn--ghost btn--sm">المزيد</summary>
+            <summary className="btn btn--ghost btn--sm">{t('common.more')}</summary>
             <div className="students-list__more-actions-menu">
               <AdminListActions
                 exportPath={endpoints.admin.studentsExport}
@@ -152,7 +152,7 @@ export default function AdminStudentsPage() {
       {importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
 
       <StudentsFinancialServiceCountCards
-        items={serviceCounts.items} totalStudents={serviceCounts.totalStudents}
+        items={serviceCounts.items} feeTypes={feeTypes} totalStudents={serviceCounts.totalStudents}
         initialLoading={serviceCounts.initialLoading} fetching={serviceCounts.fetching} error={serviceCounts.error}
         serviceId={serviceId} servicePresence={servicePresence}
         onSelectAll={clearServiceFilter} onSelectService={selectServiceHas} onRetry={serviceCounts.reload}
