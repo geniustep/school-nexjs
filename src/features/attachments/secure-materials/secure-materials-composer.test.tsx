@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SecureMaterialsComposer } from './secure-materials-composer';
 import type { ReturnTypeUseSecureMaterials } from './view-types';
@@ -103,8 +103,9 @@ describe('SecureMaterialsComposer', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'attachments.preview exercise.png' }));
-    expect(screen.getByRole('dialog', { name: 'attachments.preview exercise.png' })).toBeTruthy();
-    expect(screen.getByRole('img', { name: 'exercise.png' }).getAttribute('src')).toBe('blob:raqeem-preview');
+    const dialog = screen.getByRole('dialog', { name: 'attachments.preview exercise.png' });
+    expect(dialog).toBeTruthy();
+    expect(within(dialog).getByRole('img', { name: 'exercise.png' }).getAttribute('src')).toBe('blob:raqeem-preview');
   });
 
   it('offers retry for a failed file and delegates only that item', () => {
