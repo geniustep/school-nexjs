@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SecureMaterialsComposer } from './secure-materials-composer';
+import type { SecureMaterial } from './types';
 import type { ReturnTypeUseSecureMaterials } from './view-types';
 
 vi.mock('@/features/i18n/locale-context', () => ({
@@ -31,11 +32,11 @@ function controller(overrides: Partial<ReturnTypeUseSecureMaterials> = {}): Retu
     ready: false,
     session: null,
     ensureSession: vi.fn(),
-    addFiles: vi.fn(),
-    addLink: vi.fn(),
-    remove: vi.fn(async () => true),
-    replaceFile: vi.fn(async () => true),
-    retryFile: vi.fn(async () => true),
+    addFiles: vi.fn(async (_files: File[]) => undefined),
+    addLink: vi.fn(async (_url: string) => true),
+    remove: vi.fn(async (_item: SecureMaterial) => true),
+    replaceFile: vi.fn(async (_item: SecureMaterial, _file: File) => true),
+    retryFile: vi.fn(async (_item: SecureMaterial) => true),
     cancel: vi.fn(),
     clearError: vi.fn(),
     ...overrides,
@@ -44,7 +45,7 @@ function controller(overrides: Partial<ReturnTypeUseSecureMaterials> = {}): Retu
 
 describe('SecureMaterialsComposer', () => {
   it('shows a clear remove control and removes a failed material', () => {
-    const remove = vi.fn(async () => true);
+    const remove = vi.fn(async (_item: SecureMaterial) => true);
     render(<SecureMaterialsComposer controller={controller({ remove })} />);
 
     const button = screen.getByRole('button', {
@@ -67,7 +68,7 @@ describe('SecureMaterialsComposer', () => {
   });
 
   it('accepts files dropped on the composer', () => {
-    const addFiles = vi.fn();
+    const addFiles = vi.fn(async (_files: File[]) => undefined);
     render(<SecureMaterialsComposer controller={controller({ materials: [], addFiles, hasFailure: false, ready: true })} />);
 
     const file = new File(['hello'], 'lesson.pdf', { type: 'application/pdf' });
@@ -109,12 +110,12 @@ describe('SecureMaterialsComposer', () => {
   });
 
   it('offers retry for a failed file and delegates only that item', () => {
-    const retryFile = vi.fn(async () => true);
-    const failed = {
+    const retryFile = vi.fn(async (_item: SecureMaterial) => true);
+    const failed: SecureMaterial = {
       id: 51,
       clientItemId: 'failed-file',
-      kind: 'file' as const,
-      state: 'failed' as const,
+      kind: 'file',
+      state: 'failed',
       name: 'worksheet.pdf',
       mimetype: 'application/pdf',
       error: 'فشل الرفع',
