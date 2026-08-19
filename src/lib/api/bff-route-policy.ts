@@ -177,6 +177,15 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['POST'],
     test: (p) => p === '/admin/reference-subjects',
   },
+  /**
+   * Central Raqeem Messaging business event — exact POST only.
+   * Do not widen to an integrations family and do not inject active_school_id into
+   * its strict JSON body. Odoo resolves trusted tenant/school context itself.
+   */
+  {
+    methods: ['POST'],
+    test: (p) => p === '/admin/integrations/raqeem/messaging/account-created',
+  },
   {
     methods: ALL_METHODS,
     test: (p) => familyPattern('admin', BFF_ADMIN_FAMILIES).test(p),
