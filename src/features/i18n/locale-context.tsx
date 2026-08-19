@@ -32,6 +32,14 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
+const TRANSLATION_KEY_ALIASES: Record<string, string> = {
+  'admin.account.fullName': 'admin.fullName',
+  'admin.account.login': 'admin.account.loginName',
+  'admin.account.emailPlaceholder': 'admin.staffCenter.smartCreate.emailPlaceholder',
+  'admin.account.password': 'admin.academicSetup.staffPassword.password',
+  'admin.account.passwordConfirm': 'admin.academicSetup.staffPassword.confirmPassword',
+};
+
 function persistLocale(locale: Locale) {
   try {
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
@@ -75,7 +83,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback<TranslateFn>(
-    (key, params) => translate(locale, key, params),
+    (key, params) => translate(locale, TRANSLATION_KEY_ALIASES[key] ?? key, params),
     [locale],
   );
 
