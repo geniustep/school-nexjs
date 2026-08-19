@@ -70,7 +70,7 @@ export function Student360Header({
   const enrollment = details.current_enrollment;
   const fallbackDisplay = overview?.profile?.full_name?.trim() || getStudentDisplayName(s);
   const names = resolveStudentHeaderBilingualNames({
-    nameAr: s.name_ar,
+    nameAr: s.full_name,
     nameLatin: s.name_latin,
     fallbackDisplay,
   });
