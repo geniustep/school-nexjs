@@ -15,6 +15,7 @@ import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-das
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
 import { AdminStaffOperationalDashboard } from '@/features/admin/dashboard/admin-staff-operational-dashboard';
+import { AdminStaffLatestAnnouncementsBridge } from '@/features/admin/dashboard/admin-staff-latest-announcements-bridge';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -117,7 +118,10 @@ export default function AdminDashboardPage() {
         {(d) => (
           <div className={v2Styles.shell}>
             {staffWorkspace ? (
-              <AdminStaffOperationalDashboard data={d} user={user} workspace={staffWorkspace} />
+              <>
+                <AdminStaffOperationalDashboard data={d} user={user} workspace={staffWorkspace} />
+                <AdminStaffLatestAnnouncementsBridge />
+              </>
             ) : (
               <>
                 <AdminDirectorCommandHero user={user} />
