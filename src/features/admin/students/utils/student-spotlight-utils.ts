@@ -62,12 +62,12 @@ export function canOpenStudentSpotlightMessage(user: CurrentUser | null): boolea
   return canOpenStudentCommunication(user);
 }
 
-/** Stored Arabic name only — never transliterate. Falls back to display name fields. */
+/** Canonical full display name for Spotlight — never prefer stale name_ar. */
 export function studentSpotlightArabicName(
   student: Pick<StudentSearchHit, 'name_ar' | 'full_name' | 'name' | 'first_name' | 'last_name'>,
 ): string {
-  const arabic = student.name_ar?.trim();
-  if (arabic) return arabic;
+  const fullName = student.full_name?.trim();
+  if (fullName) return fullName;
   const display = getStudentDisplayName(student);
   return display === '—' ? '' : display;
 }
