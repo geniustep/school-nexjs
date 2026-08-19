@@ -44,7 +44,7 @@ beforeEach(() => {
 });
 
 describe('AdminSidebar accordion', () => {
-  it('keeps active group open, toggles others, and persists official storage', async () => {
+  it('keeps only one group open and persists official storage', async () => {
     const user = userEvent.setup();
 
     render(
@@ -72,13 +72,18 @@ describe('AdminSidebar accordion', () => {
     const dashboard = screen.getByRole('link', { name: /لوحة|Dashboard|dashboard/i });
     expect(dashboard.getAttribute('aria-current')).toBe('page');
 
+    const opsToggle = screen.getByRole('button', { name: /عمليات|Operations|operations/i });
     const financeToggle = screen.getByRole('button', { name: /مال|Finance|finance/i });
+    expect(opsToggle.getAttribute('aria-expanded')).toBe('true');
     expect(financeToggle.getAttribute('aria-expanded')).toBe('false');
+
     await user.click(financeToggle);
     expect(financeToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(opsToggle.getAttribute('aria-expanded')).toBe('false');
 
     const stored = JSON.parse(localStorage.getItem(ADMIN_SIDEBAR_GROUPS_KEY) || '{}');
     expect(stored.finance).toBe(true);
+    expect(stored.ops).toBe(false);
   });
 
   it('keeps the rail collapsed when a group icon is clicked', async () => {
@@ -143,9 +148,7 @@ describe('AdminSidebar accordion', () => {
     );
 
     await waitFor(() => {
-      expect(
-        document.querySelector('.sidebar--focus-v2-collapsed'),
-      ).toBeTruthy();
+      expect(document.querySelector('.sidebar--focus-v2-collapsed')).toBeTruthy();
     });
 
     // Ops is active on dashboard — attendance sibling should also be visible in rail.
