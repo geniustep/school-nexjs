@@ -14,10 +14,12 @@ import { AdminDirectorCommandHero } from '@/features/admin/dashboard/admin-direc
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
+import { AdminStaffOperationalDashboard } from '@/features/admin/dashboard/admin-staff-operational-dashboard';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveDashboardVariant, shouldShowActiveSchoolBannerOnDashboard } from '@/lib/admin/dashboard-registry';
+import { resolveAdminStaffWorkspace } from '@/lib/admin/admin-staff-workspace';
 import { shouldShowDashboardContextPanel } from '@/lib/admin/executive-dashboard';
 import { shouldUsePedagogicalDashboard } from '@/lib/admin/pedagogical-dashboard';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
@@ -31,6 +33,7 @@ export default function AdminDashboardPage() {
   const { activeSchoolId, schools } = useAdminSession();
   const t = useT();
   const variant = resolveDashboardVariant(user);
+  const staffWorkspace = resolveAdminStaffWorkspace(user);
   const state = useAdminResource<AdminDashboard>(
     variant.fetchFullDashboardApi ? endpoints.admin.dashboard : null,
   );
@@ -113,8 +116,14 @@ export default function AdminDashboardPage() {
       <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(d) => (
           <div className={v2Styles.shell}>
-            <AdminDirectorCommandHero user={user} />
-            <AdminExecutiveDashboard data={d} user={user} />
+            {staffWorkspace ? (
+              <AdminStaffOperationalDashboard data={d} user={user} workspace={staffWorkspace} />
+            ) : (
+              <>
+                <AdminDirectorCommandHero user={user} />
+                <AdminExecutiveDashboard data={d} user={user} />
+              </>
+            )}
           </div>
         )}
       </ResourceView>
