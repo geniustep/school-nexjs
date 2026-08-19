@@ -1,0 +1,15 @@
+.admin-dashboard-refined {
+  display: contents;
+}
+
+.admin-dashboard-refined .director-command-hero {
+  margin-block-end: 28px;
+}
+
+.admin-dashboard-refined .admin-dashboard-tail .admin-section--messages {
+  display: none;
+}
+
+.admin-dashboard-refined .admin-section:has(> .admin-quick-row) {
+  display: none;
+}

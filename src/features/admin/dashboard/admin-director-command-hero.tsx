@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { canComposeGeneralCommunication } from '@/lib/permissions/communication';
 import {
   canCollectPayments,
   canViewFinance,
   canViewPayments,
 } from '@/lib/permissions/finance';
+import { hasPermission } from '@/lib/permissions/permissions';
+import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { todayIso } from '@/features/admin/dashboard/dashboard-interventions';
 import type { CurrentUser } from '@/types/user';
 
@@ -23,9 +26,22 @@ type HeroAction = {
 export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
   const t = useT();
   const { formatDate } = useFormat();
+  const { activeSchoolId, schools } = useAdminSession();
+  const isAdminStaff = user.admin_kind === 'admin_staff';
+  const activeRef = schools.find((school) => school.id === activeSchoolId) ?? user.school ?? null;
+  const schoolLabel = formatSchoolLabel(activeRef, t);
 
   const actions = useMemo<HeroAction[]>(() => {
     const candidates: HeroAction[] = [];
+
+    if (isAdminStaff && hasPermission(user, 'view_attendance')) {
+      candidates.push({
+        id: 'attendance',
+        label: t('admin.cmd.openAttendance'),
+        icon: '🗓️',
+        href: '/admin/attendance?date=today',
+      });
+    }
 
     if (canComposeGeneralCommunication(user)) {
       candidates.push({
@@ -53,7 +69,7 @@ export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
     }
 
     return candidates;
-  }, [user, t]);
+  }, [isAdminStaff, user, t]);
 
   const userName = user.name?.trim() ?? '';
   const hasTechnicalAdminName = !userName || /^(administrator|admin)$/i.test(userName);
@@ -67,6 +83,11 @@ export function AdminDirectorCommandHero({ user }: { user: CurrentUser }) {
       <div className="director-command-hero__intro">
         <span className="director-command-hero__date">{formatDate(todayIso())}</span>
         <h1 className="director-command-hero__welcome">{heading}</h1>
+        {isAdminStaff ? (
+          <span className="director-command-hero__date">
+            {t('admin.dashboardContext.variantAdminStaff')} · <span dir="auto">{schoolLabel}</span>
+          </span>
+        ) : null}
       </div>
 
       {actions.length > 0 ? (

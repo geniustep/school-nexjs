@@ -12,6 +12,7 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { ParentsFamilyList } from '@/features/admin/parents/components/parents-family-list';
 import { ParentsListFilters } from '@/features/admin/parents/components/parents-list-filters';
+import { buildAccountFilterQuery } from '@/features/admin/account/utils/account-filter-query';
 import { countHiddenGuardianOnlyFamilies, filterParentFamilies, hasActiveParentFamilyFilters, type ParentFamilyFilters } from '@/features/admin/parents/utils/filter-parent-families';
 import { groupParentsByFamily } from '@/features/admin/parents/utils/group-parents-by-family';
 import { expandParentsWithFamilyGuardians } from '@/features/admin/parents/utils/family-guardians-context';
@@ -39,13 +40,14 @@ export default function AdminParentsPage() {
   const [hideWithoutChildren, setHideWithoutChildren] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
 
-  const filterState = useMemo((): ParentFamilyFilters => ({ status: statusFilter, accountFilter, childrenFilter, hideWithoutChildren, relationshipType: relationshipFilter, language: languageFilter }), [statusFilter, accountFilter, childrenFilter, hideWithoutChildren, relationshipFilter, languageFilter]);
+  const filterState = useMemo((): ParentFamilyFilters => ({ status: statusFilter, childrenFilter, hideWithoutChildren, relationshipType: relationshipFilter, language: languageFilter }), [statusFilter, childrenFilter, hideWithoutChildren, relationshipFilter, languageFilter]);
+  const accountQuery = useMemo(() => buildAccountFilterQuery(accountFilter), [accountFilter]);
   useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, accountFilter, childrenFilter, relationshipFilter, languageFilter, hideWithoutChildren]);
 
-  const params: ListParams = { page, page_size: PARENTS_PAGE_SIZE, search: debouncedSearch.trim() || undefined };
+  const params: ListParams = { page, page_size: PARENTS_PAGE_SIZE, search: debouncedSearch.trim() || undefined, ...accountQuery };
   const state = useAdminResource<Parent[]>(endpoints.admin.parents, params);
   const pg = state.meta?.pagination;
-  const hasActiveFilters = hasActiveParentFamilyFilters(filterState, debouncedSearch);
+  const hasActiveFilters = Boolean(accountFilter || hasActiveParentFamilyFilters(filterState, debouncedSearch));
 
   const normalizedParents = useMemo(() => {
     const normalized = normalizeParentListItems(state.data ?? []);

@@ -6,6 +6,7 @@ import {
   isAdminKindAvailableInStaffOptions,
   mergeStaffCreationTemplatesWithCatalog,
   PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
+  prepareStaffCreationTemplatesForDisplay,
 } from './staff-creation-template-catalog';
 
 const t = (key: string) => {
@@ -28,6 +29,46 @@ const optionsWithPedagogicalDirector: StaffOptions = {
 };
 
 describe('staff-creation-template-catalog', () => {
+  it('hides retired create-page templates by code and renames general supervisor in Arabic', () => {
+    const templates = prepareStaffCreationTemplatesForDisplay(
+      [
+        { code: 'homeroom_teacher', name: 'أستاذ قسم مسؤولية' },
+        { code: 'subject_teacher', name: 'أستاذ مادة' },
+        { code: 'school_principal_basic', name: 'مدير مدرسة (أساسي)' },
+        {
+          code: 'general_supervisor_basic',
+          name: 'مشرف عام (أساسي)',
+          main_position: { code: 'general_supervisor', name: 'مشرف عام' },
+        },
+        { code: 'receptionist_admissions', name: 'استقبال وتسجيل' },
+      ],
+      'ar',
+    );
+
+    expect(templates.map((template) => template.code)).toEqual([
+      'general_supervisor_basic',
+      'receptionist_admissions',
+    ]);
+    expect(templates[0]?.name).toBe('حارس عام (أساسي)');
+    expect(templates[0]?.main_position?.name).toBe('حارس عام');
+  });
+
+  it('keeps the general supervisor server label unchanged outside Arabic', () => {
+    const templates = prepareStaffCreationTemplatesForDisplay(
+      [
+        {
+          code: 'general_supervisor_basic',
+          name: 'General supervisor (basic)',
+          main_position: { code: 'general_supervisor', name: 'General supervisor' },
+        },
+      ],
+      'fr',
+    );
+
+    expect(templates[0]?.name).toBe('General supervisor (basic)');
+    expect(templates[0]?.main_position?.name).toBe('General supervisor');
+  });
+
   it('detects pedagogical_director in staff options', () => {
     expect(isAdminKindAvailableInStaffOptions('pedagogical_director', optionsWithPedagogicalDirector)).toBe(
       true,
