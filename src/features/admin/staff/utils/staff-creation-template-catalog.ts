@@ -7,6 +7,41 @@ import type {
 
 export const PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE = 'pedagogical_director';
 
+const HIDDEN_STAFF_CREATE_TEMPLATE_CODES = new Set([
+  'homeroom_teacher',
+  'subject_teacher',
+  'school_principal_basic',
+]);
+
+const GENERAL_SUPERVISOR_TEMPLATE_CODE = 'general_supervisor_basic';
+const GENERAL_SUPERVISOR_POSITION_CODE = 'general_supervisor';
+
+export function prepareStaffCreationTemplatesForDisplay(
+  templates: StaffCreationTemplate[],
+  locale: string,
+): StaffCreationTemplate[] {
+  return templates
+    .filter((template) => !HIDDEN_STAFF_CREATE_TEMPLATE_CODES.has(template.code))
+    .map((template) => {
+      if (locale !== 'ar') return template;
+
+      const renameTemplate = template.code === GENERAL_SUPERVISOR_TEMPLATE_CODE;
+      const renamePosition = template.main_position?.code === GENERAL_SUPERVISOR_POSITION_CODE;
+      if (!renameTemplate && !renamePosition) return template;
+
+      return {
+        ...template,
+        name: renameTemplate
+          ? template.name.replace(/^مشرف عام/, 'حارس عام')
+          : template.name,
+        main_position:
+          renamePosition && template.main_position
+            ? { ...template.main_position, name: 'حارس عام' }
+            : template.main_position,
+      };
+    });
+}
+
 const FINANCE_BUNDLE_CODES = [
   'finance_agreements',
   'finance_collections',

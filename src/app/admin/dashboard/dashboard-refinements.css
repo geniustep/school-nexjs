@@ -1,0 +1,21 @@
+.admin-dashboard-refined {
+  display: contents;
+}
+
+.admin-dashboard-refined .director-command-hero {
+  margin-block-end: 28px;
+}
+
+.admin-dashboard-refined .admin-dashboard-tail .admin-section--messages {
+  display: none;
+}
+
+.admin-dashboard-refined .admin-section:has(> .admin-quick-row) {
+  display: none;
+}
+
+.admin-workspace--dashboard .admin-dashboard-tail > .admin-section--academic {
+  margin-block-start: 32px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid rgba(148, 163, 184, 0.28);
+}
