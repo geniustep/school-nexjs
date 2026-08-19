@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AdminStaffLatestAnnouncements } from './admin-staff-latest-announcements';
+import { RecipientAnnouncementsDashboardSection } from '@/features/announcements/components/recipient-announcements-dashboard-section';
 
 export function AdminStaffLatestAnnouncementsBridge() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
@@ -24,5 +24,10 @@ export function AdminStaffLatestAnnouncementsBridge() {
     };
   }, []);
 
-  return target ? createPortal(<AdminStaffLatestAnnouncements />, target) : null;
+  return target
+    ? createPortal(
+        <RecipientAnnouncementsDashboardSection basePath="/admin/announcements" />,
+        target,
+      )
+    : null;
 }
