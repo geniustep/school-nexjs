@@ -118,16 +118,14 @@ export default function AdminDashboardPage() {
         {(d) => (
           <div className={v2Styles.shell}>
             {staffWorkspace ? (
-              <>
-                <AdminStaffOperationalDashboard data={d} user={user} workspace={staffWorkspace} />
-                <AdminStaffLatestAnnouncementsBridge />
-              </>
+              <AdminStaffOperationalDashboard data={d} user={user} workspace={staffWorkspace} />
             ) : (
               <>
                 <AdminDirectorCommandHero user={user} />
                 <AdminExecutiveDashboard data={d} user={user} />
               </>
             )}
+            {variant.id === 'admin_staff' ? <AdminStaffLatestAnnouncementsBridge /> : null}
           </div>
         )}
       </ResourceView>
