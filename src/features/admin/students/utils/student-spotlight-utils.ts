@@ -62,10 +62,12 @@ export function canOpenStudentSpotlightMessage(user: CurrentUser | null): boolea
   return canOpenStudentCommunication(user);
 }
 
-/** Stored Arabic name only — never transliterate. Falls back to display name fields. */
+/** Prefer canonical full_name; keep name_ar only as a legacy fallback. */
 export function studentSpotlightArabicName(
   student: Pick<StudentSearchHit, 'name_ar' | 'full_name' | 'name' | 'first_name' | 'last_name'>,
 ): string {
+  const fullName = student.full_name?.trim();
+  if (fullName) return fullName;
   const arabic = student.name_ar?.trim();
   if (arabic) return arabic;
   const display = getStudentDisplayName(student);
