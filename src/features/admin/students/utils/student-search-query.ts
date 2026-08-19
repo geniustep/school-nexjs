@@ -1,5 +1,6 @@
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { buildAccountFilterQuery } from '@/features/admin/account/utils/account-filter-query';
 import type { ApiMeta } from '@/types/api';
 import type { StudentSearchHit, StudentSearchResponseMeta } from '@/types/student-search';
 
@@ -69,7 +70,7 @@ export function buildStudentsListQueryParams(
   service_presence?: 'has' | 'not_has';
 } {
   const search = normalizeStudentSearchQuery(filters.search);
-  const accountFilter = filters.accountFilter;
+  const accountQuery = buildAccountFilterQuery(filters.accountFilter);
   const serviceId = filters.serviceId?.trim() ?? '';
   const hasService = /^\d+$/.test(serviceId);
   const presence =
@@ -84,13 +85,8 @@ export function buildStudentsListQueryParams(
     class_id: filters.classId || undefined,
     level_id: filters.levelId || undefined,
     status: filters.statusFilter || undefined,
-    has_account:
-      accountFilter === 'has_account'
-        ? 'true'
-        : accountFilter === 'no_account'
-          ? 'false'
-          : undefined,
-    account_status: accountFilter === 'inactive_account' ? 'inactive' : undefined,
+    has_account: accountQuery.has_account,
+    account_status: accountQuery.account_status,
     service_id: hasService ? serviceId : undefined,
     service_presence: hasService ? presence : undefined,
   };

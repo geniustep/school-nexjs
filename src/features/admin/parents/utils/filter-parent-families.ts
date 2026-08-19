@@ -1,24 +1,13 @@
 import type { ParentFamilyGroup } from '@/features/admin/parents/utils/group-parents-by-family';
 import { getStudentDisplayName } from '@/lib/utils/student';
-import type { Parent } from '@/types/parent';
 
 export interface ParentFamilyFilters {
   status?: string;
-  accountFilter?: string;
   childrenFilter?: '' | 'has' | 'none';
   /** Default-on: hide guardian-only rows until the user searches. */
   hideWithoutChildren?: boolean;
   relationshipType?: string;
   language?: string;
-}
-
-function parentHasAccount(parent: Parent): boolean {
-  return (
-    parent.account?.has_user_account === true ||
-    parent.has_user_account === true ||
-    parent.has_account === true ||
-    typeof parent.user_id === 'number'
-  );
 }
 
 function familyMatchesSearch(family: ParentFamilyGroup, query: string): boolean {
@@ -41,18 +30,6 @@ function familyMatchesSearch(family: ParentFamilyGroup, query: string): boolean 
 function familyMatchesStatus(family: ParentFamilyGroup, status: string): boolean {
   if (!status) return true;
   return family.guardians.some(({ parent }) => parent.status === status);
-}
-
-function familyMatchesAccount(family: ParentFamilyGroup, accountFilter: string): boolean {
-  if (!accountFilter) return true;
-
-  if (accountFilter === 'has_account') {
-    return family.guardians.some(({ parent }) => parentHasAccount(parent));
-  }
-  if (accountFilter === 'no_account') {
-    return family.guardians.every(({ parent }) => !parentHasAccount(parent));
-  }
-  return true;
 }
 
 function familyMatchesChildren(family: ParentFamilyGroup, childrenFilter: ParentFamilyFilters['childrenFilter']): boolean {
@@ -109,7 +86,6 @@ export function filterParentFamilies(
     (family) =>
       (skipLocalSearchMatch || familyMatchesSearch(family, search)) &&
       familyMatchesStatus(family, filters.status ?? '') &&
-      familyMatchesAccount(family, filters.accountFilter ?? '') &&
       familyMatchesChildren(family, filters.childrenFilter) &&
       familyMatchesHideWithoutChildren(family, hideWithoutChildren, search, filters.childrenFilter) &&
       familyMatchesRelationship(family, filters.relationshipType ?? '') &&
@@ -121,7 +97,6 @@ export function hasActiveParentFamilyFilters(filters: ParentFamilyFilters, searc
   return !!(
     search.trim() ||
     filters.status ||
-    filters.accountFilter ||
     filters.childrenFilter ||
     filters.hideWithoutChildren === false ||
     filters.relationshipType ||
