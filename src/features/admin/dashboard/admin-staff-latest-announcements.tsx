@@ -33,7 +33,6 @@ export function AdminStaffLatestAnnouncements() {
       page: 1,
       page_size: 20,
       content_type: 'announcement',
-      state: 'published',
     }).then((res) => {
       if (!active || !res.success) return;
       setItems(
@@ -74,7 +73,7 @@ export function AdminStaffLatestAnnouncements() {
                 <Link
                   key={item.id}
                   href={`/admin/communication/${item.id}`}
-                  className={`${styles.item} ${styles.read}`}
+                  className={`${styles.item} ${styles.unread}`}
                 >
                   <div className={styles.main}>
                     <div className={styles.titleLine}>
