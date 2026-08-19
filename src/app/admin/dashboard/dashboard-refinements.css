@@ -13,3 +13,9 @@
 .admin-dashboard-refined .admin-section:has(> .admin-quick-row) {
   display: none;
 }
+
+.admin-workspace--dashboard .admin-dashboard-tail > .admin-section--academic {
+  margin-block-start: 32px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid rgba(148, 163, 184, 0.28);
+}
