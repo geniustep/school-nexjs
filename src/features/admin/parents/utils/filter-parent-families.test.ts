@@ -63,6 +63,22 @@ describe('filterParentFamilies hideWithoutChildren', () => {
   });
 });
 
+describe('filterParentFamilies account filtering ownership', () => {
+  it('does not post-filter account state after server pagination', () => {
+    const withAccount = makeFamily([{ id: 30, name: 'أمين' }], ['ولي بحساب'], [
+      { has_account: true },
+    ]);
+    const withoutAccount = makeFamily([{ id: 31, name: 'ليلى' }], ['ولي بدون حساب'], [
+      { has_account: false },
+    ]);
+
+    expect(filterParentFamilies([withAccount, withoutAccount], {}, '')).toEqual([
+      withAccount,
+      withoutAccount,
+    ]);
+  });
+});
+
 describe('countHiddenGuardianOnlyFamilies', () => {
   const withChildren = makeFamily([{ id: 10, name: 'ياسر' }], ['محمد']);
   const withoutChildren = makeFamily([], ['ولي بدون تلميذ']);
@@ -83,7 +99,6 @@ describe('filterParentFamilies serverSearchAuthoritative', () => {
       identity_document_type: 'national_id',
       identity_document_number_masked: 'QA****01',
       national_id_masked: 'QA****01',
-      // list DTO must not carry raw identity for matching
       identity_document_number: null,
       national_id: null,
       phone: '0612000000',

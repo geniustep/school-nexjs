@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/primitives';
 import { useLocale, useT, type TranslateFn } from '@/features/i18n/locale-context';
+import { prepareStaffCreationTemplatesForDisplay } from '@/features/admin/staff/utils/staff-creation-template-catalog';
 import {
   groupStaffTemplatesByMainPosition,
   resolveStaffTemplateBundleLabel,
@@ -58,7 +59,8 @@ export function StaffTemplatePicker({
 }) {
   const t = useT();
   const { locale } = useLocale();
-  const groups = groupStaffTemplatesByMainPosition(templates);
+  const displayTemplates = prepareStaffCreationTemplatesForDisplay(templates, locale);
+  const groups = groupStaffTemplatesByMainPosition(displayTemplates);
 
   return (
     <div className="staff-smart-create__templates">

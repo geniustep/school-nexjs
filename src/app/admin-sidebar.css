@@ -3,7 +3,7 @@
  */
 
 .app-shell--admin:has([data-sidebar-variant='admin']) {
-  --sidebar-w: clamp(284px, 20vw, 300px);
+  --sidebar-w: clamp(304px, 21vw, 324px);
   --focus-v2-ink: #0f172a;
   --focus-v2-muted: #64748b;
   --focus-v2-rail: var(--admin-accent, var(--raqeem-primary));
@@ -21,7 +21,7 @@
   .app-shell--admin:has([data-sidebar-variant='admin']):not(.app-shell--focus-v2-collapsed):not(
       .app-shell--focus-collapsed
     ) {
-    --sidebar-w: clamp(268px, 25vw, 288px);
+    --sidebar-w: clamp(286px, 27vw, 304px);
   }
 }
 
@@ -157,7 +157,7 @@
 }
 
 .sidebar--focus-v2 .focus-v2__school {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -168,7 +168,7 @@
 }
 
 .sidebar--focus-v2 .focus-v2__user {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: #fff;
   line-height: 1.3;
@@ -178,7 +178,7 @@
 }
 
 .sidebar--focus-v2 .focus-v2__role {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 650;
   color: #fde68a;
   width: fit-content;
@@ -190,7 +190,7 @@
   border-radius: 0;
   background: transparent;
   color: rgba(248, 250, 252, 0.78);
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.4;
 }
 
@@ -210,7 +210,7 @@
 
 .sidebar--focus-v2 .focus-v2__nav-eyebrow {
   margin: 0 4px 0;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -242,16 +242,16 @@
 .sidebar--focus-v2 .focus-v2__group-toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   width: 100%;
-  min-height: 46px;
-  padding: 8px 9px;
+  min-height: 48px;
+  padding: 8px 10px;
   border: none;
   border-radius: 10px;
   background: transparent;
   color: var(--focus-v2-ink);
   cursor: pointer;
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 650;
   line-height: 1.35;
   text-align: start;
@@ -283,11 +283,11 @@
 .sidebar--focus-v2 .focus-v2__group-icon {
   display: inline-grid;
   place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.85rem;
+  height: 1.85rem;
   border-radius: 9px;
   background: color-mix(in srgb, var(--c-surface-2) 90%, #fff);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -351,12 +351,12 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 42px;
+  gap: 11px;
+  min-height: 44px;
   padding: 8px 10px;
   border-radius: 10px;
   color: #334155;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.35;
   text-decoration: none;
@@ -376,9 +376,9 @@
 }
 
 .sidebar--focus-v2 .focus-v2__link-icon {
-  width: 1.15rem;
-  min-width: 1.15rem;
-  font-size: 1.1rem;
+  width: 1.2rem;
+  min-width: 1.2rem;
+  font-size: 1.15rem;
   line-height: 1;
   text-align: center;
   flex-shrink: 0;

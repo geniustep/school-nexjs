@@ -4,6 +4,7 @@ import { PortalLayout } from '@/components/layout/portal-layout';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { Card } from '@/components/ui/primitives';
 import { RecipientAnnouncementsDashboardSlot } from '@/features/announcements/components/recipient-announcements-dashboard-slot';
+import './dashboard/dashboard-refinements.css';
 
 function SuspendedAdminNotice() {
   return (

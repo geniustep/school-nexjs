@@ -54,18 +54,23 @@ export function AdminSidebar({
 
   useEffect(() => {
     const stored = readAdminSidebarGroups();
+    const activeGroupId = sections.reduce<string | null>((current, section, index) => {
+      if (current || !section.titleKey || !sectionHasActiveLink(pathname, section)) return current;
+      return sectionGroupId(section, index);
+    }, null);
+    const storedGroupId = sections.reduce<string | null>((current, section, index) => {
+      if (current || !section.titleKey) return current;
+      const id = sectionGroupId(section, index);
+      return stored[id] ? id : null;
+    }, null);
+    const selectedGroupId = activeGroupId ?? storedGroupId;
     const next: Record<string, boolean> = {};
     sections.forEach((section, index) => {
       const id = sectionGroupId(section, index);
-      if (sectionHasActiveLink(pathname, section)) {
-        next[id] = true;
-      } else if (stored[id] !== undefined) {
-        next[id] = stored[id];
-      } else {
-        next[id] = false;
-      }
+      next[id] = !!section.titleKey && id === selectedGroupId;
     });
     setOpenGroups(next);
+    writeAdminSidebarGroups(next);
   }, [sections, pathname]);
 
   useEffect(() => {
@@ -87,44 +92,57 @@ export function AdminSidebar({
   }, [onCollapsedChange]);
 
   useEffect(() => {
+    const activeSectionIndex = sections.findIndex(
+      (section) => !!section.titleKey && sectionHasActiveLink(pathname, section),
+    );
+    if (activeSectionIndex < 0) return;
+    const activeGroupId = sectionGroupId(sections[activeSectionIndex], activeSectionIndex);
+
     setOpenGroups((prev) => {
       let changed = false;
-      const next = { ...prev };
+      const next: Record<string, boolean> = {};
       sections.forEach((section, index) => {
         const id = sectionGroupId(section, index);
-        if (sectionHasActiveLink(pathname, section) && !next[id]) {
-          next[id] = true;
-          changed = true;
-        }
+        const shouldOpen = !!section.titleKey && id === activeGroupId;
+        next[id] = shouldOpen;
+        if (!!prev[id] !== shouldOpen) changed = true;
       });
       if (changed) writeAdminSidebarGroups(next);
       return changed ? next : prev;
     });
   }, [pathname, sections]);
 
+  const scrollGroupToTop = useCallback((groupId: string) => {
+    window.requestAnimationFrame(() => {
+      const nav = document.getElementById('admin-sidebar-nav');
+      const group = document.getElementById(`admin-sidebar-group-${groupId}`);
+      if (!nav || !group || typeof nav.scrollTo !== 'function') return;
+
+      const navRect = nav.getBoundingClientRect();
+      const groupRect = group.getBoundingClientRect();
+      const top = Math.max(0, nav.scrollTop + groupRect.top - navRect.top - 4);
+      const behavior: ScrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth';
+      nav.scrollTo({ top, behavior });
+    });
+  }, []);
+
   const toggleGroup = useCallback(
     (groupId: string) => {
-      if (collapsed) {
-        // Rail mode: reveal this group's icons without expanding the sidebar.
-        setOpenGroups((prev) => {
-          const closing = !!prev[groupId];
-          const next: Record<string, boolean> = {};
-          sections.forEach((section, index) => {
-            const id = sectionGroupId(section, index);
-            next[id] = id === groupId ? !closing : false;
-          });
-          writeAdminSidebarGroups(next);
-          return next;
+      const opening = !openGroups[groupId];
+      setOpenGroups(() => {
+        const next: Record<string, boolean> = {};
+        sections.forEach((section, index) => {
+          const id = sectionGroupId(section, index);
+          next[id] = !!section.titleKey && id === groupId ? opening : false;
         });
-        return;
-      }
-      setOpenGroups((prev) => {
-        const next = { ...prev, [groupId]: !prev[groupId] };
         writeAdminSidebarGroups(next);
         return next;
       });
+      if (opening && !collapsed) scrollGroupToTop(groupId);
     },
-    [collapsed, sections],
+    [collapsed, openGroups, scrollGroupToTop, sections],
   );
 
   const toggleCollapsed = useCallback(() => {
@@ -206,6 +224,7 @@ export function AdminSidebar({
           return (
             <section
               key={groupId}
+              id={`admin-sidebar-group-${groupId}`}
               className={cn(
                 'focus-v2__group',
                 isOpen && hasTitle && 'focus-v2__group--open',
