@@ -357,7 +357,9 @@ export function StudentsListFilters({
               <option value="">{t('admin.account.filterAll')}</option>
               <option value="has_account">{t('admin.account.filterHasAccount')}</option>
               <option value="no_account">{t('admin.account.filterNoAccount')}</option>
+              <option value="active_account">{t('states.active')}</option>
               <option value="inactive_account">{t('admin.account.filterInactiveAccount')}</option>
+              <option value="suspended_account">{t('states.suspended')}</option>
             </select>
           </label>
         </div>
@@ -427,8 +429,12 @@ function accountFilterLabel(t: ReturnType<typeof useT>, accountFilter: string): 
       return t('admin.account.filterHasAccount');
     case 'no_account':
       return t('admin.account.filterNoAccount');
+    case 'active_account':
+      return t('states.active');
     case 'inactive_account':
       return t('admin.account.filterInactiveAccount');
+    case 'suspended_account':
+      return t('states.suspended');
     default:
       return t('admin.account.filterAll');
   }

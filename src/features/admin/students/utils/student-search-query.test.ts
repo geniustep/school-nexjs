@@ -75,11 +75,28 @@ describe('buildStudentsListQueryParams', () => {
       class_id: '9',
       level_id: '5',
       status: 'active',
+      has_account: undefined,
       account_status: 'inactive',
+      service_id: undefined,
+      service_presence: undefined,
     });
     expect(normalizeStudentSearchQuery('  ali  ')).toBe(
       buildStudentSearchQueryParams('  ali  ', 1).search,
     );
+  });
+
+  it('serializes active and suspended account filters', () => {
+    const base = {
+      search: '',
+      classId: '',
+      levelId: '',
+      statusFilter: '',
+      page: 1,
+    };
+    expect(buildStudentsListQueryParams({ ...base, accountFilter: 'active_account' }).account_status)
+      .toBe('active');
+    expect(buildStudentsListQueryParams({ ...base, accountFilter: 'suspended_account' }).account_status)
+      .toBe('suspended');
   });
 
   it('omits empty search to match list semantics', () => {

@@ -22,6 +22,10 @@ import {
 import { staffWarningCount } from '@/features/admin/staff/utils/staff-warnings';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
 import { isStaffInactive } from '@/features/admin/academic-setup/utils/staff-utils';
+import {
+  buildStaffAccountStatusQuery,
+  type AccountStatusValue,
+} from '@/features/admin/account/utils/account-filter-query';
 import { canManageStaff } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -35,7 +39,12 @@ export function StaffListPage() {
   const t = useT();
   const canManage = canManageStaff(user);
   const [search, setSearch] = useState('');
-  const listState = useStaffCenterList({ limit: 200 });
+  const [accountStatus, setAccountStatus] = useState<AccountStatusValue>('');
+  const staffQuery = useMemo(
+    () => ({ limit: 200, ...buildStaffAccountStatusQuery(accountStatus) }),
+    [accountStatus],
+  );
+  const listState = useStaffCenterList(staffQuery);
   const resourceState = useMemo(
     () => ({
       loading: listState.loading,
@@ -157,6 +166,17 @@ export function StaffListPage() {
           placeholder={t('admin.staffCenter.searchPlaceholder')}
           aria-label={t('admin.staffCenter.searchPlaceholder')}
         />
+        <select
+          className="input"
+          value={accountStatus}
+          onChange={(event) => setAccountStatus(event.target.value as AccountStatusValue)}
+          aria-label={t('admin.studentsList.filters.account')}
+        >
+          <option value="">{t('admin.account.filterAll')}</option>
+          <option value="active">{t('states.active')}</option>
+          <option value="inactive">{t('admin.account.filterInactiveAccount')}</option>
+          <option value="suspended">{t('states.suspended')}</option>
+        </select>
       </div>
 
       <ResourceView
