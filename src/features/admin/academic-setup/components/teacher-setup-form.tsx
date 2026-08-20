@@ -23,7 +23,6 @@ import {
   findDuplicateAssignmentKey,
   isAssignmentDraftComplete,
   normalizeAssignmentDrafts,
-  syncTeacherAssignments,
   teachingAssignmentToDraft,
   type TeacherAssignmentDraft,
 } from '../utils/teacher-assignments';
@@ -45,12 +44,82 @@ import { TeacherProfileFields } from './teacher-profile-fields';
 import {
   TeacherAssignmentMatrixPicker,
   type TeacherAssignmentPair,
+  type TeacherTeachingEligibility,
 } from './teacher-assignment-matrix-picker';
 
 type TeacherFormStep = 'profile' | 'assignments';
+type TeacherWithEligibility = Teacher & {
+  eligible_cycles?: Array<{ id: number }>;
+  eligible_levels?: Array<{ id: number }>;
+};
 
 function resolveTeacherLogin(teacher?: Teacher): string {
   return teacher?.login?.trim() || teacher?.account?.login?.trim() || teacher?.email?.trim() || '';
+}
+
+function uniqueIds(values: number[]): number[] {
+  return [...new Set(values.filter((value) => Number.isFinite(value) && value > 0))];
+}
+
+function emptyTeachingEligibility(): TeacherTeachingEligibility {
+  return { subjectIds: [], cycleIds: [], levelIds: [] };
+}
+
+function teachingEligibilityFromTeacher(teacher?: Teacher): TeacherTeachingEligibility {
+  if (!teacher) return emptyTeachingEligibility();
+  const extended = teacher as TeacherWithEligibility;
+  return {
+    subjectIds: uniqueIds((teacher.subjects ?? []).map((subject) => subject.id)),
+    cycleIds: uniqueIds((extended.eligible_cycles ?? []).map((cycle) => cycle.id)),
+    levelIds: uniqueIds((extended.eligible_levels ?? []).map((level) => level.id)),
+  };
+}
+
+function deriveTeachingEligibilityFromAssignments(
+  rows: TeacherAssignmentDraft[],
+  classes: SchoolClass[],
+  levels: Level[],
+): TeacherTeachingEligibility {
+  const complete = normalizeAssignmentDrafts(rows);
+  const levelIds = uniqueIds(
+    complete.map((row) => classes.find((cls) => cls.id === row.classId)?.level?.id ?? 0),
+  );
+  const cycleIds = uniqueIds(
+    levelIds.map((levelId) => levels.find((level) => level.id === levelId)?.cycle?.id ?? 0),
+  );
+  return {
+    subjectIds: uniqueIds(complete.map((row) => row.subjectId)),
+    cycleIds,
+    levelIds,
+  };
+}
+
+function mergeTeachingEligibility(
+  current: TeacherTeachingEligibility,
+  additions: TeacherTeachingEligibility,
+): TeacherTeachingEligibility {
+  return {
+    subjectIds: uniqueIds([...current.subjectIds, ...additions.subjectIds]),
+    cycleIds: uniqueIds([...current.cycleIds, ...additions.cycleIds]),
+    levelIds: uniqueIds([...current.levelIds, ...additions.levelIds]),
+  };
+}
+
+function serializeTeachingEligibility(eligibility: TeacherTeachingEligibility): string {
+  return [
+    uniqueIds(eligibility.subjectIds).sort((a, b) => a - b).join(','),
+    uniqueIds(eligibility.cycleIds).sort((a, b) => a - b).join(','),
+    uniqueIds(eligibility.levelIds).sort((a, b) => a - b).join(','),
+  ].join('|');
+}
+
+function buildAtomicAssignments(rows: TeacherAssignmentDraft[]): Array<Record<string, unknown>> {
+  return normalizeAssignmentDrafts(rows).map((row) => ({
+    class_id: row.classId,
+    subject_id: row.subjectId,
+    weekly_hours: row.weeklyHours,
+    role: 'main',
+  }));
 }
 
 function TeacherFormStepper({ step }: { step: TeacherFormStep }) {
@@ -133,6 +202,12 @@ export function TeacherSetupForm({
   const [assignmentRows, setAssignmentRows] = useState<TeacherAssignmentDraft[]>([]);
   const [assignmentsInitialized, setAssignmentsInitialized] = useState(false);
   const originalAssignmentsRef = useRef('');
+  const [teachingEligibility, setTeachingEligibility] = useState<TeacherTeachingEligibility>(() =>
+    teachingEligibilityFromTeacher(teacher),
+  );
+  const originalTeachingEligibilityRef = useRef(
+    serializeTeachingEligibility(teachingEligibilityFromTeacher(teacher)),
+  );
 
   function serializeAssignments(rows: TeacherAssignmentDraft[]): string {
     return normalizeAssignmentDrafts(rows)
@@ -149,6 +224,9 @@ export function TeacherSetupForm({
     defaultsAppliedRef.current = false;
     teacherHydratedRef.current = false;
     setAssignmentsInitialized(false);
+    const nextEligibility = teachingEligibilityFromTeacher(teacher);
+    setTeachingEligibility(nextEligibility);
+    originalTeachingEligibilityRef.current = serializeTeachingEligibility(nextEligibility);
   }, [teacher?.id, initialStep, creating]);
 
   useEffect(() => {
@@ -172,10 +250,27 @@ export function TeacherSetupForm({
   useEffect(() => {
     if (creating || assignmentsInitialized || assignmentsState.loading) return;
     const drafts = assignmentsState.assignments.map(teachingAssignmentToDraft);
+    const explicitEligibility = teachingEligibilityFromTeacher(resolvedTeacher);
+    const assignmentEligibility = deriveTeachingEligibilityFromAssignments(
+      drafts,
+      classesState.data ?? [],
+      levelsState.data ?? [],
+    );
+    const nextEligibility = mergeTeachingEligibility(explicitEligibility, assignmentEligibility);
     setAssignmentRows(drafts);
     originalAssignmentsRef.current = serializeAssignments(drafts);
+    setTeachingEligibility(nextEligibility);
+    originalTeachingEligibilityRef.current = serializeTeachingEligibility(nextEligibility);
     setAssignmentsInitialized(true);
-  }, [creating, assignmentsInitialized, assignmentsState.loading, assignmentsState.assignments]);
+  }, [
+    creating,
+    assignmentsInitialized,
+    assignmentsState.loading,
+    assignmentsState.assignments,
+    resolvedTeacher,
+    classesState.data,
+    levelsState.data,
+  ]);
 
   const patchProfile = useCallback((patch: Partial<TeacherProfileFormState>) => {
     setProfile((current) => resolveStatusActiveConsistency({ ...current, ...patch }));
@@ -197,9 +292,13 @@ export function TeacherSetupForm({
     creating
       ? normalizeAssignmentDrafts(assignmentRows).length > 0
       : serializeAssignments(assignmentRows) !== originalAssignmentsRef.current;
+  const teachingEligibilityDirty =
+    serializeTeachingEligibility(teachingEligibility) !== originalTeachingEligibilityRef.current;
+  const teachingSetupDirty =
+    canManageAssignments && (assignmentsDirty || teachingEligibilityDirty);
   const dirty =
     profileDirty ||
-    assignmentsDirty ||
+    teachingSetupDirty ||
     assignmentRows.some((row) => (row.classId || row.subjectId) && !isAssignmentDraftComplete(row));
 
   const requestClose = useCallback(() => {
@@ -279,27 +378,51 @@ export function TeacherSetupForm({
         })
       : { email: profile.email.trim() || undefined };
 
-    let teacherId = teacher?.id ?? null;
+    const atomicTeachingPayload = teachingSetupDirty
+      ? {
+          eligible_subject_ids: uniqueIds(teachingEligibility.subjectIds),
+          eligible_cycle_ids: uniqueIds(teachingEligibility.cycleIds),
+          eligible_level_ids: uniqueIds(teachingEligibility.levelIds),
+          assignments: buildAtomicAssignments(assignmentRows),
+        }
+      : {};
 
-    if (creating || profileDirty || Object.keys(identity).length > 0) {
+    let teacherId = teacher?.id ?? null;
+    const shouldSaveTeacher =
+      creating || profileDirty || Object.keys(identity).length > 0 || teachingSetupDirty;
+
+    if (shouldSaveTeacher) {
       const profilePayload = creating
         ? buildTeacherCreatePayload(profile, identity as Record<string, unknown>, options)
-        : buildTeacherUpdatePayload(profile, originalProfileRef.current, identity as Record<string, unknown>, options);
+        : buildTeacherUpdatePayload(
+            profile,
+            originalProfileRef.current,
+            identity as Record<string, unknown>,
+            options,
+          );
+      const mutationPayload = {
+        ...profilePayload,
+        ...atomicTeachingPayload,
+      };
 
-      if (!creating && Object.keys(profilePayload).length === 0) {
+      if (!creating && Object.keys(mutationPayload).length === 0) {
         teacherId = teacher!.id;
       } else {
         setSaving(true);
         const profileRes = creating
-          ? await api.post(endpoints.admin.teachers, profilePayload)
-          : await api.post(endpoints.admin.teacherUpdate(teacher!.id), profilePayload);
+          ? await api.post(endpoints.admin.teachers, mutationPayload)
+          : await api.post(endpoints.admin.teacherUpdate(teacher!.id), mutationPayload);
         setSaving(false);
 
         if (!profileRes.success) {
           const mapped = mapTeacherApiFieldError(String(profileRes.error.code ?? ''), t);
           if (Object.keys(mapped).length) setFieldErrors((prev) => ({ ...prev, ...mapped }));
           toast.error(mapTeacherApiError(profileRes.error, t) || mapAccountApiError(profileRes.error, t));
-          setStep('profile');
+          if (String(profileRes.error.code ?? '').startsWith('teacher_assignment_')) {
+            setStep('assignments');
+          } else {
+            setStep('profile');
+          }
           return;
         }
 
@@ -315,57 +438,12 @@ export function TeacherSetupForm({
           alreadyExistsKey: 'admin.account.accountAlreadyExists',
         });
 
-        if (canManageAssignments && assignmentsDirty) {
-          setSaving(true);
-          const syncResult = await syncTeacherAssignments(
-            teacherId,
-            assignmentRows,
-            assignmentsState.assignments,
-          );
-          setSaving(false);
-
-          if (!syncResult.ok) {
-            if (feedback) applyAccountMutationToasts(feedback, toast);
-            else toast.success(t('admin.saveSuccess'));
-            toast.error(t('admin.academicSetup.teacherForm.partialAssignmentsSaved'));
-            for (const message of syncResult.errors.slice(0, 3)) {
-              toast.show(message, 'info');
-            }
-            await teacherDetailState.reload();
-            onSaved(teacherId);
-            return;
-          }
-        }
-
         if (feedback) applyAccountMutationToasts(feedback, toast);
         else toast.success(t('admin.saveSuccess'));
         await teacherDetailState.reload();
         onSaved(teacherId);
         return;
       }
-    }
-
-    if (canManageAssignments && assignmentsDirty && teacherId) {
-      setSaving(true);
-      const syncResult = await syncTeacherAssignments(
-        teacherId,
-        assignmentRows,
-        assignmentsState.assignments,
-      );
-      setSaving(false);
-      if (!syncResult.ok) {
-        toast.error(t('admin.academicSetup.teacherForm.partialAssignmentsSaved'));
-        for (const message of syncResult.errors.slice(0, 3)) {
-          toast.show(message, 'info');
-        }
-        await teacherDetailState.reload();
-        onSaved(teacherId);
-        return;
-      }
-      toast.success(t('admin.saveSuccess'));
-      await teacherDetailState.reload();
-      onSaved(teacherId);
-      return;
     }
 
     toast.success(t('admin.saveSuccess'));
@@ -443,9 +521,11 @@ export function TeacherSetupForm({
                 classId: row.classId,
                 subjectId: row.subjectId,
               }))}
+              eligibility={teachingEligibility}
               currentTeacherId={teacher?.id ?? null}
               disabled={!canManageAssignments || saving}
               onChange={handleAssignmentPairsChange}
+              onEligibilityChange={setTeachingEligibility}
             />
           )}
         </div>

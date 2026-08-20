@@ -13,6 +13,12 @@ export type TeacherAssignmentPair = {
   subjectId: number;
 };
 
+export type TeacherTeachingEligibility = {
+  subjectIds: number[];
+  cycleIds: number[];
+  levelIds: number[];
+};
+
 type SubjectFamily = {
   key: string;
   name: string;
@@ -60,17 +66,21 @@ export function TeacherAssignmentMatrixPicker({
   classes,
   subjects,
   selectedPairs,
+  eligibility,
   currentTeacherId = null,
   disabled = false,
   onChange,
+  onEligibilityChange,
 }: {
   levels: Level[];
   classes: SchoolClass[];
   subjects: Subject[];
   selectedPairs: TeacherAssignmentPair[];
+  eligibility?: TeacherTeachingEligibility;
   currentTeacherId?: number | null;
   disabled?: boolean;
   onChange: (pairs: TeacherAssignmentPair[]) => void;
+  onEligibilityChange?: (eligibility: TeacherTeachingEligibility) => void;
 }) {
   const t = useT();
   const occupancyState = useAdminResource<TeachingAssignment[]>(
@@ -110,13 +120,14 @@ export function TeacherAssignmentMatrixPicker({
   }, [subjectFamilies]);
 
   const cycles = useMemo(() => {
-    const byCode = new Map<string, { code: string; name: string; sequence: number }>();
+    const byCode = new Map<string, { id: number; code: string; name: string; sequence: number }>();
     for (const level of levels) {
       if (!level.cycle?.code) continue;
       const current = byCode.get(level.cycle.code);
       const sequence = level.cycle.sequence ?? level.sequence ?? 999;
       if (!current || sequence < current.sequence) {
         byCode.set(level.cycle.code, {
+          id: level.cycle.id,
           code: level.cycle.code,
           name: level.cycle.name || level.cycle.code,
           sequence,
@@ -125,6 +136,26 @@ export function TeacherAssignmentMatrixPicker({
     }
     return [...byCode.values()].sort((a, b) => a.sequence - b.sequence || a.name.localeCompare(b.name));
   }, [levels]);
+
+  useEffect(() => {
+    if (!eligibility) return;
+    const subjectKeys = uniqueStrings(
+      eligibility.subjectIds.map((subjectId) => {
+        const fromMap = subjectFamilyById.get(subjectId);
+        if (fromMap) return fromMap;
+        const subject = subjects.find((item) => item.id === subjectId);
+        return subject ? subjectFamilyKey(subject.name) : '';
+      }),
+    );
+    const cycleCodes = uniqueStrings(
+      eligibility.cycleIds.map(
+        (cycleId) => levels.find((level) => level.cycle?.id === cycleId)?.cycle?.code ?? '',
+      ),
+    );
+    setSelectedSubjectKeys(subjectKeys);
+    setSelectedCycleCodes(cycleCodes);
+    setSelectedLevelIds(uniqueIds(eligibility.levelIds));
+  }, [eligibility, subjectFamilyById, subjects, levels]);
 
   useEffect(() => {
     if (!selectedPairs.length) return;
@@ -241,8 +272,50 @@ export function TeacherAssignmentMatrixPicker({
     );
   }
 
+  function buildTeachingEligibility(
+    subjectKeys: string[],
+    cycleCodes: string[],
+    levelIds: number[],
+  ): TeacherTeachingEligibility {
+    const levelSet = new Set(levelIds);
+    const subjectIds = uniqueIds(
+      subjectFamilies
+        .filter((family) => subjectKeys.includes(family.key))
+        .flatMap((family) =>
+          family.subjectIds.filter((subjectId) => {
+            if (!levelSet.size) return true;
+            const subject = subjects.find((item) => item.id === subjectId);
+            if (!subject) return true;
+            const subjectLevelIds = uniqueIds([
+              subject.level_id ?? 0,
+              ...(subject.level_ids ?? []),
+            ]);
+            return !subjectLevelIds.length || subjectLevelIds.some((levelId) => levelSet.has(levelId));
+          }),
+        ),
+    );
+    const cycleIds = uniqueIds(
+      cycleCodes.map((code) => cycles.find((cycle) => cycle.code === code)?.id ?? 0),
+    );
+    return {
+      subjectIds,
+      cycleIds,
+      levelIds: uniqueIds(levelIds),
+    };
+  }
+
+  function emitTeachingEligibility(
+    subjectKeys: string[],
+    cycleCodes: string[],
+    levelIds: number[],
+  ) {
+    onEligibilityChange?.(buildTeachingEligibility(subjectKeys, cycleCodes, levelIds));
+  }
+
   function addSubject(key: string) {
-    setSelectedSubjectKeys((current) => mergeStrings(current, [key]));
+    const nextSubjectKeys = mergeStrings(selectedSubjectKeys, [key]);
+    setSelectedSubjectKeys(nextSubjectKeys);
+    emitTeachingEligibility(nextSubjectKeys, selectedCycleCodes, selectedLevelIds);
     setSubjectQuery('');
     setSubjectMenuOpen(true);
   }
@@ -250,7 +323,9 @@ export function TeacherAssignmentMatrixPicker({
   function removeSubject(key: string) {
     const family = subjectFamilies.find((item) => item.key === key);
     const familyIds = new Set(family?.subjectIds ?? []);
-    setSelectedSubjectKeys((current) => current.filter((item) => item !== key));
+    const nextSubjectKeys = selectedSubjectKeys.filter((item) => item !== key);
+    setSelectedSubjectKeys(nextSubjectKeys);
+    emitTeachingEligibility(nextSubjectKeys, selectedCycleCodes, selectedLevelIds);
     onChange(
       selectedPairs.filter((pair) => {
         if (familyIds.has(pair.subjectId)) return false;
@@ -262,7 +337,9 @@ export function TeacherAssignmentMatrixPicker({
 
   function toggleCycle(code: string) {
     if (!selectedCycleSet.has(code)) {
-      setSelectedCycleCodes((current) => mergeStrings(current, [code]));
+      const nextCycleCodes = mergeStrings(selectedCycleCodes, [code]);
+      setSelectedCycleCodes(nextCycleCodes);
+      emitTeachingEligibility(selectedSubjectKeys, nextCycleCodes, selectedLevelIds);
       return;
     }
 
@@ -274,21 +351,28 @@ export function TeacherAssignmentMatrixPicker({
         .filter((cls) => cls.level?.id != null && removedLevelIds.has(cls.level.id))
         .map((cls) => cls.id),
     );
-    setSelectedCycleCodes((current) => current.filter((item) => item !== code));
-    setSelectedLevelIds((current) => current.filter((id) => !removedLevelIds.has(id)));
+    const nextCycleCodes = selectedCycleCodes.filter((item) => item !== code);
+    const nextLevelIds = selectedLevelIds.filter((id) => !removedLevelIds.has(id));
+    setSelectedCycleCodes(nextCycleCodes);
+    setSelectedLevelIds(nextLevelIds);
+    emitTeachingEligibility(selectedSubjectKeys, nextCycleCodes, nextLevelIds);
     onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
   }
 
   function toggleLevel(levelId: number) {
     if (!selectedLevelSet.has(levelId)) {
-      setSelectedLevelIds((current) => mergeIds(current, [levelId]));
+      const nextLevelIds = mergeIds(selectedLevelIds, [levelId]);
+      setSelectedLevelIds(nextLevelIds);
+      emitTeachingEligibility(selectedSubjectKeys, selectedCycleCodes, nextLevelIds);
       return;
     }
 
     const removedClassIds = new Set(
       classes.filter((cls) => cls.level?.id === levelId).map((cls) => cls.id),
     );
-    setSelectedLevelIds((current) => current.filter((id) => id !== levelId));
+    const nextLevelIds = selectedLevelIds.filter((id) => id !== levelId);
+    setSelectedLevelIds(nextLevelIds);
+    emitTeachingEligibility(selectedSubjectKeys, selectedCycleCodes, nextLevelIds);
     onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
   }
 
