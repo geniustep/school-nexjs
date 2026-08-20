@@ -218,12 +218,18 @@ export function resolveStaffRoleDisplayLabel(
   member: Pick<
     StaffMember,
     'role_display_name' | 'admin_kind' | 'creation_template_code' | 'user_kind' | 'is_parent'
-  >,
+  > & Partial<Pick<StaffMember, 'teacher_id' | 'teacher'>>,
   t: (key: string) => string,
 ): string {
   // user_kind/is_parent win over role_display_name and misleading admin_kind.
   if (isStaffCenterParent(member)) {
     return t('admin.staffCenter.userType.parent');
+  }
+
+  // A real Teacher Profile with no admin_kind is Teacher-only, even if a stale
+  // role_display_name/creation template still carries an old administrative label.
+  if (!member.admin_kind && (member.teacher_id != null || member.teacher?.id != null)) {
+    return t('admin.staffCenter.userType.teacher');
   }
 
   const display = member.role_display_name?.trim();
