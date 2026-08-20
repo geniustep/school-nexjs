@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/features/auth/session-context';
 import { useLocale } from '@/features/i18n/locale-context';
@@ -10,17 +10,11 @@ import {
   ensureAccountCreatedAttemptKey,
   isWhatsAppMessagingEnabled,
   resolveAccountCreatedTemplateMetadata,
+  resolveActiveSchoolName,
   resolveTenantCodeForAccountCreated,
 } from '@/features/admin/staff/lib/account-created-messaging';
 import { api } from '@/lib/api/client';
-import type { AdminSchoolBrandingOdooData } from '@/types/admin-school-branding';
 import type { StaffMember } from '@/types/academic-setup';
-
-type MessagingBranding = AdminSchoolBrandingOdooData & {
-  tenant_code?: string | null;
-  school_name_fr?: string | null;
-  school_name_ar?: string | null;
-};
 
 type SendState = 'idle' | 'sending' | 'success' | 'error';
 
@@ -70,47 +64,24 @@ export function WhatsAppAccountCreatedAction({ member }: { member: StaffMember }
   const copy = COPY[locale];
   const enabled = isWhatsAppMessagingEnabled(sessionUser);
   const recipient = (member.mobile ?? member.phone ?? '').trim();
-  const [branding, setBranding] = useState<MessagingBranding | null>(null);
-  const [brandingFailed, setBrandingFailed] = useState(false);
   const [state, setState] = useState<SendState>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const attemptKeyRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-    api.get<MessagingBranding>('/admin/school-branding').then((response) => {
-      if (cancelled) return;
-      if (response.success && response.data) {
-        setBranding(response.data);
-        setBrandingFailed(false);
-      } else {
-        setBranding(null);
-        setBrandingFailed(true);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
-
   const metadata = useMemo(() => {
-    if (!branding || typeof window === 'undefined') return null;
-    const tenantCode =
-      branding.tenant_code?.trim() ||
-      resolveTenantCodeForAccountCreated(window.location.hostname, branding.school_code);
+    if (typeof window === 'undefined') return null;
+    const tenantCode = resolveTenantCodeForAccountCreated(window.location.hostname);
+    const schoolName = resolveActiveSchoolName(sessionUser);
     return resolveAccountCreatedTemplateMetadata({
       tenantCode,
-      schoolName: branding.school_name,
-      schoolNameFr: branding.school_name_fr,
-      schoolNameAr: branding.school_name_ar,
+      schoolName,
     });
-  }, [branding]);
+  }, [sessionUser]);
 
   if (!enabled) return null;
 
   const disabled = state === 'sending' || !recipient || !metadata;
-  const disabledReason = !recipient ? copy.noPhone : brandingFailed || !metadata ? copy.metadata : undefined;
+  const disabledReason = !recipient ? copy.noPhone : !metadata ? copy.metadata : undefined;
 
   async function send() {
     if (disabled || !metadata) return;
