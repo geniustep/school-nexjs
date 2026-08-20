@@ -39,6 +39,14 @@ function mapSettingsResponse(
   const colors = extractAdminBrandingColors(data);
   return {
     branding,
+    schoolNameAr: data.school_name_ar ?? data.school_name ?? null,
+    schoolNameLat: data.school_name_lat ?? null,
+    schoolShortName: data.school_short_name ?? null,
+    street: data.street ?? null,
+    city: data.city ?? null,
+    phone: data.phone ?? null,
+    email: data.email ?? null,
+    website: data.website ?? null,
     welcomeSubtitle: data.welcome_subtitle ?? null,
     primaryColor: colors.primaryColor,
     secondaryColor: colors.secondaryColor,
