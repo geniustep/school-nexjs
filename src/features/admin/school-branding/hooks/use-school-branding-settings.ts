@@ -5,6 +5,14 @@ import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
 
 export type SchoolBrandingSettingsData = {
   branding: LoginSchoolBrandingView;
+  schoolNameAr: string | null;
+  schoolNameLat: string | null;
+  schoolShortName: string | null;
+  street: string | null;
+  city: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
   welcomeSubtitle: string | null;
   primaryColor: string | null;
   secondaryColor: string | null;
@@ -13,6 +21,14 @@ export type SchoolBrandingSettingsData = {
 };
 
 export type SchoolBrandingFieldErrors = {
+  schoolNameAr?: string;
+  schoolNameLat?: string;
+  schoolShortName?: string;
+  street?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
   welcomeSubtitle?: string;
   primaryColor?: string;
   secondaryColor?: string;
@@ -21,9 +37,17 @@ export type SchoolBrandingFieldErrors = {
 };
 
 export type SchoolBrandingSaveInput = {
-  welcomeSubtitle: string;
-  primaryColor: string;
-  secondaryColor: string;
+  schoolNameAr?: string | null;
+  schoolNameLat?: string | null;
+  schoolShortName?: string | null;
+  street?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  welcomeSubtitle?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   logoBase64?: string | null;
   clearLogo?: boolean;
 };
@@ -74,18 +98,20 @@ export function useSchoolBrandingSettings() {
         const res = await fetch('/api/admin/school-branding', {
           method: 'PUT',
           headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            welcomeSubtitle: input.welcomeSubtitle,
-            primaryColor: input.primaryColor,
-            secondaryColor: input.secondaryColor,
-            logoBase64: input.logoBase64,
-            clearLogo: input.clearLogo,
-          }),
+          body: JSON.stringify(input),
         });
         const body = await res.json();
         if (!res.ok || !body.success) {
           const field = body?.error?.details?.field;
           const fieldErrors: SchoolBrandingFieldErrors = {};
+          if (field === 'school_name_ar') fieldErrors.schoolNameAr = 'validation';
+          if (field === 'school_name_lat') fieldErrors.schoolNameLat = 'validation';
+          if (field === 'school_short_name') fieldErrors.schoolShortName = 'validation';
+          if (field === 'street') fieldErrors.street = 'validation';
+          if (field === 'city') fieldErrors.city = 'validation';
+          if (field === 'phone') fieldErrors.phone = 'validation';
+          if (field === 'email') fieldErrors.email = 'validation';
+          if (field === 'website') fieldErrors.website = 'validation';
           if (field === 'welcome_subtitle') fieldErrors.welcomeSubtitle = 'validation';
           if (field === 'primary_color') fieldErrors.primaryColor = 'validation';
           if (field === 'secondary_color') fieldErrors.secondaryColor = 'validation';
