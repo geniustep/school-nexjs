@@ -5,6 +5,7 @@ import {
   ensureAccountCreatedAttemptKey,
   isWhatsAppMessagingEnabled,
   resolveAccountCreatedTemplateMetadata,
+  resolveActiveSchoolName,
   resolveTenantCodeForAccountCreated,
 } from './account-created-messaging';
 import type { CurrentUser } from '@/types/user';
@@ -26,6 +27,24 @@ describe('account-created messaging contract', () => {
     expect(isWhatsAppMessagingEnabled(userWithWhatsApp(true))).toBe(true);
     expect(isWhatsAppMessagingEnabled(userWithWhatsApp(false))).toBe(false);
     expect(isWhatsAppMessagingEnabled(null)).toBe(false);
+  });
+
+  it('resolves the active school name from the authenticated session', () => {
+    const user: CurrentUser = {
+      ...userWithWhatsApp(true),
+      active_school_id: 20,
+      school: { id: 10, name: 'Fallback School' },
+      schools: [
+        { id: 10, name: 'School A' },
+        { id: 20, name: 'مدرسة رقيم التجريبية' },
+      ],
+    };
+
+    expect(resolveActiveSchoolName(user)).toBe('مدرسة رقيم التجريبية');
+    expect(resolveActiveSchoolName({ ...user, active_school_id: undefined, schools: [] })).toBe(
+      'Fallback School',
+    );
+    expect(resolveActiveSchoolName(null)).toBeNull();
   });
 
   it('uses only the exact Odoo endpoint and safe payload keys', () => {

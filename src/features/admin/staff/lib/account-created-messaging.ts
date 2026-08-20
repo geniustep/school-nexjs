@@ -23,6 +23,27 @@ export function isWhatsAppMessagingEnabled(user: CurrentUser | null | undefined)
   return user?.services?.messaging?.whatsapp?.enabled === true;
 }
 
+export function resolveActiveSchoolName(user: CurrentUser | null | undefined): string | null {
+  if (!user) return null;
+
+  const activeSchoolId = Number(user.active_school_id ?? 0);
+  if (activeSchoolId > 0 && user.schools?.length) {
+    const active = user.schools.find((school) => school.id === activeSchoolId);
+    const name = active?.name?.trim();
+    if (name) return name;
+  }
+
+  const currentSchoolName = user.school?.name?.trim();
+  if (currentSchoolName) return currentSchoolName;
+
+  if (user.schools?.length === 1) {
+    const onlySchoolName = user.schools[0]?.name?.trim();
+    if (onlySchoolName) return onlySchoolName;
+  }
+
+  return null;
+}
+
 export function resolveTenantCodeForAccountCreated(
   hostname: string,
   fallbackSchoolCode?: string | null,
