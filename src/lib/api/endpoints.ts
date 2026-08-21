@@ -11,6 +11,8 @@ export const endpoints = {
     logout: '/auth/logout',
     refresh: '/auth/refresh',
     me: '/me',
+    accountActivationVerify: '/auth/account-activation/verify',
+    accountActivationSetPassword: '/auth/account-activation/set-password',
   },
 
   public: {
