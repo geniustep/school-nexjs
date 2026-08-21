@@ -13,7 +13,8 @@ import { useToast } from '@/components/ui/toast';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { HomeworkWorkflowActions } from '@/features/admin/admin-workflow-actions';
-import { HomeworkCommunicationDetails } from '@/features/admin/homeworks/components/homework-communication-status';
+import { HomeworkCommunicationReviewPanel } from '@/features/admin/homeworks/components/homework-communication-status';
+import { stripHtmlPreview } from '@/features/communication/utils/communication-labels';
 import { endpoints } from '@/lib/api/endpoints';
 import { canUploadAdminAttachments } from '@/lib/attachments/admin-upload';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -27,6 +28,7 @@ interface AdminHomeworkDetailPanelProps {
 export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailPanelProps) {
   const t = useT();
   const { formatDate, formatDateTime } = useFormat();
+  const cleanDescription = stripHtmlPreview(hw.description ?? '', 4000);
 
   const submissionColumns: Column<HomeworkSubmission>[] = [
     {
@@ -53,44 +55,43 @@ export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailP
 
   return (
     <>
-      <div className="section row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <HomeworkWorkflowActions id={hw.id} state={hw.state} onUpdated={onUpdated} />
-      </div>
-      <Card>
-        <DefinitionList
-          items={[
-            { label: t('academic.status'), value: <WorkflowBadge state={hw.state} /> },
-            { label: t('nav.classes'), value: hw.class?.name ?? t('common.dash') },
-            { label: t('academic.subject'), value: hw.subject?.name ?? t('common.dash') },
-            { label: t('academic.teacher'), value: hw.teacher?.name ?? t('common.dash') },
-            {
-              label: t('academic.publishDate'),
-              value: hw.publish_date ? formatDate(hw.publish_date) : t('common.dash'),
-            },
-            {
-              label: t('academic.deadline'),
-              value: hw.deadline ? formatDate(hw.deadline) : t('common.dash'),
-            },
-            {
-              label: t('academic.requiresSubmission'),
-              value: hw.require_submission ? t('common.yes') : t('common.no'),
-            },
-          ]}
-        />
-        {hw.description && (
-          <div className="mt-2">
-            <h3 style={{ fontSize: 14, marginBottom: 6 }}>{t('academic.description')}</h3>
-            <p className="muted" style={{ whiteSpace: 'pre-wrap' }}>
-              {hw.description}
-            </p>
-          </div>
-        )}
-      </Card>
+      <HomeworkCommunicationReviewPanel item={hw} onUpdated={onUpdated} />
 
-      <div className="section">
-        <SectionHead title={t('nav.communication')} />
+      <div
+        className="grid mt-4"
+        style={{
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          alignItems: 'start',
+        }}
+      >
         <Card>
-          <HomeworkCommunicationDetails item={hw} />
+          <DefinitionList
+            items={[
+              { label: t('academic.status'), value: <WorkflowBadge state={hw.state} /> },
+              { label: t('nav.classes'), value: hw.class?.name ?? t('common.dash') },
+              { label: t('academic.subject'), value: hw.subject?.name ?? t('common.dash') },
+              { label: t('academic.teacher'), value: hw.teacher?.name ?? t('common.dash') },
+              {
+                label: t('academic.publishDate'),
+                value: hw.publish_date ? formatDate(hw.publish_date) : t('common.dash'),
+              },
+              {
+                label: t('academic.deadline'),
+                value: hw.deadline ? formatDate(hw.deadline) : t('common.dash'),
+              },
+              {
+                label: t('academic.requiresSubmission'),
+                value: hw.require_submission ? t('common.yes') : t('common.no'),
+              },
+            ]}
+          />
+        </Card>
+
+        <Card>
+          <SectionHead title={t('academic.description')} />
+          <div dir="auto" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>
+            {cleanDescription || t('common.dash')}
+          </div>
         </Card>
       </div>
 
@@ -118,7 +119,15 @@ export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailP
           </Card>
         </div>
       )}
-      {hw.links?.length ? <div className="section"><SectionHead title={t('secureMaterials.title')} /><Card><SmartLinkCards links={hw.links} /></Card></div> : null}
+
+      {hw.links?.length ? (
+        <div className="section">
+          <SectionHead title={t('secureMaterials.title')} />
+          <Card>
+            <SmartLinkCards links={hw.links} />
+          </Card>
+        </div>
+      ) : null}
 
       {hw.submissions && hw.submissions.length > 0 && (
         <div className="section">
@@ -128,6 +137,15 @@ export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailP
           </Card>
         </div>
       )}
+
+      {hw.state !== 'archived' ? (
+        <div className="section">
+          <SectionHead title={t('common.actions')} />
+          <Card>
+            <HomeworkWorkflowActions id={hw.id} state={hw.state} onUpdated={onUpdated} />
+          </Card>
+        </div>
+      ) : null}
     </>
   );
 }
