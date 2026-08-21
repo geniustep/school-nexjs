@@ -466,6 +466,7 @@ export function StaffEditPage({ userId }: { userId: number }) {
   const canManage = canManageStaff(sessionUser);
   const detailState = useStaffCenterDetailWithPermissions(userId);
   const optionsState = useStaffOptions();
+  const staffOptions = optionsState.options ?? undefined;
 
   const viewState = useMemo(
     () => ({
@@ -510,7 +511,7 @@ export function StaffEditPage({ userId }: { userId: number }) {
                     member={member}
                     staffUserId={userId}
                     permissionsPayload={detailState.permissionsPayload}
-                    options={optionsState.options}
+                    options={staffOptions}
                     optionsLoading={optionsState.loading}
                     optionsError={optionsState.error?.message ?? null}
                     onRetryOptions={() => optionsState.reload()}
@@ -520,7 +521,7 @@ export function StaffEditPage({ userId }: { userId: number }) {
 
                   <StaffResponsibilityAssignmentsSection
                     userId={userId}
-                    options={optionsState.options}
+                    options={staffOptions}
                     canManage={canManage}
                     onChanged={detailState.reload}
                   />
