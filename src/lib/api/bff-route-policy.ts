@@ -184,7 +184,7 @@ const ROUTE_RULES: RouteRule[] = [
    */
   {
     methods: ['POST'],
-    test: (p) => p === '/admin/integrations/raqeem/messaging/account-created',
+    test: (p) => p === '/admin/integrations/raqeem/messaging/account-activation',
   },
   {
     methods: ALL_METHODS,
