@@ -160,6 +160,7 @@ h4 {
 
 .sidebar__brand .brand-logo__full {
   height: 34px;
+  filter: brightness(0) invert(1);
 }
 
 .sidebar--teacher .sidebar__brand .brand-logo__full {
@@ -3386,3 +3387,4 @@ table.data tbody tr:hover {
 .date-picker__footer-btn--primary:hover {
   background: var(--c-primary-soft);
 }
+
