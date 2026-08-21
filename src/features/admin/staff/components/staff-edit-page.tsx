@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
+import { PermissionDeniedState } from '@/components/states/states';
 import { Card, PageHeader, SectionHead } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
@@ -23,6 +24,7 @@ import {
 import { resolveStaffLogin } from '@/features/admin/academic-setup/utils/staff-utils';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
+import { StaffResponsibilityAssignmentsSection } from '@/features/admin/staff/components/staff-responsibility-assignments-section';
 import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
 import {
   normalizeStaffCenterMember,
@@ -52,6 +54,7 @@ import type {
   StaffAdminKind,
   StaffEffectivePermissionsPayload,
   StaffMember,
+  StaffOptions,
 } from '@/types/academic-setup';
 import type { Teacher } from '@/types/teacher';
 import '@/features/admin/staff/staff-center.css';
@@ -61,19 +64,25 @@ function StaffIdentityAccessForm({
   member,
   staffUserId,
   permissionsPayload,
+  options,
+  optionsLoading,
+  optionsError,
+  onRetryOptions,
   canManage,
   onSaved,
 }: {
   member: StaffMember;
   staffUserId: number;
   permissionsPayload: StaffEffectivePermissionsPayload | null;
+  options?: StaffOptions;
+  optionsLoading: boolean;
+  optionsError: string | null;
+  onRetryOptions: () => void;
   canManage: boolean;
   onSaved: () => void;
 }) {
   const t = useT();
   const toast = useToast();
-  const optionsState = useStaffOptions();
-  const options = optionsState.options;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -359,9 +368,9 @@ function StaffIdentityAccessForm({
                 capabilityIds={capabilityIds}
                 onCapabilityIdsChange={setCapabilityIds}
                 catalogReady={catalogReady}
-                catalogLoading={optionsState.loading}
-                catalogError={optionsState.error?.message ?? null}
-                onRetryCatalog={() => optionsState.reload()}
+                catalogLoading={optionsLoading}
+                catalogError={optionsError}
+                onRetryCatalog={onRetryOptions}
                 disabled={!canManage || saving}
                 onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
               />
@@ -376,7 +385,7 @@ function StaffIdentityAccessForm({
           <button
             type="submit"
             className="btn btn--primary btn--sm"
-            disabled={!canManage || saving || optionsState.loading}
+            disabled={!canManage || saving || optionsLoading}
           >
             {saving ? t('common.saving') : t('common.save')}
           </button>
@@ -456,6 +465,7 @@ export function StaffEditPage({ userId }: { userId: number }) {
   const sessionUser = useSession();
   const canManage = canManageStaff(sessionUser);
   const detailState = useStaffCenterDetailWithPermissions(userId);
+  const optionsState = useStaffOptions();
 
   const viewState = useMemo(
     () => ({
@@ -493,17 +503,26 @@ export function StaffEditPage({ userId }: { userId: number }) {
               />
 
               {!canManage ? (
-                <Card className="staff-center-section">
-                  <p role="alert">{t('errors.forbidden')}</p>
-                </Card>
+                <PermissionDeniedState description={t('admin.pageForbidden')} />
               ) : (
                 <div className="col" style={{ gap: 20 }}>
                   <StaffIdentityAccessForm
                     member={member}
                     staffUserId={userId}
                     permissionsPayload={detailState.permissionsPayload}
+                    options={optionsState.options}
+                    optionsLoading={optionsState.loading}
+                    optionsError={optionsState.error?.message ?? null}
+                    onRetryOptions={() => optionsState.reload()}
                     canManage={canManage}
                     onSaved={detailState.reload}
+                  />
+
+                  <StaffResponsibilityAssignmentsSection
+                    userId={userId}
+                    options={optionsState.options}
+                    canManage={canManage}
+                    onChanged={detailState.reload}
                   />
 
                   {teacherId ? (
