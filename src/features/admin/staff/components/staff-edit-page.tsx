@@ -1,10 +1,5 @@
 'use client';
 
-/**
- * @raqeem-design docs/design/RAQEEM-DESIGN.md
- * @design-status adopted
- */
-
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
@@ -16,15 +11,16 @@ import { StaffCapabilitiesSection } from '@/features/admin/academic-setup/compon
 import { StaffResetPasswordDialog } from '@/features/admin/academic-setup/components/staff-reset-password-dialog';
 import { TeacherSetupForm } from '@/features/admin/academic-setup/components/teacher-setup-form';
 import { useStaffOptions, updateStaffMember } from '@/features/admin/academic-setup/hooks/use-staff';
+import { mapAcademicSetupApiError } from '@/features/admin/academic-setup/utils/api-errors';
 import {
   canResetStaffAccountPassword,
   normalizeStaffPasswordPolicy,
 } from '@/features/admin/academic-setup/utils/staff-password-utils';
-import { mapAcademicSetupApiError } from '@/features/admin/academic-setup/utils/api-errors';
 import {
   resolveRoleChangeWarningKey,
   resolveStaffPermissionMetadata,
 } from '@/features/admin/academic-setup/utils/staff-permissions-meta';
+import { resolveStaffLogin } from '@/features/admin/academic-setup/utils/staff-utils';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
@@ -40,19 +36,18 @@ import {
   resolveStoredCapabilityCodes,
   responseIncludesCapabilityCodes,
 } from '@/features/admin/staff/utils/staff-permission-merge';
+import { endpoints } from '@/lib/api/endpoints';
+import { mapAccountApiError } from '@/lib/account/account-errors';
 import {
   applyAccountMutationToasts,
   resolveAccountMutationFeedback,
 } from '@/lib/account/account-mutation-feedback';
-import { mapAccountApiError } from '@/lib/account/account-errors';
 import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { endpoints } from '@/lib/api/endpoints';
 import {
   canManageStaff,
   canManageTeachingAssignments,
 } from '@/lib/permissions/academic-setup';
-import { resolveStaffLogin } from '@/features/admin/academic-setup/utils/staff-utils';
 import type {
   StaffAdminKind,
   StaffEffectivePermissionsPayload,
@@ -64,11 +59,13 @@ import '@/features/admin/academic-setup/academic-setup-ui.css';
 
 function StaffIdentityAccessForm({
   member,
+  staffUserId,
   permissionsPayload,
   canManage,
   onSaved,
 }: {
   member: StaffMember;
+  staffUserId: number;
   permissionsPayload: StaffEffectivePermissionsPayload | null;
   canManage: boolean;
   onSaved: () => void;
@@ -105,12 +102,14 @@ function StaffIdentityAccessForm({
     setUseDifferentLogin(Boolean(memberLogin && memberEmail && memberLogin !== memberEmail));
     setPhone(member.mobile ?? member.phone ?? '');
     setJobTitle(member.job_title ?? '');
+
     const nextAdminKind =
       member.admin_kind && typeof member.admin_kind === 'string'
         ? (member.admin_kind as StaffAdminKind)
         : '';
     setAdminKind(nextAdminKind);
     setOriginalAdminKind(nextAdminKind);
+
     const storedCodes = resolveStoredCapabilityCodes(member, permissionsPayload);
     const resolvedIds = capabilityCodesToIds(storedCodes, options?.capabilities ?? []);
     setCapabilityIds(resolvedIds);
@@ -214,7 +213,7 @@ function StaffIdentityAccessForm({
     }
 
     setSaving(true);
-    const res = await updateStaffMember(member.id, payload);
+    const res = await updateStaffMember(staffUserId, payload);
     setSaving(false);
 
     if (!res.success) {
@@ -235,6 +234,7 @@ function StaffIdentityAccessForm({
     }
 
     const feedback = resolveAccountMutationFeedback(res, t, {
+      createdKey: 'admin.account.accountCreated',
       updatedKey: 'admin.saveSuccess',
       alreadyExistsKey: 'admin.account.accountAlreadyExists',
     });
@@ -260,6 +260,7 @@ function StaffIdentityAccessForm({
                 disabled={!canManage || saving}
               />
             </label>
+
             <AccountFieldsSection
               mode="edit"
               email={email}
@@ -270,6 +271,7 @@ function StaffIdentityAccessForm({
               onUseDifferentLoginChange={setUseDifferentLogin}
               disabled={!canManage || saving}
             />
+
             {showResetPassword ? (
               <div className="staff-password-section">
                 <strong>{t('admin.academicSetup.staffPassword.resetTitle')}</strong>
@@ -284,6 +286,7 @@ function StaffIdentityAccessForm({
                 </button>
               </div>
             ) : null}
+
             <div className="staff-center-detail-grid">
               <label className="col" style={{ gap: 4 }}>
                 <span className="tiny muted">{t('admin.phone')}</span>
@@ -367,7 +370,7 @@ function StaffIdentityAccessForm({
         </Card>
 
         <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <Link href={`/admin/staff/${member.id}`} className="btn btn--ghost btn--sm">
+          <Link href={`/admin/staff/${staffUserId}`} className="btn btn--ghost btn--sm">
             {t('common.cancel')}
           </Link>
           <button
@@ -382,7 +385,7 @@ function StaffIdentityAccessForm({
 
       <StaffResetPasswordDialog
         open={resetDialogOpen}
-        staffId={member.id}
+        staffId={staffUserId}
         policy={passwordPolicy}
         onClose={() => setResetDialogOpen(false)}
       />
@@ -470,7 +473,7 @@ export function StaffEditPage({ userId }: { userId: number }) {
   return (
     <div className="admin-workspace staff-center-page">
       <Link href={`/admin/staff/${userId}`} className="back-link">
-        ‹ {t('admin.staffCenter.backToList')}
+        ‹ {t('common.cancel')}
       </Link>
 
       <ResourceView state={viewState} loadingLabel={t('common.loading')}>
@@ -497,6 +500,7 @@ export function StaffEditPage({ userId }: { userId: number }) {
                 <div className="col" style={{ gap: 20 }}>
                   <StaffIdentityAccessForm
                     member={member}
+                    staffUserId={userId}
                     permissionsPayload={detailState.permissionsPayload}
                     canManage={canManage}
                     onSaved={detailState.reload}
