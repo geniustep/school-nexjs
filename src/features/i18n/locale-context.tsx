@@ -38,6 +38,7 @@ const TRANSLATION_KEY_ALIASES: Record<string, string> = {
   'admin.account.emailPlaceholder': 'admin.staffCenter.smartCreate.emailPlaceholder',
   'admin.account.password': 'admin.academicSetup.staffPassword.password',
   'admin.account.passwordConfirm': 'admin.academicSetup.staffPassword.confirmPassword',
+  'admin.staffCenter.permissionsTitle': 'admin.academicSetup.staffCapabilities.sectionTitle',
 };
 
 function persistLocale(locale: Locale) {

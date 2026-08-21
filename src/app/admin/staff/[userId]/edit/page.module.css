@@ -1,0 +1,184 @@
+.refined {
+  display: contents;
+}
+
+.refined :global(.staff-center-page) > :global(.back-link) {
+  display: none;
+}
+
+.refined :global(.staff-center-page) > :global(.col) {
+  gap: 16px !important;
+}
+
+/* Flatten the staff form visually so the teaching block can sit directly
+   after the identity card without changing any mutation boundaries. */
+.refined :global(.staff-center-page) > :global(.col) > :global(form.col) {
+  display: contents;
+}
+
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(form.col)
+  > :global(.staff-center-section):first-of-type {
+  order: 1;
+}
+
+/* The second direct Card is the linked-teacher assignment editor when present. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2) {
+  order: 2;
+  border-color: color-mix(in srgb, var(--primary, #2563eb) 24%, var(--border, #e2e8f0));
+}
+
+/* Administrative access/permissions remains available, but comes after teaching. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(form.col)
+  > :global(.staff-center-section):nth-of-type(2) {
+  order: 3;
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* The outer permissions title was redundant with StaffCapabilitiesSection. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(form.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  > :global(.section__head) {
+  display: none;
+}
+
+/* Staff identity/account save stays attached to the staff form, not teacher assignments. */
+.refined :global(.staff-center-page) > :global(.col) > :global(form.col) > :global(.row) {
+  order: 4;
+}
+
+/* Administrative responsibilities are secondary in this edit journey. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):first-of-type {
+  order: 5;
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* Make the basic identity card lighter and denser. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(form.col)
+  > :global(.staff-center-section):first-of-type
+  :global(fieldset) {
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-width: 0;
+}
+
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(form.col)
+  > :global(.staff-center-section):first-of-type
+  :global(.staff-password-section) {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+/* Staff edit already starts in assignments mode: the two-step teacher wizard is noise here. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(.teacher-setup-stepper) {
+  display: none;
+}
+
+/* The matrix itself is the source of truth on this screen; avoid repeating it below. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(.teacher-assignment-matrix__summary) {
+  display: none;
+}
+
+/* Cancel/Previous inside the embedded teacher form duplicate the page navigation.
+   Keep only its own assignment save action. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(.teacher-setup-form__actions)
+  :global(.btn--ghost) {
+  display: none;
+}
+
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(.teacher-setup-form__actions) {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/* In edit mode, class/subject cells are status toggles; keep them compact.
+   aria-label remains descriptive for assistive technology. */
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(button.teacher-assignment-matrix__cell) {
+  min-height: 38px;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(button.teacher-assignment-matrix__cell)
+  > span {
+  display: none;
+}
+
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(button.teacher-assignment-matrix__cell)::before {
+  content: '＋';
+  font-size: 1rem;
+}
+
+.refined
+  :global(.staff-center-page)
+  > :global(.col)
+  > :global(.staff-center-section):nth-of-type(2)
+  :global(button.teacher-assignment-matrix__cell[aria-checked='true'])::before {
+  content: '✓';
+}
+
+@media (max-width: 760px) {
+  .refined
+    :global(.staff-center-page)
+    > :global(.col)
+    > :global(form.col)
+    > :global(.staff-center-section):nth-of-type(2),
+  .refined
+    :global(.staff-center-page)
+    > :global(.col)
+    > :global(.staff-center-section):first-of-type {
+    max-height: none;
+  }
+}
