@@ -1,7 +1,7 @@
 'use client';
 
 import '../academic-setup-ui.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useToast } from '@/components/ui/toast';
@@ -13,21 +13,11 @@ import {
   resolveAccountMutationFeedback,
 } from '@/lib/account/account-mutation-feedback';
 import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
-import { useLocale, useT } from '@/features/i18n/locale-context';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { Teacher, TeacherProfileFieldErrors, TeacherProfileFormState } from '@/types/teacher';
 import { mapTeacherApiError } from '../utils/api-errors';
-import {
-  formatAcademicClassLabel,
-  formatAcademicLabelLine,
-} from '../utils/format-academic-label';
-import {
-  buildLevelsById,
-  buildSubjectDisplayLabel,
-  countSubjectsByName,
-  type SubjectLevelRef,
-} from '../utils/subject-display';
 import {
   createEmptyAssignmentDraft,
   findDuplicateAssignmentKey,
@@ -52,6 +42,10 @@ import {
 import { useTeacherAssignments } from '../hooks/use-teacher-assignments';
 import { useTeacherOptions } from '../hooks/use-teacher-options';
 import { TeacherProfileFields } from './teacher-profile-fields';
+import {
+  TeacherAssignmentMatrixPicker,
+  type TeacherAssignmentPair,
+} from './teacher-assignment-matrix-picker';
 
 type TeacherFormStep = 'profile' | 'assignments';
 
@@ -88,60 +82,6 @@ function TeacherFormStepper({ step }: { step: TeacherFormStep }) {
   );
 }
 
-function SearchableSelect({
-  label,
-  searchLabel,
-  value,
-  onChange,
-  options,
-  disabled,
-  required,
-}: {
-  label: string;
-  searchLabel: string;
-  value: number;
-  onChange: (value: number) => void;
-  options: { id: number; label: string }[];
-  disabled?: boolean;
-  required?: boolean;
-}) {
-  const [query, setQuery] = useState('');
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return options;
-    return options.filter((option) => option.label.toLowerCase().includes(q));
-  }, [options, query]);
-
-  return (
-    <label className="teacher-setup-field">
-      <span className="teacher-setup-field__label">{label}</span>
-      <input
-        className="input teacher-setup-field__search"
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder={searchLabel}
-        disabled={disabled}
-        aria-label={searchLabel}
-      />
-      <select
-        className="input"
-        value={value || ''}
-        onChange={(e) => onChange(Number(e.target.value))}
-        disabled={disabled}
-        required={required}
-      >
-        <option value="">{label}</option>
-        {filtered.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
 export function TeacherSetupForm({
   teacher,
   onSaved,
@@ -160,7 +100,6 @@ export function TeacherSetupForm({
   initialStep?: TeacherFormStep;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const toast = useToast();
   const creating = !teacher;
   const [step, setStep] = useState<TeacherFormStep>(initialStep);
@@ -249,32 +188,6 @@ export function TeacherSetupForm({
     });
   }, []);
 
-  const levelsById = useMemo(
-    () => buildLevelsById((levelsState.data ?? []) as SubjectLevelRef[]),
-    [levelsState.data],
-  );
-  const subjectNameCounts = useMemo(
-    () => countSubjectsByName(subjectsState.data ?? []),
-    [subjectsState.data],
-  );
-
-  const subjectOptions = useMemo(() => {
-    return (subjectsState.data ?? []).map((subject) => ({
-      id: subject.id,
-      label: buildSubjectDisplayLabel(subject, levelsById, subjectNameCounts, t),
-      subject,
-    }));
-  }, [subjectsState.data, levelsById, subjectNameCounts, t]);
-
-  const classOptions = useMemo(
-    () =>
-      (classesState.data ?? []).map((cls) => ({
-        id: cls.id,
-        label: formatAcademicLabelLine(formatAcademicClassLabel(cls, locale)),
-      })),
-    [classesState.data, locale],
-  );
-
   const lookupLoading = classesState.loading || subjectsState.loading || levelsState.loading;
   const lookupError =
     classesState.error ?? subjectsState.error ?? levelsState.error ?? assignmentsState.error;
@@ -298,16 +211,20 @@ export function TeacherSetupForm({
     onRegisterClose?.(requestClose);
   }, [onRegisterClose, requestClose]);
 
-  function addAssignmentRow() {
-    setAssignmentRows((rows) => [...rows, createEmptyAssignmentDraft()]);
-  }
-
-  function updateAssignmentRow(key: string, patch: Partial<TeacherAssignmentDraft>) {
-    setAssignmentRows((rows) => rows.map((row) => (row.key === key ? { ...row, ...patch } : row)));
-  }
-
-  function removeAssignmentRow(key: string) {
-    setAssignmentRows((rows) => rows.filter((row) => row.key !== key));
+  function handleAssignmentPairsChange(nextPairs: TeacherAssignmentPair[]) {
+    setAssignmentRows((current) =>
+      nextPairs.map((pair) => {
+        const existing = current.find(
+          (row) => row.classId === pair.classId && row.subjectId === pair.subjectId,
+        );
+        if (existing) return existing;
+        return {
+          ...createEmptyAssignmentDraft(),
+          classId: pair.classId,
+          subjectId: pair.subjectId,
+        };
+      }),
+    );
   }
 
   const validateProfileStep = useCallback(() => {
@@ -515,73 +432,21 @@ export function TeacherSetupForm({
             <p className="teacher-setup-form__notice">{t('admin.academicSetup.teacherForm.assignmentsForbidden')}</p>
           ) : null}
 
-          <div className="teacher-setup-form__assignments-head">
-            <p className="teacher-setup-form__assignments-count">
-              {t('admin.academicSetup.teacherForm.assignmentsCount', { count: completeAssignments.length })}
-            </p>
-            {canManageAssignments ? (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={addAssignmentRow}>
-                {t('admin.academicSetup.teacherForm.addAssignment')}
-              </button>
-            ) : null}
-          </div>
-
           {lookupLoading || (!creating && assignmentsState.loading && !assignmentsInitialized) ? (
             <p className="muted">{t('common.loading')}</p>
-          ) : assignmentRows.length === 0 ? (
-            <p className="teacher-setup-form__empty">{t('admin.academicSetup.teacherForm.assignmentsEmpty')}</p>
           ) : (
-            <div className="teacher-setup-assignments" role="table" aria-label={t('admin.academicSetup.teacherForm.steps.assignments')}>
-              <div className="teacher-setup-assignments__head" role="row">
-                <span role="columnheader">{t('admin.academicSetup.teacherForm.assignmentsColumnClass')}</span>
-                <span role="columnheader">{t('admin.academicSetup.teacherForm.assignmentsColumnSubject')}</span>
-                <span role="columnheader">{t('admin.academicSetup.teacherForm.assignmentsColumnHours')}</span>
-                <span role="columnheader">{t('admin.academicSetup.teacherForm.assignmentsColumnAction')}</span>
-              </div>
-              {assignmentRows.map((row) => (
-                <div key={row.key} className="teacher-setup-assignments__row" role="row">
-                  <SearchableSelect
-                    label={t('admin.academicSetup.teacherForm.selectClass')}
-                    searchLabel={t('admin.academicSetup.teacherForm.searchClasses')}
-                    value={row.classId}
-                    onChange={(classId) => updateAssignmentRow(row.key, { classId })}
-                    options={classOptions}
-                    disabled={!canManageAssignments || saving}
-                  />
-                  <SearchableSelect
-                    label={t('admin.academicSetup.teacherForm.selectSubject')}
-                    searchLabel={t('admin.academicSetup.teacherForm.searchSubjects')}
-                    value={row.subjectId}
-                    onChange={(subjectId) => updateAssignmentRow(row.key, { subjectId })}
-                    options={subjectOptions.map((option) => ({ id: option.id, label: option.label }))}
-                    disabled={!canManageAssignments || saving}
-                  />
-                  <label className="teacher-setup-field teacher-setup-field--compact">
-                    <span className="teacher-setup-field__label">{t('admin.academicSetup.weeklyHours')}</span>
-                    <input
-                      className="input"
-                      type="number"
-                      min={1}
-                      value={row.weeklyHours}
-                      onChange={(e) =>
-                        updateAssignmentRow(row.key, { weeklyHours: Number(e.target.value) || 0 })
-                      }
-                      disabled={!canManageAssignments || saving}
-                    />
-                  </label>
-                  <div className="teacher-setup-assignments__actions">
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => removeAssignmentRow(row.key)}
-                      disabled={!canManageAssignments || saving}
-                    >
-                      {t('admin.academicSetup.teacherForm.removeAssignment')}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TeacherAssignmentMatrixPicker
+              levels={levelsState.data ?? []}
+              classes={classesState.data ?? []}
+              subjects={subjectsState.data ?? []}
+              selectedPairs={completeAssignments.map((row) => ({
+                classId: row.classId,
+                subjectId: row.subjectId,
+              }))}
+              currentTeacherId={teacher?.id ?? null}
+              disabled={!canManageAssignments || saving}
+              onChange={handleAssignmentPairsChange}
+            />
           )}
         </div>
       )}

@@ -1,0 +1,209 @@
+/* Institution identity/contact extension for School Branding settings. */
+
+.school-branding-card__icon--identity {
+  color: #0f766e;
+}
+
+.school-branding-card__icon--contact {
+  color: #0369a1;
+}
+
+.school-branding-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.school-branding-profile-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.school-branding-profile-field--wide {
+  grid-column: 1 / -1;
+}
+
+.school-branding-profile-field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.school-branding-profile-field__input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.school-branding-profile-field__input::placeholder {
+  color: var(--c-text-faint);
+}
+
+.school-branding-profile-field__input:focus {
+  outline: none;
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-soft);
+  background: var(--c-surface);
+}
+
+.school-branding-identity-logo {
+  margin-block-start: 18px;
+  padding-block-start: 18px;
+  border-block-start: 1px solid var(--c-border);
+}
+
+.school-branding-aside--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.school-branding-document {
+  --school-branding-document-primary: var(--c-primary);
+  --school-branding-document-secondary: var(--c-surface-2);
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--school-branding-document-primary) 18%, var(--c-border) 82%);
+  border-radius: 14px;
+  background: white;
+  padding: 15px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.school-branding-document__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.school-branding-document__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.school-branding-document__logo-wrap {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.school-branding-document__logo {
+  max-width: 44px;
+  max-height: 44px;
+  object-fit: contain;
+}
+
+.school-branding-document__monogram {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--school-branding-document-primary);
+  background: color-mix(in srgb, var(--school-branding-document-primary) 10%, white 90%);
+  border: 1px solid color-mix(in srgb, var(--school-branding-document-primary) 18%, transparent 82%);
+}
+
+.school-branding-document__names {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.school-branding-document__name-ar {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--school-branding-document-primary) 76%, #0f172a 24%);
+}
+
+.school-branding-document__name-lat,
+.school-branding-document__short-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.school-branding-document__meta {
+  max-width: 42%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: end;
+  font-size: 8px;
+  line-height: 1.35;
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
+.school-branding-document__rule {
+  height: 3px;
+  margin-block: 12px 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--school-branding-document-primary),
+    var(--school-branding-document-secondary)
+  );
+}
+
+.school-branding-document__sample-title {
+  margin-block-end: 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.school-branding-document__sample-line {
+  width: 68%;
+  height: 6px;
+  margin-block-start: 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.school-branding-document__sample-line--wide {
+  width: 92%;
+}
+
+@media (max-width: 640px) {
+  .school-branding-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .school-branding-profile-field--wide {
+    grid-column: auto;
+  }
+
+  .school-branding-document__header {
+    flex-direction: column;
+  }
+
+  .school-branding-document__meta {
+    max-width: 100%;
+    text-align: start;
+  }
+}

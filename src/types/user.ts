@@ -29,6 +29,14 @@ export interface AdminBinding {
   [key: string]: unknown;
 }
 
+export interface UserServices {
+  messaging?: {
+    whatsapp?: {
+      enabled?: boolean;
+    };
+  };
+}
+
 export interface CurrentUser {
   id: number;
   name: string;
@@ -46,6 +54,8 @@ export interface CurrentUser {
   permissions_mode?: PermissionsMode;
   capabilities_editable?: boolean;
   school: SchoolRef | null;
+  /** Commercial/business services exposed by GET /me; absence is fail-closed in the UI. */
+  services?: UserServices;
 
   admin_kind?: AdminKind;
   school_ids?: number[];

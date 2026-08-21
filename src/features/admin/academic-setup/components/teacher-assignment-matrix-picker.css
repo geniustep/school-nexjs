@@ -1,0 +1,345 @@
+.teacher-assignment-matrix {
+  display: grid;
+  gap: 18px;
+}
+
+.teacher-assignment-matrix__step {
+  display: grid;
+  gap: 10px;
+}
+
+.teacher-assignment-matrix__choice-block {
+  display: grid;
+  gap: 8px;
+}
+
+.teacher-assignment-matrix__choice-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teacher-assignment-matrix__choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 9px;
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #172033);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.teacher-assignment-matrix__choice[data-selected='true'] {
+  border-color: var(--admin-accent, var(--raqeem-primary, #2563eb));
+  background: color-mix(
+    in srgb,
+    var(--admin-accent, var(--raqeem-primary, #2563eb)) 10%,
+    var(--c-surface, #fff)
+  );
+  font-weight: 700;
+}
+
+.teacher-assignment-matrix__choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.teacher-assignment-matrix__tagbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 48px;
+  padding: 6px 8px;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+}
+
+.teacher-assignment-matrix__tagbox:focus-within {
+  border-color: var(--admin-accent, var(--raqeem-primary, #2563eb));
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--admin-accent, var(--raqeem-primary, #2563eb)) 16%, transparent);
+}
+
+.teacher-assignment-matrix__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-height: 30px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: color-mix(
+    in srgb,
+    var(--admin-accent, var(--raqeem-primary, #2563eb)) 12%,
+    var(--c-surface, #fff)
+  );
+  color: var(--c-text, #172033);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.teacher-assignment-matrix__tag button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0 2px;
+}
+
+.teacher-assignment-matrix__search-wrap {
+  position: relative;
+  flex: 1 1 220px;
+  min-width: 170px;
+}
+
+.teacher-assignment-matrix__search-wrap > input {
+  width: 100%;
+  min-height: 34px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--c-text, #172033);
+  font: inherit;
+}
+
+.teacher-assignment-matrix__subject-menu {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 7px);
+  z-index: 40;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+}
+
+.teacher-assignment-matrix__subject-menu button {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--c-text, #172033);
+  cursor: pointer;
+  text-align: start;
+}
+
+.teacher-assignment-matrix__subject-menu button:hover,
+.teacher-assignment-matrix__subject-menu button:focus-visible {
+  background: var(--c-surface-2, #f4f7fb);
+  outline: none;
+}
+
+.teacher-assignment-matrix__toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.teacher-assignment-matrix__toolbar p {
+  margin: 4px 0 0;
+}
+
+.teacher-assignment-matrix__warning {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--c-warning-soft, #fff7ed);
+  color: var(--c-warning-text, #9a3412);
+  font-size: 13px;
+}
+
+.teacher-assignment-matrix__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 12px;
+}
+
+.teacher-assignment-matrix__table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.teacher-assignment-matrix__table th,
+.teacher-assignment-matrix__table td {
+  padding: 10px;
+  border-block-end: 1px solid var(--c-border, #d7dee8);
+  border-inline-end: 1px solid var(--c-border, #d7dee8);
+  vertical-align: middle;
+}
+
+.teacher-assignment-matrix__table tr:last-child th,
+.teacher-assignment-matrix__table tr:last-child td {
+  border-block-end: 0;
+}
+
+.teacher-assignment-matrix__table th:last-child,
+.teacher-assignment-matrix__table td:last-child {
+  border-inline-end: 0;
+}
+
+.teacher-assignment-matrix__table thead th {
+  background: var(--c-surface-2, #f4f7fb);
+  font-size: 12px;
+  font-weight: 750;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.teacher-assignment-matrix__table tbody > tr > th {
+  min-width: 170px;
+  background: color-mix(in srgb, var(--c-surface-2, #f4f7fb) 60%, var(--c-surface, #fff));
+  font-size: 13px;
+  font-weight: 700;
+  text-align: start;
+}
+
+.teacher-assignment-matrix__class-name,
+.teacher-assignment-matrix__class-level {
+  display: block;
+}
+
+.teacher-assignment-matrix__class-level {
+  margin-top: 3px;
+  color: var(--c-text-muted, #64748b);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.teacher-assignment-matrix__cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  min-width: 112px;
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 8px;
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #172033);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.teacher-assignment-matrix__cell--selected {
+  border-color: var(--admin-accent, var(--raqeem-primary, #2563eb));
+  background: color-mix(
+    in srgb,
+    var(--admin-accent, var(--raqeem-primary, #2563eb)) 10%,
+    var(--c-surface, #fff)
+  );
+  font-weight: 700;
+}
+
+.teacher-assignment-matrix__cell--blocked {
+  cursor: not-allowed;
+  background: var(--c-surface-2, #f4f7fb);
+  color: var(--c-text-muted, #64748b);
+}
+
+.teacher-assignment-matrix__cell--unavailable {
+  cursor: default;
+  border-style: dashed;
+  background: transparent;
+  color: var(--c-text-muted, #64748b);
+}
+
+.teacher-assignment-matrix__cell:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.teacher-assignment-matrix__summary {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c-surface-2, #f4f7fb) 65%, var(--c-surface, #fff));
+}
+
+.teacher-assignment-matrix__summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teacher-assignment-matrix__summary-count {
+  color: var(--c-text-muted, #64748b);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.teacher-assignment-matrix__summary-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.teacher-assignment-matrix__summary-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2fr);
+  gap: 12px;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border, #d7dee8);
+}
+
+.teacher-assignment-matrix__summary-class {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.teacher-assignment-matrix__summary-class span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 11px;
+}
+
+.teacher-assignment-matrix__summary-subjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.teacher-assignment-matrix__summary-chip {
+  display: inline-flex;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: var(--c-surface, #fff);
+  border: 1px solid var(--c-border, #d7dee8);
+  font-size: 12px;
+}
+
+.teacher-assignment-matrix__summary-empty {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .teacher-assignment-matrix__summary-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
