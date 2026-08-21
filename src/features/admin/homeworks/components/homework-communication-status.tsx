@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge, Card, DefinitionList, InfoBanner } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
@@ -135,7 +136,7 @@ export function HomeworkCommunicationDetails({
       ? copy.pending
       : t('common.no');
 
-  const items = [
+  const items: Array<{ label: string; value: ReactNode }> = [
     { label: copy.communicationState, value: communicationState },
     { label: copy.familyVisibility, value: familyVisibility },
     { label: copy.pendingApproval, value: pendingApproval },
