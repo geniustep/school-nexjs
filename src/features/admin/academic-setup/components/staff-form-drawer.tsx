@@ -203,6 +203,8 @@ export function StaffFormDrawer({
   }, [member, creating, options, memberId, clearPasswordFields, permissionsPayload]);
 
   const catalogReady = Boolean(options?.capabilities?.length);
+  const hasTeacherProfile = Boolean(member?.teacher_id || member?.teacher?.id);
+  const teacherOnlySelected = !creating && hasTeacherProfile && adminKind === '';
   const adminKindChanged = !creating && originalAdminKind !== '' && adminKind !== originalAdminKind;
 
   const permissionsContext = useMemo(
@@ -218,7 +220,7 @@ export function StaffFormDrawer({
   );
 
   const roleChangeWarningKey =
-    adminKindChanged && originalAdminKind
+    adminKindChanged && originalAdminKind && !teacherOnlySelected
       ? resolveRoleChangeWarningKey(
           originalAdminKind as StaffAdminKind,
           (adminKind || 'admin_staff') as StaffAdminKind,
@@ -314,7 +316,7 @@ export function StaffFormDrawer({
     };
 
     if (creating || adminKind !== originalAdminKind) {
-      payload.admin_kind = adminKind;
+      payload.admin_kind = teacherOnlySelected ? null : adminKind;
     }
 
     if (!capPayload.omitCapabilities && capPayload.capability_ids) {
@@ -398,7 +400,7 @@ export function StaffFormDrawer({
           type="submit"
           form={STAFF_FORM_ID}
           className="btn btn--primary btn--sm"
-          disabled={saving || permissionScopesLoading}
+          disabled={saving || (!teacherOnlySelected && permissionScopesLoading)}
           style={{ minHeight: 44 }}
         >
           {saving ? t('common.saving') : t('common.save')}
@@ -502,33 +504,50 @@ export function StaffFormDrawer({
               <select
                 className="input"
                 value={adminKind}
-                onChange={(e) => setAdminKind(e.target.value as StaffAdminKind)}
+                onChange={(e) => {
+                  const value = e.target.value as StaffAdminKind | '';
+                  setAdminKind(value);
+                  if (!creating && hasTeacherProfile && value === '') {
+                    setCapabilityIds(originalCapabilityIds);
+                    setCapabilitiesTouched(false);
+                  }
+                }}
               >
+                {!creating && hasTeacherProfile ? (
+                  <option value="">{t('admin.academicSetup.teacherOnlyNoAdminRole')}</option>
+                ) : null}
                 {(options?.admin_kinds ?? []).map((k) => (
                   <option key={k.value} value={k.value}>{k.label}</option>
                 ))}
               </select>
             </label>
+            {teacherOnlySelected && originalAdminKind ? (
+              <p className="staff-cap-role-change-warn" role="alert" aria-live="polite">
+                {t('admin.academicSetup.teacherOnlyNoAdminRoleHint')}
+              </p>
+            ) : null}
             {roleChangeWarningKey ? (
               <p className="staff-cap-role-change-warn" role="alert" aria-live="polite">
                 {t(roleChangeWarningKey)}
               </p>
             ) : null}
-            <StaffCapabilitiesSection
-              adminKind={adminKind || 'admin_staff'}
-              permissionsMeta={permissionsContext}
-              displayMode={permissionsContext.displayMode}
-              capabilities={options?.capabilities ?? []}
-              capabilityIds={capabilityIds}
-              onCapabilityIdsChange={setCapabilityIds}
-              catalogReady={catalogReady}
-              catalogLoading={optionsLoading}
-              catalogError={optionsError}
-              onRetryCatalog={onRetryOptions}
-              disabled={!canManage || saving || permissionScopesLoading}
-              onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
-            />
-            {permissionScopesLoading ? (
+            {!teacherOnlySelected ? (
+              <StaffCapabilitiesSection
+                adminKind={adminKind || 'admin_staff'}
+                permissionsMeta={permissionsContext}
+                displayMode={permissionsContext.displayMode}
+                capabilities={options?.capabilities ?? []}
+                capabilityIds={capabilityIds}
+                onCapabilityIdsChange={setCapabilityIds}
+                catalogReady={catalogReady}
+                catalogLoading={optionsLoading}
+                catalogError={optionsError}
+                onRetryCatalog={onRetryOptions}
+                disabled={!canManage || saving || permissionScopesLoading}
+                onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
+              />
+            ) : null}
+            {!teacherOnlySelected && permissionScopesLoading ? (
               <p className="tiny muted">{t('common.loading')}</p>
             ) : null}
           </form>
