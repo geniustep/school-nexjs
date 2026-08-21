@@ -6,6 +6,7 @@ import {
   teacherProfilePath,
 } from '@/lib/auth/teacher-workspace';
 import { StaffEditPage } from '@/features/admin/staff/components/staff-edit-page';
+import styles from './page.module.css';
 
 export default async function AdminStaffEditPage({
   params,
@@ -26,5 +27,9 @@ export default async function AdminStaffEditPage({
   }
 
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
-  return <StaffEditPage userId={parsed} />;
+  return (
+    <div className={styles.refined}>
+      <StaffEditPage userId={parsed} />
+    </div>
+  );
 }
