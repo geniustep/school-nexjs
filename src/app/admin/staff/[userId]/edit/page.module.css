@@ -1,3 +1,7 @@
+.refined {
+  display: contents;
+}
+
 .refined :global(.staff-center-page) > :global(.back-link) {
   display: none;
 }
