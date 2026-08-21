@@ -1659,6 +1659,43 @@ table.data tbody tr:hover {
   cursor: wait;
 }
 
+.activation-card__hint {
+  display: block;
+  margin-block-start: 6px;
+  color: var(--c-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.activation-card__otp {
+  font-size: 1.15rem;
+  letter-spacing: 0.35em;
+  text-align: center;
+}
+
+.activation-card__back {
+  display: block;
+  margin-block-start: 18px;
+  text-align: center;
+  color: var(--login-brand-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.activation-card__success {
+  display: grid;
+  gap: 20px;
+}
+
+.activation-card__success > div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c-green) 8%, white 92%);
+  text-align: center;
+}
+
 .login-card[data-submitting='true'] .field {
   opacity: 0.72;
   pointer-events: none;
