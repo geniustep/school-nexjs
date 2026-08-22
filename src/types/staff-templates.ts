@@ -87,6 +87,9 @@ export interface StaffTemplatePreview {
 
 export interface StaffTemplatePersonInput {
   name: string;
+  name_ar?: string;
+  name_fr?: string;
+  account_activation_language?: '' | 'ar' | 'fr';
   phone: string;
   email: string;
 }
