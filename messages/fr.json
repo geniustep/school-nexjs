@@ -2971,7 +2971,9 @@
         "deactivate": "Désactiver",
         "reactivate": "Réactiver",
         "linkTeacher": "Lier un enseignant",
-        "notAvailableYet": "Non disponible dans cette phase"
+        "notAvailableYet": "Non disponible dans cette phase",
+        "saveProfile": "Enregistrer le profil, le compte et les autorisations",
+        "saveProfileHint": "Ce bouton enregistre uniquement le nom, le compte et les autorisations. Les affectations et responsabilités ont leurs propres actions."
       },
       "errors": {
         "scopeRequired": "Un membre administratif limité ne peut pas être créé sans périmètre d'école, de classe ou de niveau.",

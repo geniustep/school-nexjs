@@ -60,6 +60,8 @@ import type { Teacher } from '@/types/teacher';
 import '@/features/admin/staff/staff-center.css';
 import '@/features/admin/academic-setup/academic-setup-ui.css';
 
+const STAFF_IDENTITY_FORM_ID = 'staff-edit-identity-form';
+
 function StaffIdentityAccessForm({
   member,
   staffUserId,
@@ -84,7 +86,6 @@ function StaffIdentityAccessForm({
   const t = useT();
   const toast = useToast();
 
-  const [name, setName] = useState('');
   const [nameAr, setNameAr] = useState('');
   const [nameFr, setNameFr] = useState('');
   const [activationLanguage, setActivationLanguage] = useState<'' | 'ar' | 'fr'>('');
@@ -106,7 +107,6 @@ function StaffIdentityAccessForm({
   useEffect(() => {
     const memberEmail = member.email ?? '';
     const memberLogin = resolveStaffLogin(member);
-    setName(member.name);
     setNameAr(member.name_ar ?? '');
     setNameFr(member.name_fr ?? '');
     setActivationLanguage(member.account_activation_language ?? '');
@@ -210,7 +210,7 @@ function StaffIdentityAccessForm({
     }
 
     const payload: Record<string, unknown> = {
-      name: name.trim(),
+      name: nameAr.trim() || member.name,
       name_ar: nameAr.trim() || null,
       name_fr: nameFr.trim() || null,
       account_activation_language: activationLanguage || null,
@@ -263,24 +263,13 @@ function StaffIdentityAccessForm({
 
   return (
     <>
-      <form onSubmit={submit} className="col" style={{ gap: 16 }}>
+      <form id={STAFF_IDENTITY_FORM_ID} onSubmit={submit} className="col" style={{ gap: 16 }}>
         <Card className="staff-center-section">
-          <SectionHead title={t('admin.staffCenter.identityTitle')} />
+          <SectionHead title={t('admin.fullName')} />
           <div className="col" style={{ gap: 12 }}>
             <AccountStatusBadge entity={member} showLogin />
-            <label className="col" style={{ gap: 4 }}>
-              <span className="tiny muted">{t('admin.fullName')}</span>
-              <input
-                className="input"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-                disabled={!canManage || saving}
-              />
-            </label>
 
             <div className="staff-activation-identity-fields">
-              <strong>{t('admin.staffCenter.activationIdentity.title')}</strong>
               <p className="tiny muted">{t('admin.staffCenter.activationIdentity.hint')}</p>
               <label className="col" style={{ gap: 4 }}>
                 <span className="tiny muted">{t('admin.staffCenter.activationIdentity.nameAr')}</span>
@@ -425,18 +414,6 @@ function StaffIdentityAccessForm({
           </div>
         </Card>
 
-        <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <Link href={`/admin/staff/${staffUserId}`} className="btn btn--ghost btn--sm">
-            {t('common.cancel')}
-          </Link>
-          <button
-            type="submit"
-            className="btn btn--primary btn--sm"
-            disabled={!canManage || saving || optionsLoading}
-          >
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
-        </div>
       </form>
 
       <StaffResetPasswordDialog
@@ -554,6 +531,18 @@ export function StaffEditPage({ userId }: { userId: number }) {
                 <PermissionDeniedState description={t('admin.pageForbidden')} />
               ) : (
                 <div className="col" style={{ gap: 20 }}>
+                  <div className="staff-edit-primary-save-bar">
+                    <p className="tiny muted">{t('admin.staffCenter.actions.saveProfileHint')}</p>
+                    <button
+                      type="submit"
+                      form={STAFF_IDENTITY_FORM_ID}
+                      className="btn btn--primary btn--sm"
+                      disabled={optionsState.loading}
+                    >
+                      {t('admin.staffCenter.actions.saveProfile')}
+                    </button>
+                  </div>
+
                   <StaffIdentityAccessForm
                     member={member}
                     staffUserId={userId}

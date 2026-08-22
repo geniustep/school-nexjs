@@ -2971,7 +2971,9 @@
         "deactivate": "Deactivate",
         "reactivate": "Reactivate",
         "linkTeacher": "Link teacher",
-        "notAvailableYet": "Not available in this phase"
+        "notAvailableYet": "Not available in this phase",
+        "saveProfile": "Save profile, account and permissions",
+        "saveProfileHint": "This saves name, account and permission changes only. Teaching assignments and responsibilities have separate save actions."
       },
       "errors": {
         "scopeRequired": "Limited admin staff cannot be created without a school, class, or level scope.",
