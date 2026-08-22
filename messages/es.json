@@ -2971,7 +2971,9 @@
         "deactivate": "Desactivar",
         "reactivate": "Reactivar",
         "linkTeacher": "Vincular profesor",
-        "notAvailableYet": "No disponible en esta fase"
+        "notAvailableYet": "No disponible en esta fase",
+        "saveProfile": "Guardar perfil, cuenta y permisos",
+        "saveProfileHint": "Este botón guarda solo el nombre, la cuenta y los permisos. Las asignaciones docentes y responsabilidades se guardan por separado."
       },
       "errors": {
         "scopeRequired": "No se puede crear personal administrativo limitado sin definir ámbito de escuela, clases o niveles.",
