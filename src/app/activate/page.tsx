@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { AccountActivationForm } from '@/features/auth/account-activation-form';
+import { AccountActivationEntry } from '@/features/auth/account-activation-entry';
 import { resolveLoginSchoolBranding } from '@/lib/public-school-branding/server';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export default async function ActivatePage() {
   const branding = await resolveLoginSchoolBranding();
   return (
     <Suspense fallback={null}>
-      <AccountActivationForm branding={branding} />
+      <AccountActivationEntry branding={branding} />
     </Suspense>
   );
 }

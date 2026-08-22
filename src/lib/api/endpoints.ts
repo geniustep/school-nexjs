@@ -18,6 +18,8 @@ export const endpoints = {
   public: {
     schoolBranding: '/public/school-branding',
     schoolBrandingLogo: '/public/school-branding/logo',
+    accountActivationLinkInspect: '/public/account-activation/inspect',
+    accountActivationLinkComplete: '/public/account-activation/complete',
   },
 
   admin: {
