@@ -22,7 +22,6 @@ const DISABLED_ACTIONS = new Set<StaffAllowedAction>(['link_teacher']);
 export function StaffAllowedActionsBar({
   member,
   userId,
-  onEdit,
   onDeactivate,
   onReactivate,
 }: {
@@ -45,11 +44,15 @@ export function StaffAllowedActionsBar({
     if (!hasStaffAllowedAction(actions, action)) return null;
     const disabled = DISABLED_ACTIONS.has(action);
 
-    if (action === 'edit' && onEdit) {
+    if (action === 'edit') {
       return (
-        <button key={action} type="button" className="btn btn--ghost btn--sm" onClick={onEdit}>
+        <Link
+          key={action}
+          href={`/admin/staff/${userId}/edit`}
+          className="btn btn--ghost btn--sm"
+        >
           {label(action)}
-        </button>
+        </Link>
       );
     }
 

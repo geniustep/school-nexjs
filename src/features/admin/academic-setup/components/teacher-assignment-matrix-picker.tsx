@@ -169,8 +169,7 @@ export function TeacherAssignmentMatrixPicker({
       }),
     );
     const pairLevelIds = uniqueIds(
-      selectedPairs
-        .map((pair) => classes.find((cls) => cls.id === pair.classId)?.level?.id ?? 0),
+      selectedPairs.map((pair) => classes.find((cls) => cls.id === pair.classId)?.level?.id ?? 0),
     );
     const pairCycleCodes = uniqueStrings(
       pairLevelIds.map((levelId) => levels.find((level) => level.id === levelId)?.cycle?.code ?? ''),
@@ -180,23 +179,6 @@ export function TeacherAssignmentMatrixPicker({
     setSelectedLevelIds((current) => mergeIds(current, pairLevelIds));
     setSelectedCycleCodes((current) => mergeStrings(current, pairCycleCodes));
   }, [selectedPairs, subjectFamilyById, subjects, classes, levels]);
-
-  const selectedSubjectFamilies = useMemo(
-    () =>
-      selectedSubjectKeys
-        .map((key) => subjectFamilies.find((family) => family.key === key))
-        .filter((family): family is SubjectFamily => Boolean(family)),
-    [selectedSubjectKeys, subjectFamilies],
-  );
-
-  const subjectSuggestions = useMemo(() => {
-    const selected = new Set(selectedSubjectKeys);
-    const query = subjectQuery.trim().toLocaleLowerCase();
-    return subjectFamilies
-      .filter((family) => !selected.has(family.key))
-      .filter((family) => !query || family.name.toLocaleLowerCase().includes(query))
-      .slice(0, 14);
-  }, [subjectFamilies, selectedSubjectKeys, subjectQuery]);
 
   const selectedCycleSet = useMemo(() => new Set(selectedCycleCodes), [selectedCycleCodes]);
   const selectedLevelSet = useMemo(() => new Set(selectedLevelIds), [selectedLevelIds]);
@@ -228,6 +210,77 @@ export function TeacherAssignmentMatrixPicker({
         }),
     [classes, selectedLevelSet, levels],
   );
+
+  const availableSubjectFamilies = useMemo(() => {
+    if (!selectedLevelIds.length) return [];
+
+    const levelSet = new Set(selectedLevelIds);
+    const scopedKeys = new Set<string>();
+
+    for (const level of levels) {
+      if (!levelSet.has(level.id)) continue;
+      for (const subject of level.subjects ?? []) {
+        const key = subjectFamilyKey(subject.name);
+        if (key) scopedKeys.add(key);
+      }
+    }
+
+    for (const cls of classes) {
+      if (cls.level?.id == null || !levelSet.has(cls.level.id)) continue;
+      for (const subject of cls.subjects ?? []) {
+        const key = subjectFamilyKey(subject.name);
+        if (key) scopedKeys.add(key);
+      }
+    }
+
+    for (const subject of subjects) {
+      const subjectLevelIds = uniqueIds([
+        subject.level_id ?? 0,
+        ...(subject.level_ids ?? []),
+      ]);
+      if (subjectLevelIds.some((levelId) => levelSet.has(levelId))) {
+        const key = subjectFamilyKey(subject.name);
+        if (key) scopedKeys.add(key);
+      }
+    }
+
+    for (const pair of selectedPairs) {
+      const cls = classes.find((item) => item.id === pair.classId);
+      if (cls?.level?.id == null || !levelSet.has(cls.level.id)) continue;
+      const subject =
+        subjects.find((item) => item.id === pair.subjectId) ??
+        (cls.subjects ?? []).find((item) => item.id === pair.subjectId);
+      if (!subject) continue;
+      const key = subjectFamilyKey(subject.name);
+      if (key) scopedKeys.add(key);
+    }
+
+    if (!scopedKeys.size) return subjectFamilies;
+    return subjectFamilies.filter((family) => scopedKeys.has(family.key));
+  }, [selectedLevelIds, levels, classes, subjects, selectedPairs, subjectFamilies]);
+
+  const availableSubjectKeySet = useMemo(
+    () => new Set(availableSubjectFamilies.map((family) => family.key)),
+    [availableSubjectFamilies],
+  );
+
+  const selectedSubjectFamilies = useMemo(
+    () =>
+      selectedSubjectKeys
+        .filter((key) => availableSubjectKeySet.has(key))
+        .map((key) => subjectFamilies.find((family) => family.key === key))
+        .filter((family): family is SubjectFamily => Boolean(family)),
+    [selectedSubjectKeys, availableSubjectKeySet, subjectFamilies],
+  );
+
+  const subjectSuggestions = useMemo(() => {
+    const selected = new Set(selectedSubjectKeys);
+    const query = subjectQuery.trim().toLocaleLowerCase();
+    return availableSubjectFamilies
+      .filter((family) => !selected.has(family.key))
+      .filter((family) => !query || family.name.toLocaleLowerCase().includes(query))
+      .slice(0, 14);
+  }, [availableSubjectFamilies, selectedSubjectKeys, subjectQuery]);
 
   const selectedPairSet = useMemo(
     () => new Set(selectedPairs.map((pair) => pairKey(pair.classId, pair.subjectId))),
@@ -313,6 +366,7 @@ export function TeacherAssignmentMatrixPicker({
   }
 
   function addSubject(key: string) {
+    if (!availableSubjectKeySet.has(key)) return;
     const nextSubjectKeys = mergeStrings(selectedSubjectKeys, [key]);
     setSelectedSubjectKeys(nextSubjectKeys);
     emitTeachingEligibility(nextSubjectKeys, selectedCycleCodes, selectedLevelIds);
@@ -400,7 +454,7 @@ export function TeacherAssignmentMatrixPicker({
 
   function clearVisible() {
     const visibleClassIds = new Set(selectedClasses.map((cls) => cls.id));
-    const visibleSubjectKeys = new Set(selectedSubjectKeys);
+    const visibleSubjectKeys = new Set(selectedSubjectFamilies.map((family) => family.key));
     onChange(
       selectedPairs.filter((pair) => {
         if (!visibleClassIds.has(pair.classId)) return true;
@@ -462,14 +516,71 @@ export function TeacherAssignmentMatrixPicker({
     });
   }, [selectedPairs, classes, subjects, levels]);
 
-  const subjectsReady = selectedSubjectFamilies.length > 0;
   const scopeReady = selectedLevelIds.length > 0;
+  const subjectsReady = selectedSubjectFamilies.length > 0;
 
   return (
     <div className="teacher-assignment-matrix">
       <section className="teacher-assignment-matrix__step">
+        {cycles.length ? (
+          <div className="teacher-assignment-matrix__choice-block">
+            <span className="teacher-setup-field__label">
+              1. {t('admin.staffCenter.smartCreate.studyCycle')}
+            </span>
+            <div className="teacher-assignment-matrix__choice-list" role="group">
+              {cycles.map((cycle) => {
+                const selected = selectedCycleSet.has(cycle.code);
+                return (
+                  <button
+                    key={cycle.code}
+                    type="button"
+                    className="teacher-assignment-matrix__choice"
+                    data-selected={selected || undefined}
+                    aria-pressed={selected}
+                    onClick={() => toggleCycle(cycle.code)}
+                    disabled={disabled}
+                  >
+                    <span aria-hidden="true">{selected ? '✓' : '＋'}</span>
+                    <span>{cycle.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="teacher-assignment-matrix__choice-block">
+          <span className="teacher-setup-field__label">
+            {cycles.length ? '2.' : '1.'} {t('admin.staffCenter.smartCreate.studyLevel')}
+          </span>
+          <div className="teacher-assignment-matrix__choice-list" role="group">
+            {levelsForSelectedCycles.map((level) => {
+              const selected = selectedLevelSet.has(level.id);
+              return (
+                <button
+                  key={level.id}
+                  type="button"
+                  className="teacher-assignment-matrix__choice"
+                  data-selected={selected || undefined}
+                  aria-pressed={selected}
+                  onClick={() => toggleLevel(level.id)}
+                  disabled={disabled || (cycles.length > 0 && selectedCycleCodes.length === 0)}
+                >
+                  <span aria-hidden="true">{selected ? '✓' : '＋'}</span>
+                  <span>{level.name}</span>
+                </button>
+              );
+            })}
+          </div>
+          {cycles.length > 0 && selectedCycleCodes.length === 0 ? (
+            <p className="tiny muted">{t('admin.staffCenter.smartCreate.selectCycleFirst')}</p>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="teacher-assignment-matrix__step">
         <span className="teacher-setup-field__label">
-          1. {t('admin.staffCenter.smartCreate.subjects')}
+          {cycles.length ? '3.' : '2.'} {t('admin.staffCenter.smartCreate.subjects')}
         </span>
         <div className="teacher-assignment-matrix__tagbox">
           {selectedSubjectFamilies.map((family) => (
@@ -494,9 +605,9 @@ export function TeacherAssignmentMatrixPicker({
               onBlur={() => window.setTimeout(() => setSubjectMenuOpen(false), 100)}
               placeholder={t('admin.staffCenter.smartCreate.searchSubjects')}
               aria-label={t('admin.staffCenter.smartCreate.searchSubjects')}
-              disabled={disabled}
+              disabled={disabled || !scopeReady}
             />
-            {subjectMenuOpen && subjectSuggestions.length ? (
+            {scopeReady && subjectMenuOpen && subjectSuggestions.length ? (
               <div className="teacher-assignment-matrix__subject-menu" role="listbox">
                 {subjectSuggestions.map((family) => (
                   <button
@@ -515,67 +626,11 @@ export function TeacherAssignmentMatrixPicker({
             ) : null}
           </div>
         </div>
-        {!subjectFamilies.length ? (
+        {!scopeReady ? (
+          <p className="tiny muted">{t('admin.staffCenter.smartCreate.selectLevelFirst')}</p>
+        ) : !availableSubjectFamilies.length ? (
           <p className="tiny muted">{t('admin.staffCenter.smartCreate.noSubjectsForSelection')}</p>
         ) : null}
-      </section>
-
-      <section className="teacher-assignment-matrix__step">
-        {cycles.length ? (
-          <div className="teacher-assignment-matrix__choice-block">
-            <span className="teacher-setup-field__label">
-              2. {t('admin.staffCenter.smartCreate.studyCycle')}
-            </span>
-            <div className="teacher-assignment-matrix__choice-list" role="group">
-              {cycles.map((cycle) => {
-                const selected = selectedCycleSet.has(cycle.code);
-                return (
-                  <button
-                    key={cycle.code}
-                    type="button"
-                    className="teacher-assignment-matrix__choice"
-                    data-selected={selected || undefined}
-                    aria-pressed={selected}
-                    onClick={() => toggleCycle(cycle.code)}
-                    disabled={disabled || !subjectsReady}
-                  >
-                    <span aria-hidden="true">{selected ? '✓' : '＋'}</span>
-                    <span>{cycle.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        <div className="teacher-assignment-matrix__choice-block">
-          <span className="teacher-setup-field__label">
-            {cycles.length ? '3.' : '2.'} {t('admin.staffCenter.smartCreate.studyLevel')}
-          </span>
-          <div className="teacher-assignment-matrix__choice-list" role="group">
-            {levelsForSelectedCycles.map((level) => {
-              const selected = selectedLevelSet.has(level.id);
-              return (
-                <button
-                  key={level.id}
-                  type="button"
-                  className="teacher-assignment-matrix__choice"
-                  data-selected={selected || undefined}
-                  aria-pressed={selected}
-                  onClick={() => toggleLevel(level.id)}
-                  disabled={
-                    disabled ||
-                    !subjectsReady ||
-                    (cycles.length > 0 && selectedCycleCodes.length === 0)
-                  }
-                >
-                  <span aria-hidden="true">{selected ? '✓' : '＋'}</span>
-                  <span>{level.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </section>
 
       {occupancyState.error ? (
@@ -684,9 +739,7 @@ export function TeacherAssignmentMatrixPicker({
                                     selected ? ' teacher-assignment-matrix__cell--selected' : ''
                                   }`}
                                   onClick={() => togglePair(cls.id, subject.id)}
-                                  disabled={
-                                    disabled || Boolean(occupancyState.error) || occupancyState.loading
-                                  }
+                                  disabled={disabled || Boolean(occupancyState.error) || occupancyState.loading}
                                 >
                                   <span aria-hidden="true">{selected ? '×' : '＋'}</span>
                                   <span>
