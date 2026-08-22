@@ -2899,6 +2899,16 @@
       "allowedActions": "Acciones permitidas",
       "warningsTitle": "{count} alerta(s) operativa(s)",
       "identityTitle": "Identidad",
+      "activationIdentity": {
+        "title": "Identidad para el aviso de activación",
+        "hint": "Los nombres y el idioma seleccionados se usan solo para el enlace de activación de la cuenta.",
+        "nameAr": "Nombre completo en árabe",
+        "nameFr": "Nombre completo en francés",
+        "language": "Idioma del aviso de activación",
+        "notSelected": "Sin seleccionar — envío bloqueado",
+        "arabic": "Árabe",
+        "french": "Francés"
+      },
       "accountTitle": "Cuenta",
       "userId": "ID de usuario",
       "partnerId": "ID de contacto",
