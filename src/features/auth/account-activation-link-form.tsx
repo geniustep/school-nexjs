@@ -90,7 +90,7 @@ export function AccountActivationLinkForm({ branding, token }: { branding: Login
 
   function goToLogin() {
     if (identity?.login) storeActivationLoginHandoff(identity.login);
-    router.push('/login');
+    router.replace('/login');
   }
 
   const recipientName = locale === 'ar' ? identity?.recipient_name_ar : identity?.recipient_name_fr;
