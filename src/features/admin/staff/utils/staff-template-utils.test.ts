@@ -202,7 +202,14 @@ describe('staff-template-utils', () => {
     const form: StaffSmartCreateFormState = {
       templateCode: 'subject_teacher',
       selectedBundleCodes: ['teaching', 'attendance_limited'],
-      person: { name: 'Math teacher', phone: '0600000000', email: 'teacher@example.com' },
+      person: {
+        name: 'Math teacher',
+        name_ar: 'أستاذ الرياضيات',
+        name_fr: 'Professeur de mathématiques',
+        account_activation_language: 'ar',
+        phone: '0600000000',
+        email: 'teacher@example.com',
+      },
       createAccount: true,
       assignPasswordNow: true,
       login: '',
@@ -213,6 +220,11 @@ describe('staff-template-utils', () => {
     };
     const payload = buildStaffTemplateCreatePayload(form, 3, template);
     expect(payload.selected_bundle_codes).toEqual(['teaching', 'attendance_limited']);
+    expect(payload.person).toMatchObject({
+      name_ar: 'أستاذ الرياضيات',
+      name_fr: 'Professeur de mathématiques',
+      account_activation_language: 'ar',
+    });
     expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
     expect(payload.account).toEqual({
       create: true,
@@ -802,7 +814,14 @@ describe('staff-template-utils', () => {
     const form: StaffSmartCreateFormState = {
       templateCode: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
       selectedBundleCodes: [],
-      person: { name: 'أحمد', phone: '0600000000', email: 'ahmed@school.test' },
+      person: {
+        name: 'أحمد',
+        name_ar: 'أحمد العلوي',
+        name_fr: 'Ahmed Alaoui',
+        account_activation_language: 'fr',
+        phone: '0600000000',
+        email: 'ahmed@school.test',
+      },
       createAccount: true,
       assignPasswordNow: true,
       login: '',
@@ -818,6 +837,9 @@ describe('staff-template-utils', () => {
     expect(memberPayload.admin_kind).toBe('pedagogical_director');
     expect(memberPayload.name).toBe('أحمد');
     expect(memberPayload.email).toBe('ahmed@school.test');
+    expect(memberPayload.name_ar).toBe('أحمد العلوي');
+    expect(memberPayload.name_fr).toBe('Ahmed Alaoui');
+    expect(memberPayload.account_activation_language).toBe('fr');
     expect(memberPayload.job_title).toBe('الإدارة العليا');
     expect(memberPayload.template_code).toBeUndefined();
     expect(memberPayload.selected_bundle_codes).toBeUndefined();

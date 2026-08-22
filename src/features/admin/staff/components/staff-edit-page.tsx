@@ -60,6 +60,8 @@ import type { Teacher } from '@/types/teacher';
 import '@/features/admin/staff/staff-center.css';
 import '@/features/admin/academic-setup/academic-setup-ui.css';
 
+const STAFF_IDENTITY_FORM_ID = 'staff-edit-identity-form';
+
 function StaffIdentityAccessForm({
   member,
   staffUserId,
@@ -84,7 +86,9 @@ function StaffIdentityAccessForm({
   const t = useT();
   const toast = useToast();
 
-  const [name, setName] = useState('');
+  const [nameAr, setNameAr] = useState('');
+  const [nameFr, setNameFr] = useState('');
+  const [activationLanguage, setActivationLanguage] = useState<'' | 'ar' | 'fr'>('');
   const [email, setEmail] = useState('');
   const [login, setLogin] = useState('');
   const [useDifferentLogin, setUseDifferentLogin] = useState(false);
@@ -103,7 +107,9 @@ function StaffIdentityAccessForm({
   useEffect(() => {
     const memberEmail = member.email ?? '';
     const memberLogin = resolveStaffLogin(member);
-    setName(member.name);
+    setNameAr(member.name_ar ?? '');
+    setNameFr(member.name_fr ?? '');
+    setActivationLanguage(member.account_activation_language ?? '');
     setEmail(memberEmail);
     setLogin(memberLogin);
     setOriginalEmail(memberEmail);
@@ -204,7 +210,10 @@ function StaffIdentityAccessForm({
     }
 
     const payload: Record<string, unknown> = {
-      name: name.trim(),
+      name: nameAr.trim() || member.name,
+      name_ar: nameAr.trim() || null,
+      name_fr: nameFr.trim() || null,
+      account_activation_language: activationLanguage || null,
       ...identity,
       phone: phone.trim() || undefined,
       job_title: jobTitle.trim() || undefined,
@@ -254,21 +263,48 @@ function StaffIdentityAccessForm({
 
   return (
     <>
-      <form onSubmit={submit} className="col" style={{ gap: 16 }}>
+      <form id={STAFF_IDENTITY_FORM_ID} onSubmit={submit} className="col" style={{ gap: 16 }}>
         <Card className="staff-center-section">
-          <SectionHead title={t('admin.staffCenter.identityTitle')} />
+          <SectionHead title={t('admin.fullName')} />
           <div className="col" style={{ gap: 12 }}>
             <AccountStatusBadge entity={member} showLogin />
-            <label className="col" style={{ gap: 4 }}>
-              <span className="tiny muted">{t('admin.fullName')}</span>
-              <input
-                className="input"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-                disabled={!canManage || saving}
-              />
-            </label>
+
+            <div className="staff-activation-identity-fields">
+              <p className="tiny muted">{t('admin.staffCenter.activationIdentity.hint')}</p>
+              <label className="col" style={{ gap: 4 }}>
+                <span className="tiny muted">{t('admin.staffCenter.activationIdentity.nameAr')}</span>
+                <input
+                  className="input"
+                  value={nameAr}
+                  onChange={(event) => setNameAr(event.target.value)}
+                  dir="rtl"
+                  disabled={!canManage || saving}
+                />
+              </label>
+              <label className="col" style={{ gap: 4 }}>
+                <span className="tiny muted">{t('admin.staffCenter.activationIdentity.nameFr')}</span>
+                <input
+                  className="input"
+                  value={nameFr}
+                  onChange={(event) => setNameFr(event.target.value)}
+                  dir="ltr"
+                  disabled={!canManage || saving}
+                />
+              </label>
+              <label className="col" style={{ gap: 4 }}>
+                <span className="tiny muted">{t('admin.staffCenter.activationIdentity.language')}</span>
+                <select
+                  className="input"
+                  value={activationLanguage}
+                  onChange={(event) => setActivationLanguage(event.target.value as '' | 'ar' | 'fr')}
+                  disabled={!canManage || saving}
+                >
+                  <option value="">{t('admin.staffCenter.activationIdentity.notSelected')}</option>
+                  <option value="ar">{t('admin.staffCenter.activationIdentity.arabic')}</option>
+                  <option value="fr">{t('admin.staffCenter.activationIdentity.french')}</option>
+                </select>
+              </label>
+            </div>
 
             <AccountFieldsSection
               mode="edit"
@@ -378,18 +414,6 @@ function StaffIdentityAccessForm({
           </div>
         </Card>
 
-        <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <Link href={`/admin/staff/${staffUserId}`} className="btn btn--ghost btn--sm">
-            {t('common.cancel')}
-          </Link>
-          <button
-            type="submit"
-            className="btn btn--primary btn--sm"
-            disabled={!canManage || saving || optionsLoading}
-          >
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
-        </div>
       </form>
 
       <StaffResetPasswordDialog
@@ -507,6 +531,18 @@ export function StaffEditPage({ userId }: { userId: number }) {
                 <PermissionDeniedState description={t('admin.pageForbidden')} />
               ) : (
                 <div className="col" style={{ gap: 20 }}>
+                  <div className="staff-edit-primary-save-bar">
+                    <p className="tiny muted">{t('admin.staffCenter.actions.saveProfileHint')}</p>
+                    <button
+                      type="submit"
+                      form={STAFF_IDENTITY_FORM_ID}
+                      className="btn btn--primary btn--sm"
+                      disabled={optionsState.loading}
+                    >
+                      {t('admin.staffCenter.actions.saveProfile')}
+                    </button>
+                  </div>
+
                   <StaffIdentityAccessForm
                     member={member}
                     staffUserId={userId}

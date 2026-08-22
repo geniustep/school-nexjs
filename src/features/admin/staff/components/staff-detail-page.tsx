@@ -129,6 +129,23 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                 <DefinitionList
                   items={[
                     { label: t('admin.fullName'), value: resolveStaffDisplayName(member) },
+                    {
+                      label: t('admin.staffCenter.activationIdentity.nameAr'),
+                      value: member.name_ar ?? t('common.dash'),
+                    },
+                    {
+                      label: t('admin.staffCenter.activationIdentity.nameFr'),
+                      value: member.name_fr ?? t('common.dash'),
+                    },
+                    {
+                      label: t('admin.staffCenter.activationIdentity.language'),
+                      value:
+                        member.account_activation_language === 'ar'
+                          ? t('admin.staffCenter.activationIdentity.arabic')
+                          : member.account_activation_language === 'fr'
+                            ? t('admin.staffCenter.activationIdentity.french')
+                            : t('admin.staffCenter.activationIdentity.notSelected'),
+                    },
                     ...(showAdminPrivate
                       ? [
                           {

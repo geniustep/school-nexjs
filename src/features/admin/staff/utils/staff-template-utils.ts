@@ -465,7 +465,14 @@ export function defaultStaffSmartCreateFormState(): StaffSmartCreateFormState {
   return {
     templateCode: '',
     selectedBundleCodes: [],
-    person: { name: '', phone: '', email: '' },
+    person: {
+      name: '',
+      name_ar: '',
+      name_fr: '',
+      account_activation_language: '',
+      phone: '',
+      email: '',
+    },
     createAccount: true,
     assignPasswordNow: true,
     login: '',
@@ -702,6 +709,9 @@ export function buildStaffTemplateCreatePayload(
 ): StaffTemplateCreatePayload {
   const person: StaffTemplatePersonInput = {
     name: form.person.name.trim(),
+    name_ar: (form.person.name_ar ?? '').trim(),
+    name_fr: (form.person.name_fr ?? '').trim(),
+    account_activation_language: form.person.account_activation_language ?? '',
     phone: form.person.phone.trim(),
     email: form.person.email.trim(),
   };
@@ -752,6 +762,9 @@ export function buildClientCatalogStaffMemberPayload(
 
   const person: StaffTemplatePersonInput = {
     name: form.person.name.trim(),
+    name_ar: (form.person.name_ar ?? '').trim(),
+    name_fr: (form.person.name_fr ?? '').trim(),
+    account_activation_language: form.person.account_activation_language ?? '',
     phone: form.person.phone.trim(),
     email: form.person.email.trim(),
   };
@@ -765,6 +778,9 @@ export function buildClientCatalogStaffMemberPayload(
 
   const payload: Record<string, unknown> = {
     name: person.name,
+    name_ar: person.name_ar || undefined,
+    name_fr: person.name_fr || undefined,
+    account_activation_language: person.account_activation_language || undefined,
     ...identity,
     phone: person.phone || undefined,
     admin_kind: template.admin_kind,
