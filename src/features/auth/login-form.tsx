@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
 import { homeForUser } from '@/lib/routes/role-routes';
@@ -14,7 +14,7 @@ import { loginSchoolBrand } from '@/lib/login-school-brand';
 import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
 import {
   clearActivationLoginHandoff,
-  readActivationLoginHandoff,
+  consumeActivationLoginHandoff,
 } from '@/lib/auth/account-activation-login-handoff';
 
 function subscribeToActivationLogin() {
@@ -32,7 +32,7 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
   const expired = params.get('expired') === '1';
   const activationLogin = useSyncExternalStore(
     subscribeToActivationLogin,
-    readActivationLoginHandoff,
+    consumeActivationLoginHandoff,
     getServerActivationLogin,
   );
 
@@ -42,10 +42,6 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (activationLogin) clearActivationLoginHandoff();
-  }, [activationLogin]);
 
   const friendlyError: Record<string, string> = {
     invalid_credentials: t('auth.invalidCredentials'),
@@ -62,6 +58,7 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
     const submittedLogin = (loginEdited ? login : activationLogin).trim();
     const res = await authApi.login(submittedLogin, password);
     if (res.success) {
+      clearActivationLoginHandoff();
       router.replace(homeForUser(res.data.user));
       router.refresh();
       return;
