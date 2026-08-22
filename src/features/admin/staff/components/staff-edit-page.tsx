@@ -60,6 +60,8 @@ import type { Teacher } from '@/types/teacher';
 import '@/features/admin/staff/staff-center.css';
 import '@/features/admin/academic-setup/academic-setup-ui.css';
 
+const STAFF_IDENTITY_FORM_ID = 'staff-edit-identity-form';
+
 function StaffIdentityAccessForm({
   member,
   staffUserId,
@@ -261,7 +263,7 @@ function StaffIdentityAccessForm({
 
   return (
     <>
-      <form onSubmit={submit} className="col" style={{ gap: 16 }}>
+      <form id={STAFF_IDENTITY_FORM_ID} onSubmit={submit} className="col" style={{ gap: 16 }}>
         <Card className="staff-center-section">
           <SectionHead title={t('admin.fullName')} />
           <div className="col" style={{ gap: 12 }}>
@@ -412,18 +414,6 @@ function StaffIdentityAccessForm({
           </div>
         </Card>
 
-        <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-          <Link href={`/admin/staff/${staffUserId}`} className="btn btn--ghost btn--sm">
-            {t('common.cancel')}
-          </Link>
-          <button
-            type="submit"
-            className="btn btn--primary btn--sm"
-            disabled={!canManage || saving || optionsLoading}
-          >
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
-        </div>
       </form>
 
       <StaffResetPasswordDialog
@@ -541,6 +531,18 @@ export function StaffEditPage({ userId }: { userId: number }) {
                 <PermissionDeniedState description={t('admin.pageForbidden')} />
               ) : (
                 <div className="col" style={{ gap: 20 }}>
+                  <div className="staff-edit-primary-save-bar">
+                    <p className="tiny muted">{t('admin.staffCenter.actions.saveProfileHint')}</p>
+                    <button
+                      type="submit"
+                      form={STAFF_IDENTITY_FORM_ID}
+                      className="btn btn--primary btn--sm"
+                      disabled={optionsState.loading}
+                    >
+                      {t('admin.staffCenter.actions.saveProfile')}
+                    </button>
+                  </div>
+
                   <StaffIdentityAccessForm
                     member={member}
                     staffUserId={userId}
