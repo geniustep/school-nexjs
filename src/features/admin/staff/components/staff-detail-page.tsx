@@ -21,7 +21,7 @@ import { StaffResponsibilityAssignmentsSection } from '@/features/admin/staff/co
 import { StaffTeacherSection } from '@/features/admin/staff/components/staff-teacher-section';
 import { StaffAccountPasswordBanner } from '@/features/admin/staff/components/staff-account-password-banner';
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
-import { WhatsAppAccountCreatedAction } from '@/features/admin/staff/components/whatsapp-account-created-action';
+import { WhatsAppAccountActivationLinkAction } from '@/features/admin/staff/components/whatsapp-account-activation-link-action';
 import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
 import {
   isStaffCenterParent,
@@ -188,7 +188,7 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               <Card className="staff-center-section">
                 <SectionHead
                   title={t('admin.staffCenter.accountTitle')}
-                  action={<WhatsAppAccountCreatedAction member={member} />}
+                  action={<WhatsAppAccountActivationLinkAction member={member} />}
                 />
                 <DefinitionList
                   items={[
