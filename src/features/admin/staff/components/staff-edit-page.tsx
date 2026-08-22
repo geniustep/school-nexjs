@@ -84,7 +84,6 @@ function StaffIdentityAccessForm({
   const t = useT();
   const toast = useToast();
 
-  const [name, setName] = useState('');
   const [nameAr, setNameAr] = useState('');
   const [nameFr, setNameFr] = useState('');
   const [activationLanguage, setActivationLanguage] = useState<'' | 'ar' | 'fr'>('');
@@ -106,7 +105,6 @@ function StaffIdentityAccessForm({
   useEffect(() => {
     const memberEmail = member.email ?? '';
     const memberLogin = resolveStaffLogin(member);
-    setName(member.name);
     setNameAr(member.name_ar ?? '');
     setNameFr(member.name_fr ?? '');
     setActivationLanguage(member.account_activation_language ?? '');
@@ -210,7 +208,7 @@ function StaffIdentityAccessForm({
     }
 
     const payload: Record<string, unknown> = {
-      name: name.trim(),
+      name: nameAr.trim() || member.name,
       name_ar: nameAr.trim() || null,
       name_fr: nameFr.trim() || null,
       account_activation_language: activationLanguage || null,
@@ -265,22 +263,11 @@ function StaffIdentityAccessForm({
     <>
       <form onSubmit={submit} className="col" style={{ gap: 16 }}>
         <Card className="staff-center-section">
-          <SectionHead title={t('admin.staffCenter.identityTitle')} />
+          <SectionHead title={t('admin.fullName')} />
           <div className="col" style={{ gap: 12 }}>
             <AccountStatusBadge entity={member} showLogin />
-            <label className="col" style={{ gap: 4 }}>
-              <span className="tiny muted">{t('admin.fullName')}</span>
-              <input
-                className="input"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-                disabled={!canManage || saving}
-              />
-            </label>
 
             <div className="staff-activation-identity-fields">
-              <strong>{t('admin.staffCenter.activationIdentity.title')}</strong>
               <p className="tiny muted">{t('admin.staffCenter.activationIdentity.hint')}</p>
               <label className="col" style={{ gap: 4 }}>
                 <span className="tiny muted">{t('admin.staffCenter.activationIdentity.nameAr')}</span>
