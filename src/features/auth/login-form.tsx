@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
 import { homeForUser } from '@/lib/routes/role-routes';
@@ -12,18 +12,40 @@ import { LoginBrandPanel } from '@/features/auth/login-brand-panel';
 import { loginBrandingStyle, loginPageBranded } from '@/lib/public-school-branding/client';
 import { loginSchoolBrand } from '@/lib/login-school-brand';
 import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
+import {
+  clearActivationLoginHandoff,
+  readActivationLoginHandoff,
+} from '@/lib/auth/account-activation-login-handoff';
+
+function subscribeToActivationLogin() {
+  return () => {};
+}
+
+function getServerActivationLogin() {
+  return '';
+}
 
 export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
   const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const expired = params.get('expired') === '1';
+  const activationLogin = useSyncExternalStore(
+    subscribeToActivationLogin,
+    readActivationLoginHandoff,
+    getServerActivationLogin,
+  );
 
   const [login, setLogin] = useState('');
+  const [loginEdited, setLoginEdited] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (activationLogin) clearActivationLoginHandoff();
+  }, [activationLogin]);
 
   const friendlyError: Record<string, string> = {
     invalid_credentials: t('auth.invalidCredentials'),
@@ -37,7 +59,8 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const res = await authApi.login(login.trim(), password);
+    const submittedLogin = (loginEdited ? login : activationLogin).trim();
+    const res = await authApi.login(submittedLogin, password);
     if (res.success) {
       router.replace(homeForUser(res.data.user));
       router.refresh();
@@ -102,8 +125,8 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
                 className="input"
                 type="text"
                 autoComplete="username"
-                value={login}
-                onChange={(e) => setLogin(e.target.value)}
+                value={loginEdited ? login : activationLogin}
+                onChange={(e) => { setLoginEdited(true); setLogin(e.target.value); }}
                 placeholder={t('auth.loginPlaceholder')}
                 required
                 disabled={submitting}
