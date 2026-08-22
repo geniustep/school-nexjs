@@ -831,6 +831,60 @@ function StaffSmartCreateWizardContent() {
                         ) : null}
                       </label>
                       <label className="staff-smart-create__field">
+                        <span className="staff-smart-create__field-label">
+                          {t('admin.staffCenter.activationIdentity.nameAr')}
+                        </span>
+                        <input
+                          className="input"
+                          value={form.person.name_ar}
+                          onChange={(event) =>
+                            setForm((current) => ({
+                              ...current,
+                              person: { ...current.person, name_ar: event.target.value },
+                            }))
+                          }
+                          dir="rtl"
+                        />
+                      </label>
+                      <label className="staff-smart-create__field">
+                        <span className="staff-smart-create__field-label">
+                          {t('admin.staffCenter.activationIdentity.nameFr')}
+                        </span>
+                        <input
+                          className="input"
+                          value={form.person.name_fr}
+                          onChange={(event) =>
+                            setForm((current) => ({
+                              ...current,
+                              person: { ...current.person, name_fr: event.target.value },
+                            }))
+                          }
+                          dir="ltr"
+                        />
+                      </label>
+                      <label className="staff-smart-create__field">
+                        <span className="staff-smart-create__field-label">
+                          {t('admin.staffCenter.activationIdentity.language')}
+                        </span>
+                        <select
+                          className="input"
+                          value={form.person.account_activation_language}
+                          onChange={(event) =>
+                            setForm((current) => ({
+                              ...current,
+                              person: {
+                                ...current.person,
+                                account_activation_language: event.target.value as '' | 'ar' | 'fr',
+                              },
+                            }))
+                          }
+                        >
+                          <option value="">{t('admin.staffCenter.activationIdentity.notSelected')}</option>
+                          <option value="ar">{t('admin.staffCenter.activationIdentity.arabic')}</option>
+                          <option value="fr">{t('admin.staffCenter.activationIdentity.french')}</option>
+                        </select>
+                      </label>
+                      <label className="staff-smart-create__field">
                         <span className="staff-smart-create__field-label">{t('admin.phone')}</span>
                         <input
                           className="input"
@@ -1165,6 +1219,24 @@ function StaffSmartCreateWizardContent() {
                       <div>
                         <dt>{t('admin.fullName')}</dt>
                         <dd>{form.person.name || t('common.dash')}</dd>
+                      </div>
+                      <div>
+                        <dt>{t('admin.staffCenter.activationIdentity.nameAr')}</dt>
+                        <dd>{form.person.name_ar || t('common.dash')}</dd>
+                      </div>
+                      <div>
+                        <dt>{t('admin.staffCenter.activationIdentity.nameFr')}</dt>
+                        <dd>{form.person.name_fr || t('common.dash')}</dd>
+                      </div>
+                      <div>
+                        <dt>{t('admin.staffCenter.activationIdentity.language')}</dt>
+                        <dd>
+                          {form.person.account_activation_language === 'ar'
+                            ? t('admin.staffCenter.activationIdentity.arabic')
+                            : form.person.account_activation_language === 'fr'
+                              ? t('admin.staffCenter.activationIdentity.french')
+                              : t('admin.staffCenter.activationIdentity.notSelected')}
+                        </dd>
                       </div>
                       {form.person.phone ? (
                         <div>
