@@ -3,12 +3,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   clearActivationLoginHandoff,
+  consumeActivationLoginHandoff,
   readActivationLoginHandoff,
   storeActivationLoginHandoff,
 } from './account-activation-login-handoff';
 
 describe('account activation login handoff', () => {
   beforeEach(() => {
+    clearActivationLoginHandoff();
     window.sessionStorage.clear();
   });
 
@@ -17,9 +19,17 @@ describe('account activation login handoff', () => {
     expect(readActivationLoginHandoff()).toBe('user@example.test');
   });
 
-  it('clears the handoff after the login form consumes it', () => {
+  it('keeps the consumed login stable after clearing session storage', () => {
     storeActivationLoginHandoff('user@example.test');
-    clearActivationLoginHandoff();
+    expect(consumeActivationLoginHandoff()).toBe('user@example.test');
     expect(readActivationLoginHandoff()).toBe('');
+    expect(consumeActivationLoginHandoff()).toBe('user@example.test');
+  });
+
+  it('forgets the consumed login after a successful sign-in cleanup', () => {
+    storeActivationLoginHandoff('user@example.test');
+    expect(consumeActivationLoginHandoff()).toBe('user@example.test');
+    clearActivationLoginHandoff();
+    expect(consumeActivationLoginHandoff()).toBe('');
   });
 });
