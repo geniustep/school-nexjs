@@ -1697,6 +1697,57 @@ table.data tbody tr:hover {
   text-align: center;
 }
 
+.activation-card__identity {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 20px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--login-brand-primary) 18%, var(--c-border) 82%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--login-brand-primary) 5%, white 95%);
+  text-align: center;
+}
+
+.activation-card__greeting,
+.activation-card__institution {
+  margin: 0;
+  color: var(--c-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.activation-card__institution {
+  color: var(--c-text-muted);
+}
+
+.activation-card__login {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+  margin-block-start: 6px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid color-mix(in srgb, var(--login-brand-primary) 14%, var(--c-border) 86%);
+  text-align: start;
+}
+
+.activation-card__login > span {
+  color: var(--c-text-muted);
+  font-size: 0.75rem;
+}
+
+.activation-card__login > strong {
+  overflow-wrap: anywhere;
+  color: var(--c-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.activation-card__login > button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
 .login-card[data-submitting='true'] .field {
   opacity: 0.72;
   pointer-events: none;
