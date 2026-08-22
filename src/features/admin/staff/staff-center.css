@@ -1244,3 +1244,11 @@
     grid-template-columns: 1fr;
   }
 }
+.staff-activation-identity-fields {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 12px;
+  background: var(--surface-subtle, #f8fafc);
+}

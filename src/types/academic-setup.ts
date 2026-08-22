@@ -191,6 +191,9 @@ export interface StaffDetailEnvelope {
 export interface StaffMember {
   id: number;
   name: string;
+  name_ar?: string | null;
+  name_fr?: string | null;
+  account_activation_language?: 'ar' | 'fr' | null;
   display_name?: string | null;
   email: string | null;
   login?: string | null;
