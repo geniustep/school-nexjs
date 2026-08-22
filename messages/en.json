@@ -2899,6 +2899,16 @@
       "allowedActions": "Allowed actions",
       "warningsTitle": "{count} operational warning(s)",
       "identityTitle": "Identity",
+      "activationIdentity": {
+        "title": "Account activation notice identity",
+        "hint": "The selected names and language are used only for account activation links.",
+        "nameAr": "Full name in Arabic",
+        "nameFr": "Full name in French",
+        "language": "Activation notice language",
+        "notSelected": "Not selected — sending blocked",
+        "arabic": "Arabic",
+        "french": "French"
+      },
       "accountTitle": "Account",
       "userId": "User ID",
       "partnerId": "Partner ID",
