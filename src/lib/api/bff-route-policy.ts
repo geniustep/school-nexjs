@@ -187,6 +187,10 @@ const ROUTE_RULES: RouteRule[] = [
     test: (p) => p === '/admin/integrations/raqeem/messaging/account-activation',
   },
   {
+    methods: ['POST'],
+    test: (p) => p === '/admin/integrations/raqeem/messaging/account-activation-link',
+  },
+  {
     methods: ALL_METHODS,
     test: (p) => familyPattern('admin', BFF_ADMIN_FAMILIES).test(p),
   },
