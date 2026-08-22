@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { assertBffRoutePolicy, shouldBindActiveSchoolInBody } from './bff-route-policy';
 
-const PATH = '/admin/integrations/raqeem/messaging/account-created';
+const PATH = '/admin/integrations/raqeem/messaging/account-activation';
 
 describe('BFF Raqeem Messaging route policy', () => {
-  it('allows only the exact account-created POST route', () => {
+  it('allows only the exact account-activation POST route', () => {
     expect(assertBffRoutePolicy(PATH, 'POST')).toEqual({ ok: true });
     expect(assertBffRoutePolicy(PATH, 'GET')).toEqual({
       ok: false,
