@@ -11,11 +11,15 @@ export const endpoints = {
     logout: '/auth/logout',
     refresh: '/auth/refresh',
     me: '/me',
+    accountActivationVerify: '/auth/account-activation/verify',
+    accountActivationSetPassword: '/auth/account-activation/set-password',
   },
 
   public: {
     schoolBranding: '/public/school-branding',
     schoolBrandingLogo: '/public/school-branding/logo',
+    accountActivationLinkInspect: '/public/account-activation/inspect',
+    accountActivationLinkComplete: '/public/account-activation/complete',
   },
 
   admin: {
