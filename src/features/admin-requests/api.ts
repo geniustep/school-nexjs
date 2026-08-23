@@ -2,7 +2,7 @@
 
 import { api } from '@/lib/api/client';
 import type { ApiResponse } from '@/types/api';
-import type { AdminRequest, AdminRequestRole } from './types';
+import type { AdminRequest, AdminRequestRole, AdminRequestType } from './types';
 
 type FamilyRole = Exclude<AdminRequestRole, 'admin'>;
 
@@ -73,6 +73,23 @@ export type UploadSession = {
   credential: string;
 };
 
+function stableHash(value: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+/** Stable per browser-selected file so retries remain idempotent inside one upload session. */
+export function adminRequestFileClientItemId(
+  file: Pick<File, 'name' | 'size' | 'lastModified'>,
+): string {
+  const fingerprint = `${file.name}\u0000${file.size}\u0000${file.lastModified}`;
+  return `arq-${file.lastModified.toString(36)}-${file.size.toString(36)}-${stableHash(fingerprint)}`;
+}
+
 /** Starts a session that may be consumed only by the eventual request/reply workflow. */
 export async function createAdminRequestUploadSession(): Promise<ApiResponse<UploadSession>> {
   return api.post<UploadSession>('/attachments/upload-sessions', { purpose: 'admin_request' });
@@ -84,10 +101,36 @@ export async function uploadAdminRequestFile(
 ): Promise<ApiResponse<unknown>> {
   const form = new FormData();
   form.append('file', file);
+  form.append('client_item_id', adminRequestFileClientItemId(file));
   return api.uploadForm(
     `/attachments/upload-sessions/${session.public_id}/files`,
     form,
     undefined,
     { 'X-Upload-Session-Credential': session.credential },
   );
+}
+
+export type AdminRequestTypeSettingsInput = {
+  name: string;
+  active?: boolean;
+  sequence?: number;
+  confidential?: boolean;
+  allow_parent?: boolean;
+  allow_student?: boolean;
+  requires_student?: boolean;
+  default_priority?: 'normal' | 'important' | 'urgent';
+  default_assignee_user_id?: number | null;
+};
+
+export async function createAdminRequestType(
+  input: AdminRequestTypeSettingsInput,
+): Promise<ApiResponse<AdminRequestType>> {
+  return api.post<AdminRequestType>('/admin/admin-request-types', input);
+}
+
+export async function updateAdminRequestType(
+  typeId: number,
+  input: AdminRequestTypeSettingsInput,
+): Promise<ApiResponse<AdminRequestType>> {
+  return api.post<AdminRequestType>(`/admin/admin-request-types/${typeId}/update`, input);
 }
