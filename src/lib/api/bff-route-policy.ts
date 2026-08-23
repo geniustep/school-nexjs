@@ -14,6 +14,7 @@ export const BFF_ADMIN_FAMILIES = [
   'finance',
   'guardians',
   'parents',
+  'parent-activation-campaigns',
   'teachers',
   'teacher-domain',
   'classes',
@@ -149,6 +150,7 @@ const BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES = new Set([
   'tracks',
   'guardians',
   'parents',
+  'parent-activation-campaigns',
   'channels',
   'communication',
 ]);
@@ -359,6 +361,8 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   if (/^\/admin\/admissions\/family-batches\/[^/]+\/convert-to-students$/.test(pathname)) {
     return false;
   }
+  // Campaign preparation accepts an optional name only; school scope stays trusted in query/session.
+  if (/^\/admin\/parent-activation-campaigns\/prepare$/.test(pathname)) return false;
   // Channel lifecycle — query/session scope only; no body injection.
   if (isAdminChannelLifecycleMutationPath(pathname)) return false;
   return true;
