@@ -38,6 +38,7 @@ export interface AdminRequestType {
   id: number;
   name: string;
   description?: string;
+  requires_student?: boolean;
 }
 
 export interface AdminRequestList {
