@@ -105,7 +105,6 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
                   <option value="">اختر النوع</option>
                   {typeRows(data).map((type) => <option key={type.id} value={type.id}>{adminRequestTypeLabel(type.name)}</option>)}
                 </select>
-                {selectedType?.description && <span className="tiny muted">{selectedType.description}</span>}
               </div>
               {role === 'parent' && selectedType?.requires_student && (
                 <div className="field">
