@@ -11,6 +11,7 @@ export const MESSAGES: Record<Locale, Messages> = { ar, en, fr, es };
 
 const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
   ar: {
+    'nav.adminRequests': 'الطلبات الإدارية',
     'nav.library': 'المكتبة',
     'nav.entryRequirements': 'تجهيزات الدخول المدرسي',
     'nav.curriculumRequirements': 'المقرر والتجهيزات',
@@ -57,6 +58,7 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.published': 'منشورة',
   },
   en: {
+    'nav.adminRequests': 'Administrative requests',
     'nav.library': 'Library',
     'nav.entryRequirements': 'School entry requirements',
     'nav.curriculumRequirements': 'Curriculum & requirements',
@@ -103,6 +105,7 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.published': 'Published',
   },
   fr: {
+    'nav.adminRequests': 'Demandes administratives',
     'nav.library': 'Bibliothèque',
     'nav.entryRequirements': 'Fournitures de rentrée',
     'nav.curriculumRequirements': 'Programme et fournitures',
@@ -152,6 +155,7 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.pedagogicalDashboard.published': 'Publiés',
   },
   es: {
+    'nav.adminRequests': 'Solicitudes administrativas',
     'nav.library': 'Biblioteca',
     'nav.entryRequirements': 'Material escolar',
     'nav.curriculumRequirements': 'Currículo y materiales',
