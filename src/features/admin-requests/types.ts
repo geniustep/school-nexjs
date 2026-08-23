@@ -37,8 +37,16 @@ export interface AdminRequest {
 export interface AdminRequestType {
   id: number;
   name: string;
+  code?: string;
   description?: string;
+  active?: boolean;
+  sequence?: number;
+  confidential?: boolean;
+  allow_parent?: boolean;
+  allow_student?: boolean;
   requires_student?: boolean;
+  default_priority?: 'normal' | 'important' | 'urgent';
+  default_assignee?: { id: number; name: string } | null;
 }
 
 export interface AdminRequestList {
