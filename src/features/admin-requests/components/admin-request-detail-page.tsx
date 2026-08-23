@@ -129,9 +129,10 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
     <ResourceView state={state}>
       {(request) => {
         const requestTypeName = typeof request.type === 'string' ? request.type : request.type?.name;
-        const visibleActions = (request.allowed_actions ?? []).filter(
-          (action) => action !== 'reply' && action !== 'requester_reply',
-        );
+        const actions = request.allowed_actions ?? [];
+        const canRequesterReply = role !== 'admin' && (actions.includes('reply') || actions.includes('requester_reply'));
+        const visibleActions = actions.filter((action) => action !== 'reply' && action !== 'requester_reply');
+        const createdAt = request.created_at ?? request.create_date;
 
         return (
           <>
@@ -147,7 +148,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
               </div>
               <DefinitionList items={[
                 { label: 'النوع', value: adminRequestTypeLabel(requestTypeName) },
-                { label: 'تاريخ الإنشاء', value: request.created_at ? new Date(request.created_at).toLocaleString('ar-MA') : '—' },
+                { label: 'تاريخ الإنشاء', value: createdAt ? new Date(createdAt).toLocaleString('ar-MA') : '—' },
                 { label: 'الوصف', value: request.description ?? '—' },
               ]} />
               <AttachmentList attachments={request.attachments} />
@@ -171,7 +172,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
 
             {error && <div className="form-error" role="alert">{error}</div>}
 
-            {role !== 'admin' && request.allowed_actions?.includes('requester_reply') && (
+            {canRequesterReply && (
               <section className="section">
                 <SectionHead title="إضافة رد" />
                 <Card>
@@ -185,6 +186,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                       rows={5}
                       required
                       disabled={busy}
+                      placeholder="اكتب ردك أو المعلومات الإضافية هنا…"
                     />
                     <AdminRequestFilePicker id="request-reply-files" files={files} onChange={setFiles} disabled={busy} />
                     <span className="tiny muted">حتى 5 ملفات، بحد أقصى 10 MiB للملف.</span>
