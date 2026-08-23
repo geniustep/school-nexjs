@@ -27,6 +27,7 @@ export interface AdminRequest {
   student?: { id: number; name: string } | null;
   requester_role?: string;
   created_at?: string | null;
+  create_date?: string | null;
   updated_at?: string | null;
   allowed_actions?: string[];
   replies?: AdminRequestReply[];
