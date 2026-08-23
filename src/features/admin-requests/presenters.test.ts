@@ -21,9 +21,10 @@ describe('admin request Arabic presenters', () => {
     expect(adminRequestRoleLabel('admin')).toBe('الإدارة');
   });
 
-  it('translates seeded QA request type names without losing their suffix', () => {
-    expect(adminRequestTypeLabel('QA Complaint 20260823')).toBe('شكاية — QA 20260823');
-    expect(adminRequestTypeLabel('QA Inquiry 20260823')).toBe('استفسار — QA 20260823');
+  it('hides operational QA markers from seeded request type names', () => {
+    expect(adminRequestTypeLabel('QA Complaint 20260823')).toBe('شكاية');
+    expect(adminRequestTypeLabel('QA Inquiry 20260823')).toBe('استفسار');
+    expect(adminRequestTypeLabel('QA Appointment 20260823')).toBe('طلب موعد');
   });
 });
 
@@ -43,6 +44,18 @@ describe('admin request staff options', () => {
   it('supports wrapped staff option payloads', () => {
     expect(staffOptionRows({ data: { staff: [{ user_id: 12, full_name: 'محمد أمين' }] } })).toEqual([
       { id: 12, name: 'محمد أمين' },
+    ]);
+  });
+
+  it('supports generic select option payloads with value and label', () => {
+    expect(staffOptionRows({ options: [{ value: 31, label: 'ليلى بنعمر' }] })).toEqual([
+      { id: 31, name: 'ليلى بنعمر' },
+    ]);
+  });
+
+  it('supports nested user objects', () => {
+    expect(staffOptionRows({ items: [{ staff_id: 9, user: { id: 55, name: 'يوسف المرابط' } }] })).toEqual([
+      { id: 55, name: 'يوسف المرابط' },
     ]);
   });
 });
