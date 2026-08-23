@@ -110,7 +110,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
               {request.requester_role && <span className="tiny muted">{request.requester_role}</span>}
             </div>
             <DefinitionList items={[
-              { label: 'النوع', value: typeof request.request_type === 'string' ? request.request_type : request.request_type?.name ?? '—' },
+              { label: 'النوع', value: typeof request.type === 'string' ? request.type : request.type?.name ?? '—' },
               { label: 'تاريخ الإنشاء', value: request.created_at ? new Date(request.created_at).toLocaleString() : '—' },
               { label: 'الوصف', value: request.description ?? '—' },
             ]} />
@@ -157,7 +157,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                 </div>
               )}
               <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                {(request.allowed_actions ?? []).filter((action) => action !== 'requester_reply').map((action) => (
+                {(request.allowed_actions ?? []).filter((action) => action !== 'reply').map((action) => (
                   <button key={action} type="button" className="btn btn--ghost" disabled={busy} onClick={() => act(action)}>
                     {action}
                   </button>
