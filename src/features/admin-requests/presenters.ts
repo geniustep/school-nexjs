@@ -75,11 +75,10 @@ export function adminRequestTypeLabel(name?: string | null): string {
   const value = name?.trim();
   if (!value) return '—';
 
-  const qaMatch = value.match(/^QA\s+(Complaint|Inquiry|Appointment)(?:\s+(.+))?$/i);
+  // Seed/QA markers are operational metadata and must never leak into family/admin UI.
+  const qaMatch = value.match(/^QA\s+(Complaint|Inquiry|Appointment)(?:\s+.+)?$/i);
   if (qaMatch) {
-    const translated = TYPE_LABELS[qaMatch[1].toLowerCase()] ?? qaMatch[1];
-    const suffix = qaMatch[2]?.trim();
-    return suffix ? `${translated} — QA ${suffix}` : `${translated} — QA`;
+    return TYPE_LABELS[qaMatch[1].toLowerCase()] ?? qaMatch[1];
   }
 
   return TYPE_LABELS[value.toLowerCase()] ?? value;
@@ -109,7 +108,7 @@ function textFrom(value: unknown): string | null {
   if (Array.isArray(value) && typeof value[1] === 'string' && value[1].trim()) return value[1].trim();
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>;
-    for (const key of ['name', 'display_name', 'full_name']) {
+    for (const key of ['name', 'display_name', 'full_name', 'label']) {
       const text = textFrom(record[key]);
       if (text) return text;
     }
@@ -134,13 +133,20 @@ export function staffOptionRows(value: unknown): AdminRequestStaffOption[] {
   return rawStaffRows(value).flatMap((item) => {
     if (!item || typeof item !== 'object') return [];
     const record = item as Record<string, unknown>;
-    const id = numberFrom(record.user_id) ?? numberFrom(record.id) ?? numberFrom(record.staff_id);
+    const id =
+      numberFrom(record.user_id) ??
+      numberFrom(record.value) ??
+      numberFrom(record.user) ??
+      numberFrom(record.id) ??
+      numberFrom(record.staff_id);
     const name =
       textFrom(record.name) ??
       textFrom(record.display_name) ??
       textFrom(record.full_name) ??
+      textFrom(record.label) ??
       textFrom(record.employee_name) ??
       textFrom(record.user_name) ??
+      textFrom(record.user) ??
       textFrom(record.user_id);
     if (!id || !name) return [];
 

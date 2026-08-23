@@ -33,18 +33,21 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
       <ResourceView state={state} isEmpty={(data) => requestRows(data).length === 0} empty={<Card>{copy.empty}</Card>}>
         {(data) => (
           <div className="grid grid--cards">
-            {requestRows(data).map((request: AdminRequest) => (
-              <Link key={request.id} href={requestPath(role, request.id)} className="row-link">
-                <Card>
-                  <div className="between">
-                    <strong>{requestTitle(request)}</strong>
-                    <Badge tone="blue">{adminRequestStateLabel(request.state)}</Badge>
-                  </div>
-                  <p className="muted tiny">{request.reference ?? `#${request.id}`}</p>
-                  {request.created_at && <p className="muted tiny">{new Date(request.created_at).toLocaleDateString('ar-MA')}</p>}
-                </Card>
-              </Link>
-            ))}
+            {requestRows(data).map((request: AdminRequest) => {
+              const createdAt = request.created_at ?? request.create_date;
+              return (
+                <Link key={request.id} href={requestPath(role, request.id)} className="row-link">
+                  <Card>
+                    <div className="between">
+                      <strong>{requestTitle(request)}</strong>
+                      <Badge tone="blue">{adminRequestStateLabel(request.state)}</Badge>
+                    </div>
+                    <p className="muted tiny">{request.reference ?? `#${request.id}`}</p>
+                    {createdAt && <p className="muted tiny">{new Date(createdAt).toLocaleDateString('ar-MA')}</p>}
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </ResourceView>
