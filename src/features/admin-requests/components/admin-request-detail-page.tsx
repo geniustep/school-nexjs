@@ -36,6 +36,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
   const [reply, setReply] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [note, setNote] = useState('');
+  const [assigneeId, setAssigneeId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +44,15 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
     setError(null);
     setBusy(true);
     const response = role === 'admin'
-      ? await postAdminAction(requestId, action, note.trim() ? { note } : undefined)
+      ? await postAdminAction(
+          requestId,
+          action,
+          action === 'resolve'
+            ? { resolution_summary: note }
+            : action === 'refer'
+              ? { assigned_user_id: Number(assigneeId) }
+              : note.trim() ? { reason: note } : undefined,
+        )
       : await postRequesterAction(role, requestId, action as 'submit' | 'cancel');
     setBusy(false);
     if (!response.success) {
@@ -154,6 +163,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                 <div className="field">
                   <label htmlFor="request-note">ملاحظة الإجراء</label>
                   <textarea id="request-note" className="input" value={note} onChange={(event) => setNote(event.target.value)} maxLength={4000} rows={3} disabled={busy} />
+                  {request.allowed_actions?.includes('refer') && <input className="input" inputMode="numeric" placeholder="معرّف الموظف المسؤول للإحالة" value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} disabled={busy} />}
                 </div>
               )}
               <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
