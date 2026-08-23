@@ -12,14 +12,14 @@ function familyBase(role: FamilyRole): '/parent/admin-requests' | '/student/admi
 
 /** Client payload allow-list. Identity, school, workflow and audit fields never leave the UI. */
 export function createRequestPayload(input: {
-  request_type_id: number;
+  type_id: number;
   subject: string;
   description: string;
   student_id?: number;
   upload_session_id?: string;
 }) {
   return {
-    request_type_id: input.request_type_id,
+    type_id: input.type_id,
     subject: input.subject.trim(),
     description: input.description.trim(),
     ...(input.student_id ? { student_id: input.student_id } : {}),
@@ -54,11 +54,17 @@ export async function postRequesterAction(
 export async function postAdminAction(
   requestId: string,
   action: string,
-  body?: { note?: string },
+  body?: { reason?: string; resolution_summary?: string; assigned_user_id?: number },
 ): Promise<ApiResponse<AdminRequest>> {
   return api.post<AdminRequest>(
-    `/admin/admin-requests/${requestId}/${action}`,
-    body?.note ? { note: body.note.trim() } : undefined,
+    `/admin/admin-requests/${requestId}/${action.replaceAll('_', '-')}`,
+    body?.reason || body?.resolution_summary || body?.assigned_user_id
+      ? {
+          ...(body.reason ? { reason: body.reason.trim() } : {}),
+          ...(body.resolution_summary ? { resolution_summary: body.resolution_summary.trim() } : {}),
+          ...(body.assigned_user_id ? { assigned_user_id: body.assigned_user_id } : {}),
+        }
+      : undefined,
   );
 }
 
