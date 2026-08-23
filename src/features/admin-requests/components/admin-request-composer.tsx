@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { Card, PageHeader } from '@/components/ui/primitives';
 import { ResourceView } from '@/components/states/resource';
@@ -11,7 +10,9 @@ import {
   createAdminRequestUploadSession,
   uploadAdminRequestFile,
 } from '../api';
+import { adminRequestTypeLabel } from '../presenters';
 import type { AdminRequestRole, AdminRequestType } from '../types';
+import { AdminRequestFilePicker } from './admin-request-file-picker';
 
 function typeRows(value: AdminRequestType[] | { types?: AdminRequestType[]; items?: AdminRequestType[] }) {
   return Array.isArray(value) ? value : value.types ?? value.items ?? [];
@@ -102,7 +103,7 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
                 <label htmlFor="request-type">نوع الطلب</label>
                 <select id="request-type" className="input" value={typeId} onChange={(event) => setTypeId(event.target.value)} disabled={busy} required>
                   <option value="">اختر النوع</option>
-                  {typeRows(data).map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
+                  {typeRows(data).map((type) => <option key={type.id} value={type.id}>{adminRequestTypeLabel(type.name)}</option>)}
                 </select>
               </div>
               {role === 'parent' && selectedType?.requires_student && (
@@ -123,8 +124,8 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
                 <textarea id="request-description" className="input" value={description} onChange={(event) => setDescription(event.target.value)} disabled={busy} maxLength={4000} rows={7} required />
               </div>
               <div className="field">
-                <label htmlFor="request-files">مرفقات اختيارية</label>
-                <input id="request-files" type="file" multiple onChange={(event) => setFiles(Array.from(event.target.files ?? []))} disabled={busy} />
+                <label>مرفقات اختيارية</label>
+                <AdminRequestFilePicker id="request-files" files={files} onChange={setFiles} disabled={busy} />
                 <span className="tiny muted">حتى 5 ملفات، بحد أقصى 10 MiB للملف.</span>
               </div>
               {error && <div className="form-error" role="alert">{error}</div>}
