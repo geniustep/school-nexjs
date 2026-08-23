@@ -66,7 +66,7 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
     }
 
     const created = await createAdminRequest(role, {
-      request_type_id: parsedType,
+      type_id: parsedType,
       subject,
       description,
       ...(uploadSessionId ? { upload_session_id: uploadSessionId } : {}),
