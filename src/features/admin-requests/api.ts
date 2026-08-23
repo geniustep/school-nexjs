@@ -125,12 +125,12 @@ export type AdminRequestTypeSettingsInput = {
 export async function createAdminRequestType(
   input: AdminRequestTypeSettingsInput,
 ): Promise<ApiResponse<AdminRequestType>> {
-  return api.post<AdminRequestType>('/admin/admin-request-types', input);
+  return api.post<AdminRequestType>('/admin/admin-requests/types', input);
 }
 
 export async function updateAdminRequestType(
   typeId: number,
   input: AdminRequestTypeSettingsInput,
 ): Promise<ApiResponse<AdminRequestType>> {
-  return api.post<AdminRequestType>(`/admin/admin-request-types/${typeId}/update`, input);
+  return api.post<AdminRequestType>(`/admin/admin-requests/types/${typeId}/update`, input);
 }
