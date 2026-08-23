@@ -112,6 +112,8 @@ export const endpoints = {
     guardianDeleteImpact: (id: number | string) => `/admin/guardians/${id}/delete-impact`,
     parentsImport: '/admin/parents/import',
     parentsExport: '/admin/parents/export',
+    parentActivationCampaignPrepare: '/admin/parent-activation-campaigns/prepare',
+    parentActivationCampaign: (id: number | string) => `/admin/parent-activation-campaigns/${id}`,
 
     teachers: '/admin/teachers',
     teachersOptions: '/admin/teachers/options',
