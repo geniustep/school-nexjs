@@ -21,6 +21,7 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
   const router = useRouter();
   const [typeId, setTypeId] = useState('');
   const [subject, setSubject] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
@@ -31,6 +32,12 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
     undefined,
     { keepPreviousData: false },
   );
+  const children = useResource<Array<{ id: number; name: string }> | { children?: Array<{ id: number; name: string }> }>(
+    role === 'parent' ? '/parent/children' : null,
+    undefined,
+    { keepPreviousData: false },
+  );
+  const selectedType = types.data ? typeRows(types.data).find((type) => type.id === Number(typeId)) : undefined;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,6 +45,10 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
     const parsedType = Number(typeId);
     if (!parsedType || !subject.trim() || !description.trim()) {
       setError('أكمل نوع الطلب والموضوع والوصف.');
+      return;
+    }
+    if (role === 'parent' && selectedType?.requires_student && !Number(studentId)) {
+      setError('اختر التلميذ المعني بالطلب.');
       return;
     }
     if (files.length > 5) {
@@ -67,6 +78,7 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
 
     const created = await createAdminRequest(role, {
       type_id: parsedType,
+      ...(role === 'parent' && Number(studentId) ? { student_id: Number(studentId) } : {}),
       subject,
       description,
       ...(uploadSessionId ? { upload_session_id: uploadSessionId } : {}),
@@ -93,6 +105,15 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
                   {typeRows(data).map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
                 </select>
               </div>
+              {role === 'parent' && selectedType?.requires_student && (
+                <div className="field">
+                  <label htmlFor="request-student">التلميذ المعني</label>
+                  <select id="request-student" className="input" value={studentId} onChange={(event) => setStudentId(event.target.value)} disabled={busy} required>
+                    <option value="">اختر التلميذ</option>
+                    {(children.data ? (Array.isArray(children.data) ? children.data : children.data.children ?? []) : []).map((child) => <option key={child.id} value={child.id}>{child.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div className="field">
                 <label htmlFor="request-subject">الموضوع</label>
                 <input id="request-subject" className="input" value={subject} onChange={(event) => setSubject(event.target.value)} disabled={busy} maxLength={250} required />
