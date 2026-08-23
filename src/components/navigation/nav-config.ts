@@ -51,7 +51,7 @@ function adminNav(user: CurrentUser): NavSection[] {
 
   const opsItems: NavItem[] = [];
   pushIf(opsItems, canShowAdminNavPermission(user, 'view_dashboard') || pedagogicalNav, {
-    labelKey: 'nav.dashboard',
+    labelKey: 'nav.adminToday',
     href: '/admin/dashboard',
     icon: '📊',
   });
@@ -65,7 +65,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     groupId: 'ops',
     defaultOpen: true,
     icon: '🏠',
-    titleKey: scopedNavTitle('nav.adminOperations', 'nav.adminScopedOperations', scopedLabels),
+    titleKey: scopedNavTitle('nav.schoolLife', 'nav.scopedSchoolLife', scopedLabels),
     items: opsItems,
   });
 
@@ -90,8 +90,8 @@ function adminNav(user: CurrentUser): NavSection[] {
     defaultOpen: true,
     icon: '👥',
     titleKey: scopedNavTitle(
-      'nav.adminStudentsRegistration',
-      'nav.adminScopedStudentsRegistration',
+      'nav.registrationSchooling',
+      'nav.scopedRegistrationSchooling',
       scopedLabels,
     ),
     items: studentsItems,
@@ -104,7 +104,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     icon: '👩‍🏫',
   });
   pushIf(staffItems, canAccessStaffCenter(user), {
-    labelKey: 'nav.staffCenter',
+    labelKey: 'nav.schoolTeam',
     href: '/admin/staff',
     icon: '🧑‍💼',
   });
@@ -129,7 +129,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     icon: '📅',
   });
   pushIf(academicItems, canShowAdminNavPermission(user, 'view_timetable'), {
-    labelKey: 'nav.academicCalendars',
+    labelKey: 'nav.schoolCalendarHolidays',
     href: '/admin/academic-calendars',
     icon: '📆',
   });
@@ -138,7 +138,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     canShowAdminNavPermission(user, 'view_classes') &&
       canShowAdminNavPermission(user, 'view_teachers'),
     {
-      labelKey: 'nav.teachingAssignments',
+      labelKey: 'nav.subjectClassAssignments',
       href: '/admin/teaching-assignments',
       icon: '📎',
       isActive: (pathname) =>
@@ -155,7 +155,11 @@ function adminNav(user: CurrentUser): NavSection[] {
     groupId: 'academic',
     defaultOpen: true,
     icon: '🏛️',
-    titleKey: scopedNavTitle('nav.adminAcademicSetup', 'nav.adminScopedAcademicSetup', scopedLabels),
+    titleKey: scopedNavTitle(
+      'nav.pedagogicalOrganization',
+      'nav.scopedPedagogicalOrganization',
+      scopedLabels,
+    ),
     items: academicItems,
   });
 
@@ -166,7 +170,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     icon: '📝',
   });
   pushIf(learningItems, canShowAdminNavPermission(user, 'view_resources'), {
-    labelKey: 'nav.resources',
+    labelKey: 'nav.educationalResources',
     href: '/admin/resources',
     icon: '📂',
   });
@@ -181,14 +185,14 @@ function adminNav(user: CurrentUser): NavSection[] {
     canShowAdminNavPermission(user, 'entry_requirements.manage') ||
       canShowAdminNavPermission(user, 'entry_requirements.publish'),
     {
-      labelKey: 'nav.entryRequirements',
+      labelKey: 'nav.booksSupplies',
       href: '/admin/entry-requirements',
       icon: '🎒',
       isActive: (pathname) => pathname === '/admin/entry-requirements' || pathname.startsWith('/admin/entry-requirements/'),
     },
   );
   pushIf(learningItems, canShowAdminNavPermission(user, 'view_exams'), {
-    labelKey: 'nav.exams',
+    labelKey: 'nav.examsAndTests',
     href: '/admin/exams',
     icon: '🧪',
     isActive: (pathname) =>
@@ -226,8 +230,8 @@ function adminNav(user: CurrentUser): NavSection[] {
     groupId: 'learning',
     icon: '🎯',
     titleKey: scopedNavTitle(
-      'nav.adminLearningAssessment',
-      'nav.adminScopedLearningAssessment',
+      'nav.teachingAssessment',
+      'nav.scopedTeachingAssessment',
       scopedLabels,
     ),
     items: learningItems,
@@ -236,13 +240,13 @@ function adminNav(user: CurrentUser): NavSection[] {
   {
     const communicationItems: NavItem[] = [];
     communicationItems.push({
-      labelKey: 'nav.schoolCommunication',
+      labelKey: 'nav.announcementsCorrespondence',
       href: '/admin/announcements',
       icon: '📣',
       isActive: (pathname) => pathname.startsWith('/admin/announcements'),
     });
     pushIf(communicationItems, canReviewCommunication(user), {
-      labelKey: 'nav.communicationReview',
+      labelKey: 'nav.reviewApproval',
       href: '/admin/communication',
       icon: '☑️',
       isActive: (pathname) => {
@@ -257,7 +261,7 @@ function adminNav(user: CurrentUser): NavSection[] {
       },
     });
     pushIf(communicationItems, canShowAdminNavPermission(user, 'view_channels'), {
-      labelKey: 'nav.channels',
+      labelKey: 'nav.communicationChannels',
       href: '/admin/channels',
       icon: '💬',
       isActive: (pathname) => pathname.startsWith('/admin/channels'),
@@ -280,10 +284,10 @@ function adminNav(user: CurrentUser): NavSection[] {
     pushSection(sections, {
       groupId: 'finance',
       icon: '🏦',
-      titleKey: scopedNavTitle('nav.financeSection', 'nav.adminScopedFinance', scopedLabels),
+      titleKey: scopedNavTitle('nav.adminSchoolFinance', 'nav.scopedSchoolFinance', scopedLabels),
       items: [
         {
-          labelKey: 'nav.finance',
+          labelKey: 'nav.adminSchoolFinance',
           href: '/admin/finance',
           icon: '💰',
           isActive: (pathname) => pathname.startsWith('/admin/finance'),
@@ -297,10 +301,10 @@ function adminNav(user: CurrentUser): NavSection[] {
       pushSection(sections, {
         groupId: 'system',
         icon: '🛠️',
-        titleKey: scopedNavTitle('nav.adminSystem', 'nav.adminScopedSystem', scopedLabels),
+        titleKey: scopedNavTitle('nav.institutionSettings', 'nav.scopedInstitutionSettings', scopedLabels),
         items: [
           {
-            labelKey: 'nav.settings',
+            labelKey: 'nav.institutionSettings',
             href: '/admin/settings',
             icon: '⚙️',
             isActive: (pathname) => pathname.startsWith('/admin/settings'),
@@ -315,7 +319,7 @@ function adminNav(user: CurrentUser): NavSection[] {
 
 function teacherNav(): NavSection[] {
   return [
-    { items: [{ labelKey: 'nav.dashboard', href: '/teacher/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.teacherToday', href: '/teacher/dashboard', icon: '🏠' }] },
     {
       titleKey: 'teacher.myTeachingTasks',
       items: [
@@ -325,7 +329,7 @@ function teacherNav(): NavSection[] {
       ],
     },
     {
-      titleKey: 'nav.content',
+      titleKey: 'nav.teacherTeaching',
       items: [
         { labelKey: 'nav.homework', href: '/teacher/homeworks', icon: '📝' },
         { labelKey: 'nav.teacherResources', href: '/teacher/resources', icon: '📚' },
@@ -336,7 +340,7 @@ function teacherNav(): NavSection[] {
       titleKey: 'nav.assessment',
       items: [
         {
-          labelKey: 'nav.exams',
+          labelKey: 'nav.examsAndTests',
           href: '/teacher/exams',
           icon: '📋',
           isActive: (pathname) =>
@@ -364,13 +368,13 @@ function teacherNav(): NavSection[] {
           icon: '📝',
           isActive: (pathname) => pathname.startsWith('/teacher/assessment/diagnostic'),
         },
-        { labelKey: 'nav.submissions', href: '/teacher/submissions', icon: '📥' },
+        { labelKey: 'nav.studentWork', href: '/teacher/submissions', icon: '📥' },
       ],
     },
     {
       titleKey: 'nav.communication',
       items: [
-        { labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' },
+        { labelKey: 'nav.communicationChannels', href: '/teacher/channels', icon: '💬' },
         { labelKey: 'nav.announcements', href: '/teacher/announcements', icon: '📣' },
       ],
     },
@@ -383,19 +387,19 @@ function teacherNav(): NavSection[] {
 
 function parentNav(): NavSection[] {
   return [
-    { items: [{ labelKey: 'nav.dashboard', href: '/parent/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.parentToday', href: '/parent/dashboard', icon: '🏠' }] },
     {
-      titleKey: 'nav.family',
+      titleKey: 'nav.childrenAffairs',
       items: [
         { labelKey: 'nav.myChildren', href: '/parent/children', icon: '👧' },
-        { labelKey: 'nav.entryRequirements', href: '/parent/entry-requirements', icon: '🎒' },
-        { labelKey: 'nav.finance', href: '/parent/finance', icon: '💰' },
+        { labelKey: 'nav.booksSupplies', href: '/parent/entry-requirements', icon: '🎒' },
+        { labelKey: 'nav.parentTuitionFees', href: '/parent/finance', icon: '💰' },
       ],
     },
     {
       titleKey: 'nav.communication',
       items: [
-        { labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' },
+        { labelKey: 'nav.communicationChannels', href: '/parent/channels', icon: '💬' },
         { labelKey: 'nav.announcements', href: '/parent/announcements', icon: '📣' },
       ],
     },
@@ -404,9 +408,9 @@ function parentNav(): NavSection[] {
 
 function studentNav(): NavSection[] {
   return [
-    { items: [{ labelKey: 'nav.dashboard', href: '/student/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.studentToday', href: '/student/dashboard', icon: '🏠' }] },
     {
-      titleKey: 'nav.me',
+      titleKey: 'nav.myStudies',
       items: [
         { labelKey: 'nav.myProfile', href: '/student/profile', icon: '🧑‍🎓' },
         { labelKey: 'nav.attendance', href: '/student/attendance', icon: '🗓️' },
@@ -417,7 +421,7 @@ function studentNav(): NavSection[] {
     {
       titleKey: 'nav.communication',
       items: [
-        { labelKey: 'nav.channels', href: '/student/channels', icon: '💬' },
+        { labelKey: 'nav.communicationChannels', href: '/student/channels', icon: '💬' },
         { labelKey: 'nav.announcements', href: '/student/announcements', icon: '📣' },
       ],
     },
@@ -425,23 +429,23 @@ function studentNav(): NavSection[] {
 }
 
 export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; labelKey: string }[] = [
-  { permission: 'view_dashboard', href: '/admin/dashboard', labelKey: 'nav.dashboard' },
+  { permission: 'view_dashboard', href: '/admin/dashboard', labelKey: 'nav.adminToday' },
   { permission: 'view_students', href: '/admin/students', labelKey: 'nav.students' },
   { permission: 'view_parents', href: '/admin/parents', labelKey: 'nav.parents' },
   { permission: 'view_teachers', href: '/admin/teachers', labelKey: 'nav.teachers' },
   { permission: 'view_classes', href: '/admin/classes', labelKey: 'nav.classes' },
-  { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.staffCenter' },
+  { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.schoolTeam' },
   { permission: 'view_attendance', href: '/admin/attendance', labelKey: 'nav.attendance' },
-  { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.channels' },
+  { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.communicationChannels' },
   { permission: 'view_homeworks', href: '/admin/homeworks', labelKey: 'nav.homework' },
-  { permission: 'view_resources', href: '/admin/resources', labelKey: 'nav.resources' },
+  { permission: 'view_resources', href: '/admin/resources', labelKey: 'nav.educationalResources' },
   { permission: 'library.view', href: '/admin/library', labelKey: 'nav.library' },
-  { permission: 'entry_requirements.manage', href: '/admin/entry-requirements', labelKey: 'nav.entryRequirements' },
-  { permission: 'view_exams', href: '/admin/exams', labelKey: 'nav.exams' },
+  { permission: 'entry_requirements.manage', href: '/admin/entry-requirements', labelKey: 'nav.booksSupplies' },
+  { permission: 'view_exams', href: '/admin/exams', labelKey: 'nav.examsAndTests' },
   { permission: 'view_exam_results', href: '/admin/exam-results', labelKey: 'nav.examResultsNav' },
   { permission: 'view_timetable', href: '/admin/timetable', labelKey: 'nav.timetable' },
-  { permission: 'view_timetable', href: '/admin/academic-calendars', labelKey: 'nav.academicCalendars' },
-  { permission: FINANCE_VIEW, href: '/admin/finance', labelKey: 'nav.finance' },
+  { permission: 'view_timetable', href: '/admin/academic-calendars', labelKey: 'nav.schoolCalendarHolidays' },
+  { permission: FINANCE_VIEW, href: '/admin/finance', labelKey: 'nav.adminSchoolFinance' },
 ];
 
 export function navForUser(user: CurrentUser): NavSection[] {
@@ -451,7 +455,7 @@ export function navForUser(user: CurrentUser): NavSection[] {
     case 'admin':
       if (!isConfiguredAdmin(user)) {
         return canAccessAdminDashboard(user)
-          ? [{ items: [{ labelKey: 'nav.dashboard', href: '/admin/dashboard', icon: '📊' }] }]
+          ? [{ items: [{ labelKey: 'nav.adminToday', href: '/admin/dashboard', icon: '📊' }] }]
           : [];
       }
       return adminNav(user);

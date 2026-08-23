@@ -9,7 +9,6 @@ import {
   resolvePedagogicalDashboardActions,
   resolvePedagogicalDashboardMetricGroups,
   resolvePedagogicalDashboardMetrics,
-  resolvePedagogicalNavExpectation,
   shouldUsePedagogicalDashboard,
 } from '@/lib/admin/pedagogical-dashboard';
 import type { CurrentUser } from '@/types/user';
@@ -103,16 +102,27 @@ describe('pedagogical director sidebar', () => {
     );
   });
 
-  it('matches expected academic sections when full permissions are granted', () => {
-    const expected = resolvePedagogicalNavExpectation(user);
+  it('matches the school-specific academic section terminology when full permissions are granted', () => {
     const actual = navForUser(user).filter((section) =>
       PEDAGOGICAL_NAV_GROUP_IDS.includes(section.groupId as (typeof PEDAGOGICAL_NAV_GROUP_IDS)[number]),
     );
 
-    expect(actual.map((section) => section.groupId)).toEqual(expected.map((section) => section.groupId));
-    expect(actual.map((section) => section.titleKey)).toEqual(
-      expected.map((section) => section.titleKey),
-    );
+    expect(actual.map((section) => section.groupId)).toEqual([
+      'ops',
+      'students',
+      'staff',
+      'academic',
+      'learning',
+      'communication',
+    ]);
+    expect(actual.map((section) => section.titleKey)).toEqual([
+      'nav.schoolLife',
+      'nav.registrationSchooling',
+      'nav.adminSchoolStaff',
+      'nav.pedagogicalOrganization',
+      'nav.teachingAssessment',
+      'nav.communication',
+    ]);
   });
 
   it('always shows dashboard link for pedagogical director', () => {
@@ -124,13 +134,13 @@ describe('pedagogical director sidebar', () => {
     expect(ops?.items.some((item) => item.href === '/admin/dashboard')).toBe(true);
   });
 
-  it('shows staff center with teachers permission even without view_classes', () => {
+  it('shows school team with teachers permission even without view_classes', () => {
     const userTeachersOnly = admin({
       admin_kind: 'pedagogical_director',
       permissions: ['view_teachers', 'view_dashboard'],
     });
     const staff = navForUser(userTeachersOnly).find((section) => section.groupId === 'staff');
-    expect(staff?.items.some((item) => item.labelKey === 'nav.staffCenter')).toBe(true);
+    expect(staff?.items.some((item) => item.labelKey === 'nav.schoolTeam')).toBe(true);
   });
 
   it('keeps finance hidden without finance permissions', () => {
