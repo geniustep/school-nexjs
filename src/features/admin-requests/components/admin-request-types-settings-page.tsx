@@ -230,7 +230,7 @@ export function AdminRequestTypesSettingsPage() {
                   <div className="col" style={{ gap: 8 }}>
                     <strong>{type.name}</strong>
                     <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-                      <Badge tone={type.active === false ? 'gray' : 'blue'}>{type.active === false ? 'معطل' : 'نشط'}</Badge>
+                      <Badge tone={type.active === false ? 'slate' : 'blue'}>{type.active === false ? 'معطل' : 'نشط'}</Badge>
                       {type.confidential && <Badge tone="blue">سري</Badge>}
                       {type.allow_parent !== false && <span className="tiny muted">ولي الأمر</span>}
                       {type.allow_student && <span className="tiny muted">التلميذ</span>}
