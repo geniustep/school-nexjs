@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createRequestPayload, replyPayload } from './api';
+import { adminRequestFileClientItemId, createRequestPayload, replyPayload } from './api';
 
 describe('admin request client payloads', () => {
   it('uses the Odoo create allow-list only', () => {
@@ -24,5 +24,15 @@ describe('admin request client payloads', () => {
     for (const forbidden of ['school_id', 'author_user_id', 'author_role', 'state', 'attachment_ids']) {
       expect(payload).not.toHaveProperty(forbidden);
     }
+  });
+
+  it('creates a stable opaque client_item_id for upload retries', () => {
+    const file = { name: 'وثيقة مدرسية.pdf', size: 24576, lastModified: 1787517000000 };
+    const first = adminRequestFileClientItemId(file);
+    const second = adminRequestFileClientItemId(file);
+    expect(first).toBe(second);
+    expect(first).toMatch(/^arq-[a-z0-9-]+$/);
+    expect(first).not.toContain(file.name);
+    expect(adminRequestFileClientItemId({ ...file, size: file.size + 1 })).not.toBe(first);
   });
 });
