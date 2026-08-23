@@ -26,6 +26,10 @@ export const endpoints = {
     dashboard: '/admin/dashboard',
     executiveDashboard: '/admin/dashboard/executive',
     schoolBranding: '/admin/school-branding',
+    adminRequests: '/admin/admin-requests',
+    adminRequest: (id: number | string) => `/admin/admin-requests/${id}`,
+    adminRequestAction: (id: number | string, action: string) =>
+      `/admin/admin-requests/${id}/${action}`,
 
     students: '/admin/students',
     /** Multi-child family registration (REGISTRATION-FINANCE-3D1/3D2). */
@@ -829,6 +833,12 @@ export const endpoints = {
 
   parent: {
     dashboard: '/parent/dashboard',
+    adminRequestTypes: '/parent/admin-requests/types',
+    adminRequests: '/parent/admin-requests',
+    adminRequest: (id: number | string) => `/parent/admin-requests/${id}`,
+    adminRequestSubmit: (id: number | string) => `/parent/admin-requests/${id}/submit`,
+    adminRequestCancel: (id: number | string) => `/parent/admin-requests/${id}/cancel`,
+    adminRequestReply: (id: number | string) => `/parent/admin-requests/${id}/reply`,
     children: '/parent/children',
     child: (studentId: number | string) => `/parent/children/${studentId}`,
     childAttendance: (studentId: number | string) =>
@@ -880,6 +890,12 @@ export const endpoints = {
 
   student: {
     dashboard: '/student/dashboard',
+    adminRequestTypes: '/student/admin-requests/types',
+    adminRequests: '/student/admin-requests',
+    adminRequest: (id: number | string) => `/student/admin-requests/${id}`,
+    adminRequestSubmit: (id: number | string) => `/student/admin-requests/${id}/submit`,
+    adminRequestCancel: (id: number | string) => `/student/admin-requests/${id}/cancel`,
+    adminRequestReply: (id: number | string) => `/student/admin-requests/${id}/reply`,
     profile: '/student/profile',
     attendance: '/student/attendance',
     homeworks: '/student/homeworks',
