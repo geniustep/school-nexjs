@@ -6,6 +6,7 @@ import { ResourceView } from '@/components/states/resource';
 import { Badge, Card, PageHeader } from '@/components/ui/primitives';
 import type { AdminRequest, AdminRequestRole, AdminRequestList } from '../types';
 import { requestRows, requestTitle } from '../types';
+import { adminRequestStateLabel } from '../presenters';
 
 const LABEL: Record<AdminRequestRole, { title: string; newLabel: string; empty: string }> = {
   parent: { title: 'طلباتي الإدارية', newLabel: 'طلب جديد', empty: 'لا توجد طلبات بعد.' },
@@ -37,10 +38,10 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
                 <Card>
                   <div className="between">
                     <strong>{requestTitle(request)}</strong>
-                    <Badge tone="blue">{request.state}</Badge>
+                    <Badge tone="blue">{adminRequestStateLabel(request.state)}</Badge>
                   </div>
                   <p className="muted tiny">{request.reference ?? `#${request.id}`}</p>
-                  {request.created_at && <p className="muted tiny">{new Date(request.created_at).toLocaleDateString()}</p>}
+                  {request.created_at && <p className="muted tiny">{new Date(request.created_at).toLocaleDateString('ar-MA')}</p>}
                 </Card>
               </Link>
             ))}
