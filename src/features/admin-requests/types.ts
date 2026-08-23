@@ -23,7 +23,7 @@ export interface AdminRequest {
   title?: string;
   description?: string;
   state: string;
-  request_type?: { id: number; name: string } | string;
+  type?: { id: number; name: string; requires_student?: boolean } | string;
   student?: { id: number; name: string } | null;
   requester_role?: string;
   created_at?: string | null;
