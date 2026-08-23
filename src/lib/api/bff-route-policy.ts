@@ -15,6 +15,7 @@ export const BFF_ADMIN_FAMILIES = [
   'guardians',
   'parents',
   'parent-activation-campaigns',
+  'admin-requests',
   'teachers',
   'teacher-domain',
   'classes',
@@ -78,7 +79,13 @@ const BFF_TEACHER_FAMILIES = [
   'entry-requirements',
 ] as const;
 
-const BFF_PARENT_FAMILIES = ['dashboard', 'children', 'finance', 'entry-requirements'] as const;
+const BFF_PARENT_FAMILIES = [
+  'dashboard',
+  'children',
+  'finance',
+  'entry-requirements',
+  'admin-requests',
+] as const;
 
 const BFF_STUDENT_FAMILIES = [
   'dashboard',
@@ -90,6 +97,7 @@ const BFF_STUDENT_FAMILIES = [
   'exam-results',
   'timetable',
   'library',
+  'admin-requests',
 ] as const;
 
 const DENIED_SEGMENTS = new Set([
