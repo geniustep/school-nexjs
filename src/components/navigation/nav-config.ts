@@ -256,6 +256,12 @@ function adminNav(user: CurrentUser): NavSection[] {
         return pathname.startsWith('/admin/communication');
       },
     });
+    pushIf(communicationItems, canReviewCommunication(user), {
+      labelKey: 'nav.adminRequests',
+      href: '/admin/admin-requests',
+      icon: '📨',
+      isActive: (pathname) => pathname.startsWith('/admin/admin-requests'),
+    });
     pushIf(communicationItems, canShowAdminNavPermission(user, 'view_channels'), {
       labelKey: 'nav.channels',
       href: '/admin/channels',
@@ -397,6 +403,7 @@ function parentNav(): NavSection[] {
       items: [
         { labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' },
         { labelKey: 'nav.announcements', href: '/parent/announcements', icon: '📣' },
+        { labelKey: 'nav.adminRequests', href: '/parent/admin-requests', icon: '📨' },
       ],
     },
   ];
@@ -419,6 +426,7 @@ function studentNav(): NavSection[] {
       items: [
         { labelKey: 'nav.channels', href: '/student/channels', icon: '💬' },
         { labelKey: 'nav.announcements', href: '/student/announcements', icon: '📣' },
+        { labelKey: 'nav.adminRequests', href: '/student/admin-requests', icon: '📨' },
       ],
     },
   ];
