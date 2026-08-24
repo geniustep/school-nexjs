@@ -165,7 +165,8 @@ describe('guardian relationship update allowlist payload', () => {
       form({
         relationship_type: 'mother',
         is_primary_contact: true,
-        is_legal_guardian: false,
+        legal_status: 'no',
+        account_access_policy: 'blocked',
         is_financial_responsible: true,
         receives_notifications: false,
         is_emergency_contact: true,
@@ -177,25 +178,30 @@ describe('guardian relationship update allowlist payload', () => {
     );
     expect(Object.keys(payload).sort()).toEqual(
       [
+        'account_access_policy',
         'contact_priority',
         'date_start',
         'is_authorized_pickup',
         'is_emergency_contact',
         'is_financial_responsible',
-        'is_legal_guardian',
         'is_primary_contact',
+        'legal_status',
         'notes',
         'receives_notifications',
         'relationship_type',
       ].sort(),
     );
+    expect(payload.legal_status).toBe('no');
+    expect(payload.account_access_policy).toBe('blocked');
+    expect(payload).not.toHaveProperty('is_legal_guardian');
   });
 
   it('keeps boolean false on allowed flags', () => {
     const payload = relationshipFormToUpdatePayload(
       form({
         is_primary_contact: false,
-        is_legal_guardian: false,
+        legal_status: 'unknown',
+        account_access_policy: 'inherit_legal',
         receives_notifications: false,
         is_authorized_pickup: false,
       }),
@@ -203,6 +209,8 @@ describe('guardian relationship update allowlist payload', () => {
     expect(payload.is_primary_contact).toBe(false);
     expect(payload.receives_notifications).toBe(false);
     expect(payload.is_authorized_pickup).toBe(false);
+    expect(payload.legal_status).toBe('unknown');
+    expect(payload.account_access_policy).toBe('inherit_legal');
   });
 
   it('omits empty optional notes/date per current contract (trim-empty skip)', () => {
