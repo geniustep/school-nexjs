@@ -23,18 +23,27 @@ describe('admin requests BFF policy', () => {
     expect(assertBffRoutePolicy(endpoints.student.adminRequestReply(17), 'POST')).toEqual({ ok: true });
   });
 
-  it('allows admin list, detail and workflow actions', () => {
+  it('allows admin list, detail and review workflow actions', () => {
     expect(assertBffRoutePolicy(endpoints.admin.adminRequests, 'GET')).toEqual({ ok: true });
     expect(assertBffRoutePolicy(endpoints.admin.adminRequest(17), 'GET')).toEqual({ ok: true });
     expect(assertBffRoutePolicy(endpoints.admin.adminRequestAction(17, 'start-review'), 'POST')).toEqual({ ok: true });
+    expect(assertBffRoutePolicy(endpoints.admin.adminRequestAction(17, 'approve-reply'), 'POST')).toEqual({ ok: true });
+    expect(assertBffRoutePolicy(endpoints.admin.adminRequestAction(17, 'request-reply-changes'), 'POST')).toEqual({ ok: true });
   });
 
-  it('allows only the narrow assigned-staff inbox and actions', () => {
+  it('allows only the narrow assigned-staff inbox and review-gated reply', () => {
     expect(assertBffRoutePolicy('/staff/admin-requests', 'GET')).toEqual({ ok: true });
     expect(assertBffRoutePolicy('/staff/admin-requests/17', 'GET')).toEqual({ ok: true });
-    expect(assertBffRoutePolicy('/staff/admin-requests/17/wait-requester', 'POST')).toEqual({ ok: true });
-    expect(assertBffRoutePolicy('/staff/admin-requests/17/resolve', 'POST')).toEqual({ ok: true });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/reply', 'POST')).toEqual({ ok: true });
 
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/wait-requester', 'POST')).toEqual({
+      ok: false,
+      reason: 'path_not_allowed',
+    });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/resolve', 'POST')).toEqual({
+      ok: false,
+      reason: 'path_not_allowed',
+    });
     expect(assertBffRoutePolicy('/staff/admin-requests', 'POST')).toEqual({
       ok: false,
       reason: 'method_not_allowed',
@@ -43,9 +52,9 @@ describe('admin requests BFF policy', () => {
       ok: false,
       reason: 'path_not_allowed',
     });
-    expect(assertBffRoutePolicy('/staff/admin-requests/17/resolve', 'GET')).toEqual({
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/reply', 'GET')).toEqual({
       ok: false,
-      reason: 'method_not_allowed',
+      reason: 'path_not_allowed',
     });
   });
 
