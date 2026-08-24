@@ -21,8 +21,13 @@ import { IconChevronDown, IconMenu } from '@/components/icons/admin-icons';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { Avatar } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
+import { useAnnouncementsList } from '@/features/announcements/hooks/use-announcements-list';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { endpoints } from '@/lib/api/endpoints';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { cn } from '@/lib/utils/cn';
+import type { AdminChannel } from '@/types/admin-channel';
+import type { CommunicationContent } from '@/types/communication';
 import type { CurrentUser } from '@/types/user';
 
 /** Official admin sidebar (adopted Focus Navigation). */
@@ -49,6 +54,43 @@ export function AdminSidebar({
 }) {
   const pathname = usePathname();
   const t = useT();
+  // The API exposes a real unread count for announcement deliveries. Keep this
+  // separate from any future "needs follow-up" workflow state.
+  const { data: announcements } = useAnnouncementsList({ pageSize: 1 });
+  const unreadAnnouncements = announcements?.unread_count ?? 0;
+  const hasCommunicationReview = sections.some((section) =>
+    section.items.some((item) => item.href === '/admin/communication'),
+  );
+  const hasChannels = sections.some((section) =>
+    section.items.some((item) => item.href === '/admin/channels'),
+  );
+  const communicationReview = useAdminResource<CommunicationContent[]>(
+    hasCommunicationReview ? endpoints.admin.communicationContent : null,
+    { page: 1, page_size: 1, state: 'submitted' },
+  );
+  const channels = useAdminResource<AdminChannel[]>(
+    hasChannels ? endpoints.admin.channels : null,
+    { page: 1, page_size: 100 },
+  );
+  const reviewMeta = communicationReview.meta as
+    | { pagination?: { total?: number }; total?: number }
+    | null
+    | undefined;
+  const pendingCommunicationReview =
+    reviewMeta?.pagination?.total ?? reviewMeta?.total ?? communicationReview.data?.length ?? 0;
+  const unreadChannelMessages = (channels.data ?? []).reduce(
+    (total, channel) => total + Math.max(0, channel.unread_count ?? 0),
+    0,
+  );
+  const communicationCounts: Record<string, number> = {
+    '/admin/announcements': unreadAnnouncements,
+    '/admin/communication': pendingCommunicationReview,
+    '/admin/channels': unreadChannelMessages,
+  };
+  const communicationAttentionTotal = Object.values(communicationCounts).reduce(
+    (total, count) => total + count,
+    0,
+  );
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [collapsed, setCollapsed] = useState(false);
 
@@ -220,6 +262,8 @@ export function AdminSidebar({
           const activeInSection = sectionHasActiveLink(pathname, section);
           const isOpen = !hasTitle || (openGroups[groupId] ?? false);
           const groupIcon = section.icon ?? section.items[0]?.icon ?? '•';
+          const showCommunicationTotal =
+            groupId === 'communication' && !isOpen && communicationAttentionTotal > 0;
 
           return (
             <section
@@ -252,6 +296,15 @@ export function AdminSidebar({
                   {!collapsed ? (
                     <span className="focus-v2__group-title">{t(section.titleKey!)}</span>
                   ) : null}
+                  {!collapsed && showCommunicationTotal ? (
+                    <span
+                      className="focus-v2__unread-badge"
+                      aria-label={`${t(section.titleKey!)}: ${communicationAttentionTotal}`}
+                      title={`${t(section.titleKey!)}: ${communicationAttentionTotal}`}
+                    >
+                      {communicationAttentionTotal > 99 ? '99+' : communicationAttentionTotal}
+                    </span>
+                  ) : null}
                   {!collapsed ? (
                     <IconChevronDown size={16} className="focus-v2__group-chevron" aria-hidden />
                   ) : null}
@@ -272,6 +325,7 @@ export function AdminSidebar({
                 {section.items.map((item) => {
                   const active = isNavLinkActive(pathname, item.href, item);
                   const label = t(item.labelKey);
+                  const itemCount = groupId === 'communication' ? communicationCounts[item.href] ?? 0 : 0;
                   // Collapsed rail: show every destination of the opened group only.
                   if (collapsed && hasTitle && !isOpen) return null;
                   return (
@@ -287,6 +341,15 @@ export function AdminSidebar({
                         {item.icon}
                       </span>
                       {!collapsed ? <span className="focus-v2__link-label">{label}</span> : null}
+                      {!collapsed && isOpen && itemCount > 0 ? (
+                        <span
+                          className="focus-v2__link-count"
+                          aria-label={`${label}: ${itemCount}`}
+                          title={`${label}: ${itemCount}`}
+                        >
+                          {itemCount > 99 ? '99+' : itemCount}
+                        </span>
+                      ) : null}
                     </Link>
                   );
                 })}

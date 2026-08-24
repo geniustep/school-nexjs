@@ -305,6 +305,94 @@
   white-space: nowrap;
 }
 
+/* A compact count communicates real unread announcement deliveries without
+ * turning the navigation label into a second dashboard. */
+.sidebar--focus-v2 .focus-v2__unread-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding-inline: 0.32rem;
+  border-radius: 999px;
+  background: #c2412d;
+  color: #fff;
+  font-size: 0.69rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sidebar--focus-v2 .focus-v2__link-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: 0.3rem;
+  margin-inline-start: auto;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* The director dashboard introduced this navy navigation rail. It is the
+ * admin shell's visual language, so keep it consistent across every admin
+ * workspace rather than changing it during client-side navigation. */
+.app-shell--admin .sidebar--focus-v2 {
+  --focus-v2-ink: #f8fbff;
+  --focus-v2-muted: rgba(241, 247, 255, 0.72);
+  --focus-v2-rail: #ffffff;
+  --focus-v2-soft: rgba(255, 255, 255, 0.09);
+  --focus-v2-soft-strong: rgba(255, 255, 255, 0.15);
+  --focus-v2-line: rgba(255, 255, 255, 0.14);
+  background: linear-gradient(165deg, #123e77 0%, #082b5a 100%);
+  border-inline-end-color: rgba(255, 255, 255, 0.12);
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__nav,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__footer {
+  background: transparent;
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__nav-eyebrow,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group-toggle,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group-toggle--open,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__link,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group-chevron {
+  color: #f8fbff;
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group-toggle:hover,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__link:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group-icon {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group--active,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group--open.focus-v2__group--active {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__group--active .focus-v2__group-toggle,
+.app-shell--admin .sidebar--focus-v2 .focus-v2__link--active {
+  color: #fff;
+}
+
+.app-shell--admin .sidebar--focus-v2 .focus-v2__link--active {
+  background: rgba(255, 255, 255, 0.17);
+  box-shadow: inset -3px 0 0 #fff;
+}
+
 .sidebar--focus-v2 .focus-v2__group-chevron {
   flex-shrink: 0;
   width: 16px;

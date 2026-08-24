@@ -44,7 +44,7 @@ const TONE_LABEL: Record<ExecutiveTone, string> = {
 
 const ATTENTION_COPY: Record<Locale, AttentionCopy> = {
   ar: {
-    title: 'يحتاج انتباهك اليوم',
+    title: 'أولويات اليوم',
     viewAll: 'عرض الكل',
     drawerTitle: 'كل الأولويات',
     close: 'إغلاق',
@@ -296,10 +296,12 @@ export function ExecutiveDecisionList({
   items,
   emptyTitle,
   emptyDescription,
+  visibleLimit = 3,
 }: {
   items: ExecutiveInterventionItemData[];
   emptyTitle: string;
   emptyDescription?: string;
+  visibleLimit?: number;
 }) {
   const { locale } = useLocale();
   const copy = ATTENTION_COPY[locale];
@@ -309,8 +311,8 @@ export function ExecutiveDecisionList({
   // title. The data-quality sub-list intentionally passes an empty title and
   // therefore remains a plain list without summary truncation or a drawer.
   const summaryMode = emptyTitle.trim().length > 0;
-  const visibleItems = summaryMode ? items.slice(0, 3) : items;
-  const canOpenDrawer = summaryMode && items.length > 3;
+  const visibleItems = summaryMode ? items.slice(0, visibleLimit) : items;
+  const canOpenDrawer = summaryMode && items.length > visibleLimit;
 
   useEffect(() => {
     if (!drawerOpen) return undefined;
