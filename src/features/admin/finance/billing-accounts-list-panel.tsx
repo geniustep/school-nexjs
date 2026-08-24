@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { EmptyState } from '@/components/states/states';
 import { LoadingState } from '@/components/states/states';
-import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
+import { Pagination } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import {
   accountKindFilterToApiParam,
@@ -124,137 +124,6 @@ export function BillingAccountsListPanel({
   const hasActiveQuery = billingAccountsListHasActiveQuery(filters);
   const emptyVariant = resolveBillingAccountsListEmptyVariant({ hasActiveQuery });
   const isRefetching = state.fetching && !state.initialLoading;
-
-  const columns: Column<BillingAccountListItem>[] = useMemo(
-    () => [
-      {
-        key: 'payer',
-        header: t('admin.finance.billingAccounts.columns.payer'),
-        render: (row) => {
-          const kind = resolveBillingAccountKindFromRow(row);
-          return (
-            <span className="finance-billing-account-name-cell">
-              <span dir="auto" className="finance-billing-account-name">
-                {accountLabel(row)}
-              </span>
-              <span className={billingAccountKindBadgeClass(kind)}>
-                {t(billingAccountKindLabelKey(kind))}
-              </span>
-            </span>
-          );
-        },
-      },
-      {
-        key: 'reference',
-        header: t('admin.finance.billingAccounts.columns.reference'),
-        render: (row) => (
-          <span className="mono" dir="ltr">
-            {row.reference ?? t('common.dash')}
-          </span>
-        ),
-      },
-      {
-        key: 'students',
-        header: t('admin.finance.billingAccounts.columns.studentCount'),
-        render: (row) => (
-          <span className="mono" dir="ltr">
-            {row.student_count ?? t('common.dash')}
-          </span>
-        ),
-      },
-      {
-        key: 'total_due',
-        header: t('admin.finance.billingAccounts.columns.totalDue'),
-        className: 'finance-table-money',
-        render: (row) => (
-          <FinanceMoney amount={row.total_due} currency={row.currency} className="finance-table-money__value" />
-        ),
-      },
-      {
-        key: 'confirmed_paid',
-        header: t('admin.finance.billingAccounts.columns.confirmedPaid'),
-        className: 'finance-table-money',
-        render: (row) => (
-          <FinanceMoney amount={row.confirmed_paid} currency={row.currency} className="finance-table-money__value" />
-        ),
-      },
-      {
-        key: 'remaining',
-        header: t('admin.finance.billingAccounts.columns.remaining'),
-        className: 'finance-table-money',
-        render: (row) => (
-          <FinanceMoney amount={row.total_remaining} currency={row.currency} className="finance-table-money__value" />
-        ),
-      },
-      {
-        key: 'overdue',
-        header: t('admin.finance.billingAccounts.columns.overdue'),
-        className: 'finance-table-money finance-table-money--danger',
-        render: (row) => (
-          <FinanceMoney
-            amount={row.total_overdue}
-            currency={row.currency}
-            className="finance-table-money__value finance-table-money__value--danger"
-          />
-        ),
-      },
-      {
-        key: 'pending_cheque',
-        header: t('admin.finance.billingAccounts.columns.pendingCheque'),
-        render: (row) => (
-          <FinanceMoney amount={row.pending_cheque_amount} currency={row.currency} />
-        ),
-      },
-      {
-        key: 'unallocated',
-        header: t('admin.finance.billingAccounts.columns.unallocated'),
-        render: (row) => (
-          <FinanceMoney amount={row.unallocated_collection_amount} currency={row.currency} />
-        ),
-      },
-      {
-        key: 'status',
-        header: t('admin.finance.billingAccounts.columns.status'),
-        render: (row) => (
-          <span dir="auto">{row.status_label ?? row.status ?? t('common.dash')}</span>
-        ),
-      },
-      {
-        key: 'actions',
-        header: t('admin.finance.billingAccounts.columns.actions'),
-        render: (row) => {
-          const kind = resolveBillingAccountKindFromRow(row);
-          const detailHref = `/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
-          const familyCollectHref = `${detailHref}${detailHref.includes('?') ? '&' : '?'}family_collect=1`;
-          return (
-            <div className="finance-billing-account-row-actions">
-              <Link href={detailHref} className="btn btn--ghost btn--sm" onClick={(e) => e.stopPropagation()}>
-                {t('admin.finance.billingAccounts.openAccount')}
-              </Link>
-              {kind === 'family' ? (
-                <Link
-                  href={familyCollectHref}
-                  className="btn btn--primary btn--sm"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {t('admin.finance.billingAccounts.receiveFamilyPayment')}
-                </Link>
-              ) : kind === 'individual' ? (
-                <Link
-                  href={`/admin/finance/collections/new?billing_partner_id=${row.billing_partner_id}&returnTo=${encodeURIComponent(detailHref)}`}
-                  className="btn btn--secondary btn--sm"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {t('admin.finance.billingAccounts.receivePayment')}
-                </Link>
-              ) : null}
-            </div>
-          );
-        },
-      },
-    ],
-    [t, returnTo],
-  );
 
   function resetAll() {
     onFiltersChange({
@@ -546,27 +415,18 @@ export function BillingAccountsListPanel({
           }
           aria-busy={isRefetching || undefined}
         >
-          <div className="finance-billing-accounts-table-wrap finance-billing-accounts-desktop">
-            <DataTable
-              columns={columns}
-              rows={rows}
-              rowKey={(row) => row.billing_partner_id}
-              stickyHeader
-              onRowClick={(row) => {
-                window.location.href = `/admin/finance/billing-accounts/${row.billing_partner_id}`;
-              }}
-            />
-          </div>
-          <div className="finance-billing-accounts-mobile">
+          <div className="finance-billing-accounts-list" aria-label={t('admin.finance.billingAccounts.pageTitle')}>
             {rows.map((row) => {
               const kind = resolveBillingAccountKindFromRow(row);
+              const detailHref = `/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
+              const familyCollectHref = `${detailHref}${detailHref.includes('?') ? '&' : '?'}family_collect=1`;
               return (
                 <article key={row.billing_partner_id} className="card finance-billing-account-card">
                   <div className="finance-billing-account-card__head">
                     <div className="finance-billing-account-card__identity">
-                      <strong dir="auto" className="finance-billing-account-name">
+                      <Link href={detailHref} dir="auto" className="finance-billing-account-name">
                         {accountLabel(row)}
-                      </strong>
+                      </Link>
                       <span className={billingAccountKindBadgeClass(kind)}>
                         {t(billingAccountKindLabelKey(kind))}
                       </span>
@@ -590,6 +450,12 @@ export function BillingAccountsListPanel({
                       </dd>
                     </div>
                     <div>
+                      <dt>{t('admin.finance.billingAccounts.columns.confirmedPaid')}</dt>
+                      <dd>
+                        <FinanceMoney amount={row.confirmed_paid} currency={row.currency} />
+                      </dd>
+                    </div>
+                    <div>
                       <dt>{t('admin.finance.billingAccounts.columns.remaining')}</dt>
                       <dd>
                         <FinanceMoney amount={row.total_remaining} currency={row.currency} />
@@ -608,19 +474,42 @@ export function BillingAccountsListPanel({
                       </dd>
                     </div>
                   </dl>
+                  {row.pending_cheque_amount != null || row.unallocated_collection_amount != null ? (
+                    <dl className="finance-billing-account-card__secondary-metrics">
+                      {row.pending_cheque_amount != null ? (
+                        <div>
+                          <dt>{t('admin.finance.billingAccounts.columns.pendingCheque')}</dt>
+                          <dd><FinanceMoney amount={row.pending_cheque_amount} currency={row.currency} /></dd>
+                        </div>
+                      ) : null}
+                      {row.unallocated_collection_amount != null ? (
+                        <div>
+                          <dt>{t('admin.finance.billingAccounts.columns.unallocated')}</dt>
+                          <dd><FinanceMoney amount={row.unallocated_collection_amount} currency={row.currency} /></dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  ) : null}
                   <div className="finance-billing-account-card__actions row">
                     <Link
-                      href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                      href={detailHref}
                       className="btn btn--ghost btn--sm"
                     >
                       {t('admin.finance.billingAccounts.openAccount')}
                     </Link>
                     {kind === 'family' ? (
                       <Link
-                        href={`/admin/finance/billing-accounts/${row.billing_partner_id}?family_collect=1${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                        href={familyCollectHref}
                         className="btn btn--primary btn--sm"
                       >
                         {t('admin.finance.billingAccounts.receiveFamilyPayment')}
+                      </Link>
+                    ) : kind === 'individual' ? (
+                      <Link
+                        href={`/admin/finance/collections/new?billing_partner_id=${row.billing_partner_id}&returnTo=${encodeURIComponent(detailHref)}`}
+                        className="btn btn--secondary btn--sm"
+                      >
+                        {t('admin.finance.billingAccounts.receivePayment')}
                       </Link>
                     ) : null}
                   </div>
