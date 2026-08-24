@@ -10,6 +10,10 @@ import type {
   GuardianRemovalImpact,
   RelationshipType,
 } from './student-360';
+import type {
+  GuardianAccountAccessPolicy,
+  GuardianLegalStatus,
+} from './guardian-access';
 import type { IdentityDocumentReadFields } from './identity-document';
 
 export type ParentRelation = 'father' | 'mother' | 'guardian' | string;
@@ -46,6 +50,9 @@ export interface ParentGuardianProfile {
 export interface ParentChildRelationship {
   relationship_id?: number;
   relationship_type?: RelationshipType | string;
+  legal_status?: GuardianLegalStatus | null;
+  account_access_policy?: GuardianAccountAccessPolicy | null;
+  account_access_eligible?: boolean | null;
   is_primary_contact?: boolean;
   is_legal_guardian?: boolean;
   is_financial_responsible?: boolean;
