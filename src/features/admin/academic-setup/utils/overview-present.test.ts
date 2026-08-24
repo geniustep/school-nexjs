@@ -15,6 +15,7 @@ function step(id: GuidedStep['id'], partial: Partial<GuidedStep> = {}): GuidedSt
     state: 'not_started',
     lockReasonKey: null,
     missingCount: 0,
+    blockingCount: 0,
     summaryKey: 'k',
     summaryParams: {},
     href: '/',
