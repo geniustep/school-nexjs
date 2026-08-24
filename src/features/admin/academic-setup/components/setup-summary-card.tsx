@@ -94,12 +94,12 @@ function domainStats(
       return <span>{t('admin.academicSetup.cards.staffCount', { count: s.staff ?? 0 })}</span>;
     case 'assignments':
       return (
-        <>
-          <span>{t('admin.academicSetup.cards.assignmentsCount', { count: s.assigned ?? 0 })}</span>
-          {(s.missing ?? 0) > 0 && (
-            <strong>{t('admin.academicSetup.cards.missingTeachers', { count: s.missing })}</strong>
-          )}
-        </>
+        <span>
+          {t('admin.academicSetup.guided.summaryAssignments', {
+            assigned: s.assigned ?? 0,
+            missing: s.missing_teacher_assignments_count ?? s.missing ?? 0,
+          })}
+        </span>
       );
     default:
       return null;

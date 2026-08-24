@@ -1,0 +1,186 @@
+.guardian-legal-access {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--c-surface, #fff) 0%, var(--c-surface-2, #eef2f8) 160%);
+}
+
+.guardian-legal-access__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guardian-legal-access__intro h4,
+.guardian-legal-access__intro p,
+.guardian-legal-access__outcome p {
+  margin: 0;
+}
+
+.guardian-legal-access__intro h4 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.guardian-legal-access__intro p {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--c-text-muted, #64748b);
+}
+
+.guardian-legal-access__fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.guardian-legal-access__fieldset legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.guardian-legal-access__choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.guardian-access-choice {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 9px;
+  min-height: 84px;
+  padding: 11px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.guardian-access-choice:hover {
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 38%, var(--c-border, #e2e8f0));
+  transform: translateY(-1px);
+}
+
+.guardian-access-choice--selected {
+  border-color: var(--c-primary, #243b6b);
+  background: color-mix(in srgb, var(--c-primary, #243b6b) 7%, var(--c-surface, #fff));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-primary, #243b6b) 10%, transparent);
+}
+
+.guardian-access-choice input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.guardian-access-choice:has(input:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--c-primary, #243b6b) 24%, transparent);
+  outline-offset: 2px;
+}
+
+.guardian-access-choice__marker {
+  position: relative;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  border: 1.5px solid var(--c-border, #cbd5e1);
+  border-radius: 999px;
+  background: var(--c-surface, #fff);
+}
+
+.guardian-access-choice--selected .guardian-access-choice__marker {
+  border-color: var(--c-primary, #243b6b);
+}
+
+.guardian-access-choice--selected .guardian-access-choice__marker::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: var(--c-primary, #243b6b);
+}
+
+.guardian-access-choice__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guardian-access-choice__content strong {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--c-text, #0f172a);
+}
+
+.guardian-access-choice__content span {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--c-text-muted, #64748b);
+}
+
+.guardian-legal-access__outcome {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.guardian-legal-access__outcome-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.guardian-legal-access__outcome--success {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.guardian-legal-access__outcome--pending {
+  color: #92400e;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.guardian-legal-access__outcome--blocked {
+  color: #991b1b;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+@media (max-width: 760px) {
+  .guardian-legal-access {
+    padding: 14px;
+  }
+
+  .guardian-legal-access__choices {
+    grid-template-columns: 1fr;
+  }
+
+  .guardian-access-choice {
+    min-height: 0;
+  }
+}

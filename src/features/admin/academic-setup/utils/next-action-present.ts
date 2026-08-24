@@ -1,4 +1,4 @@
-import type { GuidedStep, GuidedStepId, GuidedStepState } from './guided-flow';
+import type { GuidedStep, GuidedStepId } from './guided-flow';
 
 /** Core journey order for next-action presentation (staff excluded). */
 export const NEXT_ACTION_STEP_ORDER: GuidedStepId[] = [
@@ -9,13 +9,14 @@ export const NEXT_ACTION_STEP_ORDER: GuidedStepId[] = [
   'assignments',
 ];
 
-const ACTIONABLE_STATES: GuidedStepState[] = [
-  'not_started',
-  'in_progress',
-  'needs_attention',
-  'blocked',
-];
-
+/**
+ * Follow journey dependencies, not the lowest readiness score.
+ *
+ * A step becomes the next required action when its prerequisite is absent
+ * (`not_started`) or it carries a blocking issue. Non-blocking warnings may
+ * lower readiness and remain visible, but they must not hold the journey on an
+ * earlier step. This keeps readiness advisory unless a true prerequisite is blocked.
+ */
 export function resolveNextStep(steps: GuidedStep[]): GuidedStep | null {
   for (const id of NEXT_ACTION_STEP_ORDER) {
     const step = steps.find((s) => s.id === id);
@@ -24,7 +25,7 @@ export function resolveNextStep(steps: GuidedStep[]): GuidedStep | null {
     }
     // Once levels exist, class/subject gaps belong to later steps — not «add levels».
     if (id === 'levels' && step.state !== 'not_started') continue;
-    if (ACTIONABLE_STATES.includes(step.state)) {
+    if (step.state === 'not_started' || step.state === 'blocked' || step.blockingCount > 0) {
       return step;
     }
   }
