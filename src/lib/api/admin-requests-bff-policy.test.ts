@@ -54,7 +54,7 @@ describe('admin requests BFF policy', () => {
     });
     expect(assertBffRoutePolicy('/staff/admin-requests/17/reply', 'GET')).toEqual({
       ok: false,
-      reason: 'path_not_allowed',
+      reason: 'method_not_allowed',
     });
   });
 
