@@ -7401,6 +7401,7 @@
           "guardianSourceMatchesLead": "Select the right person below, or confirm this is a new guardian.",
           "guardianSourceSearchingTitle": "Checking",
           "addAnotherGuardian": "Add another guardian",
+          "additionalRequiresPrimary": "Add or link the primary guardian before adding another guardian.",
           "additionalGuardianTitle": "Additional guardian",
           "removeAdditionalGuardian": "Remove"
         },
@@ -7414,6 +7415,7 @@
           "viewOnlyHint": "Billing responsibility is view-only — changing it requires billing profile management permission.",
           "guardianUnresolvedHint": "Guardian billing is selected. Add a guardian above before saving.",
           "studentWarning": "The student will be the intended billing party. This is not applied automatically when a guardian is missing.",
+          "studentAddGuardianOptional": "Add a guardian for this student (optional)",
           "studentConfirmLabel": "I confirm that the student should be the billing party",
           "studentReasonLabel": "Reason for student billing",
           "studentReasonPlaceholder": "Explain why the student is the billing party…",
