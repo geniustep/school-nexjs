@@ -64,7 +64,7 @@ describe('director attention inbox', () => {
       </LocaleProvider>,
     );
 
-    expect(screen.getByRole('heading', { name: 'يحتاج انتباهك اليوم' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'أولويات اليوم' })).toBeTruthy();
     expect(screen.queryByText('قرارات ومتابعات عاجلة — انقر للانتقال.')).toBeNull();
     expect(screen.queryByText('4 عنصر(ات) تحتاج متابعة')).toBeNull();
     expect(screen.getByText('21 حسابًا بحاجة إلى متابعة التحصيل')).toBeTruthy();

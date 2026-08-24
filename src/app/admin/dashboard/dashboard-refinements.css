@@ -14,6 +14,13 @@
   display: none;
 }
 
+/* The executive daily-decision surface contains the concise message digest.
+   Keep the legacy recipient feed reachable from navigation without repeating it
+   below the dashboard. */
+.admin-dashboard-refined .admin-dashboard-recipient-announcements {
+  display: none;
+}
+
 .admin-workspace--dashboard .admin-dashboard-tail > .admin-section--academic {
   margin-block-start: 32px;
   padding-block-start: 20px;
