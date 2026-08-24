@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { VercelWebAnalytics } from '@/components/analytics/vercel-web-analytics';
 import { LocaleProvider } from '@/features/i18n/locale-context';
-import { ibmPlexArabic, plusJakarta } from '@/lib/fonts';
+import { cairo, plusJakarta } from '@/lib/fonts';
 import { OPERATIONAL_ROBOTS_METADATA } from '@/lib/seo/operational-indexing';
 
 export const metadata: Metadata = {
@@ -22,10 +22,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body className={`${plusJakarta.variable} ${ibmPlexArabic.variable}`}>
+      <body className={`${plusJakarta.variable} ${cairo.variable}`}>
         <LocaleProvider>{children}</LocaleProvider>
         <VercelWebAnalytics />
       </body>
     </html>
   );
 }
+
