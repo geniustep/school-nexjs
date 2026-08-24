@@ -29,6 +29,26 @@ describe('admin requests BFF policy', () => {
     expect(assertBffRoutePolicy(endpoints.admin.adminRequestAction(17, 'start-review'), 'POST')).toEqual({ ok: true });
   });
 
+  it('allows only the narrow assigned-staff inbox and actions', () => {
+    expect(assertBffRoutePolicy('/staff/admin-requests', 'GET')).toEqual({ ok: true });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17', 'GET')).toEqual({ ok: true });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/wait-requester', 'POST')).toEqual({ ok: true });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/resolve', 'POST')).toEqual({ ok: true });
+
+    expect(assertBffRoutePolicy('/staff/admin-requests', 'POST')).toEqual({
+      ok: false,
+      reason: 'method_not_allowed',
+    });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/refer', 'POST')).toEqual({
+      ok: false,
+      reason: 'path_not_allowed',
+    });
+    expect(assertBffRoutePolicy('/staff/admin-requests/17/resolve', 'GET')).toEqual({
+      ok: false,
+      reason: 'path_not_allowed',
+    });
+  });
+
   it('keeps admin request mutation bodies free from active-school injection', () => {
     expect(shouldBindActiveSchoolInBody(endpoints.admin.adminRequestAction(17, 'start-review'), 'POST')).toBe(false);
   });
