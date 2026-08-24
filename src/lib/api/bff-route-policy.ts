@@ -247,7 +247,7 @@ const ROUTE_RULES: RouteRule[] = [
   },
   {
     methods: ['POST'],
-    test: (p) => /^\/staff\/admin-requests\/[^/]+\/(?:wait-requester|resolve)$/.test(p),
+    test: (p) => /^\/staff\/admin-requests\/[^/]+\/reply$/.test(p),
   },
   {
     methods: ['GET', 'HEAD'],
