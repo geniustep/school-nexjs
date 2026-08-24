@@ -32,6 +32,8 @@ export interface AdminRequest {
   updated_at?: string | null;
   assigned?: { id: number; name: string } | null;
   assigned_at?: string | null;
+  resolved_at?: string | null;
+  resolution_summary?: string | null;
   allowed_actions?: string[];
   replies?: AdminRequestReply[];
   attachments?: AdminRequestAttachment[];
