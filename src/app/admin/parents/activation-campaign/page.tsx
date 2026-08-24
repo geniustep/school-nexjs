@@ -6,20 +6,12 @@ import { FormEvent, useState } from 'react';
 import { Badge, Card, InfoBanner, PageHeader, StatCard } from '@/components/ui/primitives';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import { useT } from '@/features/i18n/locale-context';
-import type { ParentActivationCampaign, ParentActivationExclusionReason } from '@/types/parent-activation-campaign';
-
-const reasonKeys: Record<ParentActivationExclusionReason, string> = {
-  no_active_relationship: 'admin.parentActivation.reason.noActiveRelationship',
-  account_not_allowed: 'admin.parentActivation.reason.accountNotAllowed',
-  communication_not_allowed: 'admin.parentActivation.reason.communicationNotAllowed',
-  no_user_account: 'admin.parentActivation.reason.noUserAccount',
-  inactive_user_account: 'admin.parentActivation.reason.inactiveUserAccount',
-  identity_unavailable: 'admin.parentActivation.reason.identityUnavailable',
-};
+import { useLocale } from '@/features/i18n/locale-context';
+import { getParentActivationExclusionLabel } from '@/features/parents/parent-activation-exclusion-reason';
+import type { ParentActivationCampaign } from '@/types/parent-activation-campaign';
 
 export default function ParentActivationCampaignPage() {
-  const t = useT();
+  const { locale, t } = useLocale();
   const [name, setName] = useState('');
   const [campaign, setCampaign] = useState<ParentActivationCampaign | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -62,10 +54,13 @@ export default function ParentActivationCampaignPage() {
       </div>
       <Card><h3>{t('admin.parentActivation.recipients')}</h3>
         {campaign.recipients.length === 0 ? <p className="muted">{t('admin.parentActivation.noRecipients')}</p> : <ul className="stack-list">
-          {campaign.recipients.map((recipient) => <li key={recipient.parent_id} className="between">
-            <Link href={`/admin/parents/${recipient.parent_id}`} dir="auto">{recipient.parent_name}</Link>
-            {recipient.eligible_for_send ? <Badge tone="green">{t('admin.parentActivation.eligible')}</Badge> : <span><Badge tone="amber">{t('admin.parentActivation.excluded')}</Badge>{recipient.exclusion_reason ? <span className="tiny muted"> {t(reasonKeys[recipient.exclusion_reason])}</span> : null}</span>}
-          </li>)}
+          {campaign.recipients.map((recipient) => {
+            const exclusionLabel = getParentActivationExclusionLabel(locale, t, recipient.exclusion_reason);
+            return <li key={recipient.parent_id} className="between">
+              <Link href={`/admin/parents/${recipient.parent_id}`} dir="auto">{recipient.parent_name}</Link>
+              {recipient.eligible_for_send ? <Badge tone="green">{t('admin.parentActivation.eligible')}</Badge> : <span><Badge tone="amber">{t('admin.parentActivation.excluded')}</Badge>{exclusionLabel ? <span className="tiny muted"> {exclusionLabel}</span> : null}</span>}
+            </li>;
+          })}
         </ul>}
       </Card>
     </section> : null}
