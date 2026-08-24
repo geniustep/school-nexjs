@@ -382,6 +382,12 @@ function teacherNav(): NavSection[] {
       items: [
         { labelKey: 'nav.communicationChannels', href: '/teacher/channels', icon: '💬' },
         { labelKey: 'nav.announcements', href: '/teacher/announcements', icon: '📣' },
+        {
+          labelKey: 'nav.adminRequests',
+          href: '/teacher/admin-requests',
+          icon: '📨',
+          isActive: (pathname) => pathname.startsWith('/teacher/admin-requests'),
+        },
       ],
     },
     {
