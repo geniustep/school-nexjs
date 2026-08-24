@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   adminRequestFileClientItemId,
+  adminRequestUploadSessionPayload,
+  approveReplyPayload,
   createRequestPayload,
   replyPayload,
-  staffActionPayload,
+  requestReplyChangesPayload,
+  staffReplyPayload,
 } from './api';
 
 describe('admin request client payloads', () => {
@@ -31,14 +34,39 @@ describe('admin request client payloads', () => {
     }
   });
 
-  it('limits assignee actions to their narrow payloads', () => {
-    expect(staffActionPayload('wait_requester', { reason: '  نحتاج وثيقة  ' })).toEqual({
-      reason: 'نحتاج وثيقة',
+  it('uses the same narrow allow-list for staff replies', () => {
+    expect(staffReplyPayload({ body: '  جواب الموظف  ', upload_session_id: 'session-1' })).toEqual({
+      body: 'جواب الموظف',
+      upload_session_id: 'session-1',
     });
-    expect(staffActionPayload('resolve', { resolution_summary: '  تمت المعالجة  ' })).toEqual({
+  });
+
+  it('builds admin review payloads without identity or assignment fields', () => {
+    expect(approveReplyPayload({
+      reply_id: 12,
+      outcome: 'resolved',
+      resolution_summary: '  تمت المعالجة  ',
+    })).toEqual({
+      reply_id: 12,
+      outcome: 'resolved',
       resolution_summary: 'تمت المعالجة',
     });
-    expect(staffActionPayload('wait_requester', { resolution_summary: 'ignored' })).toBeUndefined();
+    expect(requestReplyChangesPayload({ reply_id: 13, reason: '  يرجى التوضيح  ' })).toEqual({
+      reply_id: 13,
+      reason: 'يرجى التوضيح',
+    });
+  });
+
+  it('binds only staff upload sessions to the assigned administrative request', () => {
+    expect(adminRequestUploadSessionPayload()).toEqual({ purpose: 'admin_request' });
+    expect(adminRequestUploadSessionPayload(17)).toEqual({
+      purpose: 'admin_request',
+      admin_request_id: 17,
+    });
+    expect(adminRequestUploadSessionPayload('17')).toEqual({
+      purpose: 'admin_request',
+      admin_request_id: '17',
+    });
   });
 
   it('creates a stable opaque client_item_id for upload retries', () => {
