@@ -1,4 +1,4 @@
-import { IBM_Plex_Sans_Arabic, Plus_Jakarta_Sans } from 'next/font/google';
+import { Cairo, Plus_Jakarta_Sans } from 'next/font/google';
 
 export const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -7,10 +7,11 @@ export const plusJakarta = Plus_Jakarta_Sans({
   fallback: ['Inter', 'Arial', 'sans-serif'],
 });
 
-export const ibmPlexArabic = IBM_Plex_Sans_Arabic({
+export const cairo = Cairo({
   subsets: ['arabic'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-arabic',
   display: 'swap',
-  fallback: ['Cairo', 'Arial', 'sans-serif'],
+  fallback: ['Arial', 'sans-serif'],
 });
+

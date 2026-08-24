@@ -692,6 +692,204 @@ function ExecutiveDirectorView({
     ? t('admin.executive.dataRefreshing')
     : t('admin.executive.dataUpdated', { time: formatDateTime(new Date().toISOString()) });
 
+  // The executive contract intentionally does not expose a weekly schedule or
+  // artificial priority ranks. Keep the decision surface tied to its live
+  // interventions, preserving the server-provided order while promoting items
+  // that explicitly need follow-up (amber) first.
+  const dailyPriorities = [...allInterventionItems]
+    .sort((a, b) => Number(b.tone === 'amber') - Number(a.tone === 'amber'))
+    .slice(0, 4);
+  const pulseCards = [
+    {
+      id: 'attendance',
+      href: '/admin/attendance?date=today',
+      label: t('admin.executive.kpiAttendance'),
+      value: attendanceKpi.displayValue,
+      hint:
+        attendanceKpi.state === 'unavailable' || attendanceKpi.displayValue === '—'
+          ? 'لم تكتمل بيانات الحضور بعد'
+          : attendanceKpi.state === 'partial'
+            ? t('admin.executive.kpiAttendanceExecutiveHint', {
+                absent: attendanceGaps?.absent_today_count ?? 0,
+                late: attendanceGaps?.late_today_count ?? 0,
+              })
+            : t('admin.executive.kpiAttendanceHint', { recorded: totalRecorded }),
+    },
+    {
+      id: 'students', href: '/admin/students', label: t('admin.executive.kpiActiveStudents'),
+      value: d.total_students ?? '—', hint: activeYearLabel ?? t('admin.executive.kpiActiveStudentsHintDefault'),
+    },
+    {
+      id: 'learning', href: '/admin/exams', label: t('nav.exams'),
+      value: d.exams_this_week ?? '—', hint: t('admin.executive.kpiInterventionHint'),
+    },
+    {
+      id: 'finance', href: executiveFinance?.overdue ? '/admin/finance/installments?status=overdue' : '/admin/finance', label: t('nav.finance'),
+      value: executiveFinance ? <ExecutiveKpiMoney amount={executiveFinance.overdue} currency={executiveFinance.currency} /> : financeTotals ? <ExecutiveKpiMoney amount={financeTotals.total_overdue ?? financeTotals.overdue_amount} currency={financeTotals.currency} /> : '—',
+      hint: executiveFinance?.families_overdue_count ? t('admin.executive.kpiOverdueHint', { count: executiveFinance.families_overdue_count }) : t('admin.executive.kpiOverdueHintDefault'),
+    },
+  ];
+
+  /*
+   * The director dashboard is intentionally a decision surface, not a
+   * re-skin of the legacy executive panels below.  It uses the same live
+   * payloads and routes, but gives the day’s work a single reading order.
+   */
+  const priorityRank = (item: AdminActionItem) => {
+    if (item.id.includes('attendance') || item.id.includes('absence')) return 0;
+    if (item.id.includes('admission') || item.id.includes('registration')) return 1;
+    if (item.tone === 'amber' || item.id.includes('finance')) return 2;
+    return 3;
+  };
+  const priorityMeta = (item: AdminActionItem, index: number) => {
+    const rank = priorityRank(item);
+    const severity = rank === 0 ? 'عاجل' : rank === 1 ? 'مرتفع' : rank === 2 ? 'متوسط' : 'منخفض';
+    const status = index === 0
+      ? 'يتطلب تدخلك'
+      : item.id.includes('admission') || item.id.includes('registration')
+        ? 'مسؤول: الإدارة'
+        : item.id.includes('finance')
+          ? 'قيد المتابعة'
+          : undefined;
+    return { severity, status };
+  };
+  const priorityAction = (item: AdminActionItem) => {
+    if (item.href?.includes('/attendance')) return 'عرض الغياب';
+    if (item.href?.includes('/admissions')) return 'معالجة الطلبات';
+    if (item.href?.includes('/finance')) return 'عرض مركز المالية';
+    if (item.href?.includes('/announcements')) return 'فتح الرسائل والمهام';
+    return 'عرض التفاصيل';
+  };
+  const priorityDomain = (item: AdminActionItem) => {
+    if (item.href?.includes('/attendance')) return 'attendance';
+    if (item.href?.includes('/admissions')) return 'admissions';
+    if (item.href?.includes('/finance')) return 'finance';
+    if (item.href?.includes('/exams') || item.href?.includes('/exam-results')) return 'learning';
+    if (item.href?.includes('/announcements') || item.href?.includes('/channels')) return 'messages';
+    return item.id;
+  };
+  // Avoid presenting several variants of the same operational queue as the
+  // director's entire day. One most-urgent live item per domain is clearer;
+  // fewer than four priorities is an honest empty-state outcome, not a gap
+  // filled with synthetic work.
+  const seenPriorityDomains = new Set<string>();
+  const decisionPriorities = [...allInterventionItems]
+    .sort((a, b) => priorityRank(a) - priorityRank(b))
+    .filter((item) => {
+      const domain = priorityDomain(item);
+      if (seenPriorityDomains.has(domain)) return false;
+      seenPriorityDomains.add(domain);
+      return true;
+    })
+    .slice(0, 4);
+  const financeOverdue = executiveFinance?.overdue ?? financeTotals?.total_overdue ?? financeTotals?.overdue_amount;
+  const financeOverdueCount = executiveFinance?.families_overdue_count;
+  // `collected_today` is the only dashboard value whose period is explicitly
+  // today. Do not substitute a monthly or arbitrary-period total here.
+  const todayRevenue = normalizeMoneyValue(executiveFinance?.collected_today);
+  const todayRevenueCurrency = executiveFinance?.currency;
+  const pulseLabels: Record<string, string> = {
+    attendance: 'الحضور',
+    students: 'التلاميذ والتسجيل',
+    learning: 'التعلم والتقويم',
+    finance: 'المالية',
+  };
+
+  if (widgets.executiveLayout) {
+    return (
+    <main className="director-daily-surface" aria-label="لوحة القيادة اليومية">
+      <section className="director-daily-priorities" aria-labelledby="daily-priorities-title">
+        <header className="director-daily-heading">
+          <div className="director-daily-heading__identity">
+            <h1 id="daily-priorities-title">أولويات اليوم</h1>
+            <time dateTime={today}>{formatDate(today)}</time>
+          </div>
+          <div className="director-daily-heading__tools">
+            <Link className="director-revenue-summary" href="/admin/finance/collections" aria-label="فتح تحصيلات اليوم">
+              <span>مداخيل اليوم</span>
+              <strong>
+                {todayRevenue != null ? (
+                  <FinanceMoney amount={todayRevenue} currency={todayRevenueCurrency} />
+                ) : (
+                  'غير متاحة حاليًا'
+                )}
+              </strong>
+            </Link>
+            <Link className="director-header-action director-header-action--primary" href="/admin/finance/collections/new">
+              تحصيل اليوم
+            </Link>
+            <Link className="director-header-action" href="/admin/communication/compose">
+              إرسال رسالة
+            </Link>
+          </div>
+        </header>
+        {executivePending ? (
+          <p className="director-daily-empty">{t('common.loading')}</p>
+        ) : decisionPriorities.length ? (
+          <ol className="director-priority-list">
+            {decisionPriorities.map((item, index) => {
+              const meta = priorityMeta(item, index);
+              return (
+                <li key={item.id} className="director-priority-row">
+                  <span className="director-priority-icon" aria-hidden="true">{item.icon ?? '•'}</span>
+                  <div className="director-priority-copy">
+                    <strong>{item.label}</strong>
+                    {item.hint && <span>{item.hint}</span>}
+                  </div>
+                  <div className="director-priority-meta">
+                    {meta.status && <span className="director-priority-status">{meta.status}</span>}
+                    <span className={`director-priority-severity director-priority-severity--${priorityRank(item)}`}>{meta.severity}</span>
+                  </div>
+                  {item.href ? (
+                    <Link className={cn('director-priority-action', index === 0 && 'director-priority-action--primary')} href={item.href}>
+                      {priorityAction(item)}
+                    </Link>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="director-daily-empty">{t('admin.executive.noInterventions')}</p>
+        )}
+      </section>
+
+      <section className="director-pulse" aria-labelledby="director-pulse-title">
+        <h2 id="director-pulse-title">نبض المؤسسة</h2>
+        <div className="director-pulse-grid">
+          {pulseCards.map((card) => (
+            <Link key={card.id} href={card.href} className="director-pulse-item">
+              <span className="director-pulse-label">{pulseLabels[card.id] ?? card.label}</span>
+              <strong className="director-pulse-value">{card.id === 'learning' && card.value !== '—' ? <>{card.value} تقييمات جديدة</> : card.id === 'finance' && financeOverdueCount ? <>{financeOverdueCount} حساباً متأخراً · <FinanceMoney amount={normalizeMoneyValue(financeOverdue) ?? 0} currency={executiveFinance?.currency ?? financeTotals?.currency} /></> : card.value}</strong>
+              <span className="director-pulse-hint">{card.hint}</span>
+              <span className="director-pulse-chevron" aria-hidden="true">‹</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="director-bottom-grid">
+        <section className="director-summary" aria-labelledby="director-week-title">
+          <h2 id="director-week-title">متابعة هذا الأسبوع</h2>
+          <ul>
+            {d.next_exam ? (
+              <li>
+                <Link href="/admin/exams">
+                  <span className="director-summary-icon" aria-hidden="true">▣</span>
+                  <span className="director-summary-body">{t('admin.cmd.reviewNextExam', { name: d.next_exam.name })}</span>
+                  <time>{d.next_exam.exam_date ? formatDate(d.next_exam.exam_date) : ''}</time>
+                </Link>
+              </li>
+            ) : (
+              <li className="director-daily-empty">لا توجد متابعة مجدولة هذا الأسبوع</li>
+            )}
+          </ul>
+        </section>
+      </div>
+    </main>
+    );
+  }
+
   return (
     <div className="admin-executive-dashboard">
       <header className="exec-hero">
@@ -750,7 +948,7 @@ function ExecutiveDirectorView({
         </div>
       )}
 
-      <section className="exec-kpi-zone" aria-label={t('admin.executive.kpiSectionTitle')}>
+      <section className="exec-kpi-zone exec-kpi-zone--legacy" aria-label={t('admin.executive.kpiSectionTitle')}>
         <ExecutiveZoneLabel>{t('admin.executive.kpiSectionTitle')}</ExecutiveZoneLabel>
         <div className="exec-kpi-grid">
           {kpiCards.map((card) => (
@@ -793,9 +991,10 @@ function ExecutiveDirectorView({
               <ExecutiveEmpty icon="…" title={t('common.loading')} />
             ) : (
               <ExecutiveDecisionList
-                items={allInterventionItems}
+                items={dailyPriorities}
                 emptyTitle={t('admin.executive.noInterventions')}
                 emptyDescription={t('admin.executive.noInterventionsDesc')}
+                visibleLimit={4}
               />
             )}
 
@@ -1225,6 +1424,36 @@ function ExecutiveDirectorView({
           )}
         </aside>
       </div>
+
+      <section className="daily-pulse" aria-label={t('admin.executive.kpiSectionTitle')}>
+        <header className="daily-pulse__head"><h2>نبض المؤسسة</h2></header>
+        <div className="daily-pulse__grid">
+          {pulseCards.map((card) => (
+            <Link key={card.id} href={card.href} className="daily-pulse__item">
+              <span className="daily-pulse__label">{card.label}</span>
+              <strong className="daily-pulse__value">{card.value}</strong>
+              <span className="daily-pulse__hint">{card.hint}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="daily-summary-grid">
+        <section className="daily-summary" aria-labelledby="daily-messages-title">
+          <h2 id="daily-messages-title">{t('dashboard.latestMessages')}</h2>
+          {d.latest_messages?.length ? (
+            <ul className="daily-summary__list">
+              {d.latest_messages.slice(0, 3).map((message) => (
+                <li key={message.id}><Link href={`/admin/announcements/${message.id}`}><span aria-hidden="true">✉</span><strong>{message.sender}</strong><span>{message.body}</span></Link></li>
+              ))}
+            </ul>
+          ) : <ExecutiveEmpty icon="◌" title={t('common.dash')} />}
+        </section>
+        <section className="daily-summary" aria-labelledby="daily-week-title">
+          <h2 id="daily-week-title">متابعة هذا الأسبوع</h2>
+          <p className="daily-summary__empty">{d.next_exam ? t('admin.cmd.reviewNextExam', { name: d.next_exam.name }) : t('common.dash')}</p>
+        </section>
+      </div>
     </div>
   );
 }
@@ -1244,3 +1473,4 @@ export function AdminExecutiveDashboard({
 
   return <ExecutiveDirectorView data={data} user={user} />;
 }
+

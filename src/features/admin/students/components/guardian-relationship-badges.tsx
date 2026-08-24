@@ -2,8 +2,15 @@
 
 import { useState } from 'react';
 import { Badge } from '@/components/ui/primitives';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import type { GuardianAccessContractFields } from '@/types/guardian-access';
 import type { GuardianRelationship } from '@/types/student-360';
+import {
+  guardianAccessCopy,
+  legalStatusLabel,
+  resolveGuardianAccountAccessPolicy,
+  resolveGuardianLegalStatus,
+} from '../utils/guardian-access-contract';
 
 type BadgeTone = 'green' | 'blue' | 'amber' | 'slate';
 
@@ -14,14 +21,33 @@ interface ResponsibilityBadge {
   group: 'role' | 'permissions';
 }
 
-function collectBadges(rel: GuardianRelationship, t: (k: string) => string): ResponsibilityBadge[] {
+type RelationshipWithAccess = GuardianRelationship & GuardianAccessContractFields;
+
+function collectBadges(
+  rel: RelationshipWithAccess,
+  t: (k: string) => string,
+  locale: ReturnType<typeof useLocale>['locale'],
+): ResponsibilityBadge[] {
   const badges: ResponsibilityBadge[] = [];
+  const legalStatus = resolveGuardianLegalStatus(rel);
+  const policy = resolveGuardianAccountAccessPolicy(rel);
+  const copy = guardianAccessCopy(locale);
+
+  badges.push({
+    key: `legal-${legalStatus}`,
+    label: legalStatusLabel(locale, legalStatus),
+    tone: legalStatus === 'yes' ? 'blue' : legalStatus === 'unknown' ? 'amber' : 'slate',
+    group: 'role',
+  });
+
+  if (policy === 'allowed') {
+    badges.push({ key: 'account-allowed', label: copy.badgeAccessAllowed, tone: 'green', group: 'permissions' });
+  } else if (policy === 'blocked') {
+    badges.push({ key: 'account-blocked', label: copy.badgeAccessBlocked, tone: 'amber', group: 'permissions' });
+  }
 
   if (rel.is_primary_contact) {
     badges.push({ key: 'primary', label: t('admin.student360.primaryContact'), tone: 'green', group: 'role' });
-  }
-  if (rel.is_legal_guardian) {
-    badges.push({ key: 'legal', label: t('admin.student360.legalGuardian'), tone: 'blue', group: 'role' });
   }
   if (rel.is_financial_responsible) {
     badges.push({ key: 'financial', label: t('admin.student360.financialResponsible'), tone: 'amber', group: 'role' });
@@ -75,13 +101,14 @@ export function GuardianRelationshipBadges({
   isDefaultBilling,
   compactSummary = false,
 }: {
-  rel: GuardianRelationship;
+  rel: RelationshipWithAccess;
   isDefaultBilling?: boolean;
   compactSummary?: boolean;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
-  const badges = collectBadges(rel, t);
+  const badges = collectBadges(rel, t, locale);
 
   if (isDefaultBilling && !rel.is_financial_responsible) {
     badges.unshift({
