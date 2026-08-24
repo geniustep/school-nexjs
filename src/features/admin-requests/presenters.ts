@@ -33,6 +33,7 @@ const ROLE_LABELS: Record<string, string> = {
   guardian: 'ولي الأمر',
   student: 'التلميذ',
   admin: 'الإدارة',
+  teacher: 'الأستاذ',
   staff: 'الموظف',
   employee: 'الموظف',
   requester: 'صاحب الطلب',
@@ -50,6 +51,22 @@ const TYPE_LABELS: Record<string, string> = {
   lost_found: 'المفقودات',
   'administrative request': 'طلب إداري',
   'admin request': 'طلب إداري',
+};
+
+const ERROR_LABELS: Record<string, string> = {
+  admin_request_resolution_required: 'اكتب ملخص المعالجة قبل إنهاء الطلب.',
+  admin_request_forbidden: 'لا تملك صلاحية تنفيذ هذا الإجراء.',
+  admin_request_confidential_forbidden: 'لا تملك صلاحية الاطلاع على هذا الطلب السري.',
+  admin_request_not_found: 'تعذر العثور على الطلب الإداري.',
+  admin_request_invalid_transition: 'هذا الإجراء غير متاح في الحالة الحالية للطلب.',
+  validation_error: 'تحقق من البيانات المطلوبة ثم أعد المحاولة.',
+  unauthorized: 'انتهت الجلسة أو يلزم تسجيل الدخول من جديد.',
+};
+
+const ERROR_MESSAGE_LABELS: Record<string, string> = {
+  'resolution summary is required.': 'اكتب ملخص المعالجة قبل إنهاء الطلب.',
+  'not allowed to perform this action.': 'لا تملك صلاحية تنفيذ هذا الإجراء.',
+  'administrative request not found.': 'تعذر العثور على الطلب الإداري.',
 };
 
 function normalizedKey(value: string): string {
@@ -82,6 +99,20 @@ export function adminRequestTypeLabel(name?: string | null): string {
   }
 
   return TYPE_LABELS[value.toLowerCase()] ?? value;
+}
+
+export function adminRequestErrorLabel(
+  error?: { code?: string | null; message?: string | null } | null,
+): string {
+  const code = error?.code?.trim();
+  if (code && ERROR_LABELS[code]) return ERROR_LABELS[code];
+
+  const message = error?.message?.trim();
+  if (!message) return 'تعذر تنفيذ الإجراء. أعد المحاولة.';
+  const translated = ERROR_MESSAGE_LABELS[message.toLowerCase()];
+  if (translated) return translated;
+  if (/\p{Script=Arabic}/u.test(message)) return message;
+  return 'تعذر تنفيذ الإجراء. تحقق من البيانات ثم أعد المحاولة.';
 }
 
 export interface AdminRequestStaffOption {

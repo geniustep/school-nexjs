@@ -15,6 +15,7 @@ import {
 } from '../api';
 import {
   adminRequestActionLabel,
+  adminRequestErrorLabel,
   adminRequestRoleLabel,
   adminRequestStateLabel,
   adminRequestTypeLabel,
@@ -73,6 +74,10 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
       setError('اختر الموظف المسؤول قبل إحالة الطلب.');
       return;
     }
+    if (action === 'resolve' && !note.trim()) {
+      setError('اكتب ملخص المعالجة قبل إنهاء الطلب.');
+      return;
+    }
 
     setBusy(true);
     const response = role === 'admin'
@@ -96,7 +101,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
         : await postRequesterAction(role, requestId, action as 'submit' | 'cancel');
     setBusy(false);
     if (!response.success) {
-      setError(response.error.message);
+      setError(adminRequestErrorLabel(response.error));
       return;
     }
     setNote('');
@@ -117,7 +122,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
       }
       const session = await createAdminRequestUploadSession();
       if (!session.success) {
-        setError(session.error.message);
+        setError(adminRequestErrorLabel(session.error));
         setBusy(false);
         return;
       }
@@ -125,7 +130,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
       for (const file of files) {
         const uploaded = await uploadAdminRequestFile(session.data, file);
         if (!uploaded.success) {
-          setError(uploaded.error.message);
+          setError(adminRequestErrorLabel(uploaded.error));
           setBusy(false);
           return;
         }
@@ -137,7 +142,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
     });
     setBusy(false);
     if (!response.success) {
-      setError(response.error.message);
+      setError(adminRequestErrorLabel(response.error));
       return;
     }
     setReply('');
@@ -271,7 +276,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                   {isOperator && (
                     <div className="col" style={{ gap: 12 }}>
                       <div className="field">
-                        <label htmlFor="request-note">ملاحظة الإجراء</label>
+                        <label htmlFor="request-note">ملاحظة الإجراء / ملخص المعالجة</label>
                         <textarea
                           id="request-note"
                           className="input"
@@ -280,8 +285,9 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                           maxLength={4000}
                           rows={3}
                           disabled={busy}
-                          placeholder="أضف ملاحظة عند الحاجة…"
+                          placeholder="أضف ملاحظة، وعند إنهاء المعالجة اكتب ملخص النتيجة…"
                         />
+                        <span className="tiny muted">ملخص المعالجة مطلوب عند اختيار «إنهاء المعالجة».</span>
                       </div>
                       {role === 'admin' && request.allowed_actions?.includes('refer') && (
                         <div className="field">
