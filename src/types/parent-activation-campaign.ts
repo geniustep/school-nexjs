@@ -1,6 +1,9 @@
 export type ParentActivationExclusionReason =
   | 'no_active_relationship'
   | 'account_not_allowed'
+  | 'legal_status_unknown'
+  | 'not_legal_guardian'
+  | 'account_blocked'
   | 'communication_not_allowed'
   | 'no_user_account'
   | 'inactive_user_account'
