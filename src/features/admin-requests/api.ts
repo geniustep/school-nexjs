@@ -9,6 +9,7 @@ import type {
 } from './types';
 
 type FamilyRole = AdminRequestFamilyRole;
+export type AdminRequestReviewOutcome = 'waiting_requester' | 'resolved';
 
 function familyBase(role: FamilyRole): '/parent/admin-requests' | '/student/admin-requests' {
   return role === 'parent' ? '/parent/admin-requests' : '/student/admin-requests';
@@ -38,16 +39,29 @@ export function replyPayload(input: { body: string; upload_session_id?: string }
   };
 }
 
-export function staffActionPayload(
-  action: 'wait_requester' | 'resolve',
-  body?: { reason?: string; resolution_summary?: string },
-) {
-  if (action === 'resolve') {
-    return body?.resolution_summary?.trim()
-      ? { resolution_summary: body.resolution_summary.trim() }
-      : undefined;
-  }
-  return body?.reason?.trim() ? { reason: body.reason.trim() } : undefined;
+export const staffReplyPayload = replyPayload;
+
+export function approveReplyPayload(input: {
+  reply_id: number;
+  outcome?: AdminRequestReviewOutcome;
+  reason?: string;
+  resolution_summary?: string;
+}) {
+  return {
+    reply_id: input.reply_id,
+    ...(input.outcome ? { outcome: input.outcome } : {}),
+    ...(input.reason?.trim() ? { reason: input.reason.trim() } : {}),
+    ...(input.resolution_summary?.trim()
+      ? { resolution_summary: input.resolution_summary.trim() }
+      : {}),
+  };
+}
+
+export function requestReplyChangesPayload(input: { reply_id: number; reason: string }) {
+  return {
+    reply_id: input.reply_id,
+    reason: input.reason.trim(),
+  };
 }
 
 export async function createAdminRequest(
@@ -84,14 +98,33 @@ export async function postAdminAction(
   );
 }
 
-export async function postStaffAction(
+export async function postStaffReply(
   requestId: string,
-  action: 'wait_requester' | 'resolve',
-  body?: { reason?: string; resolution_summary?: string },
+  input: { body: string; upload_session_id?: string },
 ): Promise<ApiResponse<AdminRequest>> {
   return api.post<AdminRequest>(
-    `/staff/admin-requests/${requestId}/${action.replaceAll('_', '-')}`,
-    staffActionPayload(action, body),
+    `/staff/admin-requests/${requestId}/reply`,
+    staffReplyPayload(input),
+  );
+}
+
+export async function postAdminApproveReply(
+  requestId: string,
+  input: Parameters<typeof approveReplyPayload>[0],
+): Promise<ApiResponse<AdminRequest>> {
+  return api.post<AdminRequest>(
+    `/admin/admin-requests/${requestId}/approve-reply`,
+    approveReplyPayload(input),
+  );
+}
+
+export async function postAdminRequestReplyChanges(
+  requestId: string,
+  input: Parameters<typeof requestReplyChangesPayload>[0],
+): Promise<ApiResponse<AdminRequest>> {
+  return api.post<AdminRequest>(
+    `/admin/admin-requests/${requestId}/request-reply-changes`,
+    requestReplyChangesPayload(input),
   );
 }
 
@@ -117,9 +150,23 @@ export function adminRequestFileClientItemId(
   return `arq-${file.lastModified.toString(36)}-${file.size.toString(36)}-${stableHash(fingerprint)}`;
 }
 
-/** Starts a session that may be consumed only by the eventual request/reply workflow. */
-export async function createAdminRequestUploadSession(): Promise<ApiResponse<UploadSession>> {
-  return api.post<UploadSession>('/attachments/upload-sessions', { purpose: 'admin_request' });
+export function adminRequestUploadSessionPayload(adminRequestId?: number | string) {
+  return {
+    purpose: 'admin_request' as const,
+    ...(adminRequestId !== undefined && adminRequestId !== null && String(adminRequestId).trim()
+      ? { admin_request_id: adminRequestId }
+      : {}),
+  };
+}
+
+/** Family sessions stay unbound; assigned staff sessions are explicitly bound to the request. */
+export async function createAdminRequestUploadSession(
+  adminRequestId?: number | string,
+): Promise<ApiResponse<UploadSession>> {
+  return api.post<UploadSession>(
+    '/attachments/upload-sessions',
+    adminRequestUploadSessionPayload(adminRequestId),
+  );
 }
 
 export async function uploadAdminRequestFile(

@@ -1,5 +1,8 @@
 export type AdminRequestRole = 'parent' | 'student' | 'admin' | 'staff';
 export type AdminRequestFamilyRole = 'parent' | 'student';
+export type AdminRequestReplyAuthorRole = 'parent' | 'student' | 'staff';
+export type AdminRequestReplyDirection = 'requester_to_staff' | 'staff_to_requester';
+export type AdminRequestReplyReviewState = 'pending_review' | 'approved' | 'changes_requested';
 
 export interface AdminRequestAttachment {
   id: number;
@@ -12,7 +15,10 @@ export interface AdminRequestAttachment {
 export interface AdminRequestReply {
   id: number;
   body: string;
-  author_role: string;
+  author_role: AdminRequestReplyAuthorRole;
+  direction: AdminRequestReplyDirection;
+  review_state: AdminRequestReplyReviewState;
+  review_reason?: string | null;
   created_at: string | null;
   attachments?: AdminRequestAttachment[];
 }

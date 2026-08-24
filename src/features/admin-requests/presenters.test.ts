@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   adminRequestActionLabel,
   adminRequestErrorLabel,
+  adminRequestReviewStateLabel,
   adminRequestRoleLabel,
   adminRequestStateLabel,
   adminRequestTypeLabel,
@@ -9,11 +10,20 @@ import {
 } from './presenters';
 
 describe('admin request Arabic presenters', () => {
-  it('translates workflow states and actions shown in the portal', () => {
+  it('translates workflow states and 339 review actions shown in the portal', () => {
     expect(adminRequestStateLabel('under_review')).toBe('قيد المراجعة');
     expect(adminRequestStateLabel('resolved')).toBe('تمت المعالجة');
     expect(adminRequestActionLabel('wait_requester')).toBe('طلب معلومات إضافية');
     expect(adminRequestActionLabel('refer')).toBe('إحالة إلى موظف');
+    expect(adminRequestActionLabel('staff_reply')).toBe('إرسال الرد إلى الإدارة');
+    expect(adminRequestActionLabel('approve_reply')).toBe('اعتماد الرد');
+    expect(adminRequestActionLabel('request_reply_changes')).toBe('طلب تعديل الرد');
+  });
+
+  it('translates reply review states', () => {
+    expect(adminRequestReviewStateLabel('pending_review')).toBe('بانتظار مراجعة الإدارة');
+    expect(adminRequestReviewStateLabel('approved')).toBe('معتمد');
+    expect(adminRequestReviewStateLabel('changes_requested')).toBe('مطلوب تعديل الرد');
   });
 
   it('translates requester and staff roles', () => {
@@ -21,6 +31,7 @@ describe('admin request Arabic presenters', () => {
     expect(adminRequestRoleLabel('student')).toBe('التلميذ');
     expect(adminRequestRoleLabel('admin')).toBe('الإدارة');
     expect(adminRequestRoleLabel('teacher')).toBe('الأستاذ');
+    expect(adminRequestRoleLabel('staff')).toBe('الموظف');
   });
 
   it('localizes workflow API errors instead of leaking English messages', () => {
@@ -32,6 +43,21 @@ describe('admin request Arabic presenters', () => {
       code: 'admin_request_forbidden',
       message: 'Not allowed to perform this action.',
     })).toBe('لا تملك صلاحية تنفيذ هذا الإجراء.');
+    expect(adminRequestErrorLabel({ code: 'admin_request_review_required' })).toBe(
+      'هذا الإجراء غير متاح قبل مراجعة الإدارة للرد الحالي.',
+    );
+    expect(adminRequestErrorLabel({ code: 'admin_request_stale_action' })).toBe(
+      'تغيّرت حالة الرد. حدّث الصفحة ثم أعد المحاولة.',
+    );
+    expect(adminRequestErrorLabel({ code: 'admin_request_review_outcome_required' })).toBe(
+      'اختر نتيجة اعتماد الرد.',
+    );
+    expect(adminRequestErrorLabel({ code: 'admin_request_review_reason_required' })).toBe(
+      'اكتب سبب طلب تعديل الرد.',
+    );
+    expect(adminRequestErrorLabel({ code: 'admin_request_reply_not_found' })).toBe(
+      'تعذر العثور على الرد المطلوب.',
+    );
     expect(adminRequestErrorLabel({ code: 'unknown', message: 'Opaque backend error' })).toBe(
       'تعذر تنفيذ الإجراء. تحقق من البيانات ثم أعد المحاولة.',
     );

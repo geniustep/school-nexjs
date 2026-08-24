@@ -13,6 +13,12 @@ const STATE_LABELS: Record<string, string> = {
   closed: 'مغلق',
 };
 
+const REVIEW_STATE_LABELS: Record<string, string> = {
+  pending_review: 'بانتظار مراجعة الإدارة',
+  approved: 'معتمد',
+  changes_requested: 'مطلوب تعديل الرد',
+};
+
 const ACTION_LABELS: Record<string, string> = {
   submit: 'إرسال الطلب',
   start_review: 'بدء المراجعة',
@@ -26,6 +32,9 @@ const ACTION_LABELS: Record<string, string> = {
   reopen: 'إعادة فتح الطلب',
   reply: 'إضافة رد',
   requester_reply: 'إضافة رد',
+  staff_reply: 'إرسال الرد إلى الإدارة',
+  approve_reply: 'اعتماد الرد',
+  request_reply_changes: 'طلب تعديل الرد',
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -59,6 +68,11 @@ const ERROR_LABELS: Record<string, string> = {
   admin_request_confidential_forbidden: 'لا تملك صلاحية الاطلاع على هذا الطلب السري.',
   admin_request_not_found: 'تعذر العثور على الطلب الإداري.',
   admin_request_invalid_transition: 'هذا الإجراء غير متاح في الحالة الحالية للطلب.',
+  admin_request_review_required: 'هذا الإجراء غير متاح قبل مراجعة الإدارة للرد الحالي.',
+  admin_request_stale_action: 'تغيّرت حالة الرد. حدّث الصفحة ثم أعد المحاولة.',
+  admin_request_review_outcome_required: 'اختر نتيجة اعتماد الرد.',
+  admin_request_review_reason_required: 'اكتب سبب طلب تعديل الرد.',
+  admin_request_reply_not_found: 'تعذر العثور على الرد المطلوب.',
   validation_error: 'تحقق من البيانات المطلوبة ثم أعد المحاولة.',
   unauthorized: 'انتهت الجلسة أو يلزم تسجيل الدخول من جديد.',
 };
@@ -76,6 +90,11 @@ function normalizedKey(value: string): string {
 export function adminRequestStateLabel(state?: string | null): string {
   if (!state?.trim()) return '—';
   return STATE_LABELS[normalizedKey(state)] ?? 'حالة غير معروفة';
+}
+
+export function adminRequestReviewStateLabel(state?: string | null): string {
+  if (!state?.trim()) return '—';
+  return REVIEW_STATE_LABELS[normalizedKey(state)] ?? 'حالة مراجعة غير معروفة';
 }
 
 export function adminRequestActionLabel(action?: string | null): string {
