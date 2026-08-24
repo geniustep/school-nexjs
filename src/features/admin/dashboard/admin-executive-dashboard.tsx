@@ -784,6 +784,10 @@ function ExecutiveDirectorView({
     .slice(0, 4);
   const financeOverdue = executiveFinance?.overdue ?? financeTotals?.total_overdue ?? financeTotals?.overdue_amount;
   const financeOverdueCount = executiveFinance?.families_overdue_count;
+  // `collected_today` is the only dashboard value whose period is explicitly
+  // today. Do not substitute a monthly or arbitrary-period total here.
+  const todayRevenue = normalizeMoneyValue(executiveFinance?.collected_today);
+  const todayRevenueCurrency = executiveFinance?.currency;
   const pulseLabels: Record<string, string> = {
     attendance: 'الحضور',
     students: 'التلاميذ والتسجيل',
@@ -796,8 +800,28 @@ function ExecutiveDirectorView({
     <main className="director-daily-surface" aria-label="لوحة القيادة اليومية">
       <section className="director-daily-priorities" aria-labelledby="daily-priorities-title">
         <header className="director-daily-heading">
-          <h1 id="daily-priorities-title">أولويات اليوم</h1>
-          <time dateTime={today}>{formatDate(today)}</time>
+          <div className="director-daily-heading__identity">
+            <h1 id="daily-priorities-title">أولويات اليوم</h1>
+            <time dateTime={today}>{formatDate(today)}</time>
+          </div>
+          <div className="director-daily-heading__tools">
+            <Link className="director-revenue-summary" href="/admin/finance/collections" aria-label="فتح تحصيلات اليوم">
+              <span>مداخيل اليوم</span>
+              <strong>
+                {todayRevenue != null ? (
+                  <FinanceMoney amount={todayRevenue} currency={todayRevenueCurrency} />
+                ) : (
+                  'غير متاحة حاليًا'
+                )}
+              </strong>
+            </Link>
+            <Link className="director-header-action director-header-action--primary" href="/admin/finance/collections/new">
+              تحصيل اليوم
+            </Link>
+            <Link className="director-header-action" href="/admin/communication/compose">
+              إرسال رسالة
+            </Link>
+          </div>
         </header>
         {executivePending ? (
           <p className="director-daily-empty">{t('common.loading')}</p>
@@ -1449,3 +1473,4 @@ export function AdminExecutiveDashboard({
 
   return <ExecutiveDirectorView data={data} user={user} />;
 }
+
