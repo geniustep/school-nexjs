@@ -6,11 +6,37 @@ import type {
   PersonSearchResult,
   RelationshipType,
 } from '@/types/student-360';
+import type {
+  GuardianAccountAccessPolicy,
+  GuardianLegalStatus,
+} from '@/types/guardian-access';
 import type { RelationshipFormValues } from '../components/guardian-relationship-form';
+import {
+  isGuardianAccountAccessPolicy,
+  isGuardianLegalStatus,
+} from './guardian-access-contract';
 import { RELATIONSHIP_TYPE_CODES } from './relationship-types';
 
 /** Narrow technical role codes accepted on guardian write payloads. */
 export type GuardianRelationshipTypeCode = (typeof RELATIONSHIP_TYPE_CODES)[number];
+
+type GuardianAccessWriteFields = {
+  legal_status: GuardianLegalStatus;
+  account_access_policy: GuardianAccountAccessPolicy;
+};
+
+export type CanonicalGuardianRelationshipCreatePayload = Omit<
+  GuardianRelationshipCreatePayload,
+  'is_legal_guardian'
+> & GuardianAccessWriteFields;
+
+export type CanonicalLinkPersonAsGuardianPayload = Omit<
+  LinkPersonAsGuardianPayload,
+  'is_legal_guardian'
+> & GuardianAccessWriteFields;
+
+export type CanonicalGuardianRelationshipUpdatePayload = GuardianRelationshipUpdatePayload &
+  Partial<GuardianAccessWriteFields>;
 
 const RELATIONSHIP_TYPE_CODE_SET = new Set<string>(RELATIONSHIP_TYPE_CODES);
 
@@ -44,8 +70,11 @@ export const GUARDIAN_RELATIONSHIP_UPDATE_READ_ONLY_FIELDS = [
 
 const UPDATE_WRITE_KEYS = [
   'relationship_type',
-  'is_primary_contact',
+  'legal_status',
+  'account_access_policy',
+  // Explicit legacy input remains accepted by the sanitizer only; canonical builders never emit it.
   'is_legal_guardian',
+  'is_primary_contact',
   'is_financial_responsible',
   'receives_notifications',
   'is_emergency_contact',
@@ -53,7 +82,7 @@ const UPDATE_WRITE_KEYS = [
   'contact_priority',
   'date_start',
   'notes',
-] as const satisfies readonly (keyof GuardianRelationshipUpdatePayload)[];
+] as const;
 
 export function isGuardianRelationshipTypeCode(
   value: unknown,
@@ -73,16 +102,17 @@ export function resolveSelectedRelationshipType(
 
 function relationshipFields(
   values: RelationshipFormValues,
-): Omit<GuardianRelationshipCreatePayload, 'guardian_id'> {
+): Omit<CanonicalGuardianRelationshipCreatePayload, 'guardian_id'> {
   const relationshipType = resolveSelectedRelationshipType(values.relationship_type);
   if (!relationshipType) {
     throw new Error('guardian_relationship_type_required');
   }
 
-  const payload: Omit<GuardianRelationshipCreatePayload, 'guardian_id'> = {
+  const payload: Omit<CanonicalGuardianRelationshipCreatePayload, 'guardian_id'> = {
     relationship_type: relationshipType,
+    legal_status: values.legal_status,
+    account_access_policy: values.account_access_policy,
     is_primary_contact: values.is_primary_contact,
-    is_legal_guardian: values.is_legal_guardian,
     is_financial_responsible: values.is_financial_responsible,
     receives_notifications: values.receives_notifications,
     is_emergency_contact: values.is_emergency_contact,
@@ -103,8 +133,8 @@ export function relationshipFormToLinkPersonPayload(
   person: Pick<PersonSearchResult, 'partner_id'>,
   values: RelationshipFormValues,
   contactPatch?: GuardianContactPatch,
-): LinkPersonAsGuardianPayload {
-  const payload: LinkPersonAsGuardianPayload = {
+): CanonicalLinkPersonAsGuardianPayload {
+  const payload: CanonicalLinkPersonAsGuardianPayload = {
     partner_id: person.partner_id,
     ...relationshipFields(values),
   };
@@ -117,7 +147,7 @@ export function relationshipFormToLinkPersonPayload(
 export function relationshipFormToCreatePayload(
   guardianId: number,
   values: RelationshipFormValues,
-): GuardianRelationshipCreatePayload {
+): CanonicalGuardianRelationshipCreatePayload {
   return {
     guardian_id: guardianId,
     ...relationshipFields(values),
@@ -129,19 +159,18 @@ export function relationshipFormToCreatePayload(
  */
 export function relationshipFormToUpdatePayload(
   values: RelationshipFormValues,
-): GuardianRelationshipUpdatePayload {
+): CanonicalGuardianRelationshipUpdatePayload {
   const relationshipType = resolveSelectedRelationshipType(values.relationship_type);
-  const payload: GuardianRelationshipUpdatePayload = {
+  const payload: CanonicalGuardianRelationshipUpdatePayload = {
+    legal_status: values.legal_status,
+    account_access_policy: values.account_access_policy,
     is_primary_contact: values.is_primary_contact,
-    is_legal_guardian: values.is_legal_guardian,
     is_financial_responsible: values.is_financial_responsible,
     receives_notifications: values.receives_notifications,
     is_emergency_contact: values.is_emergency_contact,
     is_authorized_pickup: values.is_authorized_pickup,
   };
-  if (relationshipType) {
-    payload.relationship_type = relationshipType;
-  }
+  if (relationshipType) payload.relationship_type = relationshipType;
   const priority = Number(values.contact_priority);
   if (Number.isInteger(priority) && priority > 0) payload.contact_priority = priority;
   if (values.date_start.trim()) payload.date_start = values.date_start.trim();
@@ -151,11 +180,13 @@ export function relationshipFormToUpdatePayload(
 
 /**
  * Pick only writable keys from an arbitrary object (defense against read-model leakage).
+ * Canonical legal/access keys are validated. Legacy boolean remains accepted only when
+ * an older caller sends it explicitly.
  */
 export function pickGuardianRelationshipUpdateWriteFields(
   input: Record<string, unknown>,
-): GuardianRelationshipUpdatePayload {
-  const payload: GuardianRelationshipUpdatePayload = {};
+): CanonicalGuardianRelationshipUpdatePayload {
+  const payload: CanonicalGuardianRelationshipUpdatePayload = {};
 
   for (const key of UPDATE_WRITE_KEYS) {
     if (!(key in input)) continue;
@@ -163,6 +194,14 @@ export function pickGuardianRelationshipUpdateWriteFields(
     if (key === 'relationship_type') {
       const role = resolveSelectedRelationshipType(value);
       if (role) payload.relationship_type = role as RelationshipType;
+      continue;
+    }
+    if (key === 'legal_status') {
+      if (isGuardianLegalStatus(value)) payload.legal_status = value;
+      continue;
+    }
+    if (key === 'account_access_policy') {
+      if (isGuardianAccountAccessPolicy(value)) payload.account_access_policy = value;
       continue;
     }
     if (
@@ -173,9 +212,7 @@ export function pickGuardianRelationshipUpdateWriteFields(
       key === 'is_emergency_contact' ||
       key === 'is_authorized_pickup'
     ) {
-      if (typeof value === 'boolean') {
-        payload[key] = value;
-      }
+      if (typeof value === 'boolean') payload[key] = value;
       continue;
     }
     if (key === 'contact_priority') {
@@ -185,9 +222,7 @@ export function pickGuardianRelationshipUpdateWriteFields(
       continue;
     }
     if (key === 'date_start' || key === 'notes') {
-      if (typeof value === 'string' && value.trim()) {
-        payload[key] = value.trim();
-      }
+      if (typeof value === 'string' && value.trim()) payload[key] = value.trim();
     }
   }
 

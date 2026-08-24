@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveSelectedRelationshipType } from '../utils/guardian-relationship-payload';
 import { RELATIONSHIP_TYPE_CODES, relationshipTypeLabel } from '../utils/relationship-types';
+import { GuardianLegalAccessFields } from './guardian-legal-access-fields';
 import type { RelationshipFormValues } from './guardian-relationship-form';
 
 const CONTACT_PRIORITY_OPTIONS = ['1', '2', '3'] as const;
@@ -101,13 +102,17 @@ export function GuardianRelationshipFields({
             checked={values.is_primary_contact}
             onChange={(checked) => patch({ is_primary_contact: checked })}
           />
-          <CheckboxField
-            label={t('admin.student360.legalGuardian')}
-            checked={values.is_legal_guardian}
-            onChange={(checked) => patch({ is_legal_guardian: checked })}
-          />
         </div>
       </FieldGroup>
+
+      <GuardianLegalAccessFields
+        legalStatus={values.legal_status}
+        accountAccessPolicy={values.account_access_policy}
+        onLegalStatusChange={(legal_status) =>
+          patch({ legal_status, is_legal_guardian: legal_status === 'yes' })
+        }
+        onAccountAccessPolicyChange={(account_access_policy) => patch({ account_access_policy })}
+      />
 
       <FieldGroup title={t('admin.parentProfile.financialCommunication')}>
         <div className="guardian-relationship-fields__checks">
