@@ -45,6 +45,8 @@ const tMap: Record<string, string> = {
   'admin.student360.create.billing.guardianSourceExistingLabel': 'اختيار ولي موجود',
   'admin.student360.create.billing.guardianSourceNewLabel': 'إدخال ولي جديد',
   'admin.student360.create.billing.addAnotherGuardian': 'إضافة ولي أمر',
+  'admin.student360.create.billing.additionalRequiresPrimary':
+    'أضف أو اربط ولي الأمر الرئيسي أولًا قبل إضافة ولي أمر إضافي.',
   'admin.student360.create.billing.additionalGuardianTitle': 'ولي أمر إضافي',
   'admin.student360.create.billing.removeAdditionalGuardian': 'إزالة ولي الأمر',
   'admin.student360.create.billing.guardianBillingLinked': 'ستُوجَّه الفواتير إلى ولي الأمر: {name}',
@@ -254,7 +256,8 @@ describe('StudentCreateBillingStep guardians design', () => {
     expect(screen.getByText('لم يُضف أي ولي أمر بعد')).toBeTruthy();
     expect(screen.getByText('أولياء أمر إضافيون')).toBeTruthy();
     expect(screen.getByText('المسؤول عن الأداء')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'إضافة ولي أمر' })).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'إضافة ولي أمر' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/أضف أو اربط ولي الأمر الرئيسي أولًا/)).toBeTruthy();
     expect(screen.getAllByText('اختيار ولي موجود').length).toBeGreaterThan(0);
     expect(screen.getAllByText('إدخال ولي جديد').length).toBeGreaterThan(0);
   });
@@ -416,3 +419,4 @@ describe('guardian contract preservation', () => {
     expect(withGuardians.billing_responsibility?.mode).toBe('guardian');
   });
 });
+

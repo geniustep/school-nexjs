@@ -26,10 +26,9 @@ const secondary: StudentCreateGuardianEntry = {
 describe('resolveBillingResponsibilityAutoPatch', () => {
   it('auto-selects guardian mode for a single clear eligible guardian', () => {
     const billing = defaultStudentCreateBillingFormState();
-    expect(billing.responsibilitySelection).toBe('needs_selection');
+    expect(billing.responsibilitySelection).toBe('guardian');
     const patch = resolveBillingResponsibilityAutoPatch([primary], billing);
     expect(patch).toEqual({
-      responsibilitySelection: 'guardian',
       billingGuardianEntryKey: 'new-primary',
     });
   });
@@ -54,3 +53,4 @@ describe('resolveBillingResponsibilityAutoPatch', () => {
     expect(patch).toEqual({ billingGuardianEntryKey: null });
   });
 });
+

@@ -9,7 +9,10 @@ import {
 } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
 import type { EnrollmentIntakeFieldErrors, EnrollmentIntakePatch, EnrollmentIntakeValues } from '@/features/admin/enrollment-intake/types';
 import type { BillingResponsibilityFieldErrors } from '@/features/admin/students/utils/student-create-billing-responsibility';
-import { guardianEntryBillingOptionLabel, guardianEntryLabel } from '@/features/admin/students/utils/student-create-guardian-payload';
+import {
+  guardianEntryBillingOptionLabel,
+  guardianEntryLabel,
+} from '@/features/admin/students/utils/student-create-guardian-payload';
 import { isCompleteStudentCreateGuardianEntry } from '@/features/admin/students/utils/student-create-additional-guardians';
 import type {
   StudentCreateBillingFormState,
@@ -27,13 +30,15 @@ function GuardiansSection({
   title,
   lead,
   children,
+  className,
 }: {
   title: string;
   lead?: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="student-create-guardians-block">
+    <div className={`student-create-guardians-block${className ? ` ${className}` : ''}`}>
       <div className="student-create-guardians-block__head">
         <h3 className="student-create-guardians-block__title">{title}</h3>
         {lead ? <p className="student-create-guardians-block__lead">{lead}</p> : null}
@@ -101,13 +106,15 @@ export function StudentCreateBillingStep({
 }) {
   const t = useT();
   const guardianName = intakeValues.guardianName.trim();
-  const pendingExistingSearch =
-    billingState.guardianSourceMode === 'existing' && billingState.linkedGuardianId == null;
   const linkedExisting =
     billingState.guardianSourceMode === 'existing' && billingState.linkedGuardianId != null;
   const studentMode = billingState.responsibilitySelection === 'student';
+  const showGuardianFlow = !studentMode || billingState.addGuardianForStudent;
   const guardianBillingMode = billingState.responsibilitySelection === 'guardian';
   const billingGuardianOptions = guardianEntries.filter(isCompleteStudentCreateGuardianEntry);
+  const canAddAdditionalGuardian = guardianEntries.some(
+    (entry) => entry.is_primary_contact && isCompleteStudentCreateGuardianEntry(entry),
+  );
   const multipleGuardians = billingGuardianOptions.length > 1;
   const selectedBillingGuardian = billingGuardianOptions.find(
     (entry) => entry.entryKey === billingState.billingGuardianEntryKey,
@@ -117,6 +124,8 @@ export function StudentCreateBillingStep({
     const selection = value as StudentCreateBillingFormState['responsibilitySelection'];
     onBillingChange({
       responsibilitySelection: selection,
+      addGuardianForStudent:
+        selection === 'student' ? billingState.addGuardianForStudent : false,
       studentBillingConfirmed: selection === 'student' ? billingState.studentBillingConfirmed : false,
       studentBillingReason: selection === 'student' ? billingState.studentBillingReason : '',
       billingGuardianEntryKey:
@@ -134,22 +143,17 @@ export function StudentCreateBillingStep({
       lead={t('admin.student360.create.billing.desc')}
       className="student-create-form__section--billing student-create-form__section--guardians-quiet"
     >
-      <StudentCreateGuardiansSummary
-        entries={guardianEntries}
-        billingGuardianEntryKey={billingState.billingGuardianEntryKey}
-      />
+      {showGuardianFlow ? (
+        <StudentCreateGuardiansSummary
+          entries={guardianEntries}
+          billingGuardianEntryKey={billingState.billingGuardianEntryKey}
+        />
+      ) : null}
 
-      <GuardiansSection
+      {showGuardianFlow ? <GuardiansSection
         title={t('admin.student360.create.billing.primarySectionTitle')}
         lead={t('admin.student360.create.billing.primarySectionLead')}
       >
-        <p className="student-create-guardians-primary-badge" role="note">
-          <span className="student-create-guardians-summary__badge student-create-guardians-summary__badge--primary">
-            {t('admin.student360.create.billing.primaryBadge')}
-          </span>
-          <span>{t('admin.student360.create.billing.primaryBadgeHint')}</span>
-        </p>
-
         <StudentCreateGuardianSourcePanel
           intakeValues={intakeValues}
           sourceMode={billingState.guardianSourceMode}
@@ -171,17 +175,43 @@ export function StudentCreateBillingStep({
           </p>
         ) : null}
 
-        <EnrollmentIntakeGuardianFields
-          embedded
-          values={intakeValues}
-          onPatch={onIntakePatch}
-          guardian={guardian}
-          lockProfileFields={pendingExistingSearch}
-          profileReadOnly={linkedExisting}
-        />
-      </GuardiansSection>
+        {billingState.guardianSourceMode === 'new' ? (
+          <EnrollmentIntakeGuardianFields
+            embedded
+            values={intakeValues}
+            onPatch={onIntakePatch}
+            guardian={guardian}
+          />
+        ) : null}
 
-      <GuardiansSection
+        {linkedExisting ? (
+          <div className="student-create-guardian-relation">
+            <label className="student-create-field">
+              <span className="student-create-field__label">
+                {t('admin.admissions.fields.relationship')}
+              </span>
+              <select
+                className="input"
+                value={intakeValues.guardianRelationship}
+                onChange={(e) => onIntakePatch({ guardianRelationship: e.target.value })}
+                disabled={guardian.relationshipsLoading}
+              >
+                <option value="">{t('admin.admissions.create.selectRelationship')}</option>
+                {guardian.relationships.map((rel) => {
+                  const value = String(rel.value ?? rel.id ?? '');
+                  return (
+                    <option key={value} value={value}>
+                      {rel.label}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          </div>
+        ) : null}
+      </GuardiansSection> : null}
+
+      {showGuardianFlow ? <GuardiansSection
         title={t('admin.student360.create.billing.additionalSectionTitle')}
         lead={t('admin.student360.create.billing.additionalSectionLead')}
       >
@@ -191,6 +221,8 @@ export function StudentCreateBillingStep({
           guardian={guardian}
           usedGuardianIds={usedGuardianIds}
           linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
+          canAddGuardian={canAddAdditionalGuardian}
+          addGuardianHint={t('admin.student360.create.billing.additionalRequiresPrimary')}
           onAddGuardian={onAddAdditionalGuardian}
           onSourceModeChange={onAdditionalGuardianSourceModeChange}
           onUpdateEntry={onUpdateAdditionalGuardian}
@@ -198,9 +230,9 @@ export function StudentCreateBillingStep({
           onClearLink={onClearAdditionalGuardian}
           onRemove={onRemoveAdditionalGuardian}
         />
-      </GuardiansSection>
+      </GuardiansSection> : null}
 
-      {billingErrors?.guardianRequired ? (
+      {showGuardianFlow && billingErrors?.guardianRequired ? (
         <p className="student-create-field__error" role="alert">
           {billingErrors.guardianRequired}
         </p>
@@ -209,6 +241,7 @@ export function StudentCreateBillingStep({
       <GuardiansSection
         title={t('admin.student360.create.billingResponsibility.title')}
         lead={t('admin.student360.create.billingResponsibility.lead')}
+        className="student-create-guardians-block--responsibility"
       >
         {!canManageBillingProfile ? (
           <p className="student-create-form__notice" role="status">
@@ -342,18 +375,28 @@ export function StudentCreateBillingStep({
               <label className="student-create-field student-create-field--checkbox">
                 <input
                   type="checkbox"
+                  checked={billingState.addGuardianForStudent}
+                  onChange={(e) => onBillingChange({ addGuardianForStudent: e.target.checked })}
+                />
+                <span>{t('admin.student360.create.billingResponsibility.studentAddGuardianOptional')}</span>
+              </label>
+              {billingState.addGuardianForStudent ? (
+                <label className="student-create-field student-create-field--checkbox">
+                <input
+                  type="checkbox"
                   checked={billingState.studentBillingConfirmed}
                   onChange={(e) => onBillingChange({ studentBillingConfirmed: e.target.checked })}
                   aria-invalid={billingErrors?.billingStudentConfirmed ? true : undefined}
                 />
                 <span>{t('admin.student360.create.billingResponsibility.studentConfirmLabel')}</span>
-              </label>
+                </label>
+              ) : null}
               {billingErrors?.billingStudentConfirmed ? (
                 <span className="student-create-field__error" role="alert">
                   {billingErrors.billingStudentConfirmed}
                 </span>
               ) : null}
-              <label className="student-create-field">
+              {billingState.addGuardianForStudent ? <label className="student-create-field">
                 <span className="student-create-field__label">
                   {t('admin.student360.create.billingResponsibility.studentReasonLabel')}
                 </span>
@@ -374,19 +417,19 @@ export function StudentCreateBillingStep({
                     {t('admin.student360.create.billingResponsibility.studentReasonHint')}
                   </span>
                 )}
-              </label>
+              </label> : null}
             </div>
           ) : null}
         </div>
       </GuardiansSection>
 
-      <StudentCreateGuardianProvisionSection
+      {showGuardianFlow ? <StudentCreateGuardianProvisionSection
         guardianEntries={guardianEntries}
         provisionAccessByEntryKey={billingState.provisionAccessByEntryKey}
         linkedGuardianPerson={linkedGuardianPerson}
         linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
         onProvisionAccessChange={onProvisionAccessChange}
-      />
+      /> : null}
 
       <GuardiansSection title={t('admin.siblings.sectionTitle')}>
         <div className="student-create-form__subsection student-create-form__subsection--siblings">
@@ -400,3 +443,4 @@ export function StudentCreateBillingStep({
     </StudentCreateStyledSection>
   );
 }
+

@@ -134,10 +134,10 @@ describe('validateBillingResponsibilityForm', () => {
     expect(result.errors.billingResponsibilitySelection).toBeTruthy();
   });
 
-  it('does not silently default to guardian without an explicit selection', () => {
+  it('defaults responsibility to guardian', () => {
     const state = defaultStudentCreateBillingFormState();
-    expect(state.responsibilitySelection).toBe('needs_selection');
-    expect(buildBillingResponsibilityRequest(state)).toBeNull();
+    expect(state.responsibilitySelection).toBe('guardian');
+    expect(buildBillingResponsibilityRequest(state)).toEqual({ mode: 'guardian' });
   });
 
   it('accepts valid explicit student selection', () => {
@@ -235,10 +235,11 @@ describe('parseBillingResponsibilityOutcome', () => {
 });
 
 describe('admission prefill regression', () => {
-  it('default billing form state does not force student mode without guardian', () => {
+  it('default billing form state uses guardian rather than student mode', () => {
     const state = defaultStudentCreateBillingFormState();
     expect(state.responsibilitySelection).not.toBe('student');
-    expect(state.responsibilitySelection).toBe('needs_selection');
-    expect(buildBillingResponsibilityRequest(state)).toBeNull();
+    expect(state.responsibilitySelection).toBe('guardian');
+    expect(buildBillingResponsibilityRequest(state)).toEqual({ mode: 'guardian' });
   });
 });
+
