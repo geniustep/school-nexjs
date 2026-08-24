@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   adminRequestActionLabel,
+  adminRequestErrorLabel,
   adminRequestRoleLabel,
   adminRequestStateLabel,
   adminRequestTypeLabel,
@@ -15,10 +16,28 @@ describe('admin request Arabic presenters', () => {
     expect(adminRequestActionLabel('refer')).toBe('إحالة إلى موظف');
   });
 
-  it('translates requester roles', () => {
+  it('translates requester and staff roles', () => {
     expect(adminRequestRoleLabel('parent')).toBe('ولي الأمر');
     expect(adminRequestRoleLabel('student')).toBe('التلميذ');
     expect(adminRequestRoleLabel('admin')).toBe('الإدارة');
+    expect(adminRequestRoleLabel('teacher')).toBe('الأستاذ');
+  });
+
+  it('localizes workflow API errors instead of leaking English messages', () => {
+    expect(adminRequestErrorLabel({
+      code: 'admin_request_resolution_required',
+      message: 'Resolution summary is required.',
+    })).toBe('اكتب ملخص المعالجة قبل إنهاء الطلب.');
+    expect(adminRequestErrorLabel({
+      code: 'admin_request_forbidden',
+      message: 'Not allowed to perform this action.',
+    })).toBe('لا تملك صلاحية تنفيذ هذا الإجراء.');
+    expect(adminRequestErrorLabel({ code: 'unknown', message: 'Opaque backend error' })).toBe(
+      'تعذر تنفيذ الإجراء. تحقق من البيانات ثم أعد المحاولة.',
+    );
+    expect(adminRequestErrorLabel({ code: 'unknown', message: 'تعذر إتمام الطلب.' })).toBe(
+      'تعذر إتمام الطلب.',
+    );
   });
 
   it('hides operational QA markers from seeded request type names', () => {
