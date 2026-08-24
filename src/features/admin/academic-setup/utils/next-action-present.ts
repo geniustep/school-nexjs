@@ -15,7 +15,7 @@ export const NEXT_ACTION_STEP_ORDER: GuidedStepId[] = [
  * A step becomes the next required action when its prerequisite is absent
  * (`not_started`) or it carries a blocking issue. Non-blocking warnings may
  * lower readiness and remain visible, but they must not hold the journey on an
- * earlier step.
+ * earlier step. This keeps readiness advisory unless a true prerequisite is blocked.
  */
 export function resolveNextStep(steps: GuidedStep[]): GuidedStep | null {
   for (const id of NEXT_ACTION_STEP_ORDER) {
