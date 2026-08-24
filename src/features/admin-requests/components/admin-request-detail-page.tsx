@@ -167,6 +167,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
         const createdAt = request.created_at ?? request.create_date;
         const waitingRequester = request.state === 'waiting_requester' || request.state === 'wait_requester';
         const isOperator = role === 'admin' || role === 'staff';
+        const resolutionSummary = request.resolution_summary?.trim();
         const details = [
           { label: 'النوع', value: adminRequestTypeLabel(requestTypeName) },
           { label: 'تاريخ الإنشاء', value: createdAt ? new Date(createdAt).toLocaleString('ar-MA') : '—' },
@@ -194,6 +195,23 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
               <DefinitionList items={details} />
               <AttachmentList attachments={request.attachments} />
             </Card>
+
+            {resolutionSummary && (
+              <section className="section">
+                <SectionHead title="ملخص المعالجة" />
+                <Card>
+                  {request.assigned?.name && (
+                    <p className="tiny muted">تمت المعالجة بواسطة: {request.assigned.name}</p>
+                  )}
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{resolutionSummary}</p>
+                  {request.resolved_at && (
+                    <p className="tiny muted">
+                      تاريخ المعالجة: {new Date(request.resolved_at).toLocaleString('ar-MA')}
+                    </p>
+                  )}
+                </Card>
+              </section>
+            )}
 
             {!!request.replies?.length && (
               <section className="section">
