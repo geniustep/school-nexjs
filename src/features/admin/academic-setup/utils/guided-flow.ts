@@ -44,6 +44,7 @@ export interface GuidedStep {
   state: GuidedStepState;
   lockReasonKey: string | null;
   missingCount: number;
+  blockingCount: number;
   summaryKey: string;
   summaryParams: Record<string, string | number>;
   href: string;
@@ -77,7 +78,7 @@ function mapDomainStatus(status: ReadinessStatus | undefined): GuidedStepState {
   }
 }
 
-function countIssuesForSection(
+function countBlockingIssuesForSection(
   readiness: SetupReadinessPayload,
   sections: string[],
 ): number {
@@ -118,7 +119,16 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
 
   const assignmentSummary = domains.assignments?.summary ?? {};
   const assigned = Number(assignmentSummary.assigned ?? 0);
-  const missingAssignments = Number(assignmentSummary.missing ?? 0);
+  const missingAssignments = Number(
+    assignmentSummary.missing_teacher_assignments_count ?? assignmentSummary.missing ?? 0,
+  );
+
+  const levelsBlocking = countBlockingIssuesForSection(readiness, ['levels']);
+  const classesBlocking = countBlockingIssuesForSection(readiness, ['classes', 'levels']);
+  const subjectsBlocking = countBlockingIssuesForSection(readiness, ['subjects', 'tracks']);
+  const teachersBlocking = countBlockingIssuesForSection(readiness, ['teachers']);
+  const staffBlocking = countBlockingIssuesForSection(readiness, ['staff']);
+  const assignmentsBlocking = countBlockingIssuesForSection(readiness, ['assignments']);
 
   const steps: GuidedStep[] = [
     {
@@ -127,6 +137,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
       state: !hasLevels ? 'not_started' : mapDomainStatus(domains.levels_classes?.status),
       lockReasonKey: !ctx.canManageClasses ? 'admin.academicSetup.guided.lockNoPermission' : null,
       missingCount: hasLevels ? 0 : 1,
+      blockingCount: levelsBlocking,
       summaryKey: 'admin.academicSetup.guided.summaryLevels',
       summaryParams: { count: levelsCount },
       href: `${STEP_ROUTES.levels}?action=add-levels`,
@@ -142,7 +153,8 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
           ? 'not_started'
           : mapDomainStatus(domains.levels_classes?.status),
       lockReasonKey: !hasLevels ? 'admin.academicSetup.guided.lockNoLevels' : null,
-      missingCount: countIssuesForSection(readiness, ['classes', 'levels']),
+      missingCount: classesBlocking,
+      blockingCount: classesBlocking,
       summaryKey: 'admin.academicSetup.guided.summaryClasses',
       summaryParams: { count: classesCount },
       href: STEP_ROUTES.classes,
@@ -158,7 +170,8 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
           ? 'not_started'
           : mapDomainStatus(domains.subjects_tracks?.status),
       lockReasonKey: !hasLevels ? 'admin.academicSetup.guided.lockNoLevels' : null,
-      missingCount: countIssuesForSection(readiness, ['subjects', 'tracks']),
+      missingCount: subjectsBlocking,
+      blockingCount: subjectsBlocking,
       summaryKey: 'admin.academicSetup.guided.summarySubjects',
       summaryParams: { subjects: subjectsCount, tracks: tracksCount },
       href: `${STEP_ROUTES.subjects}?tab=subjects&action=enable-subjects`,
@@ -175,6 +188,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
           : mapDomainStatus(domains.teachers?.status),
       lockReasonKey: !hasLevels ? 'admin.academicSetup.guided.lockNoLevels' : null,
       missingCount: Number(domains.teachers?.summary?.without_assignments ?? 0),
+      blockingCount: teachersBlocking,
       summaryKey: 'admin.academicSetup.guided.summaryTeachers',
       summaryParams: { count: teachersCount },
       href: `${STEP_ROUTES.teachers}?action=add`,
@@ -187,6 +201,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
       state: mapDomainStatus(domains.staff?.status),
       lockReasonKey: !ctx.canManageStaff ? 'admin.academicSetup.guided.lockStaffReadOnly' : null,
       missingCount: Number(domains.staff?.summary?.incomplete ?? 0),
+      blockingCount: staffBlocking,
       summaryKey: 'admin.academicSetup.guided.summaryStaff',
       summaryParams: { count: staffCount },
       href: `${STEP_ROUTES.staff}?action=add`,
@@ -209,6 +224,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
           ? 'admin.academicSetup.guided.lockAssignments'
           : null,
       missingCount: missingAssignments,
+      blockingCount: assignmentsBlocking,
       summaryKey: 'admin.academicSetup.guided.summaryAssignments',
       summaryParams: { assigned, missing: missingAssignments },
       href: STEP_ROUTES.assignments,
@@ -222,6 +238,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
       state: mapDomainStatus(readiness.readiness.status),
       lockReasonKey: null,
       missingCount: readiness.readiness.blocking_issues,
+      blockingCount: readiness.readiness.blocking_issues,
       summaryKey: 'admin.academicSetup.guided.summaryReview',
       summaryParams: { score: readiness.readiness.score },
       href: STEP_ROUTES.review,
