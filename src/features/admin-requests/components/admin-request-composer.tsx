@@ -11,14 +11,14 @@ import {
   uploadAdminRequestFile,
 } from '../api';
 import { adminRequestTypeLabel } from '../presenters';
-import type { AdminRequestRole, AdminRequestType } from '../types';
+import type { AdminRequestFamilyRole, AdminRequestType } from '../types';
 import { AdminRequestFilePicker } from './admin-request-file-picker';
 
 function typeRows(value: AdminRequestType[] | { types?: AdminRequestType[]; items?: AdminRequestType[] }) {
   return Array.isArray(value) ? value : value.types ?? value.items ?? [];
 }
 
-export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole, 'admin'> }) {
+export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole }) {
   const router = useRouter();
   const [typeId, setTypeId] = useState('');
   const [subject, setSubject] = useState('');
@@ -94,7 +94,10 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
 
   return (
     <>
-      <PageHeader title="طلب إداري جديد" subtitle="لا تشارك معلومات الدخول أو بيانات لا تخص الطلب." />
+      <PageHeader
+        title="طلب إداري جديد"
+        subtitle="عند الإرسال يصل الطلب مباشرة إلى الإدارة للمراجعة."
+      />
       <ResourceView state={types}>
         {(data) => (
           <Card>
@@ -129,7 +132,9 @@ export function AdminRequestComposer({ role }: { role: Exclude<AdminRequestRole,
                 <span className="tiny muted">حتى 5 ملفات، بحد أقصى 10 MiB للملف.</span>
               </div>
               {error && <div className="form-error" role="alert">{error}</div>}
-              <button className="btn btn--primary" type="submit" disabled={busy}>{busy ? 'جارٍ الحفظ…' : 'إنشاء الطلب'}</button>
+              <button className="btn btn--primary" type="submit" disabled={busy}>
+                {busy ? 'جارٍ الإرسال…' : 'إرسال الطلب'}
+              </button>
             </form>
           </Card>
         )}

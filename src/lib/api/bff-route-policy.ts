@@ -240,6 +240,15 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['POST'],
     test: (p) => /^\/staff\/communication\/content\/[^/]+\/recipient-preview$/.test(p),
   },
+  /** Assigned administrative requests — narrow staff inbox, never a general /staff/* family. */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => /^\/staff\/admin-requests(?:\/[^/]+)?$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/staff\/admin-requests\/[^/]+\/(?:wait-requester|resolve)$/.test(p),
+  },
   {
     methods: ['GET', 'HEAD'],
     test: (p) => /^\/attachments\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),
