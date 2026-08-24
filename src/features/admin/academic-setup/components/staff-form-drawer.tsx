@@ -115,6 +115,9 @@ export function StaffFormDrawer({
     !creating && memberId != null && !member && (centerDetail.loading || legacyMemberState.loading);
 
   const [name, setName] = useState('');
+  const [nameAr, setNameAr] = useState('');
+  const [nameFr, setNameFr] = useState('');
+  const [activationLanguage, setActivationLanguage] = useState<'' | 'ar' | 'fr'>('');
   const [email, setEmail] = useState('');
   const [login, setLogin] = useState('');
   const [useDifferentLogin, setUseDifferentLogin] = useState(false);
@@ -157,6 +160,9 @@ export function StaffFormDrawer({
   useEffect(() => {
     if (creating) {
       setName('');
+      setNameAr('');
+      setNameFr('');
+      setActivationLanguage('');
       setEmail('');
       setLogin('');
       setUseDifferentLogin(false);
@@ -177,6 +183,9 @@ export function StaffFormDrawer({
     const memberEmail = member.email ?? '';
     const memberLogin = resolveStaffLogin(member);
     setName(member.name);
+    setNameAr(member.name_ar ?? '');
+    setNameFr(member.name_fr ?? '');
+    setActivationLanguage(member.account_activation_language ?? '');
     setEmail(memberEmail);
     setLogin(memberLogin);
     setOriginalEmail(memberEmail);
@@ -310,6 +319,9 @@ export function StaffFormDrawer({
 
     const payload: Record<string, unknown> = {
       name: name.trim(),
+      name_ar: nameAr.trim() || null,
+      name_fr: nameFr.trim() || null,
+      account_activation_language: activationLanguage || null,
       ...identity,
       phone: phone.trim() || undefined,
       job_title: jobTitle.trim() || undefined,
@@ -449,6 +461,30 @@ export function StaffFormDrawer({
               <span className="tiny muted">{t('admin.fullName')}</span>
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
             </label>
+            <div className="staff-activation-identity-fields">
+              <strong>{t('admin.staffCenter.activationIdentity.title')}</strong>
+              <p className="tiny muted">{t('admin.staffCenter.activationIdentity.hint')}</p>
+              <label className="col" style={{ gap: 4 }}>
+                <span className="tiny muted">{t('admin.staffCenter.activationIdentity.nameAr')}</span>
+                <input className="input" value={nameAr} onChange={(e) => setNameAr(e.target.value)} dir="rtl" />
+              </label>
+              <label className="col" style={{ gap: 4 }}>
+                <span className="tiny muted">{t('admin.staffCenter.activationIdentity.nameFr')}</span>
+                <input className="input" value={nameFr} onChange={(e) => setNameFr(e.target.value)} dir="ltr" />
+              </label>
+              <label className="col" style={{ gap: 4 }}>
+                <span className="tiny muted">{t('admin.staffCenter.activationIdentity.language')}</span>
+                <select
+                  className="input"
+                  value={activationLanguage}
+                  onChange={(e) => setActivationLanguage(e.target.value as '' | 'ar' | 'fr')}
+                >
+                  <option value="">{t('admin.staffCenter.activationIdentity.notSelected')}</option>
+                  <option value="ar">{t('admin.staffCenter.activationIdentity.arabic')}</option>
+                  <option value="fr">{t('admin.staffCenter.activationIdentity.french')}</option>
+                </select>
+              </label>
+            </div>
             <AccountFieldsSection
               mode={creating ? 'create' : 'edit'}
               email={email}

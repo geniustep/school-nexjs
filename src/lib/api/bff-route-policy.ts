@@ -14,6 +14,8 @@ export const BFF_ADMIN_FAMILIES = [
   'finance',
   'guardians',
   'parents',
+  'parent-activation-campaigns',
+  'admin-requests',
   'teachers',
   'teacher-domain',
   'classes',
@@ -77,7 +79,13 @@ const BFF_TEACHER_FAMILIES = [
   'entry-requirements',
 ] as const;
 
-const BFF_PARENT_FAMILIES = ['dashboard', 'children', 'finance', 'entry-requirements'] as const;
+const BFF_PARENT_FAMILIES = [
+  'dashboard',
+  'children',
+  'finance',
+  'entry-requirements',
+  'admin-requests',
+] as const;
 
 const BFF_STUDENT_FAMILIES = [
   'dashboard',
@@ -89,6 +97,7 @@ const BFF_STUDENT_FAMILIES = [
   'exam-results',
   'timetable',
   'library',
+  'admin-requests',
 ] as const;
 
 const DENIED_SEGMENTS = new Set([
@@ -149,6 +158,7 @@ const BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES = new Set([
   'tracks',
   'guardians',
   'parents',
+  'parent-activation-campaigns',
   'channels',
   'communication',
 ]);
@@ -185,6 +195,10 @@ const ROUTE_RULES: RouteRule[] = [
   {
     methods: ['POST'],
     test: (p) => p === '/admin/integrations/raqeem/messaging/account-activation',
+  },
+  {
+    methods: ['POST'],
+    test: (p) => p === '/admin/integrations/raqeem/messaging/account-activation-link',
   },
   {
     methods: ALL_METHODS,
@@ -225,6 +239,15 @@ const ROUTE_RULES: RouteRule[] = [
   {
     methods: ['POST'],
     test: (p) => /^\/staff\/communication\/content\/[^/]+\/recipient-preview$/.test(p),
+  },
+  /** Assigned administrative requests — narrow staff inbox, never a general /staff/* family. */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => /^\/staff\/admin-requests(?:\/[^/]+)?$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/staff\/admin-requests\/[^/]+\/(?:wait-requester|resolve)$/.test(p),
   },
   {
     methods: ['GET', 'HEAD'],
@@ -355,6 +378,8 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   if (/^\/admin\/admissions\/family-batches\/[^/]+\/convert-to-students$/.test(pathname)) {
     return false;
   }
+  // Campaign preparation accepts an optional name only; school scope stays trusted in query/session.
+  if (/^\/admin\/parent-activation-campaigns\/prepare$/.test(pathname)) return false;
   // Channel lifecycle — query/session scope only; no body injection.
   if (isAdminChannelLifecycleMutationPath(pathname)) return false;
   return true;

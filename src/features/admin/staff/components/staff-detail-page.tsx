@@ -21,7 +21,7 @@ import { StaffResponsibilityAssignmentsSection } from '@/features/admin/staff/co
 import { StaffTeacherSection } from '@/features/admin/staff/components/staff-teacher-section';
 import { StaffAccountPasswordBanner } from '@/features/admin/staff/components/staff-account-password-banner';
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
-import { WhatsAppAccountCreatedAction } from '@/features/admin/staff/components/whatsapp-account-created-action';
+import { WhatsAppAccountActivationLinkAction } from '@/features/admin/staff/components/whatsapp-account-activation-link-action';
 import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
 import {
   isStaffCenterParent,
@@ -129,6 +129,23 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                 <DefinitionList
                   items={[
                     { label: t('admin.fullName'), value: resolveStaffDisplayName(member) },
+                    {
+                      label: t('admin.staffCenter.activationIdentity.nameAr'),
+                      value: member.name_ar ?? t('common.dash'),
+                    },
+                    {
+                      label: t('admin.staffCenter.activationIdentity.nameFr'),
+                      value: member.name_fr ?? t('common.dash'),
+                    },
+                    {
+                      label: t('admin.staffCenter.activationIdentity.language'),
+                      value:
+                        member.account_activation_language === 'ar'
+                          ? t('admin.staffCenter.activationIdentity.arabic')
+                          : member.account_activation_language === 'fr'
+                            ? t('admin.staffCenter.activationIdentity.french')
+                            : t('admin.staffCenter.activationIdentity.notSelected'),
+                    },
                     ...(showAdminPrivate
                       ? [
                           {
@@ -171,7 +188,7 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               <Card className="staff-center-section">
                 <SectionHead
                   title={t('admin.staffCenter.accountTitle')}
-                  action={<WhatsAppAccountCreatedAction member={member} />}
+                  action={<WhatsAppAccountActivationLinkAction member={member} />}
                 />
                 <DefinitionList
                   items={[

@@ -2899,6 +2899,16 @@
       "allowedActions": "Acciones permitidas",
       "warningsTitle": "{count} alerta(s) operativa(s)",
       "identityTitle": "Identidad",
+      "activationIdentity": {
+        "title": "Identidad para el aviso de activación",
+        "hint": "Los nombres y el idioma seleccionados se usan solo para el enlace de activación de la cuenta.",
+        "nameAr": "Nombre completo en árabe",
+        "nameFr": "Nombre completo en francés",
+        "language": "Idioma del aviso de activación",
+        "notSelected": "Sin seleccionar — envío bloqueado",
+        "arabic": "Árabe",
+        "french": "Francés"
+      },
       "accountTitle": "Cuenta",
       "userId": "ID de usuario",
       "partnerId": "ID de contacto",
@@ -2961,7 +2971,9 @@
         "deactivate": "Desactivar",
         "reactivate": "Reactivar",
         "linkTeacher": "Vincular profesor",
-        "notAvailableYet": "No disponible en esta fase"
+        "notAvailableYet": "No disponible en esta fase",
+        "saveProfile": "Guardar perfil, cuenta y permisos",
+        "saveProfileHint": "Este botón guarda solo el nombre, la cuenta y los permisos. Las asignaciones docentes y responsabilidades se guardan por separado."
       },
       "errors": {
         "scopeRequired": "No se puede crear personal administrativo limitado sin definir ámbito de escuela, clases o niveles.",

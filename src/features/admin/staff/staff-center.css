@@ -1244,3 +1244,39 @@
     grid-template-columns: 1fr;
   }
 }
+.staff-activation-identity-fields {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 12px;
+  background: var(--surface-subtle, #f8fafc);
+}
+
+.staff-edit-primary-save-bar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--primary, #2563eb) 24%, var(--border, #e2e8f0));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--surface, #fff) 94%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, #0f172a 8%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.staff-edit-primary-save-bar p {
+  margin: 0;
+  flex: 1 1 18rem;
+}
+
+@media (max-width: 639px) {
+  .staff-edit-primary-save-bar .btn {
+    width: 100%;
+  }
+}
