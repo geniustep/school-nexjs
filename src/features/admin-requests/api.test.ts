@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { adminRequestFileClientItemId, createRequestPayload, replyPayload } from './api';
+import {
+  adminRequestFileClientItemId,
+  createRequestPayload,
+  replyPayload,
+  staffActionPayload,
+} from './api';
 
 describe('admin request client payloads', () => {
   it('uses the Odoo create allow-list only', () => {
@@ -24,6 +29,16 @@ describe('admin request client payloads', () => {
     for (const forbidden of ['school_id', 'author_user_id', 'author_role', 'state', 'attachment_ids']) {
       expect(payload).not.toHaveProperty(forbidden);
     }
+  });
+
+  it('limits assignee actions to their narrow payloads', () => {
+    expect(staffActionPayload('wait_requester', { reason: '  نحتاج وثيقة  ' })).toEqual({
+      reason: 'نحتاج وثيقة',
+    });
+    expect(staffActionPayload('resolve', { resolution_summary: '  تمت المعالجة  ' })).toEqual({
+      resolution_summary: 'تمت المعالجة',
+    });
+    expect(staffActionPayload('wait_requester', { resolution_summary: 'ignored' })).toBeUndefined();
   });
 
   it('creates a stable opaque client_item_id for upload retries', () => {

@@ -2,9 +2,13 @@
 
 import { api } from '@/lib/api/client';
 import type { ApiResponse } from '@/types/api';
-import type { AdminRequest, AdminRequestRole, AdminRequestType } from './types';
+import type {
+  AdminRequest,
+  AdminRequestFamilyRole,
+  AdminRequestType,
+} from './types';
 
-type FamilyRole = Exclude<AdminRequestRole, 'admin'>;
+type FamilyRole = AdminRequestFamilyRole;
 
 function familyBase(role: FamilyRole): '/parent/admin-requests' | '/student/admin-requests' {
   return role === 'parent' ? '/parent/admin-requests' : '/student/admin-requests';
@@ -32,6 +36,18 @@ export function replyPayload(input: { body: string; upload_session_id?: string }
     body: input.body.trim(),
     ...(input.upload_session_id ? { upload_session_id: input.upload_session_id } : {}),
   };
+}
+
+export function staffActionPayload(
+  action: 'wait_requester' | 'resolve',
+  body?: { reason?: string; resolution_summary?: string },
+) {
+  if (action === 'resolve') {
+    return body?.resolution_summary?.trim()
+      ? { resolution_summary: body.resolution_summary.trim() }
+      : undefined;
+  }
+  return body?.reason?.trim() ? { reason: body.reason.trim() } : undefined;
 }
 
 export async function createAdminRequest(
@@ -65,6 +81,17 @@ export async function postAdminAction(
           ...(body.assigned_user_id ? { assigned_user_id: body.assigned_user_id } : {}),
         }
       : undefined,
+  );
+}
+
+export async function postStaffAction(
+  requestId: string,
+  action: 'wait_requester' | 'resolve',
+  body?: { reason?: string; resolution_summary?: string },
+): Promise<ApiResponse<AdminRequest>> {
+  return api.post<AdminRequest>(
+    `/staff/admin-requests/${requestId}/${action.replaceAll('_', '-')}`,
+    staffActionPayload(action, body),
   );
 }
 

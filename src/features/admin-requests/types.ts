@@ -1,4 +1,5 @@
-export type AdminRequestRole = 'parent' | 'student' | 'admin';
+export type AdminRequestRole = 'parent' | 'student' | 'admin' | 'staff';
+export type AdminRequestFamilyRole = 'parent' | 'student';
 
 export interface AdminRequestAttachment {
   id: number;
@@ -29,6 +30,8 @@ export interface AdminRequest {
   created_at?: string | null;
   create_date?: string | null;
   updated_at?: string | null;
+  assigned?: { id: number; name: string } | null;
+  assigned_at?: string | null;
   allowed_actions?: string[];
   replies?: AdminRequestReply[];
   attachments?: AdminRequestAttachment[];
@@ -55,6 +58,17 @@ export interface AdminRequestList {
   requests?: AdminRequest[];
   data?: AdminRequest[];
   total?: number;
+}
+
+export function adminRequestApiBase(role: AdminRequestRole): string {
+  if (role === 'admin') return '/admin/admin-requests';
+  if (role === 'staff') return '/staff/admin-requests';
+  return `/${role}/admin-requests`;
+}
+
+export function adminRequestUiBase(role: AdminRequestRole): string {
+  if (role === 'staff') return '/teacher/admin-requests';
+  return `/${role}/admin-requests`;
 }
 
 export function requestRows(data: AdminRequest[] | AdminRequestList): AdminRequest[] {
