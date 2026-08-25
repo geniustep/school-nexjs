@@ -129,6 +129,7 @@ export function hasStudentImportEligiblePayloadRows(rows: StudentImportRowResult
 
 export function buildStudentImportValidationRequest(args: {
   activeSchoolId: number;
+  activeAcademicYearId: number;
   sourceFilename: string;
   rows: StudentImportRowResult[];
   templateVersion?: number | null;
@@ -140,6 +141,7 @@ export function buildStudentImportValidationRequest(args: {
   return {
     template_version: args.templateVersion ?? STUDENT_IMPORT_TEMPLATE_VERSION,
     active_school_id: args.activeSchoolId,
+    active_academic_year_id: args.activeAcademicYearId,
     source_filename: args.sourceFilename,
     rows,
   };
