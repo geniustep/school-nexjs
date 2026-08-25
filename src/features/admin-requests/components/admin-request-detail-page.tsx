@@ -31,11 +31,8 @@ import type {
   AdminRequestReply,
   AdminRequestRole,
 } from '../types';
-import {
-  adminRequestApiBase,
-  adminRequestUiBase,
-  requestTitle,
-} from '../types';
+import { adminRequestApiBase, adminRequestUiBase, requestTitle } from '../types';
+import { AdminRequestAppointmentPanel } from './admin-request-appointment-panel';
 import { AdminRequestFilePicker } from './admin-request-file-picker';
 
 function AttachmentList({ attachments }: { attachments?: AdminRequestAttachment[] }) {
@@ -62,6 +59,12 @@ function isFamilyRole(role: AdminRequestRole): role is 'parent' | 'student' {
 }
 
 type ReviewMode = { replyId: number; action: 'approve' | 'changes' } | null;
+
+const APPOINTMENT_ACTIONS = new Set([
+  'confirm_appointment',
+  'request_appointment_change',
+  'propose_appointment',
+]);
 
 export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequestRole; requestId: string }) {
   const apiBase = adminRequestApiBase(role);
@@ -104,7 +107,6 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
     if (!reviewMode || reviewMode.replyId !== item.id || role !== 'admin') return;
     setError(null);
     setSuccess(null);
-
     if (reviewMode.action === 'changes' && !reviewReason.trim()) {
       setError('اكتب سبب طلب تعديل الرد.');
       return;
@@ -121,10 +123,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
 
     setBusy(true);
     const response = reviewMode.action === 'changes'
-      ? await postAdminRequestReplyChanges(requestId, {
-          reply_id: item.id,
-          reason: reviewReason,
-        })
+      ? await postAdminRequestReplyChanges(requestId, { reply_id: item.id, reason: reviewReason })
       : await postAdminApproveReply(requestId, {
           reply_id: item.id,
           ...(item.direction === 'staff_to_requester' ? { outcome: reviewOutcome } : {}),
@@ -133,7 +132,6 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
             : {}),
         });
     setBusy(false);
-
     if (!response.success) {
       setError(adminRequestErrorLabel(response.error));
       return;
@@ -154,7 +152,6 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
       setError('اكتب ملخص المعالجة قبل إنهاء الطلب.');
       return;
     }
-
     setBusy(true);
     const response = role === 'admin'
       ? await postAdminAction(
@@ -206,10 +203,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
       }
     }
 
-    const payload = {
-      body: reply,
-      ...(uploadSessionId ? { upload_session_id: uploadSessionId } : {}),
-    };
+    const payload = { body: reply, ...(uploadSessionId ? { upload_session_id: uploadSessionId } : {}) };
     const response = role === 'staff'
       ? await postStaffReply(requestId, payload)
       : await postRequesterAction(role, requestId, 'reply', payload);
@@ -235,6 +229,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
         const canReply = canRequesterReply || canStaffReply;
         const visibleActions = actions.filter(
           (action) =>
+            !APPOINTMENT_ACTIONS.has(action) &&
             action !== 'reply' &&
             action !== 'requester_reply' &&
             action !== 'staff_reply' &&
@@ -251,12 +246,8 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
           { label: 'النوع', value: adminRequestTypeLabel(requestTypeName) },
           { label: 'تاريخ الإنشاء', value: createdAt ? new Date(createdAt).toLocaleString('ar-MA') : '—' },
           { label: 'الوصف', value: request.description ?? '—' },
-          ...(request.assigned?.name
-            ? [{ label: 'المسؤول الحالي', value: request.assigned.name }]
-            : []),
-          ...(request.assigned_at
-            ? [{ label: 'تاريخ الإحالة', value: new Date(request.assigned_at).toLocaleString('ar-MA') }]
-            : []),
+          ...(request.assigned?.name ? [{ label: 'المسؤول الحالي', value: request.assigned.name }] : []),
+          ...(request.assigned_at ? [{ label: 'تاريخ الإحالة', value: new Date(request.assigned_at).toLocaleString('ar-MA') }] : []),
         ];
 
         return (
@@ -275,18 +266,21 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
               <AttachmentList attachments={request.attachments} />
             </Card>
 
+            <AdminRequestAppointmentPanel
+              request={request}
+              role={role}
+              requestId={requestId}
+              reload={state.reload}
+            />
+
             {resolutionSummary && (
               <section className="section">
                 <SectionHead title="ملخص المعالجة" />
                 <Card>
-                  {request.assigned?.name && (
-                    <p className="tiny muted">تمت المعالجة بواسطة: {request.assigned.name}</p>
-                  )}
+                  {request.assigned?.name && <p className="tiny muted">تمت المعالجة بواسطة: {request.assigned.name}</p>}
                   <p style={{ whiteSpace: 'pre-wrap' }}>{resolutionSummary}</p>
                   {request.resolved_at && (
-                    <p className="tiny muted">
-                      تاريخ المعالجة: {new Date(request.resolved_at).toLocaleString('ar-MA')}
-                    </p>
+                    <p className="tiny muted">تاريخ المعالجة: {new Date(request.resolved_at).toLocaleString('ar-MA')}</p>
                   )}
                 </Card>
               </section>
@@ -316,14 +310,10 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                         {(canAdminApprove || canAdminRequestChanges) && !activeReview && (
                           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                             {canAdminApprove && (
-                              <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => openReview(item, 'approve')}>
-                                اعتماد الرد
-                              </button>
+                              <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => openReview(item, 'approve')}>اعتماد الرد</button>
                             )}
                             {canAdminRequestChanges && (
-                              <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => openReview(item, 'changes')}>
-                                طلب تعديل
-                              </button>
+                              <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => openReview(item, 'changes')}>طلب تعديل</button>
                             )}
                           </div>
                         )}
@@ -334,12 +324,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                               <>
                                 <label className="field">
                                   <span>نتيجة اعتماد الرد</span>
-                                  <select
-                                    className="input"
-                                    value={reviewOutcome}
-                                    onChange={(event) => setReviewOutcome(event.target.value as AdminRequestReviewOutcome)}
-                                    disabled={busy}
-                                  >
+                                  <select className="input" value={reviewOutcome} onChange={(event) => setReviewOutcome(event.target.value as AdminRequestReviewOutcome)} disabled={busy}>
                                     <option value="waiting_requester">إرسال الرد وانتظار صاحب الطلب</option>
                                     <option value="resolved">اعتماد الرد وإنهاء المعالجة</option>
                                   </select>
@@ -347,23 +332,13 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                                 {reviewOutcome === 'resolved' && (
                                   <label className="field">
                                     <span>ملخص المعالجة</span>
-                                    <textarea
-                                      className="input"
-                                      value={reviewResolution}
-                                      onChange={(event) => setReviewResolution(event.target.value)}
-                                      rows={3}
-                                      maxLength={4000}
-                                      required
-                                      disabled={busy}
-                                    />
+                                    <textarea className="input" value={reviewResolution} onChange={(event) => setReviewResolution(event.target.value)} rows={3} maxLength={4000} required disabled={busy} />
                                   </label>
                                 )}
                               </>
                             )}
                             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                              <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => submitReview(item)}>
-                                {busy ? 'جارٍ الاعتماد…' : 'تأكيد الاعتماد'}
-                              </button>
+                              <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => submitReview(item)}>{busy ? 'جارٍ الاعتماد…' : 'تأكيد الاعتماد'}</button>
                               <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={resetReview}>إلغاء</button>
                             </div>
                           </div>
@@ -373,20 +348,10 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                           <div className="col" style={{ gap: 10, marginTop: 12 }}>
                             <label className="field">
                               <span>سبب طلب التعديل</span>
-                              <textarea
-                                className="input"
-                                value={reviewReason}
-                                onChange={(event) => setReviewReason(event.target.value)}
-                                rows={3}
-                                maxLength={4000}
-                                required
-                                disabled={busy}
-                              />
+                              <textarea className="input" value={reviewReason} onChange={(event) => setReviewReason(event.target.value)} rows={3} maxLength={4000} required disabled={busy} />
                             </label>
                             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                              <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => submitReview(item)}>
-                                {busy ? 'جارٍ الإرسال…' : 'إرسال طلب التعديل'}
-                              </button>
+                              <button type="button" className="btn btn--primary btn--sm" disabled={busy} onClick={() => submitReview(item)}>{busy ? 'جارٍ الإرسال…' : 'إرسال طلب التعديل'}</button>
                               <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={resetReview}>إلغاء</button>
                             </div>
                           </div>
@@ -403,15 +368,8 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
 
             {canReply && !replyOpen && (
               <div className="row" style={{ gap: 10, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
-                {canRequesterReply && waitingRequester && (
-                  <span className="tiny muted">الإدارة تنتظر معلومات إضافية منك.</span>
-                )}
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  onClick={() => setReplyOpen(true)}
-                  disabled={busy}
-                >
+                {canRequesterReply && waitingRequester && <span className="tiny muted">الإدارة تنتظر معلومات إضافية منك.</span>}
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => setReplyOpen(true)} disabled={busy}>
                   {canStaffReply ? 'إرسال رد للإدارة' : waitingRequester ? 'الرد على الإدارة' : 'إضافة رسالة'}
                 </button>
               </div>
@@ -436,21 +394,8 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                     <AdminRequestFilePicker id="request-reply-files" files={files} onChange={setFiles} disabled={busy} />
                     <span className="tiny muted">حتى 5 ملفات، بحد أقصى 10 MiB للملف.</span>
                     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                      <button className="btn btn--primary" disabled={busy}>
-                        {busy ? 'جارٍ الإرسال…' : canStaffReply ? 'إرسال الرد إلى الإدارة' : 'إرسال الرسالة'}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn--ghost"
-                        disabled={busy}
-                        onClick={() => {
-                          setReplyOpen(false);
-                          setReply('');
-                          setFiles([]);
-                        }}
-                      >
-                        إلغاء
-                      </button>
+                      <button className="btn btn--primary" disabled={busy}>{busy ? 'جارٍ الإرسال…' : canStaffReply ? 'إرسال الرد إلى الإدارة' : 'إرسال الرسالة'}</button>
+                      <button type="button" className="btn btn--ghost" disabled={busy} onClick={() => { setReplyOpen(false); setReply(''); setFiles([]); }}>إلغاء</button>
                     </div>
                   </form>
                 </Card>
@@ -465,28 +410,13 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                     <div className="col" style={{ gap: 12 }}>
                       <div className="field">
                         <label htmlFor="request-note">ملاحظة الإجراء / ملخص المعالجة</label>
-                        <textarea
-                          id="request-note"
-                          className="input"
-                          value={note}
-                          onChange={(event) => setNote(event.target.value)}
-                          maxLength={4000}
-                          rows={3}
-                          disabled={busy}
-                          placeholder="أضف ملاحظة، وعند إنهاء المعالجة اكتب ملخص النتيجة…"
-                        />
+                        <textarea id="request-note" className="input" value={note} onChange={(event) => setNote(event.target.value)} maxLength={4000} rows={3} disabled={busy} placeholder="أضف ملاحظة، وعند إنهاء المعالجة اكتب ملخص النتيجة…" />
                         <span className="tiny muted">ملخص المعالجة مطلوب عند اختيار «إنهاء المعالجة».</span>
                       </div>
                       {request.allowed_actions?.includes('refer') && (
                         <div className="field">
                           <label htmlFor="request-assignee">الموظف المسؤول</label>
-                          <select
-                            id="request-assignee"
-                            className="input"
-                            value={assigneeId}
-                            onChange={(event) => setAssigneeId(event.target.value)}
-                            disabled={busy || staffOptions.loading || Boolean(staffOptions.error)}
-                          >
+                          <select id="request-assignee" className="input" value={assigneeId} onChange={(event) => setAssigneeId(event.target.value)} disabled={busy || staffOptions.loading || Boolean(staffOptions.error)}>
                             <option value="">
                               {staffOptions.loading
                                 ? 'جارٍ تحميل الموظفين…'
@@ -496,11 +426,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                                     ? 'اختر الموظف المسؤول'
                                     : 'لا يوجد موظفون متاحون'}
                             </option>
-                            {staffRows.map((staff) => (
-                              <option key={staff.id} value={staff.id}>
-                                {staff.name}{staff.detail ? ` — ${staff.detail}` : ''}
-                              </option>
-                            ))}
+                            {staffRows.map((staff) => <option key={staff.id} value={staff.id}>{staff.name}{staff.detail ? ` — ${staff.detail}` : ''}</option>)}
                           </select>
                           {staffOptions.error && <span className="tiny form-error">تعذر تحميل قائمة الموظفين. أعد المحاولة بعد تحديث الصفحة.</span>}
                         </div>
@@ -509,9 +435,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
                   )}
                   <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: isOperator ? 12 : 0 }}>
                     {visibleActions.map((action) => (
-                      <button key={action} type="button" className="btn btn--ghost" disabled={busy} onClick={() => act(action)}>
-                        {adminRequestActionLabel(action)}
-                      </button>
+                      <button key={action} type="button" className="btn btn--ghost" disabled={busy} onClick={() => act(action)}>{adminRequestActionLabel(action)}</button>
                     ))}
                   </div>
                 </Card>
