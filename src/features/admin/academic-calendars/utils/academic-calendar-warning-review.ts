@@ -73,6 +73,20 @@ export function shouldShowAcademicCalendarWarning(warning: AcademicCalendarWarni
   return hasUsefulWarningDetail(warning);
 }
 
+/**
+ * List pages should only flag notices that require attention. Informational notices remain
+ * available in the calendar detail review, but do not make a calendar row look problematic.
+ */
+export function countAcademicCalendarActionableWarnings(
+  warnings: AcademicCalendarWarning[] | null | undefined,
+): number {
+  return (warnings ?? []).filter(
+    (warning) =>
+      shouldShowAcademicCalendarWarning(warning) &&
+      academicCalendarWarningLevel(warning) !== 'info',
+  ).length;
+}
+
 export function groupAcademicCalendarWarnings(
   warnings: AcademicCalendarWarning[] | null | undefined,
 ): AcademicCalendarWarningReviewItem[] {
