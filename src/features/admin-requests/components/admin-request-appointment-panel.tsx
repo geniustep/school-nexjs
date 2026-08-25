@@ -41,6 +41,13 @@ function displayDate(value: string | null | undefined, locale: Locale): string {
   return parsed.toLocaleString(localeToBcp47(locale), { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+function displayDateOnly(value: string | null | undefined, locale: Locale): string {
+  if (!value) return '—';
+  const parsed = new Date(`${value.slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString(localeToBcp47(locale), { dateStyle: 'medium' });
+}
+
 function toOdooDatetime(value: string): string {
   if (!value) return '';
   const normalized = value.replace('T', ' ');
@@ -149,7 +156,10 @@ export function AdminRequestAppointmentPanel({
     ...(appointment.requested_subject?.name
       ? [{ label: adminRequestMessage(locale, 'appointment.subject'), value: appointment.requested_subject.name }]
       : []),
-    { label: adminRequestMessage(locale, 'appointment.preferredDate'), value: appointment.preferred_date ?? '—' },
+    {
+      label: adminRequestMessage(locale, 'appointment.preferredDate'),
+      value: displayDateOnly(appointment.preferred_date, locale),
+    },
     { label: adminRequestMessage(locale, 'appointment.preferredPeriod'), value: periodLabel(appointment.preferred_period, locale) },
     { label: adminRequestMessage(locale, 'appointment.state'), value: stateLabel(appointment.appointment_state, locale) },
     ...(appointment.scheduled_start
