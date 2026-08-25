@@ -44,15 +44,24 @@ export function buildBillingResponsibilityRequest(
   if (billingState.responsibilitySelection === 'guardian') {
     return { mode: 'guardian' };
   }
+
+  if (!billingState.addGuardianForStudent) {
+    return {
+      mode: 'student',
+      confirmed: true,
+      reason: 'student_selected_without_guardian',
+    };
+  }
+
+  const reason = billingState.studentBillingReason.trim();
+  if (!billingState.studentBillingConfirmed || !isStudentBillingReasonValid(reason)) {
+    return null;
+  }
+
   return {
     mode: 'student',
     confirmed: true,
-    // The explicit mode is the audit intent when the director elects not to add
-    // a guardian. A free-text rationale remains required only when a guardian
-    // is intentionally added alongside student billing.
-    reason: billingState.addGuardianForStudent
-      ? billingState.studentBillingReason.trim()
-      : 'student_selected_without_guardian',
+    reason,
   };
 }
 
