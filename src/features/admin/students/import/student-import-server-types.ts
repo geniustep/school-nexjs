@@ -53,6 +53,10 @@ export interface StudentImportValidationRequestRow {
   row_number: number;
   first_name?: string;
   last_name?: string;
+  first_name_ar?: string | null;
+  last_name_ar?: string | null;
+  first_name_fr?: string | null;
+  last_name_fr?: string | null;
   name_ar?: string | null;
   name_latin?: string | null;
   gender?: string | null;
@@ -87,8 +91,13 @@ export interface StudentImportValidationRequestRow {
   departure_reason?: string | null;
   guardian_id?: number | null;
   guardian_name?: string | null;
+  guardian_first_name_ar?: string | null;
+  guardian_last_name_ar?: string | null;
+  guardian_first_name_fr?: string | null;
+  guardian_last_name_fr?: string | null;
   guardian_mobile?: string | null;
   guardian_relationship_type?: string | null;
+  guardian_is_legal_guardian?: boolean | null;
   guardian_is_primary_contact?: boolean | null;
   guardian_is_financial_responsible?: boolean | null;
 }
@@ -96,6 +105,7 @@ export interface StudentImportValidationRequestRow {
 export interface StudentImportValidationRequest {
   template_version: number;
   active_school_id: number;
+  active_academic_year_id: number;
   source_filename: string;
   rows: StudentImportValidationRequestRow[];
 }
@@ -134,6 +144,7 @@ export interface StudentImportValidationResponse {
 
 export interface StudentImportExecuteRequest {
   idempotency_key: string;
+  active_academic_year_id: number;
 }
 
 export interface StudentImportExecuteResponse {

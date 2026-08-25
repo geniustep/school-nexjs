@@ -42,19 +42,14 @@ function resolveSchoolLabel(
 export function StudentImportPage() {
   const t = useT();
   const router = useRouter();
-  const { activeSchoolId } = useAdminSession();
+  const { activeSchoolId, activeAcademicYearId } = useAdminSession();
   const optionsState = useStudentOptions();
   const reference = useMemo(
     () => buildStudentImportReferenceData(optionsState.options),
     [optionsState.options],
   );
 
-  const templateAcademicYearId = useMemo(() => {
-    const years = optionsState.options?.academicYears ?? [];
-    return years.find((year) => year.is_current)?.id ?? years[0]?.id ?? null;
-  }, [optionsState.options]);
-
-  const flow = useStudentImportFlow(reference, { academicYearId: templateAcademicYearId });
+  const flow = useStudentImportFlow(reference, { academicYearId: activeAcademicYearId });
   const activeStep = resolveStudentImportUiStep(flow.activePhase);
   const schoolName = resolveSchoolLabel(reference, activeSchoolId);
   const rowDetails = toRowDetails(flow.selectedRow);
