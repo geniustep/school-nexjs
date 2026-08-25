@@ -8,6 +8,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
@@ -16,6 +17,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useLocale } from '@/features/i18n/locale-context';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { fetchRegulatoryReferenceOverview, projectRegulatoryReferenceToCalendar } from './api';
+import { regulatoryCalendarState, type RegulatoryCalendarState } from './regulatory-calendar-state';
 import type { RegulatoryReferenceItem, RegulatoryReferenceOverview } from './types';
 import './regulatory-reference.css';
 
@@ -57,9 +59,9 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     schoolYear: 'السنة الدراسية',
     release: 'الإصدار',
     official: 'مرجع رسمي',
-    calendarDraft: 'مسودة تقويم المؤسسة',
-    notCreated: 'لم تُنشأ بعد',
-    openCalendar: 'فتح مسودة التقويم',
+    calendarDraft: 'تقويم المؤسسة',
+    notCreated: 'لم يُنشأ بعد',
+    openCalendar: 'فتح تقويم المؤسسة',
     createDraft: 'إنشاء مسودة التقويم من المقرر الرسمي',
     creating: 'جارٍ إنشاء المسودة…',
     created: 'تم إنشاء مسودة التقويم للمراجعة.',
@@ -77,7 +79,7 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     loadError: 'تعذر تحميل المرجع الرسمي.',
     missingYear: 'اختر سنة دراسية صالحة أولًا.',
     publishedAt: 'نشر الإصدار',
-    localReview: 'لا يتم نشر التقويم تلقائيًا؛ تبقى المسودة بانتظار مراجعة المؤسسة.',
+    localReview: 'حالة تقويم المؤسسة موضحة أدناه.',
   },
   en: {
     title: 'Official school-year reference',
@@ -86,9 +88,9 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     schoolYear: 'School year',
     release: 'Release',
     official: 'Official reference',
-    calendarDraft: 'School calendar draft',
+    calendarDraft: 'School calendar',
     notCreated: 'Not created yet',
-    openCalendar: 'Open calendar draft',
+    openCalendar: 'Open school calendar',
     createDraft: 'Create calendar draft from official reference',
     creating: 'Creating draft…',
     created: 'Calendar draft created for review.',
@@ -106,7 +108,7 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     loadError: 'Unable to load the official reference.',
     missingYear: 'Select a valid school year first.',
     publishedAt: 'Release published',
-    localReview: 'The calendar is never auto-published; the draft remains pending school review.',
+    localReview: 'The school calendar status is shown below.',
   },
   fr: {
     title: 'Référence officielle de l’année scolaire',
@@ -115,9 +117,9 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     schoolYear: 'Année scolaire',
     release: 'Version',
     official: 'Référence officielle',
-    calendarDraft: 'Brouillon du calendrier',
+    calendarDraft: 'Calendrier de l’établissement',
     notCreated: 'Pas encore créé',
-    openCalendar: 'Ouvrir le brouillon',
+    openCalendar: 'Ouvrir le calendrier de l’établissement',
     createDraft: 'Créer le brouillon depuis la référence officielle',
     creating: 'Création du brouillon…',
     created: 'Brouillon du calendrier créé pour révision.',
@@ -135,7 +137,7 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     loadError: 'Impossible de charger la référence officielle.',
     missingYear: 'Sélectionnez d’abord une année scolaire valide.',
     publishedAt: 'Version publiée',
-    localReview: 'Le calendrier n’est jamais publié automatiquement ; le brouillon reste à valider par l’établissement.',
+    localReview: 'L’état du calendrier de l’établissement est indiqué ci-dessous.',
   },
   es: {
     title: 'Referencia oficial del curso escolar',
@@ -144,9 +146,9 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     schoolYear: 'Curso escolar',
     release: 'Versión',
     official: 'Referencia oficial',
-    calendarDraft: 'Borrador del calendario',
+    calendarDraft: 'Calendario del centro',
     notCreated: 'Aún no creado',
-    openCalendar: 'Abrir borrador',
+    openCalendar: 'Abrir calendario del centro',
     createDraft: 'Crear borrador desde la referencia oficial',
     creating: 'Creando borrador…',
     created: 'Borrador del calendario creado para revisión.',
@@ -164,7 +166,45 @@ const COPY: Record<'ar' | 'en' | 'fr' | 'es', Copy> = {
     loadError: 'No se pudo cargar la referencia oficial.',
     missingYear: 'Seleccione primero un curso escolar válido.',
     publishedAt: 'Versión publicada',
-    localReview: 'El calendario nunca se publica automáticamente; el borrador queda pendiente de revisión del centro.',
+    localReview: 'El estado del calendario del centro se muestra a continuación.',
+  },
+};
+
+const CALENDAR_STATE_HINTS: Record<
+  'ar' | 'en' | 'fr' | 'es',
+  Record<RegulatoryCalendarState, string>
+> = {
+  ar: {
+    not_created: 'لم يُنشأ تقويم المؤسسة بعد. يمكن إنشاء مسودة من المرجع الرسمي ثم مراجعتها قبل النشر.',
+    draft: 'تقويم المؤسسة ما زال مسودة بانتظار المراجعة قبل الاعتماد والنشر.',
+    under_review: 'تقويم المؤسسة قيد المراجعة قبل الاعتماد والنشر.',
+    published: 'تم اعتماد ونشر تقويم المؤسسة.',
+    archived: 'تقويم المؤسسة هذا مؤرشف ولا يمثل التقويم المنشور الحالي.',
+    other: 'حالة تقويم المؤسسة موضحة أدناه. افتح التقويم لمراجعة تفاصيله.',
+  },
+  en: {
+    not_created: 'The school calendar has not been created yet. Create a draft from the official reference and review it before publication.',
+    draft: 'The school calendar is still a draft awaiting review before approval and publication.',
+    under_review: 'The school calendar is under review before approval and publication.',
+    published: 'The school calendar has been approved and published.',
+    archived: 'This school calendar is archived and is not the currently published calendar.',
+    other: 'The school calendar status is shown below. Open the calendar to review its details.',
+  },
+  fr: {
+    not_created: 'Le calendrier de l’établissement n’a pas encore été créé. Créez un brouillon depuis la référence officielle puis révisez-le avant publication.',
+    draft: 'Le calendrier de l’établissement est encore un brouillon en attente de révision avant validation et publication.',
+    under_review: 'Le calendrier de l’établissement est en cours de révision avant validation et publication.',
+    published: 'Le calendrier de l’établissement a été validé et publié.',
+    archived: 'Ce calendrier de l’établissement est archivé et ne correspond pas au calendrier actuellement publié.',
+    other: 'L’état du calendrier est indiqué ci-dessous. Ouvrez-le pour consulter ses détails.',
+  },
+  es: {
+    not_created: 'El calendario del centro aún no se ha creado. Cree un borrador desde la referencia oficial y revíselo antes de publicarlo.',
+    draft: 'El calendario del centro sigue siendo un borrador pendiente de revisión antes de su aprobación y publicación.',
+    under_review: 'El calendario del centro está en revisión antes de su aprobación y publicación.',
+    published: 'El calendario del centro ha sido aprobado y publicado.',
+    archived: 'Este calendario del centro está archivado y no es el calendario publicado actualmente.',
+    other: 'El estado del calendario se muestra a continuación. Ábralo para revisar sus detalles.',
   },
 };
 
@@ -301,6 +341,11 @@ export function RegulatoryReferencePage() {
 
   const references = overview?.release.source_reference_numbers.filter(Boolean) ?? [];
   const primaryReference = references[0] ?? '—';
+  const calendarState = regulatoryCalendarState(
+    overview?.projection.calendar_id,
+    overview?.projection.state,
+  );
+  const calendarHint = CALENDAR_STATE_HINTS[locale][calendarState] ?? copy.localReview;
 
   return (
     <RequireAdminPermission permission="view_timetable">
@@ -324,7 +369,7 @@ export function RegulatoryReferencePage() {
               <div>
                 <span className="regulatory-reference__eyebrow">{copy.official}</span>
                 <h2 dir="auto">{primaryReference}</h2>
-                <p>{copy.localReview}</p>
+                <p>{calendarHint}</p>
               </div>
               <div className="regulatory-reference__hero-actions">
                 {overview.projection.calendar_id ? (
@@ -354,7 +399,11 @@ export function RegulatoryReferencePage() {
               </div>
               <div className="regulatory-reference__fact">
                 <span>{copy.calendarDraft}</span>
-                <strong>{overview.projection.calendar_id ? overview.projection.state ?? 'draft' : copy.notCreated}</strong>
+                {overview.projection.calendar_id ? (
+                  <strong><WorkflowBadge state={overview.projection.state ?? 'draft'} /></strong>
+                ) : (
+                  <strong>{copy.notCreated}</strong>
+                )}
               </div>
               {overview.release.published_at ? (
                 <div className="regulatory-reference__fact">
