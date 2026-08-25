@@ -9602,6 +9602,16 @@ html[dir='rtl'] .student-finance-strip__marker {
   gap: 16px;
 }
 
+/* The financial-responsibility decision frames the guardian flow, so it must
+   be made before searching, linking, or adding a guardian. */
+.student-create-form__section--billing .student-create-guardians-block--responsibility {
+  order: -2;
+}
+
+.student-create-form__section--billing .student-create-guardians-summary {
+  order: -1;
+}
+
 .student-create-form__section-body .student-create-identity,
 .student-create-form__section-body .student-create-enrollment {
   padding: 0;
@@ -9866,6 +9876,10 @@ html[dir='rtl'] .student-finance-strip__marker {
 
 .student-create-guardian-source__search {
   --sc-grid-cols: 2;
+}
+
+.student-create-guardian-relation {
+  max-width: 320px;
 }
 
 .student-create-guardian-source__mode {
@@ -14226,6 +14240,15 @@ html[dir='rtl'] .student-finance-strip__marker {
   margin: 0;
   font-size: 0.875rem;
   color: var(--c-text-muted, #64748b);
+}
+
+.siblings-form__search-existing {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
+  border-radius: var(--radius-sm, 0.375rem);
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 3%, white);
 }
 
 .siblings-form__cards {

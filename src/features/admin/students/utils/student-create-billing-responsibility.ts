@@ -18,8 +18,10 @@ export type BillingResponsibilityFieldErrors = {
 
 export function defaultStudentCreateBillingFormState(): StudentCreateBillingFormState {
   return {
-    // Explicit selection required unless a single eligible guardian is auto-applied in the UI.
-    responsibilitySelection: 'needs_selection',
+    // A guardian is the institution's normal payer. The director may explicitly
+    // switch to the student, which keeps the guardian flow optional.
+    responsibilitySelection: 'guardian',
+    addGuardianForStudent: false,
     studentBillingConfirmed: false,
     studentBillingReason: '',
     guardianSourceMode: 'existing',
@@ -42,13 +44,24 @@ export function buildBillingResponsibilityRequest(
   if (billingState.responsibilitySelection === 'guardian') {
     return { mode: 'guardian' };
   }
-  if (!billingState.studentBillingConfirmed || !isStudentBillingReasonValid(billingState.studentBillingReason)) {
+
+  if (!billingState.addGuardianForStudent) {
+    return {
+      mode: 'student',
+      confirmed: true,
+      reason: 'student_selected_without_guardian',
+    };
+  }
+
+  const reason = billingState.studentBillingReason.trim();
+  if (!billingState.studentBillingConfirmed || !isStudentBillingReasonValid(reason)) {
     return null;
   }
+
   return {
     mode: 'student',
     confirmed: true,
-    reason: billingState.studentBillingReason.trim(),
+    reason,
   };
 }
 
@@ -65,6 +78,9 @@ export function validateBillingResponsibilityForm(
   }
 
   if (billingState.responsibilitySelection === 'student') {
+    if (!billingState.addGuardianForStudent) {
+      return { valid: true, errors: {} };
+    }
     if (!billingState.studentBillingConfirmed) {
       const message = t('admin.student360.create.billingResponsibility.errors.confirmationRequired');
       errors.billingStudentConfirmed = message;

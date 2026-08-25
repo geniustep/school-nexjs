@@ -110,6 +110,7 @@ import { resolveBillingResponsibilityAutoPatch } from '../utils/student-create-b
 import {
   applyStudentCreateGuardianAtomicContractToPayload,
   collectStudentCreateGuardianEntries,
+  derivePrimaryStudentCreateGuardianEntry,
   resolvePersonSchoolParentId,
   validateStudentCreateGuardianContract,
 } from '../utils/student-create-guardian-payload';
@@ -308,9 +309,14 @@ export function StudentCreateForm({
       if (!profileOptionsInitRef.current) {
         profileOptionsInitRef.current = true;
         const base = defaultStudentProfileFormState(options);
-        let merged: StudentProfileFormState = initialProfilePatch
-          ? { ...base, ...initialProfilePatch }
-          : base;
+        // The identity inputs are usable while the asynchronous options are still loading.
+        // Preserve anything the director has already entered before those options become
+        // available; otherwise moving to a later step can appear to erase the student.
+        let merged: StudentProfileFormState = {
+          ...base,
+          ...prev,
+          ...(initialProfilePatch ?? {}),
+        };
         if (initialProfilePatch) profilePrefillAppliedRef.current = true;
         return applySoftCreateDefaults(merged);
       }
@@ -663,6 +669,11 @@ export function StudentCreateForm({
   }
 
   function handleAddAdditionalGuardian() {
+    const primaryGuardian = derivePrimaryStudentCreateGuardianEntry(state, billingState);
+    if (!primaryGuardian || !isCompleteStudentCreateGuardianEntry(primaryGuardian)) {
+      toast.error(t('admin.student360.create.billing.additionalRequiresPrimary'));
+      return;
+    }
     const entry = createEmptyAdditionalGuardianEntry();
     setBillingState((prev) => ({
       ...prev,
