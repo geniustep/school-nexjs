@@ -29,6 +29,17 @@ function mapContractError(error: unknown): ApiErrorBody {
 export async function validateStudentImportJob(
   payload: StudentImportValidationRequest,
 ): Promise<StudentImportApiResult<StudentImportValidationResponse>> {
+  if (payload.rows.length === 0) {
+    return {
+      ok: false,
+      error: {
+        code: 'validation_error',
+        message: 'Resolve local row errors before server validation.',
+        details: { source: 'local', reason: 'empty_payload' },
+      },
+    };
+  }
+
   const res = await api.post<unknown>(endpoints.admin.studentImportValidate, payload);
   if (!res.success) {
     return { ok: false, error: res.error };

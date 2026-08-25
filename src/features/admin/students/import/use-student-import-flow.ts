@@ -11,6 +11,10 @@ import {
   pollStudentImportJobUntilDone,
   validateStudentImportJob,
 } from './student-import-api';
+import {
+  applyStudentImportAcademicYearContext,
+  studentImportAcademicYearContextMatches,
+} from './student-import-academic-year-context';
 import { hasStudentImportCapability } from './student-import-capability';
 import { downloadStudentImportTemplate } from './student-import-template-download';
 import {
@@ -23,6 +27,7 @@ import {
   buildStudentImportValidationRequest,
   canExecuteImport,
   canShowExecutePanel,
+  hasStudentImportEligiblePayloadRows,
   isValidationExpired,
 } from './student-import-payload';
 import { mapServerIssueMessage } from './student-import-server-normalize';
@@ -66,6 +71,13 @@ function phaseFromState(args: {
   return args.phase;
 }
 
+export function hasEligibleStudentImportServerRows(validation: StudentImportValidationResult): boolean {
+  if (validation.format === 'odoo_v1') {
+    return hasStudentImportEligiblePayloadRows(validation.rows);
+  }
+  return validation.summary.invalidRows === 0;
+}
+
 export function useStudentImportFlow(
   reference: StudentImportReferenceData | null,
   options?: { academicYearId?: number | null },
@@ -74,7 +86,7 @@ export function useStudentImportFlow(
   const toast = useToast();
   const router = useRouter();
   const user = useSession();
-  const { activeSchoolId } = useAdminSession();
+  const { activeSchoolId, activeAcademicYearId } = useAdminSession();
   const hasCapability = hasStudentImportCapability(user);
 
   const idempotencyKeyRef = useRef<string | null>(null);
@@ -110,35 +122,40 @@ export function useStudentImportFlow(
   }, [mergedRows, localResult, filter, search]);
 
   const activePhase = phaseFromState({ phase, hasFile: !!file, localResult, serverValidation, execution });
-
-  const isOdooV1Template = localResult?.format === 'odoo_v1';
+  const academicYearContextMatches = studentImportAcademicYearContextMatches(
+    localResult,
+    activeAcademicYearId,
+  );
 
   const canRunServerValidation =
     hasCapability &&
     !!localResult &&
+    academicYearContextMatches &&
     hasStudentImportFileErrors(localResult.fileErrors) === false &&
-    (isOdooV1Template
-      ? localResult.rows.length > 0
-      : localResult.summary.invalidRows === 0) &&
+    hasEligibleStudentImportServerRows(localResult) &&
     !busy &&
     !execution;
 
   const canConfirm =
     hasCapability &&
+    academicYearContextMatches &&
     !!serverValidation &&
     !validationExpired &&
     serverValidation.summary.invalid_rows === 0 &&
     !execution;
 
-  const canShowExecute = canShowExecutePanel({
-    jobId: serverValidation?.jobId,
-    serverInvalidRows: serverValidation?.summary.invalid_rows ?? 0,
-    validationExpired,
-    hasCapability,
-    hasExecution: !!execution,
-  });
+  const canShowExecute =
+    academicYearContextMatches &&
+    canShowExecutePanel({
+      jobId: serverValidation?.jobId,
+      serverInvalidRows: serverValidation?.summary.invalid_rows ?? 0,
+      validationExpired,
+      hasCapability,
+      hasExecution: !!execution,
+    });
 
   const canExecute =
+    academicYearContextMatches &&
     canExecuteImport({
       jobId: serverValidation?.jobId,
       localInvalidRows: localResult?.summary.invalidRows ?? 0,
@@ -171,10 +188,14 @@ export function useStudentImportFlow(
   }, []);
 
   async function handleDownloadTemplate() {
+    if (options?.academicYearId == null) {
+      toast.error(t('admin.studentImport.errors.referenceUnavailable'));
+      return;
+    }
     setDownloading(true);
     try {
       const result = await downloadStudentImportTemplate({
-        academicYearId: options?.academicYearId,
+        academicYearId: options.academicYearId,
       });
       if (!result.ok) {
         toast.error(t('admin.studentImport.errors.templateDownloadFailed'));
@@ -209,22 +230,32 @@ export function useStudentImportFlow(
 
     try {
       const buffer = await next.arrayBuffer();
-      const validation = await validateStudentImportWorkbook(buffer, reference, issueMessage);
+      const parsedValidation = await validateStudentImportWorkbook(buffer, reference, issueMessage);
+      const validation = applyStudentImportAcademicYearContext(
+        parsedValidation,
+        activeAcademicYearId,
+        issueMessage,
+      );
       setLocalResult(validation);
       if (validation.fileErrors.some((e) => e.code === 'invalid_template_version')) {
         toast.error(t('admin.studentImport.errors.outdatedTemplate'));
       }
+      const hasFileErrors = hasStudentImportFileErrors(validation.fileErrors);
+      const hasEligibleRows = hasEligibleStudentImportServerRows(validation);
       const localInvalid =
-        validation.format !== 'odoo_v1' &&
-        (validation.summary.invalidRows > 0 || hasStudentImportFileErrors(validation.fileErrors));
+        hasFileErrors ||
+        (validation.format === 'odoo_v1'
+          ? validation.summary.invalidRows > 0 && !hasEligibleRows
+          : validation.summary.invalidRows > 0);
       setPhase(localInvalid ? 'local_invalid' : 'local_valid');
 
       if (
         validation.format === 'odoo_v1' &&
-        !hasStudentImportFileErrors(validation.fileErrors) &&
-        validation.rows.length > 0 &&
+        !hasFileErrors &&
+        hasEligibleRows &&
         hasCapability &&
-        activeSchoolId != null
+        activeSchoolId != null &&
+        activeAcademicYearId != null
       ) {
         await runServerValidation(validation, next);
       }
@@ -247,24 +278,29 @@ export function useStudentImportFlow(
       hasCapability &&
       !!validation &&
       !hasStudentImportFileErrors(validation.fileErrors) &&
-      (validation.format === 'odoo_v1'
-        ? validation.rows.length > 0
-        : validation.summary.invalidRows === 0) &&
+      hasEligibleStudentImportServerRows(validation) &&
       !!sourceFile &&
       activeSchoolId != null &&
+      activeAcademicYearId != null &&
+      studentImportAcademicYearContextMatches(validation, activeAcademicYearId) &&
       (!busy || !!validationOverride) &&
       !execution;
 
-    if (!canRun) return;
+    if (!canRun || activeSchoolId == null || activeAcademicYearId == null) return;
     setBusy(true);
     setPhase('server_validating');
     try {
       const payload = buildStudentImportValidationRequest({
         activeSchoolId,
+        activeAcademicYearId,
         sourceFilename: sourceFile.name,
         rows: validation.rows,
         templateVersion: validation.templateVersion,
       });
+      if (payload.rows.length === 0) {
+        setPhase('local_invalid');
+        return;
+      }
       assertValidationPayloadKeys(payload);
       const result = await validateStudentImportJob(payload);
       if (!result.ok) {
@@ -346,7 +382,7 @@ export function useStudentImportFlow(
   }
 
   async function executeImport() {
-    if (!canExecute || !serverValidation) return;
+    if (!canExecute || !serverValidation || activeAcademicYearId == null) return;
     if (validationExpired) {
       toast.error(t('admin.studentImport.server.validationExpired'));
       setPhase('server_invalid');
@@ -366,7 +402,10 @@ export function useStudentImportFlow(
         applyExecution(job, file?.name ?? null);
       };
 
-      let response = await executeStudentImportJob(jobId, { idempotency_key: key });
+      let response = await executeStudentImportJob(jobId, {
+        idempotency_key: key,
+        active_academic_year_id: activeAcademicYearId,
+      });
       if (!response.ok) {
         if (response.error.code === 'network_error' || response.error.code === 'duplicate_request') {
           setPhase('polling');

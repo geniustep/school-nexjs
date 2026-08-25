@@ -6,6 +6,10 @@ const PAYLOAD_FIELDS: Array<keyof StudentImportValidationRequestRow> = [
   'row_number',
   'first_name',
   'last_name',
+  'first_name_ar',
+  'last_name_ar',
+  'first_name_fr',
+  'last_name_fr',
   'name_ar',
   'name_latin',
   'gender',
@@ -40,8 +44,13 @@ const PAYLOAD_FIELDS: Array<keyof StudentImportValidationRequestRow> = [
   'departure_reason',
   'guardian_id',
   'guardian_name',
+  'guardian_first_name_ar',
+  'guardian_last_name_ar',
+  'guardian_first_name_fr',
+  'guardian_last_name_fr',
   'guardian_mobile',
   'guardian_relationship_type',
+  'guardian_is_legal_guardian',
   'guardian_is_primary_contact',
   'guardian_is_financial_responsible',
 ];
@@ -62,6 +71,10 @@ function buildPayloadRow(row: StudentImportRowResult): StudentImportValidationRe
   };
 
   const optionalMap: Array<[keyof StudentImportValidationRequestRow, unknown]> = [
+    ['first_name_ar', n.first_name_ar],
+    ['last_name_ar', n.last_name_ar],
+    ['first_name_fr', n.first_name_fr],
+    ['last_name_fr', n.last_name_fr],
     ['name_ar', n.name_ar],
     ['name_latin', n.name_latin],
     ['gender', n.gender],
@@ -90,8 +103,13 @@ function buildPayloadRow(row: StudentImportRowResult): StudentImportValidationRe
     ['departure_reason', n.departure_reason],
     ['guardian_id', n.guardian_id],
     ['guardian_name', n.guardian_name],
+    ['guardian_first_name_ar', n.guardian_first_name_ar],
+    ['guardian_last_name_ar', n.guardian_last_name_ar],
+    ['guardian_first_name_fr', n.guardian_first_name_fr],
+    ['guardian_last_name_fr', n.guardian_last_name_fr],
     ['guardian_mobile', n.guardian_mobile],
     ['guardian_relationship_type', n.guardian_relationship_type],
+    ['guardian_is_legal_guardian', n.guardian_is_legal_guardian],
     ['guardian_is_primary_contact', n.guardian_is_primary_contact],
     ['guardian_is_financial_responsible', n.guardian_is_financial_responsible],
   ];
@@ -105,8 +123,13 @@ function buildPayloadRow(row: StudentImportRowResult): StudentImportValidationRe
   return payload;
 }
 
+export function hasStudentImportEligiblePayloadRows(rows: StudentImportRowResult[]): boolean {
+  return rows.some((row) => buildPayloadRow(row) != null);
+}
+
 export function buildStudentImportValidationRequest(args: {
   activeSchoolId: number;
+  activeAcademicYearId: number;
   sourceFilename: string;
   rows: StudentImportRowResult[];
   templateVersion?: number | null;
@@ -118,6 +141,7 @@ export function buildStudentImportValidationRequest(args: {
   return {
     template_version: args.templateVersion ?? STUDENT_IMPORT_TEMPLATE_VERSION,
     active_school_id: args.activeSchoolId,
+    active_academic_year_id: args.activeAcademicYearId,
     source_filename: args.sourceFilename,
     rows,
   };
