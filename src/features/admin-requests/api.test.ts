@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   adminRequestFileClientItemId,
+  adminRequestTypeSettingsPayload,
   adminRequestUploadSessionPayload,
   approveReplyPayload,
   createRequestPayload,
@@ -110,6 +111,18 @@ describe('admin request client payloads', () => {
     expect(requestReplyChangesPayload({ reply_id: 13, reason: '  يرجى التوضيح  ' })).toEqual({
       reply_id: 13,
       reason: 'يرجى التوضيح',
+    });
+  });
+
+  it('includes service_kind when configuring an appointment request type', () => {
+    expect(adminRequestTypeSettingsPayload({
+      name: '  موعد مع الإدارة  ',
+      requires_student: true,
+      service_kind: 'appointment',
+    })).toEqual({
+      name: 'موعد مع الإدارة',
+      requires_student: true,
+      service_kind: 'appointment',
     });
   });
 
