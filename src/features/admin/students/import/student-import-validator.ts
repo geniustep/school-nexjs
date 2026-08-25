@@ -14,6 +14,10 @@ import {
   normalizeStudentImportRow,
   rowFingerprint,
 } from './student-import-normalizer';
+import {
+  applyStudentImportV2RawFields,
+  hasStudentImportGuardianIdentity,
+} from './student-import-v2-contract';
 import type {
   StudentImportIssue,
   StudentImportReferenceData,
@@ -74,6 +78,7 @@ function validateV1Row(
   t: IssueTranslator,
 ): StudentImportRowResult {
   const normalized = mapV1RawRowToNormalized(raw, meta, refs);
+  const v2 = applyStudentImportV2RawFields(normalized, raw);
   const errors: StudentImportIssue[] = [];
   const warnings: StudentImportIssue[] = [];
 
@@ -82,10 +87,24 @@ function validateV1Row(
   }
 
   for (const field of STUDENT_IMPORT_V1_REQUIRED_ROW_FIELDS) {
+    if (field === 'guardian_name' && hasStudentImportGuardianIdentity(normalized)) {
+      continue;
+    }
     const value = normalized[field as keyof typeof normalized];
     if (value == null || value === '') {
       errors.push(issue('missing_required_field', t('missing_required_field', field), 'error', field));
     }
+  }
+
+  if (v2.legalBooleanProvided && !v2.legalBooleanValid) {
+    errors.push(
+      issue(
+        'invalid_boolean',
+        t('invalid_boolean', 'guardian_is_legal_guardian'),
+        'error',
+        'guardian_is_legal_guardian',
+      ),
+    );
   }
 
   if (normalized.registration_type === 'transfer' && !normalized.previous_school) {
@@ -428,6 +447,15 @@ export function filterStudentImportRows(
       String(row.rowNumber),
       row.normalized.first_name ?? '',
       row.normalized.last_name ?? '',
+      row.normalized.first_name_ar ?? '',
+      row.normalized.last_name_ar ?? '',
+      row.normalized.first_name_fr ?? '',
+      row.normalized.last_name_fr ?? '',
+      row.normalized.guardian_name ?? '',
+      row.normalized.guardian_first_name_ar ?? '',
+      row.normalized.guardian_last_name_ar ?? '',
+      row.normalized.guardian_first_name_fr ?? '',
+      row.normalized.guardian_last_name_fr ?? '',
       row.normalized.school_number ?? '',
       row.normalized.massar_code ?? '',
     ]
