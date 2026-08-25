@@ -305,6 +305,8 @@ export type StudentCreateGuardianEntry =
 
 export interface StudentCreateBillingFormState {
   responsibilitySelection: StudentCreateBillingResponsibilitySelection;
+  /** In student-billing mode, guardians are optional unless this is enabled. */
+  addGuardianForStudent: boolean;
   studentBillingConfirmed: boolean;
   studentBillingReason: string;
   guardianSourceMode: StudentCreateGuardianSourceMode;

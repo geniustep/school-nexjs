@@ -217,6 +217,7 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
   },
   en: {
     ...STUDENT_QUICK_CREATE_MESSAGES.en,
+    'admin.student360.create.billing.summaryTitle': 'Résumé des responsables',
     'nav.adminRequests': 'Administrative requests',
     'nav.library': 'Library',
     'nav.entryRequirements': 'School entry requirements',
@@ -319,6 +320,9 @@ const INLINE_MESSAGES: Record<Locale, Record<string, string>> = {
   },
   fr: {
     ...STUDENT_QUICK_CREATE_MESSAGES.fr,
+    'admin.student360.create.pageTitle': 'Inscrire un nouvel élève',
+    'admin.student360.create.groups.basic': 'Informations de base',
+    'admin.student360.create.billing.summaryTitle': 'Résumé des responsables',
     'nav.adminRequests': 'Demandes administratives',
     'nav.library': 'Bibliothèque',
     'nav.entryRequirements': 'Fournitures de rentrée',

@@ -36,4 +36,19 @@ describe('French admin translation integrity', () => {
     expect(translate('fr', 'admin.studentsList.serviceCategory.transport')).toBe('Transport');
     expect(translate('fr', 'admin.studentsList.serviceCategory.canteen')).toBe('Cantine');
   });
+
+  it('provides the student-registration headings without exposing raw keys', () => {
+    expect(translate('fr', 'admin.student360.create.pageTitle')).toBe(
+      'Inscrire un nouvel élève',
+    );
+    expect(translate('fr', 'admin.student360.create.groups.basic')).toBe(
+      'Informations de base',
+    );
+    expect(translate('fr', 'admin.student360.create.billing.summaryTitle')).toBe(
+      'Résumé des responsables',
+    );
+    expect(translate('en', 'admin.student360.create.billing.summaryTitle')).toBe(
+      'Résumé des responsables',
+    );
+  });
 });

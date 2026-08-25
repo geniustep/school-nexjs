@@ -227,7 +227,13 @@ describe('REGISTRATION-FINANCE-3C journey hardening', () => {
 
   it('blocks submit when مسؤول الأداء is not selected', () => {
     const t = (key: string) => key;
-    const result = validateBillingResponsibilityForm(defaultStudentCreateBillingFormState(), t);
+    const result = validateBillingResponsibilityForm(
+      {
+        ...defaultStudentCreateBillingFormState(),
+        responsibilitySelection: 'needs_selection',
+      },
+      t,
+    );
     expect(result.valid).toBe(false);
     expect(result.errors.billingResponsibilitySelection).toBeTruthy();
   });

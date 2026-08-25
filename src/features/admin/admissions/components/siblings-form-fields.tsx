@@ -1,7 +1,9 @@
 'use client';
 
 import { useT } from '@/features/i18n/locale-context';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { SiblingLine } from '@/types/sibling-line';
+import type { Student } from '@/types/student';
 import { emptySiblingLine } from '../utils/sibling-lines';
 import { SiblingStudentSearch } from './sibling-student-search';
 
@@ -77,7 +79,22 @@ export function SiblingsFormFields({
     }
     onChange({
       hasSiblings: true,
-      siblingLines: siblingLines.length > 0 ? siblingLines : [emptySiblingLine(1)],
+      siblingLines,
+    });
+  }
+
+  function addLinkedSibling(student: Student) {
+    if (siblingLines.some((line) => line.linked_student_id === student.id)) return;
+    onChange({
+      siblingLines: [
+        ...siblingLines,
+        {
+          ...emptySiblingLine(siblingLines.length + 1),
+          name: getStudentDisplayName(student),
+          is_current_student: true,
+          linked_student_id: student.id,
+        },
+      ],
     });
   }
 
@@ -109,6 +126,18 @@ export function SiblingsFormFields({
             <button type="button" className="btn btn--ghost btn--sm" onClick={addLine}>
               {t('admin.siblings.addLine')}
             </button>
+          </div>
+
+          <div className="siblings-form__search-existing">
+            <span className="student-create-field__label">
+              {t('admin.siblings.selectLinkedStudent')}
+            </span>
+            <SiblingStudentSearch
+              value={null}
+              onChange={(_studentId, student) => {
+                if (student) addLinkedSibling(student);
+              }}
+            />
           </div>
 
           {siblingLines.length === 0 ? (

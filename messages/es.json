@@ -7401,6 +7401,7 @@
           "guardianSourceMatchesLead": "Seleccione la persona correcta abajo o confirme que es un tutor nuevo.",
           "guardianSourceSearchingTitle": "Comprobando",
           "addAnotherGuardian": "Añadir otro tutor",
+          "additionalRequiresPrimary": "Añada o vincule primero al tutor principal antes de añadir otro tutor.",
           "additionalGuardianTitle": "Tutor adicional",
           "removeAdditionalGuardian": "Quitar"
         },
@@ -7414,6 +7415,7 @@
           "viewOnlyHint": "Responsabilidad de pago solo lectura — modificarla requiere permiso de gestión del perfil de facturación.",
           "guardianUnresolvedHint": "Se seleccionó facturación al tutor. Si aún no hay un tutor financiero válido, la configuración financiera se aplazará tras guardar.",
           "studentWarning": "El alumno será el tercero de facturación previsto. No se aplica automáticamente cuando falta un tutor.",
+          "studentAddGuardianOptional": "Añadir un tutor para este alumno (opcional)",
           "studentConfirmLabel": "Confirmo que el alumno debe ser el tercero de facturación",
           "studentReasonLabel": "Motivo de la facturación al alumno",
           "studentReasonPlaceholder": "Explique por qué el alumno es el tercero de facturación…",

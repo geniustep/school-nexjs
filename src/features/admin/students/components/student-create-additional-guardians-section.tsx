@@ -17,6 +17,8 @@ export function StudentCreateAdditionalGuardiansSection({
   guardian,
   usedGuardianIds,
   linkedGuardianPersonsByEntryKey,
+  canAddGuardian,
+  addGuardianHint,
   onAddGuardian,
   onSourceModeChange,
   onUpdateEntry,
@@ -29,6 +31,8 @@ export function StudentCreateAdditionalGuardiansSection({
   guardian: EnrollmentIntakeGuardianOptions;
   usedGuardianIds: Set<number>;
   linkedGuardianPersonsByEntryKey: Record<string, PersonSearchResult>;
+  canAddGuardian: boolean;
+  addGuardianHint: string;
   onAddGuardian: () => void;
   onSourceModeChange: (entryKey: string, mode: StudentCreateGuardianSourceMode) => void;
   onUpdateEntry: (entryKey: string, next: StudentCreateGuardianEntry) => void;
@@ -69,7 +73,18 @@ export function StudentCreateAdditionalGuardiansSection({
         </p>
       ) : null}
 
-      <button type="button" className="btn btn--ghost student-create-additional-guardians__add" onClick={onAddGuardian}>
+      {!canAddGuardian ? (
+        <p className="student-create-field__hint" role="status">
+          {addGuardianHint}
+        </p>
+      ) : null}
+
+      <button
+        type="button"
+        className="btn btn--ghost student-create-additional-guardians__add"
+        onClick={onAddGuardian}
+        disabled={!canAddGuardian}
+      >
         {t('admin.student360.create.billing.addAnotherGuardian')}
       </button>
     </div>
