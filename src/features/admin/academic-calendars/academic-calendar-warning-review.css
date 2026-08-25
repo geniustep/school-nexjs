@@ -1,0 +1,133 @@
+/* Regulatory calendar warning review refresh.
+ * The legacy banner stack remains in the detail component for compatibility,
+ * but is hidden while the grouped review surface is mounted by the detail page.
+ */
+.academic-calendar-detail__warnings {
+  display: none;
+}
+
+.academic-calendar-warning-review {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.academic-calendar-warning-review__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.academic-calendar-warning-review__head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.academic-calendar-warning-review__head p {
+  margin: 5px 0 0;
+  max-width: 70ch;
+}
+
+.academic-calendar-warning-review__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.academic-calendar-warning-review__clear {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.academic-calendar-warning-review__clear strong {
+  font-size: 14px;
+}
+
+.academic-calendar-warning-review__clear span {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+}
+
+.academic-calendar-warning-review__groups {
+  display: grid;
+  gap: 8px;
+}
+
+.academic-calendar-warning-review__group {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.academic-calendar-warning-review__group-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 650;
+  list-style-position: inside;
+}
+
+.academic-calendar-warning-review__group-summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
+.academic-calendar-warning-review__list {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.academic-calendar-warning-review__item {
+  display: grid;
+  gap: 7px;
+  padding: 11px 12px;
+}
+
+.academic-calendar-warning-review__item + .academic-calendar-warning-review__item {
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.academic-calendar-warning-review__item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.academic-calendar-warning-review__item-head code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--surface-muted, #f8fafc);
+  color: var(--muted, #64748b);
+  font-size: 11px;
+}
+
+.academic-calendar-warning-review__item p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.academic-calendar-warning-review__original {
+  color: var(--muted, #64748b);
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .academic-calendar-warning-review__head {
+    flex-direction: column;
+  }
+
+  .academic-calendar-warning-review__counts {
+    justify-content: flex-start;
+  }
+}
