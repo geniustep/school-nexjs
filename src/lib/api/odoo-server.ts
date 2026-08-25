@@ -1,10 +1,12 @@
 // Server-only transport to the Odoo backend. This is the single egress point
 // from Next.js to Odoo. Browser code must never import this file.
 //
-// Two responsibilities:
-//   1. authenticateOdoo() — performs the initial /web/session/authenticate
-//      handshake and extracts the session_id cookie.
-//   2. odooApiFetch() — forwards an API v1 request carrying that session id.
+// Three responsibilities:
+//   1. authenticateOdoo() — preserves the legacy /web/session/authenticate
+//      handshake for Odoo-native callers.
+//   2. authenticateRaqeem() — authenticates Raqeem app users through
+//      /api/v1/auth/login so phone/guardian aliases are resolved by Odoo.
+//   3. odooApiFetch() — forwards an API v1 request carrying that session id.
 
 import 'server-only';
 import { config } from '@/lib/config';
@@ -38,7 +40,7 @@ export interface OdooAuthResult {
   ok: boolean;
   sessionId: string | null;
   uid: number | null;
-  /** Odoo error name when ok=false, e.g. for invalid credentials. */
+  /** Odoo/Raqeem error code when ok=false. */
   errorName?: string;
 }
 
@@ -52,8 +54,8 @@ function extractSessionId(setCookie: string | null): string | null {
 }
 
 /**
- * Step 1 of the documented auth flow (API_REPORT.md §8): authenticate against
- * Odoo's standard endpoint to obtain a session cookie.
+ * Legacy Odoo-native authentication. Keep this unchanged for callers that
+ * intentionally use the technical `res.users.login` contract.
  */
 export async function authenticateOdoo(
   database: string,
@@ -104,6 +106,73 @@ export async function authenticateOdoo(
   }
 
   const sessionId = extractSessionId(res.headers.get('set-cookie'));
+  return { ok: true, sessionId, uid };
+}
+
+/**
+ * Raqeem application authentication.
+ *
+ * Unlike Odoo core login, `/api/v1/auth/login` accepts the stable Raqeem
+ * identifier contract: technical login, guardian code, or a phone alias. The
+ * database selector is derived server-side from the validated tenant; browser
+ * callers never choose it. The login value itself is intentionally forwarded
+ * unchanged (apart from the existing BFF trim) so phone normalization and
+ * collision handling remain authoritative in Odoo.
+ */
+export async function authenticateRaqeem(
+  database: string,
+  login: string,
+  password: string,
+  backendBaseUrl?: string,
+): Promise<OdooAuthResult> {
+  let baseUrl: string | null = backendBaseUrl?.trim() ?? null;
+  if (!baseUrl) {
+    const resolved = resolveOdooBaseUrlForTenant(database);
+    if (!resolved.ok) {
+      return { ok: false, sessionId: null, uid: null, errorName: 'tenant_backend_not_configured' };
+    }
+    baseUrl = resolved.baseUrl;
+  }
+  baseUrl = baseUrl.replace(/\/$/, '');
+
+  const prefix = config.apiPrefix.startsWith('/') ? config.apiPrefix : `/${config.apiPrefix}`;
+  const url = `${baseUrl}${prefix}/auth/login?db=${encodeURIComponent(database)}`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({ login, password }),
+    });
+  } catch {
+    return { ok: false, sessionId: null, uid: null, errorName: 'network_error' };
+  }
+
+  let json: {
+    success?: boolean;
+    data?: { user?: { id?: number; uid?: number } };
+    error?: { code?: string; message?: string };
+  } = {};
+  try {
+    json = await res.json();
+  } catch {
+    /* non-JSON body — treated as failure below */
+  }
+
+  const sessionId = extractSessionId(res.headers.get('set-cookie'));
+  if (!res.ok || json.success !== true || !sessionId) {
+    return {
+      ok: false,
+      sessionId: null,
+      uid: null,
+      errorName: json.error?.code ?? (res.status === 401 ? 'invalid_credentials' : 'authentication_failed'),
+    };
+  }
+
+  const rawUid = json.data?.user?.id ?? json.data?.user?.uid ?? null;
+  const uid = typeof rawUid === 'number' && Number.isFinite(rawUid) ? rawUid : null;
   return { ok: true, sessionId, uid };
 }
 
