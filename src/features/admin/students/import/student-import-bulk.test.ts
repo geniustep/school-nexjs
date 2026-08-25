@@ -38,15 +38,17 @@ function localRow(overrides: Partial<StudentImportRowResult> = {}): StudentImpor
 }
 
 describe('student import payload builder', () => {
-  it('whitelists fields and skips invalid local rows', () => {
+  it('whitelists fields, sends academic year context, and skips invalid local rows', () => {
     const payload = buildStudentImportValidationRequest({
       activeSchoolId: 3,
+      activeAcademicYearId: 1,
       sourceFilename: 'students.xlsx',
       rows: [
         localRow(),
         localRow({ rowNumber: 4, status: 'invalid', errors: [{ code: 'missing_required_field', severity: 'error', message: 'x' }] }),
       ],
     });
+    expect(payload.active_academic_year_id).toBe(1);
     expect(payload.rows).toHaveLength(1);
     expect(payload.rows[0].row_number).toBe(3);
     expect(payload.rows[0].first_name).toBe('Ali');

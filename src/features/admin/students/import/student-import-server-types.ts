@@ -105,6 +105,7 @@ export interface StudentImportValidationRequestRow {
 export interface StudentImportValidationRequest {
   template_version: number;
   active_school_id: number;
+  active_academic_year_id: number;
   source_filename: string;
   rows: StudentImportValidationRequestRow[];
 }
@@ -143,6 +144,7 @@ export interface StudentImportValidationResponse {
 
 export interface StudentImportExecuteRequest {
   idempotency_key: string;
+  active_academic_year_id: number;
 }
 
 export interface StudentImportExecuteResponse {
