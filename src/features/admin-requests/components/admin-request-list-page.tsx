@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useLocale } from '@/features/i18n/locale-context';
+import { localeToBcp47 } from '@/lib/i18n/config';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { Badge, Card, PageHeader } from '@/components/ui/primitives';
@@ -11,36 +13,48 @@ import {
   requestRows,
   requestTitle,
 } from '../types';
+import { adminRequestMessage, type AdminRequestMessageKey } from '../i18n';
 import { adminRequestStateLabel } from '../presenters';
 
-const LABEL: Record<AdminRequestRole, { title: string; newLabel: string; empty: string }> = {
-  parent: { title: 'طلباتي الإدارية', newLabel: 'طلب جديد', empty: 'لا توجد طلبات بعد.' },
-  student: { title: 'طلباتي الإدارية', newLabel: 'طلب جديد', empty: 'لا توجد طلبات بعد.' },
-  admin: { title: 'الطلبات الإدارية', newLabel: '', empty: 'لا توجد طلبات ضمن هذا النطاق.' },
-  staff: { title: 'الطلبات المحالة إليّ', newLabel: '', empty: 'لا توجد طلبات محالة إليك حاليًا.' },
-};
-
-function subtitle(role: AdminRequestRole): string {
-  if (role === 'admin') return 'راجع الطلبات واتخذ الإجراء المناسب مباشرة.';
-  if (role === 'staff') return 'تظهر هنا فقط الطلبات الإدارية المحالة إليك.';
-  return 'تابع طلباتك وتواصل مع الإدارة عند الحاجة.';
+function copyKeys(role: AdminRequestRole): {
+  title: AdminRequestMessageKey;
+  subtitle: AdminRequestMessageKey;
+  empty: AdminRequestMessageKey;
+} {
+  if (role === 'admin') {
+    return { title: 'list.adminTitle', subtitle: 'list.subtitleAdmin', empty: 'list.emptyAdmin' };
+  }
+  if (role === 'staff') {
+    return { title: 'list.staffTitle', subtitle: 'list.subtitleStaff', empty: 'list.emptyStaff' };
+  }
+  return { title: 'list.familyTitle', subtitle: 'list.subtitleFamily', empty: 'list.emptyFamily' };
 }
 
 export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
+  const { locale } = useLocale();
   const apiBase = adminRequestApiBase(role);
   const uiBase = adminRequestUiBase(role);
   const state = useResource<AdminRequest[] | AdminRequestList>(apiBase, undefined, { keepPreviousData: false });
-  const copy = LABEL[role];
+  const copy = copyKeys(role);
   const canCreate = role === 'parent' || role === 'student';
+  const dateLocale = localeToBcp47(locale);
 
   return (
     <>
       <PageHeader
-        title={copy.title}
-        subtitle={subtitle(role)}
-        actions={canCreate ? <Link href={`${uiBase}/new`} className="btn btn--primary">{copy.newLabel}</Link> : undefined}
+        title={adminRequestMessage(locale, copy.title)}
+        subtitle={adminRequestMessage(locale, copy.subtitle)}
+        actions={canCreate ? (
+          <Link href={`${uiBase}/new`} className="btn btn--primary">
+            {adminRequestMessage(locale, 'list.new')}
+          </Link>
+        ) : undefined}
       />
-      <ResourceView state={state} isEmpty={(data) => requestRows(data).length === 0} empty={<Card>{copy.empty}</Card>}>
+      <ResourceView
+        state={state}
+        isEmpty={(data) => requestRows(data).length === 0}
+        empty={<Card>{adminRequestMessage(locale, copy.empty)}</Card>}
+      >
         {(data) => (
           <div className="grid grid--cards">
             {requestRows(data).map((request: AdminRequest) => {
@@ -49,14 +63,20 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
                 <Link key={request.id} href={`${uiBase}/${request.id}`} className="row-link">
                   <Card>
                     <div className="between">
-                      <strong>{requestTitle(request)}</strong>
-                      <Badge tone="blue">{adminRequestStateLabel(request.state)}</Badge>
+                      <strong dir="auto">{requestTitle(request)}</strong>
+                      <Badge tone="blue">{adminRequestStateLabel(request.state, locale)}</Badge>
                     </div>
-                    <p className="muted tiny">{request.reference ?? `#${request.id}`}</p>
+                    <p className="muted tiny" dir="auto">{request.reference ?? `#${request.id}`}</p>
                     {request.assigned?.name && (
-                      <p className="muted tiny">المسؤول الحالي: {request.assigned.name}</p>
+                      <p className="muted tiny" dir="auto">
+                        {adminRequestMessage(locale, 'list.currentAssignee', { name: request.assigned.name })}
+                      </p>
                     )}
-                    {createdAt && <p className="muted tiny">{new Date(createdAt).toLocaleDateString('ar-MA')}</p>}
+                    {createdAt && (
+                      <p className="muted tiny">
+                        {new Date(createdAt).toLocaleDateString(dateLocale)}
+                      </p>
+                    )}
                   </Card>
                 </Link>
               );
