@@ -21,35 +21,35 @@ describe('buildBillingResponsibilityRequest', () => {
     expect(request).toEqual({ mode: 'guardian' });
   });
 
-  it('sends student mode with confirmed=true and trimmed reason', () => {
+  it('sends student mode without a guardian confirmation or reason', () => {
     const request = buildBillingResponsibilityRequest({
       ...defaultStudentCreateBillingFormState(),
       responsibilitySelection: 'student',
-      studentBillingConfirmed: true,
-      studentBillingReason: '  adult learner  ',
     });
     expect(request).toEqual({
       mode: 'student',
       confirmed: true,
-      reason: 'adult learner',
+      reason: 'student_selected_without_guardian',
     });
   });
 
-  it('returns null for student without confirmation', () => {
+  it('returns null for student with an optional guardian when confirmation is missing', () => {
     const request = buildBillingResponsibilityRequest({
       ...defaultStudentCreateBillingFormState(),
       responsibilitySelection: 'student',
+      addGuardianForStudent: true,
       studentBillingConfirmed: false,
       studentBillingReason: 'valid reason',
     });
     expect(request).toBeNull();
   });
 
-  it('returns null for student with whitespace-only reason', () => {
+  it('returns null for student with an optional guardian and whitespace-only reason', () => {
     expect(isStudentBillingReasonValid('   ')).toBe(false);
     const request = buildBillingResponsibilityRequest({
       ...defaultStudentCreateBillingFormState(),
       responsibilitySelection: 'student',
+      addGuardianForStudent: true,
       studentBillingConfirmed: true,
       studentBillingReason: '   ',
     });
@@ -90,11 +90,12 @@ describe('applyBillingResponsibilityToPayload', () => {
 });
 
 describe('validateBillingResponsibilityForm', () => {
-  it('blocks submit when student confirmation is missing', () => {
+  it('blocks submit when the optional guardian flow lacks student confirmation', () => {
     const result = validateBillingResponsibilityForm(
       {
         ...defaultStudentCreateBillingFormState(),
         responsibilitySelection: 'student',
+        addGuardianForStudent: true,
         studentBillingConfirmed: false,
         studentBillingReason: 'reason',
       },
@@ -106,11 +107,12 @@ describe('validateBillingResponsibilityForm', () => {
     );
   });
 
-  it('blocks submit when student reason is missing', () => {
+  it('blocks submit when the optional guardian flow lacks a reason', () => {
     const result = validateBillingResponsibilityForm(
       {
         ...defaultStudentCreateBillingFormState(),
         responsibilitySelection: 'student',
+        addGuardianForStudent: true,
         studentBillingConfirmed: true,
         studentBillingReason: '  ',
       },
@@ -140,13 +142,11 @@ describe('validateBillingResponsibilityForm', () => {
     expect(buildBillingResponsibilityRequest(state)).toEqual({ mode: 'guardian' });
   });
 
-  it('accepts valid explicit student selection', () => {
+  it('accepts a student responsibility selection without a guardian', () => {
     const result = validateBillingResponsibilityForm(
       {
         ...defaultStudentCreateBillingFormState(),
         responsibilitySelection: 'student',
-        studentBillingConfirmed: true,
-        studentBillingReason: 'Independent payer',
       },
       t,
     );
