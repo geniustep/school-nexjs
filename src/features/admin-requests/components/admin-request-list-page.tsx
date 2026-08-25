@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useLocale } from '@/features/i18n/locale-context';
 import { localeToBcp47 } from '@/lib/i18n/config';
 import { useResource } from '@/lib/hooks/use-resource';
