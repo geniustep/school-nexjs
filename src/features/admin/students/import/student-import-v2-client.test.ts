@@ -4,7 +4,10 @@ import {
   buildStudentImportValidationRequest,
   hasStudentImportEligiblePayloadRows,
 } from './student-import-payload';
-import { studentImportPreviewNames } from './student-import-preview';
+import {
+  studentImportLegalStatusLabel,
+  studentImportPreviewNames,
+} from './student-import-preview';
 import type { StudentImportReferenceData, StudentImportRowResult } from './student-import-types';
 import { validateStudentImportWorkbook } from './student-import-validator';
 import { parseStudentImportOptionalBoolean } from './student-import-v2-contract';
@@ -132,7 +135,9 @@ function invalidRow(): StudentImportRowResult {
 }
 
 describe('student import v2 boolean contract', () => {
-  it('distinguishes false from missing and rejects unknown values', () => {
+  it('distinguishes true, false, missing, and invalid values', () => {
+    expect(parseStudentImportOptionalBoolean(true)).toEqual({ value: true, valid: true, provided: true });
+    expect(parseStudentImportOptionalBoolean('true')).toEqual({ value: true, valid: true, provided: true });
     expect(parseStudentImportOptionalBoolean(false)).toEqual({ value: false, valid: true, provided: true });
     expect(parseStudentImportOptionalBoolean('false')).toEqual({ value: false, valid: true, provided: true });
     expect(parseStudentImportOptionalBoolean('')).toEqual({ value: null, valid: true, provided: false });
@@ -190,6 +195,21 @@ describe('student import v2 workbook contract', () => {
       guardian_last_name_fr: 'Alami',
       guardian_is_legal_guardian: false,
     });
+  });
+
+  it('preserves legal=true in payload', async () => {
+    const buffer = await buildWorkbook({
+      guardian_name: 'Parent Name',
+      guardian_is_legal_guardian: true,
+    });
+    const result = await validateStudentImportWorkbook(buffer, emptyReference, issueMessage);
+    expect(result.summary.invalidRows).toBe(0);
+    const payload = buildStudentImportValidationRequest({
+      activeSchoolId: 3,
+      sourceFilename: 'students.xlsx',
+      rows: result.rows,
+    });
+    expect(payload.rows[0].guardian_is_legal_guardian).toBe(true);
   });
 
   it('marks an invalid legal value as a local row error', async () => {
@@ -251,6 +271,13 @@ describe('student import v2 preview and eligible rows', () => {
       guardianAr: 'مريم العلمي',
       guardianFr: 'Mariam Alami',
     });
+  });
+
+  it('uses clear localized legal-status labels', () => {
+    expect(studentImportLegalStatusLabel('ar', true)).toBe('ولي قانوني');
+    expect(studentImportLegalStatusLabel('ar', false)).toBe('ليس وليًا قانونيًا');
+    expect(studentImportLegalStatusLabel('ar', null)).toBe('الصفة القانونية غير محددة');
+    expect(studentImportLegalStatusLabel('fr', true)).toBe('Responsable légal');
   });
 
   it('reports no eligible payload rows when every local row is invalid', () => {
