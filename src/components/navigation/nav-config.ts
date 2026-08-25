@@ -133,6 +133,11 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/academic-calendars',
     icon: '📆',
   });
+  pushIf(academicItems, canShowAdminNavPermission(user, 'view_timetable'), {
+    labelKey: 'nav.regulatoryReferences',
+    href: '/admin/regulatory',
+    icon: '📜',
+  });
   pushIf(
     academicItems,
     canShowAdminNavPermission(user, 'view_classes') &&
@@ -459,6 +464,7 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_exam_results', href: '/admin/exam-results', labelKey: 'nav.examResultsNav' },
   { permission: 'view_timetable', href: '/admin/timetable', labelKey: 'nav.timetable' },
   { permission: 'view_timetable', href: '/admin/academic-calendars', labelKey: 'nav.schoolCalendarHolidays' },
+  { permission: 'view_timetable', href: '/admin/regulatory', labelKey: 'nav.regulatoryReferences' },
   { permission: FINANCE_VIEW, href: '/admin/finance', labelKey: 'nav.adminSchoolFinance' },
 ];
 
