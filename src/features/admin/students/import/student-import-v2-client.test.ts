@@ -180,6 +180,7 @@ describe('student import v2 workbook contract', () => {
 
     const payload = buildStudentImportValidationRequest({
       activeSchoolId: 3,
+      activeAcademicYearId: 1,
       sourceFilename: 'students.xlsx',
       rows: result.rows,
       templateVersion: result.templateVersion,
@@ -206,6 +207,7 @@ describe('student import v2 workbook contract', () => {
     expect(result.summary.invalidRows).toBe(0);
     const payload = buildStudentImportValidationRequest({
       activeSchoolId: 3,
+      activeAcademicYearId: 1,
       sourceFilename: 'students.xlsx',
       rows: result.rows,
     });
@@ -236,6 +238,7 @@ describe('student import v2 workbook contract', () => {
     expect(result.rows[0].normalized.guardian_is_legal_guardian).toBeNull();
     const payload = buildStudentImportValidationRequest({
       activeSchoolId: 3,
+      activeAcademicYearId: 1,
       sourceFilename: 'students.xlsx',
       rows: result.rows,
     });
