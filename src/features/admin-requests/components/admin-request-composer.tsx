@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/features/i18n/locale-context';
 import { useResource } from '@/lib/hooks/use-resource';
 import { Card, PageHeader } from '@/components/ui/primitives';
 import { ResourceView } from '@/components/states/resource';
@@ -10,7 +11,8 @@ import {
   createAdminRequestUploadSession,
   uploadAdminRequestFile,
 } from '../api';
-import { adminRequestTypeLabel } from '../presenters';
+import { adminRequestMessage } from '../i18n';
+import { adminRequestErrorLabel, adminRequestTypeLabel } from '../presenters';
 import type {
   AdminRequestAppointmentPeriod,
   AdminRequestAppointmentSubject,
@@ -26,6 +28,7 @@ function typeRows(value: AdminRequestType[] | { types?: AdminRequestType[]; item
 
 export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole }) {
   const router = useRouter();
+  const { locale } = useLocale();
   const [typeId, setTypeId] = useState('');
   const [subject, setSubject] = useState('');
   const [studentId, setStudentId] = useState('');
@@ -67,23 +70,23 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
     setError(null);
     const parsedType = Number(typeId);
     if (!parsedType || !subject.trim() || !description.trim()) {
-      setError('أكمل نوع الطلب والموضوع والوصف.');
+      setError(adminRequestMessage(locale, 'composer.errorRequired'));
       return;
     }
     if (needsStudent && !Number(studentId)) {
-      setError('اختر التلميذ المعني بالطلب.');
+      setError(adminRequestMessage(locale, 'composer.errorStudent'));
       return;
     }
     if (isAppointment && !preferredDate) {
-      setError('اختر التاريخ المفضل للموعد.');
+      setError(adminRequestMessage(locale, 'composer.errorDate'));
       return;
     }
     if (isAppointment && targetKind === 'subject_teacher' && !Number(requestedSubjectId)) {
-      setError('اختر المادة المعنية بالموعد.');
+      setError(adminRequestMessage(locale, 'composer.errorSubject'));
       return;
     }
     if (files.length > 5) {
-      setError('الحد الأقصى خمسة ملفات.');
+      setError(adminRequestMessage(locale, 'composer.errorMaxFiles'));
       return;
     }
 
@@ -92,7 +95,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
     if (files.length) {
       const session = await createAdminRequestUploadSession();
       if (!session.success) {
-        setError(session.error.message);
+        setError(adminRequestErrorLabel(session.error, locale));
         setBusy(false);
         return;
       }
@@ -100,7 +103,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
       for (const file of files) {
         const upload = await uploadAdminRequestFile(session.data, file);
         if (!upload.success) {
-          setError(upload.error.message);
+          setError(adminRequestErrorLabel(upload.error, locale));
           setBusy(false);
           return;
         }
@@ -128,7 +131,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
     });
     setBusy(false);
     if (!created.success) {
-      setError(created.error.message);
+      setError(adminRequestErrorLabel(created.error, locale));
       return;
     }
     router.replace(`${base}/${created.data.id}`);
@@ -137,15 +140,15 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
   return (
     <>
       <PageHeader
-        title="طلب إداري جديد"
-        subtitle="عند الإرسال يصل الطلب مباشرة إلى الإدارة للمراجعة."
+        title={adminRequestMessage(locale, 'composer.title')}
+        subtitle={adminRequestMessage(locale, 'composer.subtitle')}
       />
       <ResourceView state={types}>
         {(data) => (
           <Card>
             <form className="col" style={{ gap: 16 }} onSubmit={submit} aria-busy={busy}>
               <div className="field">
-                <label htmlFor="request-type">نوع الطلب</label>
+                <label htmlFor="request-type">{adminRequestMessage(locale, 'composer.type')}</label>
                 <select
                   id="request-type"
                   className="input"
@@ -160,14 +163,18 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                   disabled={busy}
                   required
                 >
-                  <option value="">اختر النوع</option>
-                  {typeRows(data).map((type) => <option key={type.id} value={type.id}>{adminRequestTypeLabel(type.name)}</option>)}
+                  <option value="">{adminRequestMessage(locale, 'composer.selectType')}</option>
+                  {typeRows(data).map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {adminRequestTypeLabel(type.name, locale)}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {needsStudent && (
                 <div className="field">
-                  <label htmlFor="request-student">التلميذ المعني</label>
+                  <label htmlFor="request-student">{adminRequestMessage(locale, 'composer.student')}</label>
                   <select
                     id="request-student"
                     className="input"
@@ -179,8 +186,10 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                     disabled={busy}
                     required
                   >
-                    <option value="">اختر التلميذ</option>
-                    {(children.data ? (Array.isArray(children.data) ? children.data : children.data.children ?? []) : []).map((child) => <option key={child.id} value={child.id}>{child.name}</option>)}
+                    <option value="">{adminRequestMessage(locale, 'composer.selectStudent')}</option>
+                    {(children.data ? (Array.isArray(children.data) ? children.data : children.data.children ?? []) : []).map((child) => (
+                      <option key={child.id} value={child.id}>{child.name}</option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -189,13 +198,13 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                 <Card>
                   <div className="col" style={{ gap: 14 }}>
                     <div>
-                      <strong>تفاصيل الموعد</strong>
+                      <strong>{adminRequestMessage(locale, 'composer.appointmentDetails')}</strong>
                       <p className="tiny muted" style={{ marginTop: 4 }}>
-                        تختار الجهة أو المادة فقط. تعيين الموظف أو الأستاذ يتم داخليًا من طرف المدرسة.
+                        {adminRequestMessage(locale, 'composer.appointmentDetailsHint')}
                       </p>
                     </div>
                     <div className="field">
-                      <label htmlFor="appointment-target">موعد مع</label>
+                      <label htmlFor="appointment-target">{adminRequestMessage(locale, 'composer.appointmentWith')}</label>
                       <select
                         id="appointment-target"
                         className="input"
@@ -206,14 +215,14 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                         }}
                         disabled={busy}
                       >
-                        <option value="administration">الإدارة</option>
-                        <option value="subject_teacher">بخصوص مادة دراسية</option>
+                        <option value="administration">{adminRequestMessage(locale, 'composer.targetAdministration')}</option>
+                        <option value="subject_teacher">{adminRequestMessage(locale, 'composer.targetSubjectTeacher')}</option>
                       </select>
                     </div>
 
                     {targetKind === 'subject_teacher' && (
                       <div className="field">
-                        <label htmlFor="appointment-subject">المادة</label>
+                        <label htmlFor="appointment-subject">{adminRequestMessage(locale, 'composer.appointmentSubject')}</label>
                         <select
                           id="appointment-subject"
                           className="input"
@@ -224,25 +233,25 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                         >
                           <option value="">
                             {!appointmentSubjectsPath
-                              ? 'اختر التلميذ أولًا'
+                              ? adminRequestMessage(locale, 'composer.selectStudentFirst')
                               : appointmentSubjects.loading
-                                ? 'جارٍ تحميل المواد…'
+                                ? adminRequestMessage(locale, 'composer.loadingSubjects')
                                 : appointmentSubjects.error
-                                  ? 'تعذر تحميل المواد'
+                                  ? adminRequestMessage(locale, 'composer.subjectsLoadFailed')
                                   : appointmentSubjects.data?.length
-                                    ? 'اختر المادة'
-                                    : 'لا توجد مواد متاحة لهذا التلميذ'}
+                                    ? adminRequestMessage(locale, 'composer.selectSubject')
+                                    : adminRequestMessage(locale, 'composer.noSubjects')}
                           </option>
                           {(appointmentSubjects.data ?? []).map((item) => (
                             <option key={item.id} value={item.id}>{item.name}</option>
                           ))}
                         </select>
-                        <span className="tiny muted">تظهر فقط المواد التي يسمح بها سجل التلميذ في المدرسة.</span>
+                        <span className="tiny muted">{adminRequestMessage(locale, 'composer.subjectEligibilityHint')}</span>
                       </div>
                     )}
 
                     <div className="field">
-                      <label htmlFor="appointment-date">التاريخ المفضل</label>
+                      <label htmlFor="appointment-date">{adminRequestMessage(locale, 'composer.preferredDate')}</label>
                       <input
                         id="appointment-date"
                         className="input"
@@ -255,7 +264,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                     </div>
 
                     <div className="field">
-                      <label htmlFor="appointment-period">الفترة المفضلة</label>
+                      <label htmlFor="appointment-period">{adminRequestMessage(locale, 'composer.preferredPeriod')}</label>
                       <select
                         id="appointment-period"
                         className="input"
@@ -263,9 +272,9 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                         onChange={(event) => setPreferredPeriod(event.target.value as AdminRequestAppointmentPeriod)}
                         disabled={busy}
                       >
-                        <option value="morning">الصباح</option>
-                        <option value="afternoon">بعد الزوال</option>
-                        <option value="any">أي وقت مناسب</option>
+                        <option value="morning">{adminRequestMessage(locale, 'composer.periodMorning')}</option>
+                        <option value="afternoon">{adminRequestMessage(locale, 'composer.periodAfternoon')}</option>
+                        <option value="any">{adminRequestMessage(locale, 'composer.periodAny')}</option>
                       </select>
                     </div>
                   </div>
@@ -273,21 +282,40 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
               )}
 
               <div className="field">
-                <label htmlFor="request-subject">الموضوع</label>
-                <input id="request-subject" className="input" value={subject} onChange={(event) => setSubject(event.target.value)} disabled={busy} maxLength={250} required />
+                <label htmlFor="request-subject">{adminRequestMessage(locale, 'composer.subject')}</label>
+                <input
+                  id="request-subject"
+                  className="input"
+                  dir="auto"
+                  value={subject}
+                  onChange={(event) => setSubject(event.target.value)}
+                  disabled={busy}
+                  maxLength={250}
+                  required
+                />
               </div>
               <div className="field">
-                <label htmlFor="request-description">التفاصيل</label>
-                <textarea id="request-description" className="input" value={description} onChange={(event) => setDescription(event.target.value)} disabled={busy} maxLength={4000} rows={7} required />
+                <label htmlFor="request-description">{adminRequestMessage(locale, 'composer.description')}</label>
+                <textarea
+                  id="request-description"
+                  className="input"
+                  dir="auto"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  disabled={busy}
+                  maxLength={4000}
+                  rows={7}
+                  required
+                />
               </div>
               <div className="field">
-                <label>مرفقات اختيارية</label>
+                <label>{adminRequestMessage(locale, 'composer.attachmentsOptional')}</label>
                 <AdminRequestFilePicker id="request-files" files={files} onChange={setFiles} disabled={busy} />
-                <span className="tiny muted">حتى 5 ملفات، بحد أقصى 10 MiB للملف.</span>
+                <span className="tiny muted">{adminRequestMessage(locale, 'composer.attachmentsHint')}</span>
               </div>
               {error && <div className="form-error" role="alert">{error}</div>}
               <button className="btn btn--primary" type="submit" disabled={busy}>
-                {busy ? 'جارٍ الإرسال…' : 'إرسال الطلب'}
+                {adminRequestMessage(locale, busy ? 'composer.sending' : 'composer.submit')}
               </button>
             </form>
           </Card>
