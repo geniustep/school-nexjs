@@ -22,6 +22,7 @@ import {
   filterAcademicCalendarsClient,
   resolveAcademicCalendarsListEmptyVariant,
 } from '@/features/admin/academic-calendars/utils/academic-calendar-present';
+import { countAcademicCalendarActionableWarnings } from '@/features/admin/academic-calendars/utils/academic-calendar-warning-review';
 import { normalizeAcademicCalendars } from '@/features/admin/academic-calendars/utils/normalize-academic-calendar';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
@@ -189,16 +190,21 @@ export function AcademicCalendarsListPage() {
       {
         key: 'name',
         header: t('admin.academicCalendars.columns.name'),
-        render: (row) => (
-          <div className="academic-calendars-page__title-cell">
-            <strong dir="auto" title={row.name}>
-              {row.name}
-            </strong>
-            {row.warnings && row.warnings.length > 0 ? (
-              <Badge tone="amber">{t('admin.academicCalendars.warningsCount', { count: row.warnings.length })}</Badge>
-            ) : null}
-          </div>
-        ),
+        render: (row) => {
+          const actionableWarningCount = countAcademicCalendarActionableWarnings(row.warnings);
+          return (
+            <div className="academic-calendars-page__title-cell">
+              <strong dir="auto" title={row.name}>
+                {row.name}
+              </strong>
+              {actionableWarningCount > 0 ? (
+                <Badge tone="amber">
+                  {t('admin.academicCalendars.warningsCount', { count: actionableWarningCount })}
+                </Badge>
+              ) : null}
+            </div>
+          );
+        },
       },
       {
         key: 'year',
