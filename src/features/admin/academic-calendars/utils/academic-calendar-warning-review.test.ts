@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   academicCalendarWarningKind,
   academicCalendarWarningLevel,
+  countAcademicCalendarActionableWarnings,
   groupAcademicCalendarWarnings,
   shouldShowAcademicCalendarWarning,
 } from './academic-calendar-warning-review';
@@ -69,5 +70,34 @@ describe('academic calendar warning review', () => {
     expect(items).toHaveLength(2);
     expect(items[0]?.count).toBe(2);
     expect(items[1]?.count).toBe(1);
+  });
+
+  it('counts only actionable warnings and blockers for list badges', () => {
+    expect(
+      countAcademicCalendarActionableWarnings([
+        warning({ code: 'event_overlap', message: 'Overlap with another calendar event', severity: 'warning' }),
+        warning({
+          code: 'event_outside_academic_year',
+          message: 'Event is outside the academic year range',
+          severity: 'warning',
+        }),
+        warning({ code: 'calendar_note', message: 'Review the school closure date', severity: 'warning' }),
+        warning({ code: 'event_overlap', message: 'Overlap blocks this calendar action', severity: 'error' }),
+      ]),
+    ).toBe(2);
+  });
+
+  it('returns zero for a list row containing only hidden overlaps and information', () => {
+    expect(
+      countAcademicCalendarActionableWarnings([
+        warning({ code: 'event_overlap', message: 'Overlap with another calendar event', severity: 'warning' }),
+        warning({ code: 'event_overlap', message: 'Overlap with another calendar event', severity: 'warning' }),
+        warning({
+          code: 'event_outside_academic_year',
+          message: 'Event is outside the academic year range',
+          severity: 'warning',
+        }),
+      ]),
+    ).toBe(0);
   });
 });
