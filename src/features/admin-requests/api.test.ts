@@ -26,6 +26,62 @@ describe('admin request client payloads', () => {
     });
   });
 
+  it('sends appointment details without teacher or assignment identity', () => {
+    const payload = createRequestPayload({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد لمناقشة الرياضيات',
+      description: 'أرغب في أخذ موعد لمناقشة تقدم التلميذ.',
+      appointment: {
+        target_kind: 'subject_teacher',
+        preferred_date: '2026-08-27',
+        preferred_period: 'morning',
+        requested_subject_id: 44,
+      },
+    });
+
+    expect(payload).toEqual({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد لمناقشة الرياضيات',
+      description: 'أرغب في أخذ موعد لمناقشة تقدم التلميذ.',
+      appointment: {
+        target_kind: 'subject_teacher',
+        preferred_date: '2026-08-27',
+        preferred_period: 'morning',
+        requested_subject_id: 44,
+      },
+    });
+    expect(payload).not.toHaveProperty('teacher_id');
+    expect(payload).not.toHaveProperty('assigned_user_id');
+    expect(payload.appointment).not.toHaveProperty('teacher_id');
+    expect(payload.appointment).not.toHaveProperty('assigned_user_id');
+  });
+
+  it('keeps administration appointments free of subject and teacher identity', () => {
+    expect(createRequestPayload({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد مع الإدارة',
+      description: 'أرغب في أخذ موعد مع الإدارة.',
+      appointment: {
+        target_kind: 'administration',
+        preferred_date: '2026-08-28',
+        preferred_period: 'any',
+      },
+    })).toEqual({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد مع الإدارة',
+      description: 'أرغب في أخذ موعد مع الإدارة.',
+      appointment: {
+        target_kind: 'administration',
+        preferred_date: '2026-08-28',
+        preferred_period: 'any',
+      },
+    });
+  });
+
   it('keeps requester replies free of identity and workflow fields', () => {
     const payload = replyPayload({ body: '  معلومات إضافية  ' });
     expect(payload).toEqual({ body: 'معلومات إضافية' });

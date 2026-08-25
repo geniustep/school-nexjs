@@ -3,6 +3,10 @@ export type AdminRequestFamilyRole = 'parent' | 'student';
 export type AdminRequestReplyAuthorRole = 'parent' | 'student' | 'staff';
 export type AdminRequestReplyDirection = 'requester_to_staff' | 'staff_to_requester';
 export type AdminRequestReplyReviewState = 'pending_review' | 'approved' | 'changes_requested';
+export type AdminRequestServiceKind = 'general' | 'appointment';
+export type AdminRequestAppointmentTargetKind = 'administration' | 'subject_teacher';
+export type AdminRequestAppointmentPeriod = 'morning' | 'afternoon' | 'any';
+export type AdminRequestAppointmentState = 'requested' | 'proposed' | 'confirmed';
 
 export interface AdminRequestAttachment {
   id: number;
@@ -23,6 +27,26 @@ export interface AdminRequestReply {
   attachments?: AdminRequestAttachment[];
 }
 
+export interface AdminRequestAppointmentSubject {
+  id: number;
+  name: string;
+  code?: string | null;
+  label?: string | null;
+}
+
+export interface AdminRequestAppointment {
+  target_kind: AdminRequestAppointmentTargetKind;
+  requested_subject?: AdminRequestAppointmentSubject | null;
+  preferred_date: string | null;
+  preferred_period: AdminRequestAppointmentPeriod;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+  appointment_state: AdminRequestAppointmentState;
+  resolved_teacher?: { id: number; name: string } | null;
+  resolved_user?: { id: number; name: string } | null;
+  resolved_candidate_count?: number;
+}
+
 export interface AdminRequest {
   id: number;
   reference?: string;
@@ -30,7 +54,7 @@ export interface AdminRequest {
   title?: string;
   description?: string;
   state: string;
-  type?: { id: number; name: string; requires_student?: boolean } | string;
+  type?: { id: number; name: string; requires_student?: boolean; service_kind?: AdminRequestServiceKind } | string;
   student?: { id: number; name: string } | null;
   requester_role?: string;
   created_at?: string | null;
@@ -41,6 +65,7 @@ export interface AdminRequest {
   resolved_at?: string | null;
   resolution_summary?: string | null;
   allowed_actions?: string[];
+  appointment?: AdminRequestAppointment | null;
   replies?: AdminRequestReply[];
   attachments?: AdminRequestAttachment[];
   [key: string]: unknown;
@@ -57,6 +82,7 @@ export interface AdminRequestType {
   allow_parent?: boolean;
   allow_student?: boolean;
   requires_student?: boolean;
+  service_kind?: AdminRequestServiceKind;
   default_priority?: 'normal' | 'important' | 'urgent';
   default_assignee?: { id: number; name: string } | null;
 }

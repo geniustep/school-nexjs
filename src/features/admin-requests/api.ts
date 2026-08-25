@@ -4,6 +4,9 @@ import { api } from '@/lib/api/client';
 import type { ApiResponse } from '@/types/api';
 import type {
   AdminRequest,
+  AdminRequestAppointmentPeriod,
+  AdminRequestAppointmentSubject,
+  AdminRequestAppointmentTargetKind,
   AdminRequestFamilyRole,
   AdminRequestType,
 } from './types';
@@ -15,6 +18,13 @@ function familyBase(role: FamilyRole): '/parent/admin-requests' | '/student/admi
   return role === 'parent' ? '/parent/admin-requests' : '/student/admin-requests';
 }
 
+export type AdminRequestAppointmentInput = {
+  target_kind: AdminRequestAppointmentTargetKind;
+  preferred_date: string;
+  preferred_period: AdminRequestAppointmentPeriod;
+  requested_subject_id?: number;
+};
+
 /** Client payload allow-list. Identity, school, workflow and audit fields never leave the UI. */
 export function createRequestPayload(input: {
   type_id: number;
@@ -22,6 +32,7 @@ export function createRequestPayload(input: {
   description: string;
   student_id?: number;
   upload_session_id?: string;
+  appointment?: AdminRequestAppointmentInput;
 }) {
   return {
     type_id: input.type_id,
@@ -29,6 +40,7 @@ export function createRequestPayload(input: {
     description: input.description.trim(),
     ...(input.student_id ? { student_id: input.student_id } : {}),
     ...(input.upload_session_id ? { upload_session_id: input.upload_session_id } : {}),
+    ...(input.appointment ? { appointment: input.appointment } : {}),
   };
 }
 
@@ -69,6 +81,42 @@ export async function createAdminRequest(
   input: Parameters<typeof createRequestPayload>[0],
 ): Promise<ApiResponse<AdminRequest>> {
   return api.post<AdminRequest>(familyBase(role), createRequestPayload(input));
+}
+
+export async function getAppointmentSubjects(
+  role: FamilyRole,
+  studentId?: number,
+): Promise<ApiResponse<AdminRequestAppointmentSubject[]>> {
+  const query = role === 'parent' && studentId ? `?student_id=${studentId}` : '';
+  return api.get<AdminRequestAppointmentSubject[]>(`${familyBase(role)}/appointment-subjects${query}`);
+}
+
+export async function postConfirmAppointment(
+  role: FamilyRole,
+  requestId: string,
+): Promise<ApiResponse<AdminRequest>> {
+  return api.post<AdminRequest>(`${familyBase(role)}/${requestId}/confirm-appointment`);
+}
+
+export async function postRequestAppointmentChange(
+  role: FamilyRole,
+  requestId: string,
+  input: { body: string; upload_session_id?: string },
+): Promise<ApiResponse<AdminRequest>> {
+  return api.post<AdminRequest>(
+    `${familyBase(role)}/${requestId}/request-appointment-change`,
+    replyPayload(input),
+  );
+}
+
+export async function postProposeAppointment(
+  requestId: string,
+  input: { scheduled_start: string; scheduled_end: string },
+): Promise<ApiResponse<AdminRequest>> {
+  return api.post<AdminRequest>(
+    `/admin/admin-requests/${requestId}/propose-appointment`,
+    input,
+  );
 }
 
 export async function postRequesterAction(
