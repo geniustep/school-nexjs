@@ -5,6 +5,8 @@
  * @design-status adopted
  */
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Badge, Card } from '@/components/ui/primitives';
 import { useLocale } from '@/features/i18n/locale-context';
 import type { Locale } from '@/lib/i18n/config';
@@ -170,19 +172,19 @@ function WarningGroup({
   );
 }
 
-export function AcademicCalendarWarningReview({ calendar }: { calendar: AcademicCalendarDetail }) {
-  const { locale } = useLocale();
-  const copy = COPY[locale];
-  const items = groupAcademicCalendarWarnings(calendar.warnings ?? calendar.summary?.warnings ?? []);
-  const studyDaysUnreliable = calendar.summary?.study_day_count_reliable === false;
-
-  const blockers = items.filter((item) => item.level === 'blocker');
-  const reviewWarnings = items.filter((item) => item.level === 'warning');
-  const information = items.filter((item) => item.level === 'info');
-  const total = items.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0);
-
-  if (total === 0) return null;
-
+function WarningReviewCard({
+  copy,
+  blockers,
+  reviewWarnings,
+  information,
+  studyDaysUnreliable,
+}: {
+  copy: WarningReviewCopy;
+  blockers: AcademicCalendarWarningReviewItem[];
+  reviewWarnings: AcademicCalendarWarningReviewItem[];
+  information: AcademicCalendarWarningReviewItem[];
+  studyDaysUnreliable: boolean;
+}) {
   return (
     <Card className="academic-calendar-warning-review">
       <div className="academic-calendar-warning-review__head">
@@ -191,9 +193,17 @@ export function AcademicCalendarWarningReview({ calendar }: { calendar: Academic
           <p className="muted">{copy.subtitle}</p>
         </div>
         <div className="academic-calendar-warning-review__counts" aria-label={copy.title}>
-          <Badge tone="red">{copy.blocker}: {blockers.reduce((sum, item) => sum + item.count, 0)}</Badge>
-          <Badge tone="amber">{copy.warning}: {reviewWarnings.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0)}</Badge>
-          <Badge tone="blue">{copy.info}: {information.reduce((sum, item) => sum + item.count, 0)}</Badge>
+          <Badge tone="red">
+            {copy.blocker}: {blockers.reduce((sum, item) => sum + item.count, 0)}
+          </Badge>
+          <Badge tone="amber">
+            {copy.warning}:{' '}
+            {reviewWarnings.reduce((sum, item) => sum + item.count, 0) +
+              (studyDaysUnreliable ? 1 : 0)}
+          </Badge>
+          <Badge tone="blue">
+            {copy.info}: {information.reduce((sum, item) => sum + item.count, 0)}
+          </Badge>
         </div>
       </div>
 
@@ -215,5 +225,52 @@ export function AcademicCalendarWarningReview({ calendar }: { calendar: Academic
         <WarningGroup level="info" items={information} copy={copy} />
       </div>
     </Card>
+  );
+}
+
+export function AcademicCalendarWarningReview({ calendar }: { calendar: AcademicCalendarDetail }) {
+  const { locale } = useLocale();
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const copy = COPY[locale];
+  const items = groupAcademicCalendarWarnings(calendar.warnings ?? calendar.summary?.warnings ?? []);
+  const studyDaysUnreliable = calendar.summary?.study_day_count_reliable === false;
+
+  const blockers = items.filter((item) => item.level === 'blocker');
+  const reviewWarnings = items.filter((item) => item.level === 'warning');
+  const information = items.filter((item) => item.level === 'info');
+  const total = items.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0);
+
+  useEffect(() => {
+    if (total === 0) {
+      setPortalTarget(null);
+      return;
+    }
+
+    const detailRoot = document.querySelector<HTMLElement>('.academic-calendar-detail');
+    const headerMeta = detailRoot?.querySelector<HTMLElement>('.academic-calendar-detail__header-meta');
+    if (!detailRoot || !headerMeta) return;
+
+    const host = document.createElement('div');
+    host.className = 'academic-calendar-warning-review__host';
+    headerMeta.insertAdjacentElement('afterend', host);
+    setPortalTarget(host);
+
+    return () => {
+      setPortalTarget(null);
+      host.remove();
+    };
+  }, [calendar.id, total]);
+
+  if (total === 0 || !portalTarget) return null;
+
+  return createPortal(
+    <WarningReviewCard
+      copy={copy}
+      blockers={blockers}
+      reviewWarnings={reviewWarnings}
+      information={information}
+      studyDaysUnreliable={studyDaysUnreliable}
+    />,
+    portalTarget,
   );
 }
