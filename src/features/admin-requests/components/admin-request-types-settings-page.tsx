@@ -6,9 +6,10 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { Badge, Card, PageHeader } from '@/components/ui/primitives';
 import { createAdminRequestType, updateAdminRequestType } from '../api';
+import { adminRequestControlsMessage } from '../controls-i18n';
 import { adminRequestMessage } from '../i18n';
 import { adminRequestErrorLabel, adminRequestPriorityLabel, staffOptionRows } from '../presenters';
-import type { AdminRequestType } from '../types';
+import type { AdminRequestServiceKind, AdminRequestType } from '../types';
 
 type EditorState = {
   id?: number;
@@ -21,6 +22,7 @@ type EditorState = {
   requires_student: boolean;
   default_priority: 'normal' | 'important' | 'urgent';
   default_assignee_user_id: string;
+  service_kind: AdminRequestServiceKind;
 };
 
 const EMPTY_EDITOR: EditorState = {
@@ -33,6 +35,7 @@ const EMPTY_EDITOR: EditorState = {
   requires_student: true,
   default_priority: 'normal',
   default_assignee_user_id: '',
+  service_kind: 'general',
 };
 
 function editorFromType(type: AdminRequestType): EditorState {
@@ -47,6 +50,7 @@ function editorFromType(type: AdminRequestType): EditorState {
     requires_student: type.requires_student !== false,
     default_priority: type.default_priority ?? 'normal',
     default_assignee_user_id: type.default_assignee?.id ? String(type.default_assignee.id) : '',
+    service_kind: type.service_kind ?? 'general',
   };
 }
 
@@ -82,6 +86,7 @@ export function AdminRequestTypesSettingsPage() {
       default_assignee_user_id: editor.default_assignee_user_id
         ? Number(editor.default_assignee_user_id)
         : null,
+      service_kind: editor.service_kind,
     };
     const response = editor.id
       ? await updateAdminRequestType(editor.id, payload)
@@ -141,6 +146,29 @@ export function AdminRequestTypesSettingsPage() {
                 disabled={busy}
                 placeholder={adminRequestMessage(locale, 'settings.namePlaceholder')}
               />
+            </div>
+
+            <div className="field">
+              <label htmlFor="request-type-service-kind">
+                {adminRequestControlsMessage(locale, 'settings.serviceKind')}
+              </label>
+              <select
+                id="request-type-service-kind"
+                className="input"
+                value={editor.service_kind}
+                onChange={(event) => update('service_kind', event.target.value as AdminRequestServiceKind)}
+                disabled={busy}
+              >
+                <option value="general">
+                  {adminRequestControlsMessage(locale, 'settings.serviceKindGeneral')}
+                </option>
+                <option value="appointment">
+                  {adminRequestControlsMessage(locale, 'settings.serviceKindAppointment')}
+                </option>
+              </select>
+              <span className="tiny muted">
+                {adminRequestControlsMessage(locale, 'settings.serviceKindHint')}
+              </span>
             </div>
 
             <div className="grid grid--cards">
@@ -241,6 +269,14 @@ export function AdminRequestTypesSettingsPage() {
                     <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
                       <Badge tone={type.active === false ? 'slate' : 'blue'}>
                         {adminRequestMessage(locale, type.active === false ? 'settings.disabled' : 'settings.active')}
+                      </Badge>
+                      <Badge tone={type.service_kind === 'appointment' ? 'blue' : 'slate'}>
+                        {adminRequestControlsMessage(
+                          locale,
+                          type.service_kind === 'appointment'
+                            ? 'settings.serviceKindBadgeAppointment'
+                            : 'settings.serviceKindBadgeGeneral',
+                        )}
                       </Badge>
                       {type.confidential && <Badge tone="blue">{adminRequestMessage(locale, 'settings.confidentialBadge')}</Badge>}
                       {type.allow_parent !== false && <span className="tiny muted">{adminRequestMessage(locale, 'settings.parentBadge')}</span>}
