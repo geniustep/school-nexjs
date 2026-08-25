@@ -50,12 +50,37 @@ export function academicCalendarWarningLevel(
   return 'warning';
 }
 
+function hasUsefulWarningDetail(warning: AcademicCalendarWarning): boolean {
+  const message = warning.message.trim().toLocaleLowerCase();
+  if (!message) return false;
+
+  return !/^(warning|notice|alert|تنبيه|تحذير|ملاحظة|alerte|aviso)[.!؟]?$/.test(message);
+}
+
+/**
+ * Only surface notices that help the school understand a real issue or make a decision.
+ * Backend errors always remain visible. Informational notices remain visible. Soft overlap
+ * warnings are hidden until the API can identify the affected events/date/action instead
+ * of exposing a generic warning that the user cannot act on.
+ */
+export function shouldShowAcademicCalendarWarning(warning: AcademicCalendarWarning): boolean {
+  const level = academicCalendarWarningLevel(warning);
+  if (level === 'blocker' || level === 'info') return true;
+
+  const kind = academicCalendarWarningKind(warning);
+  if (kind === 'overlap') return false;
+
+  return hasUsefulWarningDetail(warning);
+}
+
 export function groupAcademicCalendarWarnings(
   warnings: AcademicCalendarWarning[] | null | undefined,
 ): AcademicCalendarWarningReviewItem[] {
   const grouped = new Map<string, AcademicCalendarWarningReviewItem>();
 
   for (const warning of warnings ?? []) {
+    if (!shouldShowAcademicCalendarWarning(warning)) continue;
+
     const level = academicCalendarWarningLevel(warning);
     const kind = academicCalendarWarningKind(warning);
     const key = [
