@@ -63,7 +63,27 @@ export default function AdminParentsPage() {
   const listEmptyState = listEmptyVariant === 'no-match' ? <EmptyState icon="🔍" title={t('admin.parentsList.noMatch.title')} description={t('admin.parentsList.noMatch.description')} action={<button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>{t('admin.parentsList.resetFilters')}</button>} /> : <EmptyState icon="👪" title={t('admin.parentsList.noData.title')} description={t('admin.parentsList.noData.description')} action={<Link href="/admin/parents/new" className="btn btn--primary btn--sm">{t('admin.addParent')}</Link>} />;
 
   return <div className="parents-list-page">
-    <PageHeader title={t('nav.parents')} subtitle={pg ? t('admin.parentsList.subtitleWithCount', { total: pg.total }) : t('admin.parentsListDesc')} actions={<AdminListActions addHref="/admin/parents/new" addCapability="guardians.create" managePermission="manage_parents" exportPath={endpoints.admin.parentsExport} exportFilename="parents.csv" showImport importOpen={importOpen} onToggleImport={() => setImportOpen((v) => !v)} />} />
+    <PageHeader
+      title={t('nav.parents')}
+      subtitle={pg ? t('admin.parentsList.subtitleWithCount', { total: pg.total }) : t('admin.parentsListDesc')}
+      actions={
+        <AdminListActions
+          addHref="/admin/parents/new"
+          addCapability="guardians.create"
+          managePermission="manage_parents"
+          exportPath={endpoints.admin.parentsExport}
+          exportFilename="parents.csv"
+          showImport
+          importOpen={importOpen}
+          onToggleImport={() => setImportOpen((v) => !v)}
+          extra={
+            <Link href="/admin/parents/activation-campaign" className="btn btn--ghost btn--sm">
+              {t('admin.parentActivation.title')}
+            </Link>
+          }
+        />
+      }
+    />
     {importOpen ? <CsvImportPanel importPath={endpoints.admin.parentsImport} onDone={() => state.reload()} /> : null}
     <ParentsListFilters search={search} statusFilter={statusFilter} accountFilter={accountFilter} childrenFilter={childrenFilter} relationshipFilter={relationshipFilter} languageFilter={languageFilter} hideWithoutChildren={hideWithoutChildren} hasActiveFilters={hasActiveFilters} onSearchChange={setSearch} onSearchClear={clearSearch} onStatusFilterChange={setStatusFilter} onAccountFilterChange={setAccountFilter} onChildrenFilterChange={setChildrenFilter} onRelationshipFilterChange={setRelationshipFilter} onLanguageFilterChange={setLanguageFilter} onHideWithoutChildrenChange={setHideWithoutChildren} onReset={resetFilters} />
     {state.fetching ? <p className="parents-list__fetching-hint" aria-live="polite">{t('admin.parentsList.refetching')}</p> : null}
