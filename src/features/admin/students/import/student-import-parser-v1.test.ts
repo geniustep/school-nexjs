@@ -243,6 +243,7 @@ describe('student import parser v1', () => {
 
     const payload = buildStudentImportValidationRequest({
       activeSchoolId: 3,
+      activeAcademicYearId: 1,
       sourceFilename: 'import.xlsx',
       templateVersion: parsed.templateVersion,
       rows: [
@@ -322,6 +323,7 @@ describe('student import parser v1', () => {
 
     const payload = buildStudentImportValidationRequest({
       activeSchoolId: 3,
+      activeAcademicYearId: 1,
       sourceFilename: 'import.xlsx',
       templateVersion: parsed.templateVersion,
       rows: parsed.rows.map((row) => ({
