@@ -1,38 +1,44 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { useLocale } from '@/features/i18n/locale-context';
+import { localeToBcp47, type Locale } from '@/lib/i18n/config';
 import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import {
   postConfirmAppointment,
   postProposeAppointment,
   postRequestAppointmentChange,
 } from '../api';
+import { adminRequestMessage } from '../i18n';
 import { adminRequestErrorLabel } from '../presenters';
 import type { AdminRequest, AdminRequestRole } from '../types';
 
-function targetLabel(value: string): string {
-  return value === 'subject_teacher' ? 'بخصوص مادة دراسية' : 'الإدارة';
+function targetLabel(value: string, locale: Locale): string {
+  return adminRequestMessage(
+    locale,
+    value === 'subject_teacher' ? 'composer.targetSubjectTeacher' : 'composer.targetAdministration',
+  );
 }
 
-function periodLabel(value?: string | null): string {
-  if (value === 'morning') return 'الصباح';
-  if (value === 'afternoon') return 'بعد الزوال';
-  if (value === 'any') return 'أي وقت مناسب';
+function periodLabel(value: string | null | undefined, locale: Locale): string {
+  if (value === 'morning') return adminRequestMessage(locale, 'composer.periodMorning');
+  if (value === 'afternoon') return adminRequestMessage(locale, 'composer.periodAfternoon');
+  if (value === 'any') return adminRequestMessage(locale, 'composer.periodAny');
   return '—';
 }
 
-function stateLabel(value?: string | null): string {
-  if (value === 'requested') return 'بانتظار اقتراح الإدارة';
-  if (value === 'proposed') return 'موعد مقترح';
-  if (value === 'confirmed') return 'موعد مؤكد';
+function stateLabel(value: string | null | undefined, locale: Locale): string {
+  if (value === 'requested') return adminRequestMessage(locale, 'appointment.stateRequested');
+  if (value === 'proposed') return adminRequestMessage(locale, 'appointment.stateProposed');
+  if (value === 'confirmed') return adminRequestMessage(locale, 'appointment.stateConfirmed');
   return '—';
 }
 
-function displayDate(value?: string | null): string {
+function displayDate(value: string | null | undefined, locale: Locale): string {
   if (!value) return '—';
   const parsed = new Date(value.includes('T') ? value : value.replace(' ', 'T'));
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString('ar-MA', { dateStyle: 'medium', timeStyle: 'short' });
+  return parsed.toLocaleString(localeToBcp47(locale), { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function toOdooDatetime(value: string): string {
@@ -52,6 +58,7 @@ export function AdminRequestAppointmentPanel({
   requestId: string;
   reload: () => void;
 }) {
+  const { locale } = useLocale();
   const appointment = request.appointment;
   const actions = request.allowed_actions ?? [];
   const [scheduledStart, setScheduledStart] = useState('');
@@ -77,11 +84,11 @@ export function AdminRequestAppointmentPanel({
     const response = await postConfirmAppointment(role, requestId);
     setBusy(false);
     if (!response.success) {
-      setError(adminRequestErrorLabel(response.error));
+      setError(adminRequestErrorLabel(response.error, locale));
       reload();
       return;
     }
-    setSuccess('تم تأكيد الموعد.');
+    setSuccess(adminRequestMessage(locale, 'appointment.confirmSuccess'));
     reload();
   }
 
@@ -89,7 +96,7 @@ export function AdminRequestAppointmentPanel({
     event.preventDefault();
     if (!isFamily || busy) return;
     if (!changeBody.trim()) {
-      setError('اكتب التغيير الذي تقترحه على الموعد.');
+      setError(adminRequestMessage(locale, 'appointment.changeBodyRequired'));
       return;
     }
     setError(null);
@@ -98,13 +105,13 @@ export function AdminRequestAppointmentPanel({
     const response = await postRequestAppointmentChange(role, requestId, { body: changeBody });
     setBusy(false);
     if (!response.success) {
-      setError(adminRequestErrorLabel(response.error));
+      setError(adminRequestErrorLabel(response.error, locale));
       reload();
       return;
     }
     setChangeBody('');
     setChangeOpen(false);
-    setSuccess('أُرسل طلب تغيير الموعد إلى الإدارة للمراجعة.');
+    setSuccess(adminRequestMessage(locale, 'appointment.changeSuccess'));
     reload();
   }
 
@@ -112,11 +119,11 @@ export function AdminRequestAppointmentPanel({
     event.preventDefault();
     if (role !== 'admin' || busy) return;
     if (!scheduledStart || !scheduledEnd) {
-      setError('حدد بداية الموعد ونهايته.');
+      setError(adminRequestMessage(locale, 'appointment.scheduleRequired'));
       return;
     }
     if (new Date(scheduledEnd).getTime() <= new Date(scheduledStart).getTime()) {
-      setError('يجب أن تكون نهاية الموعد بعد بدايته.');
+      setError(adminRequestMessage(locale, 'appointment.scheduleOrder'));
       return;
     }
     setError(null);
@@ -128,43 +135,43 @@ export function AdminRequestAppointmentPanel({
     });
     setBusy(false);
     if (!response.success) {
-      setError(adminRequestErrorLabel(response.error));
+      setError(adminRequestErrorLabel(response.error, locale));
       return;
     }
     setScheduledStart('');
     setScheduledEnd('');
-    setSuccess('تم اقتراح الموعد وإتاحته لصاحب الطلب للتأكيد.');
+    setSuccess(adminRequestMessage(locale, 'appointment.proposeSuccess'));
     reload();
   }
 
   const details = [
-    { label: 'نوع الموعد', value: targetLabel(appointment.target_kind) },
+    { label: adminRequestMessage(locale, 'appointment.type'), value: targetLabel(appointment.target_kind, locale) },
     ...(appointment.requested_subject?.name
-      ? [{ label: 'المادة', value: appointment.requested_subject.name }]
+      ? [{ label: adminRequestMessage(locale, 'appointment.subject'), value: appointment.requested_subject.name }]
       : []),
-    { label: 'التاريخ المفضل', value: appointment.preferred_date ?? '—' },
-    { label: 'الفترة المفضلة', value: periodLabel(appointment.preferred_period) },
-    { label: 'حالة الموعد', value: stateLabel(appointment.appointment_state) },
+    { label: adminRequestMessage(locale, 'appointment.preferredDate'), value: appointment.preferred_date ?? '—' },
+    { label: adminRequestMessage(locale, 'appointment.preferredPeriod'), value: periodLabel(appointment.preferred_period, locale) },
+    { label: adminRequestMessage(locale, 'appointment.state'), value: stateLabel(appointment.appointment_state, locale) },
     ...(appointment.scheduled_start
-      ? [{ label: 'بداية الموعد', value: displayDate(appointment.scheduled_start) }]
+      ? [{ label: adminRequestMessage(locale, 'appointment.start'), value: displayDate(appointment.scheduled_start, locale) }]
       : []),
     ...(appointment.scheduled_end
-      ? [{ label: 'نهاية الموعد', value: displayDate(appointment.scheduled_end) }]
+      ? [{ label: adminRequestMessage(locale, 'appointment.end'), value: displayDate(appointment.scheduled_end, locale) }]
       : []),
     ...(role === 'admin' && appointment.resolved_teacher?.name
-      ? [{ label: 'الأستاذ المحسوم داخليًا', value: appointment.resolved_teacher.name }]
+      ? [{ label: adminRequestMessage(locale, 'appointment.resolvedTeacher'), value: appointment.resolved_teacher.name }]
       : []),
   ];
 
   return (
     <section className="section">
-      <SectionHead title="الموعد" />
+      <SectionHead title={adminRequestMessage(locale, 'appointment.sectionTitle')} />
       <Card>
         <DefinitionList items={details} />
 
         {role === 'admin' && appointment.target_kind === 'subject_teacher' && !appointment.resolved_teacher && (
           <p className="tiny muted">
-            لم يُحسم أستاذ واحد داخليًا لهذا الطلب. لا يتم اختيار أستاذ اعتباطيًا.
+            {adminRequestMessage(locale, 'appointment.unresolvedTeacherHint')}
           </p>
         )}
 
@@ -175,12 +182,12 @@ export function AdminRequestAppointmentPanel({
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
             {canConfirm && (
               <button type="button" className="btn btn--primary" disabled={busy} onClick={confirm}>
-                {busy ? 'جارٍ التأكيد…' : 'تأكيد الموعد'}
+                {adminRequestMessage(locale, busy ? 'appointment.confirming' : 'appointment.confirm')}
               </button>
             )}
             {canRequestChange && !changeOpen && (
               <button type="button" className="btn btn--ghost" disabled={busy} onClick={() => setChangeOpen(true)}>
-                طلب تغيير الموعد
+                {adminRequestMessage(locale, 'appointment.change')}
               </button>
             )}
           </div>
@@ -189,25 +196,31 @@ export function AdminRequestAppointmentPanel({
         {canRequestChange && changeOpen && (
           <form className="col" style={{ gap: 10, marginTop: 12 }} onSubmit={requestChange}>
             <label className="field">
-              <span>ما التغيير الذي تقترحه؟</span>
+              <span>{adminRequestMessage(locale, 'appointment.changeQuestion')}</span>
               <textarea
                 className="input"
+                dir="auto"
                 value={changeBody}
                 onChange={(event) => setChangeBody(event.target.value)}
                 rows={3}
                 maxLength={4000}
                 disabled={busy}
                 required
-                placeholder="مثال: أفضل موعدًا في الفترة الصباحية أو في يوم آخر…"
+                placeholder={adminRequestMessage(locale, 'appointment.changePlaceholder')}
               />
             </label>
-            <p className="tiny muted">لن يتغير الموعد مباشرة؛ سيرسل طلبك إلى الإدارة للمراجعة.</p>
+            <p className="tiny muted">{adminRequestMessage(locale, 'appointment.changeHint')}</p>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
               <button className="btn btn--primary" disabled={busy}>
-                {busy ? 'جارٍ الإرسال…' : 'إرسال طلب التغيير'}
+                {adminRequestMessage(locale, busy ? 'common.sending' : 'appointment.changeSend')}
               </button>
-              <button type="button" className="btn btn--ghost" disabled={busy} onClick={() => { setChangeOpen(false); setChangeBody(''); }}>
-                إلغاء
+              <button
+                type="button"
+                className="btn btn--ghost"
+                disabled={busy}
+                onClick={() => { setChangeOpen(false); setChangeBody(''); }}
+              >
+                {adminRequestMessage(locale, 'common.cancel')}
               </button>
             </div>
           </form>
@@ -215,10 +228,10 @@ export function AdminRequestAppointmentPanel({
 
         {canPropose && (
           <form className="col" style={{ gap: 10, marginTop: 12 }} onSubmit={propose}>
-            <strong>اقتراح موعد</strong>
+            <strong>{adminRequestMessage(locale, 'appointment.proposeTitle')}</strong>
             <div className="grid grid--form">
               <label className="field">
-                <span>البداية</span>
+                <span>{adminRequestMessage(locale, 'appointment.start')}</span>
                 <input
                   className="input"
                   type="datetime-local"
@@ -229,7 +242,7 @@ export function AdminRequestAppointmentPanel({
                 />
               </label>
               <label className="field">
-                <span>النهاية</span>
+                <span>{adminRequestMessage(locale, 'appointment.end')}</span>
                 <input
                   className="input"
                   type="datetime-local"
@@ -242,7 +255,7 @@ export function AdminRequestAppointmentPanel({
             </div>
             <div>
               <button className="btn btn--primary" disabled={busy}>
-                {busy ? 'جارٍ الحفظ…' : 'اقتراح هذا الموعد'}
+                {adminRequestMessage(locale, busy ? 'common.saving' : 'appointment.propose')}
               </button>
             </div>
           </form>
