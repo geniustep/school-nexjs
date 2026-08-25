@@ -48,6 +48,7 @@ export const BFF_ADMIN_FAMILIES = [
   'library',
   'entry-requirement-lists',
   'timetable',
+  'academic-calendars',
   'exam-results',
   'assessment',
   'channels',
