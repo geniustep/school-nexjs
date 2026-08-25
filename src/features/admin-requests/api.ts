@@ -8,6 +8,7 @@ import type {
   AdminRequestAppointmentSubject,
   AdminRequestAppointmentTargetKind,
   AdminRequestFamilyRole,
+  AdminRequestServiceKind,
   AdminRequestType,
 } from './types';
 
@@ -242,17 +243,28 @@ export type AdminRequestTypeSettingsInput = {
   requires_student?: boolean;
   default_priority?: 'normal' | 'important' | 'urgent';
   default_assignee_user_id?: number | null;
+  service_kind?: AdminRequestServiceKind;
 };
+
+export function adminRequestTypeSettingsPayload(input: AdminRequestTypeSettingsInput) {
+  return {
+    ...input,
+    name: input.name.trim(),
+  };
+}
 
 export async function createAdminRequestType(
   input: AdminRequestTypeSettingsInput,
 ): Promise<ApiResponse<AdminRequestType>> {
-  return api.post<AdminRequestType>('/admin/admin-requests/types', input);
+  return api.post<AdminRequestType>('/admin/admin-requests/types', adminRequestTypeSettingsPayload(input));
 }
 
 export async function updateAdminRequestType(
   typeId: number,
   input: AdminRequestTypeSettingsInput,
 ): Promise<ApiResponse<AdminRequestType>> {
-  return api.post<AdminRequestType>(`/admin/admin-requests/types/${typeId}/update`, input);
+  return api.post<AdminRequestType>(
+    `/admin/admin-requests/types/${typeId}/update`,
+    adminRequestTypeSettingsPayload(input),
+  );
 }
