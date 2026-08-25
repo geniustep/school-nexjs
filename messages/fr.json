@@ -7420,6 +7420,7 @@
           "guardianSourceMatchesLead": "Sélectionnez la bonne personne ci-dessous, ou confirmez qu'il s'agit d'un nouveau responsable.",
           "guardianSourceSearchingTitle": "Vérification en cours",
           "addAnotherGuardian": "Ajouter un autre responsable",
+          "additionalRequiresPrimary": "Ajoutez ou liez d’abord le responsable principal avant d’en ajouter un autre.",
           "additionalGuardianTitle": "Responsable supplémentaire",
           "removeAdditionalGuardian": "Retirer"
         },
@@ -7433,6 +7434,7 @@
           "viewOnlyHint": "Responsabilité de paiement en lecture seule — la modifier nécessite la permission de gestion du profil de facturation.",
           "guardianUnresolvedHint": "La facturation au tuteur est sélectionnée. S'il n'existe pas encore de tuteur financier valide, la configuration financière sera reportée après l'enregistrement.",
           "studentWarning": "L'élève sera le tiers de facturation visé. Ce n'est pas appliqué automatiquement en l'absence de tuteur.",
+          "studentAddGuardianOptional": "Ajouter un tuteur pour cet élève (facultatif)",
           "studentConfirmLabel": "Je confirme que l'élève doit être le tiers de facturation",
           "studentReasonLabel": "Motif de la facturation à l'élève",
           "studentReasonPlaceholder": "Expliquez pourquoi l'élève est le tiers de facturation…",

@@ -107,6 +107,7 @@ export function StudentCreateGuardianSourcePanel({
 
   const showMatches =
     isExistingMode && !isLinked && !loading && candidates.length > 0 && !dismissed && hasSearchInput;
+  const showStatusBox = isLinked || (isExistingMode && hasSearchInput && (loading || showMatches));
 
   let boxVariant: 'new' | 'existing' | 'linked' | 'matches' | 'searching' | 'idle' = 'idle';
   if (sourceMode === 'new') {
@@ -245,10 +246,11 @@ export function StudentCreateGuardianSourcePanel({
         </div>
       ) : null}
 
-      <div
-        className={`student-create-guardian-source__box student-create-guardian-source__box--${boxVariant}`}
-        role="status"
-      >
+      {showStatusBox ? (
+        <div
+          className={`student-create-guardian-source__box student-create-guardian-source__box--${boxVariant}`}
+          role="status"
+        >
         <div className="student-create-guardian-source__box-head">
           <span className="student-create-guardian-source__badge">
             {boxVariant === 'linked' ||
@@ -320,7 +322,8 @@ export function StudentCreateGuardianSourcePanel({
         {boxVariant === 'linked' && linkedGuardianPerson ? (
           <GuardianAccountOnboardingPanel source={linkedGuardianPerson} compact />
         ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {showMatches ? (
         <GuardianDuplicateSuggestions
