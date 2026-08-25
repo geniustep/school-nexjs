@@ -23,6 +23,7 @@ import {
   buildStudentImportValidationRequest,
   canExecuteImport,
   canShowExecutePanel,
+  hasStudentImportEligiblePayloadRows,
   isValidationExpired,
 } from './student-import-payload';
 import { mapServerIssueMessage } from './student-import-server-normalize';
@@ -64,6 +65,13 @@ function phaseFromState(args: {
     return 'failed';
   }
   return args.phase;
+}
+
+export function hasEligibleStudentImportServerRows(validation: StudentImportValidationResult): boolean {
+  if (validation.format === 'odoo_v1') {
+    return hasStudentImportEligiblePayloadRows(validation.rows);
+  }
+  return validation.summary.invalidRows === 0;
 }
 
 export function useStudentImportFlow(
@@ -111,15 +119,11 @@ export function useStudentImportFlow(
 
   const activePhase = phaseFromState({ phase, hasFile: !!file, localResult, serverValidation, execution });
 
-  const isOdooV1Template = localResult?.format === 'odoo_v1';
-
   const canRunServerValidation =
     hasCapability &&
     !!localResult &&
     hasStudentImportFileErrors(localResult.fileErrors) === false &&
-    (isOdooV1Template
-      ? localResult.rows.length > 0
-      : localResult.summary.invalidRows === 0) &&
+    hasEligibleStudentImportServerRows(localResult) &&
     !busy &&
     !execution;
 
@@ -214,15 +218,19 @@ export function useStudentImportFlow(
       if (validation.fileErrors.some((e) => e.code === 'invalid_template_version')) {
         toast.error(t('admin.studentImport.errors.outdatedTemplate'));
       }
+      const hasFileErrors = hasStudentImportFileErrors(validation.fileErrors);
+      const hasEligibleRows = hasEligibleStudentImportServerRows(validation);
       const localInvalid =
-        validation.format !== 'odoo_v1' &&
-        (validation.summary.invalidRows > 0 || hasStudentImportFileErrors(validation.fileErrors));
+        hasFileErrors ||
+        (validation.format === 'odoo_v1'
+          ? validation.summary.invalidRows > 0 && !hasEligibleRows
+          : validation.summary.invalidRows > 0);
       setPhase(localInvalid ? 'local_invalid' : 'local_valid');
 
       if (
         validation.format === 'odoo_v1' &&
-        !hasStudentImportFileErrors(validation.fileErrors) &&
-        validation.rows.length > 0 &&
+        !hasFileErrors &&
+        hasEligibleRows &&
         hasCapability &&
         activeSchoolId != null
       ) {
@@ -247,9 +255,7 @@ export function useStudentImportFlow(
       hasCapability &&
       !!validation &&
       !hasStudentImportFileErrors(validation.fileErrors) &&
-      (validation.format === 'odoo_v1'
-        ? validation.rows.length > 0
-        : validation.summary.invalidRows === 0) &&
+      hasEligibleStudentImportServerRows(validation) &&
       !!sourceFile &&
       activeSchoolId != null &&
       (!busy || !!validationOverride) &&
@@ -265,6 +271,10 @@ export function useStudentImportFlow(
         rows: validation.rows,
         templateVersion: validation.templateVersion,
       });
+      if (payload.rows.length === 0) {
+        setPhase('local_invalid');
+        return;
+      }
       assertValidationPayloadKeys(payload);
       const result = await validateStudentImportJob(payload);
       if (!result.ok) {
