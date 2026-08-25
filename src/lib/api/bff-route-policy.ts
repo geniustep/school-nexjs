@@ -200,6 +200,15 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['POST'],
     test: (p) => p === '/admin/integrations/raqeem/messaging/account-activation-link',
   },
+  /** Regulatory calendar bridge — exact governed routes only. */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => p === '/admin/regulatory-calendar/overview',
+  },
+  {
+    methods: ['POST'],
+    test: (p) => p === '/admin/regulatory-calendar/project',
+  },
   {
     methods: ALL_METHODS,
     test: (p) => familyPattern('admin', BFF_ADMIN_FAMILIES).test(p),
@@ -247,7 +256,7 @@ const ROUTE_RULES: RouteRule[] = [
   },
   {
     methods: ['POST'],
-    test: (p) => /^\/staff\/admin-requests\/[^/]+\/(?:wait-requester|resolve)$/.test(p),
+    test: (p) => /^\/staff\/admin-requests\/[^/]+\/reply$/.test(p),
   },
   {
     methods: ['GET', 'HEAD'],

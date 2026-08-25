@@ -10,6 +10,7 @@ export type ParentActivationExclusionReason =
   | 'identity_unavailable';
 
 export interface ParentActivationCampaignRecipient {
+  recipient_id?: number;
   parent_id: number;
   parent_name: string;
   eligible_for_send: boolean;
@@ -24,4 +25,33 @@ export interface ParentActivationCampaign {
   prepared_at: string | null;
   counts: { total: number; ready: number; excluded: number };
   recipients: ParentActivationCampaignRecipient[];
+}
+
+export type ParentActivationDispatchStatus =
+  | 'queued'
+  | 'already_processed'
+  | 'excluded'
+  | 'failed';
+
+export interface ParentActivationDispatchResultRow {
+  recipient_id: number;
+  parent_id: number;
+  parent_name: string;
+  /** Kept open for forward-compatible UI fallback instead of rendering raw values. */
+  status: ParentActivationDispatchStatus | string;
+  exclusion_reason: ParentActivationExclusionReason | string | null;
+  error_code: string | null;
+}
+
+export interface ParentActivationCampaignDispatch {
+  campaign_id: number;
+  state: 'prepared' | string;
+  counts: {
+    total: number;
+    queued: number;
+    failed: number;
+    excluded: number;
+    already_processed: number;
+  };
+  results: ParentActivationDispatchResultRow[];
 }

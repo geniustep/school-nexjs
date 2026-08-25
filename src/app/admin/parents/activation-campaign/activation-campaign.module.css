@@ -1,0 +1,364 @@
+.campaignFlow {
+  display: grid;
+  gap: 18px;
+}
+
+.previewCard {
+  display: grid;
+  gap: 14px;
+}
+
+.previewForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.reviewSection {
+  display: grid;
+  gap: 14px;
+}
+
+.reviewHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reviewHeadingText {
+  min-width: 0;
+}
+
+.reviewHeadingText h2,
+.dispatchCard h2,
+.resultCard h2 {
+  margin: 0;
+}
+
+.reviewHeadingText p,
+.dispatchCard p,
+.resultCard p {
+  margin-block: 5px 0;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.readyStat {
+  position: relative;
+  border-radius: 14px;
+  outline: 2px solid color-mix(in srgb, var(--c-green) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.readyStat::after {
+  content: '';
+  position: absolute;
+  inset-inline: 12px;
+  bottom: -4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--c-green);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.recipientCard {
+  display: grid;
+  gap: 12px;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.filterButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.filterButton:hover {
+  border-color: var(--c-primary);
+  color: var(--c-text);
+}
+
+.filterButton:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.filterButtonActive {
+  border-color: color-mix(in srgb, var(--c-primary) 48%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 9%, var(--c-surface));
+  color: var(--c-primary);
+}
+
+.filterCount {
+  min-width: 24px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  color: inherit;
+  text-align: center;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.recipientList,
+.resultList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  max-height: 430px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.recipientRow,
+.resultRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(190px, auto);
+  align-items: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.recipientRow:last-child,
+.resultRow:last-child {
+  border-bottom: 0;
+}
+
+.recipientName {
+  min-width: 0;
+  font-weight: 650;
+}
+
+.recipientName a {
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.recipientName a:hover {
+  color: var(--c-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.recipientState {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+  text-align: end;
+}
+
+.recipientReason {
+  max-width: 320px;
+  color: var(--c-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.dispatchCard {
+  display: grid;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--c-primary) 18%, var(--c-border));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--c-primary) 4%, var(--c-surface)),
+    var(--c-surface) 58%
+  );
+}
+
+.dispatchHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dispatchAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
+}
+
+.dispatchHint {
+  max-width: 620px;
+  color: var(--c-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.primaryAction {
+  min-height: 42px;
+  padding-inline: 18px;
+  font-weight: 750;
+}
+
+.confirmBody {
+  display: grid;
+  gap: 12px;
+}
+
+.confirmBody p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.confirmSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.confirmMetric {
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2);
+}
+
+.confirmMetric strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.resultCard {
+  display: grid;
+  gap: 14px;
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.resultBanner {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border);
+  line-height: 1.55;
+}
+
+.resultBannerSuccess {
+  border-color: color-mix(in srgb, var(--c-green) 34%, var(--c-border));
+  background: color-mix(in srgb, var(--c-green) 7%, var(--c-surface));
+}
+
+.resultBannerWarning {
+  border-color: color-mix(in srgb, var(--c-amber) 40%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 8%, var(--c-surface));
+}
+
+.resultToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.emptyState {
+  padding: 18px 4px;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .resultGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .previewForm {
+    grid-template-columns: 1fr;
+  }
+
+  .previewForm button {
+    width: 100%;
+  }
+
+  .statGrid,
+  .confirmSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewHeading,
+  .dispatchHeader,
+  .dispatchAction {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .primaryAction {
+    width: 100%;
+  }
+
+  .recipientRow,
+  .resultRow {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding-block: 12px;
+  }
+
+  .recipientState {
+    justify-content: flex-start;
+    text-align: start;
+  }
+
+  .recipientReason {
+    max-width: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .resultGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .filterBar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .filterButton {
+    justify-content: space-between;
+    width: 100%;
+  }
+}

@@ -7,6 +7,36 @@
   flex-wrap: wrap;
 }
 
+.students-list__quick-create-trigger {
+  gap: 7px;
+  border-color: #a8ddc2;
+  background: #e1f4ea;
+  color: #126b47;
+  box-shadow: none;
+}
+
+.students-list__quick-create-trigger:hover:not(:disabled) {
+  border-color: #78c69d;
+  background: #c9ebd8;
+  color: #0e5a3b;
+}
+
+.students-list__quick-create-trigger:focus-visible {
+  box-shadow: 0 0 0 3px rgb(36 166 161 / 0.24);
+}
+
+.students-list__quick-create-trigger > span {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(18 107 71 / 0.11);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1;
+}
+
 .students-list__more-actions {
   position: relative;
 }
