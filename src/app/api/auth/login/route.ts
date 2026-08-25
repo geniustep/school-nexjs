@@ -1,12 +1,14 @@
-// BFF login route. Implements step 1+2 of API_REPORT.md §8:
-//   1. POST /web/session/authenticate to obtain the Odoo session cookie.
+// BFF login route. Implements the Raqeem application auth flow:
+//   1. POST /api/v1/auth/login to obtain the Odoo session cookie while allowing
+//      server-side identifier aliases such as parent phone numbers.
 //   2. GET /api/v1/me to resolve role + scope.
 // The Odoo session id is stored in an httpOnly cookie owned by Next.js, so the
-// browser never sees or handles it directly.
+// browser never sees or handles it directly. Odoo-native callers can continue
+// using /web/session/authenticate independently of this Raqeem BFF route.
 
 import { NextResponse } from 'next/server';
 import { config, cookieSecure } from '@/lib/config';
-import { authenticateOdoo, odooApiFetch } from '@/lib/api/odoo-server';
+import { authenticateRaqeem, odooApiFetch } from '@/lib/api/odoo-server';
 import { endpoints } from '@/lib/api/endpoints';
 import {
   activeSchoolCookieOptions,
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
     return err('invalid_tenant', 'Invalid or unsupported host.', 400);
   }
 
-  const auth = await authenticateOdoo(
+  const auth = await authenticateRaqeem(
     tenant.tenant,
     login,
     password,
@@ -87,6 +89,8 @@ export async function POST(request: Request) {
     if (auth.errorName === 'network_error') {
       return err('network_error', 'Could not reach the server. Please try again.', 502);
     }
+    // Keep authentication failures deliberately generic. Phone collisions,
+    // unknown identifiers, and bad passwords must not become enumeration cues.
     return err('invalid_credentials', 'Invalid login or password.', 401);
   }
 
