@@ -37,68 +37,71 @@ type WarningReviewCopy = {
 const COPY: Record<Locale, WarningReviewCopy> = {
   ar: {
     title: 'مراجعة التنبيهات',
-    subtitle: 'جُمعت الملاحظات المتكررة حسب أثرها حتى تظهر المشاكل الحقيقية بوضوح.',
+    subtitle: 'تظهر هنا فقط الملاحظات التي تساعدك على فهم مشكلة حقيقية أو اتخاذ قرار.',
     noBlockers: 'لا توجد موانع ضمن التحذيرات الحالية',
     blocker: 'مانع',
     warning: 'تنبيه',
     info: 'معلومة',
-    overlap: 'يوجد تداخل زمني مع حدث آخر. هذا تنبيه للمراجعة ولا يعني وحده وجود خطأ يمنع النشر.',
+    overlap: 'يوجد تداخل زمني صنّفه النظام كمشكلة مانعة. راجع التفصيل الأصلي قبل المتابعة.',
     outsideOperationalRange: 'حدث رسمي خارج النطاق التشغيلي المعتاد للسنة الدراسية. يبقى محفوظًا كما ورد في المرجع التنظيمي ولا يُعرض كخطأ في المقرر.',
-    generic: 'ملاحظة واردة من النظام تحتاج مراجعة ضمن سياق التقويم.',
+    generic: 'ملاحظة محددة واردة من النظام تحتاج مراجعة ضمن سياق التقويم.',
     originalDetail: 'التفصيل الأصلي',
-    studyDays: 'عدد أيام الدراسة غير موثوق حاليًا بسبب عناصر تقويمية تحتاج مراجعة؛ لا تعتمد هذا الرقم وحده لاتخاذ قرار.',
-    backendDecision: 'جاهزية النشر النهائية تبقى وفق حالة التقويم و`allowed_actions` القادمة من Backend.',
+    studyDays: 'عدد أيام الدراسة غير موثوق حاليًا؛ لا تعتمد هذا الرقم وحده لاتخاذ قرار.',
+    backendDecision: 'تظل إمكانية النشر مرتبطة بحالة التقويم والصلاحيات المتاحة.',
     repeated: 'مرات',
   },
   en: {
     title: 'Review notices',
-    subtitle: 'Repeated notices are grouped by impact so real blockers remain clear.',
+    subtitle: 'Only notices that help you understand a real issue or make a decision are shown here.',
     noBlockers: 'No blockers are present in the current warnings',
     blocker: 'Blocker',
     warning: 'Notice',
     info: 'Information',
-    overlap: 'This event overlaps another event. Review it, but an overlap alone does not mean publishing is blocked.',
+    overlap: 'The system classified this overlap as a blocking issue. Review the original detail before continuing.',
     outsideOperationalRange: 'This official event is outside the usual operational range of the school year. It remains part of the regulatory reference and is not presented as a curriculum error.',
-    generic: 'The system returned a notice that should be reviewed in the calendar context.',
+    generic: 'The system returned a specific notice that should be reviewed in the calendar context.',
     originalDetail: 'Original detail',
-    studyDays: 'The study-day count is currently unreliable because calendar items still require review; do not use this number alone for a decision.',
-    backendDecision: 'Final publish readiness still follows the calendar state and Backend `allowed_actions`.',
+    studyDays: 'The study-day count is currently unreliable; do not use this number alone for a decision.',
+    backendDecision: 'Publish availability still depends on the calendar state and the actions available to you.',
     repeated: 'times',
   },
   fr: {
     title: 'Révision des alertes',
-    subtitle: 'Les alertes répétées sont regroupées par impact afin de distinguer clairement les vrais blocages.',
+    subtitle: 'Seules les alertes qui aident à comprendre un problème réel ou à prendre une décision sont affichées ici.',
     noBlockers: 'Aucun blocage n’apparaît dans les alertes actuelles',
     blocker: 'Blocage',
     warning: 'Alerte',
     info: 'Information',
-    overlap: 'Cet événement chevauche un autre événement. Il doit être vérifié, mais un chevauchement seul ne signifie pas que la publication est bloquée.',
+    overlap: 'Le système a classé ce chevauchement comme bloquant. Vérifiez le détail d’origine avant de continuer.',
     outsideOperationalRange: 'Cet événement officiel se situe hors de la plage opérationnelle habituelle de l’année scolaire. Il reste conservé comme élément de la référence réglementaire et n’est pas présenté comme une erreur du programme.',
-    generic: 'Le système a retourné une alerte à vérifier dans le contexte du calendrier.',
+    generic: 'Le système a retourné une alerte précise à vérifier dans le contexte du calendrier.',
     originalDetail: 'Détail original',
-    studyDays: 'Le nombre de jours d’étude n’est pas fiable actuellement car certains éléments du calendrier doivent encore être vérifiés ; ne l’utilisez pas seul pour décider.',
-    backendDecision: 'La décision finale de publication reste déterminée par l’état du calendrier et les `allowed_actions` du Backend.',
+    studyDays: 'Le nombre de jours d’étude n’est pas fiable actuellement ; ne l’utilisez pas seul pour décider.',
+    backendDecision: 'La possibilité de publier dépend toujours de l’état du calendrier et des actions qui vous sont disponibles.',
     repeated: 'fois',
   },
   es: {
     title: 'Revisión de avisos',
-    subtitle: 'Los avisos repetidos se agrupan por impacto para que los bloqueos reales queden claros.',
+    subtitle: 'Aquí solo se muestran avisos que ayudan a entender un problema real o a tomar una decisión.',
     noBlockers: 'No hay bloqueos en los avisos actuales',
     blocker: 'Bloqueo',
     warning: 'Aviso',
     info: 'Información',
-    overlap: 'Este evento se solapa con otro. Debe revisarse, pero un solapamiento por sí solo no significa que la publicación esté bloqueada.',
+    overlap: 'El sistema clasificó este solapamiento como un problema bloqueante. Revise el detalle original antes de continuar.',
     outsideOperationalRange: 'Este evento oficial está fuera del rango operativo habitual del curso escolar. Se conserva como parte de la referencia normativa y no se presenta como un error del currículo.',
-    generic: 'El sistema devolvió un aviso que debe revisarse en el contexto del calendario.',
+    generic: 'El sistema devolvió un aviso específico que debe revisarse en el contexto del calendario.',
     originalDetail: 'Detalle original',
-    studyDays: 'El número de días lectivos no es fiable actualmente porque hay elementos del calendario pendientes de revisión; no use este valor por sí solo para decidir.',
-    backendDecision: 'La disponibilidad final para publicar sigue dependiendo del estado del calendario y de los `allowed_actions` del Backend.',
+    studyDays: 'El número de días lectivos no es fiable actualmente; no use este valor por sí solo para decidir.',
+    backendDecision: 'La posibilidad de publicar sigue dependiendo del estado del calendario y de las acciones disponibles para usted.',
     repeated: 'veces',
   },
 };
 
 function itemCopy(item: AcademicCalendarWarningReviewItem, copy: WarningReviewCopy): string {
-  if (item.kind === 'overlap') return copy.overlap;
+  if (item.kind === 'overlap') {
+    if (item.level === 'blocker' && item.warning.message) return item.warning.message;
+    return copy.overlap;
+  }
   if (item.kind === 'outside_operational_range') return copy.outsideOperationalRange;
   return copy.generic;
 }
@@ -139,7 +142,7 @@ function WarningGroup({
         {extraStudyDays ? (
           <div className="academic-calendar-warning-review__item">
             <div className="academic-calendar-warning-review__item-head">
-              <Badge tone="amber">{copy.warning}</Badge>
+              <Badge tone={levelTone(level)}>{levelLabel(level, copy)}</Badge>
             </div>
             <p>{copy.studyDays}</p>
           </div>
@@ -185,6 +188,11 @@ function WarningReviewCard({
   information: AcademicCalendarWarningReviewItem[];
   studyDaysUnreliable: boolean;
 }) {
+  const blockerCount = blockers.reduce((sum, item) => sum + item.count, 0);
+  const warningCount = reviewWarnings.reduce((sum, item) => sum + item.count, 0);
+  const infoCount =
+    information.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0);
+
   return (
     <Card className="academic-calendar-warning-review">
       <div className="academic-calendar-warning-review__head">
@@ -194,16 +202,18 @@ function WarningReviewCard({
         </div>
         <div className="academic-calendar-warning-review__counts" aria-label={copy.title}>
           <Badge tone="red">
-            {copy.blocker}: {blockers.reduce((sum, item) => sum + item.count, 0)}
+            {copy.blocker}: {blockerCount}
           </Badge>
-          <Badge tone="amber">
-            {copy.warning}:{' '}
-            {reviewWarnings.reduce((sum, item) => sum + item.count, 0) +
-              (studyDaysUnreliable ? 1 : 0)}
-          </Badge>
-          <Badge tone="blue">
-            {copy.info}: {information.reduce((sum, item) => sum + item.count, 0)}
-          </Badge>
+          {warningCount > 0 ? (
+            <Badge tone="amber">
+              {copy.warning}: {warningCount}
+            </Badge>
+          ) : null}
+          {infoCount > 0 ? (
+            <Badge tone="blue">
+              {copy.info}: {infoCount}
+            </Badge>
+          ) : null}
         </div>
       </div>
 
@@ -216,13 +226,13 @@ function WarningReviewCard({
 
       <div className="academic-calendar-warning-review__groups">
         <WarningGroup level="blocker" items={blockers} copy={copy} />
+        <WarningGroup level="warning" items={reviewWarnings} copy={copy} />
         <WarningGroup
-          level="warning"
-          items={reviewWarnings}
+          level="info"
+          items={information}
           copy={copy}
           extraStudyDays={studyDaysUnreliable}
         />
-        <WarningGroup level="info" items={information} copy={copy} />
       </div>
     </Card>
   );
