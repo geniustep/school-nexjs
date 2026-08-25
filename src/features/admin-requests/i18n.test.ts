@@ -37,6 +37,11 @@ describe('admin request i18n', () => {
     expect(adminRequestMessage('fr', 'composer.targetSubjectTeacher')).toBe('À propos d’une matière scolaire');
     expect(adminRequestMessage('en', 'composer.targetSubjectTeacher')).toBe('Regarding a school subject');
     expect(adminRequestMessage('es', 'composer.targetSubjectTeacher')).toBe('Sobre una materia escolar');
+
+    for (const locale of LOCALES) {
+      expect(adminRequestMessage(locale, 'appointment.preferredDate')).not.toBe('appointment.preferredDate');
+      expect(adminRequestMessage(locale, 'appointment.preferredPeriod')).not.toBe('appointment.preferredPeriod');
+    }
   });
 
   it('interpolates dynamic values without changing the locale copy', () => {
