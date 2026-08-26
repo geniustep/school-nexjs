@@ -79,13 +79,14 @@ export function AdminRequestAppointmentPanel({
   const [success, setSuccess] = useState<string | null>(null);
 
   if (!appointment) return null;
+  const appointmentState = appointment.appointment_state;
 
   const isFamily = role === 'parent' || role === 'student';
   const canConfirm = isFamily && actions.includes('confirm_appointment');
   const canRequestChange = isFamily && actions.includes('request_appointment_change');
   const canPropose =
     role === 'admin' &&
-    appointment.appointment_state === 'requested' &&
+    appointmentState === 'requested' &&
     actions.includes('propose_appointment');
 
   async function confirm() {
@@ -129,7 +130,7 @@ export function AdminRequestAppointmentPanel({
 
   async function propose(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (role !== 'admin' || busy || appointment.appointment_state !== 'requested') return;
+    if (role !== 'admin' || busy || appointmentState !== 'requested') return;
     if (!scheduledStart || !scheduledEnd) {
       setError(adminRequestMessage(locale, 'appointment.scheduleRequired'));
       return;
