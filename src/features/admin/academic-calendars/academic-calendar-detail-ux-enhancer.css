@@ -1,0 +1,26 @@
+/*
+ * Presentation-only refinements for the academic-calendar detail page.
+ * The underlying calendar data, actions and API contracts remain unchanged.
+ */
+
+.academic-calendar-detail__advanced-card[data-collapsed='true']
+  > :not(.academic-calendar-detail__section-head) {
+  display: none;
+}
+
+.academic-calendar-detail__advanced-card[data-collapsed='true']
+  .academic-calendar-detail__section-tools,
+.academic-calendar-detail__advanced-card[data-collapsed='true']
+  .academic-calendar-detail__section-head
+  > .btn:not(.academic-calendar-detail__advanced-toggle) {
+  display: none;
+}
+
+.academic-calendar-detail__advanced-card[data-collapsed='true']
+  .academic-calendar-detail__section-head {
+  margin-bottom: 0;
+}
+
+.academic-calendar-detail__advanced-toggle {
+  margin-inline-start: auto;
+}

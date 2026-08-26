@@ -1,0 +1,145 @@
+.academic-calendar-event-reading__host {
+  display: block;
+}
+
+.academic-calendar-event-reading {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.academic-calendar-event-reading__head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.academic-calendar-event-reading__head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.academic-calendar-event-reading__head p {
+  margin: 4px 0 0;
+  color: var(--c-text-muted);
+  font-size: 13px;
+}
+
+.academic-calendar-event-reading__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.academic-calendar-event-reading__empty {
+  margin: 4px 0 0;
+  padding: 14px 0 2px;
+  font-size: 13px;
+}
+
+.academic-calendar-event-reading__months {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.academic-calendar-event-reading__month {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) 1fr;
+  gap: 12px;
+}
+
+.academic-calendar-event-reading__month h3 {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text-muted);
+}
+
+.academic-calendar-event-reading__items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.academic-calendar-event-reading__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-inline-start-width: 3px;
+  border-radius: var(--radius);
+  background: var(--c-surface);
+}
+
+.academic-calendar-event-reading__item--official {
+  border-inline-start-color: var(--c-primary);
+}
+
+.academic-calendar-event-reading__item--break {
+  border-inline-start-color: var(--c-success, var(--c-primary));
+}
+
+.academic-calendar-event-reading__item--closure {
+  border-inline-start-color: var(--c-warning, var(--c-primary));
+}
+
+.academic-calendar-event-reading__item-main,
+.academic-calendar-event-reading__when {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.academic-calendar-event-reading__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.academic-calendar-event-reading__item-main strong {
+  font-size: 14px;
+}
+
+.academic-calendar-event-reading__when {
+  align-items: flex-end;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.academic-calendar-event-reading__when strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+@media (max-width: 760px) {
+  .academic-calendar-event-reading__head {
+    align-items: stretch;
+  }
+
+  .academic-calendar-event-reading__month {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .academic-calendar-event-reading__item {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .academic-calendar-event-reading__when {
+    align-items: flex-start;
+    text-align: start;
+    white-space: normal;
+  }
+}
