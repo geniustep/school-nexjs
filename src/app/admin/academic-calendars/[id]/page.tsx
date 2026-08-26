@@ -37,7 +37,7 @@ export default function AdminAcademicCalendarDetailPage({
               <AcademicCalendarWarningReview calendar={detail} />
               <AcademicCalendarOverview calendar={detail} />
               <AcademicCalendarEventReading calendar={detail} />
-              <AcademicCalendarDetailUxEnhancer />
+              <AcademicCalendarDetailUxEnhancer calendar={detail} />
               <AcademicCalendarDetailView calendar={detail} onReload={() => state.reload()} />
             </>
           )}
