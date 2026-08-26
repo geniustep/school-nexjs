@@ -14,18 +14,25 @@ export function AcademicCalendarOverview({ calendar }: { calendar: AcademicCalen
   const studyDays = academicCalendarStudyDaysDisplay(summary);
 
   useEffect(() => {
-    const detailRoot = document.querySelector<HTMLElement>('.academic-calendar-detail');
-    const headerMeta = detailRoot?.querySelector<HTMLElement>('.academic-calendar-detail__header-meta');
-    if (!detailRoot || !headerMeta) return;
+    let host: HTMLElement | null = null;
+    const frame = window.requestAnimationFrame(() => {
+      const detailRoot = document.querySelector<HTMLElement>('.academic-calendar-detail');
+      const headerMeta = detailRoot?.querySelector<HTMLElement>('.academic-calendar-detail__header-meta');
+      if (!detailRoot || !headerMeta) return;
 
-    const host = document.createElement('div');
-    host.className = 'academic-calendar-overview__host';
-    headerMeta.insertAdjacentElement('afterend', host);
-    setPortalTarget(host);
+      const warningHost = detailRoot.querySelector<HTMLElement>(
+        '.academic-calendar-warning-review__host',
+      );
+      host = document.createElement('div');
+      host.className = 'academic-calendar-overview__host';
+      (warningHost ?? headerMeta).insertAdjacentElement('afterend', host);
+      setPortalTarget(host);
+    });
 
     return () => {
+      window.cancelAnimationFrame(frame);
       setPortalTarget(null);
-      host.remove();
+      host?.remove();
     };
   }, [calendar.id]);
 
