@@ -9,6 +9,7 @@ import {
   postProposeAppointment,
   postRequestAppointmentChange,
 } from '../api';
+import { appointmentDefaultEnd } from '../appointment-schedule';
 import { adminRequestControlsMessage } from '../controls-i18n';
 import { adminRequestMessage } from '../i18n';
 import { adminRequestErrorLabel } from '../presenters';
@@ -78,11 +79,15 @@ export function AdminRequestAppointmentPanel({
   const [success, setSuccess] = useState<string | null>(null);
 
   if (!appointment) return null;
+  const appointmentState = appointment.appointment_state;
 
   const isFamily = role === 'parent' || role === 'student';
   const canConfirm = isFamily && actions.includes('confirm_appointment');
   const canRequestChange = isFamily && actions.includes('request_appointment_change');
-  const canPropose = role === 'admin' && actions.includes('propose_appointment');
+  const canPropose =
+    role === 'admin' &&
+    appointmentState === 'requested' &&
+    actions.includes('propose_appointment');
 
   async function confirm() {
     if (!isFamily || busy) return;
@@ -125,7 +130,7 @@ export function AdminRequestAppointmentPanel({
 
   async function propose(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (role !== 'admin' || busy) return;
+    if (role !== 'admin' || busy || appointmentState !== 'requested') return;
     if (!scheduledStart || !scheduledEnd) {
       setError(adminRequestMessage(locale, 'appointment.scheduleRequired'));
       return;
@@ -250,7 +255,11 @@ export function AdminRequestAppointmentPanel({
                   className="input"
                   type="datetime-local"
                   value={scheduledStart}
-                  onChange={(event) => setScheduledStart(event.target.value)}
+                  onChange={(event) => {
+                    const nextStart = event.target.value;
+                    setScheduledStart(nextStart);
+                    setScheduledEnd(appointmentDefaultEnd(nextStart));
+                  }}
                   disabled={busy}
                   required
                 />

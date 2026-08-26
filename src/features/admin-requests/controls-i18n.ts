@@ -21,6 +21,9 @@ const MESSAGES = {
     'appointment.preferredTimeHint': 'This is a preference only; the confirmed appointment is set by the school.',
     'appointment.preferredTime': 'Preferred time',
     'error.appointmentTimeInvalid': 'Enter a valid preferred time in HH:MM format.',
+    'actions.choose': 'Choose an action',
+    'actions.execute': 'Run action',
+    'actions.noteOptional': 'Optional note',
   },
   fr: {
     'settings.serviceKind': 'Type de service',
@@ -42,6 +45,9 @@ const MESSAGES = {
     'appointment.preferredTimeHint': 'Il s’agit uniquement d’une préférence ; le rendez-vous confirmé est fixé par l’établissement.',
     'appointment.preferredTime': 'Heure préférée',
     'error.appointmentTimeInvalid': 'Saisissez une heure préférée valide au format HH:MM.',
+    'actions.choose': 'Choisir une action',
+    'actions.execute': 'Exécuter l’action',
+    'actions.noteOptional': 'Note facultative',
   },
   ar: {
     'settings.serviceKind': 'نوع الخدمة',
@@ -63,6 +69,9 @@ const MESSAGES = {
     'appointment.preferredTimeHint': 'هذا تفضيل فقط؛ الموعد المؤكد تحدده المدرسة.',
     'appointment.preferredTime': 'الوقت المفضل',
     'error.appointmentTimeInvalid': 'أدخل وقتًا مفضلًا صالحًا بصيغة HH:MM.',
+    'actions.choose': 'اختر الإجراء',
+    'actions.execute': 'تنفيذ الإجراء',
+    'actions.noteOptional': 'ملاحظة اختيارية',
   },
   es: {
     'settings.serviceKind': 'Tipo de servicio',
@@ -84,6 +93,9 @@ const MESSAGES = {
     'appointment.preferredTimeHint': 'Es solo una preferencia; el centro establece la cita confirmada.',
     'appointment.preferredTime': 'Hora preferida',
     'error.appointmentTimeInvalid': 'Introduzca una hora preferida válida en formato HH:MM.',
+    'actions.choose': 'Elegir una acción',
+    'actions.execute': 'Ejecutar acción',
+    'actions.noteOptional': 'Nota opcional',
   },
 } as const;
 
