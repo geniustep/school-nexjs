@@ -9,8 +9,8 @@ import {
   staffOptionRows,
 } from './presenters';
 
-describe('admin request Arabic presenters', () => {
-  it('translates workflow states and 339 review actions shown in the portal', () => {
+describe('admin request localized presenters', () => {
+  it('keeps the Arabic workflow vocabulary as the default locale', () => {
     expect(adminRequestStateLabel('under_review')).toBe('قيد المراجعة');
     expect(adminRequestStateLabel('resolved')).toBe('تمت المعالجة');
     expect(adminRequestActionLabel('wait_requester')).toBe('طلب معلومات إضافية');
@@ -20,10 +20,21 @@ describe('admin request Arabic presenters', () => {
     expect(adminRequestActionLabel('request_reply_changes')).toBe('طلب تعديل الرد');
   });
 
+  it('localizes workflow labels for French, English and Spanish', () => {
+    expect(adminRequestStateLabel('under_review', 'fr')).toBe('En cours d’examen');
+    expect(adminRequestStateLabel('under_review', 'en')).toBe('Under review');
+    expect(adminRequestStateLabel('under_review', 'es')).toBe('En revisión');
+
+    expect(adminRequestActionLabel('wait_requester', 'fr')).toBe('Demander des informations complémentaires');
+    expect(adminRequestActionLabel('wait_requester', 'en')).toBe('Request more information');
+    expect(adminRequestActionLabel('wait_requester', 'es')).toBe('Solicitar más información');
+  });
+
   it('translates reply review states', () => {
     expect(adminRequestReviewStateLabel('pending_review')).toBe('بانتظار مراجعة الإدارة');
     expect(adminRequestReviewStateLabel('approved')).toBe('معتمد');
     expect(adminRequestReviewStateLabel('changes_requested')).toBe('مطلوب تعديل الرد');
+    expect(adminRequestReviewStateLabel('pending_review', 'fr')).toBe('En attente de validation par l’administration');
   });
 
   it('translates requester and staff roles', () => {
@@ -32,9 +43,12 @@ describe('admin request Arabic presenters', () => {
     expect(adminRequestRoleLabel('admin')).toBe('الإدارة');
     expect(adminRequestRoleLabel('teacher')).toBe('الأستاذ');
     expect(adminRequestRoleLabel('staff')).toBe('الموظف');
+    expect(adminRequestRoleLabel('parent', 'en')).toBe('Parent/guardian');
+    expect(adminRequestRoleLabel('student', 'fr')).toBe('Élève');
+    expect(adminRequestRoleLabel('teacher', 'es')).toBe('Profesor');
   });
 
-  it('localizes workflow API errors instead of leaking English messages', () => {
+  it('localizes workflow API errors instead of leaking backend English messages', () => {
     expect(adminRequestErrorLabel({
       code: 'admin_request_resolution_required',
       message: 'Resolution summary is required.',
@@ -66,10 +80,25 @@ describe('admin request Arabic presenters', () => {
     );
   });
 
-  it('hides operational QA markers from seeded request type names', () => {
+  it('localizes appointment and generic errors for LTR locales', () => {
+    expect(adminRequestErrorLabel({ code: 'admin_request_appointment_subject_required' }, 'fr')).toBe(
+      'Choisissez la matière concernée par le rendez-vous.',
+    );
+    expect(adminRequestErrorLabel({ code: 'admin_request_appointment_schedule_invalid' }, 'en')).toBe(
+      'The appointment end must be after its start.',
+    );
+    expect(adminRequestErrorLabel({ code: 'unknown', message: 'تعذر إتمام الطلب.' }, 'es')).toBe(
+      'No se pudo realizar la acción. Revise los datos e inténtelo de nuevo.',
+    );
+  });
+
+  it('hides operational QA markers from seeded request type names in every locale', () => {
     expect(adminRequestTypeLabel('QA Complaint 20260823')).toBe('شكاية');
     expect(adminRequestTypeLabel('QA Inquiry 20260823')).toBe('استفسار');
     expect(adminRequestTypeLabel('QA Appointment 20260823')).toBe('طلب موعد');
+    expect(adminRequestTypeLabel('QA Appointment 20260823', 'fr')).toBe('Demande de rendez-vous');
+    expect(adminRequestTypeLabel('QA Appointment 20260823', 'en')).toBe('Appointment request');
+    expect(adminRequestTypeLabel('QA Appointment 20260823', 'es')).toBe('Solicitud de cita');
   });
 });
 

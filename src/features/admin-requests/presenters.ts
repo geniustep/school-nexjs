@@ -1,137 +1,167 @@
-const STATE_LABELS: Record<string, string> = {
-  draft: 'مسودة',
-  submitted: 'مُرسل',
-  under_review: 'قيد المراجعة',
-  in_review: 'قيد المراجعة',
-  waiting_requester: 'بانتظار صاحب الطلب',
-  wait_requester: 'بانتظار صاحب الطلب',
-  referred: 'مُحال',
-  resolved: 'تمت المعالجة',
-  cancelled: 'ملغى',
-  canceled: 'ملغى',
-  rejected: 'مرفوض',
-  closed: 'مغلق',
+import type { Locale } from '@/lib/i18n/config';
+import { adminRequestMessage, type AdminRequestMessageKey } from './i18n';
+
+const STATE_KEYS: Record<string, AdminRequestMessageKey> = {
+  draft: 'state.draft',
+  submitted: 'state.submitted',
+  under_review: 'state.underReview',
+  in_review: 'state.underReview',
+  waiting_requester: 'state.waitingRequester',
+  wait_requester: 'state.waitingRequester',
+  referred: 'state.referred',
+  resolved: 'state.resolved',
+  cancelled: 'state.cancelled',
+  canceled: 'state.cancelled',
+  rejected: 'state.rejected',
+  closed: 'state.closed',
 };
 
-const REVIEW_STATE_LABELS: Record<string, string> = {
-  pending_review: 'بانتظار مراجعة الإدارة',
-  approved: 'معتمد',
-  changes_requested: 'مطلوب تعديل الرد',
+const REVIEW_STATE_KEYS: Record<string, AdminRequestMessageKey> = {
+  pending_review: 'review.pending',
+  approved: 'review.approved',
+  changes_requested: 'review.changesRequested',
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  submit: 'إرسال الطلب',
-  start_review: 'بدء المراجعة',
-  start_processing: 'بدء المعالجة',
-  refer: 'إحالة إلى موظف',
-  wait_requester: 'طلب معلومات إضافية',
-  waiting_requester: 'طلب معلومات إضافية',
-  resolve: 'إنهاء المعالجة',
-  reject: 'رفض الطلب',
-  cancel: 'إلغاء الطلب',
-  reopen: 'إعادة فتح الطلب',
-  reply: 'إضافة رد',
-  requester_reply: 'إضافة رد',
-  staff_reply: 'إرسال الرد إلى الإدارة',
-  approve_reply: 'اعتماد الرد',
-  request_reply_changes: 'طلب تعديل الرد',
+const ACTION_KEYS: Record<string, AdminRequestMessageKey> = {
+  submit: 'action.submit',
+  start_review: 'action.startReview',
+  start_processing: 'action.startProcessing',
+  refer: 'action.refer',
+  wait_requester: 'action.waitRequester',
+  waiting_requester: 'action.waitRequester',
+  resolve: 'action.resolve',
+  reject: 'action.reject',
+  cancel: 'action.cancel',
+  reopen: 'action.reopen',
+  reply: 'action.reply',
+  requester_reply: 'action.requesterReply',
+  staff_reply: 'action.staffReply',
+  approve_reply: 'action.approveReply',
+  request_reply_changes: 'action.requestReplyChanges',
 };
 
-const ROLE_LABELS: Record<string, string> = {
-  parent: 'ولي الأمر',
-  guardian: 'ولي الأمر',
-  student: 'التلميذ',
-  admin: 'الإدارة',
-  teacher: 'الأستاذ',
-  staff: 'الموظف',
-  employee: 'الموظف',
-  requester: 'صاحب الطلب',
-  system: 'النظام',
+const ROLE_KEYS: Record<string, AdminRequestMessageKey> = {
+  parent: 'role.parent',
+  guardian: 'role.parent',
+  student: 'role.student',
+  admin: 'role.admin',
+  teacher: 'role.teacher',
+  staff: 'role.staff',
+  employee: 'role.staff',
+  requester: 'role.requester',
+  system: 'role.system',
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  complaint: 'شكاية',
-  inquiry: 'استفسار',
-  appointment: 'طلب موعد',
-  'appointment request': 'طلب موعد',
-  certificate: 'طلب شهادة',
-  'certificate request': 'طلب شهادة',
-  'lost and found': 'المفقودات',
-  lost_found: 'المفقودات',
-  'administrative request': 'طلب إداري',
-  'admin request': 'طلب إداري',
+const TYPE_KEYS: Record<string, AdminRequestMessageKey> = {
+  complaint: 'type.complaint',
+  inquiry: 'type.inquiry',
+  appointment: 'type.appointment',
+  'appointment request': 'type.appointment',
+  certificate: 'type.certificate',
+  'certificate request': 'type.certificate',
+  'lost and found': 'type.lostFound',
+  lost_found: 'type.lostFound',
+  'administrative request': 'type.adminRequest',
+  'admin request': 'type.adminRequest',
 };
 
-const ERROR_LABELS: Record<string, string> = {
-  admin_request_resolution_required: 'اكتب ملخص المعالجة قبل إنهاء الطلب.',
-  admin_request_forbidden: 'لا تملك صلاحية تنفيذ هذا الإجراء.',
-  admin_request_confidential_forbidden: 'لا تملك صلاحية الاطلاع على هذا الطلب السري.',
-  admin_request_not_found: 'تعذر العثور على الطلب الإداري.',
-  admin_request_invalid_transition: 'هذا الإجراء غير متاح في الحالة الحالية للطلب.',
-  admin_request_review_required: 'هذا الإجراء غير متاح قبل مراجعة الإدارة للرد الحالي.',
-  admin_request_stale_action: 'تغيّرت حالة الرد. حدّث الصفحة ثم أعد المحاولة.',
-  admin_request_review_outcome_required: 'اختر نتيجة اعتماد الرد.',
-  admin_request_review_reason_required: 'اكتب سبب طلب تعديل الرد.',
-  admin_request_reply_not_found: 'تعذر العثور على الرد المطلوب.',
-  validation_error: 'تحقق من البيانات المطلوبة ثم أعد المحاولة.',
-  unauthorized: 'انتهت الجلسة أو يلزم تسجيل الدخول من جديد.',
+const ERROR_KEYS: Record<string, AdminRequestMessageKey> = {
+  admin_request_resolution_required: 'error.resolutionRequired',
+  admin_request_forbidden: 'error.forbidden',
+  admin_request_confidential_forbidden: 'error.confidentialForbidden',
+  admin_request_not_found: 'error.notFound',
+  admin_request_invalid_transition: 'error.invalidTransition',
+  admin_request_review_required: 'error.reviewRequired',
+  admin_request_stale_action: 'error.staleAction',
+  admin_request_review_outcome_required: 'error.reviewOutcomeRequired',
+  admin_request_review_reason_required: 'error.reviewReasonRequired',
+  admin_request_reply_not_found: 'error.replyNotFound',
+  admin_request_student_not_allowed: 'error.studentNotAllowed',
+  admin_request_student_required: 'error.studentNotAllowed',
+  admin_request_type_not_available: 'error.typeNotAvailable',
+  admin_request_attachment_ids_forbidden: 'error.attachmentForbidden',
+  admin_request_appointment_required: 'error.appointmentRequired',
+  admin_request_appointment_missing: 'error.appointmentMissing',
+  admin_request_appointment_subject_required: 'error.appointmentSubjectRequired',
+  admin_request_appointment_subject_not_eligible: 'error.appointmentSubjectNotEligible',
+  admin_request_appointment_identity_forbidden: 'error.appointmentIdentityForbidden',
+  admin_request_appointment_target_invalid: 'error.appointmentTargetInvalid',
+  admin_request_appointment_period_invalid: 'error.appointmentPeriodInvalid',
+  admin_request_appointment_date_required: 'error.appointmentDateRequired',
+  admin_request_appointment_schedule_required: 'error.appointmentScheduleRequired',
+  admin_request_appointment_schedule_incomplete: 'error.appointmentScheduleRequired',
+  admin_request_appointment_schedule_invalid: 'error.appointmentScheduleInvalid',
+  admin_request_appointment_already_confirmed: 'error.appointmentAlreadyConfirmed',
+  validation_error: 'error.validation',
+  unauthorized: 'error.unauthorized',
 };
 
-const ERROR_MESSAGE_LABELS: Record<string, string> = {
-  'resolution summary is required.': 'اكتب ملخص المعالجة قبل إنهاء الطلب.',
-  'not allowed to perform this action.': 'لا تملك صلاحية تنفيذ هذا الإجراء.',
-  'administrative request not found.': 'تعذر العثور على الطلب الإداري.',
+const ERROR_MESSAGE_KEYS: Record<string, AdminRequestMessageKey> = {
+  'resolution summary is required.': 'error.resolutionRequired',
+  'not allowed to perform this action.': 'error.forbidden',
+  'administrative request not found.': 'error.notFound',
 };
 
 function normalizedKey(value: string): string {
   return value.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
 }
 
-export function adminRequestStateLabel(state?: string | null): string {
+export function adminRequestStateLabel(state?: string | null, locale: Locale = 'ar'): string {
   if (!state?.trim()) return '—';
-  return STATE_LABELS[normalizedKey(state)] ?? 'حالة غير معروفة';
+  return adminRequestMessage(locale, STATE_KEYS[normalizedKey(state)] ?? 'state.unknown');
 }
 
-export function adminRequestReviewStateLabel(state?: string | null): string {
+export function adminRequestReviewStateLabel(state?: string | null, locale: Locale = 'ar'): string {
   if (!state?.trim()) return '—';
-  return REVIEW_STATE_LABELS[normalizedKey(state)] ?? 'حالة مراجعة غير معروفة';
+  return adminRequestMessage(locale, REVIEW_STATE_KEYS[normalizedKey(state)] ?? 'review.unknown');
 }
 
-export function adminRequestActionLabel(action?: string | null): string {
-  if (!action?.trim()) return 'إجراء';
-  return ACTION_LABELS[normalizedKey(action)] ?? 'إجراء آخر';
+export function adminRequestActionLabel(action?: string | null, locale: Locale = 'ar'): string {
+  if (!action?.trim()) return adminRequestMessage(locale, 'action.unknown');
+  return adminRequestMessage(locale, ACTION_KEYS[normalizedKey(action)] ?? 'action.unknown');
 }
 
-export function adminRequestRoleLabel(role?: string | null): string {
+export function adminRequestRoleLabel(role?: string | null, locale: Locale = 'ar'): string {
   if (!role?.trim()) return '—';
-  return ROLE_LABELS[normalizedKey(role)] ?? 'مستخدم';
+  return adminRequestMessage(locale, ROLE_KEYS[normalizedKey(role)] ?? 'role.unknown');
 }
 
-export function adminRequestTypeLabel(name?: string | null): string {
+export function adminRequestTypeLabel(name?: string | null, locale: Locale = 'ar'): string {
   const value = name?.trim();
   if (!value) return '—';
 
   // Seed/QA markers are operational metadata and must never leak into family/admin UI.
   const qaMatch = value.match(/^QA\s+(Complaint|Inquiry|Appointment)(?:\s+.+)?$/i);
   if (qaMatch) {
-    return TYPE_LABELS[qaMatch[1].toLowerCase()] ?? qaMatch[1];
+    const key = TYPE_KEYS[qaMatch[1].toLowerCase()];
+    return key ? adminRequestMessage(locale, key) : qaMatch[1];
   }
 
-  return TYPE_LABELS[value.toLowerCase()] ?? value;
+  const key = TYPE_KEYS[value.toLowerCase()];
+  return key ? adminRequestMessage(locale, key) : value;
 }
 
 export function adminRequestErrorLabel(
   error?: { code?: string | null; message?: string | null } | null,
+  locale: Locale = 'ar',
 ): string {
   const code = error?.code?.trim();
-  if (code && ERROR_LABELS[code]) return ERROR_LABELS[code];
+  if (code && ERROR_KEYS[code]) return adminRequestMessage(locale, ERROR_KEYS[code]);
 
   const message = error?.message?.trim();
-  if (!message) return 'تعذر تنفيذ الإجراء. أعد المحاولة.';
-  const translated = ERROR_MESSAGE_LABELS[message.toLowerCase()];
-  if (translated) return translated;
-  if (/\p{Script=Arabic}/u.test(message)) return message;
-  return 'تعذر تنفيذ الإجراء. تحقق من البيانات ثم أعد المحاولة.';
+  if (!message) return adminRequestMessage(locale, 'error.generic');
+  const messageKey = ERROR_MESSAGE_KEYS[message.toLowerCase()];
+  if (messageKey) return adminRequestMessage(locale, messageKey);
+
+  // Arabic backend text may be shown only while the UI itself is Arabic.
+  if (locale === 'ar' && /\p{Script=Arabic}/u.test(message)) return message;
+  return adminRequestMessage(locale, 'error.genericCheckData');
+}
+
+export function adminRequestPriorityLabel(value?: string | null, locale: Locale = 'ar'): string {
+  if (value === 'urgent') return adminRequestMessage(locale, 'priority.urgent');
+  if (value === 'important') return adminRequestMessage(locale, 'priority.important');
+  return adminRequestMessage(locale, 'priority.normal');
 }
 
 export interface AdminRequestStaffOption {

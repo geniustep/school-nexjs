@@ -1,12 +1,15 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import { useLocale } from '@/features/i18n/locale-context';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { Badge, Card, PageHeader } from '@/components/ui/primitives';
 import { createAdminRequestType, updateAdminRequestType } from '../api';
-import { staffOptionRows } from '../presenters';
-import type { AdminRequestType } from '../types';
+import { adminRequestControlsMessage } from '../controls-i18n';
+import { adminRequestMessage } from '../i18n';
+import { adminRequestErrorLabel, adminRequestPriorityLabel, staffOptionRows } from '../presenters';
+import type { AdminRequestServiceKind, AdminRequestType } from '../types';
 
 type EditorState = {
   id?: number;
@@ -19,6 +22,7 @@ type EditorState = {
   requires_student: boolean;
   default_priority: 'normal' | 'important' | 'urgent';
   default_assignee_user_id: string;
+  service_kind: AdminRequestServiceKind;
 };
 
 const EMPTY_EDITOR: EditorState = {
@@ -31,6 +35,7 @@ const EMPTY_EDITOR: EditorState = {
   requires_student: true,
   default_priority: 'normal',
   default_assignee_user_id: '',
+  service_kind: 'general',
 };
 
 function editorFromType(type: AdminRequestType): EditorState {
@@ -45,16 +50,12 @@ function editorFromType(type: AdminRequestType): EditorState {
     requires_student: type.requires_student !== false,
     default_priority: type.default_priority ?? 'normal',
     default_assignee_user_id: type.default_assignee?.id ? String(type.default_assignee.id) : '',
+    service_kind: type.service_kind ?? 'general',
   };
 }
 
-function priorityLabel(value?: string) {
-  if (value === 'urgent') return 'عاجلة';
-  if (value === 'important') return 'مهمة';
-  return 'عادية';
-}
-
 export function AdminRequestTypesSettingsPage() {
+  const { locale } = useLocale();
   const types = useResource<AdminRequestType[]>('/admin/admin-requests/types', undefined, {
     keepPreviousData: false,
   });
@@ -85,13 +86,14 @@ export function AdminRequestTypesSettingsPage() {
       default_assignee_user_id: editor.default_assignee_user_id
         ? Number(editor.default_assignee_user_id)
         : null,
+      service_kind: editor.service_kind,
     };
     const response = editor.id
       ? await updateAdminRequestType(editor.id, payload)
       : await createAdminRequestType(payload);
     setBusy(false);
     if (!response.success) {
-      setError(response.error.message);
+      setError(adminRequestErrorLabel(response.error, locale));
       return;
     }
     setEditor(null);
@@ -101,11 +103,15 @@ export function AdminRequestTypesSettingsPage() {
   return (
     <div className="admin-workspace">
       <PageHeader
-        title="أنواع الطلبات الإدارية"
-        subtitle="حدد ما يمكن للأسرة إرساله، ومن يستقبله، والخصائص الافتراضية لكل نوع."
+        title={adminRequestMessage(locale, 'settings.title')}
+        subtitle={adminRequestMessage(locale, 'settings.subtitle')}
         actions={(
-          <button type="button" className="btn btn--primary" onClick={() => { setError(null); setEditor({ ...EMPTY_EDITOR }); }}>
-            نوع جديد
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => { setError(null); setEditor({ ...EMPTY_EDITOR }); }}
+          >
+            {adminRequestMessage(locale, 'settings.newType')}
           </button>
         )}
       />
@@ -114,29 +120,60 @@ export function AdminRequestTypesSettingsPage() {
         <Card>
           <form className="col" style={{ gap: 16 }} onSubmit={save}>
             <div className="between" style={{ gap: 12, flexWrap: 'wrap' }}>
-              <strong>{editor.id ? 'تعديل نوع الطلب' : 'إضافة نوع طلب'}</strong>
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => { setEditor(null); setError(null); }} disabled={busy}>
-                إلغاء
+              <strong>
+                {adminRequestMessage(locale, editor.id ? 'settings.editType' : 'settings.addType')}
+              </strong>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => { setEditor(null); setError(null); }}
+                disabled={busy}
+              >
+                {adminRequestMessage(locale, 'common.cancel')}
               </button>
             </div>
 
             <div className="field">
-              <label htmlFor="request-type-name">اسم النوع</label>
+              <label htmlFor="request-type-name">{adminRequestMessage(locale, 'settings.name')}</label>
               <input
                 id="request-type-name"
                 className="input"
+                dir="auto"
                 value={editor.name}
                 onChange={(event) => update('name', event.target.value)}
                 maxLength={160}
                 required
                 disabled={busy}
-                placeholder="مثال: طلب موعد مع الإدارة"
+                placeholder={adminRequestMessage(locale, 'settings.namePlaceholder')}
               />
+            </div>
+
+            <div className="field">
+              <label htmlFor="request-type-service-kind">
+                {adminRequestControlsMessage(locale, 'settings.serviceKind')}
+              </label>
+              <select
+                id="request-type-service-kind"
+                className="input"
+                value={editor.service_kind}
+                onChange={(event) => update('service_kind', event.target.value as AdminRequestServiceKind)}
+                disabled={busy}
+              >
+                <option value="general">
+                  {adminRequestControlsMessage(locale, 'settings.serviceKindGeneral')}
+                </option>
+                <option value="appointment">
+                  {adminRequestControlsMessage(locale, 'settings.serviceKindAppointment')}
+                </option>
+              </select>
+              <span className="tiny muted">
+                {adminRequestControlsMessage(locale, 'settings.serviceKindHint')}
+              </span>
             </div>
 
             <div className="grid grid--cards">
               <div className="field">
-                <label htmlFor="request-type-priority">الأولوية الافتراضية</label>
+                <label htmlFor="request-type-priority">{adminRequestMessage(locale, 'settings.defaultPriority')}</label>
                 <select
                   id="request-type-priority"
                   className="input"
@@ -144,13 +181,13 @@ export function AdminRequestTypesSettingsPage() {
                   onChange={(event) => update('default_priority', event.target.value as EditorState['default_priority'])}
                   disabled={busy}
                 >
-                  <option value="normal">عادية</option>
-                  <option value="important">مهمة</option>
-                  <option value="urgent">عاجلة</option>
+                  <option value="normal">{adminRequestPriorityLabel('normal', locale)}</option>
+                  <option value="important">{adminRequestPriorityLabel('important', locale)}</option>
+                  <option value="urgent">{adminRequestPriorityLabel('urgent', locale)}</option>
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="request-type-sequence">ترتيب الظهور</label>
+                <label htmlFor="request-type-sequence">{adminRequestMessage(locale, 'settings.order')}</label>
                 <input
                   id="request-type-sequence"
                   className="input"
@@ -165,7 +202,7 @@ export function AdminRequestTypesSettingsPage() {
             </div>
 
             <div className="field">
-              <label htmlFor="request-type-assignee">الموظف المسؤول افتراضيًا</label>
+              <label htmlFor="request-type-assignee">{adminRequestMessage(locale, 'settings.defaultAssignee')}</label>
               <select
                 id="request-type-assignee"
                 className="input"
@@ -173,45 +210,45 @@ export function AdminRequestTypesSettingsPage() {
                 onChange={(event) => update('default_assignee_user_id', event.target.value)}
                 disabled={busy || staff.loading}
               >
-                <option value="">بدون موظف افتراضي</option>
+                <option value="">{adminRequestMessage(locale, 'settings.noDefaultAssignee')}</option>
                 {staffOptions.map((option) => (
                   <option key={option.id} value={option.id}>
                     {option.detail ? `${option.name} — ${option.detail}` : option.name}
                   </option>
                 ))}
               </select>
-              {staff.error && <span className="tiny muted">تعذر تحميل قائمة الموظفين الآن؛ يمكنك حفظ النوع دون مسؤول افتراضي.</span>}
+              {staff.error && (
+                <span className="tiny muted">{adminRequestMessage(locale, 'settings.staffLoadHint')}</span>
+              )}
             </div>
 
             <div className="grid grid--cards">
               <label className="row" style={{ gap: 8 }}>
                 <input type="checkbox" checked={editor.active} onChange={(event) => update('active', event.target.checked)} disabled={busy} />
-                <span>نشط</span>
+                <span>{adminRequestMessage(locale, 'settings.active')}</span>
               </label>
               <label className="row" style={{ gap: 8 }}>
                 <input type="checkbox" checked={editor.allow_parent} onChange={(event) => update('allow_parent', event.target.checked)} disabled={busy} />
-                <span>متاح لولي الأمر</span>
+                <span>{adminRequestMessage(locale, 'settings.allowParent')}</span>
               </label>
               <label className="row" style={{ gap: 8 }}>
                 <input type="checkbox" checked={editor.allow_student} onChange={(event) => update('allow_student', event.target.checked)} disabled={busy} />
-                <span>متاح للتلميذ</span>
+                <span>{adminRequestMessage(locale, 'settings.allowStudent')}</span>
               </label>
               <label className="row" style={{ gap: 8 }}>
                 <input type="checkbox" checked={editor.requires_student} onChange={(event) => update('requires_student', event.target.checked)} disabled={busy} />
-                <span>يتطلب تحديد تلميذ</span>
+                <span>{adminRequestMessage(locale, 'settings.requiresStudent')}</span>
               </label>
               <label className="row" style={{ gap: 8 }}>
                 <input type="checkbox" checked={editor.confidential} onChange={(event) => update('confidential', event.target.checked)} disabled={busy} />
-                <span>طلب سري</span>
+                <span>{adminRequestMessage(locale, 'settings.confidential')}</span>
               </label>
             </div>
 
-            <p className="tiny muted">
-              تعطيل النوع يخفيه عن الطلبات الجديدة دون حذف الطلبات السابقة. الأنواع السرية تخضع لصلاحيات الشكايات في الإدارة.
-            </p>
+            <p className="tiny muted">{adminRequestMessage(locale, 'settings.policyHint')}</p>
             {error && <div className="form-error" role="alert">{error}</div>}
             <button type="submit" className="btn btn--primary" disabled={busy || !editor.name.trim()}>
-              {busy ? 'جارٍ الحفظ…' : 'حفظ النوع'}
+              {adminRequestMessage(locale, busy ? 'settings.saving' : 'settings.save')}
             </button>
           </form>
         </Card>
@@ -220,7 +257,7 @@ export function AdminRequestTypesSettingsPage() {
       <ResourceView
         state={types}
         isEmpty={(data) => data.length === 0}
-        empty={<Card>لا توجد أنواع طلبات إدارية بعد.</Card>}
+        empty={<Card>{adminRequestMessage(locale, 'settings.empty')}</Card>}
       >
         {(data) => (
           <div className="grid grid--cards">
@@ -228,19 +265,41 @@ export function AdminRequestTypesSettingsPage() {
               <Card key={type.id}>
                 <div className="between" style={{ gap: 12, alignItems: 'flex-start' }}>
                   <div className="col" style={{ gap: 8 }}>
-                    <strong>{type.name}</strong>
+                    <strong dir="auto">{type.name}</strong>
                     <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-                      <Badge tone={type.active === false ? 'slate' : 'blue'}>{type.active === false ? 'معطل' : 'نشط'}</Badge>
-                      {type.confidential && <Badge tone="blue">سري</Badge>}
-                      {type.allow_parent !== false && <span className="tiny muted">ولي الأمر</span>}
-                      {type.allow_student && <span className="tiny muted">التلميذ</span>}
-                      {type.requires_student && <span className="tiny muted">يتطلب تلميذًا</span>}
+                      <Badge tone={type.active === false ? 'slate' : 'blue'}>
+                        {adminRequestMessage(locale, type.active === false ? 'settings.disabled' : 'settings.active')}
+                      </Badge>
+                      <Badge tone={type.service_kind === 'appointment' ? 'blue' : 'slate'}>
+                        {adminRequestControlsMessage(
+                          locale,
+                          type.service_kind === 'appointment'
+                            ? 'settings.serviceKindBadgeAppointment'
+                            : 'settings.serviceKindBadgeGeneral',
+                        )}
+                      </Badge>
+                      {type.confidential && <Badge tone="blue">{adminRequestMessage(locale, 'settings.confidentialBadge')}</Badge>}
+                      {type.allow_parent !== false && <span className="tiny muted">{adminRequestMessage(locale, 'settings.parentBadge')}</span>}
+                      {type.allow_student && <span className="tiny muted">{adminRequestMessage(locale, 'settings.studentBadge')}</span>}
+                      {type.requires_student && <span className="tiny muted">{adminRequestMessage(locale, 'settings.requiresStudentBadge')}</span>}
                     </div>
-                    <span className="tiny muted">الأولوية: {priorityLabel(type.default_priority)}</span>
-                    <span className="tiny muted">المسؤول الافتراضي: {type.default_assignee?.name ?? 'غير محدد'}</span>
+                    <span className="tiny muted">
+                      {adminRequestMessage(locale, 'settings.priority', {
+                        value: adminRequestPriorityLabel(type.default_priority, locale),
+                      })}
+                    </span>
+                    <span className="tiny muted" dir="auto">
+                      {adminRequestMessage(locale, 'settings.defaultAssigneeValue', {
+                        name: type.default_assignee?.name ?? adminRequestMessage(locale, 'common.notSet'),
+                      })}
+                    </span>
                   </div>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => { setError(null); setEditor(editorFromType(type)); }}>
-                    تعديل
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => { setError(null); setEditor(editorFromType(type)); }}
+                  >
+                    {adminRequestMessage(locale, 'settings.edit')}
                   </button>
                 </div>
               </Card>

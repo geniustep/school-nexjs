@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   adminRequestFileClientItemId,
+  adminRequestTypeSettingsPayload,
   adminRequestUploadSessionPayload,
   approveReplyPayload,
   createRequestPayload,
@@ -23,6 +24,62 @@ describe('admin request client payloads', () => {
       subject: 'طلب إداري',
       description: 'تفاصيل الطلب',
       upload_session_id: 'd110dcb3-a353-40d5-a896-c3136b02d1d1',
+    });
+  });
+
+  it('sends appointment details without teacher or assignment identity', () => {
+    const payload = createRequestPayload({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد لمناقشة الرياضيات',
+      description: 'أرغب في أخذ موعد لمناقشة تقدم التلميذ.',
+      appointment: {
+        target_kind: 'subject_teacher',
+        preferred_date: '2026-08-27',
+        preferred_period: 'morning',
+        requested_subject_id: 44,
+      },
+    });
+
+    expect(payload).toEqual({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد لمناقشة الرياضيات',
+      description: 'أرغب في أخذ موعد لمناقشة تقدم التلميذ.',
+      appointment: {
+        target_kind: 'subject_teacher',
+        preferred_date: '2026-08-27',
+        preferred_period: 'morning',
+        requested_subject_id: 44,
+      },
+    });
+    expect(payload).not.toHaveProperty('teacher_id');
+    expect(payload).not.toHaveProperty('assigned_user_id');
+    expect(payload.appointment).not.toHaveProperty('teacher_id');
+    expect(payload.appointment).not.toHaveProperty('assigned_user_id');
+  });
+
+  it('keeps administration appointments free of subject and teacher identity', () => {
+    expect(createRequestPayload({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد مع الإدارة',
+      description: 'أرغب في أخذ موعد مع الإدارة.',
+      appointment: {
+        target_kind: 'administration',
+        preferred_date: '2026-08-28',
+        preferred_period: 'any',
+      },
+    })).toEqual({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد مع الإدارة',
+      description: 'أرغب في أخذ موعد مع الإدارة.',
+      appointment: {
+        target_kind: 'administration',
+        preferred_date: '2026-08-28',
+        preferred_period: 'any',
+      },
     });
   });
 
@@ -54,6 +111,18 @@ describe('admin request client payloads', () => {
     expect(requestReplyChangesPayload({ reply_id: 13, reason: '  يرجى التوضيح  ' })).toEqual({
       reply_id: 13,
       reason: 'يرجى التوضيح',
+    });
+  });
+
+  it('includes service_kind when configuring an appointment request type', () => {
+    expect(adminRequestTypeSettingsPayload({
+      name: '  موعد مع الإدارة  ',
+      requires_student: true,
+      service_kind: 'appointment',
+    })).toEqual({
+      name: 'موعد مع الإدارة',
+      requires_student: true,
+      service_kind: 'appointment',
     });
   });
 
