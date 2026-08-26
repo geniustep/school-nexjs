@@ -195,7 +195,6 @@ export function StudentImportPage() {
               confirmed={flow.confirmed}
               canConfirm={flow.canConfirm}
               onConfirmedChange={flow.setConfirmed}
-              onContinue={() => flow.setPhase('confirming')}
             />
           ) : null}
 
