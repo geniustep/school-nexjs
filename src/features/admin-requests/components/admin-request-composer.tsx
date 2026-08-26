@@ -11,6 +11,7 @@ import {
   createAdminRequestUploadSession,
   uploadAdminRequestFile,
 } from '../api';
+import { adminRequestControlsMessage } from '../controls-i18n';
 import { adminRequestMessage } from '../i18n';
 import { adminRequestErrorLabel, adminRequestTypeLabel } from '../presenters';
 import type {
@@ -37,6 +38,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
   const [requestedSubjectId, setRequestedSubjectId] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
   const [preferredPeriod, setPreferredPeriod] = useState<AdminRequestAppointmentPeriod>('any');
+  const [preferredTime, setPreferredTime] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +124,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
               target_kind: targetKind,
               preferred_date: preferredDate,
               preferred_period: preferredPeriod,
+              ...(preferredTime ? { preferred_time: preferredTime } : {}),
               ...(targetKind === 'subject_teacher'
                 ? { requested_subject_id: Number(requestedSubjectId) }
                 : {}),
@@ -131,7 +134,11 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
     });
     setBusy(false);
     if (!created.success) {
-      setError(adminRequestErrorLabel(created.error, locale));
+      setError(
+        created.error.code === 'admin_request_appointment_time_invalid'
+          ? adminRequestControlsMessage(locale, 'error.appointmentTimeInvalid')
+          : adminRequestErrorLabel(created.error, locale),
+      );
       return;
     }
     router.replace(`${base}/${created.data.id}`);
@@ -159,6 +166,7 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                     setRequestedSubjectId('');
                     setPreferredDate('');
                     setPreferredPeriod('any');
+                    setPreferredTime('');
                   }}
                   disabled={busy}
                   required
@@ -276,6 +284,19 @@ export function AdminRequestComposer({ role }: { role: AdminRequestFamilyRole })
                         <option value="afternoon">{adminRequestMessage(locale, 'composer.periodAfternoon')}</option>
                         <option value="any">{adminRequestMessage(locale, 'composer.periodAny')}</option>
                       </select>
+                    </div>
+
+                    <div className="field">
+                      <label htmlFor="appointment-time">{adminRequestControlsMessage(locale, 'appointment.preferredTimeOptional')}</label>
+                      <input
+                        id="appointment-time"
+                        className="input"
+                        type="time"
+                        value={preferredTime}
+                        onChange={(event) => setPreferredTime(event.target.value)}
+                        disabled={busy}
+                      />
+                      <span className="tiny muted">{adminRequestControlsMessage(locale, 'appointment.preferredTimeHint')}</span>
                     </div>
                   </div>
                 </Card>

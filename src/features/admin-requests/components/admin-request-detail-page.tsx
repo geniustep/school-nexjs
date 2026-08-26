@@ -18,6 +18,7 @@ import {
   uploadAdminRequestFile,
   type AdminRequestReviewOutcome,
 } from '../api';
+import { adminRequestControlsMessage } from '../controls-i18n';
 import { adminRequestMessage } from '../i18n';
 import {
   adminRequestActionLabel,
@@ -92,6 +93,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
   const [files, setFiles] = useState<File[]>([]);
   const [note, setNote] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
+  const [selectedAction, setSelectedAction] = useState('');
   const [reviewMode, setReviewMode] = useState<ReviewMode>(null);
   const [reviewReason, setReviewReason] = useState('');
   const [reviewOutcome, setReviewOutcome] = useState<AdminRequestReviewOutcome>('waiting_requester');
@@ -184,6 +186,8 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
       return;
     }
     setNote('');
+    setAssigneeId('');
+    setSelectedAction('');
     state.reload();
   }
 
@@ -252,6 +256,7 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
             action !== 'start_review' &&
             action !== 'start_processing',
         );
+        const currentAction = visibleActions.includes(selectedAction) ? selectedAction : '';
         const createdAt = request.created_at ?? request.create_date;
         const waitingRequester = request.state === 'waiting_requester' || request.state === 'wait_requester';
         const isOperator = role === 'admin';
@@ -510,61 +515,91 @@ export function AdminRequestDetailPage({ role, requestId }: { role: AdminRequest
               <section className="section">
                 <SectionHead title={adminRequestMessage(locale, 'detail.actionsAvailable')} />
                 <Card>
-                  {isOperator && (
-                    <div className="col" style={{ gap: 12 }}>
+                  <div className="grid grid--form">
+                    <label className="field">
+                      <span>{adminRequestControlsMessage(locale, 'actions.choose')}</span>
+                      <select
+                        className="input"
+                        value={currentAction}
+                        onChange={(event) => {
+                          setSelectedAction(event.target.value);
+                          setNote('');
+                          setAssigneeId('');
+                        }}
+                        disabled={busy}
+                      >
+                        <option value="">{adminRequestControlsMessage(locale, 'actions.choose')}</option>
+                        {visibleActions.map((action) => (
+                          <option key={action} value={action}>{adminRequestActionLabel(action, locale)}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    {isOperator && currentAction === 'refer' && (
                       <div className="field">
-                        <label htmlFor="request-note">{adminRequestMessage(locale, 'detail.actionNote')}</label>
-                        <textarea
-                          id="request-note"
+                        <label htmlFor="request-assignee">{adminRequestMessage(locale, 'detail.assignee')}</label>
+                        <select
+                          id="request-assignee"
                           className="input"
-                          dir="auto"
-                          value={note}
-                          onChange={(event) => setNote(event.target.value)}
-                          maxLength={4000}
-                          rows={3}
-                          disabled={busy}
-                          placeholder={adminRequestMessage(locale, 'detail.actionNotePlaceholder')}
-                        />
-                        <span className="tiny muted">{adminRequestMessage(locale, 'detail.resolutionRequiredHint')}</span>
-                      </div>
-                      {request.allowed_actions?.includes('refer') && (
-                        <div className="field">
-                          <label htmlFor="request-assignee">{adminRequestMessage(locale, 'detail.assignee')}</label>
-                          <select
-                            id="request-assignee"
-                            className="input"
-                            value={assigneeId}
-                            onChange={(event) => setAssigneeId(event.target.value)}
-                            disabled={busy || staffOptions.loading || Boolean(staffOptions.error)}
-                          >
-                            <option value="">
-                              {staffOptions.loading
-                                ? adminRequestMessage(locale, 'detail.loadingStaff')
-                                : staffOptions.error
-                                  ? adminRequestMessage(locale, 'detail.staffLoadFailed')
-                                  : staffRows.length
-                                    ? adminRequestMessage(locale, 'detail.selectAssignee')
-                                    : adminRequestMessage(locale, 'detail.noStaff')}
+                          value={assigneeId}
+                          onChange={(event) => setAssigneeId(event.target.value)}
+                          disabled={busy || staffOptions.loading || Boolean(staffOptions.error)}
+                        >
+                          <option value="">
+                            {staffOptions.loading
+                              ? adminRequestMessage(locale, 'detail.loadingStaff')
+                              : staffOptions.error
+                                ? adminRequestMessage(locale, 'detail.staffLoadFailed')
+                                : staffRows.length
+                                  ? adminRequestMessage(locale, 'detail.selectAssignee')
+                                  : adminRequestMessage(locale, 'detail.noStaff')}
+                          </option>
+                          {staffRows.map((staff) => (
+                            <option key={staff.id} value={staff.id}>
+                              {staff.name}{staff.detail ? ` — ${staff.detail}` : ''}
                             </option>
-                            {staffRows.map((staff) => (
-                              <option key={staff.id} value={staff.id}>
-                                {staff.name}{staff.detail ? ` — ${staff.detail}` : ''}
-                              </option>
-                            ))}
-                          </select>
-                          {staffOptions.error && (
-                            <span className="tiny form-error">{adminRequestMessage(locale, 'detail.staffLoadError')}</span>
-                          )}
-                        </div>
+                          ))}
+                        </select>
+                        {staffOptions.error && (
+                          <span className="tiny form-error">{adminRequestMessage(locale, 'detail.staffLoadError')}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {isOperator && currentAction && currentAction !== 'refer' && (
+                    <div className="field" style={{ marginTop: 12 }}>
+                      <label htmlFor="request-note">
+                        {currentAction === 'resolve'
+                          ? adminRequestMessage(locale, 'detail.actionNote')
+                          : adminRequestControlsMessage(locale, 'actions.noteOptional')}
+                      </label>
+                      <textarea
+                        id="request-note"
+                        className="input"
+                        dir="auto"
+                        value={note}
+                        onChange={(event) => setNote(event.target.value)}
+                        maxLength={4000}
+                        rows={3}
+                        disabled={busy}
+                        placeholder={adminRequestMessage(locale, 'detail.actionNotePlaceholder')}
+                      />
+                      {currentAction === 'resolve' && (
+                        <span className="tiny muted">{adminRequestMessage(locale, 'detail.resolutionRequiredHint')}</span>
                       )}
                     </div>
                   )}
-                  <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: isOperator ? 12 : 0 }}>
-                    {visibleActions.map((action) => (
-                      <button key={action} type="button" className="btn btn--ghost" disabled={busy} onClick={() => act(action)}>
-                        {adminRequestActionLabel(action, locale)}
-                      </button>
-                    ))}
+
+                  <div className="row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
+                    <button
+                      type="button"
+                      className="btn btn--primary"
+                      disabled={busy || !currentAction}
+                      onClick={() => currentAction && act(currentAction)}
+                    >
+                      {adminRequestControlsMessage(locale, 'actions.execute')}
+                    </button>
                   </div>
                 </Card>
               </section>
