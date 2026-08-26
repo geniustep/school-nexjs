@@ -8,9 +8,15 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Badge, Card } from '@/components/ui/primitives';
+import { useFormat } from '@/features/i18n/use-format';
 import { useLocale } from '@/features/i18n/locale-context';
 import type { Locale } from '@/lib/i18n/config';
 import type { AcademicCalendarDetail } from '@/types/academic-calendar';
+import { mergeCalendarEventsForDisplay } from '@/features/admin/academic-calendars/utils/academic-calendar-present';
+import {
+  academicCalendarDuplicateEventGroups,
+  type AcademicCalendarDuplicateEventGroup,
+} from '@/features/admin/academic-calendars/utils/academic-calendar-event-review';
 import {
   groupAcademicCalendarWarnings,
   type AcademicCalendarWarningLevel,
@@ -32,6 +38,9 @@ type WarningReviewCopy = {
   studyDays: string;
   backendDecision: string;
   repeated: string;
+  duplicateEventsTitle: string;
+  duplicateEventsDescription: string;
+  duplicateEventRecords: string;
 };
 
 const COPY: Record<Locale, WarningReviewCopy> = {
@@ -49,6 +58,9 @@ const COPY: Record<Locale, WarningReviewCopy> = {
     studyDays: 'عدد أيام الدراسة غير موثوق حاليًا؛ لا تعتمد هذا الرقم وحده لاتخاذ قرار.',
     backendDecision: 'تظل إمكانية النشر مرتبطة بحالة التقويم والصلاحيات المتاحة.',
     repeated: 'مرات',
+    duplicateEventsTitle: 'أحداث متطابقة تحتاج مراجعة',
+    duplicateEventsDescription: 'وجدنا أحداثًا لها الاسم والفترة والنطاق وجزء اليوم نفسه. لم تُخفَ أو تُدمج تلقائيًا حتى تراجع السجلات الأصلية.',
+    duplicateEventRecords: '{count} سجلان/سجلات متطابقة',
   },
   en: {
     title: 'Review notices',
@@ -64,6 +76,9 @@ const COPY: Record<Locale, WarningReviewCopy> = {
     studyDays: 'The study-day count is currently unreliable; do not use this number alone for a decision.',
     backendDecision: 'Publish availability still depends on the calendar state and the actions available to you.',
     repeated: 'times',
+    duplicateEventsTitle: 'Matching events need review',
+    duplicateEventsDescription: 'Some events have the same name, period, scope and day part. They were not hidden or merged automatically so you can review the original records.',
+    duplicateEventRecords: '{count} matching records',
   },
   fr: {
     title: 'Révision des alertes',
@@ -79,6 +94,9 @@ const COPY: Record<Locale, WarningReviewCopy> = {
     studyDays: 'Le nombre de jours d’étude n’est pas fiable actuellement ; ne l’utilisez pas seul pour décider.',
     backendDecision: 'La possibilité de publier dépend toujours de l’état du calendrier et des actions qui vous sont disponibles.',
     repeated: 'fois',
+    duplicateEventsTitle: 'Événements identiques à vérifier',
+    duplicateEventsDescription: 'Certains événements ont le même nom, la même période, le même périmètre et la même partie de journée. Ils ne sont ni masqués ni fusionnés automatiquement afin de permettre la vérification des enregistrements.',
+    duplicateEventRecords: '{count} enregistrements identiques',
   },
   es: {
     title: 'Revisión de avisos',
@@ -94,6 +112,9 @@ const COPY: Record<Locale, WarningReviewCopy> = {
     studyDays: 'El número de días lectivos no es fiable actualmente; no use este valor por sí solo para decidir.',
     backendDecision: 'La posibilidad de publicar sigue dependiendo del estado del calendario y de las acciones disponibles para usted.',
     repeated: 'veces',
+    duplicateEventsTitle: 'Eventos coincidentes para revisar',
+    duplicateEventsDescription: 'Algunos eventos tienen el mismo nombre, período, ámbito y parte del día. No se ocultan ni se fusionan automáticamente para que pueda revisar los registros originales.',
+    duplicateEventRecords: '{count} registros coincidentes',
   },
 };
 
@@ -175,23 +196,72 @@ function WarningGroup({
   );
 }
 
+function DuplicateEventGroup({
+  groups,
+  copy,
+  formatDate,
+}: {
+  groups: AcademicCalendarDuplicateEventGroup[];
+  copy: WarningReviewCopy;
+  formatDate: (date: string) => string;
+}) {
+  if (groups.length === 0) return null;
+
+  return (
+    <details className="academic-calendar-warning-review__group">
+      <summary className="academic-calendar-warning-review__group-summary">
+        <span>{copy.warning}</span>
+        <Badge tone="amber">{groups.length}</Badge>
+      </summary>
+      <div className="academic-calendar-warning-review__list">
+        <div className="academic-calendar-warning-review__item">
+          <div className="academic-calendar-warning-review__item-head">
+            <Badge tone="amber">{copy.duplicateEventsTitle}</Badge>
+          </div>
+          <p>{copy.duplicateEventsDescription}</p>
+        </div>
+        {groups.map((group) => {
+          const event = group.events[0];
+          const period = event.date_from === event.date_to
+            ? formatDate(event.date_from)
+            : `${formatDate(event.date_from)} – ${formatDate(event.date_to)}`;
+          return (
+            <div className="academic-calendar-warning-review__item" key={group.key}>
+              <div className="academic-calendar-warning-review__item-head">
+                <Badge tone="amber">
+                  {copy.duplicateEventRecords.replace('{count}', String(group.events.length))}
+                </Badge>
+              </div>
+              <p dir="auto"><strong>{event.name}</strong></p>
+              <p className="academic-calendar-warning-review__original">{period}</p>
+            </div>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 function WarningReviewCard({
   copy,
   blockers,
   reviewWarnings,
   information,
+  duplicateGroups,
   studyDaysUnreliable,
+  formatDate,
 }: {
   copy: WarningReviewCopy;
   blockers: AcademicCalendarWarningReviewItem[];
   reviewWarnings: AcademicCalendarWarningReviewItem[];
   information: AcademicCalendarWarningReviewItem[];
+  duplicateGroups: AcademicCalendarDuplicateEventGroup[];
   studyDaysUnreliable: boolean;
+  formatDate: (date: string) => string;
 }) {
   const blockerCount = blockers.reduce((sum, item) => sum + item.count, 0);
-  const warningCount = reviewWarnings.reduce((sum, item) => sum + item.count, 0);
-  const infoCount =
-    information.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0);
+  const warningCount = reviewWarnings.reduce((sum, item) => sum + item.count, 0) + duplicateGroups.length;
+  const infoCount = information.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0);
 
   return (
     <Card className="academic-calendar-warning-review">
@@ -201,19 +271,9 @@ function WarningReviewCard({
           <p className="muted">{copy.subtitle}</p>
         </div>
         <div className="academic-calendar-warning-review__counts" aria-label={copy.title}>
-          <Badge tone="red">
-            {copy.blocker}: {blockerCount}
-          </Badge>
-          {warningCount > 0 ? (
-            <Badge tone="amber">
-              {copy.warning}: {warningCount}
-            </Badge>
-          ) : null}
-          {infoCount > 0 ? (
-            <Badge tone="blue">
-              {copy.info}: {infoCount}
-            </Badge>
-          ) : null}
+          <Badge tone="red">{copy.blocker}: {blockerCount}</Badge>
+          {warningCount > 0 ? <Badge tone="amber">{copy.warning}: {warningCount}</Badge> : null}
+          {infoCount > 0 ? <Badge tone="blue">{copy.info}: {infoCount}</Badge> : null}
         </div>
       </div>
 
@@ -227,12 +287,8 @@ function WarningReviewCard({
       <div className="academic-calendar-warning-review__groups">
         <WarningGroup level="blocker" items={blockers} copy={copy} />
         <WarningGroup level="warning" items={reviewWarnings} copy={copy} />
-        <WarningGroup
-          level="info"
-          items={information}
-          copy={copy}
-          extraStudyDays={studyDaysUnreliable}
-        />
+        <DuplicateEventGroup groups={duplicateGroups} copy={copy} formatDate={formatDate} />
+        <WarningGroup level="info" items={information} copy={copy} extraStudyDays={studyDaysUnreliable} />
       </div>
     </Card>
   );
@@ -240,15 +296,20 @@ function WarningReviewCard({
 
 export function AcademicCalendarWarningReview({ calendar }: { calendar: AcademicCalendarDetail }) {
   const { locale } = useLocale();
+  const { formatDate } = useFormat();
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const copy = COPY[locale];
   const items = groupAcademicCalendarWarnings(calendar.warnings ?? calendar.summary?.warnings ?? []);
   const studyDaysUnreliable = calendar.summary?.study_day_count_reliable === false;
+  const mergedEvents = mergeCalendarEventsForDisplay(calendar.events, calendar.provisional_events);
+  const duplicateGroups = academicCalendarDuplicateEventGroups(mergedEvents);
 
   const blockers = items.filter((item) => item.level === 'blocker');
   const reviewWarnings = items.filter((item) => item.level === 'warning');
   const information = items.filter((item) => item.level === 'info');
-  const total = items.reduce((sum, item) => sum + item.count, 0) + (studyDaysUnreliable ? 1 : 0);
+  const total = items.reduce((sum, item) => sum + item.count, 0)
+    + duplicateGroups.length
+    + (studyDaysUnreliable ? 1 : 0);
 
   useEffect(() => {
     if (total === 0) {
@@ -279,7 +340,9 @@ export function AcademicCalendarWarningReview({ calendar }: { calendar: Academic
       blockers={blockers}
       reviewWarnings={reviewWarnings}
       information={information}
+      duplicateGroups={duplicateGroups}
       studyDaysUnreliable={studyDaysUnreliable}
+      formatDate={formatDate}
     />,
     portalTarget,
   );

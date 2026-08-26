@@ -1,8 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import '@/features/admin/academic-calendars/academic-calendar-detail-ux-enhancer.css';
+
+const GENERIC_EVENT_LABEL: Record<'ar' | 'en' | 'fr' | 'es', string> = {
+  ar: 'حدث تقويمي',
+  en: 'Calendar event',
+  fr: 'Événement du calendrier',
+  es: 'Evento del calendario',
+};
 
 function text(value: string | null | undefined): string {
   return value?.trim() ?? '';
@@ -31,6 +38,19 @@ function simplifySingleDayPeriods(card: HTMLElement, periodLabel: string) {
     if (parts.length === 2 && parts[0] === parts[1]) {
       cell.textContent = parts[0];
       cell.dataset.raqeemSingleDay = '1';
+    }
+  }
+}
+
+function replaceRawEventTypeLabels(card: HTMLElement, genericLabel: string) {
+  const labels = Array.from(
+    card.querySelectorAll<HTMLElement>('.academic-calendar-detail__event-name .muted.tiny'),
+  );
+  for (const label of labels) {
+    const value = text(label.textContent);
+    if (/^[a-z][a-z0-9_]*$/i.test(value)) {
+      label.textContent = genericLabel;
+      label.dataset.raqeemTechnicalLabelReplaced = '1';
     }
   }
 }
@@ -93,6 +113,7 @@ function makeAdvancedCardCollapsible(
 
 export function AcademicCalendarDetailUxEnhancer() {
   const t = useT();
+  const { locale } = useLocale();
 
   useEffect(() => {
     const root = document.querySelector<HTMLElement>('.academic-calendar-detail');
@@ -102,21 +123,16 @@ export function AcademicCalendarDetailUxEnhancer() {
       const eventsCard = findCardByHeading(root, t('admin.academicCalendars.events.title'));
       if (eventsCard) {
         simplifySingleDayPeriods(eventsCard, t('admin.academicCalendars.columns.period'));
+        replaceRawEventTypeLabels(eventsCard, GENERIC_EVENT_LABEL[locale]);
         hideEmptyActionsColumn(eventsCard, t('common.actions'));
       }
 
-      const effectiveCard = findCardByHeading(
-        root,
-        t('admin.academicCalendars.effectiveEvents.title'),
-      );
+      const effectiveCard = findCardByHeading(root, t('admin.academicCalendars.effectiveEvents.title'));
       if (effectiveCard) {
         makeAdvancedCardCollapsible(effectiveCard, t('common.view'), t('common.close'));
       }
 
-      const closureCard = findCardByHeading(
-        root,
-        t('admin.academicCalendars.closureContext.title'),
-      );
+      const closureCard = findCardByHeading(root, t('admin.academicCalendars.closureContext.title'));
       if (closureCard) {
         makeAdvancedCardCollapsible(closureCard, t('common.view'), t('common.close'));
       }
@@ -127,7 +143,7 @@ export function AcademicCalendarDetailUxEnhancer() {
     observer.observe(root, { childList: true, subtree: true });
 
     return () => observer.disconnect();
-  }, [t]);
+  }, [locale, t]);
 
   return null;
 }
