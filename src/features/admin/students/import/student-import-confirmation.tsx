@@ -11,7 +11,6 @@ export function StudentImportConfirmationPanel({
   confirmed,
   canConfirm,
   onConfirmedChange,
-  onContinue,
 }: {
   fileName: string | null;
   schoolName: string;
@@ -20,7 +19,6 @@ export function StudentImportConfirmationPanel({
   confirmed: boolean;
   canConfirm: boolean;
   onConfirmedChange: (value: boolean) => void;
-  onContinue: () => void;
 }) {
   const t = useT();
 
@@ -46,14 +44,6 @@ export function StudentImportConfirmationPanel({
           />
           <span className="tiny">{t('admin.studentImport.confirmation.checkbox')}</span>
         </label>
-        <button
-          type="button"
-          className="btn btn--primary btn--sm"
-          disabled={!canConfirm || !confirmed}
-          onClick={onContinue}
-        >
-          {t('admin.studentImport.confirmation.continue')}
-        </button>
       </div>
     </Card>
   );
