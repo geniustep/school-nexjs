@@ -1,28 +1,48 @@
-import type { StudentCreatePayload } from '@/types/student-360';
-import { buildFullNamePreview, todayIsoDate } from './student-profile';
+import type {
+  StudentQuickRegistrationGuardianInput,
+  StudentQuickRegistrationLanguage,
+  StudentQuickRegistrationPayload,
+} from '@/types/student-quick-registration';
+import type { RelationshipType } from '@/types/student-360';
+import { todayIsoDate } from './student-profile';
+
+export type StudentQuickCreateGuardianDraft = {
+  name: string;
+  phone: string;
+  relationshipType: RelationshipType;
+};
 
 export type StudentQuickCreateInput = {
+  language: StudentQuickRegistrationLanguage;
   firstName: string;
   lastName: string;
-  firstNameLatin: string;
-  lastNameLatin: string;
   cycleId: string;
   levelId: string;
   schoolId: number | null;
   academicYearId: number | null;
+  guardianIsFinancialResponsible: boolean;
+  createGuardian: boolean;
+  guardians: StudentQuickCreateGuardianDraft[];
 };
 
 export type StudentQuickCreateValidation =
-  | { valid: true; firstName: string; lastName: string; firstNameLatin: string; lastNameLatin: string; levelId: number; schoolId: number; academicYearId: number }
-  | { valid: false; error: 'name_ar' | 'name_latin' | 'cycle' | 'level' | 'context' };
+  | {
+      valid: true;
+      language: StudentQuickRegistrationLanguage;
+      firstName: string;
+      lastName: string;
+      levelId: number;
+      schoolId: number;
+      academicYearId: number;
+      guardianIsFinancialResponsible: boolean;
+      guardians: StudentQuickRegistrationGuardianInput[];
+    }
+  | { valid: false; error: 'name' | 'cycle' | 'level' | 'context' | 'guardian' };
 
 export function validateStudentQuickCreateInput(input: StudentQuickCreateInput): StudentQuickCreateValidation {
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
-  const firstNameLatin = input.firstNameLatin.trim();
-  const lastNameLatin = input.lastNameLatin.trim();
-  if (!firstName || !lastName) return { valid: false, error: 'name_ar' };
-  if (!firstNameLatin || !lastNameLatin) return { valid: false, error: 'name_latin' };
+  if (!firstName || !lastName) return { valid: false, error: 'name' };
   if (!input.cycleId.trim()) return { valid: false, error: 'cycle' };
 
   const levelId = Number(input.levelId);
@@ -31,19 +51,46 @@ export function validateStudentQuickCreateInput(input: StudentQuickCreateInput):
     return { valid: false, error: 'context' };
   }
 
-  return { valid: true, firstName, lastName, firstNameLatin, lastNameLatin, levelId, schoolId: input.schoolId, academicYearId: input.academicYearId };
+  const shouldCreateGuardians = input.guardianIsFinancialResponsible && input.createGuardian;
+  const guardians: StudentQuickRegistrationGuardianInput[] = [];
+  if (shouldCreateGuardians) {
+    if (input.guardians.length === 0) return { valid: false, error: 'guardian' };
+    for (const guardian of input.guardians) {
+      const name = guardian.name.trim();
+      const phone = guardian.phone.trim();
+      const relationshipType = String(guardian.relationshipType ?? '').trim();
+      if (!name || !phone || !relationshipType) return { valid: false, error: 'guardian' };
+      guardians.push({ name, phone, relationship_type: guardian.relationshipType });
+    }
+  }
+
+  return {
+    valid: true,
+    language: input.language,
+    firstName,
+    lastName,
+    levelId,
+    schoolId: input.schoolId,
+    academicYearId: input.academicYearId,
+    guardianIsFinancialResponsible: input.guardianIsFinancialResponsible,
+    guardians,
+  };
 }
 
-/** Smallest supported POST /admin/students payload with a level but no class assignment. */
+/**
+ * Quick Registration V1 request. Odoo owns class selection, billing, finance,
+ * service rules and durable post-registration processing.
+ */
 export function buildStudentQuickCreatePayload(
   input: Extract<StudentQuickCreateValidation, { valid: true }>,
   enrollmentDate = todayIsoDate(),
-): StudentCreatePayload {
+): StudentQuickRegistrationPayload {
+  const selectedNamePair = input.language === 'ar'
+    ? { first_name_ar: input.firstName, last_name_ar: input.lastName }
+    : { first_name_fr: input.firstName, last_name_fr: input.lastName };
+
   return {
-    first_name: input.firstName,
-    last_name: input.lastName,
-    name_ar: buildFullNamePreview(input.firstName, input.lastName),
-    name_latin: buildFullNamePreview(input.firstNameLatin, input.lastNameLatin),
+    ...selectedNamePair,
     status: 'active',
     active: true,
     admission_date: enrollmentDate,
@@ -53,6 +100,12 @@ export function buildStudentQuickCreatePayload(
       academic_year_id: input.academicYearId,
       level_id: input.levelId,
       enrollment_date: enrollmentDate,
+    },
+    quick_registration: {
+      enabled: true,
+      guardian_is_financial_responsible: input.guardianIsFinancialResponsible,
+      create_guardians: input.guardianIsFinancialResponsible ? input.guardians : [],
+      auto_finance_setup: true,
     },
   };
 }
