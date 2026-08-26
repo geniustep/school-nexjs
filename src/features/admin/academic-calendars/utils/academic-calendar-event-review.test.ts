@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AcademicCalendarEvent } from '@/types/academic-calendar';
 import {
   academicCalendarDuplicateEventGroups,
+  academicCalendarEventAllowsMutation,
   academicCalendarEventMatchesReadingFilter,
   academicCalendarEventReadingFilter,
 } from './academic-calendar-event-review';
@@ -20,6 +21,14 @@ function event(overrides: Partial<AcademicCalendarEvent> = {}): AcademicCalendar
     ...overrides,
   };
 }
+
+describe('academic calendar regulatory event mutation policy', () => {
+  it('blocks UI mutation controls only when the backend marks the event as regulatory locked', () => {
+    expect(academicCalendarEventAllowsMutation(event({ is_regulatory_locked: true }))).toBe(false);
+    expect(academicCalendarEventAllowsMutation(event({ is_regulatory_locked: false }))).toBe(true);
+    expect(academicCalendarEventAllowsMutation(event())).toBe(true);
+  });
+});
 
 describe('academic calendar event reading filters', () => {
   it('keeps backend holiday and closure types in the holiday/closure filter', () => {

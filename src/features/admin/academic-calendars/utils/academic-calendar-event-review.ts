@@ -31,6 +31,10 @@ function scopeKey(event: AcademicCalendarEvent): string {
   ].join(':');
 }
 
+export function academicCalendarEventAllowsMutation(event: AcademicCalendarEvent): boolean {
+  return event.is_regulatory_locked !== true;
+}
+
 export function academicCalendarEventReadingFilter(
   event: AcademicCalendarEvent,
 ): Exclude<AcademicCalendarReadingFilter, 'all'> {

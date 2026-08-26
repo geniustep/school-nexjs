@@ -102,6 +102,9 @@ export interface AcademicCalendarEvent {
   source_type?: string | null;
   source_reference?: string | null;
   is_local_override?: boolean | null;
+  is_regulatory_locked?: boolean;
+  regulatory_item_public_id?: string | null;
+  regulatory_source_public_id?: string | null;
   notes?: string | null;
   sequence?: number | null;
   active?: boolean | null;

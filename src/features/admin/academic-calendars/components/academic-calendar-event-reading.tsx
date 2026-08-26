@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Badge } from '@/components/ui/primitives';
 import {
+  academicCalendarDayPartLabelKey,
   academicCalendarEventIsProvisional,
   academicCalendarEventTypeLabelKey,
   academicCalendarScopeLabelKey,
@@ -146,6 +147,13 @@ function scopeLabel(event: AcademicCalendarEvent, t: (key: string) => string): s
   return translated !== key ? translated : null;
 }
 
+function dayPartLabel(event: AcademicCalendarEvent, t: (key: string) => string): string | null {
+  if (!event.day_part || event.day_part === 'full_day') return null;
+  const key = academicCalendarDayPartLabelKey(event.day_part);
+  const translated = t(key);
+  return translated !== key ? translated : null;
+}
+
 export function AcademicCalendarEventReading({ calendar }: { calendar: AcademicCalendarDetail }) {
   const t = useT();
   const { locale } = useLocale();
@@ -249,6 +257,7 @@ export function AcademicCalendarEventReading({ calendar }: { calendar: AcademicC
                   const duration = inclusiveDurationDays(event);
                   const singleDay = event.date_from === event.date_to;
                   const scope = scopeLabel(event, t);
+                  const dayPart = dayPartLabel(event, t);
                   const typeKey = academicCalendarEventTypeLabelKey(event.event_type);
                   const translatedType = t(typeKey);
                   const detailType = translatedType !== typeKey ? translatedType : category.label;
@@ -284,6 +293,7 @@ export function AcademicCalendarEventReading({ calendar }: { calendar: AcademicC
                               : copy.durationDays.replace('{count}', String(duration))}
                           </span>
                         ) : null}
+                        {dayPart ? <span className="muted tiny">{dayPart}</span> : null}
                         {scope ? <span className="muted tiny" dir="auto">{scope}</span> : null}
                       </div>
                     </article>
