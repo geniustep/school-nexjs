@@ -4,13 +4,15 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const push = vi.fn();
-const post = vi.fn();
-const successToast = vi.fn();
-const errorToast = vi.fn();
+const mocks = vi.hoisted(() => ({
+  push: vi.fn(),
+  post: vi.fn(),
+  successToast: vi.fn(),
+  errorToast: vi.fn(),
+}));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push: mocks.push }),
 }));
 
 vi.mock('@/features/i18n/locale-context', () => ({
@@ -19,7 +21,7 @@ vi.mock('@/features/i18n/locale-context', () => ({
 }));
 
 vi.mock('@/components/ui/toast', () => ({
-  useToast: () => ({ success: successToast, error: errorToast, show: vi.fn() }),
+  useToast: () => ({ success: mocks.successToast, error: mocks.errorToast, show: vi.fn() }),
 }));
 
 vi.mock('@/features/auth/admin-session-context', () => ({
@@ -27,7 +29,7 @@ vi.mock('@/features/auth/admin-session-context', () => ({
 }));
 
 vi.mock('@/lib/api/client', () => ({
-  api: { post },
+  api: { post: mocks.post },
 }));
 
 vi.mock('../hooks/use-student-options', () => ({
@@ -75,23 +77,23 @@ function fillAcademicCore(firstName = 'سلمى', lastName = 'العلوي') {
 
 describe('StudentQuickCreateDialog', () => {
   beforeEach(() => {
-    push.mockReset();
-    post.mockReset();
-    successToast.mockReset();
-    errorToast.mockReset();
+    mocks.push.mockReset();
+    mocks.post.mockReset();
+    mocks.successToast.mockReset();
+    mocks.errorToast.mockReset();
   });
 
   afterEach(() => cleanup());
 
   it('submits the Arabic quick-registration contract and treats pending post-setup as success', async () => {
-    post.mockResolvedValue({ success: true, data: { id: 42, post_setup: { job_id: 8, state: 'pending' } } });
+    mocks.post.mockResolvedValue({ success: true, data: { id: 42, post_setup: { job_id: 8, state: 'pending' } } });
     const { onClose, onCreated } = renderDialog();
     fillAcademicCore();
 
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
 
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    const payload = post.mock.calls[0][1];
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(1));
+    const payload = mocks.post.mock.calls[0][1];
     expect(payload.first_name_ar).toBe('سلمى');
     expect(payload.last_name_ar).toBe('العلوي');
     expect(payload).not.toHaveProperty('first_name_fr');
@@ -101,14 +103,14 @@ describe('StudentQuickCreateDialog', () => {
       create_guardians: [],
       auto_finance_setup: true,
     });
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/admin/students/42'));
+    await waitFor(() => expect(mocks.push).toHaveBeenCalledWith('/admin/students/42'));
     expect(onCreated).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(successToast).toHaveBeenCalled();
+    expect(mocks.successToast).toHaveBeenCalled();
   });
 
   it('save-and-add-another stays open and clears guardian data before the next student', async () => {
-    post.mockResolvedValue({ success: true, data: { id: 43, post_setup: { job_id: 9, state: 'pending' } } });
+    mocks.post.mockResolvedValue({ success: true, data: { id: 43, post_setup: { job_id: 9, state: 'pending' } } });
     const { onClose, onCreated } = renderDialog();
     fillAcademicCore();
 
@@ -117,30 +119,30 @@ describe('StudentQuickCreateDialog', () => {
     fireEvent.change(screen.getByLabelText('الهاتف'), { target: { value: '0612345678' } });
     fireEvent.click(screen.getByRole('button', { name: 'حفظ وإضافة تلميذ آخر' }));
 
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(post.mock.calls[0][1].quick_registration.create_guardians).toEqual([
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(1));
+    expect(mocks.post.mock.calls[0][1].quick_registration.create_guardians).toEqual([
       { name: 'أحمد العلوي', phone: '0612345678', relationship_type: 'father' },
     ]);
     await waitFor(() => expect(inputValue('الاسم الشخصي')).toBe(''));
     expect((screen.getByLabelText('إنشاء ولي أمر') as HTMLInputElement).checked).toBe(false);
     expect(screen.queryByLabelText('الاسم الكامل')).toBeNull();
-    expect(push).not.toHaveBeenCalled();
+    expect(mocks.push).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(onCreated).toHaveBeenCalledTimes(1);
   });
 
   it('keeps entered data and does not navigate when the backend rejects the create', async () => {
-    post.mockResolvedValue({ success: false, error: { code: 'validation_error', message: 'رفض الخادم' } });
+    mocks.post.mockResolvedValue({ success: false, error: { code: 'validation_error', message: 'رفض الخادم' } });
     const { onClose, onCreated } = renderDialog();
     fillAcademicCore('ليلى', 'المريني');
 
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
 
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(1));
     expect(inputValue('الاسم الشخصي')).toBe('ليلى');
     expect(inputValue('اسم العائلة')).toBe('المريني');
     expect(screen.getByRole('alert').textContent).toContain('رفض الخادم');
-    expect(push).not.toHaveBeenCalled();
+    expect(mocks.push).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
     expect(onCreated).not.toHaveBeenCalled();
   });
