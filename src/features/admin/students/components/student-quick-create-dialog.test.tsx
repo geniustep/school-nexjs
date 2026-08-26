@@ -62,6 +62,10 @@ function renderDialog() {
   return { onClose, onCreated };
 }
 
+function inputValue(label: string): string {
+  return (screen.getByLabelText(label) as HTMLInputElement).value;
+}
+
 function fillAcademicCore(firstName = 'سلمى', lastName = 'العلوي') {
   fireEvent.change(screen.getByLabelText('الاسم الشخصي'), { target: { value: firstName } });
   fireEvent.change(screen.getByLabelText('اسم العائلة'), { target: { value: lastName } });
@@ -117,8 +121,8 @@ describe('StudentQuickCreateDialog', () => {
     expect(post.mock.calls[0][1].quick_registration.create_guardians).toEqual([
       { name: 'أحمد العلوي', phone: '0612345678', relationship_type: 'father' },
     ]);
-    await waitFor(() => expect(screen.getByLabelText('الاسم الشخصي')).toHaveValue(''));
-    expect(screen.getByLabelText('إنشاء ولي أمر')).not.toBeChecked();
+    await waitFor(() => expect(inputValue('الاسم الشخصي')).toBe(''));
+    expect((screen.getByLabelText('إنشاء ولي أمر') as HTMLInputElement).checked).toBe(false);
     expect(screen.queryByLabelText('الاسم الكامل')).toBeNull();
     expect(push).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
@@ -133,8 +137,8 @@ describe('StudentQuickCreateDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'حفظ' }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(screen.getByLabelText('الاسم الشخصي')).toHaveValue('ليلى');
-    expect(screen.getByLabelText('اسم العائلة')).toHaveValue('المريني');
+    expect(inputValue('الاسم الشخصي')).toBe('ليلى');
+    expect(inputValue('اسم العائلة')).toBe('المريني');
     expect(screen.getByRole('alert').textContent).toContain('رفض الخادم');
     expect(push).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
