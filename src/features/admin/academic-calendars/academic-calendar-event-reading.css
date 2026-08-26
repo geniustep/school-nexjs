@@ -31,6 +31,18 @@
   font-size: 13px;
 }
 
+.academic-calendar-event-reading__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.academic-calendar-event-reading__empty {
+  margin: 4px 0 0;
+  padding: 14px 0 2px;
+  font-size: 13px;
+}
+
 .academic-calendar-event-reading__months {
   display: flex;
   flex-direction: column;
@@ -111,6 +123,10 @@
 }
 
 @media (max-width: 760px) {
+  .academic-calendar-event-reading__head {
+    align-items: stretch;
+  }
+
   .academic-calendar-event-reading__month {
     grid-template-columns: 1fr;
     gap: 8px;
