@@ -4,6 +4,7 @@ import { use, useMemo } from 'react';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { AcademicCalendarDetailView } from '@/features/admin/academic-calendars/components/academic-calendar-detail-view';
+import { AcademicCalendarOverview } from '@/features/admin/academic-calendars/components/academic-calendar-overview';
 import { AcademicCalendarWarningReview } from '@/features/admin/academic-calendars/components/academic-calendar-warning-review';
 import { normalizeAcademicCalendarDetail } from '@/features/admin/academic-calendars/utils/normalize-academic-calendar';
 import { useT } from '@/features/i18n/locale-context';
@@ -32,6 +33,7 @@ export default function AdminAcademicCalendarDetailPage({
           {(detail) => (
             <>
               <AcademicCalendarWarningReview calendar={detail} />
+              <AcademicCalendarOverview calendar={detail} />
               <AcademicCalendarDetailView calendar={detail} onReload={() => state.reload()} />
             </>
           )}
