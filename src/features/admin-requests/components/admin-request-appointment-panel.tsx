@@ -9,6 +9,7 @@ import {
   postProposeAppointment,
   postRequestAppointmentChange,
 } from '../api';
+import { adminRequestControlsMessage } from '../controls-i18n';
 import { adminRequestMessage } from '../i18n';
 import { adminRequestErrorLabel } from '../presenters';
 import type { AdminRequest, AdminRequestRole } from '../types';
@@ -161,6 +162,9 @@ export function AdminRequestAppointmentPanel({
       value: displayDateOnly(appointment.preferred_date, locale),
     },
     { label: adminRequestMessage(locale, 'appointment.preferredPeriod'), value: periodLabel(appointment.preferred_period, locale) },
+    ...(appointment.preferred_time
+      ? [{ label: adminRequestControlsMessage(locale, 'appointment.preferredTime'), value: appointment.preferred_time }]
+      : []),
     { label: adminRequestMessage(locale, 'appointment.state'), value: stateLabel(appointment.appointment_state, locale) },
     ...(appointment.scheduled_start
       ? [{ label: adminRequestMessage(locale, 'appointment.start'), value: displayDate(appointment.scheduled_start, locale) }]

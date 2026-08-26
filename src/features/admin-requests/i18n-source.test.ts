@@ -19,4 +19,12 @@ describe('admin request visible-copy discipline', () => {
       expect(source, relativePath).not.toMatch(/\p{Script=Arabic}/u);
     }
   });
+
+  it('keeps preferred time confined to the appointment flow', () => {
+    const composer = readFileSync(fileURLToPath(new URL('./components/admin-request-composer.tsx', import.meta.url)), 'utf8');
+    const panel = readFileSync(fileURLToPath(new URL('./components/admin-request-appointment-panel.tsx', import.meta.url)), 'utf8');
+    expect(composer).toContain('type="time"');
+    expect(composer).toContain('preferred_time');
+    expect(panel).toContain('appointment.preferred_time');
+  });
 });

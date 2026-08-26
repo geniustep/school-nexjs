@@ -17,6 +17,10 @@ const MESSAGES = {
     'list.showClosed': 'Show closed requests',
     'list.noResults': 'No requests match the current search and filters.',
     'list.filteredCount': '{visible} of {total} requests shown',
+    'appointment.preferredTimeOptional': 'Preferred time (optional)',
+    'appointment.preferredTimeHint': 'This is a preference only; the confirmed appointment is set by the school.',
+    'appointment.preferredTime': 'Preferred time',
+    'error.appointmentTimeInvalid': 'Enter a valid preferred time in HH:MM format.',
   },
   fr: {
     'settings.serviceKind': 'Type de service',
@@ -34,6 +38,10 @@ const MESSAGES = {
     'list.showClosed': 'Afficher les demandes clôturées',
     'list.noResults': 'Aucune demande ne correspond à la recherche et aux filtres actuels.',
     'list.filteredCount': '{visible} demande(s) affichée(s) sur {total}',
+    'appointment.preferredTimeOptional': 'Heure préférée (facultative)',
+    'appointment.preferredTimeHint': 'Il s’agit uniquement d’une préférence ; le rendez-vous confirmé est fixé par l’établissement.',
+    'appointment.preferredTime': 'Heure préférée',
+    'error.appointmentTimeInvalid': 'Saisissez une heure préférée valide au format HH:MM.',
   },
   ar: {
     'settings.serviceKind': 'نوع الخدمة',
@@ -51,6 +59,10 @@ const MESSAGES = {
     'list.showClosed': 'إظهار الطلبات المغلقة',
     'list.noResults': 'لا توجد طلبات تطابق البحث والفلاتر الحالية.',
     'list.filteredCount': 'يظهر {visible} من أصل {total} طلب',
+    'appointment.preferredTimeOptional': 'الوقت المفضل (اختياري)',
+    'appointment.preferredTimeHint': 'هذا تفضيل فقط؛ الموعد المؤكد تحدده المدرسة.',
+    'appointment.preferredTime': 'الوقت المفضل',
+    'error.appointmentTimeInvalid': 'أدخل وقتًا مفضلًا صالحًا بصيغة HH:MM.',
   },
   es: {
     'settings.serviceKind': 'Tipo de servicio',
@@ -68,6 +80,10 @@ const MESSAGES = {
     'list.showClosed': 'Mostrar solicitudes cerradas',
     'list.noResults': 'No hay solicitudes que coincidan con la búsqueda y los filtros actuales.',
     'list.filteredCount': 'Se muestran {visible} de {total} solicitudes',
+    'appointment.preferredTimeOptional': 'Hora preferida (opcional)',
+    'appointment.preferredTimeHint': 'Es solo una preferencia; el centro establece la cita confirmada.',
+    'appointment.preferredTime': 'Hora preferida',
+    'error.appointmentTimeInvalid': 'Introduzca una hora preferida válida en formato HH:MM.',
   },
 } as const;
 

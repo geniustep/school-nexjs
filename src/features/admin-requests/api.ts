@@ -23,8 +23,19 @@ export type AdminRequestAppointmentInput = {
   target_kind: AdminRequestAppointmentTargetKind;
   preferred_date: string;
   preferred_period: AdminRequestAppointmentPeriod;
+  preferred_time?: string;
   requested_subject_id?: number;
 };
+
+function appointmentPayload(input: AdminRequestAppointmentInput) {
+  return {
+    target_kind: input.target_kind,
+    preferred_date: input.preferred_date,
+    preferred_period: input.preferred_period,
+    ...(input.preferred_time?.trim() ? { preferred_time: input.preferred_time.trim() } : {}),
+    ...(input.requested_subject_id ? { requested_subject_id: input.requested_subject_id } : {}),
+  };
+}
 
 /** Client payload allow-list. Identity, school, workflow and audit fields never leave the UI. */
 export function createRequestPayload(input: {
@@ -41,7 +52,7 @@ export function createRequestPayload(input: {
     description: input.description.trim(),
     ...(input.student_id ? { student_id: input.student_id } : {}),
     ...(input.upload_session_id ? { upload_session_id: input.upload_session_id } : {}),
-    ...(input.appointment ? { appointment: input.appointment } : {}),
+    ...(input.appointment ? { appointment: appointmentPayload(input.appointment) } : {}),
   };
 }
 
