@@ -21,6 +21,7 @@ import {
   adminRequestTypeOptions,
   filterAdminRequests,
 } from '../list-filters';
+import { adminRequestCardStyle, adminRequestStateTone } from '../list-visuals';
 import { adminRequestStateLabel, adminRequestTypeLabel } from '../presenters';
 
 function copyKeys(role: AdminRequestRole): {
@@ -44,11 +45,19 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
   const resource = useResource<AdminRequest[] | AdminRequestList>(apiBase, undefined, { keepPreviousData: false });
   const copy = copyKeys(role);
   const canCreate = role === 'parent' || role === 'student';
+  const supportsFilters = role === 'admin' || role === 'parent';
   const dateLocale = localeToBcp47(locale);
   const [query, setQuery] = useState('');
   const [typeId, setTypeId] = useState('');
   const [stateFilter, setStateFilter] = useState('');
   const [showClosed, setShowClosed] = useState(false);
+  const hasActiveFilters = Boolean(query.trim() || typeId || stateFilter);
+
+  const resetFilters = () => {
+    setQuery('');
+    setTypeId('');
+    setStateFilter('');
+  };
 
   return (
     <>
@@ -68,23 +77,24 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
       >
         {(data) => {
           const rows = requestRows(data);
-          const filteredRows = role === 'admin'
-            ? filterAdminRequests(rows, { query, typeId, state: stateFilter, showClosed })
+          const includeClosed = role === 'parent' ? true : showClosed;
+          const filteredRows = supportsFilters
+            ? filterAdminRequests(rows, { query, typeId, state: stateFilter, showClosed: includeClosed })
             : rows;
-          const typeOptions = role === 'admin' ? adminRequestTypeOptions(rows) : [];
-          const stateOptions = role === 'admin' ? adminRequestStateOptions(rows, showClosed) : [];
+          const typeOptions = supportsFilters ? adminRequestTypeOptions(rows) : [];
+          const stateOptions = supportsFilters ? adminRequestStateOptions(rows, includeClosed) : [];
 
           return (
             <div className="col" style={{ gap: 16 }}>
-              {role === 'admin' && (
+              {supportsFilters && (
                 <Card>
                   <div className="grid grid--cards" style={{ alignItems: 'end' }}>
                     <div className="field">
-                      <label htmlFor="admin-request-search">
+                      <label htmlFor={`${role}-admin-request-search`}>
                         {adminRequestControlsMessage(locale, 'list.search')}
                       </label>
                       <input
-                        id="admin-request-search"
+                        id={`${role}-admin-request-search`}
                         className="input"
                         type="search"
                         dir="auto"
@@ -95,11 +105,11 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
                     </div>
 
                     <div className="field">
-                      <label htmlFor="admin-request-type-filter">
+                      <label htmlFor={`${role}-admin-request-type-filter`}>
                         {adminRequestControlsMessage(locale, 'list.filterType')}
                       </label>
                       <select
-                        id="admin-request-type-filter"
+                        id={`${role}-admin-request-type-filter`}
                         className="input"
                         value={typeId}
                         onChange={(event) => setTypeId(event.target.value)}
@@ -114,11 +124,11 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
                     </div>
 
                     <div className="field">
-                      <label htmlFor="admin-request-state-filter">
+                      <label htmlFor={`${role}-admin-request-state-filter`}>
                         {adminRequestControlsMessage(locale, 'list.filterState')}
                       </label>
                       <select
-                        id="admin-request-state-filter"
+                        id={`${role}-admin-request-state-filter`}
                         className="input"
                         value={stateFilter}
                         onChange={(event) => setStateFilter(event.target.value)}
@@ -132,44 +142,63 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
                   </div>
 
                   <div className="between" style={{ gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
-                    <label className="row" style={{ gap: 8 }}>
-                      <input
-                        type="checkbox"
-                        checked={showClosed}
-                        onChange={(event) => {
-                          const checked = event.target.checked;
-                          setShowClosed(checked);
-                          if (!checked && stateFilter === 'closed') setStateFilter('');
-                        }}
-                      />
-                      <span>{adminRequestControlsMessage(locale, 'list.showClosed')}</span>
-                    </label>
-                    <span className="tiny muted">
-                      {adminRequestControlsMessage(locale, 'list.filteredCount', {
-                        visible: filteredRows.length,
-                        total: rows.length,
-                      })}
-                    </span>
+                    {role === 'admin' ? (
+                      <label className="row" style={{ gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          checked={showClosed}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setShowClosed(checked);
+                            if (!checked && stateFilter === 'closed') setStateFilter('');
+                          }}
+                        />
+                        <span>{adminRequestControlsMessage(locale, 'list.showClosed')}</span>
+                      </label>
+                    ) : (
+                      <span />
+                    )}
+                    <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+                      {hasActiveFilters && (
+                        <button type="button" className="btn btn--secondary" onClick={resetFilters}>
+                          {adminRequestControlsMessage(locale, 'list.resetFilters')}
+                        </button>
+                      )}
+                      <span className="tiny muted" aria-live="polite">
+                        {adminRequestControlsMessage(locale, 'list.filteredCount', {
+                          visible: filteredRows.length,
+                          total: rows.length,
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </Card>
               )}
 
               {filteredRows.length === 0 ? (
                 <Card>
-                  {role === 'admin'
+                  {supportsFilters
                     ? adminRequestControlsMessage(locale, 'list.noResults')
                     : adminRequestMessage(locale, copy.empty)}
+                  {supportsFilters && hasActiveFilters && (
+                    <div style={{ marginTop: 12 }}>
+                      <button type="button" className="btn btn--secondary" onClick={resetFilters}>
+                        {adminRequestControlsMessage(locale, 'list.resetFilters')}
+                      </button>
+                    </div>
+                  )}
                 </Card>
               ) : (
                 <div className="grid grid--cards">
                   {filteredRows.map((request: AdminRequest) => {
                     const createdAt = request.created_at ?? request.create_date;
+                    const tone = adminRequestStateTone(request.state);
                     return (
                       <Link key={request.id} href={`${uiBase}/${request.id}`} className="row-link">
-                        <Card>
+                        <div className="card card--pad" style={adminRequestCardStyle(request.state)}>
                           <div className="between">
                             <strong dir="auto">{requestTitle(request)}</strong>
-                            <Badge tone="blue">{adminRequestStateLabel(request.state, locale)}</Badge>
+                            <Badge tone={tone}>{adminRequestStateLabel(request.state, locale)}</Badge>
                           </div>
                           <p className="muted tiny" dir="auto">{request.reference ?? `#${request.id}`}</p>
                           {request.assigned?.name && (
@@ -182,7 +211,7 @@ export function AdminRequestListPage({ role }: { role: AdminRequestRole }) {
                               {new Date(createdAt).toLocaleDateString(dateLocale)}
                             </p>
                           )}
-                        </Card>
+                        </div>
                       </Link>
                     );
                   })}
