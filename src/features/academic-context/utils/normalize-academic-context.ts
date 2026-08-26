@@ -45,6 +45,43 @@ function asString(value: unknown): string | undefined {
   return undefined;
 }
 
+const ACADEMIC_YEAR_CODE_LIKE_PATTERN = /^\d{4}(?:\s*[-/_]\s*\d{4})?$/;
+
+function isoDateYear(value: string | null): string | null {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return match[1];
+}
+
+/**
+ * Derive the canonical academic-year identity from the actual date range.
+ * Month/day boundaries are deliberately irrelevant: 2026-09-01..2027-06-30
+ * and 2026-08-15..2027-07-10 both resolve to 2026-2027.
+ */
+export function deriveCanonicalAcademicYearCode(
+  dateStart: string | null | undefined,
+  dateEnd: string | null | undefined,
+): string | null {
+  const startYear = isoDateYear(dateStart?.trim() || null);
+  const endYear = isoDateYear(dateEnd?.trim() || null);
+  if (!startYear || !endYear || Number(endYear) < Number(startYear)) return null;
+  return `${startYear}-${endYear}`;
+}
+
 function normalizeRef(raw: unknown): AcademicContextOptionRef | null {
   const record = asRecord(raw);
   if (!record || asNumber(record.id) == null) return null;
@@ -134,14 +171,24 @@ function normalizeInvalidated(raw: unknown): InvalidatedAcademicSelection | null
 export function normalizeAcademicYearOption(raw: unknown): AcademicYearOption | null {
   const record = asRecord(raw);
   if (!record || asNumber(record.id) == null) return null;
-  const name = asString(record.name)?.trim() || asString(record.display_name)?.trim();
-  if (!name) return null;
+  const rawName = asString(record.name)?.trim() || asString(record.display_name)?.trim();
+  if (!rawName) return null;
+
+  const dateStart = asString(record.date_start)?.trim() || null;
+  const dateEnd = asString(record.date_end)?.trim() || null;
+  const storedCode = asString(record.code)?.trim() || null;
+  const canonicalCode = deriveCanonicalAcademicYearCode(dateStart, dateEnd);
+  const name =
+    canonicalCode && ACADEMIC_YEAR_CODE_LIKE_PATTERN.test(rawName)
+      ? canonicalCode
+      : rawName;
+
   return {
     id: Number(record.id),
     name,
-    code: asString(record.code) ?? null,
-    date_start: asString(record.date_start) ?? null,
-    date_end: asString(record.date_end) ?? null,
+    code: canonicalCode ?? storedCode,
+    date_start: dateStart,
+    date_end: dateEnd,
     active: asBoolean(record.active),
     state: asString(record.state) ?? null,
   };
