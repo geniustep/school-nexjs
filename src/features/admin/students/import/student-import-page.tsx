@@ -22,7 +22,10 @@ import {
   resolveStudentImportUiStep,
   StudentImportStepper,
 } from './student-import-stepper';
-import { StudentImportSummaryCards } from './student-import-summary';
+import {
+  buildStudentImportDisplaySummary,
+  StudentImportSummaryCards,
+} from './student-import-summary';
 import { StudentImportUpload } from './student-import-upload';
 import { hasStudentImportFileErrors } from './student-import-validator';
 import { toRowDetails, useStudentImportFlow } from './use-student-import-flow';
@@ -139,7 +142,9 @@ export function StudentImportPage() {
             </Card>
           ) : null}
 
-          <StudentImportSummaryCards summary={localResult.summary} />
+          <StudentImportSummaryCards
+            summary={buildStudentImportDisplaySummary(localResult.summary, flow.mergedRows)}
+          />
 
           {(hasStudentImportFileErrors(localResult.fileErrors) === false &&
             (localResult.format === 'odoo_v1'
@@ -190,7 +195,6 @@ export function StudentImportPage() {
               confirmed={flow.confirmed}
               canConfirm={flow.canConfirm}
               onConfirmedChange={flow.setConfirmed}
-              onContinue={() => flow.setPhase('confirming')}
             />
           ) : null}
 
