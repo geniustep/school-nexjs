@@ -27,18 +27,26 @@ describe('admin request client payloads', () => {
     });
   });
 
-  it('sends appointment details without teacher or assignment identity', () => {
+  it('sends an optional preferred appointment time without identity fields', () => {
+    const appointment = {
+      target_kind: 'subject_teacher',
+      preferred_date: '2026-08-27',
+      preferred_period: 'morning',
+      preferred_time: '14:30',
+      requested_subject_id: 44,
+      teacher_id: 99,
+      resolved_teacher: { id: 99, name: 'Hidden' },
+      resolved_user: { id: 77, name: 'Hidden' },
+      user_id: 77,
+      school_id: 3,
+    } as unknown as NonNullable<Parameters<typeof createRequestPayload>[0]['appointment']>;
+
     const payload = createRequestPayload({
       type_id: 9,
       student_id: 21,
       subject: 'موعد لمناقشة الرياضيات',
       description: 'أرغب في أخذ موعد لمناقشة تقدم التلميذ.',
-      appointment: {
-        target_kind: 'subject_teacher',
-        preferred_date: '2026-08-27',
-        preferred_period: 'morning',
-        requested_subject_id: 44,
-      },
+      appointment,
     });
 
     expect(payload).toEqual({
@@ -50,27 +58,17 @@ describe('admin request client payloads', () => {
         target_kind: 'subject_teacher',
         preferred_date: '2026-08-27',
         preferred_period: 'morning',
+        preferred_time: '14:30',
         requested_subject_id: 44,
       },
     });
-    expect(payload).not.toHaveProperty('teacher_id');
-    expect(payload).not.toHaveProperty('assigned_user_id');
-    expect(payload.appointment).not.toHaveProperty('teacher_id');
-    expect(payload.appointment).not.toHaveProperty('assigned_user_id');
+    for (const forbidden of ['teacher_id', 'assigned_user_id', 'resolved_teacher', 'resolved_user', 'user_id', 'school_id']) {
+      expect(payload.appointment).not.toHaveProperty(forbidden);
+    }
   });
 
-  it('keeps administration appointments free of subject and teacher identity', () => {
-    expect(createRequestPayload({
-      type_id: 9,
-      student_id: 21,
-      subject: 'موعد مع الإدارة',
-      description: 'أرغب في أخذ موعد مع الإدارة.',
-      appointment: {
-        target_kind: 'administration',
-        preferred_date: '2026-08-28',
-        preferred_period: 'any',
-      },
-    })).toEqual({
+  it('keeps preferred_time optional for administration appointments', () => {
+    const payload = createRequestPayload({
       type_id: 9,
       student_id: 21,
       subject: 'موعد مع الإدارة',
@@ -81,6 +79,19 @@ describe('admin request client payloads', () => {
         preferred_period: 'any',
       },
     });
+
+    expect(payload).toEqual({
+      type_id: 9,
+      student_id: 21,
+      subject: 'موعد مع الإدارة',
+      description: 'أرغب في أخذ موعد مع الإدارة.',
+      appointment: {
+        target_kind: 'administration',
+        preferred_date: '2026-08-28',
+        preferred_period: 'any',
+      },
+    });
+    expect(payload.appointment).not.toHaveProperty('preferred_time');
   });
 
   it('keeps requester replies free of identity and workflow fields', () => {

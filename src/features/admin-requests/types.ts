@@ -39,6 +39,7 @@ export interface AdminRequestAppointment {
   requested_subject?: AdminRequestAppointmentSubject | null;
   preferred_date: string | null;
   preferred_period: AdminRequestAppointmentPeriod;
+  preferred_time: string | null;
   scheduled_start?: string | null;
   scheduled_end?: string | null;
   appointment_state: AdminRequestAppointmentState;
