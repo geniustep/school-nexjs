@@ -15,7 +15,9 @@ describe('appointment scheduling UX', () => {
       fileURLToPath(new URL('./components/admin-request-appointment-panel.tsx', import.meta.url)),
       'utf8',
     );
-    expect(source).toContain("appointment.appointment_state === 'requested'");
+    expect(source).toContain('const appointmentState = appointment.appointment_state');
+    expect(source).toContain("appointmentState === 'requested'");
+    expect(source).toContain("appointmentState !== 'requested'");
     expect(source).toContain('setScheduledEnd(appointmentDefaultEnd(nextStart))');
   });
 
