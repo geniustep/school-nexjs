@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import {
+  academicCalendarEventAllowsMutation,
+} from '@/features/admin/academic-calendars/utils/academic-calendar-event-review';
+import { mergeCalendarEventsForDisplay } from '@/features/admin/academic-calendars/utils/academic-calendar-present';
 import { useLocale, useT } from '@/features/i18n/locale-context';
+import type { AcademicCalendarDetail, AcademicCalendarEvent } from '@/types/academic-calendar';
 import '@/features/admin/academic-calendars/academic-calendar-detail-ux-enhancer.css';
 
 const GENERIC_EVENT_LABEL: Record<'ar' | 'en' | 'fr' | 'es', string> = {
@@ -9,6 +14,20 @@ const GENERIC_EVENT_LABEL: Record<'ar' | 'en' | 'fr' | 'es', string> = {
   en: 'Calendar event',
   fr: 'Événement du calendrier',
   es: 'Evento del calendario',
+};
+
+const ALL_EVENTS_TITLE: Record<'ar' | 'en' | 'fr' | 'es', string> = {
+  ar: 'جميع أحداث التقويم',
+  en: 'All calendar events',
+  fr: 'Tous les événements du calendrier',
+  es: 'Todos los eventos del calendario',
+};
+
+const REGULATORY_READ_ONLY_LABEL: Record<'ar' | 'en' | 'fr' | 'es', string> = {
+  ar: 'رسمي · للقراءة فقط',
+  en: 'Official · read only',
+  fr: 'Officiel · lecture seule',
+  es: 'Oficial · solo lectura',
 };
 
 function text(value: string | null | undefined): string {
@@ -19,6 +38,21 @@ function findCardByHeading(root: HTMLElement, heading: string): HTMLElement | nu
   const headings = Array.from(root.querySelectorAll<HTMLElement>('h2'));
   const match = headings.find((node) => text(node.textContent) === heading);
   return match?.closest<HTMLElement>('.card') ?? null;
+}
+
+function findEventsCard(root: HTMLElement, heading: string): HTMLElement | null {
+  const known = root.querySelector<HTMLElement>('[data-raqeem-events-card="1"]');
+  if (known) return known;
+  const card = findCardByHeading(root, heading);
+  if (card) card.dataset.raqeemEventsCard = '1';
+  return card;
+}
+
+function relabelEventsCard(card: HTMLElement, title: string) {
+  const heading = card.querySelector<HTMLElement>('.academic-calendar-detail__section-head h2');
+  if (!heading || text(heading.textContent) === title) return;
+  heading.textContent = title;
+  heading.dataset.raqeemCalendarEventsTitle = '1';
 }
 
 function simplifySingleDayPeriods(card: HTMLElement, periodLabel: string) {
@@ -55,6 +89,63 @@ function replaceRawEventTypeLabels(card: HTMLElement, genericLabel: string) {
   }
 }
 
+function applyRegulatoryLockedActions(
+  card: HTMLElement,
+  events: AcademicCalendarEvent[],
+  actionsLabel: string,
+  readOnlyLabel: string,
+) {
+  const table = card.querySelector<HTMLTableElement>('table');
+  if (!table) return;
+
+  const headers = Array.from(table.querySelectorAll<HTMLTableCellElement>('thead th'));
+  const actionIndex = headers.findIndex((header) => text(header.textContent) === actionsLabel);
+  if (actionIndex < 0) return;
+
+  const rows = Array.from(table.querySelectorAll<HTMLTableRowElement>('tbody tr'));
+  rows.forEach((row, index) => {
+    const cell = row.cells.item(actionIndex);
+    const event = events[index];
+    if (!cell || !event) return;
+
+    const actionNodes = Array.from(
+      cell.querySelectorAll<HTMLElement>('button, a, [role="button"]'),
+    );
+    const existingLabel = cell.querySelector<HTMLElement>('[data-raqeem-regulatory-read-only="1"]');
+    const locked = !academicCalendarEventAllowsMutation(event);
+
+    if (locked) {
+      for (const action of actionNodes) {
+        action.dataset.raqeemRegulatoryAction = '1';
+        action.style.display = 'none';
+        action.setAttribute('aria-hidden', 'true');
+        if ('tabIndex' in action) action.tabIndex = -1;
+      }
+      if (!existingLabel) {
+        const label = document.createElement('span');
+        label.className = 'muted tiny';
+        label.dataset.raqeemRegulatoryReadOnly = '1';
+        label.textContent = readOnlyLabel;
+        cell.append(label);
+      } else if (text(existingLabel.textContent) !== readOnlyLabel) {
+        existingLabel.textContent = readOnlyLabel;
+      }
+      cell.dataset.raqeemRegulatoryLocked = '1';
+      return;
+    }
+
+    existingLabel?.remove();
+    delete cell.dataset.raqeemRegulatoryLocked;
+    for (const action of actionNodes) {
+      if (action.dataset.raqeemRegulatoryAction !== '1') continue;
+      action.style.removeProperty('display');
+      action.removeAttribute('aria-hidden');
+      action.removeAttribute('tabindex');
+      delete action.dataset.raqeemRegulatoryAction;
+    }
+  });
+}
+
 function hideEmptyActionsColumn(card: HTMLElement, actionsLabel: string) {
   const table = card.querySelector<HTMLTableElement>('table');
   if (!table) return;
@@ -70,7 +161,18 @@ function hideEmptyActionsColumn(card: HTMLElement, actionsLabel: string) {
     .map((row) => row.cells.item(actionIndex))
     .filter((cell): cell is HTMLTableCellElement => cell != null);
 
-  const hasAction = actionCells.some((cell) => cell.querySelector('button, a, [role="button"]'));
+  headers[actionIndex].style.removeProperty('display');
+  delete headers[actionIndex].dataset.raqeemHiddenAction;
+  for (const cell of actionCells) {
+    cell.style.removeProperty('display');
+    delete cell.dataset.raqeemHiddenAction;
+  }
+
+  const hasAction = actionCells.some((cell) =>
+    Array.from(cell.querySelectorAll<HTMLElement>('button, a, [role="button"]')).some(
+      (action) => action.style.display !== 'none' && action.getAttribute('aria-hidden') !== 'true',
+    ),
+  );
   if (hasAction) return;
 
   headers[actionIndex].style.display = 'none';
@@ -111,20 +213,35 @@ function makeAdvancedCardCollapsible(
   head.append(toggle);
 }
 
-export function AcademicCalendarDetailUxEnhancer() {
+export function AcademicCalendarDetailUxEnhancer({
+  calendar,
+}: {
+  calendar: AcademicCalendarDetail;
+}) {
   const t = useT();
   const { locale } = useLocale();
+  const events = useMemo(
+    () => mergeCalendarEventsForDisplay(calendar.events, calendar.provisional_events),
+    [calendar.events, calendar.provisional_events],
+  );
 
   useEffect(() => {
     const root = document.querySelector<HTMLElement>('.academic-calendar-detail');
     if (!root) return;
 
     const apply = () => {
-      const eventsCard = findCardByHeading(root, t('admin.academicCalendars.events.title'));
+      const eventsCard = findEventsCard(root, t('admin.academicCalendars.events.title'));
       if (eventsCard) {
         simplifySingleDayPeriods(eventsCard, t('admin.academicCalendars.columns.period'));
         replaceRawEventTypeLabels(eventsCard, GENERIC_EVENT_LABEL[locale]);
+        applyRegulatoryLockedActions(
+          eventsCard,
+          events,
+          t('common.actions'),
+          REGULATORY_READ_ONLY_LABEL[locale],
+        );
         hideEmptyActionsColumn(eventsCard, t('common.actions'));
+        relabelEventsCard(eventsCard, ALL_EVENTS_TITLE[locale]);
       }
 
       const effectiveCard = findCardByHeading(root, t('admin.academicCalendars.effectiveEvents.title'));
@@ -143,7 +260,7 @@ export function AcademicCalendarDetailUxEnhancer() {
     observer.observe(root, { childList: true, subtree: true });
 
     return () => observer.disconnect();
-  }, [locale, t]);
+  }, [events, locale, t]);
 
   return null;
 }
