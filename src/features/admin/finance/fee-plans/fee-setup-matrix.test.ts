@@ -14,7 +14,6 @@ const REG: FeeType = {
   name: 'التسجيل',
   school_id: 1,
   category: 'registration',
-  frequency: 'once',
   is_mandatory: true,
 };
 const TUITION: FeeType = {
@@ -23,26 +22,29 @@ const TUITION: FeeType = {
   name: 'التمدرس',
   school_id: 1,
   category: 'schooling',
-  frequency: 'monthly',
   is_mandatory: true,
 };
 
 describe('simplified fee setup matrix', () => {
-  it('resolves canonical REGISTRATION and TUITION codes regardless of category', () => {
+  it('resolves canonical REGISTRATION and TUITION even when legacy fee type frequency is absent', () => {
     expect(resolveFeeSetupCoreTypes([REG, TUITION])).toEqual({
       registration: REG,
       monthlyTuition: TUITION,
     });
   });
 
-  it('validates recurrence even when a canonical code exists', () => {
-    const invalidRegistration = { ...REG, frequency: 'monthly' };
-    expect(resolveFeeSetupCoreTypes([invalidRegistration, TUITION]).registration).toBeNull();
+  it('does not let stale legacy fee type frequency override canonical identity', () => {
+    const staleRegistration = { ...REG, frequency: 'monthly' };
+    const staleTuition = { ...TUITION, frequency: 'once' };
+    expect(resolveFeeSetupCoreTypes([staleRegistration, staleTuition])).toEqual({
+      registration: staleRegistration,
+      monthlyTuition: staleTuition,
+    });
   });
 
   it('falls back safely when canonical codes are absent', () => {
-    const registration = { ...REG, code: 'INSCRIPTION-2026' };
-    const tuition = { ...TUITION, code: 'MONTHLY-SCHOOLING' };
+    const registration = { ...REG, code: 'INSCRIPTION-2026', frequency: 'once' };
+    const tuition = { ...TUITION, code: 'MONTHLY-SCHOOLING', frequency: 'monthly' };
     expect(resolveFeeSetupCoreTypes([registration, tuition])).toEqual({
       registration,
       monthlyTuition: tuition,
@@ -50,26 +52,47 @@ describe('simplified fee setup matrix', () => {
   });
 
   it('does not guess when the monthly catalog fallback is ambiguous', () => {
-    const tuition = { ...TUITION, code: 'MONTHLY-A', name: 'واجب شهري' };
-    const other = { ...TUITION, id: 13, code: 'MONTHLY-B', name: 'واجب شهري ثان' };
-    expect(resolveFeeSetupCoreTypes([REG, tuition, other]).monthlyTuition).toBeNull();
+    const registration = { ...REG, code: 'INSCRIPTION-2026', frequency: 'once' };
+    const tuition = { ...TUITION, code: 'MONTHLY-A', name: 'واجب شهري', frequency: 'monthly' };
+    const other = { ...TUITION, id: 13, code: 'MONTHLY-B', name: 'واجب شهري ثان', frequency: 'monthly' };
+    expect(resolveFeeSetupCoreTypes([registration, tuition, other]).monthlyTuition).toBeNull();
   });
 
-  it('applies one amount to all selected levels using one scoped line', () => {
+  it('applies canonical registration as one-time even when fee type frequency is absent', () => {
     const lines = applyFeeToAllPlanLevels({
       lines: [],
       feeType: REG,
       planLevelIds: [101, 102, 103],
       amount: 2500,
-      installmentCount: 1,
+      installmentCount: 10,
       clientId: 'reg-all',
     });
     expect(lines).toHaveLength(1);
     expect(lines[0]).toMatchObject({
       feeTypeId: 11,
       amount: 2500,
+      frequency: 'once',
+      pricingMode: 'total_amount_installments',
       levelScopeMode: 'all_plan_levels',
       installmentCount: 1,
+    });
+  });
+
+  it('applies canonical tuition as monthly even when fee type frequency is absent', () => {
+    const lines = applyFeeToAllPlanLevels({
+      lines: [],
+      feeType: TUITION,
+      planLevelIds: [101, 102, 103],
+      amount: 2800,
+      installmentCount: 10,
+      clientId: 'tuition-all',
+    });
+    expect(lines[0]).toMatchObject({
+      feeTypeId: 12,
+      amount: 2800,
+      frequency: 'monthly',
+      pricingMode: 'recurring_unit_price',
+      installmentCount: 10,
     });
   });
 
