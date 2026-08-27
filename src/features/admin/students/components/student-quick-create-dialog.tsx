@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
@@ -10,13 +11,18 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { buildEnrollmentCycleOptions, filterLevelsByCycleId } from '../utils/student-enrollment-cycle';
-import { buildStudentQuickCreatePayload, validateStudentQuickCreateInput } from '../utils/student-quick-create';
+import {
+  buildStudentQuickCreatePayload,
+  buildStudentQuickCreateSuccessHref,
+  validateStudentQuickCreateInput,
+} from '../utils/student-quick-create';
 
 export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const router = useRouter();
   const t = useT();
   const toast = useToast();
   const { activeSchoolId, activeAcademicYearId } = useAdminSession();
@@ -84,7 +90,10 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
       setError(message); toast.error(message); return;
     }
     toast.success(t('admin.studentsList.quickCreate.created'));
-    onCreated(); onClose();
+    const studentHref = buildStudentQuickCreateSuccessHref(res.data.id);
+    onCreated();
+    onClose();
+    router.push(studentHref);
   }
 
   if (!open) return null;

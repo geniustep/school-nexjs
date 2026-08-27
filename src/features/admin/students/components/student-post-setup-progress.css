@@ -1,0 +1,53 @@
+.student-post-setup-progress {
+  margin-block-end: 1rem;
+}
+
+.student-post-setup-progress__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.student-post-setup-progress__head p {
+  margin-block: 0.25rem 0;
+}
+
+.student-post-setup-progress__bar {
+  inline-size: 100%;
+  block-size: 0.55rem;
+  margin-block: 0.85rem;
+  accent-color: currentColor;
+}
+
+.student-post-setup-progress__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.student-post-setup-progress__step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-inline-size: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 0.75rem;
+}
+
+.student-post-setup-progress__step > span:first-child {
+  min-inline-size: 0;
+}
+
+@media (max-width: 760px) {
+  .student-post-setup-progress__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-post-setup-progress__steps {
+    grid-template-columns: 1fr;
+  }
+}
