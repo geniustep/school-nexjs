@@ -1,0 +1,82 @@
+null || prev.linkedGuardianPersonId != null || prev.billingGuardianEntryKey != null
++          ? { ...prev, linkedGuardianId: null, linkedGuardianPersonId: null, billingGuardianEntryKey: null }
+@@
+   function handleLinkExistingGuardian(person: PersonSearchResult) {
+     const guardianId = resolvePersonSchoolParentId(person);
+-    if (guardianId == null) {
++    const personId = resolvePersonPartnerId(person);
++    if (guardianId == null && personId == null) {
+       toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
+       return;
+     }
+-    if (guardianIdAlreadyUsedInWizard(guardianId)) {
++    if (guardianId != null && guardianIdAlreadyUsedInWizard(guardianId)) {
+       toast.error(t('admin.student360.create.billingResponsibility.errors.duplicateGuardianInWizard'));
+       return;
+     }
++    const entryKey = guardianId != null ? `existing-${guardianId}` : `person-${personId}`;
+@@
+       guardianSourceMode: 'existing',
+       linkedGuardianId: guardianId,
+-      billingGuardianEntryKey: `existing-${guardianId}`,
++      linkedGuardianPersonId: personId,
++      billingGuardianEntryKey: entryKey,
+@@
+       linkedGuardianId: null,
++      linkedGuardianPersonId: null,
+       billingGuardianEntryKey: null,
+@@
+       linkedGuardianId: null,
++      linkedGuardianPersonId: null,
+       billingGuardianEntryKey: null,
+@@
+   function handleLinkAdditionalGuardian(entryKey: string, person: PersonSearchResult) {
+     const guardianId = resolvePersonSchoolParentId(person);
+-    if (guardianId == null) {
++    const personId = resolvePersonPartnerId(person);
++    if (guardianId == null && personId == null) {
+       toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
+       return;
+     }
+-    if (guardianIdAlreadyUsedInWizard(guardianId, entryKey)) {
++    if (guardianId != null && guardianIdAlreadyUsedInWizard(guardianId, entryKey)) {
+@@
+-            ? entryFromLinkedExistingGuardian(
++            ? entryFromLinkedExistingPerson(
+                 entryKey,
+-                guardianId,
++                person,
+                 person.name,
+@@
+         guardianSourceMode: 'existing',
+         linkedGuardianId: null,
++        linkedGuardianPersonId: null,
+         billingGuardianEntryKey: null,
+@@
+             guardianSourceMode: 'existing',
+             linkedGuardianId: null,
++            linkedGuardianPersonId: null,
+             billingGuardianEntryKey: null,
+
+
+diff --git a/src/features/admin/students/utils/existing-person-guardian-contract.test.ts b/src/features/admin/students/utils/existing-person-guardian-contract.test.ts
+new file mode 100644
+--- /dev/null
++++ b/src/features/admin/students/utils/existing-person-guardian-contract.test.ts
+@@
++import { describe, expect, it } from 'vitest';
++import { normalizePersonSearchResult } from './normalize-person-search';
++import {
++  applyStudentCreateGuardianAtomicContractToPayload,
++  resolvePersonPartnerId,
++  resolvePersonSchoolParentId,
++} from './student-create-guardian-payload';
++import { resolveGuardianAccountPresentation } from './resolve-guardian-account-presentation';
++import { defaultStudentCreateBillingFormState } from './student-create-billing-responsibility';
++import { buildStudentCreatePayload, defaultStudentProfileFormState } from './student-profile';
++
++function profile() {
++  return {
++    ...defaultStudentProfileFormState(null),
++    emergencyContactName: 'Existing Person',
++    emergencyPhone: '061234
