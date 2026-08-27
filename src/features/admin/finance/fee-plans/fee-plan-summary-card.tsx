@@ -1,9 +1,10 @@
 'use client';
 
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { computeFeePlanSummary } from './fee-plan-summary';
 import type { DraftFeePlanLine } from './fee-plan-types';
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 
 export function FeePlanSummaryCard({
   lines,
@@ -13,11 +14,13 @@ export function FeePlanSummaryCard({
   currency?: string | null;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
   const summary = computeFeePlanSummary(lines, currency);
 
   return (
     <section className="card fee-plan-summary">
-      <h4>{t('admin.finance.feePlansWorkspace.summaryTitle')}</h4>
+      <h4>{copy.summaryTitle}</h4>
       <dl className="detail-list compact">
         <div>
           <dt>{t('admin.finance.feePlansWorkspace.summaryLineCount')}</dt>
