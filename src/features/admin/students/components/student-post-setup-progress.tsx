@@ -38,6 +38,7 @@ export function StudentPostSetupProgress({ studentId }: { studentId: string }) {
       ? copy.reviewTitle
       : copy.completeTitle
     : copy.inProgressTitle;
+  const percent = progress ? Math.max(0, Math.min(100, progress.percent)) : 0;
 
   return (
     <Card className="student-post-setup-progress">
@@ -54,12 +55,19 @@ export function StudentPostSetupProgress({ studentId }: { studentId: string }) {
       </div>
 
       {progress ? (
-        <progress
+        <div
           className="student-post-setup-progress__bar"
-          value={progress.percent}
-          max={100}
+          role="progressbar"
           aria-label={copy.progressLabel}
-        />
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+        >
+          <div
+            className="student-post-setup-progress__bar-fill"
+            style={{ inlineSize: `${percent}%` }}
+          />
+        </div>
       ) : null}
 
       {steps.length > 0 ? (
