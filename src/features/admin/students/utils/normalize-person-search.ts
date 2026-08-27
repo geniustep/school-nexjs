@@ -26,6 +26,7 @@ function readHasUserAccount(raw: Record<string, unknown>): boolean {
   if (raw.has_user === true || raw.has_user_account === true || raw.has_account === true) return true;
   if (typeof raw.user_id === 'number' && raw.user_id > 0) return true;
   const account = asRecord(raw.account);
+  if (account?.has_user_account === true) return true;
   return typeof account?.user_id === 'number' && account.user_id > 0;
 }
 
@@ -76,13 +77,14 @@ function readSearchGuardianAccount(raw: Record<string, unknown>): GuardianAccoun
     (typeof accountRaw?.status === 'string' && accountRaw.status.trim()) ||
     (typeof raw.account_status === 'string' && raw.account_status.trim()) ||
     null;
+  const canonicalHasUserAccount = readHasUserAccount(raw);
   const has_user_account =
-    accountRaw?.has_user_account === true
+    canonicalHasUserAccount
       ? true
-      : accountRaw?.has_user_account === false
-        ? false
-        : raw.has_user_account === true
-          ? true
+      : accountRaw?.has_user_account === true
+        ? true
+        : accountRaw?.has_user_account === false
+          ? false
           : raw.has_user_account === false
             ? false
             : undefined;
@@ -95,12 +97,18 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
   const raw = asRecord(data);
   if (!raw || typeof raw.partner_id !== 'number') return null;
 
+  // Never infer school.parent from the generic `id`: unified search uses
+  // partner/person id as `id` when no guardian profile exists.
   const guardianId =
     typeof raw.guardian_id === 'number'
       ? raw.guardian_id
-      : typeof raw.id === 'number'
-        ? raw.id
+      : typeof raw.parent_id === 'number'
+        ? raw.parent_id
         : null;
+  const personId =
+    typeof raw.person_id === 'number' && raw.person_id > 0
+      ? raw.person_id
+      : raw.partner_id;
 
   const name =
     (typeof raw.display_name === 'string' && raw.display_name.trim()) ||
@@ -109,14 +117,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     '';
 
   const accountInfo = readSearchGuardianAccount(raw);
-  const hasUserAccount =
-    raw.has_user_account === true ||
-    accountInfo?.has_user_account === true ||
-    raw.has_user === true ||
-    raw.has_user_account === true ||
-    raw.has_account === true ||
-    (typeof raw.user_id === 'number' && raw.user_id > 0) ||
-    (asRecord(raw.account)?.user_id != null);
+  const hasUserAccount = readHasUserAccount(raw) || accountInfo?.has_user_account === true;
   const existingRoles = readStringList(raw.existing_roles);
   const roleLabels = readStringList(raw.role_labels);
   const status = resolveStatus(raw);
@@ -139,8 +140,8 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
 
   return {
     partner_id: raw.partner_id,
-    person_id: typeof raw.person_id === 'number' ? raw.person_id : undefined,
-    id: guardianId ?? raw.partner_id,
+    person_id: personId,
+    id: guardianId ?? personId,
     guardian_id: guardianId,
     teacher_id: typeof raw.teacher_id === 'number' ? raw.teacher_id : null,
     staff_id: typeof raw.staff_id === 'number' ? raw.staff_id : null,

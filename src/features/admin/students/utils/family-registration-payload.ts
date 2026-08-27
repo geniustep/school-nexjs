@@ -78,7 +78,14 @@ export function buildFamilyChildCreatePayload(options: {
 
   if (primaryEntry?.kind === 'existing') {
     billingForChild.guardianSourceMode = 'existing';
-    billingForChild.linkedGuardianId = primaryEntry.guardian_id;
+    billingForChild.linkedGuardianId =
+      typeof primaryEntry.guardian_id === 'number' && primaryEntry.guardian_id > 0
+        ? primaryEntry.guardian_id
+        : null;
+    billingForChild.linkedGuardianPersonId =
+      typeof primaryEntry.person_id === 'number' && primaryEntry.person_id > 0
+        ? primaryEntry.person_id
+        : null;
     profile.emergencyContactName = primaryEntry.displayName;
     profile.emergencyRelationship = primaryEntry.relationship_type;
     profile.emergencyPhone = primaryEntry.phone ?? profile.emergencyPhone;
@@ -86,6 +93,7 @@ export function buildFamilyChildCreatePayload(options: {
   } else if (primaryEntry?.kind === 'new') {
     billingForChild.guardianSourceMode = 'new';
     billingForChild.linkedGuardianId = null;
+    billingForChild.linkedGuardianPersonId = null;
     profile.emergencyContactName = primaryEntry.full_name;
     profile.emergencyRelationship = primaryEntry.relationship_type;
     profile.emergencyPhone = primaryEntry.phone ?? '';
