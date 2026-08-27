@@ -355,6 +355,18 @@ export type StudentCreateGuardianRelationshipItem =
       provision_access?: boolean;
     } & StudentCreateGuardianAccessMetadata)
   | ({
+      /** Existing res.partner that does not need an existing school.parent profile. */
+      person_id: number;
+      relationship_type: RelationshipType;
+      is_primary_contact?: boolean;
+      is_legal_guardian?: boolean;
+      is_financial_responsible?: boolean;
+      receives_notifications?: boolean;
+      is_emergency_contact?: boolean;
+      is_authorized_pickup?: boolean;
+      provision_access?: boolean;
+    } & StudentCreateGuardianAccessMetadata)
+  | ({
       guardian: StudentCreateGuardianIdentityPayload;
       relationship_type: RelationshipType;
       is_primary_contact?: boolean;

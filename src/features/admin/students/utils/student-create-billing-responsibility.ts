@@ -26,6 +26,7 @@ export function defaultStudentCreateBillingFormState(): StudentCreateBillingForm
     studentBillingReason: '',
     guardianSourceMode: 'existing',
     linkedGuardianId: null,
+    linkedGuardianPersonId: null,
     billingGuardianEntryKey: null,
     guardianEntries: [],
     additionalGuardianSourceModeByEntryKey: {},
