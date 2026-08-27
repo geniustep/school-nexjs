@@ -55,7 +55,7 @@ export function StudentCreateGuardianSourcePanel({
   const guardianName =
     (linkedGuardianPerson?.name ?? intakeValues.guardianName).trim() || '—';
   const isExistingMode = sourceMode === 'existing';
-  const isLinked = isExistingMode && linkedGuardianId != null;
+  const isLinked = isExistingMode && (linkedGuardianId != null || linkedGuardianPerson != null);
   const snapshotName = admissionGuardianSnapshot?.name?.trim() ?? '';
   const snapshotPhone = admissionGuardianSnapshot?.phone?.trim() ?? '';
   const showAdmissionSnapshot =
