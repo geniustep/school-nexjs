@@ -40,7 +40,7 @@ export function useStudentPostSetupStatus(studentId: string, enabled: boolean) {
       if (cancelled) return;
       setLoading(true);
       const res = await api.get<StudentPostSetupStatus>(
-        `${endpoints.admin.student(studentId)}/post-registration-setup`,
+        endpoints.admin.studentPostRegistrationSetup(studentId),
       );
       if (cancelled) return;
 
