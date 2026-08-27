@@ -44,7 +44,10 @@ export function StudentCreateAdditionalGuardianCard({
 }) {
   const t = useT();
   const sourceMode = resolveAdditionalGuardianSourceMode(entry, billingState);
-  const isExistingLinked = entry.kind === 'existing' && entry.guardian_id > 0;
+  const isExistingLinked =
+    entry.kind === 'existing' &&
+    ((typeof entry.guardian_id === 'number' && entry.guardian_id > 0) ||
+      (typeof entry.person_id === 'number' && entry.person_id > 0));
   const isExistingPending = sourceMode === 'existing' && !isExistingLinked;
   const accountPresentation =
     linkedPerson && entry.kind === 'existing'
