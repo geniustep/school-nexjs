@@ -5,7 +5,6 @@ on:
     branches:
       - automation/existing-person-guardian-contract-patch
     paths:
-      - '.github/guardian-contract.patch.part*'
       - '.github/workflows/apply-existing-person-guardian-contract.yml'
 
 permissions:
@@ -26,13 +25,11 @@ jobs:
           ref: automation/existing-person-guardian-contract-patch
           fetch-depth: 0
 
-      - name: Reconstruct and validate patch
+      - name: Apply deterministic source transformation
         shell: bash
         run: |
           set -euo pipefail
-          cat .github/guardian-contract.patch.part* > /tmp/guardian-contract.patch
-          git apply --check /tmp/guardian-contract.patch
-          git apply --whitespace=error-all /tmp/guardian-contract.patch
+          python .github/apply_guardian_contract.py
           git diff --check
 
       - name: Verify exact source scope
@@ -95,6 +92,7 @@ jobs:
             src/features/admin/students/components/student-create-additional-guardian-card.tsx \
             src/features/admin/students/components/student-create-wizard.tsx
           git rm -- \
+            .github/apply_guardian_contract.py \
             .github/guardian-contract.patch.part00 \
             .github/guardian-contract.patch.part01 \
             .github/guardian-contract.patch.part02 \
