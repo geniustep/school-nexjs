@@ -5,7 +5,7 @@ import { useToast } from '@/components/ui/toast';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -30,6 +30,7 @@ import {
 import { FeePlanLinesEditor } from './fee-plan-lines-editor';
 import { FeePlanSummaryCard } from './fee-plan-summary-card';
 import { createEmptyFeePlanFormValues, type FeePlanDrawerMode, type FeePlanFormValues } from './fee-plan-types';
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 import '@/features/admin/finance/finance-ui.css';
 import './fee-plan-ui.css';
 
@@ -49,6 +50,8 @@ export function FeePlanDrawer({
   onOpenCatalog?: () => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
   const toast = useToast();
   const { activeSchoolId, schools, activeAcademicYearId, academicYears } = useAdminSession();
   const activeSchoolName = schools.find((s) => s.id === activeSchoolId)?.name;
@@ -98,10 +101,10 @@ export function FeePlanDrawer({
   }, [open, activeSchoolId, scopeGroups]);
 
   const title = useMemo(() => {
-    if (mode === 'create') return t('admin.finance.feePlansWorkspace.createTitle');
-    if (mode === 'edit') return t('admin.finance.feePlansWorkspace.editTitle');
-    return t('admin.finance.feePlansWorkspace.viewTitle');
-  }, [mode, t]);
+    if (mode === 'create') return copy.createTitle;
+    if (mode === 'edit') return copy.editTitle;
+    return copy.viewTitle;
+  }, [mode, copy]);
 
   function resolveApiErrorMessage(message: string, code?: string): string {
     const mapped = feePlanErrorMessageKey(code);
@@ -194,16 +197,16 @@ export function FeePlanDrawer({
           }}
         >
           <div className="fee-plan-form__content">
-            <p className="muted fee-plan-drawer__desc">{t('admin.finance.feePlansWorkspace.createDesc')}</p>
+            <p className="muted fee-plan-drawer__desc">{copy.createDescription}</p>
             {readOnly && (
               <p className="form-error">{t('admin.finance.feePlansWorkspace.confirmedReadOnly')}</p>
             )}
             {formError && <p className="form-error">{formError}</p>}
             <section className="fee-plan-form__section">
-              <h4>{t('admin.finance.feePlansWorkspace.sectionPlanInfo')}</h4>
+              <h4>{copy.setupInfo}</h4>
               <div className="fee-plan-form__grid">
                 <label>
-                  {t('admin.finance.planName')}
+                  {copy.setupName}
                   <input
                     className="input"
                     required
@@ -216,7 +219,7 @@ export function FeePlanDrawer({
                   )}
                 </label>
                 <label>
-                  {t('admin.finance.feeTypeCode')}
+                  {copy.internalCode}
                   <input
                     className="input"
                     required
@@ -242,7 +245,7 @@ export function FeePlanDrawer({
             </section>
 
             <section className="fee-plan-form__section">
-              <h4>{t('admin.finance.feePlansWorkspace.sectionScope')}</h4>
+              <h4>{copy.scopeTitle}</h4>
               {activeSchoolName && (
                 <p className="muted fee-plan-form__school">
                   {t('admin.finance.feePlansWorkspace.activeSchool')}: <strong>{activeSchoolName}</strong>
@@ -296,7 +299,7 @@ export function FeePlanDrawer({
                   {t('admin.finance.feePlansWorkspace.noFeeTypesHint')}{' '}
                   {onOpenCatalog ? (
                     <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenCatalog}>
-                      {t('admin.finance.feePlansWorkspace.manageFeeTypes')}
+                      {copy.manageServices}
                     </button>
                   ) : null}
                 </p>
@@ -312,7 +315,7 @@ export function FeePlanDrawer({
                 {t('common.cancel')}
               </button>
               <button type="submit" className="btn btn--primary" disabled={submitting}>
-                {submitting ? t('common.saving') : t('admin.finance.feePlansWorkspace.saveDraft')}
+                {submitting ? t('common.saving') : copy.saveTemporarily}
               </button>
               <button
                 type="button"
@@ -325,7 +328,7 @@ export function FeePlanDrawer({
                 }
                 onClick={() => void persist(true)}
               >
-                {submitting ? t('common.saving') : t('admin.finance.feePlansWorkspace.saveAndConfirm')}
+                {submitting ? t('common.saving') : copy.saveAndApply}
               </button>
             </div>
           )}

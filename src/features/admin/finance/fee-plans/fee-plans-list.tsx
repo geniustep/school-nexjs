@@ -6,7 +6,7 @@ import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { refName } from '@/lib/utils/finance';
 import { resolveAcademicYearName } from '@/lib/utils/academic-years';
@@ -19,6 +19,7 @@ import {
   resolveFeePlanListState,
   resolveFeePlanListUsageCount,
 } from './fee-plans-list-present';
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 
 export function FeePlansList({
   rows,
@@ -40,6 +41,8 @@ export function FeePlansList({
   onReload: () => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
   const { options: yearOptions } = useAcademicYearOptions(null);
 
   const academicYearLabel = useCallback(
@@ -66,7 +69,7 @@ export function FeePlansList({
     () => [
       {
         key: 'name',
-        header: t('admin.finance.planName'),
+        header: copy.listSetup,
         render: (row) => (
           <button type="button" className="fee-plans-list__name-link" onClick={() => onView(row)}>
             <strong dir="auto">{row.name}</strong>
@@ -96,7 +99,7 @@ export function FeePlansList({
       },
       {
         key: 'lines',
-        header: t('admin.finance.feePlansWorkspace.lineCount'),
+        header: copy.listItems,
         render: (row) => (
           <span className="fee-plans-list__line-count" dir="ltr">
             {feePlanLineCount(row)}
@@ -118,7 +121,7 @@ export function FeePlansList({
       },
       {
         key: 'total',
-        header: t('admin.finance.feePlansWorkspace.planTotal'),
+        header: copy.listTotal,
         render: (row) => <FinanceMoney amount={row.total_amount} currency={row.currency} />,
       },
       {
@@ -145,8 +148,8 @@ export function FeePlansList({
               ) : null}
               {canConfirmRow ? (
                 <ConfirmActionButton
-                  label={t('admin.finance.confirmPlan')}
-                  confirmMessage={t('admin.finance.confirmPlanMessage')}
+                  label={copy.confirm}
+                  confirmMessage={copy.confirmMessage}
                   path={endpoints.admin.financeFeePlanConfirm(row.id)}
                   onSuccess={onReload}
                 />
@@ -165,7 +168,7 @@ export function FeePlansList({
         },
       },
     ],
-    [t, canManage, scopeGroups, scopeLabels, onView, onEdit, onReload, academicYearLabel],
+    [t, copy, canManage, scopeGroups, scopeLabels, onView, onEdit, onReload, academicYearLabel],
   );
 
   return (
@@ -198,7 +201,7 @@ export function FeePlansList({
                   <dd dir="auto">{academicYearLabel(row)}</dd>
                 </div>
                 <div className="fee-plan-card__stat">
-                  <dt>{t('admin.finance.feePlansWorkspace.lineCount')}</dt>
+                  <dt>{copy.listItems}</dt>
                   <dd dir="ltr">{feePlanLineCount(row)}</dd>
                 </div>
                 <div className="fee-plan-card__stat">
@@ -217,7 +220,7 @@ export function FeePlansList({
                   </div>
                 ) : null}
                 <div className="fee-plan-card__total">
-                  <dt>{t('admin.finance.feePlansWorkspace.planTotal')}</dt>
+                  <dt>{copy.listTotal}</dt>
                   <dd>
                     <FinanceMoney amount={row.total_amount} currency={row.currency} />
                   </dd>

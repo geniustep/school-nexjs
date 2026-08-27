@@ -3,11 +3,12 @@
 import { useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { feeTypeFrequencyLabel } from '@/features/admin/finance/fee-types/fee-type-labels';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { FeeType } from '@/types/finance';
 import { FeePlanLineDialog } from './fee-plan-line-dialog';
 import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { newDraftLine, type DraftFeePlanLine } from './fee-plan-types';
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 
 let lineCounter = 0;
 
@@ -36,6 +37,8 @@ export function FeePlanLinesEditor({
   error?: string | null;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
   const [dialogLine, setDialogLine] = useState<DraftFeePlanLine | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -77,14 +80,14 @@ export function FeePlanLinesEditor({
   return (
     <section className="fee-plan-lines-editor">
       <div className="fee-plan-lines-editor__head">
-        <h4>{t('admin.finance.feePlansWorkspace.planLinesTitle')}</h4>
+        <h4>{copy.itemsTitle}</h4>
         <button type="button" className="btn btn--primary btn--sm" onClick={openCreate}>
-          {t('admin.finance.feePlansWorkspace.addLine')}
+          {copy.addItem}
         </button>
       </div>
       {error && <p className="form-error">{error}</p>}
       {lines.length === 0 ? (
-        <p className="muted">{t('admin.finance.feePlansWorkspace.noLinesYet')}</p>
+        <p className="muted">{copy.noItems}</p>
       ) : (
         <ul className="fee-plan-lines-editor__list">
           {lines.map((line) => {

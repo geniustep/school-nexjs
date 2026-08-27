@@ -1,12 +1,11 @@
 'use client';
 
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import type { FeePlan } from '@/types/finance';
 import type { ListParams } from '@/types/api';
-
-const KPI_STATES = ['', 'confirmed', 'draft', 'archived'] as const;
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 
 function useFeePlanCount(params?: ListParams) {
   const state = useGlobalAcademicYearResource<FeePlan[]>(endpoints.admin.financeFeePlans, {
@@ -28,6 +27,8 @@ export function FeePlansMetrics({
   onStateFilterChange: (state: string) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
   const total = useFeePlanCount();
   const confirmed = useFeePlanCount({ state: 'confirmed' });
   const draft = useFeePlanCount({ state: 'draft' });
@@ -37,7 +38,7 @@ export function FeePlansMetrics({
     {
       key: 'total',
       state: '',
-      label: t('admin.finance.feePlansWorkspace.metrics.total'),
+      label: copy.metrics.total,
       value: total.count,
       loading: total.loading,
       modifier: '',
@@ -45,7 +46,7 @@ export function FeePlansMetrics({
     {
       key: 'confirmed',
       state: 'confirmed',
-      label: t('admin.finance.feePlansWorkspace.metrics.confirmed'),
+      label: copy.metrics.confirmed,
       value: confirmed.count,
       loading: confirmed.loading,
       modifier: 'fee-plans-workspace__kpi--confirmed',
@@ -53,7 +54,7 @@ export function FeePlansMetrics({
     {
       key: 'draft',
       state: 'draft',
-      label: t('admin.finance.feePlansWorkspace.metrics.draft'),
+      label: copy.metrics.draft,
       value: draft.count,
       loading: draft.loading,
       modifier: 'fee-plans-workspace__kpi--draft',
@@ -61,7 +62,7 @@ export function FeePlansMetrics({
     {
       key: 'archived',
       state: 'archived',
-      label: t('admin.finance.feePlansWorkspace.metrics.archived'),
+      label: copy.metrics.archived,
       value: archived.count,
       loading: archived.loading,
       modifier: 'fee-plans-workspace__kpi--archived',
