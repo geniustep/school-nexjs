@@ -280,8 +280,10 @@ export type StudentCreateGuardianSourceMode = 'new' | 'existing';
 export interface StudentCreateExistingGuardianEntry {
   kind: 'existing';
   entryKey: string;
-  /** Canonical school.parent id — never partner_id */
-  guardian_id: number;
+  /** Canonical school.parent id when a guardian profile already exists. */
+  guardian_id?: number;
+  /** Canonical res.partner id for an existing person that is not yet school.parent. */
+  person_id?: number;
   displayName: string;
   relationship_type: RelationshipType;
   is_primary_contact: boolean;
@@ -312,6 +314,8 @@ export interface StudentCreateBillingFormState {
   guardianSourceMode: StudentCreateGuardianSourceMode;
   /** Canonical school.parent id selected from search — not partner_id */
   linkedGuardianId: number | null;
+  /** Canonical res.partner id selected from unified person search. */
+  linkedGuardianPersonId: number | null;
   /** Required when more than one guardian entry is submitted */
   billingGuardianEntryKey: string | null;
   /** Additional guardians beyond the primary wizard slot */

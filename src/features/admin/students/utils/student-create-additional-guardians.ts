@@ -35,7 +35,11 @@ function trim(value: string | undefined | null): string {
 
 export function isCompleteStudentCreateGuardianEntry(entry: StudentCreateGuardianEntry): boolean {
   if (entry.kind === 'existing') {
-    return entry.guardian_id > 0 && trim(entry.displayName).length > 0;
+    return (
+      ((typeof entry.guardian_id === 'number' && entry.guardian_id > 0) ||
+        (typeof entry.person_id === 'number' && entry.person_id > 0)) &&
+      trim(entry.displayName).length > 0
+    );
   }
   return trim(entry.full_name).length > 0;
 }
@@ -73,10 +77,12 @@ export function collectExistingGuardianIdsFromWizard(
   const ids: number[] = [];
   const primary = derivePrimaryStudentCreateGuardianEntry(profileState, billingState);
   if (primary?.kind === 'existing') {
-    ids.push(primary.guardian_id);
+    if (typeof primary.guardian_id === 'number' && primary.guardian_id > 0) {
+      ids.push(primary.guardian_id);
+    }
   }
   for (const entry of billingState.guardianEntries) {
-    if (entry.kind === 'existing' && entry.guardian_id > 0) {
+    if (entry.kind === 'existing' && typeof entry.guardian_id === 'number' && entry.guardian_id > 0) {
       ids.push(entry.guardian_id);
     }
   }
@@ -142,6 +148,35 @@ export function entryFromLinkedExistingGuardian(
     kind: 'existing',
     entryKey,
     guardian_id: guardianId,
+    displayName,
+    relationship_type: relationshipType,
+    is_primary_contact: false,
+    phone,
+    email,
+  };
+}
+
+export function entryFromLinkedExistingPerson(
+  entryKey: string,
+  person: Pick<import('@/types/student-360').PersonSearchResult, 'guardian_id' | 'person_id' | 'partner_id'>,
+  displayName: string,
+  relationshipType: RelationshipType,
+  phone?: string,
+  email?: string,
+): StudentCreateGuardianEntry {
+  const guardianId =
+    typeof person.guardian_id === 'number' && person.guardian_id > 0
+      ? person.guardian_id
+      : null;
+  const personId =
+    typeof person.person_id === 'number' && person.person_id > 0
+      ? person.person_id
+      : person.partner_id;
+  return {
+    kind: 'existing',
+    entryKey,
+    ...(guardianId != null ? { guardian_id: guardianId } : {}),
+    ...(typeof personId === 'number' && personId > 0 ? { person_id: personId } : {}),
     displayName,
     relationship_type: relationshipType,
     is_primary_contact: false,

@@ -111,13 +111,14 @@ import {
   applyStudentCreateGuardianAtomicContractToPayload,
   collectStudentCreateGuardianEntries,
   derivePrimaryStudentCreateGuardianEntry,
+  resolvePersonPartnerId,
   resolvePersonSchoolParentId,
   validateStudentCreateGuardianContract,
 } from '../utils/student-create-guardian-payload';
 import {
   collectUsedGuardianIds,
   createEmptyAdditionalGuardianEntry,
-  entryFromLinkedExistingGuardian,
+  entryFromLinkedExistingPerson,
   isCompleteStudentCreateGuardianEntry,
 } from '../utils/student-create-additional-guardians';
 import {
@@ -260,6 +261,7 @@ export function StudentCreateForm({
       ...prev,
       guardianSourceMode: 'existing',
       linkedGuardianId: selection.guardianId,
+      linkedGuardianPersonId: null,
       billingGuardianEntryKey: `existing-${selection.guardianId}`,
     }));
   }, [admissionBanner]);
@@ -512,8 +514,8 @@ export function StudentCreateForm({
 
     if (touchesGuardianContact && !skipGuardianLinkClearRef.current) {
       setBillingState((prev) =>
-        prev.linkedGuardianId != null || prev.billingGuardianEntryKey != null
-          ? { ...prev, linkedGuardianId: null, billingGuardianEntryKey: null }
+        prev.linkedGuardianId != null || prev.linkedGuardianPersonId != null || prev.billingGuardianEntryKey != null
+          ? { ...prev, linkedGuardianId: null, linkedGuardianPersonId: null, billingGuardianEntryKey: null }
           : prev,
       );
       setLinkedGuardianPerson(null);
@@ -591,7 +593,11 @@ export function StudentCreateForm({
     const used = collectUsedGuardianIds(state, billingState);
     if (excludeEntryKey) {
       const excluded = billingState.guardianEntries.find((entry) => entry.entryKey === excludeEntryKey);
-      if (excluded?.kind === 'existing') {
+      if (
+        excluded?.kind === 'existing' &&
+        typeof excluded.guardian_id === 'number' &&
+        excluded.guardian_id > 0
+      ) {
         used.delete(excluded.guardian_id);
       }
     }
@@ -600,20 +606,23 @@ export function StudentCreateForm({
 
   function handleLinkExistingGuardian(person: PersonSearchResult) {
     const guardianId = resolvePersonSchoolParentId(person);
-    if (guardianId == null) {
+    const personId = resolvePersonPartnerId(person);
+    if (guardianId == null && personId == null) {
       toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
       return;
     }
-    if (guardianIdAlreadyUsedInWizard(guardianId)) {
+    if (guardianId != null && guardianIdAlreadyUsedInWizard(guardianId)) {
       toast.error(t('admin.student360.create.billingResponsibility.errors.duplicateGuardianInWizard'));
       return;
     }
+    const entryKey = guardianId != null ? `existing-${guardianId}` : `person-${personId}`;
     skipGuardianLinkClearRef.current = true;
     setBillingState((prev) => ({
       ...prev,
       guardianSourceMode: 'existing',
       linkedGuardianId: guardianId,
-      billingGuardianEntryKey: `existing-${guardianId}`,
+      linkedGuardianPersonId: personId,
+      billingGuardianEntryKey: entryKey,
     }));
     setLinkedGuardianPerson(person);
     patch(
@@ -630,6 +639,7 @@ export function StudentCreateForm({
     setBillingState((prev) => ({
       ...prev,
       linkedGuardianId: null,
+      linkedGuardianPersonId: null,
       billingGuardianEntryKey: null,
     }));
     setLinkedGuardianPerson(null);
@@ -652,6 +662,7 @@ export function StudentCreateForm({
       ...prev,
       guardianSourceMode: mode,
       linkedGuardianId: null,
+      linkedGuardianPersonId: null,
       billingGuardianEntryKey: null,
     }));
   }
@@ -748,11 +759,12 @@ export function StudentCreateForm({
 
   function handleLinkAdditionalGuardian(entryKey: string, person: PersonSearchResult) {
     const guardianId = resolvePersonSchoolParentId(person);
-    if (guardianId == null) {
+    const personId = resolvePersonPartnerId(person);
+    if (guardianId == null && personId == null) {
       toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
       return;
     }
-    if (guardianIdAlreadyUsedInWizard(guardianId, entryKey)) {
+    if (guardianId != null && guardianIdAlreadyUsedInWizard(guardianId, entryKey)) {
       toast.error(t('admin.student360.create.billingResponsibility.errors.duplicateGuardianInWizard'));
       return;
     }
@@ -764,9 +776,9 @@ export function StudentCreateForm({
         ...prev,
         guardianEntries: prev.guardianEntries.map((item) =>
           item.entryKey === entryKey
-            ? entryFromLinkedExistingGuardian(
+            ? entryFromLinkedExistingPerson(
                 entryKey,
-                guardianId,
+                person,
                 person.name,
                 entry.relationship_type,
                 person.phone ?? undefined,
@@ -1776,7 +1788,8 @@ export function StudentCreateForm({
           admissionGuardianSnapshot={admissionBanner?.guardianPrefillText ?? null}
           admissionSelectionRequired={
             Boolean(admissionBanner?.guardianSelection.selectionRequired) &&
-            billingState.linkedGuardianId == null
+            billingState.linkedGuardianId == null &&
+            billingState.linkedGuardianPersonId == null
           }
           allowCreateNewGuardian={journeyCapabilities.canCreateNewGuardian}
           canManageBillingProfile={journeyCapabilities.canManageBillingProfile}
