@@ -17,7 +17,17 @@
   inline-size: 100%;
   block-size: 0.55rem;
   margin-block: 0.85rem;
-  accent-color: currentColor;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.student-post-setup-progress__bar-fill {
+  block-size: 100%;
+  min-inline-size: 0;
+  border-radius: inherit;
+  background: currentColor;
+  transition: inline-size 420ms ease;
 }
 
 .student-post-setup-progress__steps {
@@ -39,6 +49,12 @@
 
 .student-post-setup-progress__step > span:first-child {
   min-inline-size: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-post-setup-progress__bar-fill {
+    transition: none;
+  }
 }
 
 @media (max-width: 760px) {
