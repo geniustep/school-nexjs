@@ -16,6 +16,12 @@ export type StudentQuickCreateValidation =
   | { valid: true; firstName: string; lastName: string; firstNameLatin: string; lastNameLatin: string; levelId: number; schoolId: number; academicYearId: number }
   | { valid: false; error: 'name_ar' | 'name_latin' | 'cycle' | 'level' | 'context' };
 
+export type StudentQuickRegistrationPayload = StudentCreatePayload & {
+  quick_registration: {
+    enabled: true;
+  };
+};
+
 export function validateStudentQuickCreateInput(input: StudentQuickCreateInput): StudentQuickCreateValidation {
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
@@ -39,11 +45,11 @@ export function buildStudentQuickCreateSuccessHref(studentId: number): string {
   return `/admin/students/${studentId}?postSetup=1`;
 }
 
-/** Smallest supported POST /admin/students payload with a level but no class assignment. */
+/** Smallest supported quick-registration payload: Student + Enrollment core, no class in request. */
 export function buildStudentQuickCreatePayload(
   input: Extract<StudentQuickCreateValidation, { valid: true }>,
   enrollmentDate = todayIsoDate(),
-): StudentCreatePayload {
+): StudentQuickRegistrationPayload {
   return {
     first_name: input.firstName,
     last_name: input.lastName,
@@ -59,5 +65,6 @@ export function buildStudentQuickCreatePayload(
       level_id: input.levelId,
       enrollment_date: enrollmentDate,
     },
+    quick_registration: { enabled: true },
   };
 }
