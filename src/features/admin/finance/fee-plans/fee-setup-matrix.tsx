@@ -23,67 +23,75 @@ function matrixClientId(prefix: string) {
 const LABELS = {
   ar: {
     title: 'الرسوم الأساسية حسب المستوى',
-    hint: 'أدخل رسم التسجيل والواجب الشهري مباشرة. يمكنك تطبيق نفس القيمة على كل المستويات ثم تعديل مستوى واحد فقط عند الحاجة.',
+    hint: 'التسجيل رسم لمرة واحدة، أما الواجب الشهري فيُحسب حسب عدد أشهر الأداء.',
     months: 'عدد أشهر الأداء',
-    monthsHint: 'يُستعمل للواجب الشهري فقط. لا يفترض رقيم عدد الأشهر تلقائيًا.',
+    monthsHint: 'خاص بالواجب الشهري فقط.',
     bulkRegistration: 'التسجيل للجميع',
+    registrationOnce: 'مرة واحدة',
     bulkMonthly: 'الواجب الشهري للجميع',
+    monthlyPerMonth: 'لكل شهر',
     applyAll: 'تطبيق على الجميع',
     level: 'المستوى',
     registration: 'التسجيل',
     monthly: 'الواجب الشهري',
     amountPlaceholder: '0',
     selectLevels: 'اختر مستوى واحدًا على الأقل لعرض جدول الرسوم.',
-    missingCore: 'تعذر تحديد رسم التسجيل أو الواجب الشهري من كتالوج الخدمات بأمان. راجع «الخدمات والرسوم» أولًا؛ لن يخمّن رقيم نوع الرسم.',
-    monthsRequired: 'حدّد عدد أشهر الأداء أولًا لإدخال الواجب الشهري.',
+    missingCore: 'تعذر ربط التسجيل أو التمدرس بكتالوج الخدمات بأمان. راجع «الخدمات» أولًا.',
+    monthsRequired: 'حدّد عدد أشهر الأداء للواجب الشهري.',
   },
   fr: {
     title: 'Frais de base par niveau',
-    hint: "Saisissez directement l’inscription et la mensualité. Appliquez une valeur à tous les niveaux puis ajustez un niveau si nécessaire.",
+    hint: "L’inscription est facturée une seule fois ; la mensualité dépend du nombre de mois facturés.",
     months: 'Nombre de mois facturés',
-    monthsHint: "Utilisé uniquement pour la mensualité. Raqeem ne suppose pas automatiquement le nombre de mois.",
+    monthsHint: 'Concerne uniquement la mensualité.',
     bulkRegistration: 'Inscription pour tous',
+    registrationOnce: 'Une seule fois',
     bulkMonthly: 'Mensualité pour tous',
+    monthlyPerMonth: 'Par mois',
     applyAll: 'Appliquer à tous',
     level: 'Niveau',
     registration: 'Inscription',
     monthly: 'Mensualité',
     amountPlaceholder: '0',
     selectLevels: 'Sélectionnez au moins un niveau pour afficher le tableau des frais.',
-    missingCore: "Impossible d’identifier sans ambiguïté l’inscription ou la mensualité dans le catalogue. Vérifiez d’abord « Services et frais ».",
-    monthsRequired: 'Indiquez d’abord le nombre de mois facturés.',
+    missingCore: "Impossible de relier l’inscription ou la scolarité au catalogue Services en toute sécurité.",
+    monthsRequired: 'Indiquez le nombre de mois pour la mensualité.',
   },
   en: {
     title: 'Core fees by level',
-    hint: 'Enter registration and monthly tuition directly. Apply one value to all levels, then adjust a single level when needed.',
+    hint: 'Registration is charged once; monthly tuition uses the number of billing months.',
     months: 'Billing months',
-    monthsHint: 'Used for monthly tuition only. Raqeem does not assume the number of months.',
+    monthsHint: 'Applies to monthly tuition only.',
     bulkRegistration: 'Registration for all',
+    registrationOnce: 'One time',
     bulkMonthly: 'Monthly tuition for all',
+    monthlyPerMonth: 'Per month',
     applyAll: 'Apply to all',
     level: 'Level',
     registration: 'Registration',
     monthly: 'Monthly tuition',
     amountPlaceholder: '0',
     selectLevels: 'Select at least one level to display the fee table.',
-    missingCore: 'Registration or monthly tuition could not be identified safely from the catalog. Review Services and fees first.',
-    monthsRequired: 'Set the number of billing months before entering monthly tuition.',
+    missingCore: 'Registration or tuition could not be mapped safely to the Services catalog.',
+    monthsRequired: 'Set the billing months for monthly tuition.',
   },
   es: {
     title: 'Cuotas base por nivel',
-    hint: 'Introduce matrícula y mensualidad directamente. Aplica un valor a todos los niveles y ajusta uno cuando sea necesario.',
+    hint: 'La matrícula se cobra una vez; la mensualidad usa el número de meses de cobro.',
     months: 'Meses de cobro',
-    monthsHint: 'Se usa solo para la mensualidad. Raqeem no supone automáticamente el número de meses.',
+    monthsHint: 'Solo se aplica a la mensualidad.',
     bulkRegistration: 'Matrícula para todos',
+    registrationOnce: 'Una vez',
     bulkMonthly: 'Mensualidad para todos',
+    monthlyPerMonth: 'Por mes',
     applyAll: 'Aplicar a todos',
     level: 'Nivel',
     registration: 'Matrícula',
     monthly: 'Mensualidad',
     amountPlaceholder: '0',
     selectLevels: 'Selecciona al menos un nivel para mostrar la tabla de cuotas.',
-    missingCore: 'No se pudo identificar con seguridad la matrícula o la mensualidad. Revisa primero Servicios y cuotas.',
-    monthsRequired: 'Indica primero el número de meses de cobro.',
+    missingCore: 'No se pudo vincular de forma segura matrícula o escolaridad con el catálogo Servicios.',
+    monthsRequired: 'Indica los meses de cobro para la mensualidad.',
   },
 } as const;
 
@@ -133,18 +141,7 @@ export function FeeSetupMatrix({
     }
   }, [months, core.monthlyTuition, lines, planLevelIds]);
 
-  function handleMonthsChange(raw: string) {
-    // This is UI input only until a monthly amount is created or edited.
-    // Existing installment schedules remain untouched merely by changing the field.
-    setMonths(raw);
-  }
-
-  function updateLevel(
-    feeType: FeeType,
-    levelId: number,
-    raw: string,
-    installmentCount: number,
-  ) {
+  function updateLevel(feeType: FeeType, levelId: number, raw: string, installmentCount: number) {
     onChange(
       setFeeForLevel({
         lines,
@@ -162,7 +159,7 @@ export function FeeSetupMatrix({
     let next = lines;
     const registrationAmount = numberValue(bulkRegistration);
     const monthlyAmount = numberValue(bulkMonthly);
-    const monthCount = Math.max(1, Number(months) || 0);
+    const monthCount = Number(months) > 0 ? Math.floor(Number(months)) : 0;
 
     if (core.registration && bulkRegistration.trim()) {
       next = applyFeeToAllPlanLevels({
@@ -187,15 +184,12 @@ export function FeeSetupMatrix({
     onChange(next);
   }
 
-  if (planLevelIds.length === 0) {
-    return <p className="muted">{labels.selectLevels}</p>;
-  }
-
+  if (planLevelIds.length === 0) return <p className="muted">{labels.selectLevels}</p>;
   if (!core.registration || !core.monthlyTuition) {
     return <p className="fee-setup-matrix__warning">{labels.missingCore}</p>;
   }
 
-  const monthCount = Math.max(1, Number(months) || 0);
+  const monthCount = Number(months) > 0 ? Math.floor(Number(months)) : 0;
   const monthlyEnabled = monthCount > 0;
 
   return (
@@ -205,25 +199,15 @@ export function FeeSetupMatrix({
           <h4>{labels.title}</h4>
           <p className="muted">{labels.hint}</p>
         </div>
-        <label className="fee-setup-matrix__months">
-          <span>{labels.months}</span>
-          <input
-            className="input"
-            type="number"
-            min="1"
-            step="1"
-            value={months}
-            disabled={readOnly}
-            onChange={(event) => handleMonthsChange(event.target.value)}
-          />
-          <span className="tiny muted">{labels.monthsHint}</span>
-        </label>
       </div>
 
       {!readOnly ? (
         <div className="card fee-setup-matrix__bulk">
-          <label>
-            <span>{labels.bulkRegistration}</span>
+          <div className="fee-setup-matrix__fee-block">
+            <div className="fee-setup-matrix__fee-block-title">
+              <strong>{labels.bulkRegistration}</strong>
+              <span className="badge badge--slate">{labels.registrationOnce}</span>
+            </div>
             <input
               className="input"
               type="number"
@@ -233,25 +217,44 @@ export function FeeSetupMatrix({
               placeholder={labels.amountPlaceholder}
               onChange={(event) => setBulkRegistration(event.target.value)}
             />
-          </label>
-          <label>
-            <span>{labels.bulkMonthly}</span>
-            <input
-              className="input"
-              type="number"
-              min="0"
-              step="0.01"
-              value={bulkMonthly}
-              placeholder={labels.amountPlaceholder}
-              disabled={!monthlyEnabled}
-              title={!monthlyEnabled ? labels.monthsRequired : undefined}
-              onChange={(event) => setBulkMonthly(event.target.value)}
-            />
-          </label>
+          </div>
+
+          <div className="fee-setup-matrix__fee-block">
+            <div className="fee-setup-matrix__fee-block-title">
+              <strong>{labels.bulkMonthly}</strong>
+              <span className="badge badge--slate">{labels.monthlyPerMonth}</span>
+            </div>
+            <div className="fee-setup-matrix__monthly-controls">
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={bulkMonthly}
+                placeholder={labels.amountPlaceholder}
+                disabled={!monthlyEnabled}
+                title={!monthlyEnabled ? labels.monthsRequired : undefined}
+                onChange={(event) => setBulkMonthly(event.target.value)}
+              />
+              <label className="fee-setup-matrix__months">
+                <span>{labels.months}</span>
+                <input
+                  className="input"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={months}
+                  onChange={(event) => setMonths(event.target.value)}
+                />
+              </label>
+            </div>
+            <span className="tiny muted">{labels.monthsHint}</span>
+          </div>
+
           <button
             type="button"
             className="btn btn--primary btn--sm"
-            disabled={!bulkRegistration.trim() && !bulkMonthly.trim()}
+            disabled={!bulkRegistration.trim() && (!bulkMonthly.trim() || !monthlyEnabled)}
             onClick={applyBulk}
           >
             {labels.applyAll}
@@ -259,40 +262,32 @@ export function FeeSetupMatrix({
         </div>
       ) : null}
 
-      {!monthlyEnabled ? <p className="tiny muted">{labels.monthsRequired}</p> : null}
+      {!monthlyEnabled && !readOnly ? <p className="tiny muted">{labels.monthsRequired}</p> : null}
 
       <div className="fee-setup-matrix__table-wrap">
         <table className="fee-setup-matrix__table">
           <thead>
             <tr>
               <th>{labels.level}</th>
-              <th>{labels.registration}</th>
-              <th>{labels.monthly}</th>
+              <th>{labels.registration} · {labels.registrationOnce}</th>
+              <th>
+                {labels.monthly}
+                {monthCount > 0 ? ` × ${monthCount}` : ''}
+              </th>
             </tr>
           </thead>
           <tbody>
             {selectedGroups.map((group) => (
               <FragmentGroup key={group.cycle.id} name={group.cycle.name}>
                 {group.levels.map((level) => {
-                  const registrationAmount = feeAmountForLevel(
-                    lines,
-                    core.registration!.id,
-                    level.schoolLevelId,
-                    planLevelIds,
-                  );
-                  const monthlyAmount = feeAmountForLevel(
+                  const registrationAmount = feeAmountForLevel(lines, core.registration!.id, level.schoolLevelId, planLevelIds);
+                  const monthlyAmount = feeAmountForLevel(lines, core.monthlyTuition!.id, level.schoolLevelId, planLevelIds);
+                  const rowMonths = feeInstallmentCountForLevel(
                     lines,
                     core.monthlyTuition!.id,
                     level.schoolLevelId,
                     planLevelIds,
-                  );
-                  const rowMonths =
-                    feeInstallmentCountForLevel(
-                      lines,
-                      core.monthlyTuition!.id,
-                      level.schoolLevelId,
-                      planLevelIds,
-                    ) ?? monthCount;
+                  ) ?? monthCount;
                   return (
                     <tr key={level.schoolLevelId}>
                       <td className="fee-setup-matrix__level">{level.name}</td>
@@ -305,9 +300,7 @@ export function FeeSetupMatrix({
                           disabled={readOnly}
                           value={registrationAmount ?? ''}
                           placeholder={labels.amountPlaceholder}
-                          onChange={(event) =>
-                            updateLevel(core.registration!, level.schoolLevelId, event.target.value, 1)
-                          }
+                          onChange={(event) => updateLevel(core.registration!, level.schoolLevelId, event.target.value, 1)}
                         />
                       </td>
                       <td>
@@ -342,13 +335,7 @@ export function FeeSetupMatrix({
   );
 }
 
-function FragmentGroup({
-  name,
-  children,
-}: {
-  name: string;
-  children: React.ReactNode;
-}) {
+function FragmentGroup({ name, children }: { name: string; children: React.ReactNode }) {
   return (
     <>
       <tr className="fee-setup-matrix__cycle-row">

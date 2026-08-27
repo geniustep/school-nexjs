@@ -31,6 +31,7 @@ import { FeePlanLinesEditor } from './fee-plan-lines-editor';
 import { FeePlanSummaryCard } from './fee-plan-summary-card';
 import { createEmptyFeePlanFormValues, type FeePlanDrawerMode, type FeePlanFormValues } from './fee-plan-types';
 import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
+import { useFinanceServiceCatalogOptions } from './use-finance-service-catalog';
 import '@/features/admin/finance/finance-ui.css';
 import './fee-plan-ui.css';
 
@@ -70,6 +71,7 @@ export function FeePlanDrawer({
     open && mode !== 'create' && planId ? endpoints.admin.financeFeePlan(planId) : null,
   );
   const { feeTypes, loading: typesLoading, reload: reloadFeeTypes } = useFeeTypeOptions();
+  const { services, loading: servicesLoading } = useFinanceServiceCatalogOptions(open);
   const levelOptionsState = useLevelOptions(open, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
@@ -241,9 +243,7 @@ export function FeePlanDrawer({
                     onChange={(levelIds) => patchValues({ levelIds })}
                     disabled={readOnly}
                     loading={levelOptionsState.loading}
-                    error={
-                      fieldErrors?.field === 'levelIds' ? t(fieldErrors.messageKey) : null
-                    }
+                    error={fieldErrors?.field === 'levelIds' ? t(fieldErrors.messageKey) : null}
                   />
                 </label>
               </div>
@@ -265,6 +265,7 @@ export function FeePlanDrawer({
               <FeePlanLinesEditor
                 lines={values.lines}
                 feeTypes={feeTypes}
+                services={services}
                 planLevelIds={values.levelIds}
                 scopeGroups={scopeGroups}
                 currency={plan?.currency}
@@ -273,8 +274,8 @@ export function FeePlanDrawer({
                 error={fieldErrors?.field === 'lines' ? t(fieldErrors.messageKey) : null}
                 readOnly={readOnly}
               />
-              {typesLoading && <p className="muted">{t('common.loading')}</p>}
-              {!typesLoading && feeTypes.length === 0 && (
+              {(typesLoading || servicesLoading) && <p className="muted">{t('common.loading')}</p>}
+              {!typesLoading && !servicesLoading && (feeTypes.length === 0 || services.length === 0) && (
                 <p className="muted">
                   {t('admin.finance.feePlansWorkspace.noFeeTypesHint')}{' '}
                   {onOpenCatalog ? (
@@ -301,11 +302,7 @@ export function FeePlanDrawer({
                 type="button"
                 className="btn btn--primary"
                 disabled={submitting || !hasLevelScope}
-                title={
-                  !hasLevelScope
-                    ? t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired')
-                    : undefined
-                }
+                title={!hasLevelScope ? t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired') : undefined}
                 onClick={() => void persist(true)}
               >
                 {submitting ? t('common.saving') : copy.saveAndApply}

@@ -5,11 +5,13 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { feeTypeFrequencyLabel } from '@/features/admin/finance/fee-types/fee-type-labels';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { FeeType } from '@/types/finance';
+import type { FinanceServiceCatalogItem } from '@/features/admin/student-finance/types';
 import { FeePlanLineDialog } from './fee-plan-line-dialog';
 import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { newDraftLine, type DraftFeePlanLine } from './fee-plan-types';
 import { resolveFeeSetupCoreTypes } from './fee-setup-matrix-utils';
 import { FeeSetupMatrix } from './fee-setup-matrix';
+import { feeTypesBackedByServiceCatalog } from './fee-service-catalog-adapter';
 
 let lineCounter = 0;
 
@@ -21,6 +23,7 @@ function nextClientId() {
 export function FeePlanLinesEditor({
   lines,
   feeTypes,
+  services,
   planLevelIds,
   scopeGroups,
   currency,
@@ -31,6 +34,7 @@ export function FeePlanLinesEditor({
 }: {
   lines: DraftFeePlanLine[];
   feeTypes: FeeType[];
+  services: FinanceServiceCatalogItem[];
   planLevelIds: number[];
   scopeGroups: FeePlanScopeCycleGroup[];
   currency?: string | null;
@@ -44,7 +48,11 @@ export function FeePlanLinesEditor({
   const [dialogLine, setDialogLine] = useState<DraftFeePlanLine | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const core = useMemo(() => resolveFeeSetupCoreTypes(feeTypes), [feeTypes]);
+  const catalogFeeTypes = useMemo(
+    () => feeTypesBackedByServiceCatalog(services, feeTypes),
+    [services, feeTypes],
+  );
+  const core = useMemo(() => resolveFeeSetupCoreTypes(catalogFeeTypes), [catalogFeeTypes]);
   const hiddenFeeTypeIds = useMemo(
     () => new Set([core.registration?.id, core.monthlyTuition?.id].filter((id): id is number => id != null)),
     [core.registration?.id, core.monthlyTuition?.id],
@@ -54,14 +62,23 @@ export function FeePlanLinesEditor({
     [lines, hiddenFeeTypeIds],
   );
   const serviceFeeTypes = useMemo(
-    () => feeTypes.filter((type) => !hiddenFeeTypeIds.has(type.id)),
-    [feeTypes, hiddenFeeTypeIds],
+    () => catalogFeeTypes.filter((type) => !hiddenFeeTypeIds.has(type.id)),
+    [catalogFeeTypes, hiddenFeeTypeIds],
   );
 
-  const feeTypeMap = useMemo(
-    () => new Map(feeTypes.map((ft) => [ft.id, ft])),
-    [feeTypes],
-  );
+  const feeTypeMap = useMemo(() => {
+    const map = new Map(feeTypes.map((ft) => [ft.id, ft]));
+    for (const ft of catalogFeeTypes) map.set(ft.id, ft);
+    return map;
+  }, [feeTypes, catalogFeeTypes]);
+
+  const dialogFeeTypes = useMemo(() => {
+    if (!dialogLine?.feeTypeId || serviceFeeTypes.some((type) => type.id === dialogLine.feeTypeId)) {
+      return serviceFeeTypes;
+    }
+    const existing = feeTypeMap.get(dialogLine.feeTypeId);
+    return existing ? [...serviceFeeTypes, existing] : serviceFeeTypes;
+  }, [dialogLine?.feeTypeId, serviceFeeTypes, feeTypeMap]);
 
   const servicesTitle =
     locale === 'ar'
@@ -87,6 +104,14 @@ export function FeePlanLinesEditor({
         : locale === 'es'
           ? 'Aún no hay servicios adicionales.'
           : 'No additional services yet.';
+  const catalogHint =
+    locale === 'ar'
+      ? 'تأتي قائمة الخدمات من «الخدمات»؛ أما السعر فيُحدد هنا حسب السنة والمستوى.'
+      : locale === 'fr'
+        ? 'La liste provient de « Services » ; le prix est défini ici par année et niveau.'
+        : locale === 'es'
+          ? 'La lista procede de « Servicios »; el precio se define aquí por año y nivel.'
+          : 'The list comes from Services; the price is set here by year and level.';
 
   function openCreate() {
     setDialogLine(newDraftLine(nextClientId()));
@@ -122,7 +147,7 @@ export function FeePlanLinesEditor({
     <div className="fee-plan-lines-editor">
       <FeeSetupMatrix
         lines={lines}
-        feeTypes={feeTypes}
+        feeTypes={catalogFeeTypes}
         planLevelIds={planLevelIds}
         scopeGroups={scopeGroups}
         readOnly={readOnly}
@@ -131,9 +156,17 @@ export function FeePlanLinesEditor({
 
       <section className="fee-plan-lines-editor__services">
         <div className="fee-plan-lines-editor__head">
-          <h4>{servicesTitle}</h4>
+          <div>
+            <h4>{servicesTitle}</h4>
+            <p className="tiny muted">{catalogHint}</p>
+          </div>
           {!readOnly ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={openCreate}>
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={openCreate}
+              disabled={serviceFeeTypes.length === 0}
+            >
               {addService}
             </button>
           ) : null}
@@ -189,12 +222,13 @@ export function FeePlanLinesEditor({
         <FeePlanLineDialog
           open={dialogOpen}
           line={dialogLine}
-          feeTypes={serviceFeeTypes}
+          feeTypes={dialogFeeTypes}
           planLevelIds={planLevelIds}
           scopeGroups={scopeGroups}
           onSave={saveLine}
           onClose={() => setDialogOpen(false)}
           onFeeTypeCreated={onFeeTypeCreated}
+          allowFeeTypeCreate={false}
         />
       ) : null}
     </div>
