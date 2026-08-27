@@ -38,7 +38,7 @@ export function useStudentPostSetupStatus(studentId: string, enabled: boolean) {
 
     async function load() {
       if (cancelled) return;
-      setLoading((current) => current || data == null);
+      setLoading(true);
       const res = await api.get<StudentPostSetupStatus>(
         `${endpoints.admin.student(studentId)}/post-registration-setup`,
       );
