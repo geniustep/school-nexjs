@@ -45,39 +45,41 @@ function preferType(candidates: FeeType[], tokens: string[]): FeeType | null {
   return null;
 }
 
+function canonicalCoreFrequency(type: FeeType): 'once' | 'monthly' | null {
+  const code = normalized(type.code);
+  if (code === 'registration' || code === 'reg') return 'once';
+  if (code === 'tuition') return 'monthly';
+  return null;
+}
+
 /**
  * `undefined` means no canonical code exists and a guarded fallback may run.
- * `null` means a canonical code exists but is invalid/ambiguous, so we must not guess.
+ * `null` means the canonical code itself is ambiguous, so we must not guess.
+ *
+ * FeeType.frequency is intentionally NOT validated here: it is a legacy/optional
+ * catalog hint, while recurrence is authoritative on fee-plan lines.
  */
 function resolveCanonicalCode(
   feeTypes: FeeType[],
   codes: string[],
-  frequencyMatches: (frequency: unknown) => boolean,
 ): FeeType | null | undefined {
   const normalizedCodes = new Set(codes.map(normalized));
   const coded = feeTypes.filter((type) => normalizedCodes.has(normalized(type.code)));
   if (coded.length === 0) return undefined;
-
-  const valid = coded.filter((type) => frequencyMatches(type.frequency));
-  if (valid.length === 1) return valid[0];
+  if (coded.length === 1) return coded[0];
   return null;
 }
 
 /**
  * Resolve only the two core school-fee inputs used by the simplified matrix.
- * Canonical codes are authoritative for identity; recurrence is still validated.
- * If canonical codes are unavailable, a unique frequency/name fallback is allowed.
- * Ambiguous catalogs deliberately return null instead of guessing financial semantics.
+ * Canonical codes are authoritative for identity. If canonical codes are absent,
+ * legacy frequency/name hints are used only as a guarded fallback.
  */
 export function resolveFeeSetupCoreTypes(feeTypes: FeeType[]): FeeSetupCoreTypes {
   const active = feeTypes.filter((type) => type.active !== false);
 
-  const registrationByCode = resolveCanonicalCode(
-    active,
-    ['REGISTRATION', 'REG'],
-    isOneTime,
-  );
-  const tuitionByCode = resolveCanonicalCode(active, ['TUITION'], isMonthly);
+  const registrationByCode = resolveCanonicalCode(active, ['REGISTRATION', 'REG']);
+  const tuitionByCode = resolveCanonicalCode(active, ['TUITION']);
 
   const registration =
     registrationByCode !== undefined
@@ -144,8 +146,11 @@ function lineDefaultsForType(
   line: DraftFeePlanLine,
   installmentCount: number,
 ): DraftFeePlanLine {
-  const frequency = isOneTime(feeType.frequency) ? 'once' : normalized(feeType.frequency) || line.frequency;
-  const count = isOneTime(feeType.frequency) ? 1 : Math.max(1, installmentCount);
+  const canonicalFrequency = canonicalCoreFrequency(feeType);
+  const frequency =
+    canonicalFrequency ??
+    (isOneTime(feeType.frequency) ? 'once' : normalized(feeType.frequency) || line.frequency);
+  const count = frequency === 'once' ? 1 : Math.max(1, installmentCount);
   const countChanged = line.installmentCount !== count;
   const explicitScheduleStillFits =
     line.scheduleMode === 'explicit' && line.installmentSchedule.length === count;
