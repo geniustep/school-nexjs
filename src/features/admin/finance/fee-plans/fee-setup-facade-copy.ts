@@ -16,7 +16,6 @@ export type FeeSetupFacadeCopy = {
   itemsTitle: string;
   addItem: string;
   noItems: string;
-  summaryTitle: string;
   saveTemporarily: string;
   saveAndApply: string;
   listSetup: string;
@@ -53,7 +52,6 @@ const COPY: Record<Locale, FeeSetupFacadeCopy> = {
     itemsTitle: 'الرسوم والخدمات',
     addItem: 'إضافة رسم أو خدمة',
     noItems: 'لا توجد رسوم أو خدمات بعد.',
-    summaryTitle: 'ملخص الرسوم',
     saveTemporarily: 'حفظ مؤقتًا',
     saveAndApply: 'حفظ وتطبيق',
     listSetup: 'الإعداد',
@@ -88,7 +86,6 @@ const COPY: Record<Locale, FeeSetupFacadeCopy> = {
     itemsTitle: 'Frais et services',
     addItem: 'Ajouter un frais ou service',
     noItems: 'Aucun frais ou service pour le moment.',
-    summaryTitle: 'Résumé des frais',
     saveTemporarily: 'Enregistrer provisoirement',
     saveAndApply: 'Enregistrer et appliquer',
     listSetup: 'Configuration',
@@ -123,7 +120,6 @@ const COPY: Record<Locale, FeeSetupFacadeCopy> = {
     itemsTitle: 'Fees and services',
     addItem: 'Add fee or service',
     noItems: 'No fees or services yet.',
-    summaryTitle: 'Fee summary',
     saveTemporarily: 'Save for later',
     saveAndApply: 'Save and apply',
     listSetup: 'Setup',
@@ -158,7 +154,6 @@ const COPY: Record<Locale, FeeSetupFacadeCopy> = {
     itemsTitle: 'Cuotas y servicios',
     addItem: 'Añadir cuota o servicio',
     noItems: 'Aún no hay cuotas ni servicios.',
-    summaryTitle: 'Resumen de cuotas',
     saveTemporarily: 'Guardar temporalmente',
     saveAndApply: 'Guardar y aplicar',
     listSetup: 'Configuración',

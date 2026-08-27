@@ -31,14 +31,8 @@ import { FeePlanLinesEditor } from './fee-plan-lines-editor';
 import { FeePlanSummaryCard } from './fee-plan-summary-card';
 import { createEmptyFeePlanFormValues, type FeePlanDrawerMode, type FeePlanFormValues } from './fee-plan-types';
 import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
-import { useFinanceServiceCatalogOptions } from './use-finance-service-catalog';
 import '@/features/admin/finance/finance-ui.css';
 import './fee-plan-ui.css';
-
-function internalSetupCode(academicYearId: string, levelIds: number[]): string {
-  const levels = [...levelIds].sort((a, b) => a - b).join('-');
-  return `FEES-${academicYearId}-${levels}`;
-}
 
 export function FeePlanDrawer({
   open,
@@ -71,7 +65,6 @@ export function FeePlanDrawer({
     open && mode !== 'create' && planId ? endpoints.admin.financeFeePlan(planId) : null,
   );
   const { feeTypes, loading: typesLoading, reload: reloadFeeTypes } = useFeeTypeOptions();
-  const { services, loading: servicesLoading } = useFinanceServiceCatalogOptions(open);
   const levelOptionsState = useLevelOptions(open, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
@@ -121,21 +114,6 @@ export function FeePlanDrawer({
     return message;
   }
 
-  function effectiveFormValues(): FeePlanFormValues {
-    const academicYearId =
-      mode === 'create' && activeAcademicYearId != null
-        ? String(activeAcademicYearId)
-        : values.academicYearId;
-    if (mode !== 'create') return { ...values, academicYearId };
-
-    return {
-      ...values,
-      academicYearId,
-      name: `${copy.workspaceTitle} — ${activeAcademicYearName ?? academicYearId}`,
-      code: internalSetupCode(academicYearId, values.levelIds),
-    };
-  }
-
   async function persist(confirmAfterSave: boolean) {
     if (submitting || readOnly || activeSchoolId == null) return;
     if (confirmAfterSave && !hasLevelScope) {
@@ -143,7 +121,10 @@ export function FeePlanDrawer({
       return;
     }
 
-    const effectiveValues = effectiveFormValues();
+    const effectiveValues =
+      mode === 'create' && activeAcademicYearId != null
+        ? { ...values, academicYearId: String(activeAcademicYearId) }
+        : values;
     const validation = validateFeePlanForm(effectiveValues, { requireLevel: true });
     if (validation) {
       setFieldErrors(validation);
@@ -221,6 +202,47 @@ export function FeePlanDrawer({
               <p className="form-error">{t('admin.finance.feePlansWorkspace.confirmedReadOnly')}</p>
             )}
             {formError && <p className="form-error">{formError}</p>}
+            <section className="fee-plan-form__section">
+              <h4>{copy.setupInfo}</h4>
+              <div className="fee-plan-form__grid">
+                <label>
+                  {copy.setupName}
+                  <input
+                    className="input"
+                    required
+                    disabled={readOnly}
+                    value={values.name}
+                    onChange={(e) => patchValues({ name: e.target.value })}
+                  />
+                  {fieldErrors?.field === 'name' && (
+                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
+                  )}
+                </label>
+                <label>
+                  {copy.internalCode}
+                  <input
+                    className="input"
+                    required
+                    disabled={readOnly}
+                    value={values.code}
+                    onChange={(e) => patchValues({ code: e.target.value })}
+                  />
+                  {fieldErrors?.field === 'code' && (
+                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
+                  )}
+                </label>
+                <label className="fee-plan-form__full">
+                  {t('common.note')}
+                  <textarea
+                    className="input"
+                    rows={2}
+                    disabled={readOnly}
+                    value={values.notes}
+                    onChange={(e) => patchValues({ notes: e.target.value })}
+                  />
+                </label>
+              </div>
+            </section>
 
             <section className="fee-plan-form__section">
               <h4>{copy.scopeTitle}</h4>
@@ -243,14 +265,13 @@ export function FeePlanDrawer({
                     onChange={(levelIds) => patchValues({ levelIds })}
                     disabled={readOnly}
                     loading={levelOptionsState.loading}
-                    error={fieldErrors?.field === 'levelIds' ? t(fieldErrors.messageKey) : null}
+                    error={
+                      fieldErrors?.field === 'levelIds' ? t(fieldErrors.messageKey) : null
+                    }
                   />
                 </label>
               </div>
               {fieldErrors?.field === 'academicYearId' && (
-                <p className="form-error">{t(fieldErrors.messageKey)}</p>
-              )}
-              {(fieldErrors?.field === 'name' || fieldErrors?.field === 'code') && (
                 <p className="form-error">{t(fieldErrors.messageKey)}</p>
               )}
               {scopeGroups.length === 0 && !levelOptionsState.loading && (
@@ -265,17 +286,15 @@ export function FeePlanDrawer({
               <FeePlanLinesEditor
                 lines={values.lines}
                 feeTypes={feeTypes}
-                services={services}
                 planLevelIds={values.levelIds}
                 scopeGroups={scopeGroups}
                 currency={plan?.currency}
                 onChange={(lines) => patchValues({ lines })}
                 onFeeTypeCreated={() => reloadFeeTypes()}
                 error={fieldErrors?.field === 'lines' ? t(fieldErrors.messageKey) : null}
-                readOnly={readOnly}
               />
-              {(typesLoading || servicesLoading) && <p className="muted">{t('common.loading')}</p>}
-              {!typesLoading && !servicesLoading && (feeTypes.length === 0 || services.length === 0) && (
+              {typesLoading && <p className="muted">{t('common.loading')}</p>}
+              {!typesLoading && feeTypes.length === 0 && (
                 <p className="muted">
                   {t('admin.finance.feePlansWorkspace.noFeeTypesHint')}{' '}
                   {onOpenCatalog ? (
@@ -302,7 +321,11 @@ export function FeePlanDrawer({
                 type="button"
                 className="btn btn--primary"
                 disabled={submitting || !hasLevelScope}
-                title={!hasLevelScope ? t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired') : undefined}
+                title={
+                  !hasLevelScope
+                    ? t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired')
+                    : undefined
+                }
                 onClick={() => void persist(true)}
               >
                 {submitting ? t('common.saving') : copy.saveAndApply}
