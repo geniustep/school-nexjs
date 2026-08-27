@@ -32,6 +32,7 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   const [lastName, setLastName] = useState('');
   const [firstNameLatin, setFirstNameLatin] = useState('');
   const [lastNameLatin, setLastNameLatin] = useState('');
+  const [gender, setGender] = useState('');
   const [cycleId, setCycleId] = useState('');
   const [levelId, setLevelId] = useState('');
   const [error, setError] = useState('');
@@ -45,6 +46,7 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     ),
     [activeAcademicYearId, activeSchoolId, optionsState.options?.levels],
   );
+  const genders = optionsState.options?.genders ?? [];
   const referenceLevels = levelOptionsState.options?.reference_levels ?? [];
   const cycles = levelOptionsState.options?.cycles ?? [];
   const cycleOptions = useMemo(
@@ -61,12 +63,13 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   useEffect(() => {
     if (!open) return;
     setFirstName(''); setLastName(''); setFirstNameLatin(''); setLastNameLatin('');
-    setCycleId(''); setLevelId(''); setError('');
+    setGender(''); setCycleId(''); setLevelId(''); setError('');
   }, [open]);
 
-  function validationMessage(code: 'name_ar' | 'name_latin' | 'cycle' | 'level' | 'context'): string {
+  function validationMessage(code: 'name_ar' | 'name_latin' | 'gender' | 'cycle' | 'level' | 'context'): string {
     if (code === 'name_ar') return t('admin.studentsList.quickCreate.nameArRequired');
     if (code === 'name_latin') return t('admin.studentsList.quickCreate.nameLatinRequired');
+    if (code === 'gender') return `${t('admin.studentsList.gender')}: ${t('errors.validationFailed')}`;
     if (code === 'cycle') return t('admin.studentsList.quickCreate.cycleRequired');
     if (code === 'level') return t('admin.studentsList.quickCreate.levelRequired');
     return t('admin.studentsList.quickCreate.contextRequired');
@@ -75,7 +78,7 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   async function handleCreate() {
     if (optionsLoading || optionsFailed) return;
     const validation = validateStudentQuickCreateInput({
-      firstName, lastName, firstNameLatin, lastNameLatin, cycleId, levelId,
+      firstName, lastName, firstNameLatin, lastNameLatin, gender, cycleId, levelId,
       schoolId: activeSchoolId, academicYearId: activeAcademicYearId,
     });
     if (!validation.valid) {
@@ -111,6 +114,7 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
           <label className="field"><span>{t('admin.studentsList.quickCreate.lastNameAr')}</span><input className="input" value={lastName} onChange={(event) => { setLastName(event.target.value); clearError(); }} autoComplete="family-name" disabled={submitting} /></label>
           <label className="field"><span>{t('admin.studentsList.quickCreate.firstNameLatin')}</span><input className="input" dir="ltr" value={firstNameLatin} onChange={(event) => { setFirstNameLatin(event.target.value); clearError(); }} autoComplete="given-name" disabled={submitting} /></label>
           <label className="field"><span>{t('admin.studentsList.quickCreate.lastNameLatin')}</span><input className="input" dir="ltr" value={lastNameLatin} onChange={(event) => { setLastNameLatin(event.target.value); clearError(); }} autoComplete="family-name" disabled={submitting} /></label>
+          <label className="field"><span>{t('admin.studentsList.gender')} *</span><select className="input" value={gender} onChange={(event) => { setGender(event.target.value); clearError(); }} disabled={submitting || optionsLoading || optionsFailed} required><option value="">{t('common.select')}</option>{genders.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
           <label className="field"><span>{t('admin.studentsList.quickCreate.cycle')}</span><select className="input" value={cycleId} onChange={(event) => { setCycleId(event.target.value); setLevelId(''); clearError(); }} disabled={submitting || optionsLoading || optionsFailed}><option value="">{optionsLoading ? t('admin.studentsList.quickCreate.optionsLoading') : t('admin.studentsList.quickCreate.selectCycle')}</option>{cycleOptions.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.name}</option>)}</select></label>
           <label className="field"><span>{t('admin.studentsList.quickCreate.level')}</span><select className="input" value={levelId} onChange={(event) => { setLevelId(event.target.value); clearError(); }} disabled={submitting || optionsLoading || optionsFailed || !cycleId}><option value="">{cycleId ? t('admin.studentsList.quickCreate.selectLevel') : t('admin.studentsList.quickCreate.selectCycleFirst')}</option>{levels.map((level) => <option key={level.id} value={level.id}>{level.display_name ?? level.display_alias ?? level.name}</option>)}</select></label>
         </div>
