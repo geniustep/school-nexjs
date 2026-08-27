@@ -17,17 +17,30 @@ function resolveEntryAccountSource(
   linkedGuardianPersonsByEntryKey: Record<string, PersonSearchResult>,
 ): PersonSearchResult | null {
   if (entry.kind !== 'existing') return null;
+  const personId =
+    typeof entry.person_id === 'number' && entry.person_id > 0
+      ? entry.person_id
+      : null;
+  const guardianId =
+    typeof entry.guardian_id === 'number' && entry.guardian_id > 0
+      ? entry.guardian_id
+      : null;
+  const matchesEntry = (person: PersonSearchResult | null | undefined) => {
+    if (!person) return false;
+    if (guardianId != null && person.guardian_id === guardianId) return true;
+    const candidatePersonId = person.person_id ?? person.partner_id;
+    return personId != null && candidatePersonId === personId;
+  };
   const fromMap = linkedGuardianPersonsByEntryKey[entry.entryKey];
-  if (fromMap && entry.guardian_id === fromMap.guardian_id) {
-    return fromMap;
-  }
-  if (linkedGuardianPerson && entry.guardian_id === linkedGuardianPerson.guardian_id) {
-    return linkedGuardianPerson;
-  }
+  if (matchesEntry(fromMap)) return fromMap;
+  if (matchesEntry(linkedGuardianPerson)) return linkedGuardianPerson;
+  const canonicalPersonId = personId ?? guardianId;
+  if (canonicalPersonId == null) return null;
   return {
-    guardian_id: entry.guardian_id,
-    partner_id: entry.guardian_id,
-    id: entry.guardian_id,
+    guardian_id: guardianId,
+    person_id: personId ?? undefined,
+    partner_id: canonicalPersonId,
+    id: guardianId ?? canonicalPersonId,
     name: entry.displayName,
     has_user_account: false,
     can_link_as_guardian: true,

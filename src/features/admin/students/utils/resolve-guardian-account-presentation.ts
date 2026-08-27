@@ -17,7 +17,7 @@ export interface GuardianAccountPresentation {
 }
 
 export type GuardianAccountPresentationSource =
-  | Pick<GuardianSummary, 'code' | 'account' | 'has_user_account'>
+  | Pick<GuardianSummary, 'code' | 'account' | 'has_user_account' | 'user_id'>
   | null
   | undefined;
 
@@ -89,11 +89,22 @@ export function resolveGuardianAccountPresentation(
   const code = trim(source?.code ?? null);
   const account = readGuardianAccount(source);
   const login = trim(account?.login ?? null);
-  const hasUserAccount =
-    account && 'has_user_account' in account && typeof account.has_user_account === 'boolean'
+  const sourceProvesUser =
+    source?.has_user_account === true ||
+    (typeof source?.user_id === 'number' && source.user_id > 0);
+  const hasUserAccount = sourceProvesUser
+    ? true
+    : account && 'has_user_account' in account && typeof account.has_user_account === 'boolean'
       ? account.has_user_account
       : source?.has_user_account;
-  const status = normalizeGuardianAccountPresentationStatus(readAccountStatus(account, source), {
+  const rawStatus = readAccountStatus(account, source);
+  const normalizedRawStatus = trim(rawStatus)?.toLowerCase() ?? null;
+  const accountStatus =
+    hasUserAccount === true &&
+    (normalizedRawStatus === 'no_account' || normalizedRawStatus === 'not_created')
+      ? null
+      : rawStatus;
+  const status = normalizeGuardianAccountPresentationStatus(accountStatus, {
     hasUserAccount,
   });
 

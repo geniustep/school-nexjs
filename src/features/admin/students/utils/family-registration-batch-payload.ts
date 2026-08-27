@@ -35,6 +35,9 @@ export function buildBatchGuardiansFromEntries(
     if (seen.has(key)) continue;
     seen.add(key);
     if (entry.kind === 'existing') {
+      if (typeof entry.guardian_id !== 'number' || entry.guardian_id <= 0) {
+        throw new Error('batch_registration_existing_guardian_profile_required');
+      }
       out.push({
         client_guardian_key: key,
         guardian_id: entry.guardian_id,

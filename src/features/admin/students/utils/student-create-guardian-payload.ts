@@ -22,18 +22,23 @@ function trim(value: string | undefined | null): string {
   return (value ?? '').trim();
 }
 
-export function resolvePersonSchoolParentId(person: Pick<PersonSearchResult, 'guardian_id' | 'id' | 'partner_id'>): number | null {
+export function resolvePersonSchoolParentId(
+  person: Pick<PersonSearchResult, 'guardian_id' | 'id' | 'partner_id'>,
+): number | null {
   if (typeof person.guardian_id === 'number' && person.guardian_id > 0) {
     return person.guardian_id;
   }
-  if (
-    typeof person.id === 'number' &&
-    person.id > 0 &&
-    person.id !== person.partner_id
-  ) {
-    return person.id;
-  }
   return null;
+}
+
+export function resolvePersonPartnerId(
+  person: Pick<PersonSearchResult, 'person_id' | 'partner_id'>,
+): number | null {
+  const id =
+    typeof person.person_id === 'number' && person.person_id > 0
+      ? person.person_id
+      : person.partner_id;
+  return typeof id === 'number' && id > 0 ? id : null;
 }
 
 export function derivePrimaryStudentCreateGuardianEntry(
@@ -41,12 +46,21 @@ export function derivePrimaryStudentCreateGuardianEntry(
   billingState: StudentCreateBillingFormState,
 ): StudentCreateGuardianEntry | null {
   if (billingState.guardianSourceMode === 'existing') {
-    if (billingState.linkedGuardianId == null) return null;
+    if (billingState.linkedGuardianId == null && billingState.linkedGuardianPersonId == null) return null;
     const displayName = trim(profileState.emergencyContactName);
+    const entryKey =
+      billingState.linkedGuardianId != null
+        ? `existing-${billingState.linkedGuardianId}`
+        : `person-${billingState.linkedGuardianPersonId}`;
     return {
       kind: 'existing',
-      entryKey: `existing-${billingState.linkedGuardianId}`,
-      guardian_id: billingState.linkedGuardianId,
+      entryKey,
+      ...(billingState.linkedGuardianId != null
+        ? { guardian_id: billingState.linkedGuardianId }
+        : {}),
+      ...(billingState.linkedGuardianPersonId != null
+        ? { person_id: billingState.linkedGuardianPersonId }
+        : {}),
       displayName: displayName || '—',
       relationship_type: (trim(profileState.emergencyRelationship) || 'father') as RelationshipType,
       is_primary_contact: true,
@@ -115,8 +129,14 @@ export function buildStudentCreateGuardianRelationships(
     };
 
     if (entry.kind === 'existing') {
+      if (typeof entry.guardian_id === 'number' && entry.guardian_id > 0) {
+        return {
+          guardian_id: entry.guardian_id,
+          ...relationshipFlags,
+        };
+      }
       return {
-        guardian_id: entry.guardian_id,
+        person_id: entry.person_id as number,
         ...relationshipFlags,
       };
     }
@@ -146,7 +166,11 @@ export function buildStudentCreateBillingResponsibilityRequest(
       ? entries.find((entry) => entry.entryKey === billingGuardianEntryKey)
       : undefined;
 
-  if (billingEntry?.kind === 'existing') {
+  if (
+    billingEntry?.kind === 'existing' &&
+    typeof billingEntry.guardian_id === 'number' &&
+    billingEntry.guardian_id > 0
+  ) {
     return {
       mode: 'guardian',
       billing_guardian_id: billingEntry.guardian_id,
@@ -222,6 +246,7 @@ export function validateStudentCreateGuardianContract(
   if (
     billingState.guardianSourceMode === 'existing' &&
     billingState.linkedGuardianId == null &&
+    billingState.linkedGuardianPersonId == null &&
     (options?.requireExistingGuardianSelection ||
       billingState.responsibilitySelection === 'guardian' ||
       hasGuardianIntakeText)

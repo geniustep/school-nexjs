@@ -32,7 +32,14 @@ export function applyResolvedGuardiansToFamilyForm(options: {
     billing = {
       ...billing,
       guardianSourceMode: 'existing',
-      linkedGuardianId: primary.guardian_id,
+      linkedGuardianId:
+        typeof primary.guardian_id === 'number' && primary.guardian_id > 0
+          ? primary.guardian_id
+          : null,
+      linkedGuardianPersonId:
+        typeof primary.person_id === 'number' && primary.person_id > 0
+          ? primary.person_id
+          : null,
     };
     guardianHost = {
       ...guardianHost,
@@ -46,6 +53,7 @@ export function applyResolvedGuardiansToFamilyForm(options: {
       ...billing,
       guardianSourceMode: 'new',
       linkedGuardianId: null,
+      linkedGuardianPersonId: null,
     };
     guardianHost = {
       ...guardianHost,

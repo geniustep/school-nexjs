@@ -107,7 +107,8 @@ export function StudentCreateBillingStep({
   const t = useT();
   const guardianName = intakeValues.guardianName.trim();
   const linkedExisting =
-    billingState.guardianSourceMode === 'existing' && billingState.linkedGuardianId != null;
+    billingState.guardianSourceMode === 'existing' &&
+    (billingState.linkedGuardianId != null || billingState.linkedGuardianPersonId != null);
   const studentMode = billingState.responsibilitySelection === 'student';
   const showGuardianFlow = !studentMode || billingState.addGuardianForStudent;
   const guardianBillingMode = billingState.responsibilitySelection === 'guardian';
