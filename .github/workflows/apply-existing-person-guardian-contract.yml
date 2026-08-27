@@ -29,15 +29,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sed -i 's/if count < 3:/if count < 2:/' .github/apply_guardian_contract.py
-          python .github/apply_guardian_contract.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/apply_guardian_contract.py')
+          source = path.read_text().replace('if count < 3:', 'if count < 2:', 1)
+          exec(compile(source, str(path), 'exec'), {'__name__': '__main__'})
+          PY
           git diff --check
 
       - name: Verify exact source scope
         shell: bash
         run: |
           set -euo pipefail
-          git diff --name-only | sort > /tmp/actual-files
+          { git diff --name-only -- src; git ls-files --others --exclude-standard -- src; } | sort -u > /tmp/actual-files
           cat > /tmp/expected-files <<'EOF'
           src/features/admin/students/components/student-create-additional-guardian-card.tsx
           src/features/admin/students/components/student-create-billing-step.tsx
