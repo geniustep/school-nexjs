@@ -37,6 +37,7 @@ export function FeePlanLineDialog({
   onSave,
   onClose,
   onFeeTypeCreated,
+  allowFeeTypeCreate = true,
 }: {
   open: boolean;
   line: DraftFeePlanLine | null;
@@ -46,6 +47,7 @@ export function FeePlanLineDialog({
   onSave: (line: DraftFeePlanLine) => void;
   onClose: () => void;
   onFeeTypeCreated: (feeType: FeeType) => void;
+  allowFeeTypeCreate?: boolean;
 }) {
   const t = useT();
   const [draft, setDraft] = useState<DraftFeePlanLine | null>(line);
@@ -181,7 +183,7 @@ export function FeePlanLineDialog({
                 value={draft.feeTypeId || ''}
                 onChange={(e) => {
                   const raw = e.target.value;
-                  if (raw === CREATE_NEW_VALUE) {
+                  if (raw === CREATE_NEW_VALUE && allowFeeTypeCreate) {
                     setQuickCreateOpen(true);
                     return;
                   }
@@ -197,7 +199,9 @@ export function FeePlanLineDialog({
                     {ft.name}
                   </option>
                 ))}
-                <option value={CREATE_NEW_VALUE}>{t('admin.finance.feePlansWorkspace.createFeeTypeInline')}</option>
+                {allowFeeTypeCreate ? (
+                  <option value={CREATE_NEW_VALUE}>{t('admin.finance.feePlansWorkspace.createFeeTypeInline')}</option>
+                ) : null}
               </select>
             </label>
             <label>
@@ -412,22 +416,24 @@ export function FeePlanLineDialog({
         onConfirm={handleSave}
         onClose={onClose}
       />
-      <FeeTypeQuickCreateDialog
-        open={quickCreateOpen}
-        onClose={() => setQuickCreateOpen(false)}
-        onCreated={(feeType) => {
-          onFeeTypeCreated(feeType);
-          setDraft((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  feeTypeId: feeType.id,
-                  label: prev.label.trim() ? prev.label : feeType.name,
-                }
-              : prev,
-          );
-        }}
-      />
+      {allowFeeTypeCreate ? (
+        <FeeTypeQuickCreateDialog
+          open={quickCreateOpen}
+          onClose={() => setQuickCreateOpen(false)}
+          onCreated={(feeType) => {
+            onFeeTypeCreated(feeType);
+            setDraft((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    feeTypeId: feeType.id,
+                    label: prev.label.trim() ? prev.label : feeType.name,
+                  }
+                : prev,
+            );
+          }}
+        />
+      ) : null}
     </>
   );
 }
