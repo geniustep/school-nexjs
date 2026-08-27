@@ -149,7 +149,7 @@ export function setFeeForLevel(input: {
     const levels = effectiveLineLevelIds(target, planLevelIds);
     if (levels.length <= 1) return lines.filter((line) => line !== target);
     const remaining = levels.filter((id) => id !== levelId);
-    return lines.map((line) =>
+    return lines.map<DraftFeePlanLine>((line) =>
       line === target
         ? { ...line, levelScopeMode: 'specific', levelIds: remaining }
         : line,
@@ -178,7 +178,7 @@ export function setFeeForLevel(input: {
   );
 
   if (targetLevels.length <= 1) {
-    return lines.map((line) =>
+    return lines.map<DraftFeePlanLine>((line) =>
       line === target
         ? { ...updatedTarget, levelScopeMode: 'specific', levelIds: [levelId] }
         : line,
@@ -200,7 +200,7 @@ export function setFeeForLevel(input: {
   );
 
   return [
-    ...lines.map((line) =>
+    ...lines.map<DraftFeePlanLine>((line) =>
       line === target
         ? { ...target, levelScopeMode: 'specific', levelIds: remaining }
         : line,
