@@ -34,6 +34,11 @@ export function validateStudentQuickCreateInput(input: StudentQuickCreateInput):
   return { valid: true, firstName, lastName, firstNameLatin, lastNameLatin, levelId, schoolId: input.schoolId, academicYearId: input.academicYearId };
 }
 
+export function buildStudentQuickCreateSuccessHref(studentId: number): string {
+  if (!Number.isInteger(studentId) || studentId <= 0) return '/admin/students';
+  return `/admin/students/${studentId}?postSetup=1`;
+}
+
 /** Smallest supported POST /admin/students payload with a level but no class assignment. */
 export function buildStudentQuickCreatePayload(
   input: Extract<StudentQuickCreateValidation, { valid: true }>,
