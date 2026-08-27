@@ -5,17 +5,44 @@ import { useRouter } from 'next/navigation';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
+import {
+  applyBillingAuthorityChange,
+  fetchBillingAuthorityChangeBootstrap,
+  previewBillingAuthorityChange,
+} from '@/features/admin/student-finance/api/billing-authority-change-api';
+import {
+  buildBillingAuthorityApplyRequest,
+  buildBillingAuthorityPreviewRequest,
+  type BillingAuthorityTargetSelection,
+} from '@/features/admin/student-finance/utils/build-billing-authority-change-payload';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import type { GuardianSummary, PersonSearchResult, RelationshipType } from '@/types/student-360';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { buildEnrollmentCycleOptions, filterLevelsByCycleId } from '../utils/student-enrollment-cycle';
+import { linkExistingPersonAsGuardian, normalizeLinkPersonResponse } from '../utils/guardian-link-person';
+import { normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
+import { normalizePersonSearchList } from '../utils/normalize-person-search';
+import {
+  moroccanPhoneSearchQuery,
+  normalizeMoroccanPhone,
+  validateMoroccanPhone,
+} from '../utils/normalize-moroccan-phone';
+import {
+  DEFAULT_RELATIONSHIP_FORM,
+  relationshipFormToCreatePayload,
+  relationshipFormToLinkPersonPayload,
+} from './guardian-relationship-form';
 import {
   buildStudentQuickCreatePayload,
   buildStudentQuickCreateSuccessHref,
   validateStudentQuickCreateInput,
 } from '../utils/student-quick-create';
+
+type QuickBillingResponsibility = 'guardian' | 'student';
+type QuickGuardian = GuardianSummary | PersonSearchResult;
 
 const QUICK_GENDER_COPY = {
   ar: { label: 'الجنس', required: 'اختر الجنس.', male: 'ذكر', female: 'أنثى' },
@@ -23,6 +50,154 @@ const QUICK_GENDER_COPY = {
   fr: { label: 'Sexe', required: 'Choisissez le sexe.', male: 'Garçon', female: 'Fille' },
   es: { label: 'Sexo', required: 'Seleccione el sexo.', male: 'Masculino', female: 'Femenino' },
 } as const;
+
+const QUICK_BILLING_COPY = {
+  ar: {
+    responsibility: 'المسؤول عن الأداء',
+    guardian: 'ولي الأمر',
+    student: 'التلميذ',
+    hint: 'يمكنك تحديد المسؤول الآن دون تغيير خطوات تجهيز التلميذ.',
+    createGuardianNow: 'إنشاء ولي أمر الآن',
+    createGuardianHint: 'سيتم إنشاء أو إعادة استعمال الولي الموجود ثم ربطه بالتلميذ قبل فتح الملف.',
+    guardianName: 'اسم ولي الأمر',
+    guardianPhone: 'الهاتف',
+    relationship: 'صلة القرابة',
+    guardianNameRequired: 'أدخل اسم ولي الأمر.',
+    guardianPhoneRequired: 'أدخل رقم هاتف مغربي صالحًا.',
+    relationshipRequired: 'اختر صلة القرابة.',
+    duplicateGuardian: 'يوجد أكثر من شخص بنفس رقم الهاتف. أكمل ربط الولي من ملف التلميذ لتجنب اختيار شخص بالخطأ.',
+    existingGuardianBlocked: 'يوجد شخص بنفس رقم الهاتف، لكن لا يمكن ربطه كولي من هذه النافذة. أكمل العملية من ملف التلميذ.',
+    guardianSearchFailed: 'تعذر التحقق من وجود ولي بنفس الهاتف. لم ننشئ وليًا جديدًا لتجنب التكرار.',
+    guardianCreateFailed: 'تم إنشاء التلميذ، لكن تعذر إنشاء ولي الأمر.',
+    guardianLinkFailed: 'تم إنشاء التلميذ، لكن تعذر ربط ولي الأمر.',
+    billingSetupFailed: 'تم إنشاء التلميذ، لكن تعذر تحديد المسؤول عن الأداء الآن. يمكنك إكماله من الملف المالي.',
+    auditStudent: 'التسجيل السريع: تم اختيار التلميذ مسؤولًا عن الأداء.',
+    auditGuardian: 'التسجيل السريع: تم اختيار ولي الأمر المرتبط مسؤولًا عن الأداء.',
+  },
+  en: {
+    responsibility: 'Payer',
+    guardian: 'Guardian',
+    student: 'Student',
+    hint: 'Set the payer now without changing the student setup steps.',
+    createGuardianNow: 'Create a guardian now',
+    createGuardianHint: 'An existing guardian will be reused when the phone matches; otherwise a new guardian will be created and linked before opening the student profile.',
+    guardianName: 'Guardian name',
+    guardianPhone: 'Phone',
+    relationship: 'Relationship',
+    guardianNameRequired: 'Enter the guardian name.',
+    guardianPhoneRequired: 'Enter a valid Moroccan phone number.',
+    relationshipRequired: 'Select a relationship.',
+    duplicateGuardian: 'More than one person uses this phone number. Finish the guardian link from the student profile to avoid choosing the wrong person.',
+    existingGuardianBlocked: 'A person with this phone already exists but cannot be linked here. Finish the operation from the student profile.',
+    guardianSearchFailed: 'Could not verify whether this guardian already exists. No new guardian was created to avoid duplicates.',
+    guardianCreateFailed: 'The student was created, but the guardian could not be created.',
+    guardianLinkFailed: 'The student was created, but the guardian could not be linked.',
+    billingSetupFailed: 'The student was created, but the payer could not be set now. You can complete it from the finance profile.',
+    auditStudent: 'Quick registration: the student was selected as the payer.',
+    auditGuardian: 'Quick registration: the linked guardian was selected as the payer.',
+  },
+  fr: {
+    responsibility: 'Responsable du paiement',
+    guardian: 'Parent / tuteur',
+    student: 'Élève',
+    hint: "Définissez le responsable maintenant sans modifier les étapes de préparation de l'élève.",
+    createGuardianNow: 'Créer un parent / tuteur maintenant',
+    createGuardianHint: "Le parent existant sera réutilisé si le téléphone correspond ; sinon il sera créé puis lié avant l'ouverture du dossier élève.",
+    guardianName: 'Nom du parent / tuteur',
+    guardianPhone: 'Téléphone',
+    relationship: 'Lien de parenté',
+    guardianNameRequired: 'Saisissez le nom du parent / tuteur.',
+    guardianPhoneRequired: 'Saisissez un numéro de téléphone marocain valide.',
+    relationshipRequired: 'Choisissez le lien de parenté.',
+    duplicateGuardian: "Plusieurs personnes utilisent ce numéro. Terminez le lien depuis le dossier élève afin d'éviter une mauvaise sélection.",
+    existingGuardianBlocked: "Une personne avec ce téléphone existe déjà mais ne peut pas être liée ici. Terminez l'opération depuis le dossier élève.",
+    guardianSearchFailed: "Impossible de vérifier si ce parent existe déjà. Aucun nouveau parent n'a été créé afin d'éviter un doublon.",
+    guardianCreateFailed: "L'élève a été créé, mais le parent / tuteur n'a pas pu être créé.",
+    guardianLinkFailed: "L'élève a été créé, mais le parent / tuteur n'a pas pu être lié.",
+    billingSetupFailed: "L'élève a été créé, mais le responsable du paiement n'a pas pu être défini maintenant. Vous pouvez le compléter dans le dossier financier.",
+    auditStudent: "Inscription rapide : l'élève a été choisi comme responsable du paiement.",
+    auditGuardian: 'Inscription rapide : le parent / tuteur lié a été choisi comme responsable du paiement.',
+  },
+  es: {
+    responsibility: 'Responsable del pago',
+    guardian: 'Tutor',
+    student: 'Alumno',
+    hint: 'Defina ahora el responsable sin cambiar los pasos de preparación del alumno.',
+    createGuardianNow: 'Crear un tutor ahora',
+    createGuardianHint: 'Si el teléfono coincide se reutilizará el tutor existente; en caso contrario se creará y vinculará antes de abrir la ficha del alumno.',
+    guardianName: 'Nombre del tutor',
+    guardianPhone: 'Teléfono',
+    relationship: 'Parentesco',
+    guardianNameRequired: 'Introduzca el nombre del tutor.',
+    guardianPhoneRequired: 'Introduzca un número de teléfono marroquí válido.',
+    relationshipRequired: 'Seleccione el parentesco.',
+    duplicateGuardian: 'Más de una persona usa este teléfono. Termine el vínculo desde la ficha del alumno para evitar seleccionar a la persona equivocada.',
+    existingGuardianBlocked: 'Ya existe una persona con este teléfono, pero no puede vincularse aquí. Termine la operación desde la ficha del alumno.',
+    guardianSearchFailed: 'No se pudo comprobar si el tutor ya existe. No se creó uno nuevo para evitar duplicados.',
+    guardianCreateFailed: 'El alumno fue creado, pero no se pudo crear el tutor.',
+    guardianLinkFailed: 'El alumno fue creado, pero no se pudo vincular el tutor.',
+    billingSetupFailed: 'El alumno fue creado, pero no se pudo definir ahora el responsable del pago. Puede completarlo desde la ficha financiera.',
+    auditStudent: 'Registro rápido: se seleccionó al alumno como responsable del pago.',
+    auditGuardian: 'Registro rápido: se seleccionó al tutor vinculado como responsable del pago.',
+  },
+} as const;
+
+const FINANCIAL_SETUP_TERMINAL_STATUSES = new Set([
+  'completed',
+  'warning',
+  'unavailable',
+  'ambiguous',
+  'failed',
+  'not_requested',
+]);
+
+function guardianId(guardian: QuickGuardian): number | null {
+  if (typeof guardian.guardian_id === 'number' && guardian.guardian_id > 0) return guardian.guardian_id;
+  if (!('can_link_as_guardian' in guardian) && Number.isFinite(guardian.id) && guardian.id > 0) return guardian.id;
+  return null;
+}
+
+function guardianPartnerId(guardian: QuickGuardian): number | null {
+  return typeof guardian.partner_id === 'number' && guardian.partner_id > 0 ? guardian.partner_id : null;
+}
+
+function samePhone(guardian: QuickGuardian, expectedLocalPhone: string): boolean {
+  const primary = normalizeMoroccanPhone(guardian.phone ?? '').local;
+  const secondary = normalizeMoroccanPhone(guardian.secondary_phone ?? '').local;
+  return primary === expectedLocalPhone || secondary === expectedLocalPhone;
+}
+
+function billingAuthorityMatches(
+  current: { billing_party_type?: string | null; guardian_id?: number | null; billing_partner_id?: number | null },
+  selection: BillingAuthorityTargetSelection,
+): boolean {
+  if (selection.kind === 'student') return current.billing_party_type === 'student';
+  if (current.billing_party_type !== 'guardian') return false;
+  if (current.guardian_id != null && current.guardian_id === selection.guardianId) return true;
+  return selection.billingPartnerId != null && current.billing_partner_id != null && current.billing_partner_id === selection.billingPartnerId;
+}
+
+function pause(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function waitForFinancialSetup(studentId: number): Promise<void> {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const res = await api.get<{
+      finance_status?: string;
+      steps?: Array<{ key: string; status: string; processed: boolean }>;
+    }>(endpoints.admin.studentPostRegistrationSetup(studentId));
+    if (res.success && res.data) {
+      const financeStep = res.data.steps?.find((step) => step.key === 'financial_plan');
+      const terminal =
+        financeStep?.processed === true ||
+        (financeStep?.status ? FINANCIAL_SETUP_TERMINAL_STATUSES.has(financeStep.status) : false) ||
+        (res.data.finance_status ? FINANCIAL_SETUP_TERMINAL_STATUSES.has(res.data.finance_status) : false);
+      if (terminal) return;
+    }
+    await pause(500);
+  }
+}
 
 export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   open: boolean;
@@ -32,6 +207,7 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   const router = useRouter();
   const { locale, t } = useLocale();
   const genderCopy = QUICK_GENDER_COPY[locale];
+  const billingCopy = QUICK_BILLING_COPY[locale];
   const toast = useToast();
   const { activeSchoolId, activeAcademicYearId } = useAdminSession();
   const optionsState = useStudentOptions();
@@ -43,6 +219,11 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   const [gender, setGender] = useState('');
   const [cycleId, setCycleId] = useState('');
   const [levelId, setLevelId] = useState('');
+  const [billingResponsibility, setBillingResponsibility] = useState<QuickBillingResponsibility>('guardian');
+  const [createGuardianNow, setCreateGuardianNow] = useState(false);
+  const [guardianName, setGuardianName] = useState('');
+  const [guardianPhone, setGuardianPhone] = useState('');
+  const [guardianRelationship, setGuardianRelationship] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -55,16 +236,11 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     [activeAcademicYearId, activeSchoolId, optionsState.options?.levels],
   );
   const genders = optionsState.options?.genders ?? [];
+  const guardianRelationships = optionsState.options?.emergencyRelationships ?? [];
   const referenceLevels = levelOptionsState.options?.reference_levels ?? [];
   const cycles = levelOptionsState.options?.cycles ?? [];
-  const cycleOptions = useMemo(
-    () => buildEnrollmentCycleOptions(levelsForYear, referenceLevels, cycles),
-    [cycles, levelsForYear, referenceLevels],
-  );
-  const levels = useMemo(
-    () => filterLevelsByCycleId(levelsForYear, cycleId, referenceLevels, cycles),
-    [cycleId, cycles, levelsForYear, referenceLevels],
-  );
+  const cycleOptions = useMemo(() => buildEnrollmentCycleOptions(levelsForYear, referenceLevels, cycles), [cycles, levelsForYear, referenceLevels]);
+  const levels = useMemo(() => filterLevelsByCycleId(levelsForYear, cycleId, referenceLevels, cycles), [cycleId, cycles, levelsForYear, referenceLevels]);
   const optionsLoading = optionsState.loading || levelOptionsState.loading;
   const optionsFailed = Boolean(optionsState.error || levelOptionsState.error);
 
@@ -72,6 +248,8 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     if (!open) return;
     setFirstName(''); setLastName(''); setFirstNameLatin(''); setLastNameLatin('');
     setGender(''); setCycleId(''); setLevelId(''); setError('');
+    setBillingResponsibility('guardian'); setCreateGuardianNow(false);
+    setGuardianName(''); setGuardianPhone(''); setGuardianRelationship('');
   }, [open]);
 
   function validationMessage(code: 'name_ar' | 'name_latin' | 'gender' | 'cycle' | 'level' | 'context'): string {
@@ -89,6 +267,97 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     return fallback;
   }
 
+  function validateQuickGuardian(): string | null {
+    if (billingResponsibility !== 'guardian' || !createGuardianNow) return null;
+    if (!guardianName.trim()) return billingCopy.guardianNameRequired;
+    if (!validateMoroccanPhone(guardianPhone)) return billingCopy.guardianPhoneRequired;
+    if (!guardianRelationship.trim()) return billingCopy.relationshipRequired;
+    return null;
+  }
+
+  async function resolveOrCreateGuardian(): Promise<QuickGuardian> {
+    const localPhone = normalizeMoroccanPhone(guardianPhone).local;
+    if (!localPhone) throw new Error(billingCopy.guardianPhoneRequired);
+    const searchRes = await api.get<unknown>(endpoints.admin.guardiansSearch, {
+      q: moroccanPhoneSearchQuery(guardianPhone), page: 1, page_size: 20,
+      active_school_id: activeSchoolId ?? undefined,
+    });
+    if (!searchRes.success) throw new Error(billingCopy.guardianSearchFailed);
+    const exactMatches = normalizePersonSearchList(searchRes.data).filter((person) => samePhone(person, localPhone));
+    const linkableMatches = exactMatches.filter((person) => person.can_link_as_guardian);
+    if (linkableMatches.length === 1 && exactMatches.length === 1) return linkableMatches[0];
+    if (exactMatches.length > 1) throw new Error(billingCopy.duplicateGuardian);
+    if (exactMatches.length === 1) throw new Error(billingCopy.existingGuardianBlocked);
+    const createRes = await api.post<unknown>(endpoints.admin.guardiansQuickCreate, {
+      name: guardianName.trim(), phone: localPhone,
+    });
+    if (!createRes.success) throw new Error(createRes.error.message || billingCopy.guardianCreateFailed);
+    const created = normalizeGuardianQuickCreateResponse(createRes.data);
+    if (!created) throw new Error(billingCopy.guardianCreateFailed);
+    return created;
+  }
+
+  async function linkGuardianToStudent(studentId: number, guardian: QuickGuardian): Promise<QuickGuardian> {
+    const relationshipValues = {
+      ...DEFAULT_RELATIONSHIP_FORM,
+      relationship_type: guardianRelationship as RelationshipType,
+      is_primary_contact: true,
+      is_financial_responsible: false,
+      is_emergency_contact: true,
+    };
+    const partnerId = guardianPartnerId(guardian);
+    if (partnerId != null) {
+      const linkRes = await linkExistingPersonAsGuardian(
+        studentId,
+        relationshipFormToLinkPersonPayload({ partner_id: partnerId }, relationshipValues),
+      );
+      if (!linkRes.success) throw new Error(linkRes.error.message || billingCopy.guardianLinkFailed);
+      return normalizeLinkPersonResponse(linkRes.data)?.guardian ?? guardian;
+    }
+    const id = guardianId(guardian);
+    if (id == null) throw new Error(billingCopy.guardianLinkFailed);
+    const linkRes = await api.post(endpoints.admin.studentGuardians(studentId), relationshipFormToCreatePayload(id, relationshipValues));
+    if (!linkRes.success) throw new Error(linkRes.error.message || billingCopy.guardianLinkFailed);
+    return guardian;
+  }
+
+  async function setBillingAuthority(studentId: number, selection: BillingAuthorityTargetSelection, reason: string): Promise<void> {
+    await waitForFinancialSetup(studentId);
+    const bootstrap = await fetchBillingAuthorityChangeBootstrap(studentId);
+    if (!bootstrap.success) throw new Error(bootstrap.error.message || billingCopy.billingSetupFailed);
+    if (billingAuthorityMatches(bootstrap.data.currentAuthority, selection)) return;
+    const preview = await previewBillingAuthorityChange(studentId, buildBillingAuthorityPreviewRequest(selection));
+    if (!preview.success) throw new Error(preview.error.message || billingCopy.billingSetupFailed);
+    if (!preview.data.canApply || !preview.data.previewToken) throw new Error(preview.data.blockers[0]?.message || billingCopy.billingSetupFailed);
+    const applied = await applyBillingAuthorityChange(
+      studentId,
+      buildBillingAuthorityApplyRequest({
+        previewToken: preview.data.previewToken,
+        reason,
+        selection,
+        confirmed: selection.kind === 'student',
+      }),
+    );
+    if (!applied.success) throw new Error(applied.error.message || billingCopy.billingSetupFailed);
+  }
+
+  async function runPostCreateBilling(studentId: number): Promise<void> {
+    if (billingResponsibility === 'guardian' && !createGuardianNow) return;
+    if (billingResponsibility === 'student') {
+      await setBillingAuthority(studentId, { kind: 'student' }, billingCopy.auditStudent);
+      return;
+    }
+    const guardian = await resolveOrCreateGuardian();
+    const linkedGuardian = await linkGuardianToStudent(studentId, guardian);
+    const id = guardianId(linkedGuardian);
+    if (id == null) throw new Error(billingCopy.guardianLinkFailed);
+    await setBillingAuthority(
+      studentId,
+      { kind: 'guardian', guardianId: id, billingPartnerId: guardianPartnerId(linkedGuardian) },
+      billingCopy.auditGuardian,
+    );
+  }
+
   async function handleCreate() {
     if (optionsLoading || optionsFailed) return;
     const validation = validateStudentQuickCreateInput({
@@ -99,18 +368,24 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
       const message = validationMessage(validation.error);
       setError(message); toast.error(message); return;
     }
+    const guardianValidation = validateQuickGuardian();
+    if (guardianValidation) { setError(guardianValidation); toast.error(guardianValidation); return; }
     setError(''); setSubmitting(true);
     const res = await api.post<{ id: number }>(endpoints.admin.students, buildStudentQuickCreatePayload(validation));
-    setSubmitting(false);
     if (!res.success || !res.data) {
+      setSubmitting(false);
       const message = res.success ? t('admin.studentsList.quickCreate.failed') : res.error.message;
       setError(message); toast.error(message); return;
     }
+    const studentId = res.data.id;
+    let followUpError: string | null = null;
+    try { await runPostCreateBilling(studentId); }
+    catch (cause) { followUpError = cause instanceof Error && cause.message ? cause.message : billingCopy.billingSetupFailed; }
+    setSubmitting(false);
     toast.success(t('admin.studentsList.quickCreate.created'));
-    const studentHref = buildStudentQuickCreateSuccessHref(res.data.id);
-    onCreated();
-    onClose();
-    router.push(studentHref);
+    if (followUpError) toast.error(followUpError);
+    const studentHref = buildStudentQuickCreateSuccessHref(studentId);
+    onCreated(); onClose(); router.push(studentHref);
   }
 
   if (!open) return null;
@@ -131,6 +406,26 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
           <label className="field"><span>{genderCopy.label} *</span><select className="input" value={gender} onChange={(event) => { setGender(event.target.value); clearError(); }} disabled={submitting || optionsLoading || optionsFailed} required><option value="">{t('common.select')}</option>{genders.map((option) => <option key={option.value} value={option.value}>{genderLabel(option.value, option.label)}</option>)}</select></label>
           <label className="field"><span>{t('admin.studentsList.quickCreate.cycle')}</span><select className="input" value={cycleId} onChange={(event) => { setCycleId(event.target.value); setLevelId(''); clearError(); }} disabled={submitting || optionsLoading || optionsFailed}><option value="">{optionsLoading ? t('admin.studentsList.quickCreate.optionsLoading') : t('admin.studentsList.quickCreate.selectCycle')}</option>{cycleOptions.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.name}</option>)}</select></label>
           <label className="field"><span>{t('admin.studentsList.quickCreate.level')}</span><select className="input" value={levelId} onChange={(event) => { setLevelId(event.target.value); clearError(); }} disabled={submitting || optionsLoading || optionsFailed || !cycleId}><option value="">{cycleId ? t('admin.studentsList.quickCreate.selectLevel') : t('admin.studentsList.quickCreate.selectCycleFirst')}</option>{levels.map((level) => <option key={level.id} value={level.id}>{level.display_name ?? level.display_alias ?? level.name}</option>)}</select></label>
+          <label className="field" style={{ gridColumn: '1 / -1' }}>
+            <span>{billingCopy.responsibility}</span>
+            <select className="input" value={billingResponsibility} onChange={(event) => { const next = event.target.value as QuickBillingResponsibility; setBillingResponsibility(next); if (next === 'student') setCreateGuardianNow(false); clearError(); }} disabled={submitting}>
+              <option value="guardian">{billingCopy.guardian}</option><option value="student">{billingCopy.student}</option>
+            </select>
+            <small className="muted">{billingCopy.hint}</small>
+          </label>
+          {billingResponsibility === 'guardian' ? (
+            <label className="field" style={{ gridColumn: '1 / -1' }}>
+              <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}><input type="checkbox" checked={createGuardianNow} onChange={(event) => { setCreateGuardianNow(event.target.checked); clearError(); }} disabled={submitting} />{billingCopy.createGuardianNow}</span>
+              <small className="muted">{billingCopy.createGuardianHint}</small>
+            </label>
+          ) : null}
+          {billingResponsibility === 'guardian' && createGuardianNow ? (
+            <>
+              <label className="field"><span>{billingCopy.guardianName}</span><input className="input" value={guardianName} onChange={(event) => { setGuardianName(event.target.value); clearError(); }} disabled={submitting} /></label>
+              <label className="field"><span>{billingCopy.guardianPhone}</span><input className="input" dir="ltr" inputMode="tel" value={guardianPhone} onChange={(event) => { setGuardianPhone(event.target.value); clearError(); }} disabled={submitting} /></label>
+              <label className="field" style={{ gridColumn: '1 / -1' }}><span>{billingCopy.relationship}</span><select className="input" value={guardianRelationship} onChange={(event) => { setGuardianRelationship(event.target.value); clearError(); }} disabled={submitting || optionsLoading || optionsFailed}><option value="">{t('common.select')}</option>{guardianRelationships.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+            </>
+          ) : null}
         </div>
       </div>}
       size="form"
