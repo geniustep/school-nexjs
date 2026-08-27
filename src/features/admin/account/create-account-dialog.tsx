@@ -107,6 +107,7 @@ export function CreateAccountDialog({
       email,
       login,
       password,
+      passwordConfirmation: confirmPassword,
       sendInvite: false,
       mustChangePassword,
     });
