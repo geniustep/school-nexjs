@@ -49,22 +49,26 @@ export function buildActivateAccountPayload(input: {
   email: string;
   login: string;
   password: string;
+  passwordConfirmation?: string;
   sendInvite?: boolean;
   mustChangePassword?: boolean;
 }): {
   email?: string;
   login?: string;
   password?: string;
+  password_confirmation?: string;
   send_invite: boolean;
   must_change_password?: boolean;
 } {
   const email = input.email.trim();
   const login = input.login.trim();
   const password = input.password;
+  const passwordConfirmation = input.passwordConfirmation;
   const payload: {
     email?: string;
     login?: string;
     password?: string;
+    password_confirmation?: string;
     send_invite: boolean;
     must_change_password?: boolean;
   } = {
@@ -72,7 +76,10 @@ export function buildActivateAccountPayload(input: {
   };
   if (email) payload.email = email;
   if (login) payload.login = login;
-  if (password) payload.password = password;
+  if (password) {
+    payload.password = password;
+    if (passwordConfirmation) payload.password_confirmation = passwordConfirmation;
+  }
   if (input.mustChangePassword) payload.must_change_password = true;
   return payload;
 }
