@@ -6,7 +6,7 @@ import {
 } from './student-quick-create';
 
 describe('student quick create payload', () => {
-  it('creates the minimal student and academic placement without a class', () => {
+  it('creates the minimal quick-registration Student + Enrollment payload without a class', () => {
     const validation = validateStudentQuickCreateInput({
       firstName: 'سلمى', lastName: 'العلوي', firstNameLatin: 'Salma', lastNameLatin: 'Alaoui', cycleId: '2', levelId: '77', schoolId: 3, academicYearId: 12,
     });
@@ -16,7 +16,17 @@ describe('student quick create payload', () => {
       first_name: 'سلمى', last_name: 'العلوي', name_ar: 'سلمى العلوي', name_latin: 'Salma Alaoui', status: 'active', active: true,
       admission_date: '2026-08-24', enrollment: { actual_join_date: '2026-08-24' },
       academic: { school_id: 3, academic_year_id: 12, level_id: 77, enrollment_date: '2026-08-24' },
+      quick_registration: { enabled: true },
     });
+  });
+
+  it('always opts into the backend durable post-setup path', () => {
+    const validation = validateStudentQuickCreateInput({
+      firstName: 'سلمى', lastName: 'العلوي', firstNameLatin: 'Salma', lastNameLatin: 'Alaoui', cycleId: '2', levelId: '77', schoolId: 3, academicYearId: 12,
+    });
+    expect(validation.valid).toBe(true);
+    if (!validation.valid) return;
+    expect(buildStudentQuickCreatePayload(validation, '2026-08-24').quick_registration).toEqual({ enabled: true });
   });
 
   it('requires a complete name, level, and active academic context', () => {
