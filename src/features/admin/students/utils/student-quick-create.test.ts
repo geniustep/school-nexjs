@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildStudentQuickCreatePayload, validateStudentQuickCreateInput } from './student-quick-create';
+import {
+  buildStudentQuickCreatePayload,
+  buildStudentQuickCreateSuccessHref,
+  validateStudentQuickCreateInput,
+} from './student-quick-create';
 
 describe('student quick create payload', () => {
   it('creates the minimal student and academic placement without a class', () => {
@@ -22,5 +26,10 @@ describe('student quick create payload', () => {
     expect(validateStudentQuickCreateInput({ ...base, cycleId: '' })).toEqual({ valid: false, error: 'cycle' });
     expect(validateStudentQuickCreateInput({ ...base, levelId: '' })).toEqual({ valid: false, error: 'level' });
     expect(validateStudentQuickCreateInput({ ...base, schoolId: null })).toEqual({ valid: false, error: 'context' });
+  });
+
+  it('opens the created student with post-setup progress enabled', () => {
+    expect(buildStudentQuickCreateSuccessHref(84)).toBe('/admin/students/84?postSetup=1');
+    expect(buildStudentQuickCreateSuccessHref(0)).toBe('/admin/students');
   });
 });
