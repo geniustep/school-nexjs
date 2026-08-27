@@ -35,6 +35,7 @@ jobs:
           source = path.read_text().replace('if count < 3:', 'if count < 2:', 1)
           exec(compile(source, str(path), 'exec'), {'__name__': '__main__'})
           PY
+          python .github/fix_guardian_contract_typecheck.py
           git diff --check
 
       - name: Verify exact source scope
@@ -45,9 +46,13 @@ jobs:
           cat > /tmp/expected-files <<'EOF'
           src/features/admin/students/components/student-create-additional-guardian-card.tsx
           src/features/admin/students/components/student-create-billing-step.tsx
+          src/features/admin/students/components/student-create-guardian-provision-section.tsx
           src/features/admin/students/components/student-create-guardian-source-panel.tsx
           src/features/admin/students/components/student-create-wizard.tsx
           src/features/admin/students/utils/existing-person-guardian-contract.test.ts
+          src/features/admin/students/utils/family-registration-apply-resolved.ts
+          src/features/admin/students/utils/family-registration-batch-payload.ts
+          src/features/admin/students/utils/family-registration-payload.ts
           src/features/admin/students/utils/normalize-person-search.ts
           src/features/admin/students/utils/resolve-guardian-account-presentation.ts
           src/features/admin/students/utils/student-create-additional-guardians.ts
@@ -76,6 +81,8 @@ jobs:
           src/features/admin/students/utils/existing-person-guardian-contract.test.ts
           src/features/admin/students/utils/student-create-guardian-payload.test.ts
           src/features/admin/students/utils/resolve-guardian-account-presentation.test.ts
+          src/features/admin/students/utils/family-registration-payload.test.ts
+          src/features/admin/students/utils/family-registration-batch-payload.test.ts
 
       - name: Commit tested source and remove temporary automation
         shell: bash
@@ -92,12 +99,17 @@ jobs:
             src/features/admin/students/utils/student-create-guardian-payload.ts \
             src/features/admin/students/utils/student-create-additional-guardians.ts \
             src/features/admin/students/utils/existing-person-guardian-contract.test.ts \
+            src/features/admin/students/utils/family-registration-apply-resolved.ts \
+            src/features/admin/students/utils/family-registration-batch-payload.ts \
+            src/features/admin/students/utils/family-registration-payload.ts \
             src/features/admin/students/components/student-create-guardian-source-panel.tsx \
             src/features/admin/students/components/student-create-billing-step.tsx \
+            src/features/admin/students/components/student-create-guardian-provision-section.tsx \
             src/features/admin/students/components/student-create-additional-guardian-card.tsx \
             src/features/admin/students/components/student-create-wizard.tsx
           git rm -- \
             .github/apply_guardian_contract.py \
+            .github/fix_guardian_contract_typecheck.py \
             .github/guardian-contract.patch.part00 \
             .github/guardian-contract.patch.part01 \
             .github/guardian-contract.patch.part02 \
