@@ -46,21 +46,53 @@ function preferType(candidates: FeeType[], tokens: string[]): FeeType | null {
 }
 
 /**
+ * `undefined` means no canonical code exists and a guarded fallback may run.
+ * `null` means a canonical code exists but is invalid/ambiguous, so we must not guess.
+ */
+function resolveCanonicalCode(
+  feeTypes: FeeType[],
+  codes: string[],
+  frequencyMatches: (frequency: unknown) => boolean,
+): FeeType | null | undefined {
+  const normalizedCodes = new Set(codes.map(normalized));
+  const coded = feeTypes.filter((type) => normalizedCodes.has(normalized(type.code)));
+  if (coded.length === 0) return undefined;
+
+  const valid = coded.filter((type) => frequencyMatches(type.frequency));
+  if (valid.length === 1) return valid[0];
+  return null;
+}
+
+/**
  * Resolve only the two core school-fee inputs used by the simplified matrix.
+ * Canonical codes are authoritative for identity; recurrence is still validated.
+ * If canonical codes are unavailable, a unique frequency/name fallback is allowed.
  * Ambiguous catalogs deliberately return null instead of guessing financial semantics.
  */
 export function resolveFeeSetupCoreTypes(feeTypes: FeeType[]): FeeSetupCoreTypes {
   const active = feeTypes.filter((type) => type.active !== false);
-  const tuition = active.filter((type) => normalized(type.category) === 'tuition');
 
-  const registration = preferType(
-    tuition.filter((type) => isOneTime(type.frequency)),
-    ['reg', 'registration', 'inscription', 'تسجيل'],
+  const registrationByCode = resolveCanonicalCode(
+    active,
+    ['REGISTRATION', 'REG'],
+    isOneTime,
   );
-  const monthlyTuition = preferType(
-    tuition.filter((type) => isMonthly(type.frequency)),
-    ['tuition', 'school', 'scolar', 'mensual', 'تمدرس', 'واجب'],
-  );
+  const tuitionByCode = resolveCanonicalCode(active, ['TUITION'], isMonthly);
+
+  const registration =
+    registrationByCode !== undefined
+      ? registrationByCode
+      : preferType(
+          active.filter((type) => isOneTime(type.frequency)),
+          ['registration', 'inscription', 'تسجيل'],
+        );
+  const monthlyTuition =
+    tuitionByCode !== undefined
+      ? tuitionByCode
+      : preferType(
+          active.filter((type) => isMonthly(type.frequency)),
+          ['tuition', 'school', 'scolar', 'mensual', 'تمدرس', 'واجب'],
+        );
 
   return { registration, monthlyTuition };
 }
