@@ -1,7 +1,8 @@
 'use client';
 
 import { EmptyState } from '@/components/states/states';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale } from '@/features/i18n/locale-context';
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 
 export function FeePlanEmptyState({
   variant,
@@ -12,7 +13,8 @@ export function FeePlanEmptyState({
   onAdd?: () => void;
   onClearFilters?: () => void;
 }) {
-  const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
 
   if (variant === 'no-match' || variant === 'filtered') {
     return (
@@ -21,12 +23,12 @@ export function FeePlanEmptyState({
           🔎
         </div>
         <EmptyState
-          title={t('admin.finance.feePlansWorkspace.noMatch.title')}
-          description={t('admin.finance.feePlansWorkspace.noMatch.description')}
+          title={copy.noMatchTitle}
+          description={copy.noMatchDescription}
           action={
             onClearFilters ? (
               <button type="button" className="btn btn--primary btn--sm" onClick={onClearFilters}>
-                {t('admin.finance.feePlansWorkspace.clearFilters')}
+                {locale === 'ar' ? 'مسح المرشحات' : locale === 'fr' ? 'Effacer les filtres' : locale === 'es' ? 'Borrar filtros' : 'Clear filters'}
               </button>
             ) : undefined
           }
@@ -41,12 +43,12 @@ export function FeePlanEmptyState({
         📋
       </div>
       <EmptyState
-        title={t('admin.finance.feePlansWorkspace.emptyTitle')}
-        description={t('admin.finance.feePlansWorkspace.emptyDesc')}
+        title={copy.emptyTitle}
+        description={copy.emptyDescription}
         action={
           onAdd ? (
             <button type="button" className="btn btn--primary btn--sm" onClick={onAdd}>
-              {t('admin.finance.feePlansWorkspace.addPlan')}
+              {copy.addSetup}
             </button>
           ) : undefined
         }

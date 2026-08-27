@@ -1,6 +1,7 @@
 'use client';
 
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale } from '@/features/i18n/locale-context';
+import { getFeeSetupFacadeCopy } from './fee-setup-facade-copy';
 
 export function FeePlansHeader({
   canManage,
@@ -13,26 +14,25 @@ export function FeePlansHeader({
   onAdd: () => void;
   onManageCatalog: () => void;
 }) {
-  const t = useT();
+  const { locale } = useLocale();
+  const copy = getFeeSetupFacadeCopy(locale);
 
   return (
     <header className="fee-plans-workspace__header">
       <div className="fee-plans-workspace__header-main">
-        <h1 className="fee-plans-workspace__title">{t('admin.finance.feePlansTitle')}</h1>
-        <p className="fee-plans-workspace__subtitle">
-          {t('admin.finance.feePlansWorkspace.pageDesc')}
-        </p>
+        <h1 className="fee-plans-workspace__title">{copy.workspaceTitle}</h1>
+        <p className="fee-plans-workspace__subtitle">{copy.workspaceDescription}</p>
       </div>
       {canManage || canManageCatalog ? (
         <div className="fee-plans-workspace__header-actions">
           {canManageCatalog ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={onManageCatalog}>
-              {t('admin.finance.feePlansWorkspace.manageFeeTypes')}
+              {copy.manageServices}
             </button>
           ) : null}
           {canManage ? (
             <button type="button" className="btn btn--primary btn--sm" onClick={onAdd}>
-              {t('admin.finance.feePlansWorkspace.addPlan')}
+              {copy.addSetup}
             </button>
           ) : null}
         </div>
