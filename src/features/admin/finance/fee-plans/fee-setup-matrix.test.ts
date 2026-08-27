@@ -10,34 +10,49 @@ import {
 
 const REG: FeeType = {
   id: 11,
-  code: 'REG',
+  code: 'REGISTRATION',
   name: 'التسجيل',
   school_id: 1,
-  category: 'tuition',
+  category: 'registration',
   frequency: 'once',
   is_mandatory: true,
 };
 const TUITION: FeeType = {
   id: 12,
   code: 'TUITION',
-  name: 'الواجب الشهري',
+  name: 'التمدرس',
   school_id: 1,
-  category: 'tuition',
+  category: 'schooling',
   frequency: 'monthly',
   is_mandatory: true,
 };
 
 describe('simplified fee setup matrix', () => {
-  it('resolves registration and monthly tuition without using default_amount', () => {
+  it('resolves canonical REGISTRATION and TUITION codes regardless of category', () => {
     expect(resolveFeeSetupCoreTypes([REG, TUITION])).toEqual({
       registration: REG,
       monthlyTuition: TUITION,
     });
   });
 
-  it('does not guess when the tuition catalog is ambiguous', () => {
-    const other = { ...TUITION, id: 13, code: 'TUITION-2', name: 'واجب شهري ثان' };
-    expect(resolveFeeSetupCoreTypes([REG, TUITION, other]).monthlyTuition).toBeNull();
+  it('validates recurrence even when a canonical code exists', () => {
+    const invalidRegistration = { ...REG, frequency: 'monthly' };
+    expect(resolveFeeSetupCoreTypes([invalidRegistration, TUITION]).registration).toBeNull();
+  });
+
+  it('falls back safely when canonical codes are absent', () => {
+    const registration = { ...REG, code: 'INSCRIPTION-2026' };
+    const tuition = { ...TUITION, code: 'MONTHLY-SCHOOLING' };
+    expect(resolveFeeSetupCoreTypes([registration, tuition])).toEqual({
+      registration,
+      monthlyTuition: tuition,
+    });
+  });
+
+  it('does not guess when the monthly catalog fallback is ambiguous', () => {
+    const tuition = { ...TUITION, code: 'MONTHLY-A', name: 'واجب شهري' };
+    const other = { ...TUITION, id: 13, code: 'MONTHLY-B', name: 'واجب شهري ثان' };
+    expect(resolveFeeSetupCoreTypes([REG, tuition, other]).monthlyTuition).toBeNull();
   });
 
   it('applies one amount to all selected levels using one scoped line', () => {
