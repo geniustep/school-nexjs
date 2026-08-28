@@ -161,6 +161,65 @@ const QUICK_BILLING_COPY = {
   },
 } as const;
 
+const QUICK_RELATIONSHIP_COPY: Record<'ar' | 'en' | 'fr' | 'es', Record<string, string>> = {
+  ar: {
+    father: 'الأب',
+    mother: 'الأم',
+    legal_guardian: 'ولي الأمر',
+    grandparent: 'الجد/الجدة',
+    grandfather: 'الجد',
+    grandmother: 'الجدة',
+    sibling: 'أخ/أخت',
+    brother: 'الأخ',
+    sister: 'الأخت',
+    uncle: 'العم/الخال',
+    aunt: 'العمة/الخالة',
+    other: 'أخرى',
+  },
+  en: {
+    father: 'Father',
+    mother: 'Mother',
+    legal_guardian: 'Legal guardian',
+    grandparent: 'Grandparent',
+    grandfather: 'Grandfather',
+    grandmother: 'Grandmother',
+    sibling: 'Sibling',
+    brother: 'Brother',
+    sister: 'Sister',
+    uncle: 'Uncle',
+    aunt: 'Aunt',
+    other: 'Other',
+  },
+  fr: {
+    father: 'Père',
+    mother: 'Mère',
+    legal_guardian: 'Tuteur légal',
+    grandparent: 'Grand-parent',
+    grandfather: 'Grand-père',
+    grandmother: 'Grand-mère',
+    sibling: 'Frère / sœur',
+    brother: 'Frère',
+    sister: 'Sœur',
+    uncle: 'Oncle',
+    aunt: 'Tante',
+    other: 'Autre',
+  },
+  es: {
+    father: 'Padre',
+    mother: 'Madre',
+    legal_guardian: 'Tutor legal',
+    grandparent: 'Abuelo/a',
+    grandfather: 'Abuelo',
+    grandmother: 'Abuela',
+    sibling: 'Hermano/a',
+    brother: 'Hermano',
+    sister: 'Hermana',
+    uncle: 'Tío',
+    aunt: 'Tía',
+    other: 'Otro',
+  },
+};
+
 function guardianId(guardian: QuickGuardian): number | null {
   if (typeof guardian.guardian_id === 'number' && guardian.guardian_id > 0) return guardian.guardian_id;
   if (!('can_link_as_guardian' in guardian) && Number.isFinite(guardian.id) && guardian.id > 0) return guardian.id;
@@ -175,6 +234,10 @@ function samePhone(guardian: QuickGuardian, expectedLocalPhone: string): boolean
   const primary = normalizeMoroccanPhone(guardian.phone ?? '').local;
   const secondary = normalizeMoroccanPhone(guardian.secondary_phone ?? '').local;
   return primary === expectedLocalPhone || secondary === expectedLocalPhone;
+}
+
+function guardianHasContactPhone(guardian: QuickGuardian): boolean {
+  return Boolean(guardian.phone?.trim() || guardian.secondary_phone?.trim());
 }
 
 function guardianSearchLabel(guardian: PersonSearchResult): string {
@@ -275,6 +338,10 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     return fallback;
   }
 
+  function relationshipLabel(value: string, fallback: string): string {
+    return QUICK_RELATIONSHIP_COPY[locale]?.[value] ?? fallback;
+  }
+
   function validateQuickGuardian(): string | null {
     if (billingResponsibility !== 'guardian' || !createGuardianNow) return null;
     if (!guardianRelationship.trim()) return billingCopy.relationshipRequired;
@@ -358,12 +425,14 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
   }
 
   async function linkGuardianToStudent(studentId: number, guardian: QuickGuardian): Promise<QuickGuardian> {
+    const enableContactFeatures = guardianHasContactPhone(guardian);
     const relationshipValues = {
       ...DEFAULT_RELATIONSHIP_FORM,
       relationship_type: guardianRelationship as RelationshipType,
       is_primary_contact: true,
       is_financial_responsible: false,
-      is_emergency_contact: true,
+      receives_notifications: enableContactFeatures,
+      is_emergency_contact: enableContactFeatures,
     };
     const partnerId = guardianPartnerId(guardian);
     if (partnerId != null) {
@@ -627,7 +696,9 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
                   <span>{billingCopy.relationship}</span>
                   <select className="input" value={guardianRelationship} onChange={(event) => { setGuardianRelationship(event.target.value); clearError(); }} disabled={submitting || optionsLoading || optionsFailed}>
                     <option value="">{t('common.select')}</option>
-                    {guardianRelationships.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    {guardianRelationships.map((option) => (
+                      <option key={option.value} value={option.value}>{relationshipLabel(option.value, option.label)}</option>
+                    ))}
                   </select>
                 </label>
               </>
