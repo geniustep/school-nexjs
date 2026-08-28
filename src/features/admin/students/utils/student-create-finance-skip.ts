@@ -21,11 +21,13 @@ export interface StudentCreateFinanceStepGate {
 }
 
 /**
- * Decides whether the finance step lets the user proceed and whether a finance
- * payload should be attached when creating the student.
+ * Decides whether the finance step lets the user proceed.
  *
- * Fee plans are fully optional: skip / missing / blocked plans never prevent
- * student registration. When a plan is present and not skipped, attach it.
+ * The mandatory Base Plan is server-owned and fail-closed. Missing or
+ * ambiguous/blocked plans must stop registration; only an explicit RBAC skip
+ * (for users who cannot operate finance in the wizard) may advance without the
+ * client attaching finance. Odoo still resolves the Base Plan from academic
+ * context when the student is created.
  */
 export function resolveStudentCreateFinanceStepGate(input: {
   skipFinance: boolean;
@@ -47,22 +49,22 @@ export function resolveStudentCreateFinanceStepGate(input: {
   }
   if (!input.levelSelected) return { status: 'select_level', attachFinance: false };
   if (input.suggestLoading) return { status: 'loading', attachFinance: false };
-  // Missing or blocked plans are optional — registration may continue without finance.
   if (input.financeBlocked) return { status: 'blocked', attachFinance: false };
   if (!input.suggest) return { status: 'no_plan', attachFinance: false };
   return { status: 'ok', attachFinance: true };
 }
 
-/** Whether the finance gate status allows advancing without attaching a plan. */
+/** Whether the finance gate status may advance without a client finance block. */
 export function isOptionalFinanceGateStatus(
   status: StudentCreateFinanceStepGateStatus,
 ): boolean {
-  return status === 'skip' || status === 'no_plan' || status === 'blocked';
+  return status === 'skip';
 }
 
 /**
- * Whether a finance payload should be attached to the student create request.
- * Skipping (or a missing suggested plan) always omits the finance payload.
+ * Whether finance context is complete enough for the create journey.
+ * The full student-create request itself no longer owns fee-plan selection;
+ * this helper remains useful for validation and preview readiness.
  */
 export function shouldAttachFinanceOnCreate(
   skipFinance: boolean,
