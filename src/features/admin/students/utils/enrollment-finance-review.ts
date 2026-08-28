@@ -14,6 +14,7 @@ import { formatDiscountPercentDisplay } from './normalize-discount-percent';
 
 export type EnrollmentFinanceSaveBlockReason =
   | 'ok'
+  | 'finance_required'
   | 'reason_required'
   | 'academic_year_required'
   | 'periods_required'
@@ -219,7 +220,8 @@ export function validateEnrollmentFinanceSave(input: {
   financeState?: Pick<StudentCreateFinanceFormState, 'periodOverrides'>;
 }): EnrollmentFinanceSaveBlockReason {
   const financeActive = input.hasFinanceBlock ?? true;
-  if (financeActive && !input.academicYearId?.trim()) {
+  if (!financeActive) return 'finance_required';
+  if (!input.academicYearId?.trim()) {
     return 'academic_year_required';
   }
   if (!input.customizePlan) return 'ok';
