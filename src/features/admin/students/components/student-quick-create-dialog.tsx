@@ -453,8 +453,9 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     return guardian;
   }
 
-  async function initializeStudentBillingProfile(studentId: number): Promise<void> {
+  async function initializeStudentBillingProfile(studentId: number, academicYearId: number): Promise<void> {
     const response = await api.put<unknown>(endpoints.admin.financeBillingProfile(studentId), {
+      academic_year_id: academicYearId,
       billing_party_type: 'self',
       confirm_self_billing: true,
       activate: true,
@@ -462,11 +463,16 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     if (!response.success) throw new Error(response.error.message || billingCopy.billingSetupFailed);
   }
 
-  async function initializeGuardianBillingProfile(studentId: number, guardian: QuickGuardian): Promise<void> {
+  async function initializeGuardianBillingProfile(
+    studentId: number,
+    academicYearId: number,
+    guardian: QuickGuardian,
+  ): Promise<void> {
     const partnerId = guardianPartnerId(guardian);
     if (partnerId == null) throw new Error(billingCopy.billingSetupFailed);
     const id = guardianId(guardian);
     const payload: Record<string, unknown> = {
+      academic_year_id: academicYearId,
       billing_party_type: 'guardian',
       billing_partner_id: partnerId,
       activate: true,
@@ -476,15 +482,15 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     if (!response.success) throw new Error(response.error.message || billingCopy.billingSetupFailed);
   }
 
-  async function runPostCreateBilling(studentId: number): Promise<void> {
+  async function runPostCreateBilling(studentId: number, academicYearId: number): Promise<void> {
     if (billingResponsibility === 'guardian' && !createGuardianNow) return;
     if (billingResponsibility === 'student') {
-      await initializeStudentBillingProfile(studentId);
+      await initializeStudentBillingProfile(studentId, academicYearId);
       return;
     }
     const guardian = await resolveGuardianForLink();
     const linkedGuardian = await linkGuardianToStudent(studentId, guardian);
-    await initializeGuardianBillingProfile(studentId, linkedGuardian);
+    await initializeGuardianBillingProfile(studentId, academicYearId, linkedGuardian);
   }
 
   async function handleCreate() {
@@ -528,7 +534,7 @@ export function StudentQuickCreateDialog({ open, onClose, onCreated }: {
     const studentId = res.data.id;
     let followUpError: string | null = null;
     try {
-      await runPostCreateBilling(studentId);
+      await runPostCreateBilling(studentId, validation.academicYearId);
     } catch (cause) {
       followUpError = cause instanceof Error && cause.message ? cause.message : billingCopy.billingSetupFailed;
     }
