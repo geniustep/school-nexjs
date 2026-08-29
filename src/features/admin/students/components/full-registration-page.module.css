@@ -63,6 +63,13 @@
   font-size: 13px;
 }
 
+.searchInput {
+  block-size: 40px;
+  min-block-size: 40px;
+  max-block-size: 40px;
+  line-height: 1.2;
+}
+
 .readonly {
   min-height: 40px;
   display: flex;
@@ -161,6 +168,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   cursor: pointer;
+  touch-action: manipulation;
   font: inherit;
   font-size: 12px;
 }
