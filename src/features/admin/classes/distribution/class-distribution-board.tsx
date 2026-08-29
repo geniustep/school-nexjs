@@ -914,7 +914,7 @@ export function ClassDistributionBoard() {
                   <ClassLane
                     key={`${cls.id}:${cls.assigned_count}`}
                     cls={cls}
-                    academicYearId={activeAcademicYearId}
+                    academicYearId={board.context.academic_year_id}
                     selected={selected}
                     selectedItems={selectedItems}
                     target={targetChoice === cls.id}
