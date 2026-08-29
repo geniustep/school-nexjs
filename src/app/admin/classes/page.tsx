@@ -5,6 +5,7 @@
  * @design-status adopted
  */
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -56,16 +57,21 @@ export default function AdminClassesPage() {
       <PageHeader
         title={t('nav.classes')}
         actions={
-          <AdminListActions
-            addHref="/admin/classes/new"
-            addLabel={t('admin.createClass')}
-            managePermission="manage_classes"
-            exportPath={endpoints.admin.classesExport}
-            exportFilename="classes.csv"
-            showImport
-            importOpen={importOpen}
-            onToggleImport={() => setImportOpen((v) => !v)}
-          />
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <Link href="/admin/classes/distribution" className="btn btn--ghost btn--sm">
+              {t('admin.classDistribution.entry')}
+            </Link>
+            <AdminListActions
+              addHref="/admin/classes/new"
+              addLabel={t('admin.createClass')}
+              managePermission="manage_classes"
+              exportPath={endpoints.admin.classesExport}
+              exportFilename="classes.csv"
+              showImport
+              importOpen={importOpen}
+              onToggleImport={() => setImportOpen((v) => !v)}
+            />
+          </div>
         }
       />
       {importOpen ? (
