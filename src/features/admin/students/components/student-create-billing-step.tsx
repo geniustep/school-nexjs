@@ -8,12 +8,18 @@ import {
   type EnrollmentIntakeGuardianOptions,
 } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
 import type { EnrollmentIntakeFieldErrors, EnrollmentIntakePatch, EnrollmentIntakeValues } from '@/features/admin/enrollment-intake/types';
+import { IdentityDocumentFields } from '@/features/admin/parents/components/identity-document-fields';
 import type { BillingResponsibilityFieldErrors } from '@/features/admin/students/utils/student-create-billing-responsibility';
 import {
   guardianEntryBillingOptionLabel,
   guardianEntryLabel,
 } from '@/features/admin/students/utils/student-create-guardian-payload';
 import { isCompleteStudentCreateGuardianEntry } from '@/features/admin/students/utils/student-create-additional-guardians';
+import {
+  resolvePrimaryGuardianIdentity,
+  type StudentCreateBillingStateWithGuardianIdentity,
+  type StudentCreateGuardianIdentityValidationErrors,
+} from '@/features/admin/students/utils/student-create-guardian-identity';
 import type {
   StudentCreateBillingFormState,
   StudentCreateGuardianEntry,
@@ -76,7 +82,7 @@ export function StudentCreateBillingStep({
   admissionSelectionRequired = false,
 }: {
   billingState: StudentCreateBillingFormState;
-  billingErrors?: BillingResponsibilityFieldErrors;
+  billingErrors?: BillingResponsibilityFieldErrors & StudentCreateGuardianIdentityValidationErrors;
   guardianEntries: StudentCreateGuardianEntry[];
   linkedGuardianPerson: PersonSearchResult | null;
   onBillingChange: (patch: Partial<StudentCreateBillingFormState>) => void;
@@ -120,6 +126,7 @@ export function StudentCreateBillingStep({
   const selectedBillingGuardian = billingGuardianOptions.find(
     (entry) => entry.entryKey === billingState.billingGuardianEntryKey,
   );
+  const primaryGuardianIdentity = resolvePrimaryGuardianIdentity(billingState);
 
   function handleResponsibilityChange(value: string) {
     const selection = value as StudentCreateBillingFormState['responsibilitySelection'];
@@ -136,6 +143,25 @@ export function StudentCreateBillingStep({
             ? billingState.billingGuardianEntryKey
             : null,
     });
+  }
+
+  function handlePrimaryIdentityChange(
+    patch: Partial<typeof primaryGuardianIdentity>,
+  ) {
+    const nextPatch: Partial<StudentCreateBillingStateWithGuardianIdentity> = {
+      primaryGuardianIdentity: { ...primaryGuardianIdentity, ...patch },
+    };
+    onBillingChange(nextPatch);
+  }
+
+  function handleSourceModeChange(mode: StudentCreateBillingFormState['guardianSourceMode']) {
+    if (mode === 'existing') {
+      const clearIdentity: Partial<StudentCreateBillingStateWithGuardianIdentity> = {
+        primaryGuardianIdentity: undefined,
+      };
+      onBillingChange(clearIdentity);
+    }
+    onGuardianSourceModeChange(mode);
   }
 
   return (
@@ -160,7 +186,7 @@ export function StudentCreateBillingStep({
           sourceMode={billingState.guardianSourceMode}
           linkedGuardianId={billingState.linkedGuardianId}
           linkedGuardianPerson={linkedGuardianPerson}
-          onSourceModeChange={onGuardianSourceModeChange}
+          onSourceModeChange={handleSourceModeChange}
           onLinkExisting={onLinkExistingGuardian}
           onClearLink={onClearLinkedGuardian}
           allowCreateNewGuardian={allowCreateNewGuardian}
@@ -177,12 +203,24 @@ export function StudentCreateBillingStep({
         ) : null}
 
         {billingState.guardianSourceMode === 'new' ? (
-          <EnrollmentIntakeGuardianFields
-            embedded
-            values={intakeValues}
-            onPatch={onIntakePatch}
-            guardian={guardian}
-          />
+          <>
+            <EnrollmentIntakeGuardianFields
+              embedded
+              values={intakeValues}
+              onPatch={onIntakePatch}
+              guardian={guardian}
+            />
+            <div className="student-create-form__subsection">
+              <p className="student-create-field__label">
+                {t('admin.identityDocument.sectionTitle')}
+              </p>
+              <IdentityDocumentFields
+                values={primaryGuardianIdentity}
+                errors={billingErrors?.primaryGuardianIdentityErrors}
+                onChange={handlePrimaryIdentityChange}
+              />
+            </div>
+          </>
         ) : null}
 
         {linkedExisting ? (

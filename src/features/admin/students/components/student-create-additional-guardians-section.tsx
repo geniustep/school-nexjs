@@ -10,6 +10,7 @@ import type {
 import type { PersonSearchResult } from '@/types/student-360';
 import { StudentCreateAdditionalGuardianCard } from './student-create-additional-guardian-card';
 import type { BillingResponsibilityFieldErrors } from '../utils/student-create-billing-responsibility';
+import type { StudentCreateGuardianIdentityValidationErrors } from '../utils/student-create-guardian-identity';
 
 export function StudentCreateAdditionalGuardiansSection({
   billingState,
@@ -27,7 +28,7 @@ export function StudentCreateAdditionalGuardiansSection({
   onRemove,
 }: {
   billingState: StudentCreateBillingFormState;
-  billingErrors?: BillingResponsibilityFieldErrors;
+  billingErrors?: BillingResponsibilityFieldErrors & StudentCreateGuardianIdentityValidationErrors;
   guardian: EnrollmentIntakeGuardianOptions;
   usedGuardianIds: Set<number>;
   linkedGuardianPersonsByEntryKey: Record<string, PersonSearchResult>;
@@ -55,6 +56,7 @@ export function StudentCreateAdditionalGuardiansSection({
                 usedGuardianIds={usedGuardianIds}
                 fieldError={billingErrors?.additionalGuardianErrorsByEntryKey?.[entry.entryKey]}
                 duplicateError={billingErrors?.duplicateGuardianId}
+                identityErrors={billingErrors?.additionalGuardianIdentityErrorsByEntryKey?.[entry.entryKey]}
                 guardian={guardian}
                 onSourceModeChange={onSourceModeChange}
                 onUpdateEntry={onUpdateEntry}
