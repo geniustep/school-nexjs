@@ -38,6 +38,12 @@ import {
   type FullRegistrationPricingAdjustment,
   type FullRegistrationStudentDraft,
 } from '../utils/full-registration-contract';
+import {
+  FULL_REGISTRATION_DEFAULT_GENDER,
+  FULL_REGISTRATION_GUARDIAN_SEARCH_DEBOUNCE_MS,
+  fullRegistrationErrorMessageKey,
+  fullRegistrationGenderLabel,
+} from '../utils/full-registration-ui';
 import { fullRegistrationCopy } from '../utils/full-registration-copy';
 import styles from './full-registration-page.module.css';
 
@@ -121,36 +127,6 @@ function responseString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
-function mapRegistrationError(code: string, copy: (key: string) => string): string {
-  if (code === 'guardian_identity_candidate_exists') return copy('guardianDuplicate');
-  if (
-    code === 'special_family_billing_responsible_required' ||
-    code === 'billing_responsibility_unresolved' ||
-    code === 'billing_guardian_ambiguous'
-  ) {
-    return copy('billingAmbiguous');
-  }
-  if (code === 'special_family_legal_responsible_required') return copy('specialLegalError');
-  if (
-    code === 'guardian_access_user_provision_failed' ||
-    code === 'guardian_account_provisioning_failed'
-  ) {
-    return copy('accountFailed');
-  }
-  if (
-    code === 'optional_service_not_eligible' ||
-    code === 'optional_service_unknown' ||
-    code === 'optional_service_ambiguous'
-  ) {
-    return copy('serviceUnavailable');
-  }
-  if (code.includes('ambiguous') && code.includes('plan')) return copy('planAmbiguous');
-  if (code.includes('fee_plan') || code.includes('base_plan') || code === 'no_default_fee_plan_for_level') {
-    return copy('planMissing');
-  }
-  return copy('genericError');
-}
-
 function GuardianCard({
   title,
   kind,
@@ -171,7 +147,7 @@ function GuardianCard({
   copy: (key: string) => string;
 }) {
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, 350);
+  const debouncedSearch = useDebouncedValue(search, FULL_REGISTRATION_GUARDIAN_SEARCH_DEBOUNCE_MS);
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<PersonSearchResult[]>([]);
 
@@ -200,6 +176,18 @@ function GuardianCard({
       active = false;
     };
   }, [activeSchoolId, debouncedSearch, draft.linkedGuardianId, draft.linkedPersonId, draft.mode]);
+
+  function switchMode(mode: FullRegistrationGuardianDraft['mode']) {
+    setSearch('');
+    setResults([]);
+    setSearching(false);
+    onChange({
+      ...draft,
+      mode,
+      linkedGuardianId: null,
+      linkedPersonId: null,
+    });
+  }
 
   function selectExisting(person: PersonSearchResult) {
     const guardianId = resolvePersonSchoolParentId(person);
@@ -235,15 +223,17 @@ function GuardianCard({
         <div className={styles.modeSwitch} role="group" aria-label={title}>
           <button
             type="button"
+            aria-pressed={draft.mode === 'new'}
             className={`${styles.modeButton} ${draft.mode === 'new' ? styles.modeButtonActive : ''}`}
-            onClick={() => onChange({ ...draft, mode: 'new', linkedGuardianId: null, linkedPersonId: null })}
+            onClick={() => switchMode('new')}
           >
             {copy('newGuardian')}
           </button>
           <button
             type="button"
+            aria-pressed={draft.mode === 'existing'}
             className={`${styles.modeButton} ${draft.mode === 'existing' ? styles.modeButtonActive : ''}`}
-            onClick={() => onChange({ ...draft, mode: 'existing', linkedGuardianId: null, linkedPersonId: null })}
+            onClick={() => switchMode('existing')}
           >
             {copy('existingGuardian')}
           </button>
@@ -338,10 +328,12 @@ function GuardianCard({
         <div className={styles.field}>
           <span className={styles.label}>{copy('search')}</span>
           <input
-            className="input"
+            type="search"
+            className={`input ${styles.searchInput}`}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             autoComplete="off"
+            autoFocus
           />
           {searching ? <div className={styles.muted}>{copy('searching')}</div> : null}
           {!searching && debouncedSearch.trim().length >= GUARDIAN_GLOBAL_SEARCH_MIN_QUERY && results.length === 0 ? (
@@ -418,7 +410,7 @@ export function FullRegistrationPage() {
     lastNameAr: '',
     firstNameFr: '',
     lastNameFr: '',
-    gender: '',
+    gender: FULL_REGISTRATION_DEFAULT_GENDER,
     dateOfBirth: '',
     previousSchool: '',
     address: '',
@@ -623,7 +615,7 @@ export function FullRegistrationPage() {
     setSaving(false);
 
     if (!result.success) {
-      const message = mapRegistrationError(String(result.error?.code ?? ''), copy);
+      const message = copy(fullRegistrationErrorMessageKey(String(result.error?.code ?? '')));
       setError(message);
       toast.error(message);
       return;
@@ -780,8 +772,11 @@ export function FullRegistrationPage() {
           <label className={`${styles.field} ${styles.col4}`}>
             <span className={styles.label}>{copy('gender')}</span>
             <select className="input" value={student.gender} onChange={(event) => setStudent((prev) => ({ ...prev, gender: event.target.value }))}>
-              <option value="">{copy('select')}</option>
-              {(optionsState.options?.genders ?? []).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              {(optionsState.options?.genders ?? []).map((item) => (
+                <option key={item.value} value={item.value}>
+                  {fullRegistrationGenderLabel(locale, item.value, item.label)}
+                </option>
+              ))}
             </select>
           </label>
           <label className={`${styles.field} ${styles.col4}`}><span className={styles.label}>{copy('dob')}</span><input className="input" type="date" value={student.dateOfBirth} onChange={(event) => setStudent((prev) => ({ ...prev, dateOfBirth: event.target.value }))} /></label>
