@@ -56,17 +56,17 @@ describe('resolveStudentCreateFinanceStepGate — required Base Plan', () => {
     expect(gate.attachFinance).toBe(true);
   });
 
-  it('blocks the step when a prerequisite is missing', () => {
+  it('blocks the step when a canonical prerequisite is missing', () => {
     const gate = resolveStudentCreateFinanceStepGate({
       skipFinance: false,
       levelSelected: true,
       suggestLoading: false,
       financeBlocked: false,
       suggest,
-      prerequisiteReason: 'class',
+      prerequisiteReason: 'join_date',
     });
     expect(gate.status).toBe('prerequisite');
-    expect(gate.prerequisiteReason).toBe('class');
+    expect(gate.prerequisiteReason).toBe('join_date');
     expect(gate.attachFinance).toBe(false);
   });
 });
@@ -106,6 +106,12 @@ describe('shouldAttachFinanceOnCreate', () => {
     expect(shouldAttachFinanceOnCreate(false, suggest, admissionProfile, 3)).toBe(true);
   });
 
+  it('attaches finance even when class is not selected', () => {
+    expect(
+      shouldAttachFinanceOnCreate(false, suggest, { ...admissionProfile, classId: '' }, 3),
+    ).toBe(true);
+  });
+
   it('legacy skip cannot suppress finance when the plan exists', () => {
     expect(shouldAttachFinanceOnCreate(true, suggest, admissionProfile, 3)).toBe(true);
   });
@@ -140,5 +146,27 @@ describe('buildStudentCreatePayload — automatic Base Plan payload', () => {
       activation_mode: 'activate',
     });
     expect(payload.academic?.class_id).toBe(2058);
+  });
+
+  it('sends Base Plan finance without academic.class_id when class is omitted', () => {
+    const payload = buildStudentCreatePayload(
+      { ...admissionProfile, classId: '' },
+      {
+        suggest,
+        financeState: defaultStudentCreateFinanceFormState(suggest),
+        schoolId: 3,
+      },
+    );
+    expect(payload.finance).toEqual({
+      customize_plan: false,
+      activation_mode: 'activate',
+    });
+    expect(payload.academic).toMatchObject({
+      school_id: 3,
+      academic_year_id: 1,
+      level_id: 2446,
+      enrollment_date: '2026-09-05',
+    });
+    expect(payload.academic).not.toHaveProperty('class_id');
   });
 });
