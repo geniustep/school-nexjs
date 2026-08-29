@@ -16,6 +16,7 @@ import {
   isLocale,
   localeDir,
 } from '@/lib/i18n/config';
+import { translateClassDistributionMessage } from '@/lib/i18n/class-distribution-messages';
 import { translate } from '@/lib/i18n/messages';
 
 export type TranslateFn = (
@@ -84,7 +85,13 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback<TranslateFn>(
-    (key, params) => translate(locale, TRANSLATION_KEY_ALIASES[key] ?? key, params),
+    (key, params) => {
+      const resolvedKey = TRANSLATION_KEY_ALIASES[key] ?? key;
+      return (
+        translateClassDistributionMessage(locale, resolvedKey, params) ??
+        translate(locale, resolvedKey, params)
+      );
+    },
     [locale],
   );
 
