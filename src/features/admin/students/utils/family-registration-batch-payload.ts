@@ -14,6 +14,7 @@ import {
 import { buildFamilyChildCreatePayload, collectFamilyGuardianEntries } from './family-registration-payload';
 import type { FamilyBatchIdempotencyRegistry } from './family-registration-idempotency';
 import { buildStudentCreateAcademicBlock } from './student-profile';
+import { guardianIdentityWriteFields } from './student-create-guardian-identity';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -44,13 +45,15 @@ export function buildBatchGuardiansFromEntries(
       });
       continue;
     }
+    const guardian = {
+      name: entry.full_name,
+      ...(entry.phone ? { mobile: entry.phone } : {}),
+      ...(entry.email ? { email: entry.email } : {}),
+      ...guardianIdentityWriteFields(entry),
+    };
     out.push({
       client_guardian_key: key,
-      guardian: {
-        name: entry.full_name,
-        ...(entry.phone ? { mobile: entry.phone } : {}),
-        ...(entry.email ? { email: entry.email } : {}),
-      },
+      guardian,
     });
   }
   return out;
