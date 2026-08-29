@@ -68,6 +68,21 @@ describe('buildFeePlanSuggestQuery', () => {
     expect(financePlanFingerprint(buildFeePlanSuggestQuery(state, 1))).toBe('1:2025:10:2025-12-15');
   });
 
+  it('ignores any previously selected fee plan id', () => {
+    const state = {
+      ...defaultStudentProfileFormState(null),
+      academicYearId: '2025',
+      levelId: '10',
+      actualJoinDate: '2025-12-15',
+    };
+    expect(buildFeePlanSuggestQuery(state, 1, 999)).toEqual({
+      school_id: 1,
+      academic_year_id: 2025,
+      level_id: 10,
+      enrollment_date: '2025-12-15',
+    });
+  });
+
   it('returns null before level is selected', () => {
     const state = {
       ...defaultStudentProfileFormState(null),
@@ -233,11 +248,11 @@ describe('resolveNoDefaultFeePlanMessage', () => {
 });
 
 describe('buildStudentCreateFinancePayload', () => {
-  it('sends finance without customization', () => {
+  it('uses automatic Base Plan finance without pinning a plan id', () => {
     const financeState = defaultStudentCreateFinanceFormState(suggest);
     expect(buildStudentCreateFinancePayload(suggest, financeState)).toEqual({
-      fee_plan_id: 123,
       customize_plan: false,
+      activation_mode: 'activate',
     });
   });
 
@@ -354,6 +369,7 @@ describe('mergeFinanceStateWithSuggest', () => {
     const merged = mergeFinanceStateWithSuggest(previous, nextSuggest, true);
     expect(merged.customizePlan).toBe(false);
     expect(merged.customizationReason).toBe('');
+    expect(merged.selectedFeePlanId).toBe(456);
     expect(merged.periodOverrides).toEqual({
       '2026-02': { selected: true, amountOverride: '', dueDateOverride: '' },
     });
