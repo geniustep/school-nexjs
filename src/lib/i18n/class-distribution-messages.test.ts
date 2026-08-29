@@ -9,6 +9,10 @@ const REQUIRED_V2_KEYS = [
   'admin.classDistribution.previewAction',
   'admin.classDistribution.confirmAction',
   'admin.classDistribution.moreStudents',
+  'admin.classDistribution.showAllStudents',
+  'admin.classDistribution.showPreview',
+  'admin.classDistribution.rosterLoadFailed',
+  'admin.classDistribution.retry',
   'admin.classDistribution.error.batchTooLarge',
   'admin.classDistribution.error.invalidMove',
 ] as const;
