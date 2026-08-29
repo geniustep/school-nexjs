@@ -1,0 +1,7 @@
+.class-distribution {
+  --c-danger: var(--c-red);
+  --c-success: var(--c-green);
+  --c-warning: var(--c-amber);
+  --c-accent: var(--raqeem-accent);
+  --shadow-lg: var(--shadow-md);
+}
