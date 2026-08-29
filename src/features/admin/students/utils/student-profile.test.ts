@@ -214,7 +214,7 @@ describe('buildStudentCreatePayload', () => {
     expect(payload.academic).toBeUndefined();
   });
 
-  it('omits finance block when class is missing', () => {
+  it('attaches Base Plan finance when class is missing', () => {
     const suggest: FeePlanSuggestResult = {
       ok: true,
       fee_plan_id: 123,
@@ -231,19 +231,20 @@ describe('buildStudentCreatePayload', () => {
       actualJoinDate: '2026-09-01',
       classId: '',
     };
-    expect(getStudentCreateFinanceBlockReason(state, 3)).toBe('class');
-    expect(canAttachFinanceToStudentCreatePayload(state, 3)).toBe(false);
+    expect(getStudentCreateFinanceBlockReason(state, 3)).toBe('ok');
+    expect(canAttachFinanceToStudentCreatePayload(state, 3)).toBe(true);
     const payload = buildStudentCreatePayload(state, {
       suggest,
-      financeState: {
-        ...defaultStudentCreateFinanceFormState(suggest),
-        customizePlan: true,
-        customizationReason: 'special_discount',
-      },
+      financeState: defaultStudentCreateFinanceFormState(suggest),
       schoolId: 3,
     });
-    expect(payload.finance).toBeUndefined();
-    expect(payload.academic).toBeUndefined();
+    expect(payload.finance).toEqual({ customize_plan: false, activation_mode: 'activate' });
+    expect(payload.academic).toEqual({
+      school_id: 3,
+      academic_year_id: 1,
+      level_id: 77,
+      enrollment_date: '2026-09-01',
+    });
   });
 
   it('includes academic.class_id when finance is attached', () => {
