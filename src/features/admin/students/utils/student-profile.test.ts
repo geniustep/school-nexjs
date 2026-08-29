@@ -130,7 +130,7 @@ describe('buildStudentCreatePayload', () => {
     expect(payload.enrollment?.previous_school).toBe('Old School');
   });
 
-  it('includes finance block when suggest result is provided', () => {
+  it('includes automatic Base Plan finance when suggest result is provided', () => {
     const suggest: FeePlanSuggestResult = {
       ok: true,
       fee_plan_id: 123,
@@ -152,7 +152,7 @@ describe('buildStudentCreatePayload', () => {
       financeState: defaultStudentCreateFinanceFormState(suggest),
       schoolId: 3,
     });
-    expect(payload.finance).toEqual({ fee_plan_id: 123, customize_plan: false });
+    expect(payload.finance).toEqual({ customize_plan: false, activation_mode: 'activate' });
     expect(payload.academic).toEqual({
       school_id: 3,
       academic_year_id: 1,
