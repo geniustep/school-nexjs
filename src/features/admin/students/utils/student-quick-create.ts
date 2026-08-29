@@ -6,6 +6,7 @@ export type StudentQuickCreateInput = {
   lastName: string;
   firstNameLatin: string;
   lastNameLatin: string;
+  gender: string;
   cycleId: string;
   levelId: string;
   schoolId: number | null;
@@ -13,16 +14,42 @@ export type StudentQuickCreateInput = {
 };
 
 export type StudentQuickCreateValidation =
-  | { valid: true; firstName: string; lastName: string; firstNameLatin: string; lastNameLatin: string; levelId: number; schoolId: number; academicYearId: number }
-  | { valid: false; error: 'name_ar' | 'name_latin' | 'cycle' | 'level' | 'context' };
+  | {
+      valid: true;
+      firstName: string;
+      lastName: string;
+      firstNameLatin: string;
+      lastNameLatin: string;
+      gender: string;
+      levelId: number;
+      schoolId: number;
+      academicYearId: number;
+    }
+  | { valid: false; error: 'name_ar' | 'name_latin' | 'gender' | 'cycle' | 'level' | 'context' };
+
+export type StudentQuickRegistrationPayload = StudentCreatePayload & {
+  quick_registration: {
+    enabled: true;
+  };
+};
 
 export function validateStudentQuickCreateInput(input: StudentQuickCreateInput): StudentQuickCreateValidation {
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
   const firstNameLatin = input.firstNameLatin.trim();
   const lastNameLatin = input.lastNameLatin.trim();
-  if (!firstName || !lastName) return { valid: false, error: 'name_ar' };
-  if (!firstNameLatin || !lastNameLatin) return { valid: false, error: 'name_latin' };
+  const gender = input.gender.trim();
+
+  const hasArabicName = Boolean(firstName && lastName);
+  const hasLatinName = Boolean(firstNameLatin && lastNameLatin);
+  const hasPartialArabicName = Boolean(firstName || lastName) && !hasArabicName;
+  const hasPartialLatinName = Boolean(firstNameLatin || lastNameLatin) && !hasLatinName;
+
+  if (hasPartialArabicName || (!hasArabicName && !hasLatinName)) {
+    return { valid: false, error: 'name_ar' };
+  }
+  if (hasPartialLatinName) return { valid: false, error: 'name_latin' };
+  if (!gender) return { valid: false, error: 'gender' };
   if (!input.cycleId.trim()) return { valid: false, error: 'cycle' };
 
   const levelId = Number(input.levelId);
@@ -31,19 +58,46 @@ export function validateStudentQuickCreateInput(input: StudentQuickCreateInput):
     return { valid: false, error: 'context' };
   }
 
-  return { valid: true, firstName, lastName, firstNameLatin, lastNameLatin, levelId, schoolId: input.schoolId, academicYearId: input.academicYearId };
+  const canonicalFirstName = hasArabicName ? firstName : firstNameLatin;
+  const canonicalLastName = hasArabicName ? lastName : lastNameLatin;
+
+  return {
+    valid: true,
+    firstName: canonicalFirstName,
+    lastName: canonicalLastName,
+    firstNameLatin,
+    lastNameLatin,
+    gender,
+    levelId,
+    schoolId: input.schoolId,
+    academicYearId: input.academicYearId,
+  };
 }
 
-/** Smallest supported POST /admin/students payload with a level but no class assignment. */
+export function buildStudentQuickCreateSuccessHref(studentId: number): string {
+  if (!Number.isInteger(studentId) || studentId <= 0) return '/admin/students';
+  return `/admin/students/${studentId}?postSetup=1`;
+}
+
+/** Smallest supported quick-registration payload: Student + Enrollment core, no class in request. */
 export function buildStudentQuickCreatePayload(
   input: Extract<StudentQuickCreateValidation, { valid: true }>,
   enrollmentDate = todayIsoDate(),
-): StudentCreatePayload {
+): StudentQuickRegistrationPayload {
+  const hasArabicName = Boolean(input.firstName && input.lastName && !input.firstNameLatin && !input.lastNameLatin)
+    ? true
+    : /[\u0600-\u06FF]/.test(`${input.firstName} ${input.lastName}`);
+  const nameAr = hasArabicName ? buildFullNamePreview(input.firstName, input.lastName) : undefined;
+  const nameLatin = input.firstNameLatin && input.lastNameLatin
+    ? buildFullNamePreview(input.firstNameLatin, input.lastNameLatin)
+    : undefined;
+
   return {
     first_name: input.firstName,
     last_name: input.lastName,
-    name_ar: buildFullNamePreview(input.firstName, input.lastName),
-    name_latin: buildFullNamePreview(input.firstNameLatin, input.lastNameLatin),
+    ...(nameAr ? { name_ar: nameAr } : {}),
+    ...(nameLatin ? { name_latin: nameLatin } : {}),
+    gender: input.gender,
     status: 'active',
     active: true,
     admission_date: enrollmentDate,
@@ -54,5 +108,6 @@ export function buildStudentQuickCreatePayload(
       level_id: input.levelId,
       enrollment_date: enrollmentDate,
     },
+    quick_registration: { enabled: true },
   };
 }
