@@ -1,14 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { ApiErrorBody } from '@/types/api';
-import type { DistributionClassSummary } from '@/types/class-distribution';
+import type { DistributionClassSummary, DistributionSelectionItem } from '@/types/class-distribution';
 import {
+  MAX_DISTRIBUTION_MOVE_BATCH,
   buildDistributionAssignRequest,
+  buildDistributionMoveRequest,
+  buildDistributionMoves,
   classAvailableSeats,
   classIsFull,
   classOccupancyPercent,
   distributionErrorMessageKey,
   selectedStudentsFromPage,
+  selectionFitsTargetCapacity,
   shouldRefetchAfterDistributionError,
+  targetIsNoopForSelection,
 } from './utils';
 
 function cls(overrides: Partial<DistributionClassSummary> = {}): DistributionClassSummary {
@@ -31,6 +36,17 @@ function cls(overrides: Partial<DistributionClassSummary> = {}): DistributionCla
       },
     },
     ...overrides,
+  };
+}
+
+function selection(studentId: number, sourceClassId: number | null): DistributionSelectionItem {
+  return {
+    studentId,
+    enrollmentId: sourceClassId == null ? null : 1000 + studentId,
+    sourceClassId,
+    name: `Student ${studentId}`,
+    code: `ST-${studentId}`,
+    gender: null,
   };
 }
 
@@ -61,7 +77,7 @@ describe('class distribution presentation utilities', () => {
     expect(classOccupancyPercent(cls({ assigned_count: 30 }))).toBe(100);
   });
 
-  it('builds one preview assignment per selected student', () => {
+  it('preserves the V1 assignment helper', () => {
     expect(buildDistributionAssignRequest(7, 'preview', [10, 11], 99)).toEqual({
       level_id: 7,
       mode: 'preview',
@@ -72,15 +88,7 @@ describe('class distribution presentation utilities', () => {
     });
   });
 
-  it('builds apply with the same explicit assignment shape', () => {
-    expect(buildDistributionAssignRequest(7, 'apply', [10], 99)).toEqual({
-      level_id: 7,
-      mode: 'apply',
-      assignments: [{ student_id: 10, class_id: 99 }],
-    });
-  });
-
-  it('keeps selected students constrained to the visible page', () => {
+  it('keeps selected V1 students constrained to the visible page', () => {
     const items = [
       { id: 1, name: 'A', code: null, gender: 'female' as const },
       { id: 2, name: 'B', code: null, gender: 'male' as const },
@@ -89,28 +97,85 @@ describe('class distribution presentation utilities', () => {
   });
 });
 
-describe('class distribution error mapping', () => {
-  it('maps capacity errors to a safe user-facing key', () => {
-    expect(distributionErrorMessageKey(error('CLASS_CAPACITY_EXCEEDED'))).toBe(
-      'admin.classDistribution.error.capacity',
-    );
+describe('Class Distribution Workspace V2 move helpers', () => {
+  it('builds unassigned → class moves', () => {
+    expect(buildDistributionMoves([selection(1, null)], 20)).toEqual([
+      { student_id: 1, from_class_id: null, to_class_id: 20 },
+    ]);
   });
 
-  it('maps already-assigned errors and requests a refetch', () => {
-    const value = error('class_distribution_assign_invalid', {
-      errors: [{ code: 'ALREADY_ASSIGNED' }],
+  it('builds class → class moves', () => {
+    expect(buildDistributionMoves([selection(2, 10)], 20)).toEqual([
+      { student_id: 2, from_class_id: 10, to_class_id: 20 },
+    ]);
+  });
+
+  it('builds class → unassigned moves', () => {
+    expect(buildDistributionMoves([selection(3, 10)], null)).toEqual([
+      { student_id: 3, from_class_id: 10, to_class_id: null },
+    ]);
+  });
+
+  it('preserves mixed sources in one preview request', () => {
+    const items = [selection(1, null), selection(2, 10), selection(3, 11)];
+    expect(buildDistributionMoveRequest(7, 'preview', items, 20, 2026)).toEqual({
+      academic_year_id: 2026,
+      level_id: 7,
+      mode: 'preview',
+      moves: [
+        { student_id: 1, from_class_id: null, to_class_id: 20 },
+        { student_id: 2, from_class_id: 10, to_class_id: 20 },
+        { student_id: 3, from_class_id: 11, to_class_id: 20 },
+      ],
     });
-    expect(distributionErrorMessageKey(value)).toBe(
-      'admin.classDistribution.error.alreadyAssigned',
-    );
+  });
+
+  it('marks a target invalid when any selected student already belongs to it', () => {
+    expect(targetIsNoopForSelection([selection(1, 10), selection(2, 11)], 10)).toBe(true);
+    expect(targetIsNoopForSelection([selection(1, null)], null)).toBe(true);
+    expect(targetIsNoopForSelection([selection(1, 10)], 11)).toBe(false);
+  });
+
+  it('guards known target capacity while leaving unspecified capacity to backend validation', () => {
+    expect(selectionFitsTargetCapacity([selection(1, null), selection(2, null)], cls({ id: 20, assigned_count: 22 }))).toBe(true);
+    expect(selectionFitsTargetCapacity([selection(1, null), selection(2, null), selection(3, null)], cls({ id: 20, assigned_count: 22 }))).toBe(false);
+    expect(selectionFitsTargetCapacity([selection(1, null)], cls({ id: 20, capacity: null }))).toBe(true);
+  });
+
+  it('keeps the UI batch ceiling aligned with the backend contract', () => {
+    expect(MAX_DISTRIBUTION_MOVE_BATCH).toBe(100);
+  });
+});
+
+describe('class distribution error mapping', () => {
+  it('maps capacity errors to a safe user-facing key and refetches', () => {
+    const value = error('CLASS_CAPACITY_EXCEEDED');
+    expect(distributionErrorMessageKey(value)).toBe('admin.classDistribution.error.capacity');
     expect(shouldRefetchAfterDistributionError(value)).toBe(true);
   });
 
-  it('maps stale conflicts without exposing raw codes', () => {
-    const value = error('concurrent_assignment_conflict');
-    expect(distributionErrorMessageKey(value)).toBe(
-      'admin.classDistribution.error.concurrent',
-    );
+  it('preserves already-assigned V1 handling', () => {
+    const value = error('class_distribution_assign_invalid', {
+      errors: [{ code: 'ALREADY_ASSIGNED' }],
+    });
+    expect(distributionErrorMessageKey(value)).toBe('admin.classDistribution.error.alreadyAssigned');
+    expect(shouldRefetchAfterDistributionError(value)).toBe(true);
+  });
+
+  it('maps V2 source/current/concurrency drift without exposing raw codes', () => {
+    for (const code of ['SOURCE_CLASS_MISMATCH', 'CURRENT_CLASS_MISMATCH', 'concurrent_move_conflict']) {
+      const value = error(code);
+      expect(distributionErrorMessageKey(value)).toBe('admin.classDistribution.error.concurrent');
+      expect(shouldRefetchAfterDistributionError(value)).toBe(true);
+    }
+  });
+
+  it('maps nested move-invalid stale details', () => {
+    const value = error('class_distribution_move_invalid', {
+      errors: [{ error_code: 'SOURCE_CLASS_MISMATCH' }],
+    });
+    expect(distributionErrorMessageKey(value)).toBe('admin.classDistribution.error.concurrent');
+    expect(shouldRefetchAfterDistributionError(value)).toBe(true);
   });
 
   it('maps context mismatches', () => {
@@ -119,9 +184,21 @@ describe('class distribution error mapping', () => {
     );
   });
 
-  it('maps class scope mismatches', () => {
+  it('maps source/class scope mismatches', () => {
+    expect(distributionErrorMessageKey(error('SOURCE_CLASS_NOT_FOUND'))).toBe(
+      'admin.classDistribution.error.class',
+    );
     expect(distributionErrorMessageKey(error('CLASS_LEVEL_MISMATCH'))).toBe(
       'admin.classDistribution.error.class',
+    );
+  });
+
+  it('maps batch and invalid-request errors', () => {
+    expect(distributionErrorMessageKey(error('move_batch_too_large'))).toBe(
+      'admin.classDistribution.error.batchTooLarge',
+    );
+    expect(distributionErrorMessageKey(error('invalid_move'))).toBe(
+      'admin.classDistribution.error.invalidMove',
     );
   });
 
