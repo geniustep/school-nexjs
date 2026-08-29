@@ -39,13 +39,17 @@ export function useStudentOptions(): StudentOptionsState {
         if (!active) return;
         if (res.success) {
           const normalized = normalizeStudentOptions(res.data);
-          setOptions({
-            ...normalized,
-            academicYears: alignAcademicYearsWithActiveContext(
-              normalized.academicYears,
-              activeAcademicYearId,
-            ),
-          });
+          if (normalized) {
+            setOptions({
+              ...normalized,
+              academicYears: alignAcademicYearsWithActiveContext(
+                normalized.academicYears,
+                activeAcademicYearId,
+              ),
+            });
+          } else {
+            setOptions(null);
+          }
           setError(null);
         } else {
           setOptions(null);
