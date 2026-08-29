@@ -129,7 +129,7 @@ describe('canOfferFinanceAgreementActivation', () => {
     ).toBe(true);
   });
 
-  it('is false when class is missing', () => {
+  it('remains true when class is missing because Base Plan is level-scoped', () => {
     expect(
       canOfferFinanceAgreementActivation({
         suggest,
@@ -141,7 +141,7 @@ describe('canOfferFinanceAgreementActivation', () => {
         previewError: null,
         preview: { final_total: 18500 },
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 });
 
