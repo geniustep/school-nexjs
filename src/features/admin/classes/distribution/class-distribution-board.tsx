@@ -18,7 +18,7 @@ import { api } from '@/lib/api/client';
 import { classDistributionEndpoints } from '@/lib/api/class-distribution-endpoints';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import type { ApiErrorBody } from '@/types/api';
+import type { ApiErrorBody, Pagination } from '@/types/api';
 import type { Level, LevelCycle } from '@/types/class';
 import type {
   ClassDistributionMoveApplyResponse,
@@ -29,6 +29,7 @@ import type {
   DistributionStudentGender,
   DistributionWorkspaceClass,
 } from '@/types/class-distribution';
+import type { Student } from '@/types/student';
 import {
   MAX_DISTRIBUTION_MOVE_BATCH,
   buildDistributionMoveRequest,
@@ -44,6 +45,7 @@ import './class-distribution.css';
 
 const PAGE_SIZE = 25;
 const CLASS_PREVIEW_SIZE = 4;
+const CLASS_ROSTER_PAGE_SIZE = 25;
 const LEVELS_QUERY = { page_size: 500 };
 
 type CycleGroup = { cycle: LevelCycle; levels: Level[] };
@@ -128,6 +130,27 @@ function studentFromClass(
   };
 }
 
+function adminStudentDisplayName(student: Student): string {
+  const fullName = student.full_name?.trim() || student.name?.trim();
+  if (fullName) return fullName;
+  const structured = [student.first_name?.trim(), student.last_name?.trim()]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+  return structured || student.code || `#${student.id}`;
+}
+
+function studentFromRoster(student: Student, classId: number): DistributionSelectionItem {
+  return {
+    studentId: student.id,
+    enrollmentId: null,
+    sourceClassId: classId,
+    name: adminStudentDisplayName(student),
+    code: student.code,
+    gender: student.gender,
+  };
+}
+
 function StudentRow({
   item,
   selected,
@@ -160,6 +183,7 @@ function StudentRow({
 
 function ClassLane({
   cls,
+  academicYearId,
   selected,
   selectedItems,
   target,
@@ -167,6 +191,7 @@ function ClassLane({
   onTarget,
 }: {
   cls: DistributionWorkspaceClass;
+  academicYearId: number;
   selected: Map<number, DistributionSelectionItem>;
   selectedItems: DistributionSelectionItem[];
   target: boolean;
@@ -181,6 +206,49 @@ function ClassLane({
   const missingAssignments = cls.readiness.items.teaching_assignments.missing_count ?? 0;
   const canTarget = selectedItems.length > 0 && selectionFitsTargetCapacity(selectedItems, cls);
   const remainder = Math.max(cls.students_preview.total - cls.students_preview.items.length, 0);
+
+  const [rosterOpen, setRosterOpen] = useState(false);
+  const [rosterPage, setRosterPage] = useState(1);
+  const [rosterItems, setRosterItems] = useState<Student[] | null>(null);
+  const [rosterPagination, setRosterPagination] = useState<Pagination | null>(null);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterError, setRosterError] = useState(false);
+
+  const loadRoster = useCallback(
+    async (nextPage: number) => {
+      setRosterLoading(true);
+      setRosterError(false);
+      const result = await api.get<Student[]>(endpoints.admin.students, {
+        academic_year_id: academicYearId,
+        class_id: cls.id,
+        page: nextPage,
+        page_size: CLASS_ROSTER_PAGE_SIZE,
+      });
+      setRosterLoading(false);
+      if (!result.success) {
+        setRosterError(true);
+        return;
+      }
+      setRosterItems(result.data);
+      setRosterPagination(result.meta.pagination ?? null);
+      setRosterPage(nextPage);
+    },
+    [academicYearId, cls.id],
+  );
+
+  async function openRoster() {
+    setRosterOpen(true);
+    if (rosterItems == null) await loadRoster(1);
+  }
+
+  function closeRoster() {
+    setRosterOpen(false);
+    setRosterError(false);
+  }
+
+  const visibleItems = rosterOpen && rosterItems != null
+    ? rosterItems.map((student) => studentFromRoster(student, cls.id))
+    : cls.students_preview.items.map(studentFromClass);
 
   return (
     <section
@@ -208,7 +276,12 @@ function ClassLane({
         </div>
 
         {occupancy != null ? (
-          <span className="class-distribution-lane__bar" aria-hidden="true" data-full={full || undefined} data-over={overCapacity || undefined}>
+          <span
+            className="class-distribution-lane__bar"
+            aria-hidden="true"
+            data-full={full || undefined}
+            data-over={overCapacity || undefined}
+          >
             <span style={{ inlineSize: `${occupancy}%` }} />
           </span>
         ) : null}
@@ -244,26 +317,75 @@ function ClassLane({
       </header>
 
       <div className="class-distribution-lane__students">
-        {cls.students_preview.items.length ? (
-          cls.students_preview.items.map((student) => {
-            const item = studentFromClass(student);
-            return (
-              <StudentRow
-                key={student.id}
-                item={item}
-                selected={selected.has(student.id)}
-                onToggle={onToggle}
-              />
-            );
-          })
+        {rosterLoading ? (
+          <div className="class-distribution-lane__empty">
+            <strong>{t('common.loading')}</strong>
+          </div>
+        ) : rosterError ? (
+          <div className="class-distribution-lane__empty">
+            <p>{t('admin.classDistribution.rosterLoadFailed')}</p>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => void loadRoster(rosterPage)}>
+              {t('common.retry')}
+            </button>
+          </div>
+        ) : visibleItems.length ? (
+          visibleItems.map((item) => (
+            <StudentRow
+              key={item.studentId}
+              item={item}
+              selected={selected.has(item.studentId)}
+              onToggle={onToggle}
+            />
+          ))
         ) : (
-          <div className="class-distribution-lane__empty" aria-label={`0 ${t('admin.classDistribution.students')}`}>—</div>
+          <div
+            className="class-distribution-lane__empty"
+            aria-label={`0 ${t('admin.classDistribution.students')}`}
+          >
+            —
+          </div>
         )}
       </div>
 
-      {remainder > 0 ? (
+      {!rosterOpen && remainder > 0 ? (
         <footer className="class-distribution-lane__more">
-          {t('admin.classDistribution.moreStudents', { count: remainder })}
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => void openRoster()}>
+            {t('admin.classDistribution.showAllStudents')} · {t('admin.classDistribution.moreStudents', { count: remainder })}
+          </button>
+        </footer>
+      ) : null}
+
+      {rosterOpen ? (
+        <footer className="class-distribution-lane__roster-footer">
+          {rosterPagination && rosterPagination.total_pages > 1 ? (
+            <div className="class-distribution__pagination class-distribution__pagination--class">
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={rosterPage <= 1 || rosterLoading}
+                onClick={() => void loadRoster(Math.max(1, rosterPage - 1))}
+              >
+                {t('admin.classDistribution.previous')}
+              </button>
+              <span>
+                {t('admin.classDistribution.pageStatus', {
+                  page: rosterPage,
+                  pages: rosterPagination.total_pages,
+                })}
+              </span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={rosterPage >= rosterPagination.total_pages || rosterLoading}
+                onClick={() => void loadRoster(Math.min(rosterPagination.total_pages, rosterPage + 1))}
+              >
+                {t('admin.classDistribution.next')}
+              </button>
+            </div>
+          ) : null}
+          <button type="button" className="btn btn--ghost btn--sm" onClick={closeRoster}>
+            {t('admin.classDistribution.showPreview')}
+          </button>
         </footer>
       ) : null}
     </section>
@@ -426,17 +548,15 @@ export function ClassDistributionBoard() {
   }
 
   function toggleSelection(item: DistributionSelectionItem) {
+    const adding = !selected.has(item.studentId);
+    if (adding && selected.size >= MAX_DISTRIBUTION_MOVE_BATCH) {
+      setOperationError(t('admin.classDistribution.selectionLimit'));
+      return;
+    }
     setSelected((current) => {
       const next = new Map(current);
-      if (next.has(item.studentId)) {
-        next.delete(item.studentId);
-      } else {
-        if (next.size >= MAX_DISTRIBUTION_MOVE_BATCH) {
-          setOperationError(t('admin.classDistribution.selectionLimit'));
-          return current;
-        }
-        next.set(item.studentId, item);
-      }
+      if (next.has(item.studentId)) next.delete(item.studentId);
+      else next.set(item.studentId, item);
       return next;
     });
     resetPreviewForSelectionChange();
@@ -792,8 +912,9 @@ export function ClassDistributionBoard() {
               {board.classes.length ? (
                 board.classes.map((cls) => (
                   <ClassLane
-                    key={cls.id}
+                    key={`${cls.id}:${cls.assigned_count}`}
                     cls={cls}
+                    academicYearId={activeAcademicYearId}
                     selected={selected}
                     selectedItems={selectedItems}
                     target={targetChoice === cls.id}
