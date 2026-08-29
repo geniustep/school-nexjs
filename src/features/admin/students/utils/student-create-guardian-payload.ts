@@ -18,10 +18,10 @@ import {
   type AdditionalGuardianValidationErrors,
 } from './student-create-additional-guardians';
 import {
-  guardianEntryWithIdentity,
   guardianIdentityWriteFields,
   resolvePrimaryGuardianIdentity,
   validateStudentCreateGuardianIdentities,
+  type StudentCreateGuardianEntryWithIdentity,
   type StudentCreateGuardianIdentityValidationErrors,
 } from './student-create-guardian-identity';
 
@@ -79,7 +79,7 @@ export function derivePrimaryStudentCreateGuardianEntry(
   const fullName = trim(profileState.emergencyContactName);
   if (!fullName) return null;
 
-  return guardianEntryWithIdentity({
+  const entry: StudentCreateGuardianEntryWithIdentity = {
     kind: 'new',
     entryKey: 'new-primary',
     full_name: fullName,
@@ -88,7 +88,8 @@ export function derivePrimaryStudentCreateGuardianEntry(
     relationship_type: (trim(profileState.emergencyRelationship) || 'father') as RelationshipType,
     is_primary_contact: true,
     identityDocument: resolvePrimaryGuardianIdentity(billingState),
-  } as StudentCreateGuardianEntry);
+  };
+  return entry;
 }
 
 export function collectStudentCreateGuardianEntries(
