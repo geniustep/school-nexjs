@@ -67,13 +67,14 @@ describe('buildStudentCreateFinancePayload activation_mode', () => {
 });
 
 describe('buildStudentCreatePayload finance activation', () => {
-  it('does not send activation_mode on normal save', () => {
+  it('automatically activates Base Plan finance on normal full-registration save', () => {
     const payload = buildStudentCreatePayload(profile, {
       suggest,
       financeState: defaultStudentCreateFinanceFormState(suggest),
       schoolId: 3,
     });
-    expect(payload.finance?.activation_mode).toBeUndefined();
+    expect(payload.finance?.activation_mode).toBe('activate');
+    expect(payload.finance?.fee_plan_id).toBeUndefined();
     expect(payload.academic?.class_id).toBe(2058);
   });
 
