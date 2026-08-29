@@ -1,9 +1,11 @@
 /**
- * Isolated endpoint slice for the staged class-distribution contract.
- * Feature code never carries raw School API paths; this can be folded into the
- * large central endpoint registry when the Odoo contract is promoted.
+ * Isolated endpoint slice for the governed class-distribution contracts.
+ * V1 paths remain available for backward compatibility while Workspace V2
+ * becomes the page's primary read/mutation surface.
  */
 export const classDistributionEndpoints = {
   read: '/admin/class-distribution',
   assign: '/admin/class-distribution/assign',
+  workspace: '/admin/class-distribution/workspace',
+  move: '/admin/class-distribution/move',
 } as const;
