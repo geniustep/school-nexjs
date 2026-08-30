@@ -22,6 +22,14 @@ function readStringList(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
 }
 
+function readOptionalName(raw: Record<string, unknown>, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = raw[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return null;
+}
+
 function readHasUserAccount(raw: Record<string, unknown>): boolean {
   if (raw.has_user === true || raw.has_user_account === true || raw.has_account === true) return true;
   if (typeof raw.user_id === 'number' && raw.user_id > 0) return true;
@@ -115,6 +123,8 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     (typeof raw.name === 'string' && raw.name.trim()) ||
     (typeof raw.full_name === 'string' && raw.full_name.trim()) ||
     '';
+  const nameAr = readOptionalName(raw, 'name_ar', 'arabic_name');
+  const nameLatin = readOptionalName(raw, 'name_latin', 'name_fr', 'latin_name');
 
   const accountInfo = readSearchGuardianAccount(raw);
   const hasUserAccount = readHasUserAccount(raw) || accountInfo?.has_user_account === true;
@@ -138,7 +148,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
       ? raw.match_basis.trim()
       : null;
 
-  return {
+  const result = {
     partner_id: raw.partner_id,
     person_id: personId,
     id: guardianId ?? personId,
@@ -151,6 +161,8 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     linked_students_count:
       typeof raw.linked_students_count === 'number' ? raw.linked_students_count : undefined,
     name,
+    name_ar: nameAr,
+    name_latin: nameLatin,
     code: typeof raw.code === 'string' && raw.code.trim() ? raw.code.trim() : null,
     phone:
       (typeof raw.phone === 'string' ? raw.phone : null) ??
@@ -187,7 +199,9 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     already_guardian_of_student: raw.already_guardian_of_student === true,
     missing_contact_fields: readStringList(raw.missing_contact_fields),
     warnings: readWarnings(raw),
-  };
+  } as PersonSearchResult & { name_ar?: string | null; name_latin?: string | null };
+
+  return result;
 }
 
 export function normalizePersonSearchList(data: unknown): PersonSearchResult[] {

@@ -8,7 +8,9 @@ import { readFullRegistrationOptionalLines } from './full-registration-optional-
 import {
   buildFullRegistrationCollectNowHref,
   buildFullRegistrationGuardianSuggestionQuery,
+  fullRegistrationGuardianDisplayNames,
   fullRegistrationNameFieldOrder,
+  fullRegistrationPricingPeriodDefaults,
 } from './full-registration-requested-adjustments';
 
 function input(): FullRegistrationBuildInput {
@@ -94,6 +96,37 @@ describe('requested full registration adjustments', () => {
         nameFr: 'Amine',
       }),
     ).toBe('0612345678');
+  });
+
+  it('defaults pricing periods to September-June outside the school year', () => {
+    expect(fullRegistrationPricingPeriodDefaults('2026-08-30')).toEqual({
+      from: '2026-09',
+      to: '2027-06',
+    });
+  });
+
+  it('starts pricing periods from the current month inside the school year', () => {
+    expect(fullRegistrationPricingPeriodDefaults('2026-10-15')).toEqual({
+      from: '2026-10',
+      to: '2027-06',
+    });
+    expect(fullRegistrationPricingPeriodDefaults('2027-03-02')).toEqual({
+      from: '2027-03',
+      to: '2027-06',
+    });
+  });
+
+  it('shows Arabic and Latin guardian names only when the search contract returns them', () => {
+    expect(
+      fullRegistrationGuardianDisplayNames({
+        name: 'أمين الياسين',
+        name_ar: 'أمين الياسين',
+        name_latin: 'Amine Elyassine',
+      }),
+    ).toEqual(['أمين الياسين', 'Amine Elyassine']);
+    expect(fullRegistrationGuardianDisplayNames({ name: 'أمين الياسين' })).toEqual([
+      'أمين الياسين',
+    ]);
   });
 
   it('builds a direct collection URL with the registration identifiers', () => {
