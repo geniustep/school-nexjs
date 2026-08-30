@@ -124,7 +124,7 @@ describe('full registration V1 contract', () => {
       linkedPersonId: null,
       nameAr: '',
       nameFr: '',
-      phone: '',
+      phone: '0612345678',
     };
 
     const payload = buildFullRegistrationPayload(input);
@@ -133,6 +133,7 @@ describe('full registration V1 contract', () => {
       guardian_id: 901,
       relationship_type: 'father',
       provision_access: true,
+      receives_notifications: true,
     });
   });
 
