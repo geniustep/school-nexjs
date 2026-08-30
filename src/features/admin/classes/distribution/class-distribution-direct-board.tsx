@@ -5,7 +5,7 @@
  *
  * Visible flow:
  *   desktop drag/drop -> automatic preview -> automatic apply -> authoritative refetch
- *   select student(s) -> choose destination -> compact confirmation -> apply
+ *   select student(s) -> choose destination -> automatic preview -> automatic apply
  *
  * Safety flow always keeps the backend preview gate before every apply.
  */
@@ -1075,10 +1075,10 @@ export function ClassDistributionDirectBoard() {
                 <select
                   className="input"
                   defaultValue=""
+                  disabled={applyLoading || previewingTargetKey != null}
                   onChange={(event) => {
                     const target = directTargetSelectValue(event.currentTarget.value);
-                    event.currentTarget.value = '';
-                    if (target !== undefined) void requestMove(target);
+                    if (target !== undefined) void requestMove(target, undefined, true);
                   }}
                 >
                   <option value="">{t('admin.classDistribution.chooseTarget')}</option>
