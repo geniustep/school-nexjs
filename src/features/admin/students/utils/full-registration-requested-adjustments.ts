@@ -27,6 +27,42 @@ export function buildFullRegistrationGuardianSuggestionQuery(
   return '';
 }
 
+export function fullRegistrationPricingPeriodDefaults(referenceDate: string): {
+  from: string;
+  to: string;
+} {
+  const match = /^(\d{4})-(\d{2})/.exec(referenceDate.trim());
+  if (!match) return { from: '', to: '' };
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (!Number.isInteger(year) || month < 1 || month > 12) return { from: '', to: '' };
+
+  const currentMonth = `${year}-${String(month).padStart(2, '0')}`;
+  if (month >= 9) {
+    return { from: currentMonth, to: `${year + 1}-06` };
+  }
+  if (month <= 6) {
+    return { from: currentMonth, to: `${year}-06` };
+  }
+  return { from: `${year}-09`, to: `${year + 1}-06` };
+}
+
+type GuardianSearchNameSource = {
+  name?: string | null;
+  name_ar?: string | null;
+  name_latin?: string | null;
+};
+
+export function fullRegistrationGuardianDisplayNames(
+  person: GuardianSearchNameSource,
+): string[] {
+  const values = [person.name_ar, person.name_latin, person.name]
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter(Boolean);
+  return Array.from(new Set(values));
+}
+
 export function buildFullRegistrationCollectNowHref(params: {
   studentId: number;
   academicYearId?: string | number | null;

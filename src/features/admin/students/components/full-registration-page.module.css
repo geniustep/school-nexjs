@@ -207,6 +207,12 @@
   color: var(--c-text);
 }
 
+.searchAltName {
+  margin-top: 2px;
+  color: var(--c-text-muted);
+  font-size: 12px;
+}
+
 .muted {
   color: var(--c-text-muted);
   font-size: 12px;
@@ -217,6 +223,14 @@
   border-radius: var(--radius-sm);
   background: var(--c-green-soft);
   border: 1px solid color-mix(in srgb, var(--c-green) 24%, var(--c-border));
+}
+
+.inlinePhoneEdit {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
 }
 
 .badge {
@@ -287,6 +301,34 @@
   background: var(--c-surface-2);
 }
 
+.financeTotals {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.financeTotalCard {
+  padding: 14px 16px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  display: grid;
+  gap: 4px;
+}
+
+.financeTotalLabel {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.financeTotalValue {
+  color: var(--c-text);
+  font-size: 18px;
+  font-weight: 750;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -327,7 +369,7 @@
 }
 
 .modal {
-  width: min(760px, 100%);
+  width: min(640px, 100%);
   max-height: min(82vh, 760px);
   overflow-y: auto;
   background: var(--c-surface);
@@ -340,11 +382,15 @@
 
 .adjustRow {
   display: grid;
-  grid-template-columns: minmax(160px, 1.4fr) repeat(3, minmax(110px, 1fr));
+  grid-template-columns: minmax(145px, 1.35fr) minmax(100px, .8fr) repeat(2, minmax(100px, 1fr));
   gap: 8px;
   align-items: end;
   padding-block: 10px;
   border-bottom: 1px solid var(--c-border);
+}
+
+.adjustRowOneTime {
+  grid-template-columns: minmax(180px, 1.5fr) minmax(120px, .8fr);
 }
 
 @media (max-width: 900px) {
@@ -358,9 +404,11 @@
   .col3, .col4, .col6 { grid-column: span 12; }
   .section { padding: 14px; }
   .guardianGrid { grid-template-columns: 1fr; }
+  .financeTotals { grid-template-columns: 1fr; }
+  .inlinePhoneEdit { grid-template-columns: 1fr; }
   .actions { justify-content: stretch; }
   .actions > * { flex: 1 1 100%; }
-  .adjustRow { grid-template-columns: 1fr; }
+  .adjustRow, .adjustRowOneTime { grid-template-columns: 1fr; }
 }
 
 .fieldInvalid input,

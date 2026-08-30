@@ -50,7 +50,9 @@ import { fullRegistrationCopy } from '../utils/full-registration-copy';
 import {
   buildFullRegistrationCollectNowHref,
   buildFullRegistrationGuardianSuggestionQuery,
+  fullRegistrationGuardianDisplayNames,
   fullRegistrationNameFieldOrder,
+  fullRegistrationPricingPeriodDefaults,
 } from '../utils/full-registration-requested-adjustments';
 import styles from './full-registration-page.module.css';
 
@@ -60,7 +62,6 @@ type PricingDraft = {
   price: string;
   from: string;
   to: string;
-  reason: string;
 };
 
 type SuccessState = {
@@ -202,7 +203,10 @@ function GuardianCard({
   validation: FullRegistrationValidationResult | null;
   copy: ValidationCopy;
 }) {
+  const toast = useToast();
   const [search, setSearch] = useState('');
+  const [phoneDraft, setPhoneDraft] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
   const debouncedSearch = useDebouncedValue(search, FULL_REGISTRATION_GUARDIAN_SEARCH_DEBOUNCE_MS);
   const newGuardianQuery = buildFullRegistrationGuardianSuggestionQuery(draft);
   const debouncedNewGuardianQuery = useDebouncedValue(
@@ -249,6 +253,7 @@ function GuardianCard({
     setSearch('');
     setResults([]);
     setSearching(false);
+    setPhoneDraft('');
     onChange({
       ...draft,
       mode,
@@ -260,17 +265,41 @@ function GuardianCard({
   function selectExisting(person: PersonSearchResult) {
     const guardianId = resolvePersonSchoolParentId(person);
     const personId = resolvePersonPartnerId(person);
+    const names = fullRegistrationGuardianDisplayNames(
+      person as PersonSearchResult & { name_ar?: string | null; name_latin?: string | null },
+    );
+    const personWithNames = person as PersonSearchResult & {
+      name_ar?: string | null;
+      name_latin?: string | null;
+    };
     onChange({
       ...draft,
       mode: 'existing',
       linkedGuardianId: guardianId,
       linkedPersonId: guardianId ? null : personId,
-      nameAr: person.name ?? '',
-      nameFr: '',
+      nameAr: personWithNames.name_ar || names[0] || person.name || '',
+      nameFr: personWithNames.name_latin || '',
       phone: person.phone ?? '',
     });
+    setPhoneDraft('');
     setSearch('');
     setResults([]);
+  }
+
+  async function saveExistingGuardianPhone() {
+    if (!draft.linkedGuardianId || savingPhone) return;
+    const phone = phoneDraft.trim();
+    if (!phone) return;
+    setSavingPhone(true);
+    const result = await api.post(endpoints.admin.parentUpdate(draft.linkedGuardianId), { phone });
+    setSavingPhone(false);
+    if (!result.success) {
+      toast.error(copy('phoneUpdateFailed'));
+      return;
+    }
+    onChange({ ...draft, phone });
+    setPhoneDraft('');
+    toast.success(copy('phoneUpdated'));
   }
 
   const cardKey = `guardian.${draft.key}.card`;
@@ -299,17 +328,23 @@ function GuardianCard({
 
   const searchResults = results.length ? (
     <div className={styles.searchResults}>
-      {results.map((person) => (
-        <div className={styles.searchResult} key={`${person.partner_id}-${person.guardian_id ?? 'person'}`}>
-          <div className={styles.searchMeta}>
-            <div className={styles.searchName}>{person.name}</div>
-            <div className={styles.muted} dir="ltr">{person.phone ?? '—'}</div>
+      {results.map((person) => {
+        const names = fullRegistrationGuardianDisplayNames(
+          person as PersonSearchResult & { name_ar?: string | null; name_latin?: string | null },
+        );
+        return (
+          <div className={styles.searchResult} key={`${person.partner_id}-${person.guardian_id ?? 'person'}`}>
+            <div className={styles.searchMeta}>
+              <div className={styles.searchName}>{names[0] ?? person.name}</div>
+              {names[1] ? <div className={styles.searchAltName} dir="auto">{names[1]}</div> : null}
+              <div className={styles.muted} dir="ltr">{person.phone ?? '—'}</div>
+            </div>
+            <button type="button" className="btn btn--ghost" onClick={() => selectExisting(person)}>
+              {copy('useGuardian')}
+            </button>
           </div>
-          <button type="button" className="btn btn--ghost" onClick={() => selectExisting(person)}>
-            {copy('useGuardian')}
-          </button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   ) : null;
 
@@ -433,12 +468,16 @@ function GuardianCard({
             <div>
               <span className={styles.badge}>✓ {copy('linked')}</span>
               <div className={styles.searchName}>{draft.nameAr || draft.nameFr || '—'}</div>
+              {draft.nameAr && draft.nameFr && draft.nameAr !== draft.nameFr ? (
+                <div className={styles.searchAltName} dir="auto">{draft.nameFr}</div>
+              ) : null}
               {draft.phone ? <div className={styles.muted} dir="ltr">{draft.phone}</div> : null}
             </div>
             <button
               type="button"
               className="btn btn--ghost"
-              onClick={() =>
+              onClick={() => {
+                setPhoneDraft('');
                 onChange({
                   ...draft,
                   linkedGuardianId: null,
@@ -447,12 +486,34 @@ function GuardianCard({
                   nameFr: '',
                   phone: '',
                   identity: '',
-                })
-              }
+                });
+              }}
             >
               {copy('change')}
             </button>
           </div>
+          {!draft.phone && draft.linkedGuardianId ? (
+            <div className={styles.inlinePhoneEdit}>
+              <label className={styles.field}>
+                <span className={styles.label}>{copy('addPhone')}</span>
+                <input
+                  className="input"
+                  dir="ltr"
+                  inputMode="tel"
+                  value={phoneDraft}
+                  onChange={(event) => setPhoneDraft(event.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                disabled={!phoneDraft.trim() || savingPhone}
+                onClick={() => void saveExistingGuardianPhone()}
+              >
+                {savingPhone ? copy('saving') : copy('savePhone')}
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className={`${styles.field} ${validation?.fieldErrors[selectionKey] ? styles.fieldInvalid : ''}`}>
@@ -546,6 +607,7 @@ export function FullRegistrationPage() {
   });
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
   const [pricingDrafts, setPricingDrafts] = useState<Record<number, PricingDraft>>({});
+  const [pricingReason, setPricingReason] = useState('');
   const [pricingOpen, setPricingOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -647,6 +709,23 @@ export function FullRegistrationPage() {
     return [...mandatoryLines, ...selectedOptional];
   }, [optionalLines, selectedServiceIds, suggestState.suggest?.plan_lines]);
 
+  const financeTotals = useMemo(() => {
+    return adjustableLines.reduce(
+      (totals, line) => {
+        const adjustedPrice = inputValueNumber(pricingDrafts[line.line_id]?.price ?? '');
+        const amount = adjustedPrice ?? lineAmount(line);
+        if (amount == null) return totals;
+        if (line.is_one_time || line.frequency === 'one_time') {
+          totals.oneTime += amount;
+        } else {
+          totals.monthly += amount;
+        }
+        return totals;
+      },
+      { monthly: 0, oneTime: 0 },
+    );
+  }, [adjustableLines, pricingDrafts]);
+
   const selectedServiceNames = useMemo(() => {
     const selected = new Set(selectedServiceIds);
     return optionalLines
@@ -674,19 +753,30 @@ export function FullRegistrationPage() {
     setError(null);
   }
 
+  function defaultPricingDraft(line: EnrollmentPlanLine): PricingDraft {
+    if (line.is_one_time || line.frequency === 'one_time') {
+      return { price: '', from: '', to: '' };
+    }
+    const period = fullRegistrationPricingPeriodDefaults(todayIsoDate());
+    return { price: '', from: period.from, to: period.to };
+  }
+
   function pricingAdjustments(): FullRegistrationPricingAdjustment[] {
     return adjustableLines.flatMap((line) => {
       const draft = pricingDrafts[line.line_id];
       if (!draft) return [];
       const price = inputValueNumber(draft.price);
-      if (price == null && !draft.from.trim() && !draft.to.trim()) return [];
+      const oneTime = Boolean(line.is_one_time || line.frequency === 'one_time');
+      const periodFrom = oneTime ? '' : draft.from;
+      const periodTo = oneTime ? '' : draft.to;
+      if (price == null && !periodFrom.trim() && !periodTo.trim()) return [];
       return [
         {
           itemKey: String(line.line_id),
           adjustedUnitPrice: price,
-          periodFrom: draft.from,
-          periodTo: draft.to,
-          reason: draft.reason,
+          periodFrom,
+          periodTo,
+          reason: pricingReason.trim(),
         },
       ];
     });
@@ -1194,6 +1284,20 @@ export function FullRegistrationPage() {
             {selectedServiceNames.length ? selectedServiceNames.join('، ') : copy('none')}
           </span>
         </div>
+        <div className={styles.financeTotals}>
+          <div className={styles.financeTotalCard}>
+            <span className={styles.financeTotalLabel}>{copy('monthlyTotal')}</span>
+            <strong className={styles.financeTotalValue}>
+              {financeTotals.monthly.toLocaleString(locale)} MAD
+            </strong>
+          </div>
+          <div className={styles.financeTotalCard}>
+            <span className={styles.financeTotalLabel}>{copy('oneTimeTotal')}</span>
+            <strong className={styles.financeTotalValue}>
+              {financeTotals.oneTime.toLocaleString(locale)} MAD
+            </strong>
+          </div>
+        </div>
       </section>
 
       <div className={styles.actions}>
@@ -1232,9 +1336,13 @@ export function FullRegistrationPage() {
               </button>
             </div>
             {adjustableLines.map((line) => {
-              const draft = pricingDrafts[line.line_id] ?? { price: '', from: '', to: '', reason: '' };
+              const draft = pricingDrafts[line.line_id] ?? defaultPricingDraft(line);
+              const oneTime = Boolean(line.is_one_time || line.frequency === 'one_time');
               return (
-                <div className={styles.adjustRow} key={line.line_id}>
+                <div
+                  className={`${styles.adjustRow} ${oneTime ? styles.adjustRowOneTime : ''}`}
+                  key={line.line_id}
+                >
                   <div>
                     <strong>{line.fee_type_name}</strong>
                     <div className={styles.muted}>{lineAmount(line) ?? '—'} MAD</div>
@@ -1256,52 +1364,49 @@ export function FullRegistrationPage() {
                       }
                     />
                   </label>
-                  <label className={styles.field}>
-                    <span className={styles.label}>{copy('from')}</span>
-                    <input
-                      className="input"
-                      type="month"
-                      disabled={Boolean(line.is_one_time)}
-                      value={draft.from}
-                      onChange={(event) =>
-                        setPricingDrafts((prev) => ({
-                          ...prev,
-                          [line.line_id]: { ...draft, from: event.target.value },
-                        }))
-                      }
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    <span className={styles.label}>{copy('to')}</span>
-                    <input
-                      className="input"
-                      type="month"
-                      disabled={Boolean(line.is_one_time)}
-                      value={draft.to}
-                      onChange={(event) =>
-                        setPricingDrafts((prev) => ({
-                          ...prev,
-                          [line.line_id]: { ...draft, to: event.target.value },
-                        }))
-                      }
-                    />
-                  </label>
-                  <label className={styles.field} style={{ gridColumn: '1 / -1' }}>
-                    <span className={styles.label}>{copy('reason')}</span>
-                    <input
-                      className="input"
-                      value={draft.reason}
-                      onChange={(event) =>
-                        setPricingDrafts((prev) => ({
-                          ...prev,
-                          [line.line_id]: { ...draft, reason: event.target.value },
-                        }))
-                      }
-                    />
-                  </label>
+                  {!oneTime ? (
+                    <>
+                      <label className={styles.field}>
+                        <span className={styles.label}>{copy('from')}</span>
+                        <input
+                          className="input"
+                          type="month"
+                          value={draft.from}
+                          onChange={(event) =>
+                            setPricingDrafts((prev) => ({
+                              ...prev,
+                              [line.line_id]: { ...draft, from: event.target.value },
+                            }))
+                          }
+                        />
+                      </label>
+                      <label className={styles.field}>
+                        <span className={styles.label}>{copy('to')}</span>
+                        <input
+                          className="input"
+                          type="month"
+                          value={draft.to}
+                          onChange={(event) =>
+                            setPricingDrafts((prev) => ({
+                              ...prev,
+                              [line.line_id]: { ...draft, to: event.target.value },
+                            }))
+                          }
+                        />
+                      </label>
+                    </>
+                  ) : null}
                 </div>
               );
             })}
+            <label className={styles.field}>
+              <span className={styles.label}>{copy('reason')}</span>
+              <input
+                className="input"
+                value={pricingReason}
+                onChange={(event) => setPricingReason(event.target.value)}
+              />
+            </label>
             <div className={styles.actions}>
               <button
                 type="button"
