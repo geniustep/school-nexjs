@@ -1,19 +1,40 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
+import {
+  buildClassPayload,
+  existingClassNamesForCanonicalScope,
+  resolveLevelAcademicCode,
+  suggestNextCanonicalClassName,
+} from '@/features/admin/class-form-utils';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { ClassRemovalResponse, SchoolClass } from '@/types/class';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import type { ClassRemovalResponse, Level, SchoolClass } from '@/types/class';
 
 const CLASSES_QUERY = { page_size: 500 };
+const LEVELS_QUERY = { page_size: 500 };
+const LEVEL_SELECT_SELECTOR = '.class-distribution__level-select select';
 
 const COPY = {
   ar: {
     add: 'إضافة قسم',
+    addTitle: 'إنشاء قسم جديد',
+    addConfirm: 'إنشاء القسم',
+    addLead: 'سيتم إنشاء القسم مباشرة داخل السنة الدراسية والمستوى المعروضين في الصفحة.',
+    defaultName: 'اسم القسم الافتراضي',
+    academicYear: 'السنة الدراسية',
+    level: 'المستوى',
+    defaultCapacity: 'السعة',
+    defaultCapacityValue: 'القيمة الافتراضية للنظام',
+    selectLevelFirst: 'اختر المستوى أولًا لإنشاء قسم داخله.',
+    namingUnavailable: 'تعذر توليد اسم افتراضي لهذا المستوى. تحقق من الرمز الأكاديمي للمستوى.',
+    addFailed: 'تعذر إنشاء القسم. أعد المحاولة.',
+    duplicate: 'الاسم الافتراضي موجود بالفعل. حدّث الصفحة وحاول من جديد.',
     remove: 'حذف قسم',
     removeTitle: 'حذف قسم',
     selectClass: 'اختر القسم الذي تريد حذفه',
@@ -25,6 +46,18 @@ const COPY = {
   },
   en: {
     add: 'Add class',
+    addTitle: 'Create class',
+    addConfirm: 'Create class',
+    addLead: 'The class will be created directly in the academic year and level currently shown on this page.',
+    defaultName: 'Default class name',
+    academicYear: 'Academic year',
+    level: 'Level',
+    defaultCapacity: 'Capacity',
+    defaultCapacityValue: 'System default',
+    selectLevelFirst: 'Select a level first to create a class in it.',
+    namingUnavailable: 'A default class name could not be generated. Check the level academic code.',
+    addFailed: 'Could not create the class. Try again.',
+    duplicate: 'The suggested class name already exists. Refresh and try again.',
     remove: 'Delete class',
     removeTitle: 'Delete class',
     selectClass: 'Choose the class to delete',
@@ -36,6 +69,18 @@ const COPY = {
   },
   fr: {
     add: 'Ajouter une classe',
+    addTitle: 'Créer une classe',
+    addConfirm: 'Créer la classe',
+    addLead: 'La classe sera créée directement dans l’année scolaire et le niveau actuellement affichés sur cette page.',
+    defaultName: 'Nom de classe proposé',
+    academicYear: 'Année scolaire',
+    level: 'Niveau',
+    defaultCapacity: 'Capacité',
+    defaultCapacityValue: 'Valeur par défaut du système',
+    selectLevelFirst: 'Choisissez d’abord un niveau pour y créer une classe.',
+    namingUnavailable: 'Impossible de générer un nom de classe par défaut. Vérifiez le code académique du niveau.',
+    addFailed: 'Impossible de créer la classe. Réessayez.',
+    duplicate: 'Le nom proposé existe déjà. Actualisez puis réessayez.',
     remove: 'Supprimer une classe',
     removeTitle: 'Supprimer une classe',
     selectClass: 'Choisissez la classe à supprimer',
@@ -47,6 +92,18 @@ const COPY = {
   },
   es: {
     add: 'Añadir clase',
+    addTitle: 'Crear clase',
+    addConfirm: 'Crear clase',
+    addLead: 'La clase se creará directamente en el curso académico y nivel mostrados actualmente en esta página.',
+    defaultName: 'Nombre de clase propuesto',
+    academicYear: 'Curso académico',
+    level: 'Nivel',
+    defaultCapacity: 'Capacidad',
+    defaultCapacityValue: 'Valor predeterminado del sistema',
+    selectLevelFirst: 'Selecciona primero un nivel para crear una clase en él.',
+    namingUnavailable: 'No se pudo generar un nombre de clase predeterminado. Revisa el código académico del nivel.',
+    addFailed: 'No se pudo crear la clase. Inténtalo de nuevo.',
+    duplicate: 'El nombre sugerido ya existe. Actualiza e inténtalo de nuevo.',
     remove: 'Eliminar clase',
     removeTitle: 'Eliminar clase',
     selectClass: 'Elige la clase que quieres eliminar',
@@ -62,13 +119,31 @@ function occupancy(cls: SchoolClass): number {
   return cls.assigned_count ?? cls.student_count ?? 0;
 }
 
+function verticalScrollHost(from: Element): HTMLElement | null {
+  let current = from.parentElement;
+  while (current) {
+    const style = window.getComputedStyle(current);
+    const canScroll = /auto|scroll/.test(style.overflowY) && current.scrollHeight > current.clientHeight + 1;
+    if (canScroll) return current;
+    current = current.parentElement;
+  }
+  const scrolling = document.scrollingElement;
+  return scrolling instanceof HTMLElement ? scrolling : document.documentElement;
+}
+
 export function ClassDistributionShellEnhancements() {
   const { locale } = useLocale();
   const copy = COPY[locale] ?? COPY.ar;
+  const { activeAcademicYearId, academicYears } = useAdminSession();
   const classesState = useGlobalAcademicYearResource<SchoolClass[]>(
     endpoints.admin.classes,
     CLASSES_QUERY,
   );
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, LEVELS_QUERY);
+  const [contextLevelId, setContextLevelId] = useState<number | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteClassId, setDeleteClassId] = useState<number | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -99,27 +174,130 @@ export function ClassDistributionShellEnhancements() {
     [classes, deleteClassId],
   );
 
+  const contextLevel = useMemo(
+    () => (levelsState.data ?? []).find((level) => level.id === contextLevelId) ?? null,
+    [contextLevelId, levelsState.data],
+  );
+
+  const contextYear = useMemo(
+    () => academicYears.find((year) => year.id === activeAcademicYearId) ?? null,
+    [academicYears, activeAcademicYearId],
+  );
+
+  const suggestedClassName = useMemo(() => {
+    if (!contextLevelId || !activeAcademicYearId || !contextLevel) return null;
+    const levelClasses = classes.filter((cls) => cls.level?.id === contextLevelId);
+    const academicCode =
+      resolveLevelAcademicCode(contextLevel) ??
+      levelClasses.map((cls) => cls.level?.academic_code ?? cls.academic_code ?? null).find(Boolean) ??
+      null;
+    if (!academicCode) return null;
+    const existingNames = existingClassNamesForCanonicalScope(classes, {
+      levelId: contextLevelId,
+      academicYearId: String(activeAcademicYearId),
+    });
+    return suggestNextCanonicalClassName(academicCode, existingNames);
+  }, [activeAcademicYearId, classes, contextLevel, contextLevelId]);
+
+  const canQuickCreate = Boolean(
+    activeAcademicYearId && contextLevelId && contextLevel && suggestedClassName,
+  );
+
+  useEffect(() => {
+    const readCurrentLevel = () => {
+      const select = document.querySelector<HTMLSelectElement>(LEVEL_SELECT_SELECTOR);
+      if (!select) return;
+      const id = Number(select.value);
+      setContextLevelId(Number.isFinite(id) && id > 0 ? id : null);
+    };
+
+    const onChange = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLSelectElement) || !target.matches(LEVEL_SELECT_SELECTOR)) return;
+      const id = Number(target.value);
+      setContextLevelId(Number.isFinite(id) && id > 0 ? id : null);
+      setAddError(null);
+    };
+
+    const frame = window.requestAnimationFrame(readCurrentLevel);
+    document.addEventListener('change', onChange, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener('change', onChange, true);
+    };
+  }, []);
+
   useEffect(() => {
     const preserveVerticalWheel = (event: WheelEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (!target.closest('.class-distribution-direct__scroller')) return;
+      const scroller = target.closest('.class-distribution-direct__scroller');
+      if (!scroller) return;
       if (event.shiftKey) return;
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
 
-      // Keep a normal mouse-wheel gesture vertical. The lane scrollbar, Shift+wheel,
-      // and native horizontal trackpad gestures remain available for horizontal movement.
+      // The distribution board intentionally owns horizontal scrolling. When a normal
+      // mouse-wheel gesture happens above a student list, route it to the nearest
+      // vertical page scroller so the pointer position never traps vertical scrolling.
+      const host = verticalScrollHost(scroller);
+      if (!host) return;
+      event.preventDefault();
       event.stopPropagation();
+      host.scrollBy({ top: event.deltaY, behavior: 'auto' });
     };
 
     document.addEventListener('wheel', preserveVerticalWheel, {
       capture: true,
-      passive: true,
+      passive: false,
     });
     return () => {
       document.removeEventListener('wheel', preserveVerticalWheel, { capture: true });
     };
   }, []);
+
+  function openAddDialog() {
+    const select = document.querySelector<HTMLSelectElement>(LEVEL_SELECT_SELECTOR);
+    const current = Number(select?.value ?? '');
+    const nextLevelId = Number.isFinite(current) && current > 0 ? current : contextLevelId;
+    setContextLevelId(nextLevelId ?? null);
+    setAddError(null);
+    setAddOpen(true);
+  }
+
+  async function createClass() {
+    if (!activeAcademicYearId || !contextLevelId || !suggestedClassName) {
+      setAddError(contextLevelId ? copy.namingUnavailable : copy.selectLevelFirst);
+      return;
+    }
+
+    setAddLoading(true);
+    setAddError(null);
+    const payload = buildClassPayload({
+      name: suggestedClassName,
+      levelId: String(contextLevelId),
+      trackId: '',
+      academicYearId: String(activeAcademicYearId),
+      capacity: '',
+      room: '',
+      teacherIds: [],
+      subjectIds: [],
+      subjectsTouched: false,
+      creating: true,
+    });
+    const result = await api.post<SchoolClass>(endpoints.admin.classes, payload);
+    setAddLoading(false);
+
+    if (!result.success) {
+      setAddError(
+        result.error.code === 'duplicate_record' || result.error.code === 'conflict'
+          ? copy.duplicate
+          : copy.addFailed,
+      );
+      return;
+    }
+
+    window.location.reload();
+  }
 
   function openDeleteDialog() {
     const first = classes[0]?.id ?? null;
@@ -143,18 +321,20 @@ export function ClassDistributionShellEnhancements() {
       return;
     }
 
-    // Structural mutation: refresh once so class list and distribution workspace
-    // both come back from their authoritative backend contracts.
     window.location.reload();
   }
 
   return (
     <>
       <div className="class-distribution-shell-actions">
-        <Link className="btn btn--primary btn--sm" href="/admin/classes/new">
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          onClick={openAddDialog}
+        >
           <span aria-hidden="true">＋</span>
           {copy.add}
-        </Link>
+        </button>
         <button
           type="button"
           className="btn btn--ghost btn--sm class-distribution-shell-actions__delete"
@@ -165,6 +345,62 @@ export function ClassDistributionShellEnhancements() {
           {copy.remove}
         </button>
       </div>
+
+      <ConfirmationDialog
+        open={addOpen}
+        title={copy.addTitle}
+        confirmLabel={copy.addConfirm}
+        loading={addLoading}
+        onClose={() => {
+          if (!addLoading) {
+            setAddOpen(false);
+            setAddError(null);
+          }
+        }}
+        onConfirm={createClass}
+        body={
+          <div className="class-distribution-quick-create-dialog">
+            <p className="class-distribution-quick-create-dialog__lead">{copy.addLead}</p>
+
+            <div className="class-distribution-quick-create-dialog__grid">
+              <div>
+                <span>{copy.academicYear}</span>
+                <strong dir="auto">{contextYear?.name ?? '—'}</strong>
+              </div>
+              <div>
+                <span>{copy.level}</span>
+                <strong dir="auto">{contextLevel?.name ?? '—'}</strong>
+              </div>
+              <div className="class-distribution-quick-create-dialog__name">
+                <span>{copy.defaultName}</span>
+                <strong dir="ltr">{suggestedClassName ?? '—'}</strong>
+              </div>
+              <div>
+                <span>{copy.defaultCapacity}</span>
+                <strong>{copy.defaultCapacityValue}</strong>
+              </div>
+            </div>
+
+            {!contextLevelId ? (
+              <p className="class-distribution-quick-create-dialog__error" role="alert">
+                {copy.selectLevelFirst}
+              </p>
+            ) : !suggestedClassName ? (
+              <p className="class-distribution-quick-create-dialog__error" role="alert">
+                {copy.namingUnavailable}
+              </p>
+            ) : null}
+
+            {addError ? (
+              <p className="class-distribution-quick-create-dialog__error" role="alert">
+                {addError}
+              </p>
+            ) : null}
+
+            <input type="hidden" value={canQuickCreate ? 'ready' : 'blocked'} readOnly />
+          </div>
+        }
+      />
 
       <ConfirmationDialog
         open={deleteOpen}
