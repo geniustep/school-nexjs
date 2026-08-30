@@ -11,6 +11,12 @@
   overscroll-behavior-inline: contain;
 }
 
+.class-distribution-direct .class-distribution-lane__students,
+.class-distribution-direct .class-distribution-lane__students--unassigned {
+  max-block-size: none;
+  overflow-y: visible;
+}
+
 .class-distribution-direct__scroller::-webkit-scrollbar {
   height: 12px;
 }
