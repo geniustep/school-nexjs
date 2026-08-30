@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import {
@@ -155,6 +155,9 @@ export function ClassDistributionShellEnhancements() {
   const [deleteClassId, setDeleteClassId] = useState<number | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const dragAutoScrollFrameRef = useRef<number | null>(null);
+  const dragAutoScrollVelocityRef = useRef(0);
+  const dragAutoScrollScrollerRef = useRef<HTMLElement | null>(null);
 
   const classes = useMemo(
     () =>
@@ -260,16 +263,59 @@ export function ClassDistributionShellEnhancements() {
   }, []);
 
   useEffect(() => {
+    const stopAutoScroll = () => {
+      dragAutoScrollVelocityRef.current = 0;
+      dragAutoScrollScrollerRef.current = null;
+      if (dragAutoScrollFrameRef.current != null) {
+        window.cancelAnimationFrame(dragAutoScrollFrameRef.current);
+        dragAutoScrollFrameRef.current = null;
+      }
+    };
+
+    const tick = () => {
+      const scroller = dragAutoScrollScrollerRef.current;
+      const velocity = dragAutoScrollVelocityRef.current;
+      if (!scroller || velocity === 0 || !scroller.querySelector('[aria-grabbed="true"]')) {
+        stopAutoScroll();
+        return;
+      }
+
+      const before = scroller.scrollLeft;
+      scroller.scrollBy({ left: velocity, behavior: 'auto' });
+      if (Math.abs(scroller.scrollLeft - before) < 0.5) {
+        stopAutoScroll();
+        return;
+      }
+
+      dragAutoScrollFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    const ensureAutoScroll = () => {
+      if (dragAutoScrollFrameRef.current == null) {
+        dragAutoScrollFrameRef.current = window.requestAnimationFrame(tick);
+      }
+    };
+
     const autoScrollDuringDrag = (event: globalThis.DragEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
       const scroller = document.querySelector<HTMLElement>('.class-distribution-direct__scroller');
-      if (!scroller || !scroller.contains(target)) return;
-      if (!scroller.querySelector('[aria-grabbed="true"]')) return;
-      if (scroller.scrollWidth <= scroller.clientWidth + 2) return;
+      if (!scroller || !scroller.querySelector('[aria-grabbed="true"]')) {
+        stopAutoScroll();
+        return;
+      }
+      if (scroller.scrollWidth <= scroller.clientWidth + 2) {
+        stopAutoScroll();
+        return;
+      }
 
       const rect = scroller.getBoundingClientRect();
-      const edge = Math.min(120, Math.max(72, rect.width * 0.12));
+      const withinVerticalRange = event.clientY >= rect.top && event.clientY <= rect.bottom;
+      const withinHorizontalRange = event.clientX >= rect.left - 24 && event.clientX <= rect.right + 24;
+      if (!withinVerticalRange || !withinHorizontalRange) {
+        stopAutoScroll();
+        return;
+      }
+
+      const edge = Math.min(150, Math.max(88, rect.width * 0.15));
       let visualDirection = 0;
       let proximity = 0;
 
@@ -281,17 +327,27 @@ export function ClassDistributionShellEnhancements() {
         proximity = Math.min(1, (event.clientX - (rect.right - edge)) / edge);
       }
 
-      if (!visualDirection) return;
-      const speed = 14 + Math.round(34 * proximity);
+      if (!visualDirection) {
+        stopAutoScroll();
+        return;
+      }
+
+      const speed = 10 + Math.round(22 * proximity);
       const rtl = window.getComputedStyle(scroller).direction === 'rtl';
-      scroller.scrollBy({
-        left: (rtl ? -visualDirection : visualDirection) * speed,
-        behavior: 'auto',
-      });
+      dragAutoScrollScrollerRef.current = scroller;
+      dragAutoScrollVelocityRef.current = (rtl ? -visualDirection : visualDirection) * speed;
+      ensureAutoScroll();
     };
 
     document.addEventListener('dragover', autoScrollDuringDrag, true);
-    return () => document.removeEventListener('dragover', autoScrollDuringDrag, true);
+    document.addEventListener('dragend', stopAutoScroll, true);
+    document.addEventListener('drop', stopAutoScroll, true);
+    return () => {
+      stopAutoScroll();
+      document.removeEventListener('dragover', autoScrollDuringDrag, true);
+      document.removeEventListener('dragend', stopAutoScroll, true);
+      document.removeEventListener('drop', stopAutoScroll, true);
+    };
   }, []);
 
   function openAddDialog() {
