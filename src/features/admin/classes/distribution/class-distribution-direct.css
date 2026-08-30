@@ -123,7 +123,9 @@
 }
 
 .class-distribution-direct__action {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px) auto;
+  align-items: end;
+  gap: 10px;
 }
 
 .class-distribution-direct__action-copy {
@@ -139,8 +141,19 @@
 }
 
 .class-distribution-direct__mobile-target {
-  display: none;
-  min-width: 210px;
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+}
+
+.class-distribution-direct__mobile-target span {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.class-distribution-direct__mobile-target .input {
+  min-height: 38px;
 }
 
 .class-distribution-direct__confirm {
@@ -217,18 +230,12 @@
 
   .class-distribution-direct__action {
     grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   .class-distribution-direct__mobile-target {
-    display: grid;
-    gap: 4px;
     width: 100%;
-  }
-
-  .class-distribution-direct__mobile-target span {
-    color: var(--c-text-muted);
-    font-size: 12px;
-    font-weight: 600;
+    min-width: 0;
   }
 
   .class-distribution-direct__confirm-route {
