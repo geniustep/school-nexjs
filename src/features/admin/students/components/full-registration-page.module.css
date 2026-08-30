@@ -362,3 +362,32 @@
   .actions > * { flex: 1 1 100%; }
   .adjustRow { grid-template-columns: 1fr; }
 }
+
+.fieldInvalid input,
+.fieldInvalid select,
+.fieldInvalid .readonly {
+  border-color: var(--c-red);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-red) 28%, transparent);
+}
+
+.fieldInvalid input:focus-visible,
+.fieldInvalid select:focus-visible,
+.fieldInvalid .readonly:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--c-red) 38%, transparent);
+  outline-offset: 2px;
+}
+
+.fieldError {
+  color: var(--c-red);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 550;
+}
+
+.guardianCardInvalid {
+  border-color: color-mix(in srgb, var(--c-red) 54%, var(--c-border));
+}
+
+.rightsInvalid {
+  border-top-color: color-mix(in srgb, var(--c-red) 40%, var(--c-border));
+}

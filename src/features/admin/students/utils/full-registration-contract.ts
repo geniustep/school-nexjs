@@ -62,6 +62,8 @@ export interface FullRegistrationBuildInput {
 export interface FullRegistrationValidationResult {
   valid: boolean;
   errors: string[];
+  fieldErrors: Record<string, string>;
+  fieldOrder: string[];
 }
 
 function clean(value: string): string {
@@ -85,34 +87,117 @@ export function validateFullRegistrationDraft(
   input: FullRegistrationBuildInput,
 ): FullRegistrationValidationResult {
   const errors: string[] = [];
+  const fieldErrors: Record<string, string> = {};
+  const fieldOrder: string[] = [];
   const { academic, student, familyContext } = input;
   const guardians = selectedFullRegistrationGuardians(input.guardians);
 
-  if (!academic.schoolId || !clean(academic.academicYearId) || !clean(academic.levelId)) {
-    errors.push('academic_context_required');
+  const addFieldError = (key: string, code: string) => {
+    if (fieldErrors[key]) return;
+    fieldErrors[key] = code;
+    fieldOrder.push(key);
+  };
+
+  let academicContextMissing = false;
+  if (!academic.schoolId) {
+    academicContextMissing = true;
+    addFieldError('academic.schoolId', 'academic_context_required');
   }
-  if (!clean(academic.enrollmentDate)) errors.push('enrollment_date_required');
-  if (!clean(student.firstNameAr) || !clean(student.lastNameAr)) errors.push('arabic_name_required');
-  if (!clean(student.firstNameFr) || !clean(student.lastNameFr)) errors.push('french_name_required');
-  if (!clean(student.gender)) errors.push('gender_required');
-  if (!clean(student.dateOfBirth)) errors.push('date_of_birth_required');
-  if (guardians.length === 0) errors.push('guardian_required');
+  if (!clean(academic.academicYearId)) {
+    academicContextMissing = true;
+    addFieldError('academic.academicYearId', 'academic_context_required');
+  }
+  if (!clean(academic.levelId)) {
+    academicContextMissing = true;
+    addFieldError('academic.levelId', 'academic_context_required');
+  }
+  if (academicContextMissing) errors.push('academic_context_required');
+
+  if (!clean(academic.enrollmentDate)) {
+    errors.push('enrollment_date_required');
+    addFieldError('academic.enrollmentDate', 'enrollment_date_required');
+  }
+
+  let arabicNameMissing = false;
+  if (!clean(student.firstNameAr)) {
+    arabicNameMissing = true;
+    addFieldError('student.firstNameAr', 'arabic_name_required');
+  }
+  if (!clean(student.lastNameAr)) {
+    arabicNameMissing = true;
+    addFieldError('student.lastNameAr', 'arabic_name_required');
+  }
+  if (arabicNameMissing) errors.push('arabic_name_required');
+
+  let frenchNameMissing = false;
+  if (!clean(student.firstNameFr)) {
+    frenchNameMissing = true;
+    addFieldError('student.firstNameFr', 'french_name_required');
+  }
+  if (!clean(student.lastNameFr)) {
+    frenchNameMissing = true;
+    addFieldError('student.lastNameFr', 'french_name_required');
+  }
+  if (frenchNameMissing) errors.push('french_name_required');
+
+  if (!clean(student.gender)) {
+    errors.push('gender_required');
+    addFieldError('student.gender', 'gender_required');
+  }
+  if (!clean(student.dateOfBirth)) {
+    errors.push('date_of_birth_required');
+    addFieldError('student.dateOfBirth', 'date_of_birth_required');
+  }
+
+  const incompleteExistingGuardians = input.guardians.filter(
+    (guardian) =>
+      guardian.mode === 'existing' && !guardian.linkedGuardianId && !guardian.linkedPersonId,
+  );
+
+  if (guardians.length === 0) {
+    errors.push('guardian_required');
+    if (incompleteExistingGuardians.length === 0 && input.guardians[0]) {
+      addFieldError(`guardian.${input.guardians[0].key}.card`, 'guardian_required');
+    }
+  }
+
+  for (const guardian of incompleteExistingGuardians) {
+    errors.push('guardian_selection_required');
+    addFieldError(`guardian.${guardian.key}.selection`, 'guardian_selection_required');
+  }
 
   for (const guardian of guardians) {
     if (guardian.mode === 'new') {
-      if (!clean(guardian.nameAr) && !clean(guardian.nameFr)) errors.push('guardian_name_required');
-      if (!clean(guardian.phone)) errors.push('guardian_phone_required');
-    } else if (!guardian.linkedGuardianId && !guardian.linkedPersonId) {
-      errors.push('guardian_selection_required');
+      if (!clean(guardian.nameAr) && !clean(guardian.nameFr)) {
+        errors.push('guardian_name_required');
+        addFieldError(`guardian.${guardian.key}.name`, 'guardian_name_required');
+      }
+      if (!clean(guardian.phone)) {
+        errors.push('guardian_phone_required');
+        addFieldError(`guardian.${guardian.key}.phone`, 'guardian_phone_required');
+      }
     }
   }
 
   if (familyContext === 'separated_or_divorced' || familyContext === 'special') {
+    const responsibleTarget = guardians[0] ?? incompleteExistingGuardians[0] ?? input.guardians[0];
     if (!guardians.some((guardian) => guardian.legal)) {
       errors.push('special_family_legal_responsible_required');
+      if (responsibleTarget) {
+        addFieldError(
+          `guardian.${responsibleTarget.key}.legal`,
+          'special_family_legal_responsible_required',
+        );
+      }
     }
     if (!guardians.some((guardian) => guardian.financial)) {
       errors.push('special_family_billing_responsible_required');
+      if (responsibleTarget) {
+        addFieldError(
+          `guardian.${responsibleTarget.key}.financial`,
+          'special_family_billing_responsible_required',
+        );
+      }
     }
   }
 
@@ -135,7 +220,13 @@ export function validateFullRegistrationDraft(
     }
   }
 
-  return { valid: errors.length === 0, errors: Array.from(new Set(errors)) };
+  const uniqueErrors = Array.from(new Set(errors));
+  return {
+    valid: uniqueErrors.length === 0,
+    errors: uniqueErrors,
+    fieldErrors,
+    fieldOrder,
+  };
 }
 
 function buildGuardianRelationship(
