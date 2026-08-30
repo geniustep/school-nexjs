@@ -118,27 +118,32 @@ export function validateFullRegistrationDraft(
     addFieldError('academic.enrollmentDate', 'enrollment_date_required');
   }
 
-  let arabicNameMissing = false;
-  if (!clean(student.firstNameAr)) {
-    arabicNameMissing = true;
-    addFieldError('student.firstNameAr', 'arabic_name_required');
-  }
-  if (!clean(student.lastNameAr)) {
-    arabicNameMissing = true;
-    addFieldError('student.lastNameAr', 'arabic_name_required');
-  }
-  if (arabicNameMissing) errors.push('arabic_name_required');
+  const firstNameAr = clean(student.firstNameAr);
+  const lastNameAr = clean(student.lastNameAr);
+  const firstNameFr = clean(student.firstNameFr);
+  const lastNameFr = clean(student.lastNameFr);
+  const arabicAny = Boolean(firstNameAr || lastNameAr);
+  const latinAny = Boolean(firstNameFr || lastNameFr);
+  const arabicComplete = Boolean(firstNameAr && lastNameAr);
+  const latinComplete = Boolean(firstNameFr && lastNameFr);
 
-  let frenchNameMissing = false;
-  if (!clean(student.firstNameFr)) {
-    frenchNameMissing = true;
-    addFieldError('student.firstNameFr', 'french_name_required');
+  if (arabicAny && !arabicComplete) {
+    errors.push('incomplete_language_pair');
+    if (!firstNameAr) addFieldError('student.firstNameAr', 'incomplete_language_pair');
+    if (!lastNameAr) addFieldError('student.lastNameAr', 'incomplete_language_pair');
   }
-  if (!clean(student.lastNameFr)) {
-    frenchNameMissing = true;
-    addFieldError('student.lastNameFr', 'french_name_required');
+  if (latinAny && !latinComplete) {
+    errors.push('incomplete_language_pair');
+    if (!firstNameFr) addFieldError('student.firstNameFr', 'incomplete_language_pair');
+    if (!lastNameFr) addFieldError('student.lastNameFr', 'incomplete_language_pair');
   }
-  if (frenchNameMissing) errors.push('french_name_required');
+  if (!arabicComplete && !latinComplete) {
+    errors.push('student_name_pair_required');
+    if (!arabicAny && !latinAny) {
+      addFieldError('student.firstNameAr', 'student_name_pair_required');
+      addFieldError('student.firstNameFr', 'student_name_pair_required');
+    }
+  }
 
   if (!clean(student.gender)) {
     errors.push('gender_required');
@@ -283,15 +288,19 @@ export function buildFullRegistrationPayload(
       reason: clean(adjustment.reason),
     }));
 
+  const firstNameAr = clean(input.student.firstNameAr);
+  const lastNameAr = clean(input.student.lastNameAr);
+  const firstNameFr = clean(input.student.firstNameFr);
+  const lastNameFr = clean(input.student.lastNameFr);
+  const latinComplete = Boolean(firstNameFr && lastNameFr);
+  const canonicalFirstName = latinComplete ? firstNameFr : firstNameAr;
+  const canonicalLastName = latinComplete ? lastNameFr : lastNameAr;
+
   return {
-    first_name: clean(input.student.firstNameAr),
-    last_name: clean(input.student.lastNameAr),
-    name_ar: [clean(input.student.firstNameAr), clean(input.student.lastNameAr)]
-      .filter(Boolean)
-      .join(' '),
-    name_latin: [clean(input.student.firstNameFr), clean(input.student.lastNameFr)]
-      .filter(Boolean)
-      .join(' '),
+    first_name: canonicalFirstName,
+    last_name: canonicalLastName,
+    name_ar: [firstNameAr, lastNameAr].filter(Boolean).join(' '),
+    name_latin: [firstNameFr, lastNameFr].filter(Boolean).join(' '),
     gender: clean(input.student.gender),
     date_of_birth: clean(input.student.dateOfBirth),
     previous_school: clean(input.student.previousSchool) || undefined,

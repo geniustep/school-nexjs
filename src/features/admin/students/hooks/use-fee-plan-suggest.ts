@@ -9,6 +9,7 @@ import {
   normalizeFeePlanSuggestResponse,
   resolveFeePlanSuggestErrorCode,
 } from '../utils/normalize-fee-plan-suggest';
+import { readFullRegistrationOptionalLines } from '../utils/full-registration-optional-lines';
 
 export interface FeePlanSuggestState {
   loading: boolean;
@@ -78,7 +79,12 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
           return;
         }
 
-        setSuggest(normalized);
+        const withOptionalLines = normalized as FeePlanSuggestResult & {
+          optional_lines?: ReturnType<typeof readFullRegistrationOptionalLines>;
+        };
+        withOptionalLines.optional_lines = readFullRegistrationOptionalLines(res.data);
+
+        setSuggest(withOptionalLines);
         setError(null);
         setLoading(false);
       });

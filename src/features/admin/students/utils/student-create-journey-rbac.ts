@@ -1,5 +1,8 @@
 import { canCreateGuardians } from '@/lib/permissions/academic-capabilities';
-import { canManageBillingProfile } from '@/lib/permissions/finance';
+import {
+  canManageBillingProfile,
+  canManageDiscounts as userCanManageDiscounts,
+} from '@/lib/permissions/finance';
 import type { CurrentUser } from '@/types/user';
 
 /**
@@ -24,7 +27,7 @@ export function resolveStudentCreateJourneyCapabilities(
   return {
     canCreateNewGuardian: canCreateGuardians(user),
     canAssignFeePlan: true,
-    canManageDiscounts: false,
+    canManageDiscounts: userCanManageDiscounts(user ?? null),
     canManageBillingProfile: canManageBillingProfile(user ?? null),
   };
 }

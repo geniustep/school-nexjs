@@ -59,10 +59,13 @@ function baseInput(): FullRegistrationBuildInput {
 }
 
 describe('full registration validation UX contract', () => {
-  it('returns every missing field in visual order without changing aggregate rules', () => {
+  it('returns missing academic, name-pair, and birth-date fields in stable order', () => {
     const input = baseInput();
     input.academic.levelId = '';
     input.student.firstNameAr = '';
+    input.student.lastNameAr = '';
+    input.student.firstNameFr = '';
+    input.student.lastNameFr = '';
     input.student.dateOfBirth = '';
 
     const result = validateFullRegistrationDraft(input);
@@ -70,14 +73,38 @@ describe('full registration validation UX contract', () => {
     expect(result.valid).toBe(false);
     expect(result.fieldErrors).toMatchObject({
       'academic.levelId': 'academic_context_required',
-      'student.firstNameAr': 'arabic_name_required',
+      'student.firstNameAr': 'student_name_pair_required',
+      'student.firstNameFr': 'student_name_pair_required',
       'student.dateOfBirth': 'date_of_birth_required',
     });
-    expect(result.fieldOrder.slice(0, 3)).toEqual([
+    expect(result.fieldOrder.slice(0, 4)).toEqual([
       'academic.levelId',
       'student.firstNameAr',
+      'student.firstNameFr',
       'student.dateOfBirth',
     ]);
+  });
+
+  it('accepts a complete Arabic pair without requiring the French pair', () => {
+    const input = baseInput();
+    input.student.firstNameFr = '';
+    input.student.lastNameFr = '';
+    expect(validateFullRegistrationDraft(input).valid).toBe(true);
+  });
+
+  it('accepts a complete French pair without requiring the Arabic pair', () => {
+    const input = baseInput();
+    input.student.firstNameAr = '';
+    input.student.lastNameAr = '';
+    expect(validateFullRegistrationDraft(input).valid).toBe(true);
+  });
+
+  it('rejects an incomplete secondary pair even when the other pair is complete', () => {
+    const input = baseInput();
+    input.student.lastNameFr = '';
+    const result = validateFullRegistrationDraft(input);
+    expect(result.errors).toContain('incomplete_language_pair');
+    expect(result.fieldErrors['student.lastNameFr']).toBe('incomplete_language_pair');
   });
 
   it('marks the guardian card when no guardian was entered', () => {
