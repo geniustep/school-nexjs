@@ -1,0 +1,40 @@
+.class-distribution-page-shell {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: clip;
+}
+
+.class-distribution-page-shell .class-distribution-direct,
+.class-distribution-page-shell .class-distribution-workspace {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.class-distribution-page-shell .class-distribution-workspace {
+  overflow-x: hidden;
+}
+
+.class-distribution-page-shell .class-distribution-workspace__scroller {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+html[dir='rtl'] .class-distribution-direct__mobile-target select,
+html[dir='rtl'] .class-distribution-direct__mobile-target option {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+html[dir='rtl'] .class-distribution-direct__mobile-target select {
+  text-align-last: right !important;
+}
+
+html[dir='rtl'] .class-distribution-direct__mobile-target option {
+  unicode-bidi: plaintext;
+}
