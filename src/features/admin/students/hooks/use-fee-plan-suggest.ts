@@ -54,7 +54,7 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
 
     api
       .get<unknown>(endpoints.admin.financeFeePlanSuggest, params)
-      .then((res) => {
+      .then(async (res) => {
         if (!active) return;
         if (!res.success) {
           setSuggest(null);
@@ -79,13 +79,28 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
           return;
         }
 
+        const planRes = await api.get<unknown>(endpoints.admin.financeFeePlan(normalized.fee_plan_id));
+        if (!active) return;
+        if (!planRes.success) {
+          setSuggest(null);
+          setError({ code: 'fee_plan_details_unavailable' });
+          setLoading(false);
+          return;
+        }
+
         const withOptionalLines = normalized as FeePlanSuggestResult & {
           optional_lines?: ReturnType<typeof readFullRegistrationOptionalLines>;
         };
-        withOptionalLines.optional_lines = readFullRegistrationOptionalLines(res.data);
+        withOptionalLines.optional_lines = readFullRegistrationOptionalLines(planRes.data);
 
         setSuggest(withOptionalLines);
         setError(null);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSuggest(null);
+        setError({ code: 'fee_plan_details_unavailable' });
         setLoading(false);
       });
 
