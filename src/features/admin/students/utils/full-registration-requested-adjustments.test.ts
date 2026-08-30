@@ -109,12 +109,22 @@ describe('requested full registration adjustments', () => {
     expect(href).toContain('billing_partner_id=25910');
   });
 
-  it('reads the new Odoo optional_lines contract without auto-selecting it', () => {
+  it('reads optional services from resolved plan details and ignores mandatory lines', () => {
     expect(
       readFullRegistrationOptionalLines({
-        optional_lines: [
+        id: 7271,
+        lines: [
           {
-            line_id: 9001,
+            line_id: 8774,
+            fee_type_id: 1308,
+            fee_type_name: 'التسجيل',
+            amount: 2000,
+            frequency: 'one_time',
+            is_optional: false,
+            is_mandatory: true,
+          },
+          {
+            line_id: 9956,
             fee_type_id: 1310,
             fee_type_name: 'النقل',
             amount: 500,
@@ -125,7 +135,7 @@ describe('requested full registration adjustments', () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        line_id: 9001,
+        line_id: 9956,
         fee_type_id: 1310,
         fee_type_name: 'النقل',
         amount: 500,

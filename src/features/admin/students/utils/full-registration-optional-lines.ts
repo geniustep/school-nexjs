@@ -58,8 +58,18 @@ function readOptionalLine(value: unknown): EnrollmentPlanLine | null {
 
 export function readFullRegistrationOptionalLines(payload: unknown): EnrollmentPlanLine[] {
   const record = asRecord(payload);
-  if (!record || !Array.isArray(record.optional_lines)) return [];
-  return record.optional_lines
+  if (!record) return [];
+
+  const rawLines = Array.isArray(record.lines)
+    ? record.lines
+    : Array.isArray(record.optional_lines)
+      ? record.optional_lines
+      : [];
+
+  return rawLines
     .map(readOptionalLine)
-    .filter((line): line is EnrollmentPlanLine => line != null && line.fee_type_id != null);
+    .filter(
+      (line): line is EnrollmentPlanLine =>
+        line != null && line.is_optional === true && line.fee_type_id != null,
+    );
 }
