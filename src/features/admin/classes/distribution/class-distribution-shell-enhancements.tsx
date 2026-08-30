@@ -25,12 +25,10 @@ const COPY = {
     add: 'إضافة قسم',
     addTitle: 'إنشاء قسم جديد',
     addConfirm: 'إنشاء القسم',
-    addLead: 'سيتم إنشاء القسم مباشرة داخل السنة الدراسية والمستوى المعروضين في الصفحة.',
-    defaultName: 'اسم القسم الافتراضي',
+    addLead: 'سيتم إنشاء القسم مباشرة داخل السنة الدراسية والمستوى الحاليين، دون مغادرة صفحة التوزيع.',
+    defaultName: 'القسم الجديد',
     academicYear: 'السنة الدراسية',
     level: 'المستوى',
-    defaultCapacity: 'السعة',
-    defaultCapacityValue: 'القيمة الافتراضية للنظام',
     selectLevelFirst: 'اختر المستوى أولًا لإنشاء قسم داخله.',
     namingUnavailable: 'تعذر توليد اسم افتراضي لهذا المستوى. تحقق من الرمز الأكاديمي للمستوى.',
     addFailed: 'تعذر إنشاء القسم. أعد المحاولة.',
@@ -48,12 +46,10 @@ const COPY = {
     add: 'Add class',
     addTitle: 'Create class',
     addConfirm: 'Create class',
-    addLead: 'The class will be created directly in the academic year and level currently shown on this page.',
-    defaultName: 'Default class name',
+    addLead: 'The class will be created in the current academic year and level without leaving the distribution page.',
+    defaultName: 'New class',
     academicYear: 'Academic year',
     level: 'Level',
-    defaultCapacity: 'Capacity',
-    defaultCapacityValue: 'System default',
     selectLevelFirst: 'Select a level first to create a class in it.',
     namingUnavailable: 'A default class name could not be generated. Check the level academic code.',
     addFailed: 'Could not create the class. Try again.',
@@ -71,12 +67,10 @@ const COPY = {
     add: 'Ajouter une classe',
     addTitle: 'Créer une classe',
     addConfirm: 'Créer la classe',
-    addLead: 'La classe sera créée directement dans l’année scolaire et le niveau actuellement affichés sur cette page.',
-    defaultName: 'Nom de classe proposé',
+    addLead: 'La classe sera créée dans l’année scolaire et le niveau actuels sans quitter la page de répartition.',
+    defaultName: 'Nouvelle classe',
     academicYear: 'Année scolaire',
     level: 'Niveau',
-    defaultCapacity: 'Capacité',
-    defaultCapacityValue: 'Valeur par défaut du système',
     selectLevelFirst: 'Choisissez d’abord un niveau pour y créer une classe.',
     namingUnavailable: 'Impossible de générer un nom de classe par défaut. Vérifiez le code académique du niveau.',
     addFailed: 'Impossible de créer la classe. Réessayez.',
@@ -94,12 +88,10 @@ const COPY = {
     add: 'Añadir clase',
     addTitle: 'Crear clase',
     addConfirm: 'Crear clase',
-    addLead: 'La clase se creará directamente en el curso académico y nivel mostrados actualmente en esta página.',
-    defaultName: 'Nombre de clase propuesto',
+    addLead: 'La clase se creará en el curso académico y nivel actuales sin salir de la página de distribución.',
+    defaultName: 'Nueva clase',
     academicYear: 'Curso académico',
     level: 'Nivel',
-    defaultCapacity: 'Capacidad',
-    defaultCapacityValue: 'Valor predeterminado del sistema',
     selectLevelFirst: 'Selecciona primero un nivel para crear una clase en él.',
     namingUnavailable: 'No se pudo generar un nombre de clase predeterminado. Revisa el código académico del nivel.',
     addFailed: 'No se pudo crear la clase. Inténtalo de nuevo.',
@@ -129,6 +121,21 @@ function verticalScrollHost(from: Element): HTMLElement | null {
   }
   const scrolling = document.scrollingElement;
   return scrolling instanceof HTMLElement ? scrolling : document.documentElement;
+}
+
+function refreshBoardKeepingLevel() {
+  const select = document.querySelector<HTMLSelectElement>(LEVEL_SELECT_SELECTOR);
+  const value = select?.value ?? '';
+  if (!select || !value) return;
+
+  // Force the board's own controlled level state through an empty->current transition.
+  // This refetches the authoritative workspace without a page reload, preserving cycle/level.
+  select.value = '';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+  window.requestAnimationFrame(() => {
+    select.value = value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
 }
 
 export function ClassDistributionShellEnhancements() {
@@ -236,9 +243,6 @@ export function ClassDistributionShellEnhancements() {
       if (event.shiftKey) return;
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
 
-      // The distribution board intentionally owns horizontal scrolling. When a normal
-      // mouse-wheel gesture happens above a student list, route it to the nearest
-      // vertical page scroller so the pointer position never traps vertical scrolling.
       const host = verticalScrollHost(scroller);
       if (!host) return;
       event.preventDefault();
@@ -253,6 +257,41 @@ export function ClassDistributionShellEnhancements() {
     return () => {
       document.removeEventListener('wheel', preserveVerticalWheel, { capture: true });
     };
+  }, []);
+
+  useEffect(() => {
+    const autoScrollDuringDrag = (event: globalThis.DragEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      const scroller = document.querySelector<HTMLElement>('.class-distribution-direct__scroller');
+      if (!scroller || !scroller.contains(target)) return;
+      if (!scroller.querySelector('[aria-grabbed="true"]')) return;
+      if (scroller.scrollWidth <= scroller.clientWidth + 2) return;
+
+      const rect = scroller.getBoundingClientRect();
+      const edge = Math.min(120, Math.max(72, rect.width * 0.12));
+      let visualDirection = 0;
+      let proximity = 0;
+
+      if (event.clientX < rect.left + edge) {
+        visualDirection = -1;
+        proximity = Math.min(1, (rect.left + edge - event.clientX) / edge);
+      } else if (event.clientX > rect.right - edge) {
+        visualDirection = 1;
+        proximity = Math.min(1, (event.clientX - (rect.right - edge)) / edge);
+      }
+
+      if (!visualDirection) return;
+      const speed = 14 + Math.round(34 * proximity);
+      const rtl = window.getComputedStyle(scroller).direction === 'rtl';
+      scroller.scrollBy({
+        left: (rtl ? -visualDirection : visualDirection) * speed,
+        behavior: 'auto',
+      });
+    };
+
+    document.addEventListener('dragover', autoScrollDuringDrag, true);
+    return () => document.removeEventListener('dragover', autoScrollDuringDrag, true);
   }, []);
 
   function openAddDialog() {
@@ -296,7 +335,10 @@ export function ClassDistributionShellEnhancements() {
       return;
     }
 
-    window.location.reload();
+    setAddOpen(false);
+    setAddError(null);
+    classesState.reload();
+    refreshBoardKeepingLevel();
   }
 
   function openDeleteDialog() {
@@ -321,7 +363,10 @@ export function ClassDistributionShellEnhancements() {
       return;
     }
 
-    window.location.reload();
+    setDeleteOpen(false);
+    setDeleteError(null);
+    classesState.reload();
+    refreshBoardKeepingLevel();
   }
 
   return (
@@ -362,7 +407,12 @@ export function ClassDistributionShellEnhancements() {
           <div className="class-distribution-quick-create-dialog">
             <p className="class-distribution-quick-create-dialog__lead">{copy.addLead}</p>
 
-            <div className="class-distribution-quick-create-dialog__grid">
+            <div className="class-distribution-quick-create-dialog__name">
+              <span>{copy.defaultName}</span>
+              <strong dir="ltr">{suggestedClassName ?? '—'}</strong>
+            </div>
+
+            <div className="class-distribution-quick-create-dialog__context">
               <div>
                 <span>{copy.academicYear}</span>
                 <strong dir="auto">{contextYear?.name ?? '—'}</strong>
@@ -370,14 +420,6 @@ export function ClassDistributionShellEnhancements() {
               <div>
                 <span>{copy.level}</span>
                 <strong dir="auto">{contextLevel?.name ?? '—'}</strong>
-              </div>
-              <div className="class-distribution-quick-create-dialog__name">
-                <span>{copy.defaultName}</span>
-                <strong dir="ltr">{suggestedClassName ?? '—'}</strong>
-              </div>
-              <div>
-                <span>{copy.defaultCapacity}</span>
-                <strong>{copy.defaultCapacityValue}</strong>
               </div>
             </div>
 
