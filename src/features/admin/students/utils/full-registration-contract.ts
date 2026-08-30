@@ -238,9 +238,12 @@ function buildGuardianRelationship(
   guardian: FullRegistrationGuardianDraft,
   familyContext: FullRegistrationFamilyContext,
 ): Record<string, unknown> {
+  const existingGuardianHasPhone =
+    guardian.mode !== 'existing' || Boolean(clean(guardian.phone));
   const relationship: Record<string, unknown> = {
     relationship_type: guardian.relationshipType,
-    provision_access: true,
+    provision_access: existingGuardianHasPhone,
+    receives_notifications: existingGuardianHasPhone,
   };
 
   if (guardian.mode === 'existing') {
