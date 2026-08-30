@@ -1,0 +1,221 @@
+.class-distribution-page-shell {
+  position: relative;
+}
+
+.class-distribution-shell-actions {
+  position: absolute;
+  inset-block-start: 44px;
+  inset-inline-end: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.class-distribution-shell-actions .btn {
+  min-block-size: 36px;
+  border-radius: 10px;
+}
+
+.class-distribution-shell-actions__delete {
+  color: var(--c-danger);
+}
+
+.class-distribution-shell-actions__delete:hover:not(:disabled),
+.class-distribution-shell-actions__delete:focus-visible:not(:disabled) {
+  border-color: color-mix(in srgb, var(--c-danger) 42%, var(--c-border));
+  background: color-mix(in srgb, var(--c-danger) 7%, var(--c-surface));
+}
+
+/* Compact academic-context strip: year → cycle → level. */
+.class-distribution-page-shell .class-distribution__context {
+  grid-template-columns: minmax(180px, 0.72fr) minmax(0, 1.85fr) minmax(210px, 0.82fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  margin-block-end: 12px;
+  border-radius: 15px;
+  background: var(--c-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.class-distribution-page-shell .class-distribution__year,
+.class-distribution-page-shell .class-distribution__level-select {
+  min-block-size: 54px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 82%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--c-surface-2) 76%, var(--c-surface));
+}
+
+.class-distribution-page-shell .class-distribution__year {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.class-distribution-page-shell .class-distribution__year > span,
+.class-distribution-page-shell .class-distribution__level-select > span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--c-text-muted);
+}
+
+.class-distribution-page-shell .class-distribution__year > strong {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.class-distribution-page-shell .class-distribution__cycle-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-inline-size: 0;
+  overflow-x: auto;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 78%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c-surface-2) 78%, var(--c-surface));
+  scrollbar-width: thin;
+}
+
+.class-distribution-page-shell .class-distribution__cycle-pill {
+  flex: 0 0 auto;
+  min-block-size: 36px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.8rem;
+}
+
+.class-distribution-page-shell .class-distribution__cycle-pill:hover,
+.class-distribution-page-shell .class-distribution__cycle-pill:focus-visible {
+  border-color: var(--c-border);
+  background: color-mix(in srgb, var(--c-surface) 86%, transparent);
+}
+
+.class-distribution-page-shell .class-distribution__cycle-pill--active {
+  border-color: color-mix(in srgb, var(--c-primary) 36%, var(--c-border));
+  background: var(--c-surface);
+  color: var(--c-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.class-distribution-page-shell .class-distribution__level-select {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.class-distribution-page-shell .class-distribution__level-select .input {
+  min-inline-size: 0;
+  min-block-size: 38px;
+  border-color: transparent;
+  background: var(--c-surface);
+  box-shadow: none;
+}
+
+.class-distribution-page-shell .class-distribution__level-select .input:focus {
+  border-color: var(--c-primary);
+}
+
+.class-distribution-delete-dialog {
+  display: grid;
+  gap: 12px;
+  min-inline-size: min(420px, 82vw);
+}
+
+.class-distribution-delete-dialog > label {
+  display: grid;
+  gap: 6px;
+}
+
+.class-distribution-delete-dialog > label > span {
+  color: var(--c-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.class-distribution-delete-dialog__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2);
+}
+
+.class-distribution-delete-dialog__summary span {
+  color: var(--c-text-muted);
+  font-size: 0.8rem;
+}
+
+.class-distribution-delete-dialog__caution,
+.class-distribution-delete-dialog__error {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.class-distribution-delete-dialog__caution {
+  color: var(--c-text-muted);
+}
+
+.class-distribution-delete-dialog__error {
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--c-danger) 8%, var(--c-surface));
+  color: var(--c-danger);
+}
+
+@media (max-width: 980px) {
+  .class-distribution-shell-actions {
+    position: static;
+    justify-content: flex-end;
+    margin-block-end: 8px;
+  }
+
+  .class-distribution-page-shell .class-distribution__context {
+    grid-template-columns: minmax(160px, 0.8fr) minmax(0, 1.6fr);
+  }
+
+  .class-distribution-page-shell .class-distribution__level-select {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .class-distribution-shell-actions {
+    justify-content: stretch;
+  }
+
+  .class-distribution-shell-actions .btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .class-distribution-page-shell .class-distribution__context {
+    grid-template-columns: 1fr;
+    padding: 8px;
+  }
+
+  .class-distribution-page-shell .class-distribution__cycle-pills,
+  .class-distribution-page-shell .class-distribution__level-select {
+    grid-column: auto;
+  }
+
+  .class-distribution-page-shell .class-distribution__level-select {
+    grid-template-columns: 1fr;
+  }
+
+  .class-distribution-delete-dialog {
+    min-inline-size: 0;
+  }
+}
