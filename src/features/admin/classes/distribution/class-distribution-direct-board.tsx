@@ -2,8 +2,12 @@
 
 /**
  * Direct-move distribution UX.
- * Safety remains preview -> confirm -> apply, but preview is triggered automatically
- * when the user drops students on a lane or chooses a destination directly.
+ *
+ * Visible flow:
+ *   drag/select student(s) -> choose destination -> confirm
+ *
+ * Safety flow stays internal:
+ *   preview -> explicit confirmation -> apply -> authoritative refetch
  */
 
 import Link from 'next/link';
@@ -18,7 +22,7 @@ import {
   useState,
 } from 'react';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Badge, Card, InfoBanner, PageHeader, StatCard } from '@/components/ui/primitives';
+import { Card, InfoBanner, PageHeader, StatCard } from '@/components/ui/primitives';
 import { formatAcademicLevelLabel } from '@/features/admin/academic-setup/utils/format-academic-label';
 import { normalizeCycleCode } from '@/features/admin/academic-setup/utils/group-and-sort-levels';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
@@ -28,7 +32,7 @@ import { api } from '@/lib/api/client';
 import { classDistributionEndpoints } from '@/lib/api/class-distribution-endpoints';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import type { ApiErrorBody, Pagination } from '@/types/api';
+import type { ApiErrorBody } from '@/types/api';
 import type { Level, LevelCycle } from '@/types/class';
 import type {
   ClassDistributionMoveApplyResponse,
@@ -40,7 +44,11 @@ import type {
   DistributionWorkspaceClass,
 } from '@/types/class-distribution';
 import type { Student } from '@/types/student';
-import { directMoveItems, directTargetSelectValue } from './direct-move';
+import {
+  applyRequestFromPreview,
+  directMoveItems,
+  directTargetSelectValue,
+} from './direct-move';
 import {
   MAX_DISTRIBUTION_MOVE_BATCH,
   buildDistributionMoveRequest,
@@ -55,9 +63,9 @@ import {
 import './class-distribution.css';
 import './class-distribution-direct.css';
 
-const PAGE_SIZE = 25;
+const WORKSPACE_PAGE_SIZE = 100;
 const CLASS_PREVIEW_SIZE = 4;
-const CLASS_ROSTER_PAGE_SIZE = 25;
+const CLASS_ROSTER_PAGE_SIZE = 100;
 const LEVELS_QUERY = { page_size: 500 };
 
 type CycleGroup = { cycle: LevelCycle; levels: Level[] };
@@ -112,12 +120,6 @@ function genderLabel(gender: DistributionStudentGender, t: ReturnType<typeof use
   return t('admin.classDistribution.genderUnspecified');
 }
 
-function readinessTone(status: DistributionWorkspaceClass['readiness']['status']) {
-  if (status === 'ready') return 'green' as const;
-  if (status === 'partial') return 'amber' as const;
-  return 'slate' as const;
-}
-
 function capacityLabel(cls: DistributionWorkspaceClass, t: ReturnType<typeof useT>): string {
   const available = classAvailableSeats(cls);
   const overCapacity =
@@ -163,6 +165,15 @@ function studentFromRoster(student: Student, classId: number): DistributionSelec
   };
 }
 
+function uniqueById<T extends { id: number }>(items: T[]): T[] {
+  const seen = new Set<number>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
 function DirectStudentRow({
   item,
   selected,
@@ -181,8 +192,8 @@ function DirectStudentRow({
   const t = useT();
 
   return (
-    <label
-      className="class-distribution-student"
+    <div
+      className="class-distribution-student class-distribution-student--draggable"
       data-selected={selected || undefined}
       draggable
       aria-grabbed={dragging}
@@ -192,10 +203,17 @@ function DirectStudentRow({
       <input
         type="checkbox"
         checked={selected}
+        draggable={false}
         onChange={() => onToggle(item)}
         aria-label={`${item.name} — ${genderLabel(item.gender, t)}`}
       />
-      <span className="class-distribution-student__grip" aria-hidden="true">⋮⋮</span>
+      <span
+        className="class-distribution-student__grip"
+        aria-hidden="true"
+        title={t('admin.classDistribution.moveTo')}
+      >
+        ⋮⋮
+      </span>
       <span className="class-distribution-student__copy">
         <strong dir="auto">{item.name}</strong>
         <span>
@@ -203,7 +221,7 @@ function DirectStudentRow({
           <small>{genderLabel(item.gender, t)}</small>
         </span>
       </span>
-    </label>
+    </div>
   );
 }
 
@@ -242,44 +260,60 @@ function ClassLane({
 }) {
   const t = useT();
   const occupancy = classOccupancyPercent(cls);
-  const missingAssignments = cls.readiness.items.teaching_assignments.missing_count ?? 0;
   const remainder = Math.max(cls.students_preview.total - cls.students_preview.items.length, 0);
 
   const [rosterOpen, setRosterOpen] = useState(false);
-  const [rosterPage, setRosterPage] = useState(1);
   const [rosterItems, setRosterItems] = useState<Student[] | null>(null);
-  const [rosterPagination, setRosterPagination] = useState<Pagination | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState(false);
 
-  const loadRoster = useCallback(
-    async (nextPage: number) => {
-      setRosterLoading(true);
-      setRosterError(false);
-      const result = await api.get<Student[]>(endpoints.admin.students, {
+  const loadFullRoster = useCallback(async () => {
+    setRosterLoading(true);
+    setRosterError(false);
+
+    const first = await api.get<Student[]>(endpoints.admin.students, {
+      academic_year_id: academicYearId,
+      class_id: cls.id,
+      page: 1,
+      page_size: CLASS_ROSTER_PAGE_SIZE,
+    });
+
+    if (!first.success) {
+      setRosterLoading(false);
+      setRosterError(true);
+      return;
+    }
+
+    let all = [...first.data];
+    const totalPages = first.meta.pagination?.total_pages ?? 1;
+
+    for (let page = 2; page <= totalPages; page += 1) {
+      const next = await api.get<Student[]>(endpoints.admin.students, {
         academic_year_id: academicYearId,
         class_id: cls.id,
-        page: nextPage,
+        page,
         page_size: CLASS_ROSTER_PAGE_SIZE,
       });
-      setRosterLoading(false);
-      if (!result.success) {
+      if (!next.success) {
+        setRosterLoading(false);
         setRosterError(true);
         return;
       }
-      setRosterItems(result.data);
-      setRosterPagination(result.meta.pagination ?? null);
-      setRosterPage(nextPage);
-    },
-    [academicYearId, cls.id],
-  );
+      all = all.concat(next.data);
+    }
+
+    setRosterItems(uniqueById(all));
+    setRosterLoading(false);
+  }, [academicYearId, cls.id]);
 
   const visibleItems = rosterOpen && rosterItems != null
     ? rosterItems.map((student) => studentFromRoster(student, cls.id))
     : cls.students_preview.items.map(studentFromClass);
 
   function ignoreLaneClick(target: EventTarget | null): boolean {
-    return target instanceof HTMLElement && Boolean(target.closest('button,input,label,a,select'));
+    return target instanceof HTMLElement && Boolean(
+      target.closest('button,input,a,select,.class-distribution-student'),
+    );
   }
 
   function handleLaneClick(event: MouseEvent<HTMLElement>) {
@@ -304,27 +338,30 @@ function ClassLane({
       aria-label={cls.name}
       onClick={handleLaneClick}
       onKeyDown={handleLaneKeyDown}
+      onDragEnter={(event) => onDragOverTarget(event, cls.id)}
       onDragOver={(event) => onDragOverTarget(event, cls.id)}
       onDragLeave={(event) => onDragLeaveTarget(event, cls.id)}
       onDrop={(event) => onDropTarget(event, cls.id)}
     >
-      <header className="class-distribution-lane__head">
+      <header className="class-distribution-lane__head class-distribution-direct__lane-head">
         <div className="class-distribution-lane__title-row">
           <div>
             <strong dir="auto">{cls.name}</strong>
             {cls.code ? <small className="mono" dir="ltr">{cls.code}</small> : null}
           </div>
-          <Badge tone={readinessTone(cls.readiness.status)}>
-            {t('admin.classDistribution.readiness')} {cls.readiness.completed}/{cls.readiness.total}
-          </Badge>
-        </div>
-
-        <div className="class-distribution-lane__capacity">
-          <strong className="numeric-text" dir="ltr">
+          <strong className="numeric-text class-distribution-direct__occupancy" dir="ltr">
             {cls.assigned_count}
             {cls.capacity != null && cls.capacity > 0 ? ` / ${cls.capacity}` : ''}
           </strong>
+        </div>
+
+        <div className="class-distribution-lane__capacity">
           <span>{capacityLabel(cls, t)}</span>
+          <span>
+            {t('admin.classDistribution.female')} <bdi dir="ltr">{cls.gender_summary.female}</bdi>
+            {' · '}
+            {t('admin.classDistribution.male')} <bdi dir="ltr">{cls.gender_summary.male}</bdi>
+          </span>
         </div>
 
         {occupancy != null ? (
@@ -333,19 +370,7 @@ function ClassLane({
           </span>
         ) : null}
 
-        <div className="class-distribution-lane__gender">
-          <span>{t('admin.classDistribution.female')} <bdi dir="ltr">{cls.gender_summary.female}</bdi></span>
-          <span>{t('admin.classDistribution.male')} <bdi dir="ltr">{cls.gender_summary.male}</bdi></span>
-          {cls.gender_summary.unspecified > 0 ? (
-            <span>{t('admin.classDistribution.unspecified')} <bdi dir="ltr">{cls.gender_summary.unspecified}</bdi></span>
-          ) : null}
-        </div>
-
-        {missingAssignments > 0 ? (
-          <small className="class-distribution-direct__hint">
-            {t('admin.classDistribution.missingAssignments', { count: missingAssignments })}
-          </small>
-        ) : moveReady ? (
+        {moveReady ? (
           <small className="class-distribution-direct__hint">{t('admin.classDistribution.chooseTarget')}</small>
         ) : null}
       </header>
@@ -356,7 +381,7 @@ function ClassLane({
         ) : rosterError ? (
           <div className="class-distribution-lane__empty">
             <p>{t('admin.classDistribution.rosterLoadFailed')}</p>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => void loadRoster(rosterPage)}>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => void loadFullRoster()}>
               {t('admin.classDistribution.retry')}
             </button>
           </div>
@@ -384,7 +409,7 @@ function ClassLane({
             className="btn btn--ghost btn--sm"
             onClick={() => {
               setRosterOpen(true);
-              if (rosterItems == null) void loadRoster(1);
+              if (rosterItems == null) void loadFullRoster();
             }}
           >
             {t('admin.classDistribution.showAllStudents')} · {t('admin.classDistribution.moreStudents', { count: remainder })}
@@ -392,29 +417,11 @@ function ClassLane({
         </footer>
       ) : null}
 
-      {rosterOpen ? (
-        <footer className="class-distribution-lane__roster-footer">
-          {rosterPagination && rosterPagination.total_pages > 1 ? (
-            <div className="class-distribution__pagination class-distribution__pagination--class">
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                disabled={rosterPage <= 1 || rosterLoading}
-                onClick={() => void loadRoster(Math.max(1, rosterPage - 1))}
-              >
-                {t('admin.classDistribution.previous')}
-              </button>
-              <span>{t('admin.classDistribution.pageStatus', { page: rosterPage, pages: rosterPagination.total_pages })}</span>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                disabled={rosterPage >= rosterPagination.total_pages || rosterLoading}
-                onClick={() => void loadRoster(Math.min(rosterPagination.total_pages, rosterPage + 1))}
-              >
-                {t('admin.classDistribution.next')}
-              </button>
-            </div>
-          ) : null}
+      {rosterOpen && !rosterLoading ? (
+        <footer className="class-distribution-lane__roster-footer class-distribution-direct__roster-footer">
+          <span>
+            {t('admin.classDistribution.students')}: <bdi dir="ltr">{rosterItems?.length ?? cls.students_preview.total}</bdi>
+          </span>
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -442,13 +449,13 @@ export function ClassDistributionDirectBoard() {
   const [levelId, setLevelId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
-  const [page, setPage] = useState(1);
   const [board, setBoard] = useState<ClassDistributionWorkspaceData | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [readError, setReadError] = useState<string | null>(null);
   const [reloadVersion, setReloadVersion] = useState(0);
   const hasLoadedRef = useRef(false);
+  const workspaceScrollerRef = useRef<HTMLDivElement | null>(null);
 
   const [selected, setSelected] = useState<Map<number, DistributionSelectionItem>>(() => new Map());
   const [draggingStudentId, setDraggingStudentId] = useState<number | null>(null);
@@ -467,10 +474,12 @@ export function ClassDistributionDirectBoard() {
     () => academicYears.find((year) => year.id === activeAcademicYearId) ?? null,
     [academicYears, activeAcademicYearId],
   );
+
   const levelOptions = useMemo(() => {
     if (cycleId == null) return [];
     return cycleGroups.find((group) => group.cycle.id === cycleId)?.levels ?? [];
   }, [cycleGroups, cycleId]);
+
   const selectedItems = useMemo(() => [...selected.values()], [selected]);
   const refetch = useCallback(() => setReloadVersion((value) => value + 1), []);
 
@@ -485,7 +494,37 @@ export function ClassDistributionDirectBoard() {
   useEffect(() => {
     clearSelection();
     setNotice(null);
-  }, [activeAcademicYearId, cycleId, levelId, page, debouncedSearch, clearSelection]);
+  }, [activeAcademicYearId, cycleId, levelId, debouncedSearch, clearSelection]);
+
+  useEffect(() => {
+    const node = workspaceScrollerRef.current;
+    if (!node) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      if (node.scrollWidth <= node.clientWidth + 2) return;
+
+      const target = event.target;
+      const verticalScroller = target instanceof HTMLElement
+        ? target.closest<HTMLElement>('.class-distribution-lane__students')
+        : null;
+
+      if (verticalScroller) {
+        const canScrollDown =
+          event.deltaY > 0 &&
+          verticalScroller.scrollTop + verticalScroller.clientHeight < verticalScroller.scrollHeight - 1;
+        const canScrollUp = event.deltaY < 0 && verticalScroller.scrollTop > 0;
+        if (canScrollDown || canScrollUp) return;
+      }
+
+      event.preventDefault();
+      const rtl = getComputedStyle(node).direction === 'rtl';
+      node.scrollBy({ left: (rtl ? -1 : 1) * event.deltaY, behavior: 'auto' });
+    };
+
+    node.addEventListener('wheel', handleWheel, { passive: false });
+    return () => node.removeEventListener('wheel', handleWheel);
+  }, [board]);
 
   useEffect(() => {
     if (levelId == null || activeAcademicYearId == null) {
@@ -502,22 +541,58 @@ export function ClassDistributionDirectBoard() {
     else setLoading(true);
     setReadError(null);
 
-    void api.get<ClassDistributionWorkspaceData>(classDistributionEndpoints.workspace, {
-      academic_year_id: activeAcademicYearId,
-      level_id: levelId,
-      page,
-      page_size: PAGE_SIZE,
-      search: debouncedSearch || undefined,
-      class_preview_size: CLASS_PREVIEW_SIZE,
-    }).then((result) => {
+    const load = async () => {
+      const commonParams = {
+        academic_year_id: activeAcademicYearId,
+        level_id: levelId,
+        page_size: WORKSPACE_PAGE_SIZE,
+        search: debouncedSearch || undefined,
+        class_preview_size: CLASS_PREVIEW_SIZE,
+      };
+
+      const first = await api.get<ClassDistributionWorkspaceData>(classDistributionEndpoints.workspace, {
+        ...commonParams,
+        page: 1,
+      });
+
       if (cancelled) return;
-      if (!result.success) {
+      if (!first.success) {
         setReadError(t('admin.classDistribution.loadFailed'));
         return;
       }
-      setBoard(result.data);
+
+      const initial = first.data;
+      const pageSize = Math.max(1, initial.unassigned_students.page_size || WORKSPACE_PAGE_SIZE);
+      const totalPages = Math.max(1, Math.ceil(initial.unassigned_students.total / pageSize));
+      let unassignedItems = [...initial.unassigned_students.items];
+
+      for (let page = 2; page <= totalPages; page += 1) {
+        const next = await api.get<ClassDistributionWorkspaceData>(classDistributionEndpoints.workspace, {
+          ...commonParams,
+          page,
+        });
+        if (cancelled) return;
+        if (!next.success) {
+          setReadError(t('admin.classDistribution.loadFailed'));
+          return;
+        }
+        unassignedItems = unassignedItems.concat(next.data.unassigned_students.items);
+      }
+
+      const allUnassigned = uniqueById(unassignedItems);
+      setBoard({
+        ...initial,
+        unassigned_students: {
+          ...initial.unassigned_students,
+          page: 1,
+          page_size: Math.max(allUnassigned.length, pageSize),
+          items: allUnassigned,
+        },
+      });
       hasLoadedRef.current = true;
-    }).finally(() => {
+    };
+
+    void load().finally(() => {
       if (cancelled) return;
       setLoading(false);
       setFetching(false);
@@ -526,12 +601,9 @@ export function ClassDistributionDirectBoard() {
     return () => {
       cancelled = true;
     };
-  }, [activeAcademicYearId, debouncedSearch, levelId, page, reloadVersion, t]);
+  }, [activeAcademicYearId, debouncedSearch, levelId, reloadVersion, t]);
 
   const currentUnassignedItems = board?.unassigned_students.items ?? [];
-  const totalPages = board
-    ? Math.max(1, Math.ceil(board.unassigned_students.total / board.unassigned_students.page_size))
-    : 1;
 
   function toggleSelection(item: DistributionSelectionItem) {
     const adding = !selected.has(item.studentId);
@@ -553,7 +625,7 @@ export function ClassDistributionDirectBoard() {
     setNotice(null);
   }
 
-  function toggleCurrentUnassignedPage() {
+  function toggleAllUnassigned() {
     const visible = currentUnassignedItems.map<DistributionSelectionItem>((student) => ({
       studentId: student.id,
       enrollmentId: null,
@@ -631,12 +703,6 @@ export function ClassDistributionDirectBoard() {
       return;
     }
 
-    const targetClass = target == null ? null : board.classes.find((cls) => cls.id === target) ?? null;
-    if (targetClass && !selectionFitsTargetCapacity(items, targetClass)) {
-      setOperationError(t('admin.classDistribution.error.capacity'));
-      return;
-    }
-
     const request = buildDistributionMoveRequest(
       levelId,
       'preview',
@@ -674,16 +740,16 @@ export function ClassDistributionDirectBoard() {
     setApplyLoading(true);
     setOperationError(null);
 
-    const request: ClassDistributionMoveRequest = {
-      ...previewIntent.request,
-      mode: 'apply',
-      moves: previewIntent.request.moves.map((move) => ({ ...move })),
-    };
+    const request = applyRequestFromPreview(previewIntent.request);
     const result = await api.post<ClassDistributionMoveApplyResponse>(classDistributionEndpoints.move, request);
     setApplyLoading(false);
 
     if (!result.success) {
       handleBackendError(result.error);
+      return;
+    }
+    if (!result.data.applied) {
+      setOperationError(t('admin.classDistribution.applyFailed'));
       return;
     }
 
@@ -698,10 +764,17 @@ export function ClassDistributionDirectBoard() {
   function beginDrag(item: DistributionSelectionItem, event: DragEvent<HTMLElement>) {
     const items = directMoveItems(selectedItems, item);
     dragItemsRef.current = items;
-    setDraggingStudentId(item.studentId);
     setOperationError(null);
+    setNotice(null);
+
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', String(item.studentId));
+    event.dataTransfer.setData(
+      'application/x-raqeem-student-move',
+      JSON.stringify(items.map((student) => student.studentId)),
+    );
+
+    requestAnimationFrame(() => setDraggingStudentId(item.studentId));
   }
 
   function endDrag() {
@@ -725,9 +798,13 @@ export function ClassDistributionDirectBoard() {
   }
 
   function handleDropTarget(event: DragEvent<HTMLElement>, target: MoveTarget) {
-    const items = dragItemsRef.current;
-    if (!canMoveItemsTo(items, target)) return;
     event.preventDefault();
+    const items = dragItemsRef.current;
+    if (!canMoveItemsTo(items, target)) {
+      setDropTargetKey(null);
+      return;
+    }
+
     setDropTargetKey(null);
     setDraggingStudentId(null);
     dragItemsRef.current = [];
@@ -766,7 +843,6 @@ export function ClassDistributionDirectBoard() {
                 setCycleId(group.cycle.id);
                 setLevelId(null);
                 setSearch('');
-                setPage(1);
               }}
             >
               {cycleTitle(group.cycle, t)}
@@ -783,7 +859,6 @@ export function ClassDistributionDirectBoard() {
               const next = Number(event.target.value);
               setLevelId(Number.isFinite(next) && next > 0 ? next : null);
               setSearch('');
-              setPage(1);
             }}
           >
             <option value="">
@@ -826,7 +901,12 @@ export function ClassDistributionDirectBoard() {
           {operationError ? <InfoBanner title={operationError} tone="amber" icon="!" /> : null}
 
           <div className="class-distribution-workspace" aria-busy={fetching || undefined}>
-            <div className="class-distribution-workspace__scroller">
+            <div
+              ref={workspaceScrollerRef}
+              className="class-distribution-workspace__scroller class-distribution-direct__scroller"
+              tabIndex={0}
+              aria-label={t('admin.classDistribution.title')}
+            >
               <section
                 className="class-distribution-lane class-distribution-lane--unassigned class-distribution-lane--direct"
                 data-move-ready={directUnassignedReady || undefined}
@@ -839,7 +919,7 @@ export function ClassDistributionDirectBoard() {
                   const target = event.target;
                   if (
                     directUnassignedReady &&
-                    !(target instanceof HTMLElement && target.closest('button,input,label,a,select'))
+                    !(target instanceof HTMLElement && target.closest('button,input,a,select,.class-distribution-student'))
                   ) {
                     void requestMove(null);
                   }
@@ -850,6 +930,7 @@ export function ClassDistributionDirectBoard() {
                     void requestMove(null);
                   }
                 }}
+                onDragEnter={(event) => handleDragOverTarget(event, null)}
                 onDragOver={(event) => handleDragOverTarget(event, null)}
                 onDragLeave={(event) => handleDragLeaveTarget(event, null)}
                 onDrop={(event) => handleDropTarget(event, null)}
@@ -861,7 +942,7 @@ export function ClassDistributionDirectBoard() {
                       <strong className="numeric-text" dir="ltr">{board.summary.unassigned_count}</strong>
                     </div>
                     {currentUnassignedItems.length ? (
-                      <button type="button" className="btn btn--ghost btn--sm" onClick={toggleCurrentUnassignedPage}>
+                      <button type="button" className="btn btn--ghost btn--sm" onClick={toggleAllUnassigned}>
                         {currentUnassignedItems.every((student) => selected.has(student.id))
                           ? t('admin.classDistribution.clearSelection')
                           : t('admin.classDistribution.selectCurrentPage')}
@@ -877,10 +958,7 @@ export function ClassDistributionDirectBoard() {
                       value={search}
                       placeholder={t('admin.classDistribution.searchPlaceholder')}
                       aria-label={t('common.search')}
-                      onChange={(event) => {
-                        setSearch(event.target.value);
-                        setPage(1);
-                      }}
+                      onChange={(event) => setSearch(event.target.value)}
                       autoComplete="off"
                       dir="auto"
                     />
@@ -922,18 +1000,6 @@ export function ClassDistributionDirectBoard() {
                     })
                   )}
                 </div>
-
-                {board.unassigned_students.total > board.unassigned_students.page_size ? (
-                  <footer className="class-distribution__pagination">
-                    <button type="button" className="btn btn--ghost btn--sm" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
-                      {t('admin.classDistribution.previous')}
-                    </button>
-                    <span>{t('admin.classDistribution.pageStatus', { page, pages: totalPages })}</span>
-                    <button type="button" className="btn btn--ghost btn--sm" disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
-                      {t('admin.classDistribution.next')}
-                    </button>
-                  </footer>
-                ) : null}
               </section>
 
               {board.classes.length ? (
@@ -1010,8 +1076,6 @@ export function ClassDistributionDirectBoard() {
         onConfirm={handleApply}
         body={preview && previewIntent && board ? (
           <div className="class-distribution-direct__confirm">
-            <p>{t('admin.classDistribution.previewLead', { count: preview.moves_count })}</p>
-
             <div className="class-distribution-direct__confirm-route">
               <div>
                 <span>{t('admin.classDistribution.source')}</span>
@@ -1043,11 +1107,11 @@ export function ClassDistributionDirectBoard() {
             ) : null}
 
             <ul className="class-distribution-direct__confirm-students">
-              {previewIntent.items.slice(0, 5).map((student) => (
+              {previewIntent.items.slice(0, 8).map((student) => (
                 <li key={student.studentId} dir="auto">{student.name}</li>
               ))}
-              {previewIntent.items.length > 5 ? (
-                <li>{t('admin.classDistribution.moreStudents', { count: previewIntent.items.length - 5 })}</li>
+              {previewIntent.items.length > 8 ? (
+                <li>{t('admin.classDistribution.moreStudents', { count: previewIntent.items.length - 8 })}</li>
               ) : null}
             </ul>
           </div>
