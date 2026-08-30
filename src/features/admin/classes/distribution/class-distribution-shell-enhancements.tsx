@@ -315,7 +315,7 @@ export function ClassDistributionShellEnhancements() {
         return;
       }
 
-      const edge = Math.min(150, Math.max(88, rect.width * 0.15));
+      const edge = Math.min(110, Math.max(72, rect.width * 0.1));
       let visualDirection = 0;
       let proximity = 0;
 
@@ -332,7 +332,9 @@ export function ClassDistributionShellEnhancements() {
         return;
       }
 
-      const speed = 10 + Math.round(22 * proximity);
+      // Keep edge scrolling deliberately slow enough for the user to see and target
+      // each adjacent class instead of racing across the whole workspace.
+      const speed = 2 + Math.round(3 * proximity);
       const rtl = window.getComputedStyle(scroller).direction === 'rtl';
       dragAutoScrollScrollerRef.current = scroller;
       dragAutoScrollVelocityRef.current = (rtl ? -visualDirection : visualDirection) * speed;
