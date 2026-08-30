@@ -72,4 +72,24 @@ describe('direct class-distribution move helpers', () => {
     expect(apply.moves).not.toBe(preview.moves);
     expect(apply.moves[0]).not.toBe(preview.moves[0]);
   });
+
+  it('keeps unassigned-to-class apply source null after preview', () => {
+    const preview: ClassDistributionMoveRequest = {
+      academic_year_id: 1,
+      level_id: 77,
+      mode: 'preview',
+      moves: [
+        {
+          student_id: 11550,
+          from_class_id: null,
+          to_class_id: 4351,
+        },
+      ],
+    };
+
+    expect(applyRequestFromPreview(preview)).toMatchObject({
+      mode: 'apply',
+      moves: [{ student_id: 11550, from_class_id: null, to_class_id: 4351 }],
+    });
+  });
 });
