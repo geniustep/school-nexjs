@@ -9,6 +9,7 @@
   scrollbar-width: auto;
   touch-action: pan-x pan-y;
   overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
 }
 
 .class-distribution-direct .class-distribution-lane__students,
@@ -39,6 +40,8 @@
 
 .class-distribution-direct .class-distribution-lane {
   position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
