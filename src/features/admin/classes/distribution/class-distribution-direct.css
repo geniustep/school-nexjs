@@ -1,11 +1,21 @@
+.class-distribution-direct {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: clip;
+}
+
+.class-distribution-direct .class-distribution-workspace {
+  max-inline-size: 100%;
+}
+
 .class-distribution-direct .class-distribution-workspace__scroller {
   align-items: stretch;
 }
 
 .class-distribution-direct__scroller {
-  overflow-x: scroll;
+  overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: auto;
   scrollbar-width: auto;
   touch-action: pan-x pan-y;
   overscroll-behavior-inline: contain;
@@ -157,6 +167,17 @@
 
 .class-distribution-direct__mobile-target .input {
   min-height: 38px;
+}
+
+[dir='rtl'] .class-distribution-direct__mobile-target,
+[dir='rtl'] .class-distribution-direct__mobile-target .input,
+[dir='rtl'] .class-distribution-direct__mobile-target option {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .class-distribution-direct__mobile-target option {
+  unicode-bidi: isolate;
 }
 
 .class-distribution-direct__confirm {
