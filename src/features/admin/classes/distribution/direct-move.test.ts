@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { DistributionSelectionItem } from '@/types/class-distribution';
-import { directMoveItems, directTargetSelectValue } from './direct-move';
+import type {
+  ClassDistributionMoveRequest,
+  DistributionSelectionItem,
+} from '@/types/class-distribution';
+import {
+  applyRequestFromPreview,
+  directMoveItems,
+  directTargetSelectValue,
+} from './direct-move';
 
 const a: DistributionSelectionItem = {
   studentId: 1,
@@ -43,5 +50,26 @@ describe('direct class-distribution move helpers', () => {
     expect(directTargetSelectValue('203')).toBe(203);
     expect(directTargetSelectValue('')).toBeUndefined();
     expect(directTargetSelectValue('x')).toBeUndefined();
+  });
+
+  it('promotes the validated preview intent to apply without changing its moves', () => {
+    const preview: ClassDistributionMoveRequest = {
+      academic_year_id: 1,
+      level_id: 77,
+      mode: 'preview',
+      moves: [
+        {
+          student_id: 2131,
+          from_class_id: 2053,
+          to_class_id: 4351,
+        },
+      ],
+    };
+
+    const apply = applyRequestFromPreview(preview);
+
+    expect(apply).toEqual({ ...preview, mode: 'apply' });
+    expect(apply.moves).not.toBe(preview.moves);
+    expect(apply.moves[0]).not.toBe(preview.moves[0]);
   });
 });
