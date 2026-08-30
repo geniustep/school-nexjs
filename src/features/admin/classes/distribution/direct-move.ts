@@ -1,4 +1,7 @@
-import type { DistributionSelectionItem } from '@/types/class-distribution';
+import type {
+  ClassDistributionMoveRequest,
+  DistributionSelectionItem,
+} from '@/types/class-distribution';
 
 export function directMoveItems(
   selectedItems: DistributionSelectionItem[],
@@ -14,4 +17,18 @@ export function directTargetSelectValue(value: string): number | null | undefine
   if (value === 'unassigned') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+/**
+ * Promote the exact preview intent to apply without rebuilding moves from UI state.
+ * This protects the direct-move flow from accidentally issuing preview twice.
+ */
+export function applyRequestFromPreview(
+  request: ClassDistributionMoveRequest,
+): ClassDistributionMoveRequest {
+  return {
+    ...request,
+    mode: 'apply',
+    moves: request.moves.map((move) => ({ ...move })),
+  };
 }
