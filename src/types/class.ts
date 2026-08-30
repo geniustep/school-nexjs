@@ -109,7 +109,10 @@ export interface SchoolClass {
   academic_year: string | null;
   /** Present on list/detail payloads when the year id is known for uniqueness scope. */
   academic_year_id?: number | null;
+  /** Legacy operational count; may reflect current_class_id/current student pointers. */
   student_count: number;
+  /** Canonical active annual-enrollment occupancy returned by the class list contract. */
+  assigned_count?: number | null;
   capacity: number | null;
   teachers: Ref[];
   subjects: Subject[];
