@@ -4,10 +4,10 @@
  * Direct-move distribution UX.
  *
  * Visible flow:
- *   drag/select student(s) -> choose destination -> confirm
+ *   desktop drag/drop -> automatic preview -> automatic apply -> authoritative refetch
+ *   select student(s) -> choose destination -> compact confirmation -> apply
  *
- * Safety flow stays internal:
- *   preview -> explicit confirmation -> apply -> authoritative refetch
+ * Safety flow always keeps the backend preview gate before every apply.
  */
 
 import Link from 'next/link';
@@ -77,6 +77,12 @@ type PreviewIntent = {
   targetClassId: MoveTarget;
 };
 
+type ClassRosterState = {
+  items: DistributionSelectionItem[] | null;
+  loading: boolean;
+  error: boolean;
+};
+
 function cycleTitle(cycle: LevelCycle, t: ReturnType<typeof useT>): string {
   const key = normalizeCycleCode(cycle.code);
   const i18nKey = `admin.academicSetup.guided.category.${key}`;
@@ -131,19 +137,6 @@ function capacityLabel(cls: DistributionWorkspaceClass, t: ReturnType<typeof use
   return t('admin.classDistribution.capacityUnspecified');
 }
 
-function studentFromClass(
-  student: DistributionWorkspaceClass['students_preview']['items'][number],
-): DistributionSelectionItem {
-  return {
-    studentId: student.id,
-    enrollmentId: student.enrollment_id,
-    sourceClassId: student.class_id,
-    name: student.name,
-    code: student.code,
-    gender: student.gender,
-  };
-}
-
 function studentDisplayName(student: Student): string {
   const fullName = student.full_name?.trim() || student.name?.trim();
   if (fullName) return fullName;
@@ -165,13 +158,43 @@ function studentFromRoster(student: Student, classId: number): DistributionSelec
   };
 }
 
-function uniqueById<T extends { id: number }>(items: T[]): T[] {
+function uniqueStudents(items: Student[]): Student[] {
   const seen = new Set<number>();
   return items.filter((item) => {
     if (seen.has(item.id)) return false;
     seen.add(item.id);
     return true;
   });
+}
+
+async function fetchFullClassRoster(
+  academicYearId: number,
+  classId: number,
+): Promise<DistributionSelectionItem[] | null> {
+  const first = await api.get<Student[]>(endpoints.admin.students, {
+    academic_year_id: academicYearId,
+    class_id: classId,
+    page: 1,
+    page_size: CLASS_ROSTER_PAGE_SIZE,
+  });
+
+  if (!first.success) return null;
+
+  let students = [...first.data];
+  const totalPages = first.meta.pagination?.total_pages ?? 1;
+
+  for (let page = 2; page <= totalPages; page += 1) {
+    const next = await api.get<Student[]>(endpoints.admin.students, {
+      academic_year_id: academicYearId,
+      class_id: classId,
+      page,
+      page_size: CLASS_ROSTER_PAGE_SIZE,
+    });
+    if (!next.success) return null;
+    students = students.concat(next.data);
+  }
+
+  return uniqueStudents(students).map((student) => studentFromRoster(student, classId));
 }
 
 function DirectStudentRow({
@@ -227,9 +250,8 @@ function DirectStudentRow({
 
 function ClassLane({
   cls,
-  academicYearId,
+  roster,
   selected,
-  selectedItems,
   draggingStudentId,
   moveReady,
   dropTarget,
@@ -241,11 +263,11 @@ function ClassLane({
   onDragOverTarget,
   onDragLeaveTarget,
   onDropTarget,
+  onRetryRoster,
 }: {
   cls: DistributionWorkspaceClass;
-  academicYearId: number;
+  roster: ClassRosterState | undefined;
   selected: Map<number, DistributionSelectionItem>;
-  selectedItems: DistributionSelectionItem[];
   draggingStudentId: number | null;
   moveReady: boolean;
   dropTarget: boolean;
@@ -257,58 +279,11 @@ function ClassLane({
   onDragOverTarget: (event: DragEvent<HTMLElement>, target: MoveTarget) => void;
   onDragLeaveTarget: (event: DragEvent<HTMLElement>, target: MoveTarget) => void;
   onDropTarget: (event: DragEvent<HTMLElement>, target: MoveTarget) => void;
+  onRetryRoster: (classId: number) => void;
 }) {
   const t = useT();
   const occupancy = classOccupancyPercent(cls);
-  const remainder = Math.max(cls.students_preview.total - cls.students_preview.items.length, 0);
-
-  const [rosterOpen, setRosterOpen] = useState(false);
-  const [rosterItems, setRosterItems] = useState<Student[] | null>(null);
-  const [rosterLoading, setRosterLoading] = useState(false);
-  const [rosterError, setRosterError] = useState(false);
-
-  const loadFullRoster = useCallback(async () => {
-    setRosterLoading(true);
-    setRosterError(false);
-
-    const first = await api.get<Student[]>(endpoints.admin.students, {
-      academic_year_id: academicYearId,
-      class_id: cls.id,
-      page: 1,
-      page_size: CLASS_ROSTER_PAGE_SIZE,
-    });
-
-    if (!first.success) {
-      setRosterLoading(false);
-      setRosterError(true);
-      return;
-    }
-
-    let all = [...first.data];
-    const totalPages = first.meta.pagination?.total_pages ?? 1;
-
-    for (let page = 2; page <= totalPages; page += 1) {
-      const next = await api.get<Student[]>(endpoints.admin.students, {
-        academic_year_id: academicYearId,
-        class_id: cls.id,
-        page,
-        page_size: CLASS_ROSTER_PAGE_SIZE,
-      });
-      if (!next.success) {
-        setRosterLoading(false);
-        setRosterError(true);
-        return;
-      }
-      all = all.concat(next.data);
-    }
-
-    setRosterItems(uniqueById(all));
-    setRosterLoading(false);
-  }, [academicYearId, cls.id]);
-
-  const visibleItems = rosterOpen && rosterItems != null
-    ? rosterItems.map((student) => studentFromRoster(student, cls.id))
-    : cls.students_preview.items.map(studentFromClass);
+  const rosterItems = roster?.items ?? [];
 
   function ignoreLaneClick(target: EventTarget | null): boolean {
     return target instanceof HTMLElement && Boolean(
@@ -376,17 +351,21 @@ function ClassLane({
       </header>
 
       <div className="class-distribution-lane__students">
-        {rosterLoading ? (
+        {roster?.loading ? (
           <div className="class-distribution-lane__empty"><strong>{t('common.loading')}</strong></div>
-        ) : rosterError ? (
+        ) : roster?.error ? (
           <div className="class-distribution-lane__empty">
             <p>{t('admin.classDistribution.rosterLoadFailed')}</p>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => void loadFullRoster()}>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => onRetryRoster(cls.id)}
+            >
               {t('admin.classDistribution.retry')}
             </button>
           </div>
-        ) : visibleItems.length ? (
-          visibleItems.map((item) => (
+        ) : rosterItems.length ? (
+          rosterItems.map((item) => (
             <DirectStudentRow
               key={item.studentId}
               item={item}
@@ -402,38 +381,11 @@ function ClassLane({
         )}
       </div>
 
-      {!rosterOpen && remainder > 0 ? (
-        <footer className="class-distribution-lane__more">
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => {
-              setRosterOpen(true);
-              if (rosterItems == null) void loadFullRoster();
-            }}
-          >
-            {t('admin.classDistribution.showAllStudents')} · {t('admin.classDistribution.moreStudents', { count: remainder })}
-          </button>
-        </footer>
-      ) : null}
-
-      {rosterOpen && !rosterLoading ? (
-        <footer className="class-distribution-lane__roster-footer class-distribution-direct__roster-footer">
-          <span>
-            {t('admin.classDistribution.students')}: <bdi dir="ltr">{rosterItems?.length ?? cls.students_preview.total}</bdi>
-          </span>
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => {
-              setRosterOpen(false);
-              setRosterError(false);
-            }}
-          >
-            {t('admin.classDistribution.showPreview')}
-          </button>
-        </footer>
-      ) : null}
+      <footer className="class-distribution-lane__roster-footer class-distribution-direct__roster-footer">
+        <span>
+          {t('admin.classDistribution.students')}: <bdi dir="ltr">{rosterItems.length || cls.assigned_count}</bdi>
+        </span>
+      </footer>
     </section>
   );
 }
@@ -457,6 +409,7 @@ export function ClassDistributionDirectBoard() {
   const hasLoadedRef = useRef(false);
   const workspaceScrollerRef = useRef<HTMLDivElement | null>(null);
 
+  const [classRosters, setClassRosters] = useState<Record<number, ClassRosterState>>({});
   const [selected, setSelected] = useState<Map<number, DistributionSelectionItem>>(() => new Map());
   const [draggingStudentId, setDraggingStudentId] = useState<number | null>(null);
   const dragItemsRef = useRef<DistributionSelectionItem[]>([]);
@@ -530,6 +483,7 @@ export function ClassDistributionDirectBoard() {
     if (levelId == null || activeAcademicYearId == null) {
       hasLoadedRef.current = false;
       setBoard(null);
+      setClassRosters({});
       setReadError(null);
       setLoading(false);
       setFetching(false);
@@ -579,7 +533,13 @@ export function ClassDistributionDirectBoard() {
         unassignedItems = unassignedItems.concat(next.data.unassigned_students.items);
       }
 
-      const allUnassigned = uniqueById(unassignedItems);
+      const seen = new Set<number>();
+      const allUnassigned = unassignedItems.filter((item) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+
       setBoard({
         ...initial,
         unassigned_students: {
@@ -602,6 +562,55 @@ export function ClassDistributionDirectBoard() {
       cancelled = true;
     };
   }, [activeAcademicYearId, debouncedSearch, levelId, reloadVersion, t]);
+
+  useEffect(() => {
+    if (!board) {
+      setClassRosters({});
+      return;
+    }
+
+    let cancelled = false;
+    const initial: Record<number, ClassRosterState> = {};
+    for (const cls of board.classes) {
+      initial[cls.id] = { items: null, loading: true, error: false };
+    }
+    setClassRosters(initial);
+
+    const loadRosters = async () => {
+      await Promise.all(
+        board.classes.map(async (cls) => {
+          const items = await fetchFullClassRoster(board.context.academic_year_id, cls.id);
+          if (cancelled) return;
+          setClassRosters((current) => ({
+            ...current,
+            [cls.id]: items == null
+              ? { items: null, loading: false, error: true }
+              : { items, loading: false, error: false },
+          }));
+        }),
+      );
+    };
+
+    void loadRosters();
+    return () => {
+      cancelled = true;
+    };
+  }, [board]);
+
+  const retryRoster = useCallback(async (classId: number) => {
+    if (!board) return;
+    setClassRosters((current) => ({
+      ...current,
+      [classId]: { items: current[classId]?.items ?? null, loading: true, error: false },
+    }));
+    const items = await fetchFullClassRoster(board.context.academic_year_id, classId);
+    setClassRosters((current) => ({
+      ...current,
+      [classId]: items == null
+        ? { items: null, loading: false, error: true }
+        : { items, loading: false, error: false },
+    }));
+  }, [board]);
 
   const currentUnassignedItems = board?.unassigned_students.items ?? [];
 
@@ -673,7 +682,7 @@ export function ClassDistributionDirectBoard() {
   }
 
   function canMoveItemsTo(items: DistributionSelectionItem[], target: MoveTarget): boolean {
-    if (!board || items.length === 0 || targetIsNoopForSelection(items, target)) return false;
+    if (applyLoading || !board || items.length === 0 || targetIsNoopForSelection(items, target)) return false;
     if (target == null) return true;
     const cls = board.classes.find((candidate) => candidate.id === target);
     return Boolean(cls && selectionFitsTargetCapacity(items, cls));
@@ -684,13 +693,49 @@ export function ClassDistributionDirectBoard() {
     setPreview(null);
     setPreviewIntent(null);
     setPreviewOpen(false);
+    setPreviewingTargetKey(null);
     if (shouldRefetchAfterDistributionError(error)) {
       setSelected(new Map());
       refetch();
     }
   }
 
-  async function requestMove(target: MoveTarget, itemsOverride?: DistributionSelectionItem[]) {
+  async function applyValidatedRequest(request: ClassDistributionMoveRequest) {
+    setApplyLoading(true);
+    setOperationError(null);
+
+    const applyRequest = applyRequestFromPreview(request);
+    const result = await api.post<ClassDistributionMoveApplyResponse>(
+      classDistributionEndpoints.move,
+      applyRequest,
+    );
+
+    setApplyLoading(false);
+    setPreviewingTargetKey(null);
+
+    if (!result.success) {
+      handleBackendError(result.error);
+      return false;
+    }
+    if (!result.data.applied) {
+      setOperationError(t('admin.classDistribution.applyFailed'));
+      return false;
+    }
+
+    setPreviewOpen(false);
+    setPreview(null);
+    setPreviewIntent(null);
+    setSelected(new Map());
+    setNotice(t('admin.classDistribution.applySuccess'));
+    refetch();
+    return true;
+  }
+
+  async function requestMove(
+    target: MoveTarget,
+    itemsOverride?: DistributionSelectionItem[],
+    autoApply = false,
+  ) {
     if (!board || levelId == null) return;
     const items = itemsOverride ?? selectedItems;
     if (!items.length) return;
@@ -714,18 +759,28 @@ export function ClassDistributionDirectBoard() {
     setPreviewingTargetKey(targetKey(target));
     setOperationError(null);
     setNotice(null);
-    const result = await api.post<ClassDistributionMovePreviewResponse>(classDistributionEndpoints.move, request);
-    setPreviewingTargetKey(null);
+    const result = await api.post<ClassDistributionMovePreviewResponse>(
+      classDistributionEndpoints.move,
+      request,
+    );
 
     if (!result.success) {
+      setPreviewingTargetKey(null);
       handleBackendError(result.error);
       return;
     }
     if (!result.data.valid) {
+      setPreviewingTargetKey(null);
       setOperationError(t('admin.classDistribution.previewFailed'));
       return;
     }
 
+    if (autoApply) {
+      await applyValidatedRequest(request);
+      return;
+    }
+
+    setPreviewingTargetKey(null);
     setPreview(result.data);
     setPreviewIntent({
       request,
@@ -737,28 +792,7 @@ export function ClassDistributionDirectBoard() {
 
   async function handleApply() {
     if (!previewIntent || !preview) return;
-    setApplyLoading(true);
-    setOperationError(null);
-
-    const request = applyRequestFromPreview(previewIntent.request);
-    const result = await api.post<ClassDistributionMoveApplyResponse>(classDistributionEndpoints.move, request);
-    setApplyLoading(false);
-
-    if (!result.success) {
-      handleBackendError(result.error);
-      return;
-    }
-    if (!result.data.applied) {
-      setOperationError(t('admin.classDistribution.applyFailed'));
-      return;
-    }
-
-    setPreviewOpen(false);
-    setPreview(null);
-    setPreviewIntent(null);
-    setSelected(new Map());
-    setNotice(t('admin.classDistribution.applySuccess'));
-    refetch();
+    await applyValidatedRequest(previewIntent.request);
   }
 
   function beginDrag(item: DistributionSelectionItem, event: DragEvent<HTMLElement>) {
@@ -808,7 +842,7 @@ export function ClassDistributionDirectBoard() {
     setDropTargetKey(null);
     setDraggingStudentId(null);
     dragItemsRef.current = [];
-    void requestMove(target, items);
+    void requestMove(target, items, true);
   }
 
   const contextBusy = academicYearLoading || levelsState.initialLoading;
@@ -1007,9 +1041,8 @@ export function ClassDistributionDirectBoard() {
                   <ClassLane
                     key={`${cls.id}:${cls.assigned_count}`}
                     cls={cls}
-                    academicYearId={board.context.academic_year_id}
+                    roster={classRosters[cls.id]}
                     selected={selected}
-                    selectedItems={selectedItems}
                     draggingStudentId={draggingStudentId}
                     moveReady={canMoveItemsTo(selectedItems, cls.id)}
                     dropTarget={dropTargetKey === String(cls.id)}
@@ -1021,6 +1054,7 @@ export function ClassDistributionDirectBoard() {
                     onDragOverTarget={handleDragOverTarget}
                     onDragLeaveTarget={handleDragLeaveTarget}
                     onDropTarget={handleDropTarget}
+                    onRetryRoster={(classId) => void retryRoster(classId)}
                   />
                 ))
               ) : (
