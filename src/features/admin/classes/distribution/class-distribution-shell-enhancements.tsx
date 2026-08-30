@@ -335,9 +335,10 @@ export function ClassDistributionShellEnhancements() {
       // Keep edge scrolling deliberately slow enough for the user to see and target
       // each adjacent class instead of racing across the whole workspace.
       const speed = 2 + Math.round(3 * proximity);
-      const rtl = window.getComputedStyle(scroller).direction === 'rtl';
       dragAutoScrollScrollerRef.current = scroller;
-      dragAutoScrollVelocityRef.current = (rtl ? -visualDirection : visualDirection) * speed;
+      // `scrollBy({ left })` follows the physical viewport axis. Do not invert it for RTL;
+      // doing so makes the workspace travel opposite to the pointer direction in Chromium.
+      dragAutoScrollVelocityRef.current = visualDirection * speed;
       ensureAutoScroll();
     };
 
