@@ -124,10 +124,60 @@
   border-color: var(--c-primary);
 }
 
+.class-distribution-quick-create-dialog,
 .class-distribution-delete-dialog {
   display: grid;
   gap: 12px;
-  min-inline-size: min(420px, 82vw);
+  min-inline-size: min(440px, 82vw);
+}
+
+.class-distribution-quick-create-dialog__lead {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+
+.class-distribution-quick-create-dialog__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.class-distribution-quick-create-dialog__grid > div {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2);
+}
+
+.class-distribution-quick-create-dialog__grid span {
+  color: var(--c-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.class-distribution-quick-create-dialog__grid strong {
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+
+.class-distribution-quick-create-dialog__name {
+  border-color: color-mix(in srgb, var(--c-primary) 32%, var(--c-border)) !important;
+  background: color-mix(in srgb, var(--c-primary-soft) 44%, var(--c-surface)) !important;
+}
+
+.class-distribution-quick-create-dialog__error {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--c-danger) 8%, var(--c-surface));
+  color: var(--c-danger);
+  font-size: 0.82rem;
+  line-height: 1.6;
 }
 
 .class-distribution-delete-dialog > label {
@@ -215,7 +265,12 @@
     grid-template-columns: 1fr;
   }
 
+  .class-distribution-quick-create-dialog,
   .class-distribution-delete-dialog {
     min-inline-size: 0;
+  }
+
+  .class-distribution-quick-create-dialog__grid {
+    grid-template-columns: 1fr;
   }
 }
