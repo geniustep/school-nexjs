@@ -4,8 +4,8 @@
  */
 
 import '@/features/admin/classes/distribution/class-distribution-token-aliases.css';
-import { ClassDistributionBoard } from '@/features/admin/classes/distribution/class-distribution-board';
+import { ClassDistributionDirectBoard } from '@/features/admin/classes/distribution/class-distribution-direct-board';
 
 export default function AdminClassDistributionPage() {
-  return <ClassDistributionBoard />;
+  return <ClassDistributionDirectBoard />;
 }
