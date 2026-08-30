@@ -37,6 +37,7 @@ import {
   type FullRegistrationGuardianDraft,
   type FullRegistrationPricingAdjustment,
   type FullRegistrationStudentDraft,
+  type FullRegistrationValidationResult,
 } from '../utils/full-registration-contract';
 import {
   FULL_REGISTRATION_DEFAULT_GENDER,
@@ -44,6 +45,7 @@ import {
   fullRegistrationErrorMessageKey,
   fullRegistrationGenderLabel,
 } from '../utils/full-registration-ui';
+import { focusFirstFullRegistrationError } from '../utils/full-registration-validation-ux';
 import { fullRegistrationCopy } from '../utils/full-registration-copy';
 import styles from './full-registration-page.module.css';
 
@@ -63,6 +65,8 @@ type SuccessState = {
   className: string | null;
   availableNextActions: string[];
 };
+
+type ValidationCopy = (key: string) => string;
 
 const FAMILY_OPTIONS: FullRegistrationFamilyContext[] = [
   'parents_together',
@@ -127,6 +131,44 @@ function responseString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
+function validationErrorId(key: string): string {
+  return `full-registration-error-${key.replace(/[^a-zA-Z0-9_-]+/g, '-')}`;
+}
+
+function validationCodeMessage(code: string, copy: ValidationCopy): string {
+  if (code === 'special_family_legal_responsible_required') return copy('specialLegalError');
+  if (code === 'special_family_billing_responsible_required') return copy('specialBillingError');
+  if (code === 'pricing_adjustment_reason_required') return copy('pricingReasonError');
+  return copy('requiredError');
+}
+
+function InlineValidationError({
+  fieldKey,
+  validation,
+  copy,
+}: {
+  fieldKey: string;
+  validation: FullRegistrationValidationResult | null;
+  copy: ValidationCopy;
+}) {
+  const code = validation?.fieldErrors[fieldKey];
+  if (!code) return null;
+  return (
+    <span id={validationErrorId(fieldKey)} className={styles.fieldError} role="alert">
+      {validationCodeMessage(code, copy)}
+    </span>
+  );
+}
+
+function validationProps(fieldKey: string, validation: FullRegistrationValidationResult | null) {
+  const invalid = Boolean(validation?.fieldErrors[fieldKey]);
+  return {
+    'data-validation-key': fieldKey,
+    'aria-invalid': invalid || undefined,
+    'aria-describedby': invalid ? validationErrorId(fieldKey) : undefined,
+  } as const;
+}
+
 function GuardianCard({
   title,
   kind,
@@ -135,6 +177,7 @@ function GuardianCard({
   activeSchoolId,
   showRights,
   allowRelationshipChoice,
+  validation,
   copy,
 }: {
   title: string;
@@ -144,7 +187,8 @@ function GuardianCard({
   activeSchoolId: number | null;
   showRights: boolean;
   allowRelationshipChoice?: boolean;
-  copy: (key: string) => string;
+  validation: FullRegistrationValidationResult | null;
+  copy: ValidationCopy;
 }) {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, FULL_REGISTRATION_GUARDIAN_SEARCH_DEBOUNCE_MS);
@@ -205,6 +249,16 @@ function GuardianCard({
     setResults([]);
   }
 
+  const cardKey = `guardian.${draft.key}.card`;
+  const nameKey = `guardian.${draft.key}.name`;
+  const phoneKey = `guardian.${draft.key}.phone`;
+  const selectionKey = `guardian.${draft.key}.selection`;
+  const legalKey = `guardian.${draft.key}.legal`;
+  const financialKey = `guardian.${draft.key}.financial`;
+  const cardInvalid = Boolean(validation?.fieldErrors[cardKey]);
+  const rightsInvalid = Boolean(
+    validation?.fieldErrors[legalKey] || validation?.fieldErrors[financialKey],
+  );
   const cardClass = [
     styles.guardianCard,
     kind === 'father'
@@ -212,12 +266,18 @@ function GuardianCard({
       : kind === 'mother'
         ? styles.guardianMother
         : styles.guardianGeneric,
-  ].join(' ');
-
+    cardInvalid ? styles.guardianCardInvalid : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
   const linked = draft.mode === 'existing' && Boolean(draft.linkedGuardianId || draft.linkedPersonId);
 
   return (
-    <section className={cardClass}>
+    <section
+      className={cardClass}
+      tabIndex={cardInvalid ? -1 : undefined}
+      {...validationProps(cardKey, validation)}
+    >
       <div className={styles.guardianHead}>
         <h3 className={styles.guardianTitle}>{title}</h3>
         <div className={styles.modeSwitch} role="group" aria-label={title}>
@@ -240,6 +300,8 @@ function GuardianCard({
         </div>
       </div>
 
+      <InlineValidationError fieldKey={cardKey} validation={validation} copy={copy} />
+
       {allowRelationshipChoice ? (
         <label className={styles.field}>
           <span className={styles.label}>{copy('guardian')}</span>
@@ -257,14 +319,18 @@ function GuardianCard({
 
       {draft.mode === 'new' ? (
         <div className={styles.grid}>
-          <label className={`${styles.field} ${styles.col6}`}>
+          <label
+            className={`${styles.field} ${styles.col6} ${validation?.fieldErrors[nameKey] ? styles.fieldInvalid : ''}`}
+          >
             <span className={styles.label}>{copy('nameAr')}</span>
             <input
               className="input"
               value={draft.nameAr}
               onChange={(event) => onChange({ ...draft, nameAr: event.target.value })}
               autoComplete="name"
+              {...validationProps(nameKey, validation)}
             />
+            <InlineValidationError fieldKey={nameKey} validation={validation} copy={copy} />
           </label>
           <label className={`${styles.field} ${styles.col6}`}>
             <span className={styles.label}>{copy('nameFr')}</span>
@@ -275,7 +341,9 @@ function GuardianCard({
               onChange={(event) => onChange({ ...draft, nameFr: event.target.value })}
             />
           </label>
-          <label className={`${styles.field} ${styles.col6}`}>
+          <label
+            className={`${styles.field} ${styles.col6} ${validation?.fieldErrors[phoneKey] ? styles.fieldInvalid : ''}`}
+          >
             <span className={styles.label}>{copy('phone')}</span>
             <input
               className="input"
@@ -283,7 +351,9 @@ function GuardianCard({
               inputMode="tel"
               value={draft.phone}
               onChange={(event) => onChange({ ...draft, phone: event.target.value })}
+              {...validationProps(phoneKey, validation)}
             />
+            <InlineValidationError fieldKey={phoneKey} validation={validation} copy={copy} />
           </label>
           <label className={`${styles.field} ${styles.col6}`}>
             <span className={styles.label}>{copy('preferredLanguage')}</span>
@@ -318,14 +388,22 @@ function GuardianCard({
             <button
               type="button"
               className="btn btn--ghost"
-              onClick={() => onChange({ ...draft, linkedGuardianId: null, linkedPersonId: null, nameAr: '', phone: '' })}
+              onClick={() =>
+                onChange({
+                  ...draft,
+                  linkedGuardianId: null,
+                  linkedPersonId: null,
+                  nameAr: '',
+                  phone: '',
+                })
+              }
             >
               {copy('change')}
             </button>
           </div>
         </div>
       ) : (
-        <div className={styles.field}>
+        <div className={`${styles.field} ${validation?.fieldErrors[selectionKey] ? styles.fieldInvalid : ''}`}>
           <span className={styles.label}>{copy('search')}</span>
           <input
             type="search"
@@ -334,7 +412,9 @@ function GuardianCard({
             onChange={(event) => setSearch(event.target.value)}
             autoComplete="off"
             autoFocus
+            {...validationProps(selectionKey, validation)}
           />
+          <InlineValidationError fieldKey={selectionKey} validation={validation} copy={copy} />
           {searching ? <div className={styles.muted}>{copy('searching')}</div> : null}
           {!searching && debouncedSearch.trim().length >= GUARDIAN_GLOBAL_SEARCH_MIN_QUERY && results.length === 0 ? (
             <div className={styles.muted}>{copy('noMatches')}</div>
@@ -358,24 +438,28 @@ function GuardianCard({
       )}
 
       {showRights ? (
-        <div className={styles.rights}>
+        <div className={`${styles.rights} ${rightsInvalid ? styles.rightsInvalid : ''}`}>
           <strong>{copy('rights')}</strong>
           <label className={styles.checkLine}>
             <input
               type="checkbox"
               checked={draft.legal}
               onChange={(event) => onChange({ ...draft, legal: event.target.checked })}
+              {...validationProps(legalKey, validation)}
             />
             {copy('legal')}
           </label>
+          <InlineValidationError fieldKey={legalKey} validation={validation} copy={copy} />
           <label className={styles.checkLine}>
             <input
               type="checkbox"
               checked={draft.financial}
               onChange={(event) => onChange({ ...draft, financial: event.target.checked })}
+              {...validationProps(financialKey, validation)}
             />
             {copy('financial')}
           </label>
+          <InlineValidationError fieldKey={financialKey} validation={validation} copy={copy} />
           <label className={styles.checkLine}>
             <input
               type="checkbox"
@@ -427,6 +511,7 @@ export function FullRegistrationPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<SuccessState | null>(null);
+  const [validationAttempted, setValidationAttempted] = useState(false);
 
   const resolvedSchoolId = useMemo(() => {
     if (activeSchoolId != null) return activeSchoolId;
@@ -527,7 +612,10 @@ export function FullRegistrationPage() {
   }, [optionalLines, selectedServiceIds]);
 
   const selectedLevelName = useMemo(
-    () => levelOptions.find((level) => String(level.id) === levelId)?.display_name ?? levelOptions.find((level) => String(level.id) === levelId)?.name ?? '—',
+    () =>
+      levelOptions.find((level) => String(level.id) === levelId)?.display_name ??
+      levelOptions.find((level) => String(level.id) === levelId)?.name ??
+      '—',
     [levelId, levelOptions],
   );
 
@@ -578,11 +666,17 @@ export function FullRegistrationPage() {
     };
   }
 
+  const liveValidation = validationAttempted ? validateFullRegistrationDraft(buildInput()) : null;
+
   function validationMessage(errors: string[]): string {
     if (errors.includes('special_family_legal_responsible_required')) return copy('specialLegalError');
     if (errors.includes('special_family_billing_responsible_required')) return copy('specialBillingError');
     if (errors.includes('pricing_adjustment_reason_required')) return copy('pricingReasonError');
     return copy('requiredError');
+  }
+
+  function fieldClass(base: string, fieldKey: string): string {
+    return `${base} ${liveValidation?.fieldErrors[fieldKey] ? styles.fieldInvalid : ''}`;
   }
 
   async function submit() {
@@ -591,11 +685,14 @@ export function FullRegistrationPage() {
     const input = buildInput();
     const validation = validateFullRegistrationDraft(input);
     if (!validation.valid) {
+      setValidationAttempted(true);
       const message = validationMessage(validation.errors);
       setError(message);
       toast.error(message);
+      requestAnimationFrame(() => focusFirstFullRegistrationError(validation.fieldOrder));
       return;
     }
+    setValidationAttempted(false);
     if (suggestState.loading) {
       setError(copy('loadingServices'));
       return;
@@ -624,9 +721,7 @@ export function FullRegistrationPage() {
     const data = responseRecord(result.data) ?? {};
     const studentBlock = responseRecord(data.student);
     const studentId =
-      responseNumber(data.student_id) ??
-      responseNumber(data.id) ??
-      responseNumber(studentBlock?.id);
+      responseNumber(data.student_id) ?? responseNumber(data.id) ?? responseNumber(studentBlock?.id);
     if (!studentId) {
       setError(copy('genericError'));
       return;
@@ -638,7 +733,10 @@ export function FullRegistrationPage() {
     setSuccess({
       studentId,
       studentCode: responseString(data.student_code) ?? responseString(data.code),
-      classStatus: responseString(data.class_assignment_status) ?? responseString(classAssignment?.status) ?? 'pending',
+      classStatus:
+        responseString(data.class_assignment_status) ??
+        responseString(classAssignment?.status) ??
+        'pending',
       className: responseString(classAssignment?.class_name),
       availableNextActions: actions,
     });
@@ -661,14 +759,26 @@ export function FullRegistrationPage() {
             </span>
           </div>
           <div className={styles.actions}>
-            <button type="button" className="btn btn--primary" onClick={() => router.push(`/admin/students/${success.studentId}`)}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => router.push(`/admin/students/${success.studentId}`)}
+            >
               {copy('openStudent')}
             </button>
-            <button type="button" className="btn btn--ghost" onClick={() => window.location.assign('/admin/students/new')}>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => window.location.assign('/admin/students/new')}
+            >
               {copy('registerAnother')}
             </button>
             {success.availableNextActions.includes('collect_now') ? (
-              <button type="button" className="btn btn--ghost" onClick={() => router.push(`/admin/students/${success.studentId}?tab=finance`)}>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => router.push(`/admin/students/${success.studentId}?tab=finance`)}
+              >
                 {copy('collectNow')}
               </button>
             ) : null}
@@ -677,6 +787,17 @@ export function FullRegistrationPage() {
       </div>
     );
   }
+
+  const schoolKey = 'academic.schoolId';
+  const yearKey = 'academic.academicYearId';
+  const levelKey = 'academic.levelId';
+  const enrollmentKey = 'academic.enrollmentDate';
+  const firstNameArKey = 'student.firstNameAr';
+  const lastNameArKey = 'student.lastNameAr';
+  const firstNameFrKey = 'student.firstNameFr';
+  const lastNameFrKey = 'student.lastNameFr';
+  const genderKey = 'student.gender';
+  const dobKey = 'student.dateOfBirth';
 
   return (
     <div className={styles.page}>
@@ -694,18 +815,27 @@ export function FullRegistrationPage() {
       {optionsState.error ? (
         <div className={styles.error} role="alert">
           {copy('optionsFailed')}{' '}
-          <button type="button" className="btn btn--ghost" onClick={optionsState.reload}>{copy('retry')}</button>
+          <button type="button" className="btn btn--ghost" onClick={optionsState.reload}>
+            {copy('retry')}
+          </button>
         </div>
       ) : null}
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{copy('academic')}</h2>
         <div className={styles.grid}>
-          <label className={`${styles.field} ${styles.col3}`}>
+          <label className={fieldClass(`${styles.field} ${styles.col3}`, schoolKey)}>
             <span className={styles.label}>{copy('school')}</span>
-            <span className={styles.readonly}>{schoolName}</span>
+            <span
+              className={styles.readonly}
+              tabIndex={liveValidation?.fieldErrors[schoolKey] ? -1 : undefined}
+              {...validationProps(schoolKey, liveValidation)}
+            >
+              {schoolName}
+            </span>
+            <InlineValidationError fieldKey={schoolKey} validation={liveValidation} copy={copy} />
           </label>
-          <label className={`${styles.field} ${styles.col3}`}>
+          <label className={fieldClass(`${styles.field} ${styles.col3}`, yearKey)}>
             <span className={styles.label}>{copy('year')}</span>
             <select
               className="input"
@@ -714,14 +844,17 @@ export function FullRegistrationPage() {
                 setAcademicYearId(event.target.value);
                 setCycleId('');
                 setLevelId('');
+                setError(null);
               }}
               disabled={optionsState.loading}
+              {...validationProps(yearKey, liveValidation)}
             >
               <option value="">{copy('select')}</option>
               {(optionsState.options?.academicYears ?? []).map((year) => (
                 <option value={year.id} key={year.id}>{year.name}</option>
               ))}
             </select>
+            <InlineValidationError fieldKey={yearKey} validation={liveValidation} copy={copy} />
           </label>
           <label className={`${styles.field} ${styles.col3}`}>
             <span className={styles.label}>{copy('cycle')}</span>
@@ -731,6 +864,7 @@ export function FullRegistrationPage() {
               onChange={(event) => {
                 setCycleId(event.target.value);
                 setLevelId('');
+                setError(null);
               }}
               disabled={levelOptionsState.loading}
             >
@@ -740,23 +874,38 @@ export function FullRegistrationPage() {
               ))}
             </select>
           </label>
-          <label className={`${styles.field} ${styles.col3}`}>
+          <label className={fieldClass(`${styles.field} ${styles.col3}`, levelKey)}>
             <span className={styles.label}>{copy('level')}</span>
             <select
               className="input"
               value={levelId}
-              onChange={(event) => setLevelId(event.target.value)}
+              onChange={(event) => {
+                setLevelId(event.target.value);
+                setError(null);
+              }}
               disabled={!cycleId || optionsState.loading}
+              {...validationProps(levelKey, liveValidation)}
             >
               <option value="">{copy('select')}</option>
               {levelOptions.map((level) => (
                 <option value={level.id} key={level.id}>{level.display_name ?? level.name}</option>
               ))}
             </select>
+            <InlineValidationError fieldKey={levelKey} validation={liveValidation} copy={copy} />
           </label>
-          <label className={`${styles.field} ${styles.col4}`}>
+          <label className={fieldClass(`${styles.field} ${styles.col4}`, enrollmentKey)}>
             <span className={styles.label}>{copy('enrollmentDate')}</span>
-            <input className="input" type="date" value={enrollmentDate} onChange={(event) => setEnrollmentDate(event.target.value)} />
+            <input
+              className="input"
+              type="date"
+              value={enrollmentDate}
+              onChange={(event) => {
+                setEnrollmentDate(event.target.value);
+                setError(null);
+              }}
+              {...validationProps(enrollmentKey, liveValidation)}
+            />
+            <InlineValidationError fieldKey={enrollmentKey} validation={liveValidation} copy={copy} />
           </label>
         </div>
         <div className={styles.autoHint}>{copy('classAuto')}</div>
@@ -765,23 +914,109 @@ export function FullRegistrationPage() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{copy('student')}</h2>
         <div className={styles.grid}>
-          <label className={`${styles.field} ${styles.col6}`}><span className={styles.label}>{copy('firstNameAr')}</span><input className="input" value={student.firstNameAr} onChange={(event) => setStudent((prev) => ({ ...prev, firstNameAr: event.target.value }))} /></label>
-          <label className={`${styles.field} ${styles.col6}`}><span className={styles.label}>{copy('lastNameAr')}</span><input className="input" value={student.lastNameAr} onChange={(event) => setStudent((prev) => ({ ...prev, lastNameAr: event.target.value }))} /></label>
-          <label className={`${styles.field} ${styles.col6}`}><span className={styles.label}>{copy('firstNameFr')}</span><input className="input" dir="ltr" value={student.firstNameFr} onChange={(event) => setStudent((prev) => ({ ...prev, firstNameFr: event.target.value }))} /></label>
-          <label className={`${styles.field} ${styles.col6}`}><span className={styles.label}>{copy('lastNameFr')}</span><input className="input" dir="ltr" value={student.lastNameFr} onChange={(event) => setStudent((prev) => ({ ...prev, lastNameFr: event.target.value }))} /></label>
-          <label className={`${styles.field} ${styles.col4}`}>
+          <label className={fieldClass(`${styles.field} ${styles.col6}`, firstNameArKey)}>
+            <span className={styles.label}>{copy('firstNameAr')}</span>
+            <input
+              className="input"
+              value={student.firstNameAr}
+              onChange={(event) => {
+                setStudent((prev) => ({ ...prev, firstNameAr: event.target.value }));
+                setError(null);
+              }}
+              {...validationProps(firstNameArKey, liveValidation)}
+            />
+            <InlineValidationError fieldKey={firstNameArKey} validation={liveValidation} copy={copy} />
+          </label>
+          <label className={fieldClass(`${styles.field} ${styles.col6}`, lastNameArKey)}>
+            <span className={styles.label}>{copy('lastNameAr')}</span>
+            <input
+              className="input"
+              value={student.lastNameAr}
+              onChange={(event) => {
+                setStudent((prev) => ({ ...prev, lastNameAr: event.target.value }));
+                setError(null);
+              }}
+              {...validationProps(lastNameArKey, liveValidation)}
+            />
+            <InlineValidationError fieldKey={lastNameArKey} validation={liveValidation} copy={copy} />
+          </label>
+          <label className={fieldClass(`${styles.field} ${styles.col6}`, firstNameFrKey)}>
+            <span className={styles.label}>{copy('firstNameFr')}</span>
+            <input
+              className="input"
+              dir="ltr"
+              value={student.firstNameFr}
+              onChange={(event) => {
+                setStudent((prev) => ({ ...prev, firstNameFr: event.target.value }));
+                setError(null);
+              }}
+              {...validationProps(firstNameFrKey, liveValidation)}
+            />
+            <InlineValidationError fieldKey={firstNameFrKey} validation={liveValidation} copy={copy} />
+          </label>
+          <label className={fieldClass(`${styles.field} ${styles.col6}`, lastNameFrKey)}>
+            <span className={styles.label}>{copy('lastNameFr')}</span>
+            <input
+              className="input"
+              dir="ltr"
+              value={student.lastNameFr}
+              onChange={(event) => {
+                setStudent((prev) => ({ ...prev, lastNameFr: event.target.value }));
+                setError(null);
+              }}
+              {...validationProps(lastNameFrKey, liveValidation)}
+            />
+            <InlineValidationError fieldKey={lastNameFrKey} validation={liveValidation} copy={copy} />
+          </label>
+          <label className={fieldClass(`${styles.field} ${styles.col4}`, genderKey)}>
             <span className={styles.label}>{copy('gender')}</span>
-            <select className="input" value={student.gender} onChange={(event) => setStudent((prev) => ({ ...prev, gender: event.target.value }))}>
+            <select
+              className="input"
+              value={student.gender}
+              onChange={(event) => {
+                setStudent((prev) => ({ ...prev, gender: event.target.value }));
+                setError(null);
+              }}
+              {...validationProps(genderKey, liveValidation)}
+            >
               {(optionsState.options?.genders ?? []).map((item) => (
                 <option key={item.value} value={item.value}>
                   {fullRegistrationGenderLabel(locale, item.value, item.label)}
                 </option>
               ))}
             </select>
+            <InlineValidationError fieldKey={genderKey} validation={liveValidation} copy={copy} />
           </label>
-          <label className={`${styles.field} ${styles.col4}`}><span className={styles.label}>{copy('dob')}</span><input className="input" type="date" value={student.dateOfBirth} onChange={(event) => setStudent((prev) => ({ ...prev, dateOfBirth: event.target.value }))} /></label>
-          <label className={`${styles.field} ${styles.col4}`}><span className={styles.label}>{copy('previousSchool')}</span><input className="input" value={student.previousSchool} onChange={(event) => setStudent((prev) => ({ ...prev, previousSchool: event.target.value }))} /></label>
-          <label className={`${styles.field} ${styles.col12}`}><span className={styles.label}>{copy('address')}</span><input className="input" value={student.address} onChange={(event) => setStudent((prev) => ({ ...prev, address: event.target.value }))} /></label>
+          <label className={fieldClass(`${styles.field} ${styles.col4}`, dobKey)}>
+            <span className={styles.label}>{copy('dob')}</span>
+            <input
+              className="input"
+              type="date"
+              value={student.dateOfBirth}
+              onChange={(event) => {
+                setStudent((prev) => ({ ...prev, dateOfBirth: event.target.value }));
+                setError(null);
+              }}
+              {...validationProps(dobKey, liveValidation)}
+            />
+            <InlineValidationError fieldKey={dobKey} validation={liveValidation} copy={copy} />
+          </label>
+          <label className={`${styles.field} ${styles.col4}`}>
+            <span className={styles.label}>{copy('previousSchool')}</span>
+            <input
+              className="input"
+              value={student.previousSchool}
+              onChange={(event) => setStudent((prev) => ({ ...prev, previousSchool: event.target.value }))}
+            />
+          </label>
+          <label className={`${styles.field} ${styles.col12}`}>
+            <span className={styles.label}>{copy('address')}</span>
+            <input
+              className="input"
+              value={student.address}
+              onChange={(event) => setStudent((prev) => ({ ...prev, address: event.target.value }))}
+            />
+          </label>
         </div>
       </section>
 
@@ -793,7 +1028,10 @@ export function FullRegistrationPage() {
               type="button"
               key={option}
               className={`${styles.familyOption} ${familyContext === option ? styles.familyOptionActive : ''}`}
-              onClick={() => setFamilyContext(option)}
+              onClick={() => {
+                setFamilyContext(option);
+                setError(null);
+              }}
             >
               {copy(FAMILY_LABEL_KEYS[option])}
             </button>
@@ -812,6 +1050,7 @@ export function FullRegistrationPage() {
             activeSchoolId={resolvedSchoolId}
             showRights={false}
             allowRelationshipChoice={familyContext === 'single_guardian'}
+            validation={liveValidation}
             copy={copy}
           />
         ) : (
@@ -823,6 +1062,7 @@ export function FullRegistrationPage() {
               onChange={(next) => updateGuardian('father', next)}
               activeSchoolId={resolvedSchoolId}
               showRights={showRights}
+              validation={liveValidation}
               copy={copy}
             />
             <GuardianCard
@@ -832,6 +1072,7 @@ export function FullRegistrationPage() {
               onChange={(next) => updateGuardian('mother', next)}
               activeSchoolId={resolvedSchoolId}
               showRights={showRights}
+              validation={liveValidation}
               copy={copy}
             />
           </div>
@@ -842,7 +1083,11 @@ export function FullRegistrationPage() {
         <h2 className={styles.sectionTitle}>{copy('services')}</h2>
         <p className={styles.sectionLead}>{copy('servicesLead')}</p>
         {!feePlanQuery || suggestState.loading ? <p className={styles.muted}>{copy('loadingServices')}</p> : null}
-        {feePlanQuery && suggestState.error ? <div className={styles.error}>{suggestState.error.code?.includes('ambiguous') ? copy('planAmbiguous') : copy('planMissing')}</div> : null}
+        {feePlanQuery && suggestState.error ? (
+          <div className={styles.error}>
+            {suggestState.error.code?.includes('ambiguous') ? copy('planAmbiguous') : copy('planMissing')}
+          </div>
+        ) : null}
         {suggestState.suggest && optionalLines.length === 0 ? <p className={styles.muted}>{copy('noServices')}</p> : null}
         {optionalLines.length ? (
           <div className={styles.servicesGrid}>
@@ -877,7 +1122,9 @@ export function FullRegistrationPage() {
         ) : null}
         {capabilities.canManageDiscounts && suggestState.suggest?.allowed_actions?.customize_plan ? (
           <div className={styles.actions} style={{ marginTop: 12 }}>
-            <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(true)}>{copy('adjust')}</button>
+            <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(true)}>
+              {copy('adjust')}
+            </button>
           </div>
         ) : null}
       </section>
@@ -887,23 +1134,47 @@ export function FullRegistrationPage() {
         <div className={styles.summary}>
           <span><strong>{copy('level')}:</strong> {selectedLevelName}</span>
           <span><strong>{copy('payer')}:</strong> {payerName}</span>
-          <span><strong>{copy('selectedServices')}:</strong> {selectedServiceNames.length ? selectedServiceNames.join('، ') : copy('none')}</span>
+          <span>
+            <strong>{copy('selectedServices')}:</strong>{' '}
+            {selectedServiceNames.length ? selectedServiceNames.join('، ') : copy('none')}
+          </span>
         </div>
       </section>
 
       <div className={styles.actions}>
-        <button type="button" className="btn btn--ghost" disabled={saving} onClick={() => router.push('/admin/students')}>{copy('cancel')}</button>
-        <button type="button" className="btn btn--primary" data-testid="full-registration-submit" disabled={saving || optionsState.loading} onClick={() => void submit()}>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          disabled={saving}
+          onClick={() => router.push('/admin/students')}
+        >
+          {copy('cancel')}
+        </button>
+        <button
+          type="button"
+          className="btn btn--primary"
+          data-testid="full-registration-submit"
+          disabled={saving || optionsState.loading}
+          onClick={() => void submit()}
+        >
           {saving ? copy('saving') : copy('submit')}
         </button>
       </div>
 
       {pricingOpen ? (
         <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setPricingOpen(false)}>
-          <section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="full-registration-pricing-title" onMouseDown={(event) => event.stopPropagation()}>
+          <section
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="full-registration-pricing-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <div className={styles.guardianHead}>
               <h2 id="full-registration-pricing-title">{copy('adjustTitle')}</h2>
-              <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(false)}>{copy('cancel')}</button>
+              <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(false)}>
+                {copy('cancel')}
+              </button>
             </div>
             {adjustableLines.map((line) => {
               const draft = pricingDrafts[line.line_id] ?? { price: '', from: '', to: '', reason: '' };
@@ -915,33 +1186,83 @@ export function FullRegistrationPage() {
                   </div>
                   <label className={styles.field}>
                     <span className={styles.label}>{copy('price')}</span>
-                    <input className="input" type="number" min="0" step="0.01" value={draft.price} placeholder={lineAmount(line)?.toString() ?? ''} onChange={(event) => setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, price: event.target.value } }))} />
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={draft.price}
+                      placeholder={lineAmount(line)?.toString() ?? ''}
+                      onChange={(event) =>
+                        setPricingDrafts((prev) => ({
+                          ...prev,
+                          [line.line_id]: { ...draft, price: event.target.value },
+                        }))
+                      }
+                    />
                   </label>
                   <label className={styles.field}>
                     <span className={styles.label}>{copy('from')}</span>
-                    <input className="input" type="month" disabled={Boolean(line.is_one_time)} value={draft.from} onChange={(event) => setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, from: event.target.value } }))} />
+                    <input
+                      className="input"
+                      type="month"
+                      disabled={Boolean(line.is_one_time)}
+                      value={draft.from}
+                      onChange={(event) =>
+                        setPricingDrafts((prev) => ({
+                          ...prev,
+                          [line.line_id]: { ...draft, from: event.target.value },
+                        }))
+                      }
+                    />
                   </label>
                   <label className={styles.field}>
                     <span className={styles.label}>{copy('to')}</span>
-                    <input className="input" type="month" disabled={Boolean(line.is_one_time)} value={draft.to} onChange={(event) => setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, to: event.target.value } }))} />
+                    <input
+                      className="input"
+                      type="month"
+                      disabled={Boolean(line.is_one_time)}
+                      value={draft.to}
+                      onChange={(event) =>
+                        setPricingDrafts((prev) => ({
+                          ...prev,
+                          [line.line_id]: { ...draft, to: event.target.value },
+                        }))
+                      }
+                    />
                   </label>
                   <label className={styles.field} style={{ gridColumn: '1 / -1' }}>
                     <span className={styles.label}>{copy('reason')}</span>
-                    <input className="input" value={draft.reason} onChange={(event) => setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, reason: event.target.value } }))} />
+                    <input
+                      className="input"
+                      value={draft.reason}
+                      onChange={(event) =>
+                        setPricingDrafts((prev) => ({
+                          ...prev,
+                          [line.line_id]: { ...draft, reason: event.target.value },
+                        }))
+                      }
+                    />
                   </label>
                 </div>
               );
             })}
             <div className={styles.actions}>
-              <button type="button" className="btn btn--primary" onClick={() => {
-                const validation = validateFullRegistrationDraft(buildInput());
-                if (validation.errors.includes('pricing_adjustment_reason_required')) {
-                  setError(copy('pricingReasonError'));
-                  return;
-                }
-                setPricingOpen(false);
-                setError(null);
-              }}>{copy('save')}</button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  const validation = validateFullRegistrationDraft(buildInput());
+                  if (validation.errors.includes('pricing_adjustment_reason_required')) {
+                    setError(copy('pricingReasonError'));
+                    return;
+                  }
+                  setPricingOpen(false);
+                  setError(null);
+                }}
+              >
+                {copy('save')}
+              </button>
             </div>
           </section>
         </div>
