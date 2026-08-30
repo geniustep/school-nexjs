@@ -47,6 +47,11 @@ import {
 } from '../utils/full-registration-ui';
 import { focusFirstFullRegistrationError } from '../utils/full-registration-validation-ux';
 import { fullRegistrationCopy } from '../utils/full-registration-copy';
+import {
+  buildFullRegistrationCollectNowHref,
+  buildFullRegistrationGuardianSuggestionQuery,
+  fullRegistrationNameFieldOrder,
+} from '../utils/full-registration-requested-adjustments';
 import styles from './full-registration-page.module.css';
 
 type GuardianKey = 'father' | 'mother' | 'single';
@@ -63,10 +68,15 @@ type SuccessState = {
   studentCode: string | null;
   classStatus: string;
   className: string | null;
+  billingPartnerId: number | null;
   availableNextActions: string[];
 };
 
 type ValidationCopy = (key: string) => string;
+
+type SuggestWithOptionalLines = NonNullable<ReturnType<typeof useFeePlanSuggest>['suggest']> & {
+  optional_lines?: EnrollmentPlanLine[];
+};
 
 const FAMILY_OPTIONS: FullRegistrationFamilyContext[] = [
   'parents_together',
@@ -176,6 +186,7 @@ function GuardianCard({
   onChange,
   activeSchoolId,
   showRights,
+  arabicFirst,
   allowRelationshipChoice,
   validation,
   copy,
@@ -186,22 +197,28 @@ function GuardianCard({
   onChange: (next: FullRegistrationGuardianDraft) => void;
   activeSchoolId: number | null;
   showRights: boolean;
+  arabicFirst: boolean;
   allowRelationshipChoice?: boolean;
   validation: FullRegistrationValidationResult | null;
   copy: ValidationCopy;
 }) {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, FULL_REGISTRATION_GUARDIAN_SEARCH_DEBOUNCE_MS);
+  const newGuardianQuery = buildFullRegistrationGuardianSuggestionQuery(draft);
+  const debouncedNewGuardianQuery = useDebouncedValue(
+    newGuardianQuery,
+    FULL_REGISTRATION_GUARDIAN_SEARCH_DEBOUNCE_MS,
+  );
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<PersonSearchResult[]>([]);
 
   useEffect(() => {
-    if (draft.mode !== 'existing' || draft.linkedGuardianId || draft.linkedPersonId) {
+    if (draft.linkedGuardianId || draft.linkedPersonId) {
       setResults([]);
       setSearching(false);
       return;
     }
-    const query = debouncedSearch.trim();
+    const query = (draft.mode === 'existing' ? debouncedSearch : debouncedNewGuardianQuery).trim();
     if (query.length < GUARDIAN_GLOBAL_SEARCH_MIN_QUERY) {
       setResults([]);
       setSearching(false);
@@ -219,7 +236,14 @@ function GuardianCard({
     return () => {
       active = false;
     };
-  }, [activeSchoolId, debouncedSearch, draft.linkedGuardianId, draft.linkedPersonId, draft.mode]);
+  }, [
+    activeSchoolId,
+    debouncedNewGuardianQuery,
+    debouncedSearch,
+    draft.linkedGuardianId,
+    draft.linkedPersonId,
+    draft.mode,
+  ]);
 
   function switchMode(mode: FullRegistrationGuardianDraft['mode']) {
     setSearch('');
@@ -271,6 +295,23 @@ function GuardianCard({
     .filter(Boolean)
     .join(' ');
   const linked = draft.mode === 'existing' && Boolean(draft.linkedGuardianId || draft.linkedPersonId);
+  const nameOrder = arabicFirst ? { arabic: -2, latin: -1 } : { arabic: -1, latin: -2 };
+
+  const searchResults = results.length ? (
+    <div className={styles.searchResults}>
+      {results.map((person) => (
+        <div className={styles.searchResult} key={`${person.partner_id}-${person.guardian_id ?? 'person'}`}>
+          <div className={styles.searchMeta}>
+            <div className={styles.searchName}>{person.name}</div>
+            <div className={styles.muted} dir="ltr">{person.phone ?? '—'}</div>
+          </div>
+          <button type="button" className="btn btn--ghost" onClick={() => selectExisting(person)}>
+            {copy('useGuardian')}
+          </button>
+        </div>
+      ))}
+    </div>
+  ) : null;
 
   return (
     <section
@@ -318,65 +359,74 @@ function GuardianCard({
       ) : null}
 
       {draft.mode === 'new' ? (
-        <div className={styles.grid}>
-          <label
-            className={`${styles.field} ${styles.col6} ${validation?.fieldErrors[nameKey] ? styles.fieldInvalid : ''}`}
-          >
-            <span className={styles.label}>{copy('nameAr')}</span>
-            <input
-              className="input"
-              value={draft.nameAr}
-              onChange={(event) => onChange({ ...draft, nameAr: event.target.value })}
-              autoComplete="name"
-              {...validationProps(nameKey, validation)}
-            />
-            <InlineValidationError fieldKey={nameKey} validation={validation} copy={copy} />
-          </label>
-          <label className={`${styles.field} ${styles.col6}`}>
-            <span className={styles.label}>{copy('nameFr')}</span>
-            <input
-              className="input"
-              dir="ltr"
-              value={draft.nameFr}
-              onChange={(event) => onChange({ ...draft, nameFr: event.target.value })}
-            />
-          </label>
-          <label
-            className={`${styles.field} ${styles.col6} ${validation?.fieldErrors[phoneKey] ? styles.fieldInvalid : ''}`}
-          >
-            <span className={styles.label}>{copy('phone')}</span>
-            <input
-              className="input"
-              dir="ltr"
-              inputMode="tel"
-              value={draft.phone}
-              onChange={(event) => onChange({ ...draft, phone: event.target.value })}
-              {...validationProps(phoneKey, validation)}
-            />
-            <InlineValidationError fieldKey={phoneKey} validation={validation} copy={copy} />
-          </label>
-          <label className={`${styles.field} ${styles.col6}`}>
-            <span className={styles.label}>{copy('preferredLanguage')}</span>
-            <select
-              className="input"
-              value={draft.preferredLanguage}
-              onChange={(event) =>
-                onChange({ ...draft, preferredLanguage: event.target.value === 'fr' ? 'fr' : 'ar' })
-              }
+        <>
+          <div className={styles.grid}>
+            <label
+              style={{ order: nameOrder.arabic }}
+              className={`${styles.field} ${styles.col6} ${validation?.fieldErrors[nameKey] ? styles.fieldInvalid : ''}`}
             >
-              <option value="ar">{copy('arabic')}</option>
-              <option value="fr">{copy('french')}</option>
-            </select>
-          </label>
-          <label className={`${styles.field} ${styles.col12}`}>
-            <span className={styles.label}>{copy('identity')}</span>
-            <input
-              className="input"
-              value={draft.identity}
-              onChange={(event) => onChange({ ...draft, identity: event.target.value })}
-            />
-          </label>
-        </div>
+              <span className={styles.label}>{copy('nameAr')}</span>
+              <input
+                className="input"
+                value={draft.nameAr}
+                onChange={(event) => onChange({ ...draft, nameAr: event.target.value })}
+                autoComplete="name"
+                {...validationProps(nameKey, validation)}
+              />
+              <InlineValidationError fieldKey={nameKey} validation={validation} copy={copy} />
+            </label>
+            <label style={{ order: nameOrder.latin }} className={`${styles.field} ${styles.col6}`}>
+              <span className={styles.label}>{copy('nameFr')}</span>
+              <input
+                className="input"
+                dir="ltr"
+                value={draft.nameFr}
+                onChange={(event) => onChange({ ...draft, nameFr: event.target.value })}
+              />
+            </label>
+            <label
+              className={`${styles.field} ${styles.col6} ${validation?.fieldErrors[phoneKey] ? styles.fieldInvalid : ''}`}
+            >
+              <span className={styles.label}>{copy('phone')}</span>
+              <input
+                className="input"
+                dir="ltr"
+                inputMode="tel"
+                value={draft.phone}
+                onChange={(event) => onChange({ ...draft, phone: event.target.value })}
+                {...validationProps(phoneKey, validation)}
+              />
+              <InlineValidationError fieldKey={phoneKey} validation={validation} copy={copy} />
+            </label>
+            <label className={`${styles.field} ${styles.col6}`}>
+              <span className={styles.label}>{copy('preferredLanguage')}</span>
+              <select
+                className="input"
+                value={draft.preferredLanguage}
+                onChange={(event) =>
+                  onChange({ ...draft, preferredLanguage: event.target.value === 'fr' ? 'fr' : 'ar' })
+                }
+              >
+                <option value="ar">{copy('arabic')}</option>
+                <option value="fr">{copy('french')}</option>
+              </select>
+            </label>
+            <label className={`${styles.field} ${styles.col12}`}>
+              <span className={styles.label}>{copy('identity')}</span>
+              <input
+                className="input"
+                value={draft.identity}
+                onChange={(event) => onChange({ ...draft, identity: event.target.value })}
+              />
+            </label>
+          </div>
+          {searchResults ? (
+            <div className={styles.linkedBox}>
+              <div className={styles.muted}>{copy('guardianDuplicate')}</div>
+              {searchResults}
+            </div>
+          ) : null}
+        </>
       ) : linked ? (
         <div className={styles.linkedBox}>
           <div className={styles.guardianHead}>
@@ -394,7 +444,9 @@ function GuardianCard({
                   linkedGuardianId: null,
                   linkedPersonId: null,
                   nameAr: '',
+                  nameFr: '',
                   phone: '',
+                  identity: '',
                 })
               }
             >
@@ -410,6 +462,7 @@ function GuardianCard({
             className={`input ${styles.searchInput}`}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            placeholder={`${copy('search')} / ${copy('identity')}`}
             autoComplete="off"
             autoFocus
             {...validationProps(selectionKey, validation)}
@@ -419,21 +472,7 @@ function GuardianCard({
           {!searching && debouncedSearch.trim().length >= GUARDIAN_GLOBAL_SEARCH_MIN_QUERY && results.length === 0 ? (
             <div className={styles.muted}>{copy('noMatches')}</div>
           ) : null}
-          {results.length ? (
-            <div className={styles.searchResults}>
-              {results.map((person) => (
-                <div className={styles.searchResult} key={`${person.partner_id}-${person.guardian_id ?? 'person'}`}>
-                  <div className={styles.searchMeta}>
-                    <div className={styles.searchName}>{person.name}</div>
-                    <div className={styles.muted} dir="ltr">{person.phone ?? '—'}</div>
-                  </div>
-                  <button type="button" className="btn btn--ghost" onClick={() => selectExisting(person)}>
-                    {copy('useGuardian')}
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          {searchResults}
         </div>
       )}
 
@@ -579,10 +618,11 @@ export function FullRegistrationPage() {
   }, [academicYearId, enrollmentDate, levelId, resolvedSchoolId]);
 
   const suggestState = useFeePlanSuggest(feePlanQuery);
-  const optionalLines = useMemo(
-    () => (suggestState.suggest?.plan_lines ?? []).filter((line) => line.is_optional && line.fee_type_id),
-    [suggestState.suggest?.plan_lines],
-  );
+  const optionalLines = useMemo(() => {
+    const suggest = suggestState.suggest as SuggestWithOptionalLines | null;
+    if (suggest?.optional_lines) return suggest.optional_lines.filter((line) => line.fee_type_id != null);
+    return (suggest?.plan_lines ?? []).filter((line) => line.is_optional && line.fee_type_id != null);
+  }, [suggestState.suggest]);
 
   useEffect(() => {
     const eligible = new Set(optionalLines.map((line) => Number(line.fee_type_id)));
@@ -599,15 +639,18 @@ export function FullRegistrationPage() {
   const showRights = familyContext === 'separated_or_divorced' || familyContext === 'special';
 
   const adjustableLines = useMemo(() => {
-    const lines = suggestState.suggest?.plan_lines ?? [];
+    const mandatoryLines = (suggestState.suggest?.plan_lines ?? []).filter((line) => !line.is_optional);
     const selected = new Set(selectedServiceIds);
-    return lines.filter((line) => !line.is_optional || (line.fee_type_id != null && selected.has(line.fee_type_id)));
-  }, [selectedServiceIds, suggestState.suggest?.plan_lines]);
+    const selectedOptional = optionalLines.filter(
+      (line) => line.fee_type_id != null && selected.has(Number(line.fee_type_id)),
+    );
+    return [...mandatoryLines, ...selectedOptional];
+  }, [optionalLines, selectedServiceIds, suggestState.suggest?.plan_lines]);
 
   const selectedServiceNames = useMemo(() => {
     const selected = new Set(selectedServiceIds);
     return optionalLines
-      .filter((line) => line.fee_type_id != null && selected.has(line.fee_type_id))
+      .filter((line) => line.fee_type_id != null && selected.has(Number(line.fee_type_id)))
       .map((line) => line.fee_type_name);
   }, [optionalLines, selectedServiceIds]);
 
@@ -738,12 +781,19 @@ export function FullRegistrationPage() {
         responseString(classAssignment?.status) ??
         'pending',
       className: responseString(classAssignment?.class_name),
+      billingPartnerId: responseNumber(data.billing_partner_id),
       availableNextActions: actions,
     });
     toast.success(copy('successTitle'));
   }
 
   if (success) {
+    const collectNowHref = buildFullRegistrationCollectNowHref({
+      studentId: success.studentId,
+      academicYearId,
+      billingPartnerId: success.billingPartnerId,
+      returnTo: `/admin/students/${success.studentId}`,
+    });
     return (
       <div className={styles.page}>
         <section className={styles.success}>
@@ -777,7 +827,7 @@ export function FullRegistrationPage() {
               <button
                 type="button"
                 className="btn btn--ghost"
-                onClick={() => router.push(`/admin/students/${success.studentId}?tab=finance`)}
+                onClick={() => router.push(collectNowHref)}
               >
                 {copy('collectNow')}
               </button>
@@ -798,6 +848,8 @@ export function FullRegistrationPage() {
   const lastNameFrKey = 'student.lastNameFr';
   const genderKey = 'student.gender';
   const dobKey = 'student.dateOfBirth';
+  const nameOrder = fullRegistrationNameFieldOrder(locale);
+  const arabicFirst = locale === 'ar';
 
   return (
     <div className={styles.page}>
@@ -914,7 +966,7 @@ export function FullRegistrationPage() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{copy('student')}</h2>
         <div className={styles.grid}>
-          <label className={fieldClass(`${styles.field} ${styles.col6}`, firstNameArKey)}>
+          <label style={{ order: nameOrder.arabic }} className={fieldClass(`${styles.field} ${styles.col6}`, firstNameArKey)}>
             <span className={styles.label}>{copy('firstNameAr')}</span>
             <input
               className="input"
@@ -927,7 +979,7 @@ export function FullRegistrationPage() {
             />
             <InlineValidationError fieldKey={firstNameArKey} validation={liveValidation} copy={copy} />
           </label>
-          <label className={fieldClass(`${styles.field} ${styles.col6}`, lastNameArKey)}>
+          <label style={{ order: nameOrder.arabic }} className={fieldClass(`${styles.field} ${styles.col6}`, lastNameArKey)}>
             <span className={styles.label}>{copy('lastNameAr')}</span>
             <input
               className="input"
@@ -940,7 +992,7 @@ export function FullRegistrationPage() {
             />
             <InlineValidationError fieldKey={lastNameArKey} validation={liveValidation} copy={copy} />
           </label>
-          <label className={fieldClass(`${styles.field} ${styles.col6}`, firstNameFrKey)}>
+          <label style={{ order: nameOrder.latin }} className={fieldClass(`${styles.field} ${styles.col6}`, firstNameFrKey)}>
             <span className={styles.label}>{copy('firstNameFr')}</span>
             <input
               className="input"
@@ -954,7 +1006,7 @@ export function FullRegistrationPage() {
             />
             <InlineValidationError fieldKey={firstNameFrKey} validation={liveValidation} copy={copy} />
           </label>
-          <label className={fieldClass(`${styles.field} ${styles.col6}`, lastNameFrKey)}>
+          <label style={{ order: nameOrder.latin }} className={fieldClass(`${styles.field} ${styles.col6}`, lastNameFrKey)}>
             <span className={styles.label}>{copy('lastNameFr')}</span>
             <input
               className="input"
@@ -1049,6 +1101,7 @@ export function FullRegistrationPage() {
             onChange={(next) => updateGuardian('single', next)}
             activeSchoolId={resolvedSchoolId}
             showRights={false}
+            arabicFirst={arabicFirst}
             allowRelationshipChoice={familyContext === 'single_guardian'}
             validation={liveValidation}
             copy={copy}
@@ -1062,6 +1115,7 @@ export function FullRegistrationPage() {
               onChange={(next) => updateGuardian('father', next)}
               activeSchoolId={resolvedSchoolId}
               showRights={showRights}
+              arabicFirst={arabicFirst}
               validation={liveValidation}
               copy={copy}
             />
@@ -1072,6 +1126,7 @@ export function FullRegistrationPage() {
               onChange={(next) => updateGuardian('mother', next)}
               activeSchoolId={resolvedSchoolId}
               showRights={showRights}
+              arabicFirst={arabicFirst}
               validation={liveValidation}
               copy={copy}
             />

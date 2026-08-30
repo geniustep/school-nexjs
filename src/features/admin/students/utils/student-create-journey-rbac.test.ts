@@ -30,7 +30,7 @@ describe('student-create-journey-rbac', () => {
     expect(canOfferCreateAgreementActivationUi(caps, true)).toBe(false);
   });
 
-  it('keeps Base Plan automatic even when legacy finance permissions are present', () => {
+  it('keeps Base Plan automatic while honoring finance discount permission', () => {
     const caps = resolveStudentCreateJourneyCapabilities(
       staff({
         permissions: [
@@ -44,7 +44,7 @@ describe('student-create-journey-rbac', () => {
       }),
     );
     expect(caps.canAssignFeePlan).toBe(true);
-    expect(caps.canManageDiscounts).toBe(false);
+    expect(caps.canManageDiscounts).toBe(true);
     expect(shouldForceSkipFinanceOnCreate(caps)).toBe(false);
     expect(canOfferCreateAgreementActivationUi(caps, true)).toBe(false);
   });
