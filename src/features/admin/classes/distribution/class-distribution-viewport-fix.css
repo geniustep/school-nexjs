@@ -1,3 +1,9 @@
+[data-class-distribution-page='true'] {
+  min-inline-size: 0 !important;
+  max-inline-size: 100% !important;
+  overflow-x: clip !important;
+}
+
 .class-distribution-page-shell {
   inline-size: 100%;
   min-inline-size: 0;
@@ -13,7 +19,7 @@
 }
 
 .class-distribution-page-shell .class-distribution-workspace {
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .class-distribution-page-shell .class-distribution-workspace__scroller {
@@ -25,16 +31,147 @@
   overflow-y: hidden;
 }
 
-html[dir='rtl'] .class-distribution-direct__mobile-target select,
-html[dir='rtl'] .class-distribution-direct__mobile-target option {
-  direction: rtl !important;
-  text-align: right !important;
+.class-distribution-target-picker__native,
+.class-distribution-direct__mobile-target > span:has(+ .class-distribution-target-picker__native) {
+  display: none !important;
 }
 
-html[dir='rtl'] .class-distribution-direct__mobile-target select {
-  text-align-last: right !important;
+.class-distribution-target-picker {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  inline-size: 100%;
+  min-inline-size: 220px;
+  text-align: start;
 }
 
-html[dir='rtl'] .class-distribution-direct__mobile-target option {
-  unicode-bidi: plaintext;
+.class-distribution-target-picker__label {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.class-distribution-target-picker__trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 40px;
+  inline-size: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+  box-shadow: none;
+}
+
+.class-distribution-target-picker__trigger:hover,
+.class-distribution-target-picker__trigger[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--c-primary) 64%, var(--c-border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-primary) 12%, transparent);
+}
+
+.class-distribution-target-picker__trigger:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.class-distribution-target-picker__trigger:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.class-distribution-target-picker__chevron {
+  color: var(--c-text-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.class-distribution-target-picker__menu {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(100% + 7px);
+  z-index: 120;
+  display: grid;
+  gap: 2px;
+  max-block-size: min(340px, 52vh);
+  padding: 6px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  box-shadow: var(--shadow-lg, var(--shadow-md));
+}
+
+.class-distribution-target-picker__option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 42px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+
+.class-distribution-target-picker__option:hover,
+.class-distribution-target-picker__option:focus-visible,
+.class-distribution-target-picker__option[aria-selected='true'] {
+  background: color-mix(in srgb, var(--c-primary) 8%, var(--c-surface));
+  outline: none;
+}
+
+.class-distribution-target-picker__option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.class-distribution-target-picker__copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 7px;
+  min-inline-size: 0;
+}
+
+.class-distribution-target-picker__primary {
+  color: var(--c-text);
+  font-weight: 700;
+  unicode-bidi: isolate;
+}
+
+.class-distribution-target-picker__meta {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  unicode-bidi: isolate;
+}
+
+.class-distribution-target-picker__check {
+  color: var(--c-success);
+  font-weight: 800;
+}
+
+html[dir='rtl'] .class-distribution-target-picker {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir='rtl'] .class-distribution-target-picker__copy {
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .class-distribution-target-picker {
+    min-inline-size: 0;
+  }
 }
