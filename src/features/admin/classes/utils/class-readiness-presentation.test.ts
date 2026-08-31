@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ClassReadiness } from '@/types/class';
-import { resolveClassReadinessPresentation } from './class-readiness-presentation';
+import {
+  resolveClassReadinessItems,
+  resolveClassReadinessPresentation,
+} from './class-readiness-presentation';
 
 function readiness(
   status: ClassReadiness['status'],
@@ -43,5 +46,29 @@ describe('resolveClassReadinessPresentation', () => {
 
   it('does not invent readiness when the backend contract is absent', () => {
     expect(resolveClassReadinessPresentation(undefined, 'ar')).toBeNull();
+  });
+});
+
+describe('resolveClassReadinessItems', () => {
+  it('returns exactly the four canonical readiness items in order', () => {
+    expect(resolveClassReadinessItems(readiness('partial', 2), 'ar')).toEqual([
+      { key: 'capacity', label: 'السعة', ready: true },
+      { key: 'subjects', label: 'المواد', ready: true },
+      { key: 'teaching_assignments', label: 'إسناد المدرسين', ready: false },
+      { key: 'timetable', label: 'الجدول', ready: false },
+    ]);
+  });
+
+  it('uses presentation-only French labels without changing readiness truth', () => {
+    expect(resolveClassReadinessItems(readiness('partial', 3), 'fr')).toEqual([
+      { key: 'capacity', label: 'Capacité', ready: true },
+      { key: 'subjects', label: 'Matières', ready: true },
+      { key: 'teaching_assignments', label: 'Affectations pédagogiques', ready: true },
+      { key: 'timetable', label: 'Emploi du temps', ready: false },
+    ]);
+  });
+
+  it('returns no items when the backend readiness contract is absent', () => {
+    expect(resolveClassReadinessItems(undefined, 'ar')).toEqual([]);
   });
 });
