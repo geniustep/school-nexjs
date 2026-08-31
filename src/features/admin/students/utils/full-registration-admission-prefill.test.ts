@@ -71,6 +71,7 @@ describe('mapAdmissionPrefillToFullRegistration', () => {
       mode: 'new',
       relationshipType: 'mother',
       linkedGuardianId: null,
+      linkedPersonId: null,
       nameAr: 'نادية العلمي',
       nameFr: 'Nadia Alami',
       phone: '0612345678',
@@ -109,6 +110,40 @@ describe('mapAdmissionPrefillToFullRegistration', () => {
       linkedPersonId: null,
       relationshipType: 'father',
       phone: '0600000000',
+    });
+  });
+
+  it('uses a matched existing person even when no school.parent profile exists yet', () => {
+    const prefill: AdmissionPrefill = {
+      student: { first_name_ar: 'ياسين', last_name_ar: 'أمين' },
+      academic: {},
+      admission: {},
+      guardian: {
+        person_id: 6655,
+        name: 'محمد أمين',
+        phone: '0600000000',
+        relationship: 'father',
+        identity_document_number: 'AB123456',
+      },
+      is_existing_guardian_selected: true,
+      selection_required: false,
+      guardian_selection: {
+        guardian_id: null,
+        has_bound_guardian: false,
+        is_existing_guardian_selected: true,
+        selection_required: false,
+      },
+    };
+
+    const patch = mapAdmissionPrefillToFullRegistration(prefill);
+
+    expect(patch.guardian).toMatchObject({
+      mode: 'existing',
+      linkedGuardianId: null,
+      linkedPersonId: 6655,
+      relationshipType: 'father',
+      phone: '0600000000',
+      identity: 'AB123456',
     });
   });
 
