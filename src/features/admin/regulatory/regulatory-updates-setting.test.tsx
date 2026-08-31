@@ -1,6 +1,7 @@
 /** @vitest-environment happy-dom */
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RegulatoryUpdatesSetting } from './regulatory-updates-setting';
 
@@ -91,6 +92,7 @@ describe('RegulatoryUpdatesSetting', () => {
   });
 
   it('prevents duplicate submission while a mutation is pending', async () => {
+    const user = userEvent.setup();
     let resolve!: (value: ReturnType<typeof success>) => void;
     mocks.fetchSettings.mockResolvedValue(success(false));
     mocks.updateSettings.mockReturnValue(new Promise((done) => { resolve = done; }));
@@ -98,11 +100,11 @@ describe('RegulatoryUpdatesSetting', () => {
     render(<RegulatoryUpdatesSetting canManage />);
 
     const toggle = await screen.findByRole('switch');
-    fireEvent.click(toggle);
+    await user.click(toggle);
     expect(mocks.updateSettings).toHaveBeenCalledTimes(1);
     await waitFor(() => expect((toggle as HTMLButtonElement).disabled).toBe(true));
 
-    fireEvent.click(toggle);
+    await user.click(toggle);
     expect(mocks.updateSettings).toHaveBeenCalledTimes(1);
 
     await act(async () => {
