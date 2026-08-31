@@ -8,9 +8,7 @@ import {
   mutationOriginForbiddenBody,
 } from '@/lib/api/mutation-origin';
 import { config, cookieSecure } from '@/lib/config';
-import {
-  activeRoleCookieOptions,
-} from '@/lib/auth/active-role-preference';
+import { activeRoleCookieOptions } from '@/lib/auth/active-role-preference';
 import {
   isLegalActiveRole,
   isMultiRoleUser,
@@ -39,6 +37,11 @@ export const dynamic = 'force-dynamic';
 type RouteContext = { params: Promise<{ path: string[] }> };
 type RestoreAuthData = { user: CurrentUser };
 
+type UpstreamJson = {
+  validJson: boolean;
+  body: unknown;
+};
+
 function json(body: unknown, status: number) {
   return NextResponse.json(body, {
     status,
@@ -53,17 +56,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isRestoreAuthSuccess(value: unknown): value is ApiResponse<RestoreAuthData> & { success: true } {
+function isRestoreAuthSuccess(
+  value: unknown,
+): value is ApiResponse<RestoreAuthData> & { success: true } {
   if (!isRecord(value) || value.success !== true || !isRecord(value.data)) return false;
   return isRecord(value.data.user);
 }
 
-async function parseUpstreamJson(response: Response): Promise<unknown> {
+async function parseUpstreamJson(response: Response): Promise<UpstreamJson> {
   const text = await response.text();
   try {
-    return JSON.parse(text);
+    return { validJson: true, body: JSON.parse(text) };
   } catch {
-    return restoreCredentialError('upstream_error', 'Unexpected server response.');
+    return {
+      validJson: false,
+      body: restoreCredentialError('upstream_error', 'Unexpected server response.'),
+    };
   }
 }
 
@@ -102,7 +110,7 @@ async function callRestorePreAuth(
   body: Record<string, unknown>,
   tenant: string,
   backendBaseUrl: string,
-): Promise<{ response: Response | null; body: unknown }> {
+): Promise<{ response: Response | null; validJson: boolean; body: unknown }> {
   try {
     // Dedicated pre-auth handshake. The tenant comes only from the trusted host,
     // never from the request body. These are the only Restore Credential calls
@@ -124,10 +132,12 @@ async function callRestorePreAuth(
         cache: 'no-store',
       },
     );
-    return { response, body: await parseUpstreamJson(response) };
+    const parsed = await parseUpstreamJson(response);
+    return { response, ...parsed };
   } catch {
     return {
       response: null,
+      validJson: false,
       body: restoreCredentialError('network_error', 'Could not reach the server.'),
     };
   }
@@ -138,8 +148,11 @@ async function authenticationVerifyResponse(
   upstreamBody: unknown,
   tenant: string,
 ) {
-  if (!upstream.ok || !isRestoreAuthSuccess(upstreamBody)) {
+  if (!upstream.ok) {
     return json(upstreamBody, upstream.status);
+  }
+  if (!isRestoreAuthSuccess(upstreamBody)) {
+    return json(restoreCredentialError('server_error', 'Unexpected server response.'), 502);
   }
 
   const sessionId = extractOdooSessionId(upstream.headers.get('set-cookie'));
@@ -269,6 +282,9 @@ export async function POST(request: Request, context: RouteContext) {
     runtime.config.backendBaseUrl,
   );
   if (!upstream.response) {
+    return json(upstream.body, 502);
+  }
+  if (!upstream.validJson) {
     return json(upstream.body, 502);
   }
 
