@@ -89,13 +89,15 @@ export function parseRestoreCredentialBody(
   }
 
   if (!hasOnlyKeys(raw, ['credential_id', 'revoke_all'])) return { ok: false };
-  if (raw.credential_id !== undefined && !nonEmptyString(raw.credential_id)) return { ok: false };
-  if (raw.revoke_all !== undefined && typeof raw.revoke_all !== 'boolean') return { ok: false };
-  if (raw.credential_id === undefined && raw.revoke_all === undefined) return { ok: false };
+  const credentialId = raw.credential_id;
+  const revokeAll = raw.revoke_all;
+  if (credentialId !== undefined && !nonEmptyString(credentialId)) return { ok: false };
+  if (revokeAll !== undefined && typeof revokeAll !== 'boolean') return { ok: false };
+  if (credentialId === undefined && revokeAll === undefined) return { ok: false };
 
   const body: RestoreCredentialBody = {};
-  if (raw.credential_id !== undefined) body.credential_id = raw.credential_id.trim();
-  if (raw.revoke_all !== undefined) body.revoke_all = raw.revoke_all;
+  if (nonEmptyString(credentialId)) body.credential_id = credentialId.trim();
+  if (typeof revokeAll === 'boolean') body.revoke_all = revokeAll;
   return { ok: true, body };
 }
 
