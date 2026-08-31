@@ -35,6 +35,8 @@ export function StudentCreateAdditionalGuardianCard({
   onLinkExisting,
   onClearLink,
   onRemove,
+  title,
+  removable = true,
 }: {
   entry: StudentCreateGuardianEntry;
   billingState: StudentCreateBillingFormState;
@@ -49,6 +51,8 @@ export function StudentCreateAdditionalGuardianCard({
   onLinkExisting: (entryKey: string, person: PersonSearchResult) => void;
   onClearLink: (entryKey: string) => void;
   onRemove: (entryKey: string) => void;
+  title?: string;
+  removable?: boolean;
 }) {
   const t = useT();
   const sourceMode = resolveAdditionalGuardianSourceMode(entry, billingState);
@@ -86,16 +90,18 @@ export function StudentCreateAdditionalGuardianCard({
     <article className="student-create-additional-guardian-card">
       <header className="student-create-additional-guardian-card__head">
         <h4 className="student-create-additional-guardian-card__title">
-          {t('admin.student360.create.billing.additionalGuardianTitle')}
+          {title ?? t('admin.student360.create.billing.additionalGuardianTitle')}
         </h4>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() => onRemove(entry.entryKey)}
-          aria-label={t('admin.student360.create.billing.removeAdditionalGuardian')}
-        >
-          {t('admin.student360.create.billing.removeAdditionalGuardian')}
-        </button>
+        {removable ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => onRemove(entry.entryKey)}
+            aria-label={t('admin.student360.create.billing.removeAdditionalGuardian')}
+          >
+            {t('admin.student360.create.billing.removeAdditionalGuardian')}
+          </button>
+        ) : null}
       </header>
 
       <div className="student-create-additional-guardian-card__mode" role="group" aria-label={t('admin.student360.create.billing.guardianSourceChooseTitle')}>
