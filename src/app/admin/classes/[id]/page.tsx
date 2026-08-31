@@ -8,10 +8,15 @@ import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Badge, Card, SectionHead } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { ClassForm, type ClassDetail } from '@/features/admin/entity-forms';
-import { useT } from '@/features/i18n/locale-context';
+import {
+  resolveClassReadinessItems,
+  resolveClassReadinessPresentation,
+} from '@/features/admin/classes/utils/class-readiness-presentation';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { statusLabel } from '@/lib/utils/labels';
+import type { SchoolClass } from '@/types/class';
 import type { Student } from '@/types/student';
 
 const QUICK_LINKS = (classId: number) => [
@@ -23,13 +28,58 @@ const QUICK_LINKS = (classId: number) => [
   { href: `/admin/exam-results?class_id=${classId}`, labelKey: 'nav.results' as const, icon: '📊' },
 ];
 
+type ClassDetailWithReadiness = ClassDetail & Pick<SchoolClass, 'readiness'>;
+
+function ClassReadinessCard({
+  readiness,
+  locale,
+}: {
+  readiness: SchoolClass['readiness'];
+  locale: string;
+}) {
+  const presentation = resolveClassReadinessPresentation(readiness, locale);
+  const items = resolveClassReadinessItems(readiness, locale);
+  if (!readiness || !presentation) return null;
+
+  const isArabic = locale === 'ar';
+
+  return (
+    <Card>
+      <div className="row" style={{ justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <SectionHead title={isArabic ? 'جاهزية القسم' : 'Préparation de la classe'} />
+        <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+          <Badge tone={presentation.tone}>{presentation.label}</Badge>
+          <strong className="mono" dir="ltr">{readiness.completed} / {readiness.total}</strong>
+        </div>
+      </div>
+      <div className="col" style={{ gap: 8, marginTop: 12 }}>
+        {items.map((item) => (
+          <div
+            key={item.key}
+            className="row"
+            style={{ justifyContent: 'space-between', gap: 12, alignItems: 'center' }}
+          >
+            <span>{item.label}</span>
+            <Badge tone={item.ready ? 'green' : 'amber'}>
+              {item.ready
+                ? (isArabic ? 'مكتمل' : 'Complet')
+                : (isArabic ? 'ناقص' : 'Manquant')}
+            </Badge>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function AdminClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const t = useT();
+  const { locale } = useLocale();
   const router = useRouter();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const state = useAdminResource<ClassDetail>(isNew ? null : endpoints.admin.class(id));
+  const state = useAdminResource<ClassDetailWithReadiness>(isNew ? null : endpoints.admin.class(id));
   const studentsState = useAdminResource<Student[]>(
     isNew ? null : endpoints.admin.students,
     isNew ? undefined : { class_id: id, page_size: 50 },
@@ -70,6 +120,9 @@ export default function AdminClassDetailPage({ params }: { params: Promise<{ id:
               <ClassForm cls={cls} onSaved={() => { setEditing(false); state.reload(); }} onCancel={() => setEditing(false)} />
             ) : (
               <>
+                <div className="section">
+                  <ClassReadinessCard readiness={cls.readiness} locale={locale} />
+                </div>
                 <div className="section">
                   <SectionHead title={t('admin.quickLinks')} />
                   <div className="grid grid--cards">
