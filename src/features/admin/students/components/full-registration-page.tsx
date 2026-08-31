@@ -64,6 +64,11 @@ type PricingDraft = {
   to: string;
 };
 
+type PricingFieldError = {
+  price?: string;
+  period?: string;
+};
+
 type SuccessState = {
   studentId: number;
   studentCode: string | null;
@@ -115,7 +120,7 @@ function emptyGuardian(key: GuardianKey, relationshipType: string): FullRegistra
 
 function inputValueNumber(value: string): number | null {
   if (!value.trim()) return null;
-  const n = Number(value);
+  const n = Number(value.trim().replace(',', '.'));
   return Number.isFinite(n) ? n : null;
 }
 
@@ -140,6 +145,95 @@ function responseNumber(value: unknown): number | null {
 
 function responseString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value : null;
+}
+
+function isOneTimeLine(line: EnrollmentPlanLine): boolean {
+  return Boolean(line.is_one_time || line.frequency === 'one_time');
+}
+
+function billingFrequencyLabel(locale: string, line: EnrollmentPlanLine): string {
+  const oneTime = isOneTimeLine(line);
+  const labels: Record<string, { monthly: string; oneTime: string }> = {
+    ar: { monthly: 'شهريًا', oneTime: 'مرة واحدة' },
+    fr: { monthly: 'par mois', oneTime: 'une seule fois' },
+    en: { monthly: 'monthly', oneTime: 'one time' },
+    es: { monthly: 'mensual', oneTime: 'una sola vez' },
+  };
+  const selected = labels[locale] ?? labels.en;
+  if (oneTime) return selected.oneTime;
+  if (!line.frequency || line.frequency === 'monthly') return selected.monthly;
+  return '';
+}
+
+function academicPeriodBounds(referenceDate: string): { from: string; to: string } {
+  const [yearText, monthText] = referenceDate.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+    return { from: '', to: '' };
+  }
+  if (month >= 1 && month <= 6) {
+    return { from: `${year - 1}-09`, to: `${year}-06` };
+  }
+  if (month >= 7 && month <= 8) {
+    return { from: `${year}-09`, to: `${year + 1}-06` };
+  }
+  return { from: `${year}-09`, to: `${year + 1}-06` };
+}
+
+function monthOptions(referenceDate: string, locale: string): Array<{ value: string; label: string }> {
+  const bounds = academicPeriodBounds(referenceDate);
+  if (!bounds.from || !bounds.to) return [];
+  const [startYear, startMonth] = bounds.from.split('-').map(Number);
+  const [endYear, endMonth] = bounds.to.split('-').map(Number);
+  const formatterLocale = locale === 'ar' ? 'ar-MA' : locale === 'fr' ? 'fr-MA' : locale;
+  const formatter = new Intl.DateTimeFormat(formatterLocale, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const result: Array<{ value: string; label: string }> = [];
+  let year = startYear;
+  let month = startMonth;
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    const value = `${year}-${String(month).padStart(2, '0')}`;
+    result.push({ value, label: formatter.format(new Date(Date.UTC(year, month - 1, 1))) });
+    month += 1;
+    if (month === 13) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return result;
+}
+
+function pricingValidationMessage(
+  locale: string,
+  code: 'invalidPrice' | 'incompletePeriod' | 'periodOrder' | 'outsideAcademicYear',
+): string {
+  const messages: Record<string, Record<typeof code, string>> = {
+    ar: {
+      invalidPrice: 'أدخل سعرًا صالحًا يساوي صفرًا أو أكثر.',
+      incompletePeriod: 'حدد شهر البداية وشهر النهاية معًا.',
+      periodOrder: 'شهر البداية يجب أن يسبق شهر النهاية أو يساويه.',
+      outsideAcademicYear: 'الفترة يجب أن تكون داخل السنة الدراسية.',
+    },
+    fr: {
+      invalidPrice: 'Saisissez un prix valide supérieur ou égal à zéro.',
+      incompletePeriod: 'Sélectionnez le mois de début et le mois de fin.',
+      periodOrder: 'Le mois de début doit précéder ou égaler le mois de fin.',
+      outsideAcademicYear: 'La période doit rester dans l’année scolaire.',
+    },
+    en: {
+      invalidPrice: 'Enter a valid price greater than or equal to zero.',
+      incompletePeriod: 'Select both the start and end months.',
+      periodOrder: 'The start month must be before or equal to the end month.',
+      outsideAcademicYear: 'The period must stay within the academic year.',
+    },
+    es: {
+      invalidPrice: 'Introduce un precio válido mayor o igual que cero.',
+      incompletePeriod: 'Selecciona el mes inicial y el mes final.',
+      periodOrder: 'El mes inicial debe ser anterior o igual al mes final.',
+      outsideAcademicYear: 'El período debe estar dentro del año académico.',
+    },
+  };
+  return (messages[locale] ?? messages.en)[code];
 }
 
 function validationErrorId(key: string): string {
@@ -287,17 +381,35 @@ function GuardianCard({
   }
 
   async function saveExistingGuardianPhone() {
-    if (!draft.linkedGuardianId || savingPhone) return;
+    if ((!draft.linkedGuardianId && !draft.linkedPersonId) || savingPhone) return;
     const phone = phoneDraft.trim();
     if (!phone) return;
+
     setSavingPhone(true);
-    const result = await api.post(endpoints.admin.parentUpdate(draft.linkedGuardianId), { phone });
+    const result = draft.linkedGuardianId
+      ? await api.post<Record<string, unknown>>(endpoints.admin.parentUpdate(draft.linkedGuardianId), { phone })
+      : await api.post<Record<string, unknown>>(endpoints.admin.guardiansLinkPartner, {
+          partner_id: draft.linkedPersonId,
+          contact_patch: { phone },
+        });
     setSavingPhone(false);
+
     if (!result.success) {
       toast.error(copy('phoneUpdateFailed'));
       return;
     }
-    onChange({ ...draft, phone });
+
+    let linkedGuardianId = draft.linkedGuardianId;
+    if (!linkedGuardianId) {
+      const data = responseRecord(result.data);
+      linkedGuardianId = responseNumber(data?.id);
+      if (!linkedGuardianId) {
+        toast.error(copy('phoneUpdateFailed'));
+        return;
+      }
+    }
+
+    onChange({ ...draft, linkedGuardianId, linkedPersonId: null, phone });
     setPhoneDraft('');
     toast.success(copy('phoneUpdated'));
   }
@@ -492,7 +604,7 @@ function GuardianCard({
               {copy('change')}
             </button>
           </div>
-          {!draft.phone && draft.linkedGuardianId ? (
+          {!draft.phone && (draft.linkedGuardianId || draft.linkedPersonId) ? (
             <div className={styles.inlinePhoneEdit}>
               <label className={styles.field}>
                 <span className={styles.label}>{copy('addPhone')}</span>
@@ -609,6 +721,8 @@ export function FullRegistrationPage() {
   const [pricingDrafts, setPricingDrafts] = useState<Record<number, PricingDraft>>({});
   const [pricingReason, setPricingReason] = useState('');
   const [pricingOpen, setPricingOpen] = useState(false);
+  const [pricingFieldErrors, setPricingFieldErrors] = useState<Record<number, PricingFieldError>>({});
+  const [pricingReasonError, setPricingReasonError] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<SuccessState | null>(null);
@@ -709,17 +823,22 @@ export function FullRegistrationPage() {
     return [...mandatoryLines, ...selectedOptional];
   }, [optionalLines, selectedServiceIds, suggestState.suggest?.plan_lines]);
 
+  const pricingReferenceDate = todayIsoDate();
+  const pricingMonthOptions = useMemo(
+    () => monthOptions(pricingReferenceDate, locale),
+    [pricingReferenceDate, locale],
+  );
+
   const financeTotals = useMemo(() => {
     return adjustableLines.reduce(
       (totals, line) => {
-        const adjustedPrice = inputValueNumber(pricingDrafts[line.line_id]?.price ?? '');
-        const amount = adjustedPrice ?? lineAmount(line);
+        const draft = pricingDrafts[line.line_id];
+        const parsed = draft ? inputValueNumber(draft.price) : null;
+        const base = lineAmount(line);
+        const amount = parsed != null && parsed >= 0 ? parsed : base;
         if (amount == null) return totals;
-        if (line.is_one_time || line.frequency === 'one_time') {
-          totals.oneTime += amount;
-        } else {
-          totals.monthly += amount;
-        }
+        if (isOneTimeLine(line)) totals.oneTime += amount;
+        else totals.monthly += amount;
         return totals;
       },
       { monthly: 0, oneTime: 0 },
@@ -754,32 +873,91 @@ export function FullRegistrationPage() {
   }
 
   function defaultPricingDraft(line: EnrollmentPlanLine): PricingDraft {
-    if (line.is_one_time || line.frequency === 'one_time') {
-      return { price: '', from: '', to: '' };
-    }
-    const period = fullRegistrationPricingPeriodDefaults(todayIsoDate());
+    if (isOneTimeLine(line)) return { price: '', from: '', to: '' };
+    const period = fullRegistrationPricingPeriodDefaults(pricingReferenceDate);
     return { price: '', from: period.from, to: period.to };
   }
 
   function pricingAdjustments(): FullRegistrationPricingAdjustment[] {
+    const defaults = fullRegistrationPricingPeriodDefaults(pricingReferenceDate);
     return adjustableLines.flatMap((line) => {
       const draft = pricingDrafts[line.line_id];
       if (!draft) return [];
-      const price = inputValueNumber(draft.price);
-      const oneTime = Boolean(line.is_one_time || line.frequency === 'one_time');
-      const periodFrom = oneTime ? '' : draft.from;
-      const periodTo = oneTime ? '' : draft.to;
-      if (price == null && !periodFrom.trim() && !periodTo.trim()) return [];
+      const basePrice = lineAmount(line);
+      const parsedPrice = inputValueNumber(draft.price);
+      const priceChanged =
+        draft.price.trim() !== '' &&
+        parsedPrice != null &&
+        parsedPrice >= 0 &&
+        (basePrice == null || Math.abs(parsedPrice - basePrice) > 0.000001);
+      const oneTime = isOneTimeLine(line);
+      const periodChanged = !oneTime && (draft.from !== defaults.from || draft.to !== defaults.to);
+      if (!priceChanged && !periodChanged) return [];
       return [
         {
           itemKey: String(line.line_id),
-          adjustedUnitPrice: price,
-          periodFrom,
-          periodTo,
+          adjustedUnitPrice: priceChanged ? parsedPrice : null,
+          periodFrom: periodChanged ? draft.from : '',
+          periodTo: periodChanged ? draft.to : '',
           reason: pricingReason.trim(),
         },
       ];
     });
+  }
+
+  function validatePricingDrafts(): boolean {
+    const nextErrors: Record<number, PricingFieldError> = {};
+    const bounds = academicPeriodBounds(pricingReferenceDate);
+    const defaults = fullRegistrationPricingPeriodDefaults(pricingReferenceDate);
+    let hasOverride = false;
+
+    adjustableLines.forEach((line) => {
+      const draft = pricingDrafts[line.line_id];
+      if (!draft) return;
+      const lineErrors: PricingFieldError = {};
+      const basePrice = lineAmount(line);
+      const normalizedPrice = draft.price.trim();
+      const parsedPrice = inputValueNumber(draft.price);
+
+      if (normalizedPrice && (parsedPrice == null || parsedPrice < 0)) {
+        lineErrors.price = pricingValidationMessage(locale, 'invalidPrice');
+      }
+
+      const priceChanged =
+        normalizedPrice !== '' &&
+        parsedPrice != null &&
+        parsedPrice >= 0 &&
+        (basePrice == null || Math.abs(parsedPrice - basePrice) > 0.000001);
+
+      if (!isOneTimeLine(line)) {
+        const hasFrom = Boolean(draft.from.trim());
+        const hasTo = Boolean(draft.to.trim());
+        if (hasFrom !== hasTo || !hasFrom || !hasTo) {
+          lineErrors.period = pricingValidationMessage(locale, 'incompletePeriod');
+        } else if (draft.from > draft.to) {
+          lineErrors.period = pricingValidationMessage(locale, 'periodOrder');
+        } else if (
+          !/^\d{4}-(0[1-9]|1[0-2])$/.test(draft.from) ||
+          !/^\d{4}-(0[1-9]|1[0-2])$/.test(draft.to) ||
+          draft.from < bounds.from ||
+          draft.to > bounds.to
+        ) {
+          lineErrors.period = pricingValidationMessage(locale, 'outsideAcademicYear');
+        }
+
+        if (!lineErrors.period && (draft.from !== defaults.from || draft.to !== defaults.to)) {
+          hasOverride = true;
+        }
+      }
+
+      if (!lineErrors.price && priceChanged) hasOverride = true;
+      if (lineErrors.price || lineErrors.period) nextErrors[line.line_id] = lineErrors;
+    });
+
+    const reasonError = hasOverride && !pricingReason.trim() ? copy('pricingReasonError') : '';
+    setPricingFieldErrors(nextErrors);
+    setPricingReasonError(reasonError);
+    return Object.keys(nextErrors).length === 0 && !reasonError;
   }
 
   function buildInput(): FullRegistrationBuildInput {
@@ -815,6 +993,13 @@ export function FullRegistrationPage() {
   async function submit() {
     if (saving) return;
     setError(null);
+    if (!validatePricingDrafts()) {
+      setPricingOpen(true);
+      const message = copy('requiredError');
+      setError(message);
+      toast.error(message);
+      return;
+    }
     const input = buildInput();
     const validation = validateFullRegistrationDraft(input);
     if (!validation.valid) {
@@ -1058,106 +1243,45 @@ export function FullRegistrationPage() {
         <div className={styles.grid}>
           <label style={{ order: nameOrder.arabic }} className={fieldClass(`${styles.field} ${styles.col6}`, firstNameArKey)}>
             <span className={styles.label}>{copy('firstNameAr')}</span>
-            <input
-              className="input"
-              value={student.firstNameAr}
-              onChange={(event) => {
-                setStudent((prev) => ({ ...prev, firstNameAr: event.target.value }));
-                setError(null);
-              }}
-              {...validationProps(firstNameArKey, liveValidation)}
-            />
+            <input className="input" value={student.firstNameAr} onChange={(event) => { setStudent((prev) => ({ ...prev, firstNameAr: event.target.value })); setError(null); }} {...validationProps(firstNameArKey, liveValidation)} />
             <InlineValidationError fieldKey={firstNameArKey} validation={liveValidation} copy={copy} />
           </label>
           <label style={{ order: nameOrder.arabic }} className={fieldClass(`${styles.field} ${styles.col6}`, lastNameArKey)}>
             <span className={styles.label}>{copy('lastNameAr')}</span>
-            <input
-              className="input"
-              value={student.lastNameAr}
-              onChange={(event) => {
-                setStudent((prev) => ({ ...prev, lastNameAr: event.target.value }));
-                setError(null);
-              }}
-              {...validationProps(lastNameArKey, liveValidation)}
-            />
+            <input className="input" value={student.lastNameAr} onChange={(event) => { setStudent((prev) => ({ ...prev, lastNameAr: event.target.value })); setError(null); }} {...validationProps(lastNameArKey, liveValidation)} />
             <InlineValidationError fieldKey={lastNameArKey} validation={liveValidation} copy={copy} />
           </label>
           <label style={{ order: nameOrder.latin }} className={fieldClass(`${styles.field} ${styles.col6}`, firstNameFrKey)}>
             <span className={styles.label}>{copy('firstNameFr')}</span>
-            <input
-              className="input"
-              dir="ltr"
-              value={student.firstNameFr}
-              onChange={(event) => {
-                setStudent((prev) => ({ ...prev, firstNameFr: event.target.value }));
-                setError(null);
-              }}
-              {...validationProps(firstNameFrKey, liveValidation)}
-            />
+            <input className="input" dir="ltr" value={student.firstNameFr} onChange={(event) => { setStudent((prev) => ({ ...prev, firstNameFr: event.target.value })); setError(null); }} {...validationProps(firstNameFrKey, liveValidation)} />
             <InlineValidationError fieldKey={firstNameFrKey} validation={liveValidation} copy={copy} />
           </label>
           <label style={{ order: nameOrder.latin }} className={fieldClass(`${styles.field} ${styles.col6}`, lastNameFrKey)}>
             <span className={styles.label}>{copy('lastNameFr')}</span>
-            <input
-              className="input"
-              dir="ltr"
-              value={student.lastNameFr}
-              onChange={(event) => {
-                setStudent((prev) => ({ ...prev, lastNameFr: event.target.value }));
-                setError(null);
-              }}
-              {...validationProps(lastNameFrKey, liveValidation)}
-            />
+            <input className="input" dir="ltr" value={student.lastNameFr} onChange={(event) => { setStudent((prev) => ({ ...prev, lastNameFr: event.target.value })); setError(null); }} {...validationProps(lastNameFrKey, liveValidation)} />
             <InlineValidationError fieldKey={lastNameFrKey} validation={liveValidation} copy={copy} />
           </label>
           <label className={fieldClass(`${styles.field} ${styles.col4}`, genderKey)}>
             <span className={styles.label}>{copy('gender')}</span>
-            <select
-              className="input"
-              value={student.gender}
-              onChange={(event) => {
-                setStudent((prev) => ({ ...prev, gender: event.target.value }));
-                setError(null);
-              }}
-              {...validationProps(genderKey, liveValidation)}
-            >
+            <select className="input" value={student.gender} onChange={(event) => { setStudent((prev) => ({ ...prev, gender: event.target.value })); setError(null); }} {...validationProps(genderKey, liveValidation)}>
               {(optionsState.options?.genders ?? []).map((item) => (
-                <option key={item.value} value={item.value}>
-                  {fullRegistrationGenderLabel(locale, item.value, item.label)}
-                </option>
+                <option key={item.value} value={item.value}>{fullRegistrationGenderLabel(locale, item.value, item.label)}</option>
               ))}
             </select>
             <InlineValidationError fieldKey={genderKey} validation={liveValidation} copy={copy} />
           </label>
           <label className={fieldClass(`${styles.field} ${styles.col4}`, dobKey)}>
             <span className={styles.label}>{copy('dob')}</span>
-            <input
-              className="input"
-              type="date"
-              value={student.dateOfBirth}
-              onChange={(event) => {
-                setStudent((prev) => ({ ...prev, dateOfBirth: event.target.value }));
-                setError(null);
-              }}
-              {...validationProps(dobKey, liveValidation)}
-            />
+            <input className="input" type="date" value={student.dateOfBirth} onChange={(event) => { setStudent((prev) => ({ ...prev, dateOfBirth: event.target.value })); setError(null); }} {...validationProps(dobKey, liveValidation)} />
             <InlineValidationError fieldKey={dobKey} validation={liveValidation} copy={copy} />
           </label>
           <label className={`${styles.field} ${styles.col4}`}>
             <span className={styles.label}>{copy('previousSchool')}</span>
-            <input
-              className="input"
-              value={student.previousSchool}
-              onChange={(event) => setStudent((prev) => ({ ...prev, previousSchool: event.target.value }))}
-            />
+            <input className="input" value={student.previousSchool} onChange={(event) => setStudent((prev) => ({ ...prev, previousSchool: event.target.value }))} />
           </label>
           <label className={`${styles.field} ${styles.col12}`}>
             <span className={styles.label}>{copy('address')}</span>
-            <input
-              className="input"
-              value={student.address}
-              onChange={(event) => setStudent((prev) => ({ ...prev, address: event.target.value }))}
-            />
+            <input className="input" value={student.address} onChange={(event) => setStudent((prev) => ({ ...prev, address: event.target.value }))} />
           </label>
         </div>
       </section>
@@ -1166,15 +1290,7 @@ export function FullRegistrationPage() {
         <h2 className={styles.sectionTitle}>{copy('family')}</h2>
         <div className={styles.familyOptions}>
           {FAMILY_OPTIONS.map((option) => (
-            <button
-              type="button"
-              key={option}
-              className={`${styles.familyOption} ${familyContext === option ? styles.familyOptionActive : ''}`}
-              onClick={() => {
-                setFamilyContext(option);
-                setError(null);
-              }}
-            >
+            <button type="button" key={option} className={`${styles.familyOption} ${familyContext === option ? styles.familyOptionActive : ''}`} onClick={() => { setFamilyContext(option); setError(null); }}>
               {copy(FAMILY_LABEL_KEYS[option])}
             </button>
           ))}
@@ -1198,28 +1314,8 @@ export function FullRegistrationPage() {
           />
         ) : (
           <div className={styles.guardianGrid}>
-            <GuardianCard
-              title={copy('father')}
-              kind="father"
-              draft={guardians.father}
-              onChange={(next) => updateGuardian('father', next)}
-              activeSchoolId={resolvedSchoolId}
-              showRights={showRights}
-              arabicFirst={arabicFirst}
-              validation={liveValidation}
-              copy={copy}
-            />
-            <GuardianCard
-              title={copy('mother')}
-              kind="mother"
-              draft={guardians.mother}
-              onChange={(next) => updateGuardian('mother', next)}
-              activeSchoolId={resolvedSchoolId}
-              showRights={showRights}
-              arabicFirst={arabicFirst}
-              validation={liveValidation}
-              copy={copy}
-            />
+            <GuardianCard title={copy('father')} kind="father" draft={guardians.father} onChange={(next) => updateGuardian('father', next)} activeSchoolId={resolvedSchoolId} showRights={showRights} arabicFirst={arabicFirst} validation={liveValidation} copy={copy} />
+            <GuardianCard title={copy('mother')} kind="mother" draft={guardians.mother} onChange={(next) => updateGuardian('mother', next)} activeSchoolId={resolvedSchoolId} showRights={showRights} arabicFirst={arabicFirst} validation={liveValidation} copy={copy} />
           </div>
         )}
       </section>
@@ -1229,9 +1325,7 @@ export function FullRegistrationPage() {
         <p className={styles.sectionLead}>{copy('servicesLead')}</p>
         {!feePlanQuery || suggestState.loading ? <p className={styles.muted}>{copy('loadingServices')}</p> : null}
         {feePlanQuery && suggestState.error ? (
-          <div className={styles.error}>
-            {suggestState.error.code?.includes('ambiguous') ? copy('planAmbiguous') : copy('planMissing')}
-          </div>
+          <div className={styles.error}>{suggestState.error.code?.includes('ambiguous') ? copy('planAmbiguous') : copy('planMissing')}</div>
         ) : null}
         {suggestState.suggest && optionalLines.length === 0 ? <p className={styles.muted}>{copy('noServices')}</p> : null}
         {optionalLines.length ? (
@@ -1240,6 +1334,7 @@ export function FullRegistrationPage() {
               const serviceId = Number(line.fee_type_id);
               const selected = selectedServiceIds.includes(serviceId);
               const amount = lineAmount(line);
+              const frequency = billingFrequencyLabel(locale, line);
               return (
                 <label key={line.line_id} className={`${styles.serviceCard} ${selected ? styles.serviceSelected : ''}`}>
                   <span className={styles.serviceTop}>
@@ -1258,7 +1353,7 @@ export function FullRegistrationPage() {
                   </span>
                   <span className={styles.serviceAmount}>
                     {amount != null ? `${amount.toLocaleString(locale)} MAD` : '—'}
-                    {line.frequency ? ` · ${line.frequency}` : ''}
+                    {frequency ? ` · ${frequency}` : ''}
                   </span>
                 </label>
               );
@@ -1267,7 +1362,7 @@ export function FullRegistrationPage() {
         ) : null}
         {capabilities.canManageDiscounts && suggestState.suggest?.allowed_actions?.customize_plan ? (
           <div className={styles.actions} style={{ marginTop: 12 }}>
-            <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(true)}>
+            <button type="button" className="btn btn--ghost" onClick={() => { setPricingFieldErrors({}); setPricingReasonError(''); setPricingOpen(true); }}>
               {copy('adjust')}
             </button>
           </div>
@@ -1279,45 +1374,23 @@ export function FullRegistrationPage() {
         <div className={styles.summary}>
           <span><strong>{copy('level')}:</strong> {selectedLevelName}</span>
           <span><strong>{copy('payer')}:</strong> {payerName}</span>
-          <span>
-            <strong>{copy('selectedServices')}:</strong>{' '}
-            {selectedServiceNames.length ? selectedServiceNames.join('، ') : copy('none')}
-          </span>
+          <span><strong>{copy('selectedServices')}:</strong>{' '}{selectedServiceNames.length ? selectedServiceNames.join('، ') : copy('none')}</span>
         </div>
         <div className={styles.financeTotals}>
           <div className={styles.financeTotalCard}>
             <span className={styles.financeTotalLabel}>{copy('monthlyTotal')}</span>
-            <strong className={styles.financeTotalValue}>
-              {financeTotals.monthly.toLocaleString(locale)} MAD
-            </strong>
+            <strong className={styles.financeTotalValue}>{financeTotals.monthly.toLocaleString(locale)} MAD</strong>
           </div>
           <div className={styles.financeTotalCard}>
             <span className={styles.financeTotalLabel}>{copy('oneTimeTotal')}</span>
-            <strong className={styles.financeTotalValue}>
-              {financeTotals.oneTime.toLocaleString(locale)} MAD
-            </strong>
+            <strong className={styles.financeTotalValue}>{financeTotals.oneTime.toLocaleString(locale)} MAD</strong>
           </div>
         </div>
       </section>
 
       <div className={styles.actions}>
-        <button
-          type="button"
-          className="btn btn--ghost"
-          disabled={saving}
-          onClick={() => router.push('/admin/students')}
-        >
-          {copy('cancel')}
-        </button>
-        <button
-          type="button"
-          className="btn btn--primary"
-          data-testid="full-registration-submit"
-          disabled={saving || optionsState.loading}
-          onClick={() => void submit()}
-        >
-          {saving ? copy('saving') : copy('submit')}
-        </button>
+        <button type="button" className="btn btn--ghost" disabled={saving} onClick={() => router.push('/admin/students')}>{copy('cancel')}</button>
+        <button type="button" className="btn btn--primary" data-testid="full-registration-submit" disabled={saving || optionsState.loading} onClick={() => void submit()}>{saving ? copy('saving') : copy('submit')}</button>
       </div>
 
       {pricingOpen ? (
@@ -1328,95 +1401,112 @@ export function FullRegistrationPage() {
             aria-modal="true"
             aria-labelledby="full-registration-pricing-title"
             onMouseDown={(event) => event.stopPropagation()}
+            style={{ width: 'min(680px, calc(100vw - 32px))', maxHeight: 'min(82vh, 760px)', overflowY: 'auto', overflowX: 'hidden' }}
           >
             <div className={styles.guardianHead}>
               <h2 id="full-registration-pricing-title">{copy('adjustTitle')}</h2>
-              <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(false)}>
-                {copy('cancel')}
-              </button>
+              <button type="button" className="btn btn--ghost" onClick={() => setPricingOpen(false)}>{copy('cancel')}</button>
             </div>
-            {adjustableLines.map((line) => {
-              const draft = pricingDrafts[line.line_id] ?? defaultPricingDraft(line);
-              const oneTime = Boolean(line.is_one_time || line.frequency === 'one_time');
-              return (
-                <div
-                  className={`${styles.adjustRow} ${oneTime ? styles.adjustRowOneTime : ''}`}
-                  key={line.line_id}
-                >
-                  <div>
-                    <strong>{line.fee_type_name}</strong>
-                    <div className={styles.muted}>{lineAmount(line) ?? '—'} MAD</div>
+
+            <div style={{ display: 'grid', gap: 10 }}>
+              {adjustableLines.map((line) => {
+                const draft = pricingDrafts[line.line_id] ?? defaultPricingDraft(line);
+                const oneTime = isOneTimeLine(line);
+                const frequency = billingFrequencyLabel(locale, line);
+                const rowErrors = pricingFieldErrors[line.line_id];
+                return (
+                  <div
+                    key={line.line_id}
+                    className={styles.adjustRow}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'stretch', minWidth: 0 }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+                      <strong>{line.fee_type_name}</strong>
+                      <span className={styles.muted}>
+                        {lineAmount(line) != null ? `${lineAmount(line)?.toLocaleString(locale)} MAD` : '—'}
+                        {frequency ? ` · ${frequency}` : ''}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                      <label className={styles.field} style={{ flex: '1 1 130px', minWidth: 0 }}>
+                        <span className={styles.label}>{copy('price')}</span>
+                        <input
+                          className="input"
+                          type="text"
+                          inputMode="decimal"
+                          dir="ltr"
+                          value={draft.price}
+                          placeholder={lineAmount(line)?.toString() ?? ''}
+                          aria-invalid={Boolean(rowErrors?.price) || undefined}
+                          onChange={(event) => {
+                            setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, price: event.target.value } }));
+                            setPricingFieldErrors((prev) => ({ ...prev, [line.line_id]: { ...prev[line.line_id], price: undefined } }));
+                          }}
+                        />
+                        {rowErrors?.price ? <span className={styles.fieldError} role="alert">{rowErrors.price}</span> : null}
+                      </label>
+
+                      {!oneTime ? (
+                        <>
+                          <label className={styles.field} style={{ flex: '1 1 180px', minWidth: 0 }}>
+                            <span className={styles.label}>{copy('from')}</span>
+                            <select
+                              className="input"
+                              value={draft.from}
+                              aria-invalid={Boolean(rowErrors?.period) || undefined}
+                              onChange={(event) => {
+                                setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, from: event.target.value } }));
+                                setPricingFieldErrors((prev) => ({ ...prev, [line.line_id]: { ...prev[line.line_id], period: undefined } }));
+                              }}
+                            >
+                              <option value="">{copy('select')}</option>
+                              {pricingMonthOptions.map((month) => <option key={month.value} value={month.value}>{month.label}</option>)}
+                            </select>
+                          </label>
+                          <label className={styles.field} style={{ flex: '1 1 180px', minWidth: 0 }}>
+                            <span className={styles.label}>{copy('to')}</span>
+                            <select
+                              className="input"
+                              value={draft.to}
+                              aria-invalid={Boolean(rowErrors?.period) || undefined}
+                              onChange={(event) => {
+                                setPricingDrafts((prev) => ({ ...prev, [line.line_id]: { ...draft, to: event.target.value } }));
+                                setPricingFieldErrors((prev) => ({ ...prev, [line.line_id]: { ...prev[line.line_id], period: undefined } }));
+                              }}
+                            >
+                              <option value="">{copy('select')}</option>
+                              {pricingMonthOptions.map((month) => <option key={month.value} value={month.value}>{month.label}</option>)}
+                            </select>
+                          </label>
+                        </>
+                      ) : null}
+                    </div>
+                    {rowErrors?.period ? <span className={styles.fieldError} role="alert">{rowErrors.period}</span> : null}
                   </div>
-                  <label className={styles.field}>
-                    <span className={styles.label}>{copy('price')}</span>
-                    <input
-                      className="input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={draft.price}
-                      placeholder={lineAmount(line)?.toString() ?? ''}
-                      onChange={(event) =>
-                        setPricingDrafts((prev) => ({
-                          ...prev,
-                          [line.line_id]: { ...draft, price: event.target.value },
-                        }))
-                      }
-                    />
-                  </label>
-                  {!oneTime ? (
-                    <>
-                      <label className={styles.field}>
-                        <span className={styles.label}>{copy('from')}</span>
-                        <input
-                          className="input"
-                          type="month"
-                          value={draft.from}
-                          onChange={(event) =>
-                            setPricingDrafts((prev) => ({
-                              ...prev,
-                              [line.line_id]: { ...draft, from: event.target.value },
-                            }))
-                          }
-                        />
-                      </label>
-                      <label className={styles.field}>
-                        <span className={styles.label}>{copy('to')}</span>
-                        <input
-                          className="input"
-                          type="month"
-                          value={draft.to}
-                          onChange={(event) =>
-                            setPricingDrafts((prev) => ({
-                              ...prev,
-                              [line.line_id]: { ...draft, to: event.target.value },
-                            }))
-                          }
-                        />
-                      </label>
-                    </>
-                  ) : null}
-                </div>
-              );
-            })}
-            <label className={styles.field}>
+                );
+              })}
+            </div>
+
+            <label className={styles.field} style={{ marginTop: 12 }}>
               <span className={styles.label}>{copy('reason')}</span>
               <input
                 className="input"
                 value={pricingReason}
-                onChange={(event) => setPricingReason(event.target.value)}
+                aria-invalid={Boolean(pricingReasonError) || undefined}
+                onChange={(event) => {
+                  setPricingReason(event.target.value);
+                  setPricingReasonError('');
+                }}
               />
+              {pricingReasonError ? <span className={styles.fieldError} role="alert">{pricingReasonError}</span> : null}
             </label>
             <div className={styles.actions}>
               <button
                 type="button"
                 className="btn btn--primary"
                 onClick={() => {
-                  const validation = validateFullRegistrationDraft(buildInput());
-                  if (validation.errors.includes('pricing_adjustment_reason_required')) {
-                    setError(copy('pricingReasonError'));
-                    return;
-                  }
+                  if (!validatePricingDrafts()) return;
                   setPricingOpen(false);
                   setError(null);
                 }}
