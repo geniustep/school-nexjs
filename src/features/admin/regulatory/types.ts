@@ -36,3 +36,8 @@ export interface RegulatoryProjectionResult {
   projected_count: number;
   pending_non_gregorian_count?: number;
 }
+
+export interface RegulatorySettings {
+  updates_enabled: boolean;
+  ack_configured?: boolean;
+}
