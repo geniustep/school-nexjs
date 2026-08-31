@@ -31,6 +31,11 @@ function text(value: unknown): string {
   return String(value).trim();
 }
 
+function positiveId(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
+}
+
 function looksArabic(value: string): boolean {
   return /[\u0600-\u06ff]/.test(value);
 }
@@ -79,6 +84,7 @@ export function mapAdmissionPrefillToFullRegistration(
   const guardianSnapshot = extractAdmissionGuardianPrefillText(prefill);
   const guardianSelection = resolveAdmissionGuardianSelection(prefill);
   const rawGuardian = record(prefill.guardian);
+  const resolvedPersonId = positiveId(rawGuardian.person_id) ?? positiveId(rawGuardian.partner_id);
   const relationship =
     guardianSnapshot.relationship ||
     text(rawGuardian.guardian_relationship) ||
@@ -88,7 +94,8 @@ export function mapAdmissionPrefillToFullRegistration(
     names.nameAr ||
       names.nameFr ||
       guardianSnapshot.phone ||
-      guardianSelection.guardianId,
+      guardianSelection.guardianId ||
+      resolvedPersonId,
   );
 
   let guardianKey: FullRegistrationAdmissionGuardianKey | null = null;
@@ -97,19 +104,21 @@ export function mapAdmissionPrefillToFullRegistration(
 
   if (hasGuardianSnapshot) {
     const target = guardianTarget(relationship);
+    const existing = Boolean(guardianSelection.guardianId || resolvedPersonId);
     guardianKey = target.key;
     familyContext = target.familyContext;
     guardian = {
       key: target.key,
-      mode: guardianSelection.guardianId ? 'existing' : 'new',
+      mode: existing ? 'existing' : 'new',
       relationshipType: target.relationshipType,
       linkedGuardianId: guardianSelection.guardianId,
-      linkedPersonId: null,
+      linkedPersonId: guardianSelection.guardianId ? null : resolvedPersonId,
       nameAr: names.nameAr,
       nameFr: names.nameFr,
       preferredLanguage: text(rawGuardian.preferred_language).toLowerCase() === 'fr' ? 'fr' : 'ar',
       phone: guardianSnapshot.phone,
       identity:
+        text(rawGuardian.identity_document_number) ||
         text(rawGuardian.identity) ||
         text(rawGuardian.cin) ||
         text(rawGuardian.national_id),
