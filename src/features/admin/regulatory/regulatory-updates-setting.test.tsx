@@ -1,7 +1,6 @@
 /** @vitest-environment happy-dom */
 
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RegulatoryUpdatesSetting } from './regulatory-updates-setting';
 
@@ -56,7 +55,10 @@ describe('RegulatoryUpdatesSetting', () => {
     expect(screen.getByText('جارٍ تحميل حالة الاستقبال…')).toBeTruthy();
     expect(screen.queryByRole('switch')).toBeNull();
 
-    resolve(success(true));
+    await act(async () => {
+      resolve(success(true));
+    });
+
     const toggle = await screen.findByRole('switch');
     expect(toggle.getAttribute('aria-checked')).toBe('true');
   });
@@ -74,14 +76,13 @@ describe('RegulatoryUpdatesSetting', () => {
   });
 
   it('sends one boolean mutation and uses the server-confirmed enabled state', async () => {
-    const user = userEvent.setup();
     mocks.fetchSettings.mockResolvedValue(success(false));
     mocks.updateSettings.mockResolvedValue(success(true));
 
     render(<RegulatoryUpdatesSetting canManage />);
 
     const toggle = await screen.findByRole('switch');
-    await user.click(toggle);
+    fireEvent.click(toggle);
 
     expect(mocks.updateSettings).toHaveBeenCalledTimes(1);
     expect(mocks.updateSettings).toHaveBeenCalledWith(true);
@@ -90,7 +91,6 @@ describe('RegulatoryUpdatesSetting', () => {
   });
 
   it('prevents duplicate submission while a mutation is pending', async () => {
-    const user = userEvent.setup();
     let resolve!: (value: ReturnType<typeof success>) => void;
     mocks.fetchSettings.mockResolvedValue(success(false));
     mocks.updateSettings.mockReturnValue(new Promise((done) => { resolve = done; }));
@@ -98,17 +98,19 @@ describe('RegulatoryUpdatesSetting', () => {
     render(<RegulatoryUpdatesSetting canManage />);
 
     const toggle = await screen.findByRole('switch');
-    await user.click(toggle);
+    fireEvent.click(toggle);
     expect((toggle as HTMLButtonElement).disabled).toBe(true);
-    await user.click(toggle);
+
+    fireEvent.click(toggle);
     expect(mocks.updateSettings).toHaveBeenCalledTimes(1);
 
-    resolve(success(true));
+    await act(async () => {
+      resolve(success(true));
+    });
     await waitFor(() => expect((toggle as HTMLButtonElement).disabled).toBe(false));
   });
 
   it('retains the previous confirmed state when mutation fails', async () => {
-    const user = userEvent.setup();
     mocks.fetchSettings.mockResolvedValue(success(true));
     mocks.updateSettings.mockResolvedValue(failure('تعذر الحفظ'));
 
@@ -116,7 +118,7 @@ describe('RegulatoryUpdatesSetting', () => {
 
     const toggle = await screen.findByRole('switch');
     expect(toggle.getAttribute('aria-checked')).toBe('true');
-    await user.click(toggle);
+    fireEvent.click(toggle);
 
     await waitFor(() => expect((toggle as HTMLButtonElement).disabled).toBe(false));
     expect(toggle.getAttribute('aria-checked')).toBe('true');
@@ -124,7 +126,6 @@ describe('RegulatoryUpdatesSetting', () => {
   });
 
   it('isolates a settings load failure from the rest of the page and supports retry', async () => {
-    const user = userEvent.setup();
     mocks.fetchSettings
       .mockResolvedValueOnce(failure('failed'))
       .mockResolvedValueOnce(success(true));
@@ -134,7 +135,7 @@ describe('RegulatoryUpdatesSetting', () => {
     expect(await screen.findByText('تعذر تحميل إعداد استقبال التحديثات التنظيمية.')).toBeTruthy();
     expect(screen.queryByRole('switch')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'إعادة المحاولة' }));
+    fireEvent.click(screen.getByRole('button', { name: 'إعادة المحاولة' }));
     const toggle = await screen.findByRole('switch');
     expect(toggle.getAttribute('aria-checked')).toBe('true');
   });
