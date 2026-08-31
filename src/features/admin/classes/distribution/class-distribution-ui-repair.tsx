@@ -9,6 +9,15 @@ type TargetOption = {
   disabled: boolean;
 };
 
+type GenderLabels = {
+  female: Set<string>;
+  male: Set<string>;
+};
+
+function normalizeLabel(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
 function splitTargetLabel(label: string): { primary: string; meta: string | null } {
   const separator = ' — ';
   const index = label.indexOf(separator);
@@ -127,7 +136,7 @@ function TargetPicker({ nativeSelect }: { nativeSelect: HTMLSelectElement }) {
       >
         <TargetOptionCopy label={selected?.label ?? ''} />
         <span className="class-distribution-target-picker__chevron" aria-hidden="true">
-         ⌄
+          ⌄
         </span>
       </button>
 
@@ -163,6 +172,177 @@ function TargetPicker({ nativeSelect }: { nativeSelect: HTMLSelectElement }) {
   );
 }
 
+function SynchronizedTopScrollbar({ workspaceScroller }: { workspaceScroller: HTMLDivElement }) {
+  const topScrollerRef = useRef<HTMLDivElement | null>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [scrollable, setScrollable] = useState(false);
+
+  useEffect(() => {
+    const topScroller = topScrollerRef.current;
+    if (!topScroller) return;
+
+    let syncing = false;
+    let releaseFrame = 0;
+
+    const release = () => {
+      cancelAnimationFrame(releaseFrame);
+      releaseFrame = requestAnimationFrame(() => {
+        syncing = false;
+      });
+    };
+
+    const measure = () => {
+      const nextWidth = Math.max(workspaceScroller.scrollWidth, workspaceScroller.clientWidth);
+      setContentWidth(nextWidth);
+      setScrollable(workspaceScroller.scrollWidth > workspaceScroller.clientWidth + 2);
+      if (Math.abs(topScroller.scrollLeft - workspaceScroller.scrollLeft) > 1) {
+        topScroller.scrollLeft = workspaceScroller.scrollLeft;
+      }
+    };
+
+    const syncFromWorkspace = () => {
+      if (syncing) return;
+      syncing = true;
+      if (Math.abs(topScroller.scrollLeft - workspaceScroller.scrollLeft) > 1) {
+        topScroller.scrollLeft = workspaceScroller.scrollLeft;
+      }
+      release();
+    };
+
+    const syncFromTop = () => {
+      if (syncing) return;
+      syncing = true;
+      if (Math.abs(workspaceScroller.scrollLeft - topScroller.scrollLeft) > 1) {
+        workspaceScroller.scrollLeft = topScroller.scrollLeft;
+      }
+      release();
+    };
+
+    measure();
+    workspaceScroller.addEventListener('scroll', syncFromWorkspace, { passive: true });
+    topScroller.addEventListener('scroll', syncFromTop, { passive: true });
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(workspaceScroller);
+    Array.from(workspaceScroller.children).forEach((child) => resizeObserver.observe(child));
+
+    const mutationObserver = new MutationObserver(() => {
+      Array.from(workspaceScroller.children).forEach((child) => resizeObserver.observe(child));
+      measure();
+    });
+    mutationObserver.observe(workspaceScroller, { childList: true, subtree: true });
+
+    return () => {
+      cancelAnimationFrame(releaseFrame);
+      workspaceScroller.removeEventListener('scroll', syncFromWorkspace);
+      topScroller.removeEventListener('scroll', syncFromTop);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [workspaceScroller]);
+
+  return (
+    <div
+      ref={topScrollerRef}
+      className="class-distribution-top-scrollbar"
+      data-scrollable={scrollable || undefined}
+      tabIndex={scrollable ? 0 : -1}
+      aria-label={workspaceScroller.getAttribute('aria-label') ?? undefined}
+      dir={getComputedStyle(workspaceScroller).direction === 'rtl' ? 'rtl' : 'ltr'}
+    >
+      <div
+        className="class-distribution-top-scrollbar__spacer"
+        style={{ width: `${contentWidth}px` }}
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
+function textBefore(node: Element, before: Element): string {
+  const chunks: string[] = [];
+  for (const child of Array.from(node.childNodes)) {
+    if (child === before) break;
+    chunks.push(child.textContent ?? '');
+  }
+  return normalizeLabel(chunks.join(''));
+}
+
+function textBetween(node: Element, start: Element, end: Element): string {
+  const chunks: string[] = [];
+  let collecting = false;
+  for (const child of Array.from(node.childNodes)) {
+    if (child === start) {
+      collecting = true;
+      continue;
+    }
+    if (child === end) break;
+    if (collecting) chunks.push(child.textContent ?? '');
+  }
+  return normalizeLabel(chunks.join('').replace(/[·•|]+/g, ' '));
+}
+
+function genderLabelsFromSummaries(root: ParentNode): GenderLabels {
+  const female = new Set<string>();
+  const male = new Set<string>();
+
+  root
+    .querySelectorAll<HTMLElement>('.class-distribution-lane__capacity > span:nth-child(2)')
+    .forEach((summary) => {
+      const values = summary.querySelectorAll('bdi');
+      if (values.length < 2) return;
+
+      const femaleLabel = textBefore(summary, values[0]);
+      const maleLabel = textBetween(summary, values[0], values[1]);
+      const femaleCount = normalizeLabel(values[0]?.textContent ?? '');
+      const maleCount = normalizeLabel(values[1]?.textContent ?? '');
+
+      if (!femaleLabel || !maleLabel || !femaleCount || !maleCount) return;
+
+      female.add(femaleLabel.toLocaleLowerCase());
+      male.add(maleLabel.toLocaleLowerCase());
+      summary.classList.add('class-distribution-gender-summary');
+      summary.dataset.femaleLabel = femaleLabel;
+      summary.dataset.femaleCount = femaleCount;
+      summary.dataset.maleLabel = maleLabel;
+      summary.dataset.maleCount = maleCount;
+    });
+
+  return { female, male };
+}
+
+function classifyGender(label: string, labels: GenderLabels): 'female' | 'male' | null {
+  const normalized = normalizeLabel(label).toLocaleLowerCase();
+  if (!normalized) return null;
+  if (labels.female.has(normalized)) return 'female';
+  if (labels.male.has(normalized)) return 'male';
+
+  const femaleFallbacks = ['أنثى', 'انثى', 'female', 'féminin', 'feminin', 'fille'];
+  const maleFallbacks = ['ذكر', 'male', 'masculin', 'garçon', 'garcon'];
+  if (femaleFallbacks.includes(normalized)) return 'female';
+  if (maleFallbacks.includes(normalized)) return 'male';
+  return null;
+}
+
+function applyGenderEnhancements(root: ParentNode) {
+  const labels = genderLabelsFromSummaries(root);
+
+  root.querySelectorAll<HTMLElement>('.class-distribution-student').forEach((row) => {
+    const badge = row.querySelector<HTMLElement>('.class-distribution-student__copy > span > small');
+    if (!badge) return;
+
+    badge.classList.add('class-distribution-student__gender-badge');
+    const gender = classifyGender(badge.textContent ?? '', labels);
+    if (gender) {
+      row.dataset.gender = gender;
+      badge.dataset.gender = gender;
+    } else {
+      delete row.dataset.gender;
+      delete badge.dataset.gender;
+    }
+  });
+}
+
 function lockPageHorizontalOverflow(root: Element) {
   const content = root.closest('main.content--admin') as HTMLElement | null;
   const main = content?.parentElement?.classList.contains('main')
@@ -192,22 +372,32 @@ function lockPageHorizontalOverflow(root: Element) {
 
 export function ClassDistributionUiRepair() {
   const [targetSelect, setTargetSelect] = useState<HTMLSelectElement | null>(null);
+  const [workspaceScroller, setWorkspaceScroller] = useState<HTMLDivElement | null>(null);
+  const [workspace, setWorkspace] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const root = document.querySelector('.class-distribution-page-shell');
     if (!root) return;
 
     const restoreOverflow = lockPageHorizontalOverflow(root);
-    const findTarget = () => {
+    const refresh = () => {
       const select = root.querySelector<HTMLSelectElement>(
         '.class-distribution-direct__mobile-target select',
       );
+      const nextScroller = root.querySelector<HTMLDivElement>(
+        '.class-distribution-workspace__scroller',
+      );
+      const nextWorkspace = root.querySelector<HTMLElement>('.class-distribution-workspace');
+
       setTargetSelect((current) => (current === select ? current : select));
+      setWorkspaceScroller((current) => (current === nextScroller ? current : nextScroller));
+      setWorkspace((current) => (current === nextWorkspace ? current : nextWorkspace));
+      applyGenderEnhancements(root);
     };
 
-    findTarget();
-    const observer = new MutationObserver(findTarget);
-    observer.observe(root, { childList: true, subtree: true });
+    refresh();
+    const observer = new MutationObserver(refresh);
+    observer.observe(root, { childList: true, subtree: true, characterData: true });
 
     return () => {
       observer.disconnect();
@@ -221,6 +411,17 @@ export function ClassDistributionUiRepair() {
     return () => targetSelect.classList.remove('class-distribution-target-picker__native');
   }, [targetSelect]);
 
-  if (!targetSelect?.parentElement) return null;
-  return createPortal(<TargetPicker nativeSelect={targetSelect} />, targetSelect.parentElement);
+  return (
+    <>
+      {targetSelect?.parentElement
+        ? createPortal(<TargetPicker nativeSelect={targetSelect} />, targetSelect.parentElement)
+        : null}
+      {workspace && workspaceScroller
+        ? createPortal(
+            <SynchronizedTopScrollbar workspaceScroller={workspaceScroller} />,
+            workspace,
+          )
+        : null}
+    </>
+  );
 }
