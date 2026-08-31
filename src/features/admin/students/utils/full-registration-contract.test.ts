@@ -81,6 +81,16 @@ describe('full registration V1 contract', () => {
     expect(serialized).not.toContain('selected_optional_line_ids');
   });
 
+  it('preserves admission linkage only when the registration came from an admission', () => {
+    const withoutAdmission = buildFullRegistrationPayload(baseInput());
+    expect(withoutAdmission.admission_id).toBeUndefined();
+
+    const input = baseInput();
+    input.admissionId = 81;
+    const withAdmission = buildFullRegistrationPayload(input);
+    expect(withAdmission.admission_id).toBe(81);
+  });
+
   it('keeps parents-together rights server-owned', () => {
     const payload = buildFullRegistrationPayload(baseInput());
     const relationships = payload.guardian_relationships as Array<Record<string, unknown>>;
