@@ -51,6 +51,7 @@ export interface FullRegistrationPricingAdjustment {
 }
 
 export interface FullRegistrationBuildInput {
+  admissionId?: number | null;
   academic: FullRegistrationAcademicDraft;
   student: FullRegistrationStudentDraft;
   familyContext: FullRegistrationFamilyContext;
@@ -300,6 +301,7 @@ export function buildFullRegistrationPayload(
   const canonicalLastName = latinComplete ? lastNameFr : lastNameAr;
 
   return {
+    admission_id: input.admissionId ?? undefined,
     first_name: canonicalFirstName,
     last_name: canonicalLastName,
     name_ar: [firstNameAr, lastNameAr].filter(Boolean).join(' '),
