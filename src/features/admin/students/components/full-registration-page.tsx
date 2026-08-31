@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/toast';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { useFeePlanSuggest } from '../hooks/use-fee-plan-suggest';
 import { useDebouncedValue } from '../hooks/use-debounced-value';
+import { useAdmissionPrefill } from '@/features/admin/admissions/hooks/use-admission-prefill';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import {
   buildEnrollmentCycleOptions,
@@ -54,6 +55,10 @@ import {
   fullRegistrationNameFieldOrder,
   fullRegistrationPricingPeriodDefaults,
 } from '../utils/full-registration-requested-adjustments';
+import {
+  mapAdmissionPrefillToFullRegistration,
+  parseFullRegistrationAdmissionId,
+} from '../utils/full-registration-admission-prefill';
 import styles from './full-registration-page.module.css';
 
 type GuardianKey = 'father' | 'mother' | 'single';
@@ -696,6 +701,12 @@ export function FullRegistrationPage() {
   const capabilities = useMemo(() => resolveStudentCreateJourneyCapabilities(user), [user]);
   const optionsState = useStudentOptions();
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
+  const [admissionId, setAdmissionId] = useState<number | null>(null);
+  const admissionPrefillAppliedRef = useRef<number | null>(null);
+  const admissionPrefillState = useAdmissionPrefill(
+    admissionId == null ? null : String(admissionId),
+    admissionId != null,
+  );
 
   const [academicYearId, setAcademicYearId] = useState('');
   const [cycleId, setCycleId] = useState('');
@@ -727,6 +738,11 @@ export function FullRegistrationPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<SuccessState | null>(null);
   const [validationAttempted, setValidationAttempted] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setAdmissionId(parseFullRegistrationAdmissionId(params.get('admission_id')));
+  }, []);
 
   const resolvedSchoolId = useMemo(() => {
     if (activeSchoolId != null) return activeSchoolId;
@@ -782,6 +798,59 @@ export function FullRegistrationPage() {
       ),
     [cycleId, levelOptionsState.options, levelsForYear],
   );
+
+  useEffect(() => {
+    if (
+      admissionId == null ||
+      !admissionPrefillState.data ||
+      admissionPrefillAppliedRef.current === admissionId ||
+      !optionsState.options ||
+      !levelOptionsState.options
+    ) {
+      return;
+    }
+
+    const patch = mapAdmissionPrefillToFullRegistration(admissionPrefillState.data);
+    setStudent((prev) => ({ ...prev, ...patch.student }));
+    if (patch.academicYearId) setAcademicYearId(patch.academicYearId);
+    if (patch.enrollmentDate) setEnrollmentDate(patch.enrollmentDate);
+    if (patch.familyContext) setFamilyContext(patch.familyContext);
+    if (patch.guardianKey && patch.guardian) {
+      setGuardians((prev) => ({ ...prev, [patch.guardianKey!]: patch.guardian! }));
+    }
+
+    if (patch.levelId) {
+      const targetLevels = patch.academicYearId
+        ? optionsState.options.levels.filter(
+            (level) =>
+              level.academic_year_id == null ||
+              String(level.academic_year_id) === patch.academicYearId,
+          )
+        : optionsState.options.levels;
+      const referenceLevels = levelOptionsState.options.reference_levels ?? [];
+      const cycles = levelOptionsState.options.cycles ?? [];
+      const targetCycle = buildEnrollmentCycleOptions(targetLevels, referenceLevels, cycles).find(
+        (cycle) =>
+          filterLevelsByCycleId(targetLevels, String(cycle.id), referenceLevels, cycles).some(
+            (level) => String(level.id) === patch.levelId,
+          ),
+      );
+      if (targetCycle) setCycleId(String(targetCycle.id));
+      setLevelId(patch.levelId);
+    }
+
+    admissionPrefillAppliedRef.current = admissionId;
+  }, [
+    admissionId,
+    admissionPrefillState.data,
+    levelOptionsState.options,
+    optionsState.options,
+  ]);
+
+  useEffect(() => {
+    if (admissionId == null || !admissionPrefillState.loaded || !admissionPrefillState.error) return;
+    setError(fullRegistrationCopy(locale, 'genericError'));
+  }, [admissionId, admissionPrefillState.error, admissionPrefillState.loaded, locale]);
 
   const feePlanQuery = useMemo(() => {
     if (!resolvedSchoolId || !academicYearId || !levelId || !enrollmentDate) return null;
@@ -962,6 +1031,7 @@ export function FullRegistrationPage() {
 
   function buildInput(): FullRegistrationBuildInput {
     return {
+      admissionId,
       academic: {
         schoolId: resolvedSchoolId,
         academicYearId,
@@ -1390,7 +1460,7 @@ export function FullRegistrationPage() {
 
       <div className={styles.actions}>
         <button type="button" className="btn btn--ghost" disabled={saving} onClick={() => router.push('/admin/students')}>{copy('cancel')}</button>
-        <button type="button" className="btn btn--primary" data-testid="full-registration-submit" disabled={saving || optionsState.loading} onClick={() => void submit()}>{saving ? copy('saving') : copy('submit')}</button>
+        <button type="button" className="btn btn--primary" data-testid="full-registration-submit" disabled={saving || optionsState.loading || admissionPrefillState.loading} onClick={() => void submit()}>{saving ? copy('saving') : copy('submit')}</button>
       </div>
 
       {pricingOpen ? (
