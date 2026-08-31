@@ -23,6 +23,7 @@ import {
   resolveClassesBrowserEmptyVariant,
   type GroupedClassesByCycle,
 } from '@/features/admin/classes/utils/group-classes-by-level';
+import { resolveClassReadinessPresentation } from '@/features/admin/classes/utils/class-readiness-presentation';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import type { Level, SchoolClass } from '@/types/class';
@@ -99,11 +100,12 @@ function ClassRow({
 }) {
   const t = useT();
   const { locale } = useLocale();
-  const studentCount = cls.student_count ?? 0;
+  const studentCount = cls.assigned_count ?? cls.student_count ?? 0;
   const fill = capacityPercent(studentCount, cls.capacity);
   const isActive = cls.status === 'active';
   const overCapacity = !!cls.capacity && cls.capacity > 0 && studentCount > cls.capacity;
   const title = classTitle(cls, locale, t('common.class'));
+  const readiness = resolveClassReadinessPresentation(cls.readiness, locale);
   const displayCode =
     cls.recommended_display_code?.trim() ||
     cls.academic_code?.trim() ||
@@ -125,12 +127,13 @@ function ClassRow({
           </strong>
           {!isActive ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}
         </span>
-        <span className="classes-browser__class-meta">
+        <span className="classes-browser__class-meta" style={{ gap: 6 }}>
           {displayCode ? (
             <span className="classes-browser__class-code mono" dir="ltr">
               {locale === 'ar' ? `القسم: ${displayCode}` : displayCode}
             </span>
           ) : null}
+          {readiness ? <Badge tone={readiness.tone}>{readiness.label}</Badge> : null}
           {cls.track?.name ? (
             <span className="classes-browser__class-track" dir="auto">
               {cls.track.name}
