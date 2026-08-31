@@ -5,6 +5,16 @@
 }
 
 .class-distribution-page-shell {
+  --distribution-gender-female: color-mix(
+    in srgb,
+    var(--c-primary) 58%,
+    var(--c-danger, var(--c-primary))
+  );
+  --distribution-gender-male: color-mix(
+    in srgb,
+    var(--c-primary) 68%,
+    var(--c-success, var(--c-primary))
+  );
   inline-size: 100%;
   min-inline-size: 0;
   max-inline-size: 100%;
@@ -19,16 +29,145 @@
 }
 
 .class-distribution-page-shell .class-distribution-workspace {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .class-distribution-page-shell .class-distribution-workspace__scroller {
+  order: 0;
   box-sizing: border-box;
   inline-size: 100%;
   min-inline-size: 0;
   max-inline-size: 100%;
   overflow-x: auto;
   overflow-y: hidden;
+}
+
+.class-distribution-top-scrollbar {
+  order: -1;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  block-size: 17px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: auto;
+  overscroll-behavior-inline: contain;
+  background: color-mix(in srgb, var(--c-surface-2) 54%, transparent);
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 72%, transparent);
+}
+
+.class-distribution-top-scrollbar:not([data-scrollable='true']) {
+  display: none;
+}
+
+.class-distribution-top-scrollbar__spacer {
+  block-size: 1px;
+  min-block-size: 1px;
+  pointer-events: none;
+}
+
+.class-distribution-top-scrollbar::-webkit-scrollbar {
+  height: 12px;
+}
+
+.class-distribution-top-scrollbar::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--c-surface-2) 78%, transparent);
+  border-radius: 999px;
+}
+
+.class-distribution-top-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--c-primary) 42%, var(--c-border));
+  border: 3px solid color-mix(in srgb, var(--c-surface-2) 78%, transparent);
+  border-radius: 999px;
+}
+
+.class-distribution-top-scrollbar:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: -2px;
+}
+
+.class-distribution-gender-summary {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  min-inline-size: 142px;
+  font-size: 0 !important;
+  text-align: center !important;
+}
+
+.class-distribution-gender-summary::before,
+.class-distribution-gender-summary::after {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-block-size: 25px;
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}
+
+.class-distribution-gender-summary::before {
+  content: '● ' attr(data-female-count) ' ' attr(data-female-label);
+  color: var(--distribution-gender-female);
+  background: color-mix(in srgb, var(--distribution-gender-female) 9%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--distribution-gender-female) 24%, var(--c-border));
+}
+
+.class-distribution-gender-summary::after {
+  content: '● ' attr(data-male-count) ' ' attr(data-male-label);
+  color: var(--distribution-gender-male);
+  background: color-mix(in srgb, var(--distribution-gender-male) 9%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--distribution-gender-male) 24%, var(--c-border));
+}
+
+.class-distribution-gender-summary > * {
+  font-size: 0 !important;
+}
+
+.class-distribution-student__gender-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  inline-size: max-content;
+  min-block-size: 22px;
+  padding: 2px 7px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-surface-2) 74%, var(--c-surface));
+  color: var(--c-text-muted);
+  font-size: 11px !important;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.class-distribution-student__gender-badge::before {
+  content: '';
+  inline-size: 6px;
+  block-size: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.class-distribution-student[data-gender='female'] .class-distribution-student__gender-badge {
+  color: var(--distribution-gender-female);
+  border-color: color-mix(in srgb, var(--distribution-gender-female) 24%, var(--c-border));
+  background: color-mix(in srgb, var(--distribution-gender-female) 8%, var(--c-surface));
+}
+
+.class-distribution-student[data-gender='male'] .class-distribution-student__gender-badge {
+  color: var(--distribution-gender-male);
+  border-color: color-mix(in srgb, var(--distribution-gender-male) 24%, var(--c-border));
+  background: color-mix(in srgb, var(--distribution-gender-male) 8%, var(--c-surface));
 }
 
 .class-distribution-target-picker__native,
@@ -173,5 +312,9 @@ html[dir='rtl'] .class-distribution-target-picker__copy {
 @media (max-width: 760px) {
   .class-distribution-target-picker {
     min-inline-size: 0;
+  }
+
+  .class-distribution-gender-summary {
+    min-inline-size: 132px;
   }
 }
