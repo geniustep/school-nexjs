@@ -1,0 +1,33 @@
+name: Generate audit lock
+
+on:
+  push:
+    branches:
+      - chore/audit-lock-generator-20260901
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Generate security lock update
+        run: npm audit fix --package-lock-only --audit-level=high
+      - name: Validate frozen install
+        run: npm ci
+      - name: Validate high-severity audit gate
+        run: npm audit --audit-level=high
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-fixed-package-lock
+          path: package-lock.json
+          if-no-files-found: error
