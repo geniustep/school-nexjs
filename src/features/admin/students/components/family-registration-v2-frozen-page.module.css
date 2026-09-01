@@ -1,0 +1,422 @@
+.page {
+  display: grid;
+  gap: 20px;
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.titleRow,
+.cardHead,
+.sectionHead,
+.inlineAction,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titleRow h1,
+.sectionHead h2,
+.sideCard h2,
+.cardHead h3,
+.cardHead h4,
+.subTitle {
+  margin: 0;
+}
+
+.titleRow h1 {
+  font-size: clamp(1.45rem, 2vw, 2rem);
+}
+
+.defaultsRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+}
+
+.defaultReadOnly,
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.defaultReadOnly {
+  align-content: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.defaultReadOnly span,
+.field span,
+.muted {
+  color: var(--muted-foreground, #64748b);
+  font-size: 0.82rem;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 18px;
+  align-items: start;
+}
+
+.mainColumn,
+.guardianStack,
+.childrenStack {
+  display: grid;
+  gap: 14px;
+}
+
+.guardianCard,
+.childCard,
+.childCardCollapsed,
+.sideCard,
+.feeSummary {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+}
+
+.guardianCard,
+.childCard,
+.sideCard {
+  padding: 16px;
+}
+
+.guardianCard,
+.childCard {
+  display: grid;
+  gap: 16px;
+}
+
+.sideCard {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 16px;
+}
+
+.segmented {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-muted, #f1f5f9);
+}
+
+.segmented button,
+.singleChoice button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.segmented .activeSegment,
+.singleChoice .activeChoice {
+  background: var(--surface, #fff);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 12%);
+  font-weight: 700;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.linkedGuardian,
+.searchBox {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.successBadge {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.searchResult {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+}
+
+.searchResult > div {
+  display: grid;
+  gap: 3px;
+}
+
+.billingChoice,
+.familyOptions label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.billingChoice {
+  width: fit-content;
+  font-weight: 650;
+}
+
+.familyOptions {
+  display: grid;
+  gap: 11px;
+}
+
+.singleChoice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.warning {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.subTitle {
+  padding-top: 2px;
+  font-size: 0.95rem;
+}
+
+.childCardCollapsed {
+  overflow: hidden;
+}
+
+.childCollapseButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: inherit;
+  font: inherit;
+}
+
+.childCollapseButton span {
+  color: var(--muted-foreground, #64748b);
+  font-size: 0.86rem;
+}
+
+.serviceCombo {
+  position: relative;
+  display: grid;
+  gap: 7px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 44px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid var(--border, #d7dce3);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+}
+
+.chips input {
+  flex: 1 1 190px;
+  min-width: 120px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+}
+
+.chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: var(--surface-muted, #eef2f7);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.serviceResults {
+  position: absolute;
+  z-index: 8;
+  top: 48px;
+  inset-inline: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  box-shadow: 0 14px 35px rgb(15 23 42 / 12%);
+}
+
+.serviceResults button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: inherit;
+  font: inherit;
+}
+
+.serviceResults button:hover {
+  background: var(--surface-muted, #f8fafc);
+}
+
+.feeSummary {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface-muted, #fbfcfe);
+}
+
+.feeLines,
+.summaryList,
+.childStatuses {
+  display: grid;
+  gap: 8px;
+}
+
+.feeLines > div,
+.feeTotal,
+.summaryList > div,
+.childStatuses > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feeTotal {
+  padding-top: 10px;
+  border-top: 1px solid var(--border, #e5e7eb);
+  font-weight: 800;
+}
+
+.feeEditor {
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border, #cbd5e1);
+}
+
+.feeEditRow {
+  display: grid;
+  grid-template-columns: minmax(130px, 1.3fr) repeat(3, minmax(110px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.feeEditRow label {
+  display: grid;
+  gap: 5px;
+}
+
+.feeEditRow label span {
+  color: var(--muted-foreground, #64748b);
+  font-size: 0.78rem;
+}
+
+.summaryList {
+  margin: 0;
+}
+
+.summaryList dt,
+.summaryList dd {
+  margin: 0;
+}
+
+.summaryList dd {
+  font-weight: 800;
+}
+
+.childStatuses {
+  padding-top: 10px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.childStatuses strong {
+  font-size: 0.8rem;
+}
+
+.actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  justify-content: flex-end;
+  padding: 12px 0 2px;
+  background: linear-gradient(to top, var(--page-background, #fff) 72%, transparent);
+}
+
+@media (max-width: 1000px) {
+  .twoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .sideCard {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 14px;
+  }
+
+  .defaultsRow,
+  .formGrid,
+  .feeEditRow {
+    grid-template-columns: 1fr;
+  }
+
+  .titleRow,
+  .actions,
+  .childCollapseButton {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}
