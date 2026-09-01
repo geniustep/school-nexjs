@@ -210,6 +210,24 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['POST'],
     test: (p) => p === '/admin/regulatory-calendar/project',
   },
+  /** Class distribution V1 — exact read + initial-assignment mutation only. */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => p === '/admin/class-distribution',
+  },
+  {
+    methods: ['POST'],
+    test: (p) => p === '/admin/class-distribution/assign',
+  },
+  /** Class distribution V2 — exact workspace read + redistribution mutation only. */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => p === '/admin/class-distribution/workspace',
+  },
+  {
+    methods: ['POST'],
+    test: (p) => p === '/admin/class-distribution/move',
+  },
   {
     methods: ALL_METHODS,
     test: (p) => familyPattern('admin', BFF_ADMIN_FAMILIES).test(p),

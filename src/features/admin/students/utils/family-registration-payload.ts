@@ -13,11 +13,11 @@ import {
   type BillingResponsibilityFieldErrors,
 } from './student-create-billing-responsibility';
 import {
-  buildStudentCreatePayload,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
   type StudentProfileFieldErrors,
   type StudentProfileFormState,
+  buildStudentCreatePayload,
 } from './student-profile';
 import {
   childDisplayName,
@@ -25,11 +25,73 @@ import {
   type FamilyRegistrationChildState,
   type FamilyRegistrationFormState,
 } from './family-registration-state';
-import { isCompleteStudentCreateGuardianEntry } from './student-create-additional-guardians';
+import {
+  isCompleteStudentCreateGuardianEntry,
+  resolveAdditionalGuardianSourceMode,
+} from './student-create-additional-guardians';
 import type { StudentCreateGuardianValidationErrors } from './student-create-guardian-payload';
 
 function trim(value: string | undefined | null): string {
   return (value ?? '').trim();
+}
+
+/**
+ * The family form exposes a permanent mother card next to the father card.
+ * Leaving that card entirely untouched means "mother not supplied" rather than
+ * an incomplete guardian. Once the user enters data or switches it to an
+ * existing guardian, normal guardian validation applies.
+ */
+function isPristineOptionalMotherEntry(
+  entry: StudentCreateGuardianEntry,
+  billing: StudentCreateBillingFormState,
+): boolean {
+  if (entry.kind !== 'new' || entry.relationship_type !== 'mother') return false;
+  if (resolveAdditionalGuardianSourceMode(entry, billing) !== 'new') return false;
+  const withIdentity = entry as StudentCreateGuardianEntry & {
+    identityDocument?: Record<string, unknown>;
+  };
+  const identityHasValue = Object.values(withIdentity.identityDocument ?? {}).some(
+    (value) => typeof value === 'string' && value.trim().length > 0,
+  );
+  return (
+    trim(entry.full_name).length === 0 &&
+    trim(entry.phone).length === 0 &&
+    trim(entry.email).length === 0 &&
+    !identityHasValue
+  );
+}
+
+function familyBillingForValidation(
+  billing: StudentCreateBillingFormState,
+): StudentCreateBillingFormState {
+  const optionalKeys = new Set(
+    billing.guardianEntries
+      .filter((entry) => isPristineOptionalMotherEntry(entry, billing))
+      .map((entry) => entry.entryKey),
+  );
+  if (optionalKeys.size === 0) return billing;
+
+  const additionalGuardianSourceModeByEntryKey = {
+    ...billing.additionalGuardianSourceModeByEntryKey,
+  };
+  const provisionAccessByEntryKey = { ...billing.provisionAccessByEntryKey };
+  for (const key of optionalKeys) {
+    delete additionalGuardianSourceModeByEntryKey[key];
+    delete provisionAccessByEntryKey[key];
+  }
+
+  return {
+    ...billing,
+    guardianEntries: billing.guardianEntries.filter(
+      (entry) => !optionalKeys.has(entry.entryKey),
+    ),
+    billingGuardianEntryKey:
+      billing.billingGuardianEntryKey && optionalKeys.has(billing.billingGuardianEntryKey)
+        ? null
+        : billing.billingGuardianEntryKey,
+    additionalGuardianSourceModeByEntryKey,
+    provisionAccessByEntryKey,
+  };
 }
 
 /**
@@ -120,7 +182,8 @@ export function validateFamilyRegistrationGuardiansStep(
   state: FamilyRegistrationFormState,
   t: (key: string) => string,
 ): { valid: boolean; errors: FamilyRegistrationValidationErrors } {
-  const billingCheck = validateBillingResponsibilityForm(state.billing, t);
+  const validationBilling = familyBillingForValidation(state.billing);
+  const billingCheck = validateBillingResponsibilityForm(validationBilling, t);
   if (!billingCheck.valid) {
     return {
       valid: false,
@@ -138,7 +201,7 @@ export function validateFamilyRegistrationGuardiansStep(
   );
   const guardianCheck = validateStudentCreateGuardianContract(
     profile,
-    state.billing,
+    validationBilling,
     t,
   );
   if (!guardianCheck.valid) {
@@ -152,11 +215,11 @@ export function validateFamilyRegistrationGuardiansStep(
     };
   }
 
-  const entries = collectStudentCreateGuardianEntries(profile, state.billing, {
+  const entries = collectStudentCreateGuardianEntries(profile, validationBilling, {
     completeOnly: true,
   });
   if (
-    state.billing.responsibilitySelection === 'guardian' &&
+    validationBilling.responsibilitySelection === 'guardian' &&
     entries.length === 0
   ) {
     const message = t('admin.student360.create.billingResponsibility.errors.guardianRequired');
@@ -171,9 +234,9 @@ export function validateFamilyRegistrationGuardiansStep(
   }
 
   if (
-    state.billing.responsibilitySelection === 'guardian' &&
+    validationBilling.responsibilitySelection === 'guardian' &&
     entries.length > 1 &&
-    !state.billing.billingGuardianEntryKey
+    !validationBilling.billingGuardianEntryKey
   ) {
     const message = t(
       'admin.student360.create.billingResponsibility.errors.billingGuardianSelectionRequired',

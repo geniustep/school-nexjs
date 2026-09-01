@@ -115,6 +115,25 @@ async function parse<T>(res: Response): Promise<ApiResponse<T>> {
   return { success: true, data: null as T, meta: {} };
 }
 
+function normalizeGuardianLinkPartnerResponse<T>(path: string, response: ApiResponse<T>): ApiResponse<T> {
+  if (path !== '/admin/guardians/link-partner' || !response.success) return response;
+  if (!response.data || typeof response.data !== 'object') return response;
+
+  const data = response.data as Record<string, unknown>;
+  const existingId = Number(data.id);
+  if (Number.isFinite(existingId) && existingId > 0) return response;
+
+  const guardian = data.guardian;
+  if (!guardian || typeof guardian !== 'object') return response;
+  const guardianId = Number((guardian as Record<string, unknown>).id);
+  if (!Number.isFinite(guardianId) || guardianId <= 0) return response;
+
+  return {
+    ...response,
+    data: { ...data, id: guardianId } as T,
+  };
+}
+
 export const api = {
   async get<T>(path: string, query?: ListParams): Promise<ApiResponse<T>> {
     try {
@@ -147,7 +166,8 @@ export const api = {
         cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
       });
-      return parse<T>(res);
+      const parsed = await parse<T>(res);
+      return normalizeGuardianLinkPartnerResponse(path, parsed);
     } catch {
       return {
         success: false,

@@ -63,22 +63,18 @@ export function resolveFeePlanSuggestEmptyMessage(
   pendingReason: FeePlanSuggestPendingReason | null,
   t: (key: string) => string,
 ): string {
-  if (pendingReason === 'join_date') {
-    return t('admin.student360.create.finance.waitingJoinDate');
-  }
+  if (pendingReason === 'join_date') return t('admin.student360.create.finance.waitingJoinDate');
   if (pendingReason === 'academic_year' || pendingReason === 'school') {
     return t('admin.student360.create.finance.waitingEnrollment');
   }
-  if (pendingReason === 'level') {
-    return t('admin.student360.create.finance.selectLevelForPlan');
-  }
+  if (pendingReason === 'level') return t('admin.student360.create.finance.selectLevelForPlan');
   return t('admin.student360.create.finance.waitingEnrollment');
 }
 
 export function buildFeePlanSuggestQuery(
   state: StudentProfileFormState,
   schoolId: number | null,
-  selectedFeePlanId?: number | null,
+  _selectedFeePlanId?: number | null,
 ): FeePlanSuggestQuery | null {
   if (!canRequestFeePlanSuggest({
     schoolId,
@@ -88,16 +84,12 @@ export function buildFeePlanSuggestQuery(
   })) {
     return null;
   }
-  const query: FeePlanSuggestQuery = {
+  return {
     school_id: schoolId as number,
     academic_year_id: Number(state.academicYearId),
     level_id: Number(state.levelId),
     enrollment_date: state.actualJoinDate.trim(),
   };
-  if (selectedFeePlanId != null && selectedFeePlanId > 0) {
-    query.fee_plan_id = selectedFeePlanId;
-  }
-  return query;
 }
 
 function buildOneTimeLineState(
@@ -112,8 +104,7 @@ function buildOneTimeLineState(
     const contract = contractLines.find((item) => item.line_id === line.line_id);
     oneTimeLines[String(line.line_id)] = {
       selected: contract?.selected ?? true,
-      amountOverride:
-        contract?.amount_override != null ? String(contract.amount_override) : '',
+      amountOverride: contract?.amount_override != null ? String(contract.amount_override) : '',
       dueDateOverride: contract?.due_date_override ?? line.due_date ?? '',
     };
   }
@@ -122,12 +113,10 @@ function buildOneTimeLineState(
     if (oneTimeLines[String(contract.line_id)]) continue;
     oneTimeLines[String(contract.line_id)] = {
       selected: contract.selected ?? true,
-      amountOverride:
-        contract.amount_override != null ? String(contract.amount_override) : '',
+      amountOverride: contract.amount_override != null ? String(contract.amount_override) : '',
       dueDateOverride: contract.due_date_override ?? '',
     };
   }
-
   return oneTimeLines;
 }
 
@@ -165,50 +154,13 @@ export function defaultStudentCreateFinanceFormState(
 }
 
 export function mergeFinanceStateWithSuggest(
-  previous: StudentCreateFinanceFormState,
+  _previous: StudentCreateFinanceFormState,
   suggest: FeePlanSuggestResult | null,
-  resetCustomization: boolean,
+  _resetCustomization: boolean,
 ): StudentCreateFinanceFormState {
-  const base = defaultStudentCreateFinanceFormState(suggest);
-  if (resetCustomization || !previous.customizePlan) {
-    return {
-      ...base,
-      selectedFeePlanId: previous.selectedFeePlanId ?? base.selectedFeePlanId,
-    };
-  }
-
-  const periodOverrides = { ...base.periodOverrides };
-  for (const [key, override] of Object.entries(previous.periodOverrides)) {
-    if (!periodOverrides[key]) continue;
-    periodOverrides[key] = {
-      selected: override.selected,
-      amountOverride: override.amountOverride,
-      dueDateOverride: override.dueDateOverride,
-    };
-  }
-
-  const oneTimeLines = { ...base.oneTimeLines };
-  for (const [key, override] of Object.entries(previous.oneTimeLines)) {
-    if (!oneTimeLines[key]) continue;
-    oneTimeLines[key] = { ...override };
-  }
-
-  const lineDiscounts = { ...base.lineDiscounts };
-  for (const [key, override] of Object.entries(previous.lineDiscounts)) {
-    if (!lineDiscounts[key]) continue;
-    lineDiscounts[key] = { ...override };
-  }
-
-  return {
-    selectedFeePlanId: previous.selectedFeePlanId ?? base.selectedFeePlanId,
-    customizePlan: previous.customizePlan,
-    customizationReason: previous.customizationReason,
-    customizationNotes: previous.customizationNotes,
-    periodOverrides,
-    planDiscount: { ...previous.planDiscount },
-    lineDiscounts,
-    oneTimeLines,
-  };
+  // Full registration follows the fresh canonical Base Plan suggestion.
+  // Manual plan selection/customization is not carried across context changes.
+  return defaultStudentCreateFinanceFormState(suggest);
 }
 
 export function buildStudentCreateFinancePayload(
@@ -216,15 +168,27 @@ export function buildStudentCreateFinancePayload(
   financeState: StudentCreateFinanceFormState,
   options?: { activationMode?: 'activate' },
 ): StudentCreateFinancePayload {
-  const feePlanId = financeState.selectedFeePlanId ?? suggest.fee_plan_id;
+  // Normal full registration does not pin a fee_plan_id. Odoo resolves the
+  // canonical Base Plan from school + academic year + level + enrollment date.
+  // Agreement activation is part of the registration invariant.
+  if (!financeState.customizePlan) {
+    return {
+      customize_plan: false,
+      activation_mode: 'activate',
+    };
+  }
+
   const suggestPeriods = resolveFinanceSuggestedPeriods(suggest);
-  const normalizedState = financeState.customizePlan
-    ? {
-        ...financeState,
-        periodOverrides: ensureFinancePeriodOverrides(suggestPeriods, financeState.periodOverrides),
-      }
-    : financeState;
-  return buildFinancePayload(feePlanId, suggestPeriods, normalizedState, options);
+  const normalizedState = {
+    ...financeState,
+    periodOverrides: ensureFinancePeriodOverrides(suggestPeriods, financeState.periodOverrides),
+  };
+  return buildFinancePayload(
+    suggest.fee_plan_id,
+    suggestPeriods,
+    normalizedState,
+    options?.activationMode === 'activate' ? { activationMode: 'activate' } : undefined,
+  );
 }
 
 export function buildEnrollmentPlanPreviewBody(
@@ -247,7 +211,7 @@ export function selectedFinancePeriods(
   financeState: StudentCreateFinanceFormState,
 ): FeePlanSuggestResult['suggested_periods'] {
   if (!financeState.customizePlan) {
-    return suggest.suggested_periods.filter((p) => p.selected !== false);
+    return suggest.suggested_periods.filter((period) => period.selected !== false);
   }
   return suggest.suggested_periods.filter((period) => {
     const override = financeState.periodOverrides[period.period_key];
@@ -256,10 +220,10 @@ export function selectedFinancePeriods(
 }
 
 export function canSkipFinanceOnCreate(
-  suggestError: FeePlanSuggestError | null,
-  allowedActions?: FeePlanSuggestResult['allowed_actions'],
+  _suggestError: FeePlanSuggestError | null,
+  _allowedActions?: FeePlanSuggestResult['allowed_actions'],
 ): boolean {
-  return suggestError?.code === 'no_default_fee_plan_for_level' && allowedActions?.skip_finance === true;
+  return false;
 }
 
 export function buildFeePlanSuggestErrorFromApi(error: {
@@ -303,46 +267,28 @@ export function buildFeePlanSuggestErrorFromApi(error: {
   };
 }
 
-/**
- * Reasons (from `reason_not_selected`) that a client may safely treat as
- * manually selectable when the backend does not send an explicit `selectable`
- * flag. Only `not_default` is safe: the plan matches the level and academic
- * year but is simply not marked as default. Inactive / unconfirmed / wrong-year
- * plans are NOT auto-selectable client-side.
- */
 const CLIENT_SELECTABLE_REASONS = new Set(['not_default']);
 
 export function isCandidateSelectable(candidate: FeePlanCandidatePlan): boolean {
   if (typeof candidate.selectable === 'boolean') return candidate.selectable;
   if (candidate.allowed_action === 'select_manually') return true;
-  if (candidate.reason_not_selected) {
-    return CLIENT_SELECTABLE_REASONS.has(candidate.reason_not_selected);
-  }
+  if (candidate.reason_not_selected) return CLIENT_SELECTABLE_REASONS.has(candidate.reason_not_selected);
   return false;
 }
 
-/**
- * Returns the candidate plans the user may select manually. Prefers the
- * backend `selectable_candidate_plans` list (new contract); otherwise derives
- * from `candidate_plans` using conservative client-side rules.
- */
 export function resolveSelectableCandidatePlans(
   error: FeePlanSuggestError | null,
 ): FeePlanCandidatePlan[] {
   if (!error) return [];
-  if (Array.isArray(error.selectable_candidate_plans) && error.selectable_candidate_plans.length > 0) {
+  if (
+    Array.isArray(error.selectable_candidate_plans) &&
+    error.selectable_candidate_plans.length > 0
+  ) {
     return error.selectable_candidate_plans;
   }
-  const candidates = error.candidate_plans ?? [];
-  return candidates.filter(isCandidateSelectable);
+  return (error.candidate_plans ?? []).filter(isCandidateSelectable);
 }
 
-/**
- * True when there is no plan at all matching this level/cycle for the year, so
- * the student should be created without a finance plan. Robust to both the new
- * `no_eligible_fee_plan_for_level` code and the legacy
- * `no_default_fee_plan_for_level` with zero matching plans / no candidates.
- */
 export function hasNoEligibleFeePlan(error: FeePlanSuggestError | null): boolean {
   if (!error) return false;
   if (error.code === 'no_eligible_fee_plan_for_level') return true;
@@ -353,7 +299,6 @@ export function hasNoEligibleFeePlan(error: FeePlanSuggestError | null): boolean
   return matching === 0 && !hasCandidates && !hasSelectable;
 }
 
-/** Localized scope/levels summary for a candidate plan, if data is available. */
 export function candidatePlanScopeSummary(candidate: FeePlanCandidatePlan): string | null {
   if (candidate.scope_summary?.trim()) return candidate.scope_summary.trim();
   if (Array.isArray(candidate.level_names) && candidate.level_names.length > 0) {
@@ -362,7 +307,6 @@ export function candidatePlanScopeSummary(candidate: FeePlanCandidatePlan): stri
   return null;
 }
 
-/** Cleaned list of level names for a candidate plan (drops blanks/dupes). */
 export function candidatePlanLevelNames(candidate: FeePlanCandidatePlan): string[] {
   if (!Array.isArray(candidate.level_names)) return [];
   const seen = new Set<string>();
@@ -404,8 +348,7 @@ export function resolveNoDefaultFeePlanMessage(
 
 export function financePlanFingerprint(query: FeePlanSuggestQuery | null): string {
   if (!query) return '';
-  const planPart = query.fee_plan_id != null ? `:${query.fee_plan_id}` : '';
-  return `${query.school_id}:${query.academic_year_id}:${query.level_id}:${query.enrollment_date}${planPart}`;
+  return `${query.school_id}:${query.academic_year_id}:${query.level_id}:${query.enrollment_date}`;
 }
 
 export function financePreviewFingerprint(input: {
@@ -455,4 +398,8 @@ export function mapEnrollmentPreviewErrorMessage(
     return message;
   }
   return t('admin.student360.create.finance.previewError');
+}
+
+export function financeCustomizationReasonOptionsForCreate(): FeePlanCustomizationReason[] {
+  return financeCustomizationReasonOptions();
 }

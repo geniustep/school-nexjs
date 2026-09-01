@@ -64,8 +64,8 @@ describe('normalizeFeePlanSuggestResponse enrollment contract', () => {
   });
 });
 
-describe('buildFeePlanSuggestQuery alternate plan', () => {
-  it('includes fee_plan_id when an alternate plan is selected', () => {
+describe('buildFeePlanSuggestQuery canonical Base Plan', () => {
+  it('ignores a legacy alternate-plan id and keeps resolver inputs canonical', () => {
     const state = {
       ...defaultStudentProfileFormState(null),
       academicYearId: '1',
@@ -73,8 +73,8 @@ describe('buildFeePlanSuggestQuery alternate plan', () => {
       actualJoinDate: '2026-06-19',
     };
     const query = buildFeePlanSuggestQuery(state, 3, 2967);
-    expect(query?.fee_plan_id).toBe(2967);
-    expect(financePlanFingerprint(query)).toContain(':2967');
+    expect(query?.fee_plan_id).toBeUndefined();
+    expect(financePlanFingerprint(query)).toBe('3:1:2446:2026-06-19');
   });
 });
 

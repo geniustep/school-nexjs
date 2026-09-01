@@ -8,6 +8,12 @@ import type { CurrentUser } from '@/types/user';
 const optionsFetchSpy = vi.fn();
 
 vi.mock('@/features/i18n/locale-context', () => ({
+  useLocale: () => ({
+    locale: 'ar',
+    setLocale: vi.fn(),
+    t: (key: string) => key,
+    dir: 'rtl',
+  }),
   useT: () => (key: string) => key,
 }));
 
@@ -60,10 +66,6 @@ vi.mock('./student-create-billing-step', () => ({
   StudentCreateBillingStep: () => <div data-testid="family-registration-billing-step" />,
 }));
 
-vi.mock('./family-registration-steps', () => ({
-  FamilyRegistrationStepper: () => <nav data-testid="family-registration-stepper" />,
-}));
-
 vi.mock('./student-create-section-header', () => ({
   StudentCreateStyledSection: ({
     title,
@@ -108,18 +110,17 @@ describe('FamilyRegistrationPage RBAC gate', () => {
     render(<FamilyRegistrationPage />);
 
     expect(screen.getByTestId('family-registration-denied')).toBeTruthy();
-    expect(screen.queryByTestId('family-registration-stepper')).toBeNull();
     expect(screen.queryByTestId('family-registration-billing-step')).toBeNull();
     expect(optionsFetchSpy).not.toHaveBeenCalled();
   });
 
-  it('renders the registration form when students.create is granted', () => {
+  it('renders the single-page registration form when students.create is granted', () => {
     vi.mocked(useSession).mockReturnValue(userWithCapabilities(['students.create']));
     render(<FamilyRegistrationPage />);
 
     expect(screen.queryByTestId('family-registration-denied')).toBeNull();
-    expect(screen.getByTestId('family-registration-stepper')).toBeTruthy();
     expect(screen.getByTestId('family-registration-billing-step')).toBeTruthy();
+    expect(screen.getByTestId('family-registration-review')).toBeTruthy();
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy();
     expect(optionsFetchSpy).toHaveBeenCalled();
   });

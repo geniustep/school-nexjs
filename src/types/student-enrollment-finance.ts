@@ -171,11 +171,8 @@ export interface FeePlanCandidatePlan {
   id: number;
   name: string;
   reason_not_selected?: string;
-  /** Backend explicit flag (new contract). When absent, derived from reason. */
   selectable?: boolean;
-  /** Backend action hint, e.g. 'select_manually'. */
   allowed_action?: string;
-  /** Human-readable hint for why/how this plan can be used. */
   hint?: string;
   is_default_for_level?: boolean;
   academic_year?: Ref | null;
@@ -202,9 +199,7 @@ export interface FeePlanSuggestError {
     plans_inactive?: number;
   };
   candidate_plans?: FeePlanCandidatePlan[];
-  /** New contract: candidates the user may select manually. */
   selectable_candidate_plans?: FeePlanCandidatePlan[];
-  /** New contract: true when a matching plan exists but needs manual choice. */
   requires_manual_selection?: boolean;
 }
 
@@ -234,7 +229,8 @@ export interface StudentCreateFinanceOneTimeLinePayload {
 export type FinanceAgreementActivationMode = 'draft' | 'activate';
 
 export interface StudentCreateFinancePayload {
-  fee_plan_id: number;
+  /** Omitted for normal registration so Odoo resolves the canonical Base Plan. */
+  fee_plan_id?: number;
   customize_plan: boolean;
   activation_mode?: FinanceAgreementActivationMode;
   customization_reason?: FeePlanCustomizationReason;
@@ -262,14 +258,7 @@ export interface StudentCreateFinanceFormState {
   customizePlan: boolean;
   customizationReason: FeePlanCustomizationReason | '';
   customizationNotes: string;
-  periodOverrides: Record<
-    string,
-    {
-      selected: boolean;
-      amountOverride: string;
-      dueDateOverride: string;
-    }
-  >;
+  periodOverrides: Record<string, { selected: boolean; amountOverride: string; dueDateOverride: string }>;
   planDiscount: EnrollmentFinanceDiscountFormState;
   lineDiscounts: Record<string, EnrollmentFinanceDiscountFormState>;
   oneTimeLines: Record<string, EnrollmentFinanceOneTimeLineFormState>;
@@ -280,9 +269,7 @@ export type StudentCreateGuardianSourceMode = 'new' | 'existing';
 export interface StudentCreateExistingGuardianEntry {
   kind: 'existing';
   entryKey: string;
-  /** Canonical school.parent id when a guardian profile already exists. */
   guardian_id?: number;
-  /** Canonical res.partner id for an existing person that is not yet school.parent. */
   person_id?: number;
   displayName: string;
   relationship_type: RelationshipType;
@@ -301,28 +288,19 @@ export interface StudentCreateNewGuardianEntry {
   is_primary_contact: boolean;
 }
 
-export type StudentCreateGuardianEntry =
-  | StudentCreateExistingGuardianEntry
-  | StudentCreateNewGuardianEntry;
+export type StudentCreateGuardianEntry = StudentCreateExistingGuardianEntry | StudentCreateNewGuardianEntry;
 
 export interface StudentCreateBillingFormState {
   responsibilitySelection: StudentCreateBillingResponsibilitySelection;
-  /** In student-billing mode, guardians are optional unless this is enabled. */
   addGuardianForStudent: boolean;
   studentBillingConfirmed: boolean;
   studentBillingReason: string;
   guardianSourceMode: StudentCreateGuardianSourceMode;
-  /** Canonical school.parent id selected from search — not partner_id */
   linkedGuardianId: number | null;
-  /** Canonical res.partner id selected from unified person search. */
   linkedGuardianPersonId: number | null;
-  /** Required when more than one guardian entry is submitted */
   billingGuardianEntryKey: string | null;
-  /** Additional guardians beyond the primary wizard slot */
   guardianEntries: StudentCreateGuardianEntry[];
-  /** Per additional entryKey: new vs existing search UI before the entry is complete */
   additionalGuardianSourceModeByEntryKey: Record<string, StudentCreateGuardianSourceMode>;
-  /** Opt-in portal provisioning per guardian entryKey — omitted/false means no request */
   provisionAccessByEntryKey: Record<string, boolean>;
 }
 

@@ -25,7 +25,6 @@ import { useStudentsListView } from '@/features/admin/students/hooks/use-student
 import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
 import { StudentsFinancialServiceCountCards } from '@/features/admin/students/components/students-financial-service-count-cards';
-import { StudentQuickCreateDialog } from '@/features/admin/students/components/student-quick-create-dialog';
 import { isStaleStudentsListServiceSelection } from '@/features/admin/students/utils/students-list-service-visibility';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -65,7 +64,6 @@ export default function AdminStudentsPage() {
     hasActiveQuery, hasActiveFilters, appliedQuery,
   } = useStudentsListFilterState();
   const [importOpen, setImportOpen] = useState(false);
-  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [view, setView] = useStudentsListView();
 
   const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
@@ -102,7 +100,7 @@ export default function AdminStudentsPage() {
       action={<button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>{t('admin.studentsList.resetFilters')}</button>} />
   ) : (
     <EmptyState title={t('admin.studentsList.noData.title')} description={t('admin.studentsList.noData.description')}
-      action={canAddStudent ? <button type="button" className="btn btn--primary btn--sm students-list__quick-create-trigger" onClick={() => setQuickCreateOpen(true)}><span aria-hidden="true">+</span>{t('admin.studentsList.quickCreate.trigger')}</button> : undefined} />
+      action={canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm students-list__quick-create-trigger"><span aria-hidden="true">+</span>{t('admin.studentsList.quickCreate.submit')}</Link> : undefined} />
   );
 
   const columns: Column<Student>[] = useMemo(() => [
@@ -131,10 +129,7 @@ export default function AdminStudentsPage() {
       <PageHeader
         title={t('nav.students')}
         actions={canAddStudent || canShowSecondaryActions ? <div className="students-list__header-actions">
-          {canAddStudent ? <>
-            <button type="button" className="btn btn--primary btn--sm students-list__quick-create-trigger" onClick={() => setQuickCreateOpen(true)}><span aria-hidden="true">+</span>{t('admin.studentsList.quickCreate.trigger')}</button>
-            <Link href="/admin/students/new" className="btn btn--ghost btn--sm">{t('admin.studentsList.quickCreate.fullRegistration')}</Link>
-          </> : null}
+          {canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm students-list__quick-create-trigger"><span aria-hidden="true">+</span>{t('admin.studentsList.quickCreate.submit')}</Link> : null}
           {canShowSecondaryActions ? <details className="students-list__more-actions">
             <summary className="btn btn--ghost btn--sm">{t('common.more')}</summary>
             <div className="students-list__more-actions-menu">
@@ -155,7 +150,6 @@ export default function AdminStudentsPage() {
       />
 
       {importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
-      {quickCreateOpen ? <StudentQuickCreateDialog open={quickCreateOpen} onClose={() => setQuickCreateOpen(false)} onCreated={() => state.reload()} /> : null}
 
       <StudentsFinancialServiceCountCards
         items={serviceCounts.items} feeTypes={feeTypes} totalStudents={serviceCounts.totalStudents}

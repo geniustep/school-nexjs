@@ -78,6 +78,20 @@ export interface SchoolClassUsage {
   attendance_records?: number;
 }
 
+export type ClassReadinessStatus = 'ready' | 'partial' | 'not_ready';
+
+export interface ClassReadiness {
+  completed: number;
+  total: 4;
+  status: ClassReadinessStatus;
+  items: {
+    capacity: { ready: boolean };
+    subjects: { ready: boolean };
+    teaching_assignments: { ready: boolean; missing_count: number };
+    timetable: { ready: boolean };
+  };
+}
+
 export type DeleteClassAction = 'deleted' | 'deactivated';
 
 export interface ClassRemovalResponse {
@@ -109,7 +123,10 @@ export interface SchoolClass {
   academic_year: string | null;
   /** Present on list/detail payloads when the year id is known for uniqueness scope. */
   academic_year_id?: number | null;
+  /** Legacy operational count; may reflect current_class_id/current student pointers. */
   student_count: number;
+  /** Canonical active annual-enrollment occupancy returned by the class list contract. */
+  assigned_count?: number | null;
   capacity: number | null;
   teachers: Ref[];
   subjects: Subject[];
@@ -121,6 +138,8 @@ export interface SchoolClass {
   excluded_subjects_count?: number;
   subjects_source?: ClassSubjectsSource;
   missing_teacher_assignments_count?: number;
+  /** Canonical four-item readiness summary returned by GET /api/v1/admin/classes. */
+  readiness?: ClassReadiness | null;
   status: string;
   can_delete?: boolean;
   can_deactivate?: boolean;

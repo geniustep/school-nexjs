@@ -8,6 +8,7 @@ import type { BillingResponsibilityFieldErrors } from './student-create-billing-
 export interface BillingResponsibilityApiErrorContext {
   message: string;
   fieldErrors?: BillingResponsibilityFieldErrors;
+  stayOnGuardianStep?: boolean;
 }
 
 const ERROR_MESSAGE_KEYS: Record<BillingResponsibilityStableErrorCode, string> = {
@@ -41,6 +42,12 @@ const ERROR_MESSAGE_KEYS: Record<BillingResponsibilityStableErrorCode, string> =
 
 const GUARDIAN_ATOMIC_ERROR_MESSAGE_KEYS = {
   guardian_identity_candidate_exists:
+    'admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
+  guardian_identity_conflict:
+    'admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
+  guardian_identity_mismatch:
+    'admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
+  identity_document_conflict:
     'admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
   guardian_login_conflict:
     'admin.student360.create.billingResponsibility.errors.guardianLoginConflict',
@@ -130,15 +137,19 @@ export function mapStudentCreateGuardianAtomicApiError(
   const message = label !== key ? label : error.message?.trim() || t('admin.student360.create.billingResponsibility.errors.generic');
   const fieldErrors: BillingResponsibilityFieldErrors = {};
 
-  if (code === 'guardian_identity_candidate_exists') {
-    fieldErrors.guardianRequired = message;
-  }
-  if (code === 'guardian_login_conflict') {
+  if (
+    code === 'guardian_identity_candidate_exists' ||
+    code === 'guardian_identity_conflict' ||
+    code === 'guardian_identity_mismatch' ||
+    code === 'identity_document_conflict' ||
+    code === 'guardian_login_conflict'
+  ) {
     fieldErrors.guardianRequired = message;
   }
 
   return {
     message,
     fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+    stayOnGuardianStep: true,
   };
 }

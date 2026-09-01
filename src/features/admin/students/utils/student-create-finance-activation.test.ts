@@ -67,13 +67,14 @@ describe('buildStudentCreateFinancePayload activation_mode', () => {
 });
 
 describe('buildStudentCreatePayload finance activation', () => {
-  it('does not send activation_mode on normal save', () => {
+  it('automatically activates Base Plan finance on normal full-registration save', () => {
     const payload = buildStudentCreatePayload(profile, {
       suggest,
       financeState: defaultStudentCreateFinanceFormState(suggest),
       schoolId: 3,
     });
-    expect(payload.finance?.activation_mode).toBeUndefined();
+    expect(payload.finance?.activation_mode).toBe('activate');
+    expect(payload.finance?.fee_plan_id).toBeUndefined();
     expect(payload.academic?.class_id).toBe(2058);
   });
 
@@ -128,7 +129,7 @@ describe('canOfferFinanceAgreementActivation', () => {
     ).toBe(true);
   });
 
-  it('is false when class is missing', () => {
+  it('remains true when class is missing because Base Plan is level-scoped', () => {
     expect(
       canOfferFinanceAgreementActivation({
         suggest,
@@ -140,7 +141,7 @@ describe('canOfferFinanceAgreementActivation', () => {
         previewError: null,
         preview: { final_total: 18500 },
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 });
 

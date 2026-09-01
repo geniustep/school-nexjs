@@ -694,12 +694,11 @@ function applyEmergencyFields(payload: StudentCreatePayload, state: StudentProfi
 export function getStudentCreateFinanceBlockReason(
   state: StudentProfileFormState,
   schoolId: number | null | undefined,
-): 'ok' | 'school' | 'academic_year' | 'level' | 'class' | 'join_date' {
+): 'ok' | 'school' | 'academic_year' | 'level' | 'join_date' {
   if (schoolId == null || schoolId <= 0) return 'school';
   if (positiveIdFromState(state.academicYearId) == null) return 'academic_year';
   if (positiveIdFromState(state.levelId) == null) return 'level';
   if (!trim(state.actualJoinDate)) return 'join_date';
-  if (positiveIdFromState(state.classId) == null) return 'class';
   return 'ok';
 }
 
@@ -764,7 +763,7 @@ export function buildStudentCreatePayload(
       finance.schoolId as number,
       scopedClassId,
     );
-    if (academic?.class_id != null) {
+    if (academic) {
       payload.academic = academic;
       payload.finance = buildStudentCreateFinancePayload(
         finance.suggest,

@@ -7,6 +7,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { ApiErrorBody } from '@/types/api';
 import type { StudentOptions, StudentOptionsPayload } from '@/types/student-360';
 import { normalizeStudentOptions } from '../utils/student-options';
+import { alignAcademicYearsWithActiveContext } from '../utils/full-registration-ui';
 
 export interface StudentOptionsState {
   loading: boolean;
@@ -16,7 +17,7 @@ export interface StudentOptionsState {
 }
 
 export function useStudentOptions(): StudentOptionsState {
-  const { activeSchoolId } = useAdminSession();
+  const { activeSchoolId, activeAcademicYearId } = useAdminSession();
   const [loading, setLoading] = useState(true);
   const [options, setOptions] = useState<StudentOptions | null>(null);
   const [error, setError] = useState<ApiErrorBody | null>(null);
@@ -37,7 +38,18 @@ export function useStudentOptions(): StudentOptionsState {
       .then((res) => {
         if (!active) return;
         if (res.success) {
-          setOptions(normalizeStudentOptions(res.data));
+          const normalized = normalizeStudentOptions(res.data);
+          if (normalized) {
+            setOptions({
+              ...normalized,
+              academicYears: alignAcademicYearsWithActiveContext(
+                normalized.academicYears,
+                activeAcademicYearId,
+              ),
+            });
+          } else {
+            setOptions(null);
+          }
           setError(null);
         } else {
           setOptions(null);
@@ -49,7 +61,7 @@ export function useStudentOptions(): StudentOptionsState {
     return () => {
       active = false;
     };
-  }, [activeSchoolId, nonce]);
+  }, [activeAcademicYearId, activeSchoolId, nonce]);
 
   return { loading, options, error, reload };
 }

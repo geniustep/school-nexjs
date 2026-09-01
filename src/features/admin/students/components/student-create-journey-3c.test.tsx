@@ -127,7 +127,7 @@ describe('REGISTRATION-FINANCE-3C journey hardening', () => {
     expect(ok.valid).toBe(true);
   });
 
-  it('registers without finance payload when plan is skipped', () => {
+  it('does not let a legacy skip flag suppress required Base Plan finance', () => {
     const profile = {
       ...defaultStudentProfileFormState(null),
       firstName: 'ياسين',
@@ -137,15 +137,23 @@ describe('REGISTRATION-FINANCE-3C journey hardening', () => {
       classId: '20',
       actualJoinDate: '2026-09-01',
     };
-    expect(shouldAttachFinanceOnCreate(true, { ok: true, fee_plan_id: 1 } as never, profile, 3)).toBe(
-      false,
-    );
+    const suggest = {
+      ok: true,
+      fee_plan_id: 1,
+      fee_plan_name: 'الخطة الأساسية',
+      suggested_periods: [],
+      excluded_periods: [],
+    };
+    expect(shouldAttachFinanceOnCreate(true, suggest as never, profile, 3)).toBe(true);
     const payload = buildStudentCreatePayload(profile, {
-      suggest: null,
-      financeState: defaultStudentCreateFinanceFormState(null),
+      suggest: suggest as never,
+      financeState: defaultStudentCreateFinanceFormState(suggest as never),
       schoolId: 3,
     });
-    expect(payload.finance).toBeUndefined();
+    expect(payload.finance).toEqual({
+      customize_plan: false,
+      activation_mode: 'activate',
+    });
   });
 
   it('links an existing guardian with billing_guardian_id', () => {
@@ -317,7 +325,7 @@ describe('REGISTRATION-FINANCE-3C journey hardening', () => {
     expect(String(server.message).length).toBeGreaterThan(0);
   });
 
-  it('does not compute financial totals locally in create payload builder', () => {
+  it('does not compute financial totals or pin a fee plan locally in create payload builder', () => {
     const profile = {
       ...defaultStudentProfileFormState(null),
       firstName: 'ياسين',
@@ -343,7 +351,8 @@ describe('REGISTRATION-FINANCE-3C journey hardening', () => {
       financeState: defaultStudentCreateFinanceFormState(suggest as never),
       schoolId: 3,
     });
-    expect(payload.finance?.fee_plan_id).toBe(99);
+    expect(payload.finance?.fee_plan_id).toBeUndefined();
+    expect(payload.finance?.activation_mode).toBe('activate');
     expect(payload.finance).not.toHaveProperty('final_total');
     expect(payload.finance).not.toHaveProperty('expected_total');
   });

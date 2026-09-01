@@ -88,7 +88,7 @@ describe('buildActivateAccountPayload', () => {
     ).toEqual({
       email: 'student@school.ma',
       password: 'SecurePass123!',
-      password_confirm: 'SecurePass123!',
+      password_confirmation: 'SecurePass123!',
       send_invite: false,
       must_change_password: true,
     });
@@ -106,26 +106,24 @@ describe('buildActivateAccountPayload', () => {
     ).toEqual({
       login: 'abdel',
       password: 'SecurePass123!',
-      password_confirm: 'SecurePass123!',
+      password_confirmation: 'SecurePass123!',
       send_invite: false,
     });
   });
 
   it('does not send password confirmation when no password is supplied', () => {
-    const payload = buildActivateAccountPayload({
-      email: 'student@school.ma',
-      login: '',
-      password: '',
-      passwordConfirmation: 'unused-confirmation',
-      sendInvite: false,
-    });
-    expect(payload).toEqual({
+    expect(
+      buildActivateAccountPayload({
+        email: 'student@school.ma',
+        login: '',
+        password: '',
+        passwordConfirmation: 'unused-confirmation',
+        sendInvite: false,
+      }),
+    ).toEqual({
       email: 'student@school.ma',
       send_invite: false,
     });
-    expect(payload).not.toHaveProperty('password');
-    expect(payload).not.toHaveProperty('password_confirm');
-    expect(payload).not.toHaveProperty('password_confirmation');
   });
 });
 

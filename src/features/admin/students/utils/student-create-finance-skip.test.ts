@@ -18,7 +18,6 @@ const suggest: FeePlanSuggestResult = {
   excluded_periods: [],
 };
 
-// Student coming from an admission: identity + academic enrollment are complete.
 const admissionProfile = {
   ...defaultStudentProfileFormState(null),
   firstName: 'QA',
@@ -30,8 +29,8 @@ const admissionProfile = {
   actualJoinDate: '2026-09-05',
 };
 
-describe('resolveStudentCreateFinanceStepGate — admission_id with finance plan', () => {
-  it('passes the step and attaches finance when a plan is available and selected', () => {
+describe('resolveStudentCreateFinanceStepGate — required Base Plan', () => {
+  it('passes and attaches finance when the canonical plan is available', () => {
     const gate = resolveStudentCreateFinanceStepGate({
       skipFinance: false,
       levelSelected: true,
@@ -44,38 +43,38 @@ describe('resolveStudentCreateFinanceStepGate — admission_id with finance plan
     expect(gate.attachFinance).toBe(true);
   });
 
-  it('blocks the step when class is still missing (current behaviour preserved)', () => {
+  it('ignores the legacy skip flag when a canonical plan is available', () => {
+    const gate = resolveStudentCreateFinanceStepGate({
+      skipFinance: true,
+      levelSelected: true,
+      suggestLoading: false,
+      financeBlocked: false,
+      suggest,
+      prerequisiteReason: 'ok',
+    });
+    expect(gate.status).toBe('ok');
+    expect(gate.attachFinance).toBe(true);
+  });
+
+  it('blocks the step when a canonical prerequisite is missing', () => {
     const gate = resolveStudentCreateFinanceStepGate({
       skipFinance: false,
       levelSelected: true,
       suggestLoading: false,
       financeBlocked: false,
       suggest,
-      prerequisiteReason: 'class',
+      prerequisiteReason: 'join_date',
     });
     expect(gate.status).toBe('prerequisite');
-    expect(gate.prerequisiteReason).toBe('class');
+    expect(gate.prerequisiteReason).toBe('join_date');
     expect(gate.attachFinance).toBe(false);
   });
 });
 
-describe('resolveStudentCreateFinanceStepGate — admission_id without finance plan', () => {
-  it('lets the user skip even when no default plan exists (not stuck on the step)', () => {
+describe('resolveStudentCreateFinanceStepGate — missing Base Plan', () => {
+  it('does not make missing plans optional even when legacy skip is true', () => {
     const gate = resolveStudentCreateFinanceStepGate({
       skipFinance: true,
-      levelSelected: true,
-      suggestLoading: false,
-      financeBlocked: true,
-      suggest: null,
-      prerequisiteReason: 'ok',
-    });
-    expect(gate.status).toBe('skip');
-    expect(gate.attachFinance).toBe(false);
-  });
-
-  it('without skip, a missing plan is optional and does not attach finance', () => {
-    const gate = resolveStudentCreateFinanceStepGate({
-      skipFinance: false,
       levelSelected: true,
       suggestLoading: false,
       financeBlocked: false,
@@ -84,10 +83,10 @@ describe('resolveStudentCreateFinanceStepGate — admission_id without finance p
     });
     expect(gate.status).toBe('no_plan');
     expect(gate.attachFinance).toBe(false);
-    expect(isOptionalFinanceGateStatus(gate.status)).toBe(true);
+    expect(isOptionalFinanceGateStatus(gate.status)).toBe(false);
   });
 
-  it('blocked / no-default plan remains optional for registration', () => {
+  it('keeps a finance-blocked state non-optional', () => {
     const gate = resolveStudentCreateFinanceStepGate({
       skipFinance: false,
       levelSelected: true,
@@ -98,7 +97,7 @@ describe('resolveStudentCreateFinanceStepGate — admission_id without finance p
     });
     expect(gate.status).toBe('blocked');
     expect(gate.attachFinance).toBe(false);
-    expect(isOptionalFinanceGateStatus(gate.status)).toBe(true);
+    expect(isOptionalFinanceGateStatus(gate.status)).toBe(false);
   });
 });
 
@@ -107,19 +106,25 @@ describe('shouldAttachFinanceOnCreate', () => {
     expect(shouldAttachFinanceOnCreate(false, suggest, admissionProfile, 3)).toBe(true);
   });
 
-  it('omits finance when the user skips the plan', () => {
-    expect(shouldAttachFinanceOnCreate(true, suggest, admissionProfile, 3)).toBe(false);
+  it('attaches finance even when class is not selected', () => {
+    expect(
+      shouldAttachFinanceOnCreate(false, suggest, { ...admissionProfile, classId: '' }, 3),
+    ).toBe(true);
   });
 
-  it('omits finance when no plan is suggested', () => {
+  it('legacy skip cannot suppress finance when the plan exists', () => {
+    expect(shouldAttachFinanceOnCreate(true, suggest, admissionProfile, 3)).toBe(true);
+  });
+
+  it('does not invent finance when no plan is suggested', () => {
     expect(shouldAttachFinanceOnCreate(false, null, admissionProfile, 3)).toBe(false);
   });
 });
 
-describe('buildStudentCreatePayload — finance optional on skip', () => {
-  it('creates student + academic enrollment without a finance/agreement payload when skipped', () => {
+describe('buildStudentCreatePayload — automatic Base Plan payload', () => {
+  it('does not attach finance when no suggestion is supplied to the builder', () => {
     const payload = buildStudentCreatePayload(admissionProfile, {
-      suggest: null, // wizard passes null suggest when skipping
+      suggest: null,
       financeState: defaultStudentCreateFinanceFormState(suggest),
       schoolId: 3,
     });
@@ -130,13 +135,38 @@ describe('buildStudentCreatePayload — finance optional on skip', () => {
     expect(payload.academic).toBeUndefined();
   });
 
-  it('keeps sending finance + academic when a plan is selected', () => {
+  it('sends automatic activation without pinning fee_plan_id', () => {
     const payload = buildStudentCreatePayload(admissionProfile, {
       suggest,
       financeState: defaultStudentCreateFinanceFormState(suggest),
       schoolId: 3,
     });
-    expect(payload.finance?.fee_plan_id).toBe(2967);
+    expect(payload.finance).toEqual({
+      customize_plan: false,
+      activation_mode: 'activate',
+    });
     expect(payload.academic?.class_id).toBe(2058);
+  });
+
+  it('sends Base Plan finance without academic.class_id when class is omitted', () => {
+    const payload = buildStudentCreatePayload(
+      { ...admissionProfile, classId: '' },
+      {
+        suggest,
+        financeState: defaultStudentCreateFinanceFormState(suggest),
+        schoolId: 3,
+      },
+    );
+    expect(payload.finance).toEqual({
+      customize_plan: false,
+      activation_mode: 'activate',
+    });
+    expect(payload.academic).toMatchObject({
+      school_id: 3,
+      academic_year_id: 1,
+      level_id: 2446,
+      enrollment_date: '2026-09-05',
+    });
+    expect(payload.academic).not.toHaveProperty('class_id');
   });
 });

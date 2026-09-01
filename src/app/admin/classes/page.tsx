@@ -5,6 +5,7 @@
  * @design-status adopted
  */
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -13,6 +14,7 @@ import { ResourceView } from '@/components/states/resource';
 import { PageHeader } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { AdminClassesBrowser } from '@/features/admin/classes/components/admin-classes-browser';
+import { canonicalizeClassStudentCounts } from '@/features/admin/classes/utils/canonical-class-count';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -31,12 +33,16 @@ export default function AdminClassesPage() {
   );
   // Levels are reference/options data and remain year-independent.
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, CLASSES_BROWSER_QUERY);
+  const canonicalClasses = useMemo(
+    () => canonicalizeClassStudentCounts(classesState.data ?? []),
+    [classesState.data],
+  );
 
   const combinedState = useMemo<ResourceState<ClassesPageData>>(
     () => ({
       data:
         classesState.data != null
-          ? { classes: classesState.data, levels: levelsState.data ?? [] }
+          ? { classes: canonicalClasses, levels: levelsState.data ?? [] }
           : null,
       loading: classesState.loading || levelsState.loading,
       initialLoading: classesState.initialLoading || levelsState.initialLoading,
@@ -48,7 +54,7 @@ export default function AdminClassesPage() {
         levelsState.reload();
       },
     }),
-    [classesState, levelsState],
+    [canonicalClasses, classesState, levelsState],
   );
 
   return (
@@ -56,16 +62,21 @@ export default function AdminClassesPage() {
       <PageHeader
         title={t('nav.classes')}
         actions={
-          <AdminListActions
-            addHref="/admin/classes/new"
-            addLabel={t('admin.createClass')}
-            managePermission="manage_classes"
-            exportPath={endpoints.admin.classesExport}
-            exportFilename="classes.csv"
-            showImport
-            importOpen={importOpen}
-            onToggleImport={() => setImportOpen((v) => !v)}
-          />
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <Link href="/admin/classes/distribution" className="btn btn--ghost btn--sm">
+              {t('admin.classDistribution.entry')}
+            </Link>
+            <AdminListActions
+              addHref="/admin/classes/new"
+              addLabel={t('admin.createClass')}
+              managePermission="manage_classes"
+              exportPath={endpoints.admin.classesExport}
+              exportFilename="classes.csv"
+              showImport
+              importOpen={importOpen}
+              onToggleImport={() => setImportOpen((v) => !v)}
+            />
+          </div>
         }
       />
       {importOpen ? (
