@@ -27,6 +27,7 @@ describe('installments-list-present', () => {
     expect(installmentsListHasActiveQuery({ quick: 'all' })).toBe(false);
     expect(installmentsListHasActiveQuery({ quick: 'due_today' })).toBe(true);
     expect(installmentsListHasActiveQuery({ search: 'ali' })).toBe(true);
+    expect(installmentsListHasActiveQuery({ serviceId: '12' })).toBe(true);
     expect(installmentsListHasActiveQuery({ dueDateFrom: '2026-01-01' })).toBe(true);
   });
 

@@ -46,6 +46,7 @@ export type InstallmentsListFilters = {
   levelId: string;
   studentId: string;
   billingPartnerId: string;
+  serviceId: string;
   dueDateFrom: string;
   dueDateTo: string;
   page: number;
@@ -77,6 +78,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       level_id: filters.levelId || undefined,
       student_id: filters.studentId || undefined,
       billing_partner_id: filters.billingPartnerId || undefined,
+      service_id: filters.serviceId || undefined,
       due_date_from: filters.dueDateFrom || undefined,
       due_date_to: filters.dueDateTo || undefined,
     };
@@ -92,12 +94,21 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
   const rows = parsed.items;
   const summary = parsed.summary;
   const applied = parsed.appliedFilters;
+  const serviceFacets = parsed.serviceFacets;
   const pg = state.meta?.pagination;
 
   const hasActiveQuery = installmentsListHasActiveQuery(filters);
   const emptyVariant = resolveInstallmentsListEmptyVariant({ hasActiveQuery });
   const isRefetching = state.fetching && !state.initialLoading;
   const quickChipKey = installmentQuickFilterChipLabelKey(quickValid);
+  const selectedService = serviceFacets.find(
+    (facet) => String(facet.service_id) === filters.serviceId,
+  );
+  const selectedServiceLabel = filters.serviceId
+    ? selectedService?.service_name ??
+      t('admin.finance.installments.servicesFilter.unknown', { id: filters.serviceId })
+    : null;
+  const allServicesCount = serviceFacets.reduce((total, facet) => total + facet.count, 0);
 
   const columns: Column<FinanceInstallment>[] = useMemo(
     () => [
@@ -217,6 +228,11 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
     onFiltersChange({ quick: next || null, page: 1 });
   }
 
+  function setService(serviceId: number | null) {
+    const next = serviceId == null ? null : String(serviceId);
+    onFiltersChange({ serviceId: filters.serviceId === next ? null : next, page: 1 });
+  }
+
   function resetAll() {
     onFiltersChange({
       quick: null,
@@ -225,6 +241,8 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       classId: null,
       levelId: null,
       studentId: null,
+      billingPartnerId: null,
+      serviceId: null,
       dueDateFrom: null,
       dueDateTo: null,
       page: 1,
@@ -305,6 +323,55 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         </p>
       ) : null}
 
+      {serviceFacets.length > 0 || filters.serviceId ? (
+        <section
+          className="finance-receivable-list__facet-group"
+          aria-labelledby="installment-services-filter-title"
+        >
+          <div className="finance-receivable-list__facet-header">
+            <h2 id="installment-services-filter-title" className="finance-receivable-list__facet-title">
+              {t('admin.finance.installments.servicesFilter.title')}
+            </h2>
+            <span className="finance-receivable-list__facet-hint">
+              {t('admin.finance.installments.servicesFilter.hint')}
+            </span>
+          </div>
+          <div className="finance-receivable-list__service-filters">
+            <button
+              type="button"
+              className={`finance-receivable-list__service-filter${!filters.serviceId ? ' is-active' : ''}`}
+              aria-pressed={!filters.serviceId}
+              onClick={() => setService(null)}
+            >
+              <span>{t('admin.finance.installments.servicesFilter.all')}</span>
+              <span className="finance-receivable-list__service-count" dir="ltr">
+                {allServicesCount}
+              </span>
+            </button>
+            {serviceFacets.map((facet) => (
+              <button
+                key={facet.service_id}
+                type="button"
+                className={`finance-receivable-list__service-filter${
+                  filters.serviceId === String(facet.service_id) ? ' is-active' : ''
+                }`}
+                aria-pressed={filters.serviceId === String(facet.service_id)}
+                aria-label={t('admin.finance.installments.servicesFilter.select', {
+                  service: facet.service_name,
+                  count: facet.count,
+                })}
+                onClick={() => setService(facet.service_id)}
+              >
+                <span dir="auto">{facet.service_name}</span>
+                <span className="finance-receivable-list__service-count" dir="ltr">
+                  {facet.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact finance-receivable-list__tabs">
         <button
           type="button"
@@ -325,21 +392,38 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         ))}
       </div>
 
-      {quickChipKey ? (
+      {quickChipKey || selectedServiceLabel ? (
         <div className="finance-receivable-list__chips">
-          <span className="finance-receivable-list__chip">
-            {t('admin.finance.installments.activeFilterChip', {
-              filter: t(quickChipKey),
-            })}
-            <button
-              type="button"
-              className="finance-receivable-list__chip-clear"
-              aria-label={t('admin.finance.installments.clearFilter')}
-              onClick={() => setQuick('')}
-            >
-              ×
-            </button>
-          </span>
+          {quickChipKey ? (
+            <span className="finance-receivable-list__chip">
+              {t('admin.finance.installments.activeFilterChip', {
+                filter: t(quickChipKey),
+              })}
+              <button
+                type="button"
+                className="finance-receivable-list__chip-clear"
+                aria-label={t('admin.finance.installments.clearFilter')}
+                onClick={() => setQuick('')}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
+          {selectedServiceLabel ? (
+            <span className="finance-receivable-list__chip">
+              {t('admin.finance.installments.servicesFilter.active', {
+                service: selectedServiceLabel,
+              })}
+              <button
+                type="button"
+                className="finance-receivable-list__chip-clear"
+                aria-label={t('admin.finance.installments.servicesFilter.clear')}
+                onClick={() => setService(null)}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
         </div>
       ) : null}
 

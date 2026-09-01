@@ -10906,6 +10906,15 @@
         "asOfDate": "A fecha de",
         "openDetails": "Abrir detalle",
         "searchPlaceholder": "Buscar cuotas…",
+        "servicesFilter": {
+          "title": "Servicios",
+          "hint": "Los recuentos se adaptan a los demás filtros activos",
+          "all": "Todos los servicios",
+          "select": "Filtrar por {service}, {count} cuotas",
+          "active": "Servicio: {service}",
+          "clear": "Quitar filtro de servicio",
+          "unknown": "Servicio n.º {id}"
+        },
         "columns": {
           "service": "Servicio",
           "period": "Periodo",

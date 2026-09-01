@@ -10906,6 +10906,15 @@
         "asOfDate": "As of",
         "openDetails": "Open details",
         "searchPlaceholder": "Search installments…",
+        "servicesFilter": {
+          "title": "Services",
+          "hint": "Counts adapt to the other active filters",
+          "all": "All services",
+          "select": "Filter by {service}, {count} installments",
+          "active": "Service: {service}",
+          "clear": "Clear service filter",
+          "unknown": "Service #{id}"
+        },
         "columns": {
           "service": "Service",
           "period": "Period",

@@ -371,9 +371,24 @@ export interface FinanceInstallment {
   payment_status?: string;
   timing_status?: string;
   installment_description?: string;
+  service_id?: number;
   service_name?: string;
+  service_code?: string | null;
+  service_category?: string | null;
+  service_frequency?: string | null;
   academic_year_id?: number;
   academic_year_name?: string;
+}
+
+export interface FinanceInstallmentServiceFacet {
+  service_id: number;
+  service_name: string;
+  service_code?: string | null;
+  category?: string | null;
+  frequency?: string | null;
+  count: number;
+  total_remaining: number;
+  total_overdue: number;
 }
 
 export interface FinanceAttentionMetric {
