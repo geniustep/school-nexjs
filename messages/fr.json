@@ -10925,6 +10925,15 @@
         "asOfDate": "Au",
         "openDetails": "Ouvrir le détail",
         "searchPlaceholder": "Rechercher une échéance…",
+        "servicesFilter": {
+          "title": "Services",
+          "hint": "Les nombres s’adaptent aux autres filtres actifs",
+          "all": "Tous les services",
+          "select": "Filtrer par {service}, {count} échéances",
+          "active": "Service : {service}",
+          "clear": "Retirer le filtre de service",
+          "unknown": "Service n°{id}"
+        },
         "columns": {
           "service": "Service",
           "period": "Période",

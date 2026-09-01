@@ -24,6 +24,93 @@
   color: var(--c-text-muted, #64748b);
 }
 
+.finance-receivable-list__facet-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--c-surface, #ffffff);
+}
+
+.finance-receivable-list__facet-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.finance-receivable-list__facet-title {
+  margin: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.finance-receivable-list__facet-hint {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.finance-receivable-list__service-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-receivable-list__service-filter {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 999px;
+  background: var(--c-surface, #ffffff);
+  color: var(--c-text, #0f172a);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.finance-receivable-list__service-filter:hover {
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 45%, var(--c-border, #e2e8f0));
+}
+
+.finance-receivable-list__service-filter:focus-visible {
+  outline: 2px solid var(--raqeem-primary, #243b6b);
+  outline-offset: 2px;
+}
+
+.finance-receivable-list__service-filter.is-active {
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 45%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 10%, var(--c-surface, #ffffff));
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.finance-receivable-list__service-count {
+  display: inline-flex;
+  min-width: 24px;
+  min-height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 6px;
+  border-radius: 999px;
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-receivable-list__service-filter.is-active .finance-receivable-list__service-count {
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 16%, transparent);
+  color: inherit;
+}
+
 .finance-receivable-list__fetching {
   margin: 0;
   font-size: 0.8125rem;

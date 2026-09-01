@@ -74,11 +74,27 @@ describe('finance list response normalization', () => {
       items: [{ id: 9 }],
       summary: { total_count: 1, total_amount: 50, total_remaining: 50 },
       applied_filters: { quick: 'overdue_unpaid' },
+      service_facets: [
+        {
+          service_id: 7,
+          service_name: 'Transport',
+          service_code: 'TRANSPORT',
+          category: 'transport',
+          frequency: 'monthly',
+          count: 1,
+          total_remaining: 50,
+          total_overdue: 50,
+        },
+        { service_id: 'invalid', service_name: 'Ignored' },
+      ],
     });
     expect(parsed.items).toHaveLength(1);
     expect(parsed.summary?.total_count).toBe(1);
     expect(parsed.summary?.total_remaining).toBe(50);
     expect(parsed.appliedFilters?.quick).toBe('overdue_unpaid');
+    expect(parsed.serviceFacets).toEqual([
+      expect.objectContaining({ service_id: 7, count: 1, total_remaining: 50 }),
+    ]);
   });
 
   it('parses cheques due_next_7_days empty summary', () => {
@@ -170,10 +186,17 @@ describe('finance i18n raw keys guard', () => {
 describe('finance pages URL contract', () => {
   it('installments page is school-wide without student picker gate', () => {
     const source = fs.readFileSync(path.resolve('src/app/admin/finance/installments/page.tsx'), 'utf8');
+    const panelSource = fs.readFileSync(
+      path.resolve('src/features/admin/finance/installments-list-panel.tsx'),
+      'utf8',
+    );
     expect(source.includes('FinanceHubStudentScope')).toBe(false);
     expect(source.includes('financeInstallments')).toBe(false);
     expect(source.includes('InstallmentsListPanel')).toBe(true);
     expect(source.includes('searchParams')).toBe(true);
+    expect(source.includes("serviceId: searchParams.get('service_id')")).toBe(true);
+    expect(panelSource.includes('service_id: filters.serviceId')).toBe(true);
+    expect(panelSource.includes('parsed.serviceFacets')).toBe(true);
   });
 
   it('cheques page keeps URL handling in the page and list normalization in the panel', () => {

@@ -21,6 +21,7 @@ export type InstallmentsActiveQueryInput = {
   levelId?: string;
   studentId?: string;
   billingPartnerId?: string;
+  serviceId?: string;
   dueDateFrom?: string;
   dueDateTo?: string;
 };
@@ -40,6 +41,7 @@ export function installmentsListHasActiveQuery(options: InstallmentsActiveQueryI
     options.levelId ||
     options.studentId ||
     options.billingPartnerId ||
+    options.serviceId ||
     options.dueDateFrom ||
     options.dueDateTo ||
     (quick && quick !== 'all')

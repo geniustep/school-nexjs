@@ -11143,6 +11143,15 @@
         "asOfDate": "اعتبارًا من",
         "openDetails": "فتح التفاصيل",
         "searchPlaceholder": "بحث في الأقساط…",
+        "servicesFilter": {
+          "title": "الخدمات",
+          "hint": "تتغير الأعداد حسب عوامل التصفية الأخرى",
+          "all": "كل الخدمات",
+          "select": "تصفية حسب خدمة {service}، {count} قسط",
+          "active": "الخدمة: {service}",
+          "clear": "إزالة فلتر الخدمة",
+          "unknown": "الخدمة #{id}"
+        },
         "columns": {
           "service": "الخدمة",
           "period": "الفترة",
