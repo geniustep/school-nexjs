@@ -12,6 +12,25 @@ export interface UserRoleOption {
   label: string;
 }
 
+export interface ActiveUserContext {
+  school_id: number;
+  role: Role;
+}
+
+export interface UserRoleContext {
+  school_id: number;
+  school_name?: string | null;
+  role: Role;
+  source?: string | null;
+  bindings?: {
+    teacher_profile_id?: number | null;
+    parent_profile_id?: number | null;
+    student_profile_id?: number | null;
+    admin_scope_id?: number | null;
+    [key: string]: unknown;
+  };
+}
+
 export type AdminKind =
   | 'project_manager'
   | 'school_manager'
@@ -46,6 +65,10 @@ export interface CurrentUser {
   roles?: string[];
   active_role?: string;
   available_roles?: UserRoleOption[];
+  /** Atomic Odoo-confirmed context. School membership is role/domain scoped. */
+  active_context?: ActiveUserContext | null;
+  /** Server-derived authorized School + Role tuples. Never derive from school_ids client-side. */
+  available_contexts?: UserRoleContext[];
   permissions: Permission[];
   /** When returned by /me — authoritative effective grants for the active school. */
   effective_permissions?: Permission[];
@@ -58,6 +81,7 @@ export interface CurrentUser {
   services?: UserServices;
 
   admin_kind?: AdminKind;
+  /** Administrative schools only. Parent/teacher/student-only schools stay in available_contexts. */
   school_ids?: number[];
   /** Allowed schools from GET /me — [{ id, name }]. Primary source for switcher labels. */
   schools?: SchoolRef[];
