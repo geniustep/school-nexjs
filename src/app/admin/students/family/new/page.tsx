@@ -1,10 +1,5 @@
-import { FamilyRegistrationPage } from '@/features/admin/students/components/family-registration-page';
-import styles from './family-registration-shell.module.css';
+import { FamilyRegistrationV2FrozenPage } from '@/features/admin/students/components/family-registration-v2-frozen-page';
 
-export default function Page() {
-  return (
-    <div className={`student-create-page ${styles.page}`}>
-      <FamilyRegistrationPage />
-    </div>
-  );
+export default function AdminFamilyRegistrationRoute() {
+  return <FamilyRegistrationV2FrozenPage />;
 }
