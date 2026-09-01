@@ -2,10 +2,9 @@
 
 /**
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
- * @design-status review-needed
- * Scope closed in REG_FIN_RBAC_TERMS_1: local students.create gate, partial-success
- * result clarity, Arabic journey terms. Payment-during-registration remains out of scope.
- * Finance plan step and QuickPaymentDrawer remain unreviewed.
+ * @design-status reviewed-single-page
+ * Family registration keeps the existing batch contract while presenting
+ * guardians, children, review, and submit on one registration page.
  */
 
 import Link from 'next/link';
@@ -34,16 +33,22 @@ import {
 import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { canCreateStudents } from '@/lib/permissions/academic-capabilities';
+import type { PersonSearchResult, RelationshipType } from '@/types/student-360';
+import type {
+  StudentCreateBillingFormState,
+  StudentCreateGuardianEntry,
+} from '@/types/student-enrollment-finance';
+import type { BatchRegistrationResponse } from '@/types/student-batch-registration';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { mapStudentApiError } from '../utils/student-api-errors';
 import {
-  filterClassesForEnrollment,
   buildEnrollmentClassScope,
+  filterClassesForEnrollment,
 } from '../utils/student-options';
 import {
   buildEnrollmentCycleOptions,
-  filterLevelsByCycleId,
   buildReferenceLevelCycleMap,
+  filterLevelsByCycleId,
   resolveStudentLevelCycleId,
 } from '../utils/student-enrollment-cycle';
 import {
@@ -52,7 +57,6 @@ import {
   resolveDefaultNationalityId,
   todayIsoDate,
   type StudentProfileFieldErrors,
-  type StudentProfileFormState,
 } from '../utils/student-profile';
 import type { BillingResponsibilityFieldErrors } from '../utils/student-create-billing-responsibility';
 import {
@@ -74,7 +78,6 @@ import {
   removeFamilyRegistrationChild,
   type FamilyRegistrationFormState,
   type FamilyRegistrationSubmitState,
-  type FamilyRegistrationWizardStep,
 } from '../utils/family-registration-state';
 import {
   summarizeFamilyRegistration,
@@ -95,19 +98,14 @@ import {
   type FamilyFinanceSubmitState,
 } from '../utils/family-registration-finance-state';
 import { applyResolvedGuardiansToFamilyForm } from '../utils/family-registration-apply-resolved';
-import type { PersonSearchResult, RelationshipType } from '@/types/student-360';
-import type {
-  StudentCreateBillingFormState,
-  StudentCreateGuardianEntry,
-} from '@/types/student-enrollment-finance';
-import type { BatchRegistrationResponse } from '@/types/student-batch-registration';
+import { relationshipTypeLabel, RELATIONSHIP_TYPE_CODES } from '../utils/relationship-types';
 import { StudentCreateBillingStep } from './student-create-billing-step';
 import { StudentCreateStyledSection } from './student-create-section-header';
-import { FamilyRegistrationStepper } from './family-registration-steps';
 import { FamilyRegistrationFinancePanel } from './family-registration-finance-panel';
 import { RegistrationPostCreateCollectionEntry } from './registration-post-create-collection-entry';
-import { relationshipTypeLabel, RELATIONSHIP_TYPE_CODES } from '../utils/relationship-types';
 import '../student-360.css';
+
+type FamilyRegistrationView = 'registration' | 'result' | 'finance' | 'finance_result';
 
 /** Route gate: options/submit hooks mount only when `students.create` is granted. */
 export function FamilyRegistrationPage() {
@@ -122,10 +120,10 @@ export function FamilyRegistrationPage() {
     );
   }
 
-  return <FamilyRegistrationWizard />;
+  return <FamilyRegistrationSinglePage />;
 }
 
-function FamilyRegistrationWizard() {
+function FamilyRegistrationSinglePage() {
   const t = useT();
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
@@ -136,7 +134,7 @@ function FamilyRegistrationWizard() {
   const today = useMemo(() => todayIsoDate(), []);
   const batchIdempotencyRef = useRef(new FamilyBatchIdempotencyRegistry());
 
-  const [step, setStep] = useState<FamilyRegistrationWizardStep>('guardians');
+  const [view, setView] = useState<FamilyRegistrationView>('registration');
   const [form, setForm] = useState<FamilyRegistrationFormState>(() =>
     emptyFamilyRegistrationFormState(today),
   );
@@ -154,9 +152,7 @@ function FamilyRegistrationWizard() {
   const [resolvedGuardianEntries, setResolvedGuardianEntries] = useState<
     StudentCreateGuardianEntry[] | null
   >(null);
-  const [linkedGuardianPerson, setLinkedGuardianPerson] = useState<PersonSearchResult | null>(
-    null,
-  );
+  const [linkedGuardianPerson, setLinkedGuardianPerson] = useState<PersonSearchResult | null>(null);
   const [linkedGuardianPersonsByEntryKey, setLinkedGuardianPersonsByEntryKey] = useState<
     Record<string, PersonSearchResult>
   >({});
@@ -205,7 +201,7 @@ function FamilyRegistrationWizard() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step]);
+  }, [view]);
 
   const referenceLevels = levelOptionsState.options?.reference_levels ?? [];
   const levelCycles = levelOptionsState.options?.cycles ?? [];
@@ -249,7 +245,8 @@ function FamilyRegistrationWizard() {
   const succeededCollectionStudents = useMemo(
     () =>
       submitState.results.filter(
-        (row) => row.status === 'succeeded' && typeof row.studentId === 'number' && row.studentId > 0,
+        (row) =>
+          row.status === 'succeeded' && typeof row.studentId === 'number' && row.studentId > 0,
       ),
     [submitState.results],
   );
@@ -293,12 +290,12 @@ function FamilyRegistrationWizard() {
         billingResponsibleLabel: resolveBillingResponsibleLabel(),
       }),
     );
-    setStep('finance');
+    setView('finance');
   }
 
   function backToFinanceSetup() {
     setFinanceSubmitState((prev) => reopenFamilyFinanceSetup(prev));
-    setStep('finance');
+    setView('finance');
   }
 
   function handleIntakePatch(patch: EnrollmentIntakePatch) {
@@ -370,60 +367,46 @@ function FamilyRegistrationWizard() {
     });
   }
 
-  function goNextFromGuardians() {
-    const result = validateFamilyRegistrationGuardiansStep(form, t);
-    if (!result.valid) {
-      setBillingErrors(result.errors.billingErrors ?? {});
-      toast.error(result.errors.message ?? t('admin.student360.familyRegistration.errors.generic'));
-      return;
-    }
-    setBillingErrors({});
-    setStep('children');
-  }
-
-  function goNextFromChildren() {
-    const withShared = applySharedDefaultsToChildren(form);
-    setForm(withShared);
-    const result = validateFamilyRegistrationChildrenStep(withShared, t);
-    if (!result.valid) {
-      setChildErrorsByLocalId(result.errors.childErrorsByLocalId ?? {});
-      toast.error(result.errors.message ?? t('admin.student360.familyRegistration.errors.generic'));
-      return;
-    }
-    setChildErrorsByLocalId({});
-    setStep('review');
-  }
-
   async function handleSubmitFamily(options?: { retryFailedOnly?: boolean }) {
     if (submittingRef.current) return;
     if (submitState.lockedAgainstFullResubmit && !options?.retryFailedOnly) return;
 
-    const guardiansCheck = validateFamilyRegistrationGuardiansStep(form, t);
+    const withShared = applySharedDefaultsToChildren(form);
+    setForm(withShared);
+
+    const guardiansCheck = validateFamilyRegistrationGuardiansStep(withShared, t);
     if (!guardiansCheck.valid) {
       setBillingErrors(guardiansCheck.errors.billingErrors ?? {});
-      setStep('guardians');
-      toast.error(guardiansCheck.errors.message ?? t('admin.student360.familyRegistration.errors.generic'));
+      setView('registration');
+      toast.error(
+        guardiansCheck.errors.message ?? t('admin.student360.familyRegistration.errors.generic'),
+      );
       return;
     }
-    const childrenCheck = validateFamilyRegistrationChildrenStep(form, t);
+    setBillingErrors({});
+
+    const childrenCheck = validateFamilyRegistrationChildrenStep(withShared, t);
     if (!childrenCheck.valid) {
       setChildErrorsByLocalId(childrenCheck.errors.childErrorsByLocalId ?? {});
-      setStep('children');
-      toast.error(childrenCheck.errors.message ?? t('admin.student360.familyRegistration.errors.generic'));
+      setView('registration');
+      toast.error(
+        childrenCheck.errors.message ?? t('admin.student360.familyRegistration.errors.generic'),
+      );
       return;
     }
+    setChildErrorsByLocalId({});
 
     submittingRef.current = true;
-    setStep('result');
+    setView('result');
 
     const onlyLocalIds = options?.retryFailedOnly
       ? submitState.results
-          .filter((r) => r.status === 'failed' && r.canRetrySafely)
-          .map((r) => r.localId)
+          .filter((row) => row.status === 'failed' && row.canRetrySafely)
+          .map((row) => row.localId)
       : undefined;
 
     const final = await runFamilyRegistrationSubmit({
-      form,
+      form: withShared,
       schoolId: resolvedSchoolId,
       classes: optionsState.options?.classes ?? [],
       onlyLocalIds,
@@ -431,10 +414,7 @@ function FamilyRegistrationWizard() {
       resolvedGuardianEntries: resolvedGuardianEntries ?? undefined,
       idempotency: batchIdempotencyRef.current,
       postBatch: (payload) =>
-        api.post<BatchRegistrationResponse>(
-          endpoints.admin.studentsBatchRegistration,
-          payload,
-        ),
+        api.post<BatchRegistrationResponse>(endpoints.admin.studentsBatchRegistration, payload),
       mapErrorMessage: (error) =>
         error
           ? mapStudentApiError(error, t).message
@@ -446,8 +426,8 @@ function FamilyRegistrationWizard() {
     setSubmitState(final);
     setResolvedGuardianEntries(final.resolvedGuardianEntries);
     const applied = applyResolvedGuardiansToFamilyForm({
-      guardianHost: form.guardianHost,
-      billing: form.billing,
+      guardianHost: withShared.guardianHost,
+      billing: withShared.billing,
       resolvedEntries: final.resolvedGuardianEntries,
     });
     setForm((prev) => ({
@@ -468,7 +448,23 @@ function FamilyRegistrationWizard() {
     }
   }
 
+  function resetFamilyRegistration() {
+    batchIdempotencyRef.current.reset();
+    setForm(emptyFamilyRegistrationFormState(today));
+    setSubmitState(emptyFamilyRegistrationSubmitState());
+    setFinanceDrafts([]);
+    setFinanceSubmitState(emptyFamilyFinanceSubmitState());
+    setResolvedGuardianEntries(null);
+    setLinkedGuardianPerson(null);
+    setLinkedGuardianPersonsByEntryKey({});
+    setBillingErrors({});
+    setChildErrorsByLocalId({});
+    setView('registration');
+  }
+
   const localizedGenders = localizeStudentGenderOptions(options?.genders ?? [], t);
+  const retryFailedOnly =
+    submitState.lockedAgainstFullResubmit && shouldOfferFamilyFailedRetry(submitState.results);
 
   return (
     <div className="student-create-form family-registration">
@@ -479,417 +475,458 @@ function FamilyRegistrationWizard() {
         <p className="student-create-page__desc">
           {t('admin.student360.familyRegistration.pageDesc')}
         </p>
-        <p className="family-registration__mode-note" role="note">
-          {t('admin.student360.familyRegistration.sequentialNote')}
-        </p>
       </header>
 
-      <FamilyRegistrationStepper activeStep={step} />
-
-      {step === 'guardians' ? (
-        <StudentCreateBillingStep
-          billingState={form.billing}
-          billingErrors={billingErrors}
-          guardianEntries={guardianEntriesForBilling}
-          linkedGuardianPerson={linkedGuardianPerson}
-          onBillingChange={(patch) => {
-            setForm((prev) => ({ ...prev, billing: { ...prev.billing, ...patch } }));
-            setBillingErrors({});
-          }}
-          intakeValues={guardianHostIntake}
-          intakeErrors={intakeErrorsFromStudentProfile({})}
-          onIntakePatch={handleIntakePatch}
-          onLinkExistingGuardian={handleLinkExistingGuardian}
-          onClearLinkedGuardian={handleClearLinkedGuardian}
-          onGuardianSourceModeChange={handleGuardianSourceModeChange}
-          onProvisionAccessChange={(entryKey, enabled) => {
-            setForm((prev) => ({
-              ...prev,
-              billing: {
-                ...prev.billing,
-                provisionAccessByEntryKey: {
-                  ...prev.billing.provisionAccessByEntryKey,
-                  [entryKey]: enabled,
+      {view === 'registration' ? (
+        <>
+          <StudentCreateBillingStep
+            billingState={form.billing}
+            billingErrors={billingErrors}
+            guardianEntries={guardianEntriesForBilling}
+            linkedGuardianPerson={linkedGuardianPerson}
+            onBillingChange={(patch) => {
+              setForm((prev) => ({ ...prev, billing: { ...prev.billing, ...patch } }));
+              setBillingErrors({});
+            }}
+            intakeValues={guardianHostIntake}
+            intakeErrors={intakeErrorsFromStudentProfile({})}
+            onIntakePatch={handleIntakePatch}
+            onLinkExistingGuardian={handleLinkExistingGuardian}
+            onClearLinkedGuardian={handleClearLinkedGuardian}
+            onGuardianSourceModeChange={handleGuardianSourceModeChange}
+            onProvisionAccessChange={(entryKey, enabled) => {
+              setForm((prev) => ({
+                ...prev,
+                billing: {
+                  ...prev.billing,
+                  provisionAccessByEntryKey: {
+                    ...prev.billing.provisionAccessByEntryKey,
+                    [entryKey]: enabled,
+                  },
                 },
-              },
-            }));
-          }}
-          onAddAdditionalGuardian={handleAddAdditionalGuardian}
-          onAdditionalGuardianSourceModeChange={(entryKey, mode) => {
-            setForm((prev) => ({
-              ...prev,
-              billing: {
-                ...prev.billing,
-                additionalGuardianSourceModeByEntryKey: {
-                  ...prev.billing.additionalGuardianSourceModeByEntryKey,
-                  [entryKey]: mode,
+              }));
+            }}
+            onAddAdditionalGuardian={handleAddAdditionalGuardian}
+            onAdditionalGuardianSourceModeChange={(entryKey, mode) => {
+              setForm((prev) => ({
+                ...prev,
+                billing: {
+                  ...prev.billing,
+                  additionalGuardianSourceModeByEntryKey: {
+                    ...prev.billing.additionalGuardianSourceModeByEntryKey,
+                    [entryKey]: mode,
+                  },
                 },
-              },
-            }));
-          }}
-          onUpdateAdditionalGuardian={(entryKey, next) => {
-            setForm((prev) => ({
-              ...prev,
-              billing: {
-                ...prev.billing,
-                guardianEntries: prev.billing.guardianEntries.map((entry) =>
-                  entry.entryKey === entryKey ? next : entry,
-                ),
-              },
-            }));
-          }}
-          onLinkAdditionalGuardian={(entryKey, person) => {
-            const guardianId = resolvePersonSchoolParentId(person);
-            if (guardianId == null) return;
-            setLinkedGuardianPersonsByEntryKey((prev) => ({ ...prev, [entryKey]: person }));
-            setForm((prev) => {
-              const current = prev.billing.guardianEntries.find((e) => e.entryKey === entryKey);
-              return {
+              }));
+            }}
+            onUpdateAdditionalGuardian={(entryKey, next) => {
+              setForm((prev) => ({
+                ...prev,
+                billing: {
+                  ...prev.billing,
+                  guardianEntries: prev.billing.guardianEntries.map((entry) =>
+                    entry.entryKey === entryKey ? next : entry,
+                  ),
+                },
+              }));
+            }}
+            onLinkAdditionalGuardian={(entryKey, person) => {
+              const guardianId = resolvePersonSchoolParentId(person);
+              if (guardianId == null) return;
+              setLinkedGuardianPersonsByEntryKey((prev) => ({ ...prev, [entryKey]: person }));
+              setForm((prev) => {
+                const current = prev.billing.guardianEntries.find(
+                  (entry) => entry.entryKey === entryKey,
+                );
+                return {
+                  ...prev,
+                  billing: {
+                    ...prev.billing,
+                    guardianEntries: prev.billing.guardianEntries.map((entry) =>
+                      entry.entryKey === entryKey
+                        ? entryFromLinkedExistingGuardian(
+                            entryKey,
+                            guardianId,
+                            person.name || '—',
+                            current?.relationship_type ?? 'mother',
+                            person.phone ?? undefined,
+                            person.email ?? undefined,
+                          )
+                        : entry,
+                    ),
+                    additionalGuardianSourceModeByEntryKey: {
+                      ...prev.billing.additionalGuardianSourceModeByEntryKey,
+                      [entryKey]: 'existing',
+                    },
+                  },
+                };
+              });
+            }}
+            onClearAdditionalGuardian={(entryKey) => {
+              setLinkedGuardianPersonsByEntryKey((prev) => {
+                const next = { ...prev };
+                delete next[entryKey];
+                return next;
+              });
+              setForm((prev) => ({
                 ...prev,
                 billing: {
                   ...prev.billing,
                   guardianEntries: prev.billing.guardianEntries.map((entry) =>
                     entry.entryKey === entryKey
-                      ? entryFromLinkedExistingGuardian(
-                          entryKey,
-                          guardianId,
-                          person.name || '—',
-                          current?.relationship_type ?? 'mother',
-                          person.phone ?? undefined,
-                          person.email ?? undefined,
-                        )
+                      ? createEmptyAdditionalGuardianEntry(entry.relationship_type)
                       : entry,
                   ),
-                  additionalGuardianSourceModeByEntryKey: {
-                    ...prev.billing.additionalGuardianSourceModeByEntryKey,
-                    [entryKey]: 'existing',
-                  },
                 },
-              };
-            });
-          }}
-          onClearAdditionalGuardian={(entryKey) => {
-            setLinkedGuardianPersonsByEntryKey((prev) => {
-              const next = { ...prev };
-              delete next[entryKey];
-              return next;
-            });
-            setForm((prev) => ({
-              ...prev,
-              billing: {
-                ...prev.billing,
-                guardianEntries: prev.billing.guardianEntries.map((entry) =>
-                  entry.entryKey === entryKey
-                    ? createEmptyAdditionalGuardianEntry(entry.relationship_type)
-                    : entry,
-                ),
-              },
-            }));
-          }}
-          onRemoveAdditionalGuardian={(entryKey) => {
-            setForm((prev) => ({
-              ...prev,
-              billing: {
-                ...prev.billing,
-                guardianEntries: prev.billing.guardianEntries.filter(
-                  (entry) => entry.entryKey !== entryKey,
-                ),
-                billingGuardianEntryKey:
-                  prev.billing.billingGuardianEntryKey === entryKey
-                    ? null
-                    : prev.billing.billingGuardianEntryKey,
-              },
-            }));
-          }}
-          usedGuardianIds={usedGuardianIds}
-          linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
-          guardian={{
-            relationships: admissionOptionsState.options?.relationships ?? [],
-            relationshipsLoading: admissionOptionsState.loading,
-            relationshipLoadFailed,
-          }}
-        />
-      ) : null}
+              }));
+            }}
+            onRemoveAdditionalGuardian={(entryKey) => {
+              setForm((prev) => ({
+                ...prev,
+                billing: {
+                  ...prev.billing,
+                  guardianEntries: prev.billing.guardianEntries.filter(
+                    (entry) => entry.entryKey !== entryKey,
+                  ),
+                  billingGuardianEntryKey:
+                    prev.billing.billingGuardianEntryKey === entryKey
+                      ? null
+                      : prev.billing.billingGuardianEntryKey,
+                },
+              }));
+            }}
+            usedGuardianIds={usedGuardianIds}
+            linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
+            guardian={{
+              relationships: admissionOptionsState.options?.relationships ?? [],
+              relationshipsLoading: admissionOptionsState.loading,
+              relationshipLoadFailed,
+            }}
+          />
 
-      {step === 'children' ? (
-        <StudentCreateStyledSection
-          icon="identity"
-          title={t('admin.student360.familyRegistration.childrenTitle')}
-          lead={t('admin.student360.familyRegistration.childrenLead')}
-        >
-          <div className="family-registration__children">
-            {form.children.map((child, index) => {
-              const intakeValues = intakeFromStudentProfile(child.profile);
-              const errors = childErrorsByLocalId[child.localId] ?? {};
-              const filteredLevels = filterLevelsByCycleId(
-                options?.levels ?? [],
-                child.profile.cycleId,
-                referenceLevels,
-                levelCycles,
-              );
-              const levelIdNum = child.profile.levelId
-                ? Number(child.profile.levelId)
-                : undefined;
-              const selectedAdmissionLevel = findAdmissionLevel(
-                admissionOptionsState.options?.levels ?? [],
-                levelIdNum,
-              );
-              const filteredStreams = filterStreamsByLevel(
-                admissionOptionsState.options?.streams ?? [],
-                levelIdNum,
-              );
-              const classScope = buildEnrollmentClassScope(
-                child.profile.levelId,
-                child.profile.academicYearId,
-                resolvedSchoolId,
-              );
-              const filteredClasses = filterClassesForEnrollment(
-                options?.classes ?? [],
-                classScope,
-              );
-              const showStreamField = Boolean(selectedAdmissionLevel?.requires_stream);
+          <StudentCreateStyledSection
+            icon="identity"
+            title={t('admin.student360.familyRegistration.childrenTitle')}
+            lead={t('admin.student360.familyRegistration.childrenLead')}
+          >
+            <div className="family-registration__children">
+              {form.children.map((child, index) => {
+                const intakeValues = intakeFromStudentProfile(child.profile);
+                const errors = childErrorsByLocalId[child.localId] ?? {};
+                const filteredLevels = filterLevelsByCycleId(
+                  options?.levels ?? [],
+                  child.profile.cycleId,
+                  referenceLevels,
+                  levelCycles,
+                );
+                const levelIdNum = child.profile.levelId
+                  ? Number(child.profile.levelId)
+                  : undefined;
+                const selectedAdmissionLevel = findAdmissionLevel(
+                  admissionOptionsState.options?.levels ?? [],
+                  levelIdNum,
+                );
+                const filteredStreams = filterStreamsByLevel(
+                  admissionOptionsState.options?.streams ?? [],
+                  levelIdNum,
+                );
+                const classScope = buildEnrollmentClassScope(
+                  child.profile.levelId,
+                  child.profile.academicYearId,
+                  resolvedSchoolId,
+                );
+                const filteredClasses = filterClassesForEnrollment(
+                  options?.classes ?? [],
+                  classScope,
+                );
+                const showStreamField = Boolean(selectedAdmissionLevel?.requires_stream);
 
-              return (
-                <article
-                  key={child.localId}
-                  className="family-registration__child-card"
-                  data-testid={`family-child-${index}`}
-                >
-                  <div className="family-registration__child-card-head">
-                    <h3>
-                      {t('admin.student360.familyRegistration.childHeading', {
-                        index: index + 1,
-                      })}
-                      {childDisplayName(child.profile) !== '—'
-                        ? ` — ${childDisplayName(child.profile)}`
-                        : ''}
-                    </h3>
-                    {form.children.length > 1 ? (
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--sm"
-                        onClick={() =>
-                          setForm((prev) => removeFamilyRegistrationChild(prev, child.localId))
-                        }
-                      >
-                        {t('admin.student360.familyRegistration.removeChild')}
-                      </button>
-                    ) : null}
-                  </div>
+                return (
+                  <article
+                    key={child.localId}
+                    className="family-registration__child-card"
+                    data-testid={`family-child-${index}`}
+                  >
+                    <div className="family-registration__child-card-head">
+                      <h3>
+                        {t('admin.student360.familyRegistration.childHeading', {
+                          index: index + 1,
+                        })}
+                        {childDisplayName(child.profile) !== '—'
+                          ? ` — ${childDisplayName(child.profile)}`
+                          : ''}
+                      </h3>
+                      {form.children.length > 1 ? (
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() =>
+                            setForm((prev) =>
+                              removeFamilyRegistrationChild(prev, child.localId),
+                            )
+                          }
+                        >
+                          {t('admin.student360.familyRegistration.removeChild')}
+                        </button>
+                      ) : null}
+                    </div>
 
-                  <EnrollmentIntakeIdentityFields
-                    values={intakeValues}
-                    errors={intakeErrorsFromStudentProfile(errors)}
-                    onPatch={(patch) => {
-                      setForm((prev) =>
-                        patchFamilyRegistrationChildProfile(prev, child.localId, {
-                          ...child.profile,
-                          ...patchStudentProfileFromIntake(patch),
-                        }),
-                      );
-                    }}
-                    optionsLoading={optionsState.loading}
-                    genders={localizedGenders}
-                    nationalities={options?.nationalities ?? []}
-                    variant="studentCreate"
-                  />
+                    <EnrollmentIntakeIdentityFields
+                      values={intakeValues}
+                      errors={intakeErrorsFromStudentProfile(errors)}
+                      onPatch={(patch) => {
+                        setForm((prev) =>
+                          patchFamilyRegistrationChildProfile(prev, child.localId, {
+                            ...child.profile,
+                            ...patchStudentProfileFromIntake(patch),
+                          }),
+                        );
+                        setChildErrorsByLocalId((prev) => ({ ...prev, [child.localId]: {} }));
+                      }}
+                      optionsLoading={optionsState.loading}
+                      genders={localizedGenders}
+                      nationalities={options?.nationalities ?? []}
+                      variant="studentCreate"
+                    />
 
-                  <EnrollmentIntakeAcademicFields
-                    variant="studentCreate"
-                    values={intakeValues}
-                    errors={intakeErrorsFromStudentProfile(errors)}
-                    onPatch={(patch) => {
-                      setForm((prev) => {
-                        let nextProfile = {
-                          ...child.profile,
-                          ...patchStudentProfileFromIntake(patch),
-                        };
-                        if (patch.cycleId != null && patch.cycleId !== child.profile.cycleId) {
-                          nextProfile = { ...nextProfile, levelId: '', classId: '', streamId: '' };
-                        }
-                        if (patch.levelId != null && patch.levelId !== child.profile.levelId) {
-                          nextProfile = { ...nextProfile, classId: '', streamId: '' };
-                          const lvl = options?.levels?.find(
-                            (item) => String(item.id) === nextProfile.levelId,
-                          );
-                          if (lvl && !nextProfile.cycleId) {
-                            const cycleId = resolveStudentLevelCycleId(
-                              lvl,
-                              cycleByCode,
-                              levelCycles,
+                    <EnrollmentIntakeAcademicFields
+                      variant="studentCreate"
+                      values={intakeValues}
+                      errors={intakeErrorsFromStudentProfile(errors)}
+                      onPatch={(patch) => {
+                        setForm((prev) => {
+                          let nextProfile = {
+                            ...child.profile,
+                            ...patchStudentProfileFromIntake(patch),
+                          };
+                          if (
+                            patch.cycleId != null &&
+                            patch.cycleId !== child.profile.cycleId
+                          ) {
+                            nextProfile = {
+                              ...nextProfile,
+                              levelId: '',
+                              classId: '',
+                              streamId: '',
+                            };
+                          }
+                          if (
+                            patch.levelId != null &&
+                            patch.levelId !== child.profile.levelId
+                          ) {
+                            nextProfile = { ...nextProfile, classId: '', streamId: '' };
+                            const level = options?.levels?.find(
+                              (item) => String(item.id) === nextProfile.levelId,
                             );
-                            if (cycleId != null) {
-                              nextProfile = { ...nextProfile, cycleId: String(cycleId) };
+                            if (level && !nextProfile.cycleId) {
+                              const cycleId = resolveStudentLevelCycleId(
+                                level,
+                                cycleByCode,
+                                levelCycles,
+                              );
+                              if (cycleId != null) {
+                                nextProfile = { ...nextProfile, cycleId: String(cycleId) };
+                              }
                             }
                           }
-                        }
-                        return patchFamilyRegistrationChildProfile(
-                          prev,
-                          child.localId,
-                          nextProfile,
-                        );
-                      });
-                    }}
-                    academic={{
-                      cycleMode: 'id',
-                      years: options?.academicYears ?? [],
-                      cycles: intakeCycles,
-                      levels: filteredLevels,
-                      streams: filteredStreams,
-                      classes: filteredClasses,
-                      registrationTypes: options?.registrationTypes ?? [],
-                      levelRequiresStream: showStreamField,
-                      optionsLoading: optionsState.loading,
-                      cyclesLoading: levelOptionsState.loading,
-                      optionsError: !!optionsState.error,
-                      onRetryOptions: optionsState.reload,
-                      streamRequired: showStreamField,
-                      activeSchoolId: resolvedSchoolId,
-                      showClassSummary: true,
-                    }}
-                  />
-
-                  {summary.guardians.length > 0 ? (
-                    <div className="family-registration__relationships">
-                      <h4>{t('admin.student360.familyRegistration.relationshipsTitle')}</h4>
-                      <ul>
-                        {summary.guardians.map((guardian) => {
-                          const entryKey = guardian.entryKey;
-                          const value =
-                            child.relationshipByEntryKey[entryKey] ?? guardian.relationship_type;
-                          const name =
-                            guardian.kind === 'existing'
-                              ? guardian.displayName
-                              : guardian.full_name;
-                          const relationshipOptions =
-                            admissionOptionsState.options?.relationships?.length
-                              ? admissionOptionsState.options.relationships.map((rel) => ({
-                                  value: String(rel.value ?? rel.id ?? ''),
-                                  label: rel.label,
-                                }))
-                              : RELATIONSHIP_TYPE_CODES.map((code) => ({
-                                  value: code,
-                                  label: relationshipTypeLabel(t, code),
-                                }));
-                          return (
-                            <li key={entryKey}>
-                              <label>
-                                <span>{name}</span>
-                                <select
-                                  value={value}
-                                  onChange={(e) => {
-                                    const nextType = e.target.value as RelationshipType;
-                                    setForm((prev) => ({
-                                      ...prev,
-                                      children: prev.children.map((item) =>
-                                        item.localId === child.localId
-                                          ? {
-                                              ...item,
-                                              relationshipByEntryKey: {
-                                                ...item.relationshipByEntryKey,
-                                                [entryKey]: nextType,
-                                              },
-                                            }
-                                          : item,
-                                      ),
-                                    }));
-                                  }}
-                                >
-                                  {relationshipOptions
-                                    .filter((rel) => rel.value)
-                                    .map((rel) => (
-                                      <option key={rel.value} value={rel.value}>
-                                        {rel.label || relationshipTypeLabel(t, rel.value)}
-                                      </option>
-                                    ))}
-                                </select>
-                              </label>
-                            </li>
+                          return patchFamilyRegistrationChildProfile(
+                            prev,
+                            child.localId,
+                            nextProfile,
                           );
-                        })}
-                      </ul>
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
-          </div>
+                        });
+                        setChildErrorsByLocalId((prev) => ({ ...prev, [child.localId]: {} }));
+                      }}
+                      academic={{
+                        cycleMode: 'id',
+                        years: options?.academicYears ?? [],
+                        cycles: intakeCycles,
+                        levels: filteredLevels,
+                        streams: filteredStreams,
+                        classes: filteredClasses,
+                        registrationTypes: options?.registrationTypes ?? [],
+                        levelRequiresStream: showStreamField,
+                        optionsLoading: optionsState.loading,
+                        cyclesLoading: levelOptionsState.loading,
+                        optionsError: !!optionsState.error,
+                        onRetryOptions: optionsState.reload,
+                        streamRequired: showStreamField,
+                        activeSchoolId: resolvedSchoolId,
+                        showClassSummary: true,
+                      }}
+                    />
 
-          <div className="family-registration__children-actions">
+                    {summary.guardians.length > 0 ? (
+                      <div className="family-registration__relationships">
+                        <h4>{t('admin.student360.familyRegistration.relationshipsTitle')}</h4>
+                        <ul>
+                          {summary.guardians.map((guardian) => {
+                            const entryKey = guardian.entryKey;
+                            const value =
+                              child.relationshipByEntryKey[entryKey] ?? guardian.relationship_type;
+                            const name =
+                              guardian.kind === 'existing'
+                                ? guardian.displayName
+                                : guardian.full_name;
+                            const relationshipOptions =
+                              admissionOptionsState.options?.relationships?.length
+                                ? admissionOptionsState.options.relationships.map((relationship) => ({
+                                    value: String(
+                                      relationship.value ?? relationship.id ?? '',
+                                    ),
+                                    label: relationship.label,
+                                  }))
+                                : RELATIONSHIP_TYPE_CODES.map((code) => ({
+                                    value: code,
+                                    label: relationshipTypeLabel(t, code),
+                                  }));
+                            return (
+                              <li key={entryKey}>
+                                <label>
+                                  <span>{name}</span>
+                                  <select
+                                    value={value}
+                                    onChange={(event) => {
+                                      const nextType = event.target.value as RelationshipType;
+                                      setForm((prev) => ({
+                                        ...prev,
+                                        children: prev.children.map((item) =>
+                                          item.localId === child.localId
+                                            ? {
+                                                ...item,
+                                                relationshipByEntryKey: {
+                                                  ...item.relationshipByEntryKey,
+                                                  [entryKey]: nextType,
+                                                },
+                                              }
+                                            : item,
+                                        ),
+                                      }));
+                                    }}
+                                  >
+                                    {relationshipOptions
+                                      .filter((relationship) => relationship.value)
+                                      .map((relationship) => (
+                                        <option
+                                          key={relationship.value}
+                                          value={relationship.value}
+                                        >
+                                          {relationship.label ||
+                                            relationshipTypeLabel(t, relationship.value)}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </label>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="family-registration__children-actions">
+              <button
+                type="button"
+                className="btn btn--secondary"
+                disabled={form.children.length >= 10}
+                onClick={() => setForm((prev) => addFamilyRegistrationChild(prev))}
+              >
+                {t('admin.student360.familyRegistration.addChild')}
+              </button>
+            </div>
+          </StudentCreateStyledSection>
+
+          <StudentCreateStyledSection
+            icon="review"
+            title={t('admin.student360.familyRegistration.reviewTitle')}
+            lead={t('admin.student360.familyRegistration.reviewLead')}
+          >
+            <div className="family-registration__review" data-testid="family-registration-review">
+              <section>
+                <h3>{t('admin.student360.familyRegistration.reviewGuardians')}</h3>
+                <ul>
+                  {summary.guardians.map((guardian) => (
+                    <li key={guardian.entryKey}>
+                      {(guardian.kind === 'existing'
+                        ? guardian.displayName
+                        : guardian.full_name) +
+                        ' — ' +
+                        relationshipTypeLabel(t, guardian.relationship_type) +
+                        (guardian.kind === 'existing'
+                          ? ` (${t('admin.student360.familyRegistration.existingGuardian')})`
+                          : ` (${t('admin.student360.familyRegistration.newGuardian')})`)}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              <section>
+                <h3>{t('admin.student360.familyRegistration.reviewBilling')}</h3>
+                <p>
+                  {summary.billingMode === 'student'
+                    ? t('admin.student360.create.billingResponsibility.partnerStudent')
+                    : summary.billingGuardianName
+                      ? summary.billingGuardianName
+                      : t('admin.student360.familyRegistration.billingMissing')}
+                </p>
+                {summary.missingBillingGuardian ? (
+                  <p className="family-registration__alert" role="alert">
+                    {t(
+                      'admin.student360.create.billingResponsibility.errors.billingGuardianSelectionRequired',
+                    )}
+                  </p>
+                ) : null}
+              </section>
+              <section>
+                <h3>{t('admin.student360.familyRegistration.reviewChildren')}</h3>
+                <ul>
+                  {summary.children.map((child) => (
+                    <li key={child.localId}>
+                      <strong>{child.displayName}</strong>
+                      <ul>
+                        {child.relationships.map((relationship) => (
+                          <li key={relationship.entryKey}>
+                            {relationship.name} —{' '}
+                            {relationshipTypeLabel(t, relationship.relationship_type)}
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              <p className="family-registration__mode-note" role="note">
+                {t('admin.student360.familyRegistration.batchNote')}
+              </p>
+            </div>
+          </StudentCreateStyledSection>
+
+          <div className="student-create-form__actions family-registration__actions">
+            <Link href="/admin/students/new" className="btn btn--ghost">
+              {t('admin.student360.familyRegistration.singleStudentInstead')}
+            </Link>
             <button
               type="button"
-              className="btn btn--secondary"
-              disabled={form.children.length >= 10}
-              onClick={() => setForm((prev) => addFamilyRegistrationChild(prev))}
+              className="btn btn--primary"
+              disabled={submitting || (submitState.lockedAgainstFullResubmit && !retryFailedOnly)}
+              onClick={() =>
+                void handleSubmitFamily(retryFailedOnly ? { retryFailedOnly: true } : undefined)
+              }
             >
-              {t('admin.student360.familyRegistration.addChild')}
+              {submitting
+                ? t('admin.student360.familyRegistration.submitting')
+                : retryFailedOnly
+                  ? t('admin.student360.familyRegistration.retryFailed')
+                  : t('admin.student360.familyRegistration.confirmBatchRegister')}
             </button>
           </div>
-        </StudentCreateStyledSection>
+        </>
       ) : null}
 
-      {step === 'review' ? (
-        <StudentCreateStyledSection
-          icon="review"
-          title={t('admin.student360.familyRegistration.reviewTitle')}
-          lead={t('admin.student360.familyRegistration.reviewLead')}
-        >
-          <div className="family-registration__review" data-testid="family-registration-review">
-            <section>
-              <h3>{t('admin.student360.familyRegistration.reviewGuardians')}</h3>
-              <ul>
-                {summary.guardians.map((g) => (
-                  <li key={g.entryKey}>
-                    {(g.kind === 'existing' ? g.displayName : g.full_name) +
-                      ' — ' +
-                      relationshipTypeLabel(t, g.relationship_type) +
-                      (g.kind === 'existing'
-                        ? ` (${t('admin.student360.familyRegistration.existingGuardian')})`
-                        : ` (${t('admin.student360.familyRegistration.newGuardian')})`)}
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section>
-              <h3>{t('admin.student360.familyRegistration.reviewBilling')}</h3>
-              <p>
-                {summary.billingMode === 'student'
-                  ? t('admin.student360.create.billingResponsibility.partnerStudent')
-                  : summary.billingGuardianName
-                    ? summary.billingGuardianName
-                    : t('admin.student360.familyRegistration.billingMissing')}
-              </p>
-              {summary.missingBillingGuardian ? (
-                <p className="family-registration__alert" role="alert">
-                  {t('admin.student360.create.billingResponsibility.errors.billingGuardianSelectionRequired')}
-                </p>
-              ) : null}
-            </section>
-            <section>
-              <h3>{t('admin.student360.familyRegistration.reviewChildren')}</h3>
-              <ul>
-                {summary.children.map((child) => (
-                  <li key={child.localId}>
-                    <strong>{child.displayName}</strong>
-                    <ul>
-                      {child.relationships.map((rel) => (
-                        <li key={rel.entryKey}>
-                          {rel.name} — {relationshipTypeLabel(t, rel.relationship_type)}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <p className="family-registration__mode-note" role="note">
-              {t('admin.student360.familyRegistration.batchNote')}
-            </p>
-          </div>
-        </StudentCreateStyledSection>
-      ) : null}
-
-      {step === 'result' ? (
+      {view === 'result' ? (
         <StudentCreateStyledSection
           icon="review"
           title={t('admin.student360.familyRegistration.resultTitle')}
@@ -956,9 +993,7 @@ function FamilyRegistrationWizard() {
               >
                 <div>
                   <strong>{result.displayName}</strong>
-                  <span>
-                    {t(`admin.student360.familyRegistration.status.${result.status}`)}
-                  </span>
+                  <span>{t(`admin.student360.familyRegistration.status.${result.status}`)}</span>
                 </div>
                 {result.replayed ? (
                   <p className="student-create-form__notice" role="status">
@@ -967,7 +1002,7 @@ function FamilyRegistrationWizard() {
                 ) : null}
                 {result.studentReference ? (
                   <p className="mono tiny" dir="ltr">
-                    {t('admin.student360.familyRegistration.studentReference')}:{' '}
+                    {t('admin.student360.familyRegistration.studentReference')}: {' '}
                     {result.studentReference}
                   </p>
                 ) : null}
@@ -1009,7 +1044,7 @@ function FamilyRegistrationWizard() {
                     <button
                       type="button"
                       className="btn btn--ghost btn--sm"
-                      onClick={() => setStep('children')}
+                      onClick={() => setView('registration')}
                     >
                       {t('admin.student360.familyRegistration.editFailedChild')}
                     </button>
@@ -1037,29 +1072,13 @@ function FamilyRegistrationWizard() {
                   succeededStudentIds={succeededCollectionStudentIds}
                   studentNameById={succeededCollectionStudentNames}
                 />
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  onClick={goToFinanceSetup}
-                >
+                <button type="button" className="btn btn--primary" onClick={goToFinanceSetup}>
                   {t('admin.student360.familyRegistration.continueToFinance')}
                 </button>
                 <Link href="/admin/students" className="btn btn--secondary">
                   {t('admin.student360.familyRegistration.backToList')}
                 </Link>
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  onClick={() => {
-                    batchIdempotencyRef.current.reset();
-                    setForm(emptyFamilyRegistrationFormState(today));
-                    setSubmitState(emptyFamilyRegistrationSubmitState());
-                    setFinanceDrafts([]);
-                    setFinanceSubmitState(emptyFamilyFinanceSubmitState());
-                    setResolvedGuardianEntries(null);
-                    setStep('guardians');
-                  }}
-                >
+                <button type="button" className="btn btn--ghost" onClick={resetFamilyRegistration}>
                   {t('admin.student360.familyRegistration.registerAnotherFamily')}
                 </button>
               </>
@@ -1068,7 +1087,7 @@ function FamilyRegistrationWizard() {
               <button
                 type="button"
                 className="btn btn--secondary"
-                onClick={() => setStep('review')}
+                onClick={() => setView('registration')}
               >
                 {t('admin.student360.familyRegistration.backToReview')}
               </button>
@@ -1077,58 +1096,18 @@ function FamilyRegistrationWizard() {
         </StudentCreateStyledSection>
       ) : null}
 
-      {step === 'finance' || step === 'finance_result' ? (
+      {view === 'finance' || view === 'finance_result' ? (
         <FamilyRegistrationFinancePanel
-          mode={step === 'finance_result' ? 'finance_result' : 'finance'}
+          mode={view === 'finance_result' ? 'finance_result' : 'finance'}
           drafts={financeDrafts}
           submitState={financeSubmitState}
           onDraftsChange={setFinanceDrafts}
           onSubmitStateChange={setFinanceSubmitState}
-          onBackToRegistrationResult={() => setStep('result')}
+          onBackToRegistrationResult={() => setView('result')}
           onBackToSetup={backToFinanceSetup}
-          onCompleted={() => setStep('finance_result')}
+          onCompleted={() => setView('finance_result')}
         />
       ) : null}
-
-      <div className="student-create-form__actions family-registration__actions">
-        {step === 'guardians' ? (
-          <>
-            <Link href="/admin/students/new" className="btn btn--ghost">
-              {t('admin.student360.familyRegistration.singleStudentInstead')}
-            </Link>
-            <button type="button" className="btn btn--primary" onClick={goNextFromGuardians}>
-              {t('admin.student360.familyRegistration.continueToChildren')}
-            </button>
-          </>
-        ) : null}
-        {step === 'children' ? (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => setStep('guardians')}>
-              {t('common.back')}
-            </button>
-            <button type="button" className="btn btn--primary" onClick={goNextFromChildren}>
-              {t('admin.student360.familyRegistration.continueToReview')}
-            </button>
-          </>
-        ) : null}
-        {step === 'review' ? (
-          <>
-            <button type="button" className="btn btn--ghost" onClick={() => setStep('children')}>
-              {t('common.back')}
-            </button>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={submitting || submitState.lockedAgainstFullResubmit}
-              onClick={() => void handleSubmitFamily()}
-            >
-              {submitting
-                ? t('admin.student360.familyRegistration.submitting')
-                : t('admin.student360.familyRegistration.confirmBatchRegister')}
-            </button>
-          </>
-        ) : null}
-      </div>
     </div>
   );
 }

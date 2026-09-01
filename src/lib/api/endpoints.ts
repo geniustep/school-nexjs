@@ -37,6 +37,8 @@ export const endpoints = {
     studentsOptions: '/admin/students/options',
     studentsFinancialServiceCounts: '/admin/students/financial-service-counts',
     student: (id: number | string) => `/admin/students/${id}`,
+    studentPostRegistrationSetup: (id: number | string) =>
+      `/admin/students/${id}/post-registration-setup`,
     studentOverview: (id: number | string) => `/admin/students/${id}/overview`,
     studentUpdate: (id: number | string) => `/admin/students/${id}/update`,
     studentAccount: (id: number | string) => `/admin/students/${id}/account`,

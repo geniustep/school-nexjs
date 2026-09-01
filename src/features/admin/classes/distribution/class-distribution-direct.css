@@ -1,0 +1,279 @@
+.class-distribution-direct {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow-x: clip;
+}
+
+.class-distribution-direct .class-distribution-workspace {
+  max-inline-size: 100%;
+}
+
+.class-distribution-direct .class-distribution-workspace__scroller {
+  align-items: stretch;
+}
+
+.class-distribution-direct__scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: auto;
+  scrollbar-width: auto;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+}
+
+.class-distribution-direct .class-distribution-lane__students,
+.class-distribution-direct .class-distribution-lane__students--unassigned {
+  max-block-size: none;
+  overflow-y: visible;
+}
+
+.class-distribution-direct__scroller::-webkit-scrollbar {
+  height: 12px;
+}
+
+.class-distribution-direct__scroller::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--c-surface-2) 78%, transparent);
+  border-radius: 999px;
+}
+
+.class-distribution-direct__scroller::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--c-primary) 42%, var(--c-border));
+  border: 3px solid color-mix(in srgb, var(--c-surface-2) 78%, transparent);
+  border-radius: 999px;
+}
+
+.class-distribution-direct__scroller:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.class-distribution-direct .class-distribution-lane {
+  position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.class-distribution-direct .class-distribution-lane[data-move-ready='true'] {
+  cursor: pointer;
+}
+
+.class-distribution-direct .class-distribution-lane[data-move-ready='true']:hover,
+.class-distribution-direct .class-distribution-lane[data-move-ready='true']:focus-visible {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-soft), var(--shadow-sm);
+  outline: none;
+}
+
+.class-distribution-direct .class-distribution-lane[data-drop-target='true'] {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 4px var(--c-primary-soft), var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.class-distribution-direct .class-distribution-lane[data-previewing='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--c-surface) 72%, transparent);
+  pointer-events: none;
+}
+
+.class-distribution-student--draggable {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.class-distribution-student--draggable:active {
+  cursor: grabbing;
+}
+
+.class-distribution-student--draggable[aria-grabbed='true'] {
+  opacity: 0.58;
+}
+
+.class-distribution-student--draggable .class-distribution-student__grip {
+  cursor: grab;
+}
+
+.class-distribution-direct__lane-head {
+  gap: 8px;
+}
+
+.class-distribution-direct__occupancy {
+  flex: 0 0 auto;
+  font-size: 1rem;
+}
+
+.class-distribution-direct__hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+  color: var(--c-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.class-distribution-direct__hint::before {
+  content: '↔';
+  font-weight: 800;
+}
+
+.class-distribution-direct__roster-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 12px;
+  border-block-start: 1px solid var(--c-border);
+  color: var(--c-text-muted);
+  font-size: 12px;
+}
+
+.class-distribution-direct__action {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.class-distribution-direct__action-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+}
+
+.class-distribution-direct__action-copy span {
+  color: var(--c-text-muted);
+  font-size: 12px;
+}
+
+.class-distribution-direct__mobile-target {
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+}
+
+.class-distribution-direct__mobile-target span {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.class-distribution-direct__mobile-target .input {
+  min-height: 38px;
+}
+
+[dir='rtl'] .class-distribution-direct__mobile-target,
+[dir='rtl'] .class-distribution-direct__mobile-target .input,
+[dir='rtl'] .class-distribution-direct__mobile-target option {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir='rtl'] .class-distribution-direct__mobile-target option {
+  unicode-bidi: isolate;
+}
+
+.class-distribution-direct__confirm {
+  display: grid;
+  gap: 12px;
+}
+
+.class-distribution-direct__confirm-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface-2);
+}
+
+.class-distribution-direct__confirm-route > div {
+  display: grid;
+  gap: 3px;
+}
+
+.class-distribution-direct__confirm-route span {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.class-distribution-direct__confirm-route strong {
+  font-size: 14px;
+}
+
+.class-distribution-direct__confirm-students {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.class-distribution-direct__confirm-students li {
+  padding: 5px 8px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  font-size: 12px;
+}
+
+.class-distribution-direct__confirm-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.class-distribution-direct__confirm-metrics article {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+}
+
+.class-distribution-direct__confirm-metrics small {
+  color: var(--c-text-muted);
+}
+
+@media (max-width: 760px) {
+  .class-distribution-direct__scroller {
+    scroll-snap-type: inline mandatory;
+  }
+
+  .class-distribution-direct__action {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .class-distribution-direct__mobile-target {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .class-distribution-direct__confirm-route {
+    grid-template-columns: 1fr;
+  }
+
+  .class-distribution-direct__confirm-route > bdi {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .class-distribution-direct .class-distribution-lane {
+    transition: none;
+  }
+}

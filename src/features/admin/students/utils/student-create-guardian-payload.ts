@@ -17,6 +17,13 @@ import {
   validateAdditionalGuardianEntries,
   type AdditionalGuardianValidationErrors,
 } from './student-create-additional-guardians';
+import {
+  guardianIdentityWriteFields,
+  resolvePrimaryGuardianIdentity,
+  validateStudentCreateGuardianIdentities,
+  type StudentCreateGuardianEntryWithIdentity,
+  type StudentCreateGuardianIdentityValidationErrors,
+} from './student-create-guardian-identity';
 
 function trim(value: string | undefined | null): string {
   return (value ?? '').trim();
@@ -72,7 +79,7 @@ export function derivePrimaryStudentCreateGuardianEntry(
   const fullName = trim(profileState.emergencyContactName);
   if (!fullName) return null;
 
-  return {
+  const entry: StudentCreateGuardianEntryWithIdentity = {
     kind: 'new',
     entryKey: 'new-primary',
     full_name: fullName,
@@ -80,7 +87,9 @@ export function derivePrimaryStudentCreateGuardianEntry(
     email: trim(profileState.guardianEmail) || undefined,
     relationship_type: (trim(profileState.emergencyRelationship) || 'father') as RelationshipType,
     is_primary_contact: true,
+    identityDocument: resolvePrimaryGuardianIdentity(billingState),
   };
+  return entry;
 }
 
 export function collectStudentCreateGuardianEntries(
@@ -141,12 +150,15 @@ export function buildStudentCreateGuardianRelationships(
       };
     }
 
+    const guardian = {
+      full_name: entry.full_name,
+      ...(entry.phone ? { phone: entry.phone } : {}),
+      ...(entry.email ? { email: entry.email } : {}),
+      ...guardianIdentityWriteFields(entry),
+    };
+
     return {
-      guardian: {
-        full_name: entry.full_name,
-        ...(entry.phone ? { phone: entry.phone } : {}),
-        ...(entry.email ? { email: entry.email } : {}),
-      },
+      guardian,
       ...relationshipFlags,
     };
   });
@@ -228,7 +240,8 @@ export function hasAtomicallySubmittedGuardians(payload: StudentCreatePayload): 
 export type StudentCreateGuardianValidationErrors = {
   billingGuardianSelection?: string;
   guardianRequired?: string;
-} & AdditionalGuardianValidationErrors;
+} & AdditionalGuardianValidationErrors &
+  StudentCreateGuardianIdentityValidationErrors;
 
 export function validateStudentCreateGuardianContract(
   profileState: StudentProfileFormState,
@@ -237,6 +250,8 @@ export function validateStudentCreateGuardianContract(
   options?: { requireExistingGuardianSelection?: boolean },
 ): { valid: boolean; errors: StudentCreateGuardianValidationErrors; message?: string } {
   const errors: StudentCreateGuardianValidationErrors = {};
+  const identityValidation = validateStudentCreateGuardianIdentities(billingState, t);
+  Object.assign(errors, identityValidation.errors);
 
   const hasGuardianIntakeText =
     Boolean(trim(profileState.emergencyContactName)) ||
@@ -258,15 +273,17 @@ export function validateStudentCreateGuardianContract(
     return { valid: false, errors, message };
   }
 
+  const additionalValidation = validateAdditionalGuardianEntries(profileState, billingState, t);
+
   if (billingState.responsibilitySelection !== 'guardian') {
-    const additionalValidation = validateAdditionalGuardianEntries(profileState, billingState, t);
-    if (!additionalValidation.valid) {
+    if (!additionalValidation.valid || !identityValidation.valid) {
       return {
         valid: false,
         errors: { ...errors, ...additionalValidation.errors },
         message:
           additionalValidation.errors.duplicateGuardianId ??
-          Object.values(additionalValidation.errors.additionalGuardianErrorsByEntryKey ?? {})[0],
+          Object.values(additionalValidation.errors.additionalGuardianErrorsByEntryKey ?? {})[0] ??
+          identityValidation.message,
       };
     }
     return { valid: true, errors };
@@ -281,14 +298,14 @@ export function validateStudentCreateGuardianContract(
     return { valid: false, errors, message };
   }
 
-  const additionalValidation = validateAdditionalGuardianEntries(profileState, billingState, t);
   if (!additionalValidation.valid) {
     return {
       valid: false,
       errors: { ...errors, ...additionalValidation.errors },
       message:
         additionalValidation.errors.duplicateGuardianId ??
-        Object.values(additionalValidation.errors.additionalGuardianErrorsByEntryKey ?? {})[0],
+        Object.values(additionalValidation.errors.additionalGuardianErrorsByEntryKey ?? {})[0] ??
+        identityValidation.message,
     };
   }
 
@@ -296,6 +313,14 @@ export function validateStudentCreateGuardianContract(
     const message = t('admin.student360.create.billingResponsibility.errors.billingGuardianSelectionRequired');
     errors.billingGuardianSelection = message;
     return { valid: false, errors, message };
+  }
+
+  if (!identityValidation.valid) {
+    return {
+      valid: false,
+      errors,
+      message: identityValidation.message ?? t('errors.validationFailed'),
+    };
   }
 
   return { valid: true, errors };

@@ -1,0 +1,438 @@
+.page {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 4px 0 24px;
+}
+
+.page :global(.family-registration) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.page :global(.family-registration .student-create-page__header) {
+  margin: 0;
+  padding: 0 0 2px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.page :global(.family-registration .student-create-page__header::before) {
+  display: none;
+}
+
+.page :global(.family-registration .student-create-page__title) {
+  margin: 0;
+  font-size: clamp(22px, 2.5vw, 28px);
+  line-height: 1.2;
+}
+
+/* The form is self-explanatory once all sections are visible on one page. */
+.page :global(.family-registration .student-create-page__desc),
+.page :global(.family-registration .student-create-form__section-lead),
+.page :global(.family-registration .student-create-guardians-block__lead),
+.page :global(.family-registration .student-create-field__hint),
+.page :global(.family-registration__mode-note) {
+  display: none;
+}
+
+.page :global(.family-registration .student-create-form__section) {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.page :global(.family-registration .student-create-form__section-header) {
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px 8px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 78%, transparent);
+}
+
+.page :global(.family-registration .student-create-form__section-icon) {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
+.page :global(.family-registration .student-create-form__section-title) {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.page :global(.family-registration .student-create-form__section-body) {
+  padding: 10px 14px 12px;
+  gap: 9px;
+}
+
+.page :global(.family-registration .student-create-form__grid) {
+  gap: 8px 10px;
+}
+
+.page :global(.family-registration .student-create-field) {
+  gap: 3px;
+}
+
+.page :global(.family-registration .student-create-field__label) {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.page :global(.family-registration .input),
+.page :global(.family-registration input),
+.page :global(.family-registration select) {
+  min-height: 36px;
+}
+
+.page :global(.family-registration textarea.input) {
+  min-height: 58px;
+}
+
+/* Father + mother are the main family identity surface. */
+.page :global(.family-registration__guardian-cards) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.page :global(.family-registration .student-create-guardians-block) {
+  margin: 0;
+  padding: 9px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--c-surface-2) 40%, var(--c-surface));
+}
+
+.page :global(.family-registration .student-create-guardians-block__head) {
+  margin-block-end: 7px;
+}
+
+.page :global(.family-registration .student-create-guardians-block__title) {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.page :global(.family-registration__guardian-card) {
+  min-width: 0;
+}
+
+.page :global(.family-registration__guardian-card .student-create-guardian-source__picker) {
+  margin-block-end: 7px;
+}
+
+.page :global(.family-registration__guardian-card .student-create-guardian-source__modes),
+.page :global(.family-registration__guardian-card .student-create-additional-guardian-card__mode) {
+  gap: 6px;
+}
+
+.page :global(.family-registration__guardian-card .student-create-guardian-source__search) {
+  margin-block-start: 6px;
+}
+
+.page :global(.family-registration__guardian-card .student-create-guardian-source__box) {
+  margin-block-start: 6px;
+  padding: 7px 8px;
+}
+
+.page :global(.family-registration__guardian-card .student-create-guardian-source__box-lead) {
+  display: none;
+}
+
+.page :global(.family-registration__guardian-card--mother .student-create-additional-guardian-card) {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.page :global(.family-registration__guardian-card--mother .student-create-additional-guardian-card__head) {
+  display: none;
+}
+
+.page :global(.family-registration__guardian-card .student-create-form__subsection) {
+  margin-block-start: 7px;
+  padding-block-start: 7px;
+}
+
+.page :global(.family-registration__extra-guardians) {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.page :global(.family-registration__extra-guardians .student-create-additional-guardians) {
+  width: 100%;
+}
+
+.page :global(.family-registration__extra-guardians .student-create-additional-guardians__add) {
+  width: auto;
+  min-height: 34px;
+  padding-block: 5px;
+}
+
+.page :global(.family-registration__extra-guardians .student-create-additional-guardians__list:empty) {
+  display: none;
+}
+
+.page :global(.family-registration .student-create-guardians-block--responsibility) {
+  padding: 8px 10px;
+}
+
+.page :global(.family-registration .student-create-guardians-block--responsibility .student-create-form__grid) {
+  align-items: end;
+}
+
+.page :global(.family-registration .student-create-guardians-block--responsibility .student-create-form__cell--half) {
+  max-width: 520px;
+}
+
+.page :global(.family-registration .student-create-form__subsection--siblings) {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+/* Children use the whole card width instead of a narrow column. */
+.page :global(.family-registration__children) {
+  display: grid;
+  gap: 9px;
+}
+
+.page :global(.family-registration__child-card) {
+  min-width: 0;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  box-shadow: none;
+}
+
+.page :global(.family-registration__child-card-head) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-end: 8px;
+  padding-block-end: 7px;
+  border-block-end: 1px solid var(--c-border);
+}
+
+.page :global(.family-registration__child-card-head h3) {
+  margin: 0;
+  font-size: 13px;
+  color: var(--c-text);
+}
+
+.page :global(.family-registration__child-card .student-create-form__grid) {
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px 9px;
+}
+
+.page :global(.family-registration__child-card .student-create-form__cell) {
+  min-width: 0;
+  width: auto;
+  max-width: none;
+}
+
+.page :global(.family-registration__child-card .student-create-form__cell--half) {
+  grid-column: span 1;
+}
+
+.page :global(.family-registration__child-card .student-create-form__cell--full) {
+  grid-column: 1 / -1;
+}
+
+.page :global(.family-registration__child-card .student-create-form__subsection) {
+  margin-block: 7px 0;
+  padding-block: 7px 0;
+}
+
+.page :global(.family-registration__relationships) {
+  margin-block-start: 8px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.page :global(.family-registration__relationships h4) {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: var(--c-text-muted);
+}
+
+.page :global(.family-registration__relationships ul) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 8px;
+}
+
+.page :global(.family-registration__relationships select) {
+  width: 100%;
+  max-width: none;
+}
+
+.page :global(.family-registration__children-actions) {
+  margin-block-start: 7px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.page :global(.family-registration__children-actions .btn) {
+  min-height: 34px;
+}
+
+.page :global(.family-registration__review) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.page :global(.family-registration__review > section) {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.page :global(.family-registration__review h3) {
+  margin: 0 0 5px;
+  font-size: 12px;
+}
+
+.page :global(.family-registration__review ul),
+.page :global(.family-registration__review p) {
+  margin-block: 3px;
+  font-size: 12px;
+}
+
+.page :global(.family-registration__review > .family-registration__mode-note) {
+  grid-column: 1 / -1;
+}
+
+.page :global(.family-registration__batch-summary) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.page :global(.family-registration__batch-summary > div) {
+  padding: 8px 9px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.page :global(.family-registration__results) {
+  gap: 7px;
+}
+
+.page :global(.family-registration__result-item) {
+  padding: 9px;
+}
+
+.page :global(.family-registration__actions) {
+  position: sticky;
+  inset-block-end: 8px;
+  z-index: 20;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--c-surface) 95%, transparent);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+}
+
+.page :global(.family-registration__result-actions) {
+  margin-block-start: 9px;
+}
+
+@media (max-width: 1000px) {
+  .page :global(.family-registration__child-card .student-create-form__grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page :global(.family-registration__review) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .page :global(.family-registration__review > section:last-of-type) {
+    grid-column: 1 / -1;
+  }
+
+  .page :global(.family-registration__batch-summary) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page :global(.family-registration__guardian-cards) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-block-start: 0;
+  }
+
+  .page :global(.family-registration) {
+    gap: 8px;
+  }
+
+  .page :global(.family-registration .student-create-page__title) {
+    font-size: 21px;
+  }
+
+  .page :global(.family-registration .student-create-form__section-header) {
+    padding: 9px 10px 7px;
+  }
+
+  .page :global(.family-registration .student-create-form__section-body) {
+    padding: 8px 10px 10px;
+  }
+
+  .page :global(.family-registration__child-card) {
+    padding: 8px;
+  }
+
+  .page :global(.family-registration__child-card .student-create-form__grid),
+  .page :global(.family-registration__relationships ul),
+  .page :global(.family-registration__review),
+  .page :global(.family-registration__batch-summary) {
+    grid-template-columns: 1fr;
+  }
+
+  .page :global(.family-registration__child-card .student-create-form__cell--half),
+  .page :global(.family-registration__child-card .student-create-form__cell--full) {
+    grid-column: auto;
+  }
+
+  .page :global(.family-registration__review > section:last-of-type) {
+    grid-column: auto;
+  }
+
+  .page :global(.family-registration__actions) {
+    inset-block-end: 5px;
+    padding: 7px;
+  }
+
+  .page :global(.family-registration__actions .btn) {
+    width: 100%;
+  }
+}

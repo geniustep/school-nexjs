@@ -2,6 +2,8 @@
 
 import { useT } from '@/features/i18n/locale-context';
 import type { EnrollmentIntakeGuardianOptions } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
+import { IdentityDocumentFields } from '@/features/admin/parents/components/identity-document-fields';
+import type { IdentityDocumentFieldErrors } from '@/features/admin/parents/utils/identity-document';
 import type {
   StudentCreateGuardianEntry,
   StudentCreateGuardianSourceMode,
@@ -13,6 +15,10 @@ import { resolveGuardianAccountPresentation } from '../utils/resolve-guardian-ac
 import { relationshipTypeLabel } from '../utils/relationship-types';
 import { RELATIONSHIP_TYPE_CODES } from '../utils/relationship-types';
 import { resolveAdditionalGuardianSourceMode } from '../utils/student-create-additional-guardians';
+import {
+  resolveGuardianEntryIdentity,
+  type StudentCreateGuardianEntryWithIdentity,
+} from '../utils/student-create-guardian-identity';
 import type { StudentCreateBillingFormState } from '@/types/student-enrollment-finance';
 
 export function StudentCreateAdditionalGuardianCard({
@@ -22,12 +28,15 @@ export function StudentCreateAdditionalGuardianCard({
   usedGuardianIds,
   fieldError,
   duplicateError,
+  identityErrors,
   guardian,
   onSourceModeChange,
   onUpdateEntry,
   onLinkExisting,
   onClearLink,
   onRemove,
+  title,
+  removable = true,
 }: {
   entry: StudentCreateGuardianEntry;
   billingState: StudentCreateBillingFormState;
@@ -35,12 +44,15 @@ export function StudentCreateAdditionalGuardianCard({
   usedGuardianIds: Set<number>;
   fieldError?: string;
   duplicateError?: string;
+  identityErrors?: IdentityDocumentFieldErrors;
   guardian: EnrollmentIntakeGuardianOptions;
   onSourceModeChange: (entryKey: string, mode: StudentCreateGuardianSourceMode) => void;
   onUpdateEntry: (entryKey: string, next: StudentCreateGuardianEntry) => void;
   onLinkExisting: (entryKey: string, person: PersonSearchResult) => void;
   onClearLink: (entryKey: string) => void;
   onRemove: (entryKey: string) => void;
+  title?: string;
+  removable?: boolean;
 }) {
   const t = useT();
   const sourceMode = resolveAdditionalGuardianSourceMode(entry, billingState);
@@ -53,6 +65,7 @@ export function StudentCreateAdditionalGuardianCard({
     linkedPerson && entry.kind === 'existing'
       ? resolveGuardianAccountPresentation(linkedPerson)
       : null;
+  const identityDocument = resolveGuardianEntryIdentity(entry);
 
   function patchNewFields(patch: {
     full_name?: string;
@@ -64,20 +77,31 @@ export function StudentCreateAdditionalGuardianCard({
     onUpdateEntry(entry.entryKey, { ...entry, ...patch });
   }
 
+  function patchIdentity(patch: Partial<typeof identityDocument>) {
+    if (entry.kind !== 'new') return;
+    const next: StudentCreateGuardianEntryWithIdentity = {
+      ...entry,
+      identityDocument: { ...identityDocument, ...patch },
+    };
+    onUpdateEntry(entry.entryKey, next);
+  }
+
   return (
     <article className="student-create-additional-guardian-card">
       <header className="student-create-additional-guardian-card__head">
         <h4 className="student-create-additional-guardian-card__title">
-          {t('admin.student360.create.billing.additionalGuardianTitle')}
+          {title ?? t('admin.student360.create.billing.additionalGuardianTitle')}
         </h4>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() => onRemove(entry.entryKey)}
-          aria-label={t('admin.student360.create.billing.removeAdditionalGuardian')}
-        >
-          {t('admin.student360.create.billing.removeAdditionalGuardian')}
-        </button>
+        {removable ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => onRemove(entry.entryKey)}
+            aria-label={t('admin.student360.create.billing.removeAdditionalGuardian')}
+          >
+            {t('admin.student360.create.billing.removeAdditionalGuardian')}
+          </button>
+        ) : null}
       </header>
 
       <div className="student-create-additional-guardian-card__mode" role="group" aria-label={t('admin.student360.create.billing.guardianSourceChooseTitle')}>
@@ -134,42 +158,56 @@ export function StudentCreateAdditionalGuardianCard({
       </label>
 
       {sourceMode === 'new' ? (
-        <div className="student-create-form__grid">
-          <div className="student-create-form__cell student-create-form__cell--half">
-            <label className="student-create-field">
-              <span className="student-create-field__label">{t('admin.admissions.fields.guardianName')}</span>
-              <input
-                className="input"
-                dir="auto"
-                value={entry.kind === 'new' ? entry.full_name : ''}
-                onChange={(e) => patchNewFields({ full_name: e.target.value })}
-              />
-            </label>
+        <>
+          <div className="student-create-form__grid">
+            <div className="student-create-form__cell student-create-form__cell--half">
+              <label className="student-create-field">
+                <span className="student-create-field__label">{t('admin.admissions.fields.guardianName')}</span>
+                <input
+                  className="input"
+                  dir="auto"
+                  value={entry.kind === 'new' ? entry.full_name : ''}
+                  onChange={(e) => patchNewFields({ full_name: e.target.value })}
+                />
+              </label>
+            </div>
+            <div className="student-create-form__cell student-create-form__cell--half">
+              <label className="student-create-field">
+                <span className="student-create-field__label">{t('admin.admissions.fields.guardianPhone')}</span>
+                <input
+                  className="input"
+                  dir="ltr"
+                  value={entry.kind === 'new' ? (entry.phone ?? '') : ''}
+                  onChange={(e) => patchNewFields({ phone: e.target.value })}
+                />
+              </label>
+            </div>
+            <div className="student-create-form__cell student-create-form__cell--full">
+              <label className="student-create-field">
+                <span className="student-create-field__label">{t('admin.admissions.fields.guardianEmail')}</span>
+                <input
+                  className="input"
+                  type="email"
+                  dir="ltr"
+                  value={entry.kind === 'new' ? (entry.email ?? '') : ''}
+                  onChange={(e) => patchNewFields({ email: e.target.value })}
+                />
+              </label>
+            </div>
           </div>
-          <div className="student-create-form__cell student-create-form__cell--half">
-            <label className="student-create-field">
-              <span className="student-create-field__label">{t('admin.admissions.fields.guardianPhone')}</span>
-              <input
-                className="input"
-                dir="ltr"
-                value={entry.kind === 'new' ? (entry.phone ?? '') : ''}
-                onChange={(e) => patchNewFields({ phone: e.target.value })}
+          {entry.kind === 'new' ? (
+            <div className="student-create-form__subsection">
+              <p className="student-create-field__label">
+                {t('admin.identityDocument.sectionTitle')}
+              </p>
+              <IdentityDocumentFields
+                values={identityDocument}
+                errors={identityErrors}
+                onChange={patchIdentity}
               />
-            </label>
-          </div>
-          <div className="student-create-form__cell student-create-form__cell--full">
-            <label className="student-create-field">
-              <span className="student-create-field__label">{t('admin.admissions.fields.guardianEmail')}</span>
-              <input
-                className="input"
-                type="email"
-                dir="ltr"
-                value={entry.kind === 'new' ? (entry.email ?? '') : ''}
-                onChange={(e) => patchNewFields({ email: e.target.value })}
-              />
-            </label>
-          </div>
-        </div>
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {isExistingPending ? (

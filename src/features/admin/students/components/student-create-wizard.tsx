@@ -67,7 +67,6 @@ import {
 } from '../utils/student-profile';
 import {
   buildFeePlanSuggestQuery,
-  canSkipFinanceOnCreate,
   defaultStudentCreateFinanceFormState,
   financePlanFingerprint,
   mergeFinanceStateWithSuggest,
@@ -75,14 +74,10 @@ import {
 } from '../utils/student-enrollment-finance';
 import { validateEnrollmentFinanceSave } from '../utils/enrollment-finance-review';
 import {
-  canOfferFinanceAgreementActivation,
   resolveStudentCreateAgreementState,
   type StudentCreateFinanceActivationMode,
 } from '../utils/student-create-finance-activation';
-import {
-  isOptionalFinanceGateStatus,
-  resolveStudentCreateFinanceStepGate,
-} from '../utils/student-create-finance-skip';
+import { resolveStudentCreateFinanceStepGate } from '../utils/student-create-finance-skip';
 import {
   resolveStudentCreateIdentifierCheckErrors,
   validateStudentCreateIdentifierDuplicateChecks,
@@ -126,11 +121,7 @@ import {
   persistStudentCreateGuardianOnboarding,
 } from '../utils/resolve-guardian-account-presentation';
 import { resolvePostCreateBillingOutcome } from '../utils/resolve-post-create-billing-outcome';
-import {
-  canOfferCreateAgreementActivationUi,
-  resolveStudentCreateJourneyCapabilities,
-  shouldForceSkipFinanceOnCreate,
-} from '../utils/student-create-journey-rbac';
+import { resolveStudentCreateJourneyCapabilities } from '../utils/student-create-journey-rbac';
 import type {
   StudentCreateBillingFormState,
   StudentCreateFinanceFormState,
@@ -204,7 +195,6 @@ export function StudentCreateForm({
     () => resolveStudentCreateJourneyCapabilities(user),
     [user],
   );
-  const forceSkipFinance = shouldForceSkipFinanceOnCreate(journeyCapabilities);
   const optionsState = useStudentOptions();
   const admissionOptionsState = useAdmissionOptions();
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
@@ -228,11 +218,10 @@ export function StudentCreateForm({
   const submitInFlightRef = useRef(false);
   const [saveMode, setSaveMode] = useState<StudentCreateSaveMode>('setup');
   const [financeActivationMode, setFinanceActivationMode] =
-    useState<StudentCreateFinanceActivationMode>('draft');
+    useState<StudentCreateFinanceActivationMode>('activate');
   const [classClearedNotice, setClassClearedNotice] = useState(false);
   const [cycleChangedNotice, setCycleChangedNotice] = useState(false);
   const [planChangeWarning, setPlanChangeWarning] = useState(false);
-  const [skipFinance, setSkipFinance] = useState(forceSkipFinance);
   const [createResult, setCreateResult] = useState<StudentCreateResultModel | null>(null);
   const [pendingSaveOutcome, setPendingSaveOutcome] = useState<{
     id: number;
@@ -306,14 +295,9 @@ export function StudentCreateForm({
     }
 
     setState((prev) => {
-      // Hard reset only on first options readiness. Later option refreshes must not wipe
-      // in-progress registration fields (identity / guardians contact) after step navigation.
       if (!profileOptionsInitRef.current) {
         profileOptionsInitRef.current = true;
         const base = defaultStudentProfileFormState(options);
-        // The identity inputs are usable while the asynchronous options are still loading.
-        // Preserve anything the director has already entered before those options become
-        // available; otherwise moving to a later step can appear to erase the student.
         let merged: StudentProfileFormState = {
           ...base,
           ...prev,
@@ -880,9 +864,7 @@ export function StudentCreateForm({
     [state, billingState],
   );
 
-  const financeBlocked =
-    suggestState.error?.code === 'no_default_fee_plan_for_level' &&
-    !canSkipFinanceOnCreate(suggestState.error, suggestState.suggest?.allowed_actions);
+  const financeBlocked = Boolean(suggestState.error);
 
   function patch(next: Partial<StudentProfileFormState>) {
     setState((prev) => ({ ...prev, ...next }));
@@ -1087,13 +1069,6 @@ export function StudentCreateForm({
   );
 
   useEffect(() => {
-    if (forceSkipFinance && !skipFinance) {
-      setSkipFinance(true);
-      setFinanceError(null);
-    }
-  }, [forceSkipFinance, skipFinance]);
-
-  useEffect(() => {
     if (!journeyCapabilities.canCreateNewGuardian && billingState.guardianSourceMode === 'new') {
       setBillingState((prev) => ({
         ...prev,
@@ -1173,16 +1148,10 @@ export function StudentCreateForm({
 
   function financePrerequisiteMessage(
     reason: ReturnType<typeof getStudentCreateFinanceBlockReason>,
-    context: 'step' | 'save',
   ): string | null {
     if (reason === 'ok') return null;
     if (reason === 'academic_year') {
       return t('admin.student360.create.errors.academicYearRequiredForFinance');
-    }
-    if (reason === 'class') {
-      return context === 'save'
-        ? t('admin.student360.create.errors.classRequiredForFinanceSave')
-        : t('admin.student360.create.errors.classRequiredBeforeFinance');
     }
     if (reason === 'level') return t('admin.student360.create.errors.levelRequired');
     if (reason === 'join_date') return t('admin.student360.errors.invalidEnrollmentDate');
@@ -1191,24 +1160,21 @@ export function StudentCreateForm({
 
   function applyFinancePrerequisiteFailure(
     reason: ReturnType<typeof getStudentCreateFinanceBlockReason>,
-    context: 'step' | 'save',
   ): boolean {
-    const message = financePrerequisiteMessage(reason, context);
+    const message = financePrerequisiteMessage(reason);
     if (!message) return true;
-    const fieldErrors: StudentProfileFieldErrors =
-      reason === 'class'
-        ? { classId: message }
-        : reason === 'academic_year'
-          ? { academicYearId: message }
-          : reason === 'level'
-            ? { levelId: message }
-            : reason === 'join_date'
-              ? { actualJoinDate: message }
-              : { academicYearId: message };
-    setFieldErrors((prev) => ({ ...prev, ...fieldErrors }));
+    const errors: StudentProfileFieldErrors =
+      reason === 'academic_year'
+        ? { academicYearId: message }
+        : reason === 'level'
+          ? { levelId: message }
+          : reason === 'join_date'
+            ? { actualJoinDate: message }
+            : { academicYearId: message };
+    setFieldErrors((prev) => ({ ...prev, ...errors }));
     toast.error(message);
     setStep('enrollment');
-    focusFirstError(fieldErrors);
+    focusFirstError(errors);
     return false;
   }
 
@@ -1302,12 +1268,6 @@ export function StudentCreateForm({
         focusFirstError(validation.errors);
         return false;
       }
-      if (state.levelId.trim()) {
-        const classReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
-        if (classReason === 'class') {
-          return applyFinancePrerequisiteFailure('class', 'step');
-        }
-      }
       if (state.classId.trim() && !applyEnrollmentClassScopeFailure('step')) {
         return false;
       }
@@ -1327,19 +1287,15 @@ export function StudentCreateForm({
         }
       }
       const gate = resolveStudentCreateFinanceStepGate({
-        skipFinance,
+        skipFinance: false,
         levelSelected,
         suggestLoading: suggestState.loading,
         financeBlocked,
         suggest: suggestState.suggest,
         prerequisiteReason: getStudentCreateFinanceBlockReason(state, resolvedSchoolId),
       });
-      if (gate.status === 'skip') {
-        setFinanceError(null);
-        return true;
-      }
       if (gate.status === 'prerequisite') {
-        return applyFinancePrerequisiteFailure(gate.prerequisiteReason ?? 'class', 'step');
+        return applyFinancePrerequisiteFailure(gate.prerequisiteReason ?? 'academic_year');
       }
       if (gate.status === 'select_level') {
         toast.error(t('admin.student360.create.finance.selectLevelForPlan'));
@@ -1349,10 +1305,13 @@ export function StudentCreateForm({
         toast.error(t('admin.student360.create.finance.loading'));
         return false;
       }
-      // Plan is optional: blocked / missing plans do not prevent registration.
-      if (isOptionalFinanceGateStatus(gate.status)) {
-        setFinanceError(null);
-        return true;
+      if (gate.status === 'blocked' || gate.status === 'no_plan') {
+        const message = suggestState.error
+          ? resolveNoDefaultFeePlanMessage(suggestState.error, t)
+          : t('admin.student360.create.finance.noPlanMessage');
+        setFinanceError(message);
+        toast.error(message);
+        return false;
       }
       if (!validateFinanceStep()) return false;
     }
@@ -1380,7 +1339,7 @@ export function StudentCreateForm({
 
   async function submit(
     mode: StudentCreateSaveMode,
-    activation: StudentCreateFinanceActivationMode = 'draft',
+    activation: StudentCreateFinanceActivationMode = 'activate',
   ) {
     if (submitInFlightRef.current || saving) return;
 
@@ -1403,39 +1362,21 @@ export function StudentCreateForm({
       return;
     }
 
-    const effectiveSkipFinance = skipFinance || forceSkipFinance;
-    const attachFinance =
-      !effectiveSkipFinance &&
-      journeyCapabilities.canAssignFeePlan &&
-      Boolean(suggestState.suggest);
-
-    if (attachFinance) {
-      const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
-      if (financeReason !== 'ok') {
-        applyFinancePrerequisiteFailure(financeReason, 'save');
-        return;
-      }
+    const attachFinance = Boolean(suggestState.suggest);
+    if (!attachFinance) {
+      const message = suggestState.error
+        ? resolveNoDefaultFeePlanMessage(suggestState.error, t)
+        : t('admin.student360.create.finance.noPlanMessage');
+      setFinanceError(message);
+      toast.error(message);
+      setStep('finance');
+      return;
     }
 
-    if (activation === 'activate' && attachFinance) {
-      if (
-        !canOfferCreateAgreementActivationUi(
-          journeyCapabilities,
-          canOfferFinanceAgreementActivation({
-            suggest: suggestState.suggest,
-            financeBlocked,
-            state,
-            schoolId: resolvedSchoolId,
-            financeState,
-            previewLoading: previewState.loading,
-            previewError: previewState.error,
-            preview: previewState.preview,
-          }),
-        )
-      ) {
-        validateFinanceStep();
-        return;
-      }
+    const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
+    if (financeReason !== 'ok') {
+      applyFinancePrerequisiteFailure(financeReason);
+      return;
     }
 
     submitInFlightRef.current = true;
@@ -1446,10 +1387,10 @@ export function StudentCreateForm({
       buildStudentCreatePayload(
         state,
         {
-          suggest: attachFinance ? suggestState.suggest : null,
+          suggest: suggestState.suggest,
           financeState,
           schoolId: resolvedSchoolId,
-          activationMode: activation === 'activate' ? 'activate' : undefined,
+          activationMode: 'activate',
         },
         {
           schoolId: resolvedSchoolId,
@@ -1463,13 +1404,7 @@ export function StudentCreateForm({
     );
 
     if (payload.finance && payload.academic?.academic_year_id == null) {
-      applyFinancePrerequisiteFailure('academic_year', 'save');
-      submitInFlightRef.current = false;
-      setSaving(false);
-      return;
-    }
-    if (payload.finance && payload.academic?.class_id == null) {
-      applyFinancePrerequisiteFailure('class', 'save');
+      applyFinancePrerequisiteFailure('academic_year');
       submitInFlightRef.current = false;
       setSaving(false);
       return;
@@ -1515,10 +1450,8 @@ export function StudentCreateForm({
       if (billingResolution.showUnresolvedWarningToast) {
         toast.show(t('admin.student360.create.billingResponsibility.unresolvedWarning'), 'info');
       }
-      if (activation === 'activate' && agreementState === 'active' && !billingUnresolved) {
+      if (agreementState === 'active' && !billingUnresolved) {
         toast.success(t('admin.student360.create.financeActivation.activateSuccess'));
-      } else if (payload.finance && activation === 'draft') {
-        toast.success(t('admin.student360.create.financeActivation.draftSuccess'));
       } else if (!admissionBanner) {
         toast.success(t('admin.student360.create.success'));
       }
@@ -1540,7 +1473,7 @@ export function StudentCreateForm({
       }
 
       const outcome: StudentCreateSaveOutcome = {
-        financeActivation: payload.finance ? activation : undefined,
+        financeActivation: payload.finance ? 'activate' : undefined,
         agreementState,
         billingResponsibility: billingOutcome.metadata,
         collectionAllowed: billingOutcome.collectionAllowed,
@@ -1552,7 +1485,7 @@ export function StudentCreateForm({
         studentId: id,
         studentCode,
         financeAttached: Boolean(payload.finance),
-        financeActivation: payload.finance ? activation : undefined,
+        financeActivation: payload.finance ? 'activate' : undefined,
         agreementState,
         billingUnresolved,
         collectionAllowed: billingOutcome.collectionAllowed,
@@ -1566,7 +1499,7 @@ export function StudentCreateForm({
     submitInFlightRef.current = false;
     setSaving(false);
 
-      if (!res.success) {
+    if (!res.success) {
       const mapped = mapStudentApiError(res.error, t);
 
       if (mapped.admissionAlreadyConverted && admissionBanner) {
@@ -1663,13 +1596,11 @@ export function StudentCreateForm({
 
   const onLastStep = step === 'review';
   const onResultStep = step === 'result';
-  const effectiveSkipFinance = skipFinance || forceSkipFinance;
   const financeBlockReason =
     levelSelected && Boolean(suggestState.suggest)
       ? getStudentCreateFinanceBlockReason(state, resolvedSchoolId)
       : 'ok';
   const financePrerequisitesMissing = financeBlockReason !== 'ok';
-  const classMissingForFinance = financeBlockReason === 'class';
   const academicYearMissingForFinance = financeBlockReason === 'academic_year';
 
   const enrollmentClassLabel = useMemo(() => {
@@ -1681,27 +1612,10 @@ export function StudentCreateForm({
     identifierChecksState.checks.massarCode.status === 'duplicate' ||
     displayFieldErrors.massarCode === t('admin.student360.errors.duplicateMassar');
 
-  const canActivateFinanceAgreement = canOfferCreateAgreementActivationUi(
-    journeyCapabilities,
-    !effectiveSkipFinance &&
-      canOfferFinanceAgreementActivation({
-        suggest: suggestState.suggest,
-        financeBlocked,
-        state,
-        schoolId: resolvedSchoolId,
-        financeState,
-        previewLoading: previewState.loading,
-        previewError: previewState.error,
-        preview: previewState.preview,
-      }),
-  );
-
   const saveDisabled =
     saving ||
     submitInFlightRef.current ||
-    (!effectiveSkipFinance &&
-      Boolean(suggestState.suggest) &&
-      financePrerequisitesMissing) ||
+    (Boolean(suggestState.suggest) && financePrerequisitesMissing) ||
     massarDuplicate ||
     identifierChecksState.identifierChecksBlockProgress;
 
@@ -1874,64 +1788,28 @@ export function StudentCreateForm({
 
       {step === 'finance' ? (
         <div className="student-create-finance-flow">
-          {financeError && !effectiveSkipFinance ? (
+          {financeError ? (
             <p className="student-create-form__notice student-create-finance-flow__alert" role="alert">
               {financeError}
             </p>
           ) : null}
-          {!journeyCapabilities.canAssignFeePlan ? (
-            <p className="student-create-form__notice" role="status">
-              {t('admin.student360.create.finance.assignForbiddenHint')}
-            </p>
-          ) : null}
-          <div className="student-create-finance-skip-card">
-            <label className="student-create-form__checkbox">
-              <input
-                type="checkbox"
-                checked={effectiveSkipFinance}
-                disabled={forceSkipFinance || saving}
-                onChange={(e) => {
-                  if (forceSkipFinance) return;
-                  const checked = e.target.checked;
-                  setSkipFinance(checked);
-                  if (checked) setFinanceError(null);
-                }}
-              />
-              <span className="student-create-form__checkbox-text">
-                <span>{t('admin.student360.create.finance.skipFinanceToggle')}</span>
-                <span className="student-create-field__hint">
-                  {t('admin.student360.create.finance.skipFinanceHint')}
-                </span>
-              </span>
-            </label>
-          </div>
-          {effectiveSkipFinance ? (
-            <p className="student-create-form__notice student-create-finance-flow__skipped" role="status">
-              {t('admin.student360.create.finance.skipFinanceActive')}
-            </p>
-          ) : (
-            <StudentCreateFeePlanSection
-              suggest={suggestState.suggest}
-              loading={suggestState.loading}
-              error={suggestState.error}
-              levelSelected={levelSelected}
-              profileState={state}
-              schoolId={resolvedSchoolId}
-              financeState={financeState}
-              planChangeWarning={planChangeWarning}
-              preview={previewState.preview}
-              previewLoading={previewState.loading}
-              previewError={previewState.error}
-              onFinanceChange={patchFinance}
-              onSelectPlan={handleSelectFeePlan}
-              canManageDiscounts={journeyCapabilities.canManageDiscounts}
-              onSkipFinance={() => {
-                setSkipFinance(true);
-                setFinanceError(null);
-              }}
-              onRetry={suggestState.reload}
-            />
-          )}
+          <StudentCreateFeePlanSection
+            suggest={suggestState.suggest}
+            loading={suggestState.loading}
+            error={suggestState.error}
+            levelSelected={levelSelected}
+            profileState={state}
+            schoolId={resolvedSchoolId}
+            financeState={financeState}
+            planChangeWarning={planChangeWarning}
+            preview={previewState.preview}
+            previewLoading={previewState.loading}
+            previewError={previewState.error}
+            onFinanceChange={patchFinance}
+            onSelectPlan={handleSelectFeePlan}
+            canManageDiscounts={journeyCapabilities.canManageDiscounts}
+            onRetry={suggestState.reload}
+          />
         </div>
       ) : null}
 
@@ -1949,15 +1827,15 @@ export function StudentCreateForm({
             linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
             guardianEntries={guardianEntriesForBilling.filter(isCompleteStudentCreateGuardianEntry)}
             billingGuardianEntryKey={billingState.billingGuardianEntryKey}
-            suggest={effectiveSkipFinance ? null : suggestState.suggest}
+            suggest={suggestState.suggest}
             financeState={financeState}
             preview={previewState.preview}
             previewLoading={previewState.loading}
             previewError={previewState.error}
-            financeBlocked={!effectiveSkipFinance && financeBlocked}
-            financeSkipped={effectiveSkipFinance}
+            financeBlocked={financeBlocked}
+            financeSkipped={false}
             massarDuplicate={massarDuplicate}
-            classMissingForFinance={!effectiveSkipFinance && classMissingForFinance}
+            classMissingForFinance={false}
             enrollmentClassLabel={enrollmentClassLabel}
             schoolId={resolvedSchoolId}
           />
@@ -1991,31 +1869,17 @@ export function StudentCreateForm({
             {t('common.next')}
           </button>
         ) : (
-          <>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={saveDisabled}
-              data-testid="student-create-confirm"
-              onClick={() => void submit('setup', 'draft')}
-            >
-              {saving && financeActivationMode === 'draft'
-                ? t('admin.student360.create.saving')
-                : t('admin.student360.create.confirmRegistration')}
-            </button>
-            {canActivateFinanceAgreement ? (
-              <button
-                type="button"
-                className="btn btn--secondary"
-                disabled={saveDisabled}
-                onClick={() => void submit('setup', 'activate')}
-              >
-                {saving && financeActivationMode === 'activate'
-                  ? t('admin.student360.create.financeActivation.savingActivate')
-                  : t('admin.student360.create.financeActivation.createAndActivate')}
-              </button>
-            ) : null}
-          </>
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={saveDisabled}
+            data-testid="student-create-confirm"
+            onClick={() => void submit('setup', 'activate')}
+          >
+            {saving && financeActivationMode === 'activate'
+              ? t('admin.student360.create.saving')
+              : t('admin.student360.create.confirmRegistration')}
+          </button>
         )}
 
         <button type="button" className="btn btn--ghost" disabled={saving} onClick={onCancel}>

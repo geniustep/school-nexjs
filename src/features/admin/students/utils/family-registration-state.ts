@@ -8,6 +8,7 @@ import {
   type StudentProfileFormState,
 } from './student-profile';
 import { defaultStudentCreateBillingFormState } from './student-create-billing-responsibility';
+import { createEmptyAdditionalGuardianEntry } from './student-create-additional-guardians';
 
 export const FAMILY_REGISTRATION_MIN_CHILDREN = 1;
 export const FAMILY_REGISTRATION_MAX_CHILDREN = 10;
@@ -103,6 +104,19 @@ export function emptyFamilyRegistrationChild(
   };
 }
 
+function defaultFamilyRegistrationBillingState(): StudentCreateBillingFormState {
+  const base = defaultStudentCreateBillingFormState();
+  const mother = createEmptyAdditionalGuardianEntry('mother');
+  return {
+    ...base,
+    guardianSourceMode: 'new',
+    guardianEntries: [mother],
+    additionalGuardianSourceModeByEntryKey: {
+      [mother.entryKey]: 'new',
+    },
+  };
+}
+
 export function emptyFamilyRegistrationFormState(
   todayIso: string,
 ): FamilyRegistrationFormState {
@@ -111,9 +125,13 @@ export function emptyFamilyRegistrationFormState(
     residenceAddress: '',
     admissionDate: todayIso,
   };
+  const guardianHost = defaultStudentProfileFormState(null);
   return {
-    guardianHost: defaultStudentProfileFormState(null),
-    billing: defaultStudentCreateBillingFormState(),
+    guardianHost: {
+      ...guardianHost,
+      emergencyRelationship: 'father',
+    },
+    billing: defaultFamilyRegistrationBillingState(),
     children: [emptyFamilyRegistrationChild(shared, false)],
     shared,
   };
