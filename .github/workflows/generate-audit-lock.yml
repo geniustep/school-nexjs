@@ -6,10 +6,11 @@ on:
       - chore/audit-lock-generator-20260901
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
+    if: github.event.head_commit.message != 'chore(deps): refresh audit lock'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,9 +26,14 @@ jobs:
         run: npm ci
       - name: Validate high-severity audit gate
         run: npm audit --audit-level=high
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: audit-fixed-package-lock
-          path: package-lock.json
-          if-no-files-found: error
+      - name: Persist generated lockfile on isolated branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "No lockfile changes to persist"
+            exit 0
+          fi
+          git commit -m "chore(deps): refresh audit lock"
+          git push origin HEAD:chore/audit-lock-generator-20260901
