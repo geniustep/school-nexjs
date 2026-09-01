@@ -15,7 +15,7 @@ const user = {
 
 describe('switchActiveContext', () => {
   it('sends exactly one atomic POST and accepts the server-confirmed user', async () => {
-    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
       success: true,
       data: { user, active_context: requested, home: '/parent/dashboard' },
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
@@ -30,7 +30,7 @@ describe('switchActiveContext', () => {
   });
 
   it('does not accept optimistic/mismatched server state', async () => {
-    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
       success: true,
       data: { user: { ...user, active_context: { school_id: 1, role: 'admin' } } },
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
@@ -40,7 +40,7 @@ describe('switchActiveContext', () => {
   });
 
   it('preserves context_not_available for UI error mapping', async () => {
-    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
       success: false,
       error: { code: 'context_not_available', message: 'Denied' },
     }), { status: 403, headers: { 'Content-Type': 'application/json' } }));
