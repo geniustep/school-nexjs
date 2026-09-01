@@ -5,9 +5,11 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CurrentUser } from '@/types/user';
 
-const optionsFetchSpy = vi.fn();
-const apiPostSpy = vi.fn();
-const toastErrorSpy = vi.fn();
+const { optionsFetchSpy, apiPostSpy, toastErrorSpy } = vi.hoisted(() => ({
+  optionsFetchSpy: vi.fn(),
+  apiPostSpy: vi.fn(),
+  toastErrorSpy: vi.fn(),
+}));
 
 vi.mock('@/features/i18n/locale-context', () => ({
   useLocale: () => ({ locale: 'ar', setLocale: vi.fn(), t: (key: string) => key, dir: 'rtl' }),
@@ -21,7 +23,13 @@ vi.mock('@/features/auth/admin-session-context', () => ({
 vi.mock('@/components/ui/toast', () => ({
   useToast: () => ({ success: vi.fn(), error: toastErrorSpy, show: vi.fn() }),
 }));
-vi.mock('@/lib/api/client', () => ({ api: { post: apiPostSpy } }));
+vi.mock('@/lib/api/client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/api/client')>();
+  return {
+    ...actual,
+    api: { ...actual.api, post: apiPostSpy },
+  };
+});
 vi.mock('@/features/admin/academic-setup/hooks/use-level-options', () => ({
   useLevelOptions: () => ({
     loading: false,
