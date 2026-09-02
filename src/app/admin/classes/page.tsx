@@ -17,6 +17,7 @@ import { AdminClassesBrowser } from '@/features/admin/classes/components/admin-c
 import { canonicalizeClassStudentCounts } from '@/features/admin/classes/utils/canonical-class-count';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { useT } from '@/features/i18n/locale-context';
+import { useLocale } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, SchoolClass } from '@/types/class';
 
@@ -26,6 +27,7 @@ const CLASSES_BROWSER_QUERY = { page_size: 500 };
 
 export default function AdminClassesPage() {
   const t = useT();
+  const { locale } = useLocale();
   const [importOpen, setImportOpen] = useState(false);
   const classesState = useGlobalAcademicYearResource<SchoolClass[]>(
     endpoints.admin.classes,
@@ -60,7 +62,8 @@ export default function AdminClassesPage() {
   return (
     <div className="admin-workspace">
       <PageHeader
-        title={t('nav.classes')}
+        title={locale === 'ar' ? 'الأقسام حسب المستوى' : 'Classes par niveau'}
+        subtitle={locale === 'ar' ? 'استعرض الأقسام وجاهزيتها حسب كل مستوى دراسي.' : 'Consultez les classes et leur préparation par niveau.'}
         actions={
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             <Link href="/admin/classes/distribution" className="btn btn--ghost btn--sm">
