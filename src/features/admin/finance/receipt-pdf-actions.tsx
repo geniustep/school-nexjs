@@ -16,6 +16,19 @@ function defaultReceiptLang(locale: string): ReceiptPdfLang {
   return locale === 'fr' ? 'fr' : 'ar';
 }
 
+function dualA6FamilyReceiptLabel(locale: string): string {
+  switch (locale) {
+    case 'ar':
+      return 'وصل عائلي مزدوج — A5';
+    case 'fr':
+      return 'Reçu familial double — A5';
+    case 'es':
+      return 'Recibo familiar doble — A5';
+    default:
+      return 'Dual family receipt — A5';
+  }
+}
+
 function ReceiptPrintSegmentedControl<T extends string>({
   options,
   value,
@@ -94,6 +107,11 @@ export function ReceiptPdfActions({
   const layoutOptions: Array<{ value: ReceiptPrintLayout; label: string; dir?: 'rtl' | 'ltr' }> = [
     { value: 'a4', label: t('admin.finance.receipts.printLayoutA4'), dir: 'ltr' },
     { value: 'a5', label: t('admin.finance.receipts.printLayoutA5'), dir: 'ltr' },
+    {
+      value: 'a5_dual_a6_family',
+      label: dualA6FamilyReceiptLabel(locale),
+      dir: locale === 'ar' ? 'rtl' : 'ltr',
+    },
     {
       value: 'thermal_80mm',
       label: t('admin.finance.receipts.printLayoutThermal'),
