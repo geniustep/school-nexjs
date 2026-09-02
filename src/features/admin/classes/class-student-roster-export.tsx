@@ -240,6 +240,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [subjectId, setSubjectId] = useState<number | null>(null);
+  const academicYearId = resolveAcademicYearId(cls);
 
   const teachers = useMemo(
     () => uniqueById(assignments.map((assignment) => assignment.teacher)),
@@ -280,7 +281,6 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
       setTeacherId(null);
       setSubjectId(null);
 
-      const academicYearId = resolveAcademicYearId(cls);
       const assignmentQuery: Record<string, string | number> = {
         class_id: cls.id,
         page: 1,
@@ -318,7 +318,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
     return () => {
       cancelled = true;
     };
-  }, [open, cls.id, cls.academic_year_id, cls.academic_year, labels.exportFailed]);
+  }, [open, cls.id, academicYearId, labels.exportFailed]);
 
   useEffect(() => {
     if (teacherId == null) return;
@@ -328,11 +328,12 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
 
   function openPdfPrint() {
     if (!selectedAssignment) return;
-    const printWindow = window.open('', '_blank', 'noopener,noreferrer');
+    const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error(labels.popupBlocked);
       return;
     }
+    printWindow.opener = null;
 
     const direction = locale === 'ar' ? 'rtl' : 'ltr';
     const schoolName = cls.school?.name ?? '';
