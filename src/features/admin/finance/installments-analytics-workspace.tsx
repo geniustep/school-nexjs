@@ -30,9 +30,11 @@ type AnalyticsWorkspaceProps = {
   serviceFacets: FinanceInstallmentServiceFacet[];
   timeline: FinanceInstallmentTimelinePoint[];
   attention: FinanceInstallmentAttention | null;
-  selectedServiceId: string;
+  selectedServiceIds: number[];
   resultCount: number;
-  onSelectService: (serviceId: number | null) => void;
+  onToggleService: (serviceId: number) => void;
+  onClearServices: () => void;
+  onFocusService: (serviceId: number) => void;
   onQuickFilter: (quick: 'overdue_unpaid' | 'due_next_7_days') => void;
   onOpenServiceOverdue: (serviceId: number) => void;
 };
@@ -63,15 +65,16 @@ function Metric({
 
 function ServicePerformanceRows({
   facets,
-  selectedServiceId,
-  onSelectService,
+  selectedServiceIds,
+  onToggleService,
 }: {
   facets: FinanceInstallmentServiceFacet[];
-  selectedServiceId: string;
-  onSelectService: (serviceId: number | null) => void;
+  selectedServiceIds: number[];
+  onToggleService: (serviceId: number) => void;
 }) {
   const t = useT();
   const ordered = rankedServiceFacets(facets);
+  const selectedIds = new Set(selectedServiceIds);
 
   return (
     <div className="installments-service-performance">
@@ -90,7 +93,7 @@ function ServicePerformanceRows({
       <div className="installments-service-performance__rows">
         {ordered.map((facet, index) => {
           const performance = resolveInstallmentPerformance(facet);
-          const selected = selectedServiceId === String(facet.service_id);
+          const selected = selectedIds.has(facet.service_id);
           const paidPct = segmentPercent(performance.paidAmount, performance.totalAmount);
           const expectedPct = segmentPercent(performance.expectedAmount, performance.totalAmount);
           const overduePct = segmentPercent(performance.overdueAmount, performance.totalAmount);
@@ -103,10 +106,10 @@ function ServicePerformanceRows({
               className="installments-service-performance__row"
               data-selected={selected || undefined}
               aria-pressed={selected}
-              aria-label={t('admin.finance.installments.analytics.selectService', {
+              aria-label={t('admin.finance.installments.analytics.toggleService', {
                 service: facet.service_name,
               })}
-              onClick={() => onSelectService(selected ? null : facet.service_id)}
+              onClick={() => onToggleService(facet.service_id)}
             >
               <span className="installments-service-performance__service">
                 <span className="installments-service-performance__rank" aria-hidden>{index + 1}</span>
@@ -154,9 +157,15 @@ function ServicePerformanceRows({
   );
 }
 
-function SelectedServiceSummary({ facet }: { facet: FinanceInstallmentServiceFacet | null }) {
+function SelectedServicesSummary({
+  facets,
+  summary,
+}: {
+  facets: FinanceInstallmentServiceFacet[];
+  summary: FinanceInstallmentListSummary | null;
+}) {
   const t = useT();
-  if (!facet) {
+  if (!facets.length) {
     return (
       <div className="installments-service-detail installments-service-detail--empty">
         <IconCheckCircle size={22} aria-hidden />
@@ -168,13 +177,23 @@ function SelectedServiceSummary({ facet }: { facet: FinanceInstallmentServiceFac
     );
   }
 
-  const performance = resolveInstallmentPerformance(facet);
+  const singleFacet = facets.length === 1 ? facets[0] : null;
+  const performance = resolveInstallmentPerformance(singleFacet ?? summary);
+  const beneficiaryCount = singleFacet?.beneficiary_count ?? summary?.beneficiary_count;
+  const averageDue = singleFacet?.average_due_per_beneficiary ?? summary?.average_due_per_beneficiary;
+  const averageOverdue = singleFacet?.average_overdue_per_beneficiary ?? summary?.average_overdue_per_beneficiary;
+  const title = singleFacet?.service_name ?? t('admin.finance.installments.analytics.selectedServicesCount', {
+    count: facets.length,
+  });
+
   return (
     <section className="installments-service-detail" aria-labelledby="installments-service-detail-title">
       <div className="installments-service-detail__head">
         <div>
-          <span>{t('admin.finance.installments.analytics.selectedService')}</span>
-          <h3 id="installments-service-detail-title" dir="auto">{facet.service_name}</h3>
+          <span>{singleFacet
+            ? t('admin.finance.installments.analytics.selectedService')
+            : t('admin.finance.installments.analytics.selectedServices')}</span>
+          <h3 id="installments-service-detail-title" dir="auto">{title}</h3>
         </div>
         <div
           className="installments-service-detail__gauge"
@@ -187,18 +206,28 @@ function SelectedServiceSummary({ facet }: { facet: FinanceInstallmentServiceFac
           <progress max={100} value={performance.collectionRate} aria-hidden />
         </div>
       </div>
+      {facets.length > 1 ? (
+        <div className="installments-service-detail__selection" aria-label={t('admin.finance.installments.analytics.selectedServices')}>
+          {facets.map((facet) => <span key={facet.service_id} dir="auto">{facet.service_name}</span>)}
+        </div>
+      ) : null}
+      {facets.length > 1 ? (
+        <p className="installments-service-detail__hint">
+          {t('admin.finance.installments.analytics.selectedServicesHint')}
+        </p>
+      ) : null}
       <dl className="installments-service-detail__stats">
         <div>
           <dt>{t('admin.finance.installments.analytics.beneficiaries')}</dt>
-          <dd dir="ltr">{facet.beneficiary_count ?? t('common.dash')}</dd>
+          <dd dir="ltr">{beneficiaryCount ?? t('common.dash')}</dd>
         </div>
         <div>
           <dt>{t('admin.finance.installments.analytics.averageDue')}</dt>
-          <dd><FinanceMoney amount={facet.average_due_per_beneficiary} /></dd>
+          <dd><FinanceMoney amount={averageDue} /></dd>
         </div>
         <div>
           <dt>{t('admin.finance.installments.analytics.averageOverdue')}</dt>
-          <dd data-tone="overdue"><FinanceMoney amount={facet.average_overdue_per_beneficiary} /></dd>
+          <dd data-tone="overdue"><FinanceMoney amount={averageOverdue} /></dd>
         </div>
       </dl>
     </section>
@@ -208,13 +237,13 @@ function SelectedServiceSummary({ facet }: { facet: FinanceInstallmentServiceFac
 function AttentionPanel({
   facets,
   attention,
-  onSelectService,
+  onFocusService,
   onQuickFilter,
   onOpenServiceOverdue,
 }: {
   facets: FinanceInstallmentServiceFacet[];
   attention: FinanceInstallmentAttention | null;
-  onSelectService: (serviceId: number | null) => void;
+  onFocusService: (serviceId: number) => void;
   onQuickFilter: (quick: 'overdue_unpaid' | 'due_next_7_days') => void;
   onOpenServiceOverdue: (serviceId: number) => void;
 }) {
@@ -248,7 +277,7 @@ function AttentionPanel({
               <strong>{t('admin.finance.installments.analytics.lowCollection', { service: lowCollection.service_name })}</strong>
               <p>{t('admin.finance.installments.analytics.collectionRateValue', { rate: Math.round(resolveInstallmentPerformance(lowCollection).collectionRate) })}</p>
             </div>
-            <button type="button" onClick={() => onSelectService(lowCollection.service_id)}>
+            <button type="button" onClick={() => onFocusService(lowCollection.service_id)}>
               {t('admin.finance.installments.analytics.reviewService')}
             </button>
           </article>
@@ -269,7 +298,13 @@ function AttentionPanel({
   );
 }
 
-function TimelineChart({ timeline }: { timeline: FinanceInstallmentTimelinePoint[] }) {
+function TimelineChart({
+  timeline,
+  selectedServices,
+}: {
+  timeline: FinanceInstallmentTimelinePoint[];
+  selectedServices: FinanceInstallmentServiceFacet[];
+}) {
   const t = useT();
   const { locale } = useLocale();
   const points = timelineWindow(timeline);
@@ -282,10 +317,23 @@ function TimelineChart({ timeline }: { timeline: FinanceInstallmentTimelinePoint
           <h3 id="installments-timeline-title">{t('admin.finance.installments.analytics.timelineTitle')}</h3>
           <p>{t('admin.finance.installments.analytics.timelineHint')}</p>
         </div>
-        <div className="installments-timeline__legend">
-          <span data-tone="paid">{t('admin.finance.installments.analytics.paid')}</span>
-          <span data-tone="expected">{t('admin.finance.installments.analytics.expected')}</span>
-          <span data-tone="overdue">{t('admin.finance.installments.analytics.overdue')}</span>
+        <div className="installments-timeline__meta">
+          <span className="installments-timeline__scope" aria-live="polite">
+            {selectedServices.length === 1 ? (
+              <strong dir="auto">{selectedServices[0].service_name}</strong>
+            ) : selectedServices.length > 1 ? (
+              <strong>{t('admin.finance.installments.analytics.selectedServicesCount', {
+                count: selectedServices.length,
+              })}</strong>
+            ) : (
+              t('admin.finance.installments.analytics.allServices')
+            )}
+          </span>
+          <div className="installments-timeline__legend">
+            <span data-tone="paid">{t('admin.finance.installments.analytics.paid')}</span>
+            <span data-tone="expected">{t('admin.finance.installments.analytics.expected')}</span>
+            <span data-tone="overdue">{t('admin.finance.installments.analytics.overdue')}</span>
+          </div>
         </div>
       </div>
       {points.length ? (
@@ -377,15 +425,26 @@ export function InstallmentsAnalyticsWorkspace({
   serviceFacets,
   timeline,
   attention,
-  selectedServiceId,
+  selectedServiceIds,
   resultCount,
-  onSelectService,
+  onToggleService,
+  onClearServices,
+  onFocusService,
   onQuickFilter,
   onOpenServiceOverdue,
 }: AnalyticsWorkspaceProps) {
   const t = useT();
   const performance = resolveInstallmentPerformance(summary);
-  const selectedFacet = serviceFacets.find((facet) => String(facet.service_id) === selectedServiceId) ?? null;
+  const facetsById = new Map(serviceFacets.map((facet) => [facet.service_id, facet]));
+  const selectedFacets = selectedServiceIds.map(
+    (serviceId): FinanceInstallmentServiceFacet => facetsById.get(serviceId) ?? {
+      service_id: serviceId,
+      service_name: t('admin.finance.installments.servicesFilter.unknown', { id: serviceId }),
+      count: 0,
+      total_remaining: 0,
+      total_overdue: 0,
+    },
+  );
   const count = summary?.total_count ?? resultCount;
 
   return (
@@ -405,20 +464,21 @@ export function InstallmentsAnalyticsWorkspace({
               <h2 id="installments-services-performance-title">{t('admin.finance.installments.analytics.servicesTitle')}</h2>
               <p>{t('admin.finance.installments.analytics.servicesHint')}</p>
             </div>
-            {selectedServiceId ? (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => onSelectService(null)}>
+            {selectedServiceIds.length ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onClearServices}>
                 {t('admin.finance.installments.servicesFilter.all')}
               </button>
             ) : null}
           </div>
-          <ServicePerformanceRows facets={serviceFacets} selectedServiceId={selectedServiceId} onSelectService={onSelectService} />
+          <ServicePerformanceRows facets={serviceFacets} selectedServiceIds={selectedServiceIds} onToggleService={onToggleService} />
+          <TimelineChart timeline={timeline} selectedServices={selectedFacets} />
         </section>
         <aside className="installments-analytics__side">
-          <SelectedServiceSummary facet={selectedFacet} />
+          <SelectedServicesSummary facets={selectedFacets} summary={summary} />
           <AttentionPanel
             facets={serviceFacets}
             attention={attention}
-            onSelectService={onSelectService}
+            onFocusService={onFocusService}
             onQuickFilter={onQuickFilter}
             onOpenServiceOverdue={onOpenServiceOverdue}
           />
@@ -426,7 +486,6 @@ export function InstallmentsAnalyticsWorkspace({
       </div>
 
       <div className="installments-analytics__secondary-grid">
-        <TimelineChart timeline={timeline} />
         <BeneficiaryComparison facets={serviceFacets} schoolAverage={summary?.average_due_per_beneficiary ?? 0} />
       </div>
     </div>

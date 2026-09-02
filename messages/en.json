@@ -10913,6 +10913,7 @@
           "select": "Filter by {service}, {count} installments",
           "active": "Service: {service}",
           "clear": "Clear service filter",
+          "clearOne": "Remove {service}",
       "unknown": "Service #{id}"
     },
     "analytics": {
@@ -10941,11 +10942,15 @@
       "beneficiaries": "Beneficiaries",
       "performance": "Due distribution",
       "selectService": "View {service} details",
+      "toggleService": "Add or remove {service} from the comparison",
       "installmentsCount": "{count} installments",
       "beneficiaryCount": "{count} beneficiaries",
       "allServices": "All services",
       "selectServiceHint": "Select a service to review its averages and collection rate.",
       "selectedService": "Selected service",
+      "selectedServices": "Selected services",
+      "selectedServicesCount": "{count} selected services",
+      "selectedServicesHint": "Metrics, timeline, and installments reflect the combined scope of the selected services.",
       "averageDue": "Average due",
       "averageOverdue": "Average overdue",
       "attention": "Needs your attention",
