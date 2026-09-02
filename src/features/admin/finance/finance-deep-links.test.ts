@@ -87,6 +87,14 @@ describe('finance list response normalization', () => {
         },
         { service_id: 'invalid', service_name: 'Ignored' },
       ],
+      timeline: [
+        {
+          period: '2026-09', installment_count: 1, total_amount: 50,
+          total_paid: 20, total_remaining: 30, total_expected: 10,
+          total_overdue: 20, collection_rate: 40,
+        },
+      ],
+      attention: { due_next_7_days: { count: 1, amount: 30, window_days: 7 } },
     });
     expect(parsed.items).toHaveLength(1);
     expect(parsed.summary?.total_count).toBe(1);
@@ -95,6 +103,10 @@ describe('finance list response normalization', () => {
     expect(parsed.serviceFacets).toEqual([
       expect.objectContaining({ service_id: 7, count: 1, total_remaining: 50 }),
     ]);
+    expect(parsed.timeline).toEqual([
+      expect.objectContaining({ period: '2026-09', total_expected: 10 }),
+    ]);
+    expect(parsed.attention?.due_next_7_days?.count).toBe(1);
   });
 
   it('parses cheques due_next_7_days empty summary', () => {
