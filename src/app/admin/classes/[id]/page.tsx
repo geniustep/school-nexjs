@@ -8,6 +8,7 @@ import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Badge, Card, SectionHead } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { ClassForm, type ClassDetail } from '@/features/admin/entity-forms';
+import { ClassStudentRosterExport } from '@/features/admin/classes/class-student-roster-export';
 import {
   resolveClassReadinessItems,
   resolveClassReadinessPresentation,
@@ -105,7 +106,8 @@ export default function AdminClassDetailPage({ params }: { params: Promise<{ id:
               title={cls.name}
               subtitle={cls.level?.name ?? undefined}
               actions={
-                <div className="row" style={{ gap: 8 }}>
+                <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                  {!editing && cls.status !== 'archived' ? <ClassStudentRosterExport cls={cls} /> : null}
                   <Badge tone={cls.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, cls.status)}</Badge>
                   {!editing && cls.status !== 'archived' && (
                     <>
