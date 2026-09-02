@@ -10913,6 +10913,7 @@
           "select": "Filtrar por {service}, {count} cuotas",
           "active": "Servicio: {service}",
           "clear": "Quitar filtro de servicio",
+          "clearOne": "Quitar {service}",
       "unknown": "Servicio n.º {id}"
     },
     "analytics": {
@@ -10941,11 +10942,15 @@
       "beneficiaries": "Beneficiarios",
       "performance": "Distribución del adeudo",
       "selectService": "Ver detalles de {service}",
+      "toggleService": "Añadir o quitar {service} de la comparación",
       "installmentsCount": "{count} cuotas",
       "beneficiaryCount": "{count} beneficiarios",
       "allServices": "Todos los servicios",
       "selectServiceHint": "Seleccione un servicio para revisar sus promedios y tasa de cobro.",
       "selectedService": "Servicio seleccionado",
+      "selectedServices": "Servicios seleccionados",
+      "selectedServicesCount": "{count} servicios seleccionados",
+      "selectedServicesHint": "Los indicadores, la cronología y las cuotas reflejan el ámbito combinado de los servicios seleccionados.",
       "averageDue": "Adeudo medio",
       "averageOverdue": "Vencido medio",
       "attention": "Necesita su atención",

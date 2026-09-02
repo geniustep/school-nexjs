@@ -11150,6 +11150,7 @@
           "select": "تصفية حسب خدمة {service}، {count} قسط",
           "active": "الخدمة: {service}",
           "clear": "إزالة فلتر الخدمة",
+          "clearOne": "إزالة خدمة {service}",
       "unknown": "الخدمة #{id}"
     },
     "analytics": {
@@ -11178,11 +11179,15 @@
       "beneficiaries": "المستفيدون",
       "performance": "توزيع المستحق",
       "selectService": "عرض تفاصيل خدمة {service}",
+      "toggleService": "إضافة أو إزالة خدمة {service} من المقارنة",
       "installmentsCount": "{count} قسطًا",
       "beneficiaryCount": "{count} مستفيدًا",
       "allServices": "كل الخدمات",
       "selectServiceHint": "اختر خدمة من الخريطة لمراجعة متوسطاتها ومعدل تحصيلها.",
       "selectedService": "الخدمة المحددة",
+      "selectedServices": "الخدمات المحددة",
+      "selectedServicesCount": "{count} خدمات محددة",
+      "selectedServicesHint": "تعرض المؤشرات والفترة وقائمة الأقساط النطاق الموحد للخدمات المحددة.",
       "averageDue": "متوسط المستحق",
       "averageOverdue": "متوسط المتأخر",
       "attention": "تحتاج انتباهك",

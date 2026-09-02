@@ -31,7 +31,7 @@ function readFilters(searchParams: URLSearchParams): InstallmentsListFilters {
     levelId: searchParams.get('level_id') ?? '',
     studentId: searchParams.get('student_id') ?? searchParams.get('studentId') ?? '',
     billingPartnerId: searchParams.get('billing_partner_id') ?? '',
-    serviceId: searchParams.get('service_id') ?? '',
+    serviceId: searchParams.get('service_ids') ?? searchParams.get('service_id') ?? '',
     dueDateFrom: searchParams.get('due_date_from') ?? '',
     dueDateTo: searchParams.get('due_date_to') ?? '',
     page,
@@ -46,7 +46,7 @@ const URL_KEYS: Record<keyof InstallmentsListFilters, string> = {
   levelId: 'level_id',
   studentId: 'student_id',
   billingPartnerId: 'billing_partner_id',
-  serviceId: 'service_id',
+  serviceId: 'service_ids',
   dueDateFrom: 'due_date_from',
   dueDateTo: 'due_date_to',
   page: 'page',
@@ -73,6 +73,7 @@ export default function AdminFinanceInstallmentsPage() {
           params.set(paramKey, String(value));
         }
       }
+      if (Object.hasOwn(updates, 'serviceId')) params.delete('service_id');
       params.delete('studentId');
       const qs = params.toString();
       router.replace(qs ? `/admin/finance/installments?${qs}` : '/admin/finance/installments');
