@@ -151,7 +151,6 @@
 
 .installments-analytics__services,
 .installments-analytics__side,
-.installments-timeline,
 .installments-beneficiary-chart,
 .installments-work-queue {
   border: 1px solid var(--c-border, #dfe6ef);
@@ -476,6 +475,29 @@
   background: var(--installments-paid);
 }
 
+.installments-service-detail__selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.installments-service-detail__selection span {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--installments-primary) 22%, var(--c-border, #e2e8f0));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--installments-primary) 7%, var(--c-surface, #fff));
+  color: var(--installments-primary);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.installments-service-detail__hint {
+  margin: -4px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
 .installments-service-detail__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -587,7 +609,7 @@
 
 .installments-analytics__secondary-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(340px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -595,6 +617,37 @@
 .installments-beneficiary-chart {
   min-width: 0;
   overflow: hidden;
+}
+
+.installments-timeline {
+  border-block-start: 1px solid var(--c-border, #dfe6ef);
+  background: color-mix(in srgb, var(--c-surface-2, #f7f9fc) 42%, var(--c-surface, #fff));
+}
+
+.installments-timeline__meta {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.installments-timeline__scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--installments-primary) 22%, var(--c-border, #dfe6ef));
+  border-radius: 99px;
+  background: var(--installments-primary-soft);
+  color: var(--installments-primary);
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.installments-timeline__scope strong {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .installments-timeline__plot {
@@ -605,7 +658,7 @@
   gap: 10px;
   padding: 12px 18px 18px;
   border-block-start: 1px solid var(--c-border, #edf0f4);
-  background: var(--c-surface, #fff);
+  background: transparent;
 }
 
 .installments-timeline__point {
@@ -906,6 +959,11 @@
   .installments-timeline__plot {
     grid-template-columns: repeat(4, minmax(76px, 1fr));
     overflow-x: auto;
+  }
+
+  .installments-timeline__meta {
+    width: 100%;
+    justify-items: start;
   }
 
   .installments-beneficiary-chart__row {

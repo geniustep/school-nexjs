@@ -206,8 +206,9 @@ describe('finance pages URL contract', () => {
     expect(source.includes('financeInstallments')).toBe(false);
     expect(source.includes('InstallmentsListPanel')).toBe(true);
     expect(source.includes('searchParams')).toBe(true);
-    expect(source.includes("serviceId: searchParams.get('service_id')")).toBe(true);
-    expect(panelSource.includes('service_id: filters.serviceId')).toBe(true);
+    expect(source.includes("searchParams.get('service_ids') ?? searchParams.get('service_id')")).toBe(true);
+    expect(panelSource.includes('service_ids: selectedServiceIds.length > 1')).toBe(true);
+    expect(panelSource.includes('service_id: selectedServiceIds.length === 1')).toBe(true);
     expect(panelSource.includes('parsed.serviceFacets')).toBe(true);
   });
 
