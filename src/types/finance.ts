@@ -388,6 +388,7 @@ export interface FinanceInstallmentServiceFacet {
   frequency?: string | null;
   count: number;
   beneficiary_count?: number;
+  student_count?: number;
   total_amount?: number;
   total_paid?: number;
   total_remaining: number;
@@ -396,6 +397,10 @@ export interface FinanceInstallmentServiceFacet {
   average_due_per_beneficiary?: number;
   average_remaining_per_beneficiary?: number;
   average_overdue_per_beneficiary?: number;
+  average_amount_per_student?: number;
+  average_paid_per_student?: number;
+  average_remaining_per_student?: number;
+  average_overdue_per_student?: number;
   collection_rate?: number;
 }
 
@@ -438,6 +443,7 @@ export interface FinanceOverviewAttention {
 export interface FinanceInstallmentListSummary {
   total_count?: number;
   beneficiary_count?: number;
+  student_count?: number;
   total_amount?: number;
   total_paid?: number;
   total_remaining?: number;
@@ -447,6 +453,10 @@ export interface FinanceInstallmentListSummary {
   average_due_per_beneficiary?: number;
   average_remaining_per_beneficiary?: number;
   average_overdue_per_beneficiary?: number;
+  average_amount_per_student?: number;
+  average_paid_per_student?: number;
+  average_remaining_per_student?: number;
+  average_overdue_per_student?: number;
 }
 
 /** @deprecated Use FinanceInstallment — kept for FIN-WEB-1 compatibility */
