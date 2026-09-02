@@ -44,3 +44,53 @@ These are not layout defects and remain intentionally data-dependent:
 - P2: reference sample content differs from live local data — accepted as intentional live-data fidelity, not a visual implementation defect.
 
 **final result: passed**
+
+---
+
+# Design QA — Installments Analytics Workspace
+
+## Scope
+
+- Route: `/admin/finance/installments`
+- Reference: `exec-0eb83dc2-9e18-4fd3-9c20-7b8c489eb496.png`
+- Locale/direction: Arabic, RTL
+- Desktop comparison: reference and local prototype inspected at the same interaction state
+- Narrow viewport check: 375 × 844 inside the cloud browser
+
+## Visual comparison
+
+| Area | Result | Notes |
+|---|---|---|
+| Page hierarchy | Passed | Filters → KPI strip → service performance → attention/detail → timeline/beneficiary comparison → work queue |
+| KPI strip | Passed | Five concise metrics with stable paid/expected/overdue tones |
+| Service performance | Passed | Ranked rows, beneficiary counts, segmented financial distribution and collection rate |
+| Attention area | Passed | Highest overdue, lowest collection and next-seven-days signals remain actionable |
+| Timeline | Passed | Paid/expected/overdue series are visually distinguishable and labelled |
+| Beneficiary averages | Passed | School average and per-service due/overdue values remain readable |
+| RTL and Arabic numerals | Passed | Financial values use isolated LTR formatting inside RTL layout |
+| Responsive layout | Passed | Narrow viewport measured `clientWidth=375`, `scrollWidth=375`; no horizontal page overflow |
+
+## Interaction and accessibility
+
+- Service rows are buttons with `aria-pressed` and descriptive Arabic labels.
+- Selected service details are exposed as a labelled section with a readable collection-rate value.
+- Attention actions use a single combined filter update when service + overdue are required.
+- The detailed work queue is collapsible with `aria-expanded` and `aria-controls`.
+- Unit interaction coverage validates service selection, combined overdue action and selected-service metrics.
+
+## Defects
+
+- P0: none.
+- P1: none.
+- P2: none.
+- P3: production build remains blocked by the pre-existing unrelated CSS-module selector in `src/components/layout/app-shell.module.css:207`; the redesigned components pass TypeScript and targeted tests.
+
+## Evidence
+
+- Targeted frontend tests: 34/34 passed.
+- TypeScript: passed.
+- `git diff --check`: passed.
+- Desktop cloud-browser capture: passed, no page-level console or hydration errors observed.
+- Narrow viewport overflow and semantic DOM inspection: passed.
+
+final result: passed
