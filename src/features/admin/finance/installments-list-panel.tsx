@@ -27,8 +27,11 @@ import {
   INSTALLMENTS_PAGE_SIZE,
   installmentQuickFilterChipLabelKey,
   installmentsListHasActiveQuery,
+  parseInstallmentServiceIds,
   resolveInstallmentQuickFilter,
   resolveInstallmentsListEmptyVariant,
+  serializeInstallmentServiceIds,
+  toggleInstallmentServiceId,
 } from '@/features/admin/finance/utils/installments-list-present';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -68,7 +71,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
   const t = useT();
   const { formatDate } = useFormat();
   const { options: yearOptions } = useAcademicYearOptions(null);
-  const [listExpanded, setListExpanded] = useState(true);
+  const [listExpanded, setListExpanded] = useState(false);
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, { page_size: 200 });
   const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes, { page_size: 500 });
   const levelOptions = levelsState.data ?? [];
@@ -82,6 +85,14 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
 
   const quickValid = resolveInstallmentQuickFilter(filters.quick);
   const apiError = filters.quick && !quickValid && filters.quick !== '';
+  const selectedServiceIds = useMemo(
+    () => parseInstallmentServiceIds(filters.serviceId),
+    [filters.serviceId],
+  );
+  const selectedServiceIdSet = useMemo(
+    () => new Set(selectedServiceIds),
+    [selectedServiceIds],
+  );
 
   const query: ListParams = useMemo(() => {
     const p: ListParams = {
@@ -93,13 +104,14 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       level_id: filters.levelId || undefined,
       student_id: filters.studentId || undefined,
       billing_partner_id: filters.billingPartnerId || undefined,
-      service_id: filters.serviceId || undefined,
+      service_id: selectedServiceIds.length === 1 ? selectedServiceIds[0] : undefined,
+      service_ids: selectedServiceIds.length > 1 ? selectedServiceIds.join(',') : undefined,
       due_date_from: filters.dueDateFrom || undefined,
       due_date_to: filters.dueDateTo || undefined,
     };
     if (quickValid && quickValid !== 'all') p.quick = quickValid;
     return p;
-  }, [filters, quickValid]);
+  }, [filters, quickValid, selectedServiceIds]);
 
   const state = useAdminResource<FinanceInstallment[] | Record<string, unknown>>(
     endpoints.admin.financeInstallments,
@@ -118,13 +130,9 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
   const emptyVariant = resolveInstallmentsListEmptyVariant({ hasActiveQuery });
   const isRefetching = state.fetching && !state.initialLoading;
   const quickChipKey = installmentQuickFilterChipLabelKey(quickValid);
-  const selectedService = serviceFacets.find(
-    (facet) => String(facet.service_id) === filters.serviceId,
+  const selectedServices = serviceFacets.filter(
+    (facet) => selectedServiceIdSet.has(facet.service_id),
   );
-  const selectedServiceLabel = filters.serviceId
-    ? selectedService?.service_name ??
-      t('admin.finance.installments.servicesFilter.unknown', { id: filters.serviceId })
-    : null;
 
   const columns: Column<FinanceInstallment>[] = useMemo(
     () => [
@@ -233,9 +241,13 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
     onFiltersChange({ quick: next || null, page: 1 });
   }
 
-  function setService(serviceId: number | null) {
-    const next = serviceId == null ? null : String(serviceId);
-    onFiltersChange({ serviceId: filters.serviceId === next ? null : next, page: 1 });
+  function toggleService(serviceId: number) {
+    const next = toggleInstallmentServiceId(filters.serviceId, serviceId);
+    onFiltersChange({ serviceId: next || null, page: 1 });
+  }
+
+  function clearServices() {
+    onFiltersChange({ serviceId: null, page: 1 });
   }
 
   function resetAll() {
@@ -379,7 +391,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         </div>
       </section>
 
-      {quickChipKey || selectedServiceLabel || filters.levelId || filters.classId ? (
+      {quickChipKey || selectedServiceIds.length || filters.levelId || filters.classId ? (
         <div className="finance-receivable-list__chips installments-smart-filters__chips">
           {quickChipKey ? (
             <span className="finance-receivable-list__chip">
@@ -396,21 +408,28 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
               </button>
             </span>
           ) : null}
-          {selectedServiceLabel ? (
-            <span className="finance-receivable-list__chip">
-              {t('admin.finance.installments.servicesFilter.active', {
-                service: selectedServiceLabel,
-              })}
-              <button
-                type="button"
-                className="finance-receivable-list__chip-clear"
-                aria-label={t('admin.finance.installments.servicesFilter.clear')}
-                onClick={() => setService(null)}
-              >
-                ×
-              </button>
-            </span>
-          ) : null}
+          {selectedServiceIds.map((serviceId) => {
+            const service = selectedServices.find((item) => item.service_id === serviceId);
+            const serviceLabel = service?.service_name ??
+              t('admin.finance.installments.servicesFilter.unknown', { id: serviceId });
+            return (
+              <span className="finance-receivable-list__chip" key={serviceId}>
+                {t('admin.finance.installments.servicesFilter.active', {
+                  service: serviceLabel,
+                })}
+                <button
+                  type="button"
+                  className="finance-receivable-list__chip-clear"
+                  aria-label={t('admin.finance.installments.servicesFilter.clearOne', {
+                    service: serviceLabel,
+                  })}
+                  onClick={() => toggleService(serviceId)}
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
           {filters.levelId ? (
             <span className="finance-receivable-list__chip">
               {t('admin.finance.installments.analytics.level')}: {levelOptions.find((level) => String(level.id) === filters.levelId)?.display_name ?? levelOptions.find((level) => String(level.id) === filters.levelId)?.name ?? filters.levelId}
@@ -431,12 +450,16 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         serviceFacets={serviceFacets}
         timeline={timeline}
         attention={attention}
-        selectedServiceId={filters.serviceId}
+        selectedServiceIds={selectedServiceIds}
         resultCount={pg?.total ?? rows.length}
-        onSelectService={setService}
+        onToggleService={toggleService}
+        onClearServices={clearServices}
+        onFocusService={(serviceId) =>
+          onFiltersChange({ serviceId: serializeInstallmentServiceIds([serviceId]), page: 1 })
+        }
         onQuickFilter={(quick) => setQuick(quick)}
         onOpenServiceOverdue={(serviceId) =>
-          onFiltersChange({ serviceId: String(serviceId), quick: 'overdue_unpaid', page: 1 })
+          onFiltersChange({ serviceId: serializeInstallmentServiceIds([serviceId]), quick: 'overdue_unpaid', page: 1 })
         }
       />
 

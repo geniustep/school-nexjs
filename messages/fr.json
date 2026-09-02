@@ -10932,6 +10932,7 @@
           "select": "Filtrer par {service}, {count} échéances",
           "active": "Service : {service}",
           "clear": "Retirer le filtre de service",
+          "clearOne": "Retirer {service}",
       "unknown": "Service n°{id}"
     },
     "analytics": {
@@ -10960,11 +10961,15 @@
       "beneficiaries": "Bénéficiaires",
       "performance": "Répartition du dû",
       "selectService": "Afficher le détail de {service}",
+      "toggleService": "Ajouter ou retirer {service} de la comparaison",
       "installmentsCount": "{count} échéances",
       "beneficiaryCount": "{count} bénéficiaires",
       "allServices": "Tous les services",
       "selectServiceHint": "Sélectionnez un service pour examiner ses moyennes et son taux d’encaissement.",
       "selectedService": "Service sélectionné",
+      "selectedServices": "Services sélectionnés",
+      "selectedServicesCount": "{count} services sélectionnés",
+      "selectedServicesHint": "Les indicateurs, la chronologie et les échéances reflètent le périmètre combiné des services sélectionnés.",
       "averageDue": "Dû moyen",
       "averageOverdue": "Retard moyen",
       "attention": "Nécessite votre attention",
