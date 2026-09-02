@@ -8,6 +8,7 @@ import type {
 export type FinanceListSummary = {
   total_count?: number;
   beneficiary_count?: number;
+  student_count?: number;
   total_amount?: number;
   total_paid?: number;
   total_remaining?: number;
@@ -17,6 +18,10 @@ export type FinanceListSummary = {
   average_due_per_beneficiary?: number;
   average_remaining_per_beneficiary?: number;
   average_overdue_per_beneficiary?: number;
+  average_amount_per_student?: number;
+  average_paid_per_student?: number;
+  average_remaining_per_student?: number;
+  average_overdue_per_student?: number;
 };
 
 export type FinanceAppliedFilters = Record<string, unknown>;
