@@ -4,8 +4,11 @@ import {
   INSTALLMENTS_PAGE_SIZE,
   installmentQuickFilterChipLabelKey,
   installmentsListHasActiveQuery,
+  parseInstallmentServiceIds,
   resolveInstallmentQuickFilter,
   resolveInstallmentsListEmptyVariant,
+  serializeInstallmentServiceIds,
+  toggleInstallmentServiceId,
 } from '@/features/admin/finance/utils/installments-list-present';
 
 describe('installments-list-present', () => {
@@ -29,6 +32,13 @@ describe('installments-list-present', () => {
     expect(installmentsListHasActiveQuery({ search: 'ali' })).toBe(true);
     expect(installmentsListHasActiveQuery({ serviceId: '12' })).toBe(true);
     expect(installmentsListHasActiveQuery({ dueDateFrom: '2026-01-01' })).toBe(true);
+  });
+
+  it('normalizes and toggles a bounded multi-service selection', () => {
+    expect(parseInstallmentServiceIds('12,7,12,bad,0')).toEqual([12, 7]);
+    expect(serializeInstallmentServiceIds([12, 7, 12])).toBe('12,7');
+    expect(toggleInstallmentServiceId('12,7', 9)).toBe('12,7,9');
+    expect(toggleInstallmentServiceId('12,7,9', 7)).toBe('12,9');
   });
 
   it('separates no-data from no-match', () => {

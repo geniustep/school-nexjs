@@ -387,8 +387,40 @@ export interface FinanceInstallmentServiceFacet {
   category?: string | null;
   frequency?: string | null;
   count: number;
+  beneficiary_count?: number;
+  student_count?: number;
+  total_amount?: number;
+  total_paid?: number;
   total_remaining: number;
   total_overdue: number;
+  total_expected?: number;
+  average_due_per_beneficiary?: number;
+  average_remaining_per_beneficiary?: number;
+  average_overdue_per_beneficiary?: number;
+  average_amount_per_student?: number;
+  average_paid_per_student?: number;
+  average_remaining_per_student?: number;
+  average_overdue_per_student?: number;
+  collection_rate?: number;
+}
+
+export interface FinanceInstallmentTimelinePoint {
+  period: string;
+  installment_count: number;
+  total_amount: number;
+  total_paid: number;
+  total_remaining: number;
+  total_expected: number;
+  total_overdue: number;
+  collection_rate: number;
+}
+
+export interface FinanceInstallmentAttention {
+  due_next_7_days?: {
+    count: number;
+    amount: number;
+    window_days?: number;
+  };
 }
 
 export interface FinanceAttentionMetric {
@@ -410,10 +442,21 @@ export interface FinanceOverviewAttention {
 
 export interface FinanceInstallmentListSummary {
   total_count?: number;
+  beneficiary_count?: number;
+  student_count?: number;
   total_amount?: number;
   total_paid?: number;
   total_remaining?: number;
   total_overdue?: number;
+  total_expected?: number;
+  collection_rate?: number;
+  average_due_per_beneficiary?: number;
+  average_remaining_per_beneficiary?: number;
+  average_overdue_per_beneficiary?: number;
+  average_amount_per_student?: number;
+  average_paid_per_student?: number;
+  average_remaining_per_student?: number;
+  average_overdue_per_student?: number;
 }
 
 /** @deprecated Use FinanceInstallment — kept for FIN-WEB-1 compatibility */

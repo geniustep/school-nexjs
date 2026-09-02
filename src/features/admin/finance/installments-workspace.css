@@ -1,0 +1,1017 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * Analytics-first installments workspace. Financial values are supplied by
+ * the school API; CSS only controls presentation.
+ */
+
+.finance-installments-list {
+  --installments-paid: #0f9f8f;
+  --installments-paid-soft: #e7f7f3;
+  --installments-expected: #e99a12;
+  --installments-expected-soft: #fff6df;
+  --installments-overdue: #e5484d;
+  --installments-overdue-soft: #fff0f0;
+  --installments-primary: #1f5ecf;
+  --installments-primary-soft: #edf4ff;
+  gap: 16px;
+}
+
+.installments-smart-filters {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--c-border, #dfe6ef);
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+}
+
+.installments-smart-filters__form {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.4fr) repeat(3, minmax(150px, 0.8fr)) repeat(2, minmax(150px, 0.75fr)) auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.installments-smart-filters__form .input {
+  min-height: 40px;
+}
+
+.installments-smart-filters__date {
+  display: grid;
+  gap: 4px;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.installments-smart-filters__quick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.installments-smart-filters__quick > span:first-child {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.installments-smart-filters__as-of {
+  margin-inline-start: auto;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.installments-smart-filters__chips {
+  min-height: 28px;
+}
+
+.installments-analytics {
+  display: grid;
+  gap: 12px;
+}
+
+.installments-analytics__metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--c-border, #dfe6ef);
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+  overflow: hidden;
+}
+
+.installments-analytics__metric {
+  position: relative;
+  display: grid;
+  min-height: 96px;
+  align-content: center;
+  gap: 5px;
+  padding: 14px 18px;
+}
+
+.installments-analytics__metric + .installments-analytics__metric {
+  border-inline-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.installments-analytics__metric::before {
+  position: absolute;
+  inset-block: 18px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--installments-primary);
+  content: '';
+  opacity: 0;
+}
+
+.installments-analytics__metric[data-tone='primary']::before,
+.installments-analytics__metric[data-tone='paid']::before,
+.installments-analytics__metric[data-tone='expected']::before,
+.installments-analytics__metric[data-tone='overdue']::before {
+  opacity: 1;
+}
+
+.installments-analytics__metric[data-tone='paid']::before { background: var(--installments-paid); }
+.installments-analytics__metric[data-tone='expected']::before { background: var(--installments-expected); }
+.installments-analytics__metric[data-tone='overdue']::before { background: var(--installments-overdue); }
+
+.installments-analytics__metric > span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.installments-analytics__metric > strong {
+  color: var(--c-text, #10213f);
+  font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+  font-weight: 760;
+}
+
+.installments-analytics__metric[data-tone='paid'] > strong { color: var(--installments-paid); }
+.installments-analytics__metric[data-tone='expected'] > strong { color: var(--installments-expected); }
+.installments-analytics__metric[data-tone='overdue'] > strong { color: var(--installments-overdue); }
+
+.installments-analytics__metric small {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.installments-analytics__main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.15fr) minmax(300px, 0.85fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.installments-analytics__services,
+.installments-analytics__side,
+.installments-beneficiary-chart,
+.installments-work-queue {
+  border: 1px solid var(--c-border, #dfe6ef);
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+}
+
+.installments-analytics__services {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.installments-analytics__section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 18px 12px;
+}
+
+.installments-analytics__section-head h2,
+.installments-analytics__section-head h3 {
+  margin: 0;
+  color: var(--c-text, #10213f);
+  font-size: 0.98rem;
+  font-weight: 760;
+}
+
+.installments-analytics__section-head p {
+  margin: 4px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.installments-service-performance {
+  min-width: 0;
+  border-block-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.installments-service-performance__legend,
+.installments-timeline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.68rem;
+}
+
+.installments-service-performance__legend {
+  justify-content: flex-end;
+  padding: 10px 18px 6px;
+}
+
+.installments-service-performance__legend span,
+.installments-timeline__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.installments-service-performance__legend span::before,
+.installments-timeline__legend span::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--installments-primary);
+  content: '';
+}
+
+.installments-service-performance__legend [data-tone='paid']::before,
+.installments-timeline__legend [data-tone='paid']::before { background: var(--installments-paid); }
+.installments-service-performance__legend [data-tone='expected']::before,
+.installments-timeline__legend [data-tone='expected']::before { background: var(--installments-expected); }
+.installments-service-performance__legend [data-tone='overdue']::before,
+.installments-timeline__legend [data-tone='overdue']::before { background: var(--installments-overdue); }
+
+.installments-service-performance__head,
+.installments-service-performance__row,
+.installments-service-performance__total-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.05fr) minmax(70px, 0.45fr) minmax(100px, 0.65fr) minmax(110px, 0.72fr) minmax(230px, 1.8fr) minmax(66px, 0.45fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.installments-service-performance__head {
+  padding: 6px 16px 8px;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.installments-service-performance__row {
+  width: 100%;
+  min-height: 82px;
+  padding: 12px 16px;
+  border: 0;
+  border-block-start: 1px solid var(--c-border, #edf0f4);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: start;
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.installments-service-performance__row:hover {
+  background: var(--c-surface-2, #f7f9fc);
+}
+
+.installments-service-performance__row:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--installments-primary);
+  outline-offset: -2px;
+}
+
+.installments-service-performance__row[data-selected='true'] {
+  background: var(--installments-primary-soft);
+  box-shadow: inset 3px 0 0 var(--installments-primary);
+}
+
+.installments-service-performance__total-row {
+  min-height: 68px;
+  padding: 12px 16px;
+  border-block-start: 2px solid var(--c-border, #dbe3ed);
+  background: var(--c-surface-2, #f7f9fc);
+}
+
+.installments-service-performance__total-label {
+  color: var(--c-text, #10213f);
+  font-size: 0.82rem;
+}
+
+.installments-service-performance__total-note {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.installments-service-performance__service,
+.installments-service-performance__students {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.installments-service-performance__rank {
+  display: inline-grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--installments-primary-soft);
+  color: var(--installments-primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.installments-service-performance__service > span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.installments-service-performance__service strong {
+  overflow: hidden;
+  color: var(--c-text, #10213f);
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installments-service-performance__service small,
+.installments-service-performance__students {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.68rem;
+}
+
+.installments-service-performance__total .finance-amount,
+.installments-service-performance__average .finance-amount {
+  color: var(--c-text, #10213f);
+  font-size: 0.78rem;
+}
+
+.installments-service-performance__average small {
+  display: none;
+}
+
+.installments-service-performance__bar-wrap {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.installments-service-performance__amounts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  font-size: 0.62rem;
+}
+
+.installments-service-performance__amounts > span {
+  overflow: hidden;
+  color: var(--c-text-muted, #64748b);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installments-service-performance__amounts [data-tone='paid'] { color: var(--installments-paid); }
+.installments-service-performance__amounts [data-tone='expected'] { color: var(--installments-expected); }
+.installments-service-performance__amounts [data-tone='overdue'] { color: var(--installments-overdue); }
+
+.installments-service-performance__bar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--c-surface-2, #edf1f6);
+}
+
+.installments-service-performance__bar > span {
+  width: var(--segment-width);
+  min-width: 2px;
+}
+
+.installments-service-performance__bar [data-tone='paid'] { background: var(--installments-paid); }
+.installments-service-performance__bar [data-tone='expected'] { background: var(--installments-expected); }
+.installments-service-performance__bar [data-tone='overdue'] { background: var(--installments-overdue); }
+
+.installments-service-performance__rate {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+
+.installments-service-performance__rate strong {
+  color: var(--c-text, #10213f);
+  font-size: 0.82rem;
+}
+
+.installments-service-performance__rate-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--c-surface-2, #edf1f6);
+}
+
+.installments-service-performance__rate-track span {
+  display: block;
+  width: var(--segment-width);
+  height: 100%;
+  background: var(--installments-primary);
+}
+
+.installments-analytics__side {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.installments-service-detail {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.installments-service-detail--empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--installments-primary);
+}
+
+.installments-service-detail--empty h3,
+.installments-service-detail__head h3,
+.installments-attention h3 {
+  margin: 0;
+  color: var(--c-text, #10213f);
+  font-size: 0.92rem;
+}
+
+.installments-service-detail--empty p {
+  margin: 4px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.installments-service-detail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.installments-service-detail__head > div:first-child > span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.68rem;
+}
+
+.installments-service-detail__gauge {
+  display: grid;
+  width: 110px;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface-2, #f7f9fc);
+  text-align: center;
+}
+
+.installments-service-detail__gauge strong {
+  color: var(--c-text, #10213f);
+  font-size: 1rem;
+}
+
+.installments-service-detail__gauge span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.56rem;
+}
+
+.installments-service-detail__gauge progress {
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  margin-block-start: 5px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 99px;
+  background: var(--c-border, #e2e8f0);
+  accent-color: var(--installments-paid);
+}
+
+.installments-service-detail__gauge progress::-webkit-progress-bar {
+  background: var(--c-border, #e2e8f0);
+}
+
+.installments-service-detail__gauge progress::-webkit-progress-value,
+.installments-service-detail__gauge progress::-moz-progress-bar {
+  background: var(--installments-paid);
+}
+
+.installments-service-detail__selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.installments-service-detail__selection span {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--installments-primary) 22%, var(--c-border, #e2e8f0));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--installments-primary) 7%, var(--c-surface, #fff));
+  color: var(--installments-primary);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.installments-service-detail__hint {
+  margin: -4px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
+.installments-service-detail__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--c-border, #e2e8f0);
+}
+
+.installments-service-detail__stats > div {
+  display: grid;
+  gap: 5px;
+  padding: 11px 7px;
+  text-align: center;
+}
+
+.installments-service-detail__stats > div + div {
+  border-inline-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.installments-service-detail__stats dt {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.62rem;
+}
+
+.installments-service-detail__stats dd {
+  margin: 0;
+  color: var(--installments-primary);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.installments-service-detail__stats dd[data-tone='overdue'] { color: var(--installments-overdue); }
+
+.installments-attention {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-block-start: 1px solid var(--c-border, #e2e8f0);
+  background: color-mix(in srgb, var(--c-surface-2, #f7f9fc) 66%, transparent);
+}
+
+.installments-attention__head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.installments-attention__head > svg { color: var(--installments-overdue); }
+
+.installments-attention__head > span {
+  display: inline-grid;
+  min-width: 21px;
+  height: 21px;
+  margin-inline-start: auto;
+  place-content: center;
+  border-radius: 99px;
+  background: var(--installments-overdue);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.installments-attention__items {
+  display: grid;
+  gap: 8px;
+}
+
+.installments-attention__items article {
+  display: grid;
+  gap: 6px;
+  padding: 10px 11px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-inline-start: 3px solid var(--installments-primary);
+  border-radius: 9px;
+  background: var(--c-surface, #fff);
+}
+
+.installments-attention__items article[data-tone='overdue'] { border-inline-start-color: var(--installments-overdue); }
+.installments-attention__items article[data-tone='expected'] { border-inline-start-color: var(--installments-expected); }
+
+.installments-attention__items strong {
+  display: block;
+  color: var(--c-text, #10213f);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.installments-attention__items p {
+  margin: 3px 0 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.64rem;
+}
+
+.installments-attention__items button {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--installments-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+.installments-attention__items button:focus-visible {
+  outline: 2px solid var(--installments-primary);
+  outline-offset: 3px;
+}
+
+.installments-analytics__secondary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.installments-timeline,
+.installments-beneficiary-chart {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.installments-timeline {
+  border-block-start: 1px solid var(--c-border, #dfe6ef);
+  background: color-mix(in srgb, var(--c-surface-2, #f7f9fc) 42%, var(--c-surface, #fff));
+}
+
+.installments-timeline__meta {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.installments-timeline__scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--installments-primary) 22%, var(--c-border, #dfe6ef));
+  border-radius: 99px;
+  background: var(--installments-primary-soft);
+  color: var(--installments-primary);
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+.installments-timeline__scope strong {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installments-timeline__plot {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  min-height: 250px;
+  align-items: end;
+  gap: 10px;
+  padding: 12px 18px 18px;
+  border-block-start: 1px solid var(--c-border, #edf0f4);
+  background: transparent;
+}
+
+.installments-timeline__point {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  justify-items: center;
+}
+
+.installments-timeline__bars {
+  display: flex;
+  width: min(62px, 82%);
+  height: 170px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+
+.installments-timeline__bars > span {
+  width: 18px;
+  height: var(--bar-height);
+  min-height: 0;
+  border-radius: 5px 5px 2px 2px;
+  background: var(--installments-primary);
+}
+
+.installments-timeline__bars [data-tone='paid'] { background: var(--installments-paid); }
+.installments-timeline__bars [data-tone='expected'] { background: var(--installments-expected); }
+
+.installments-timeline__overdue {
+  min-height: 18px;
+  color: var(--installments-overdue);
+  font-size: 0.6rem;
+}
+
+.installments-timeline__point > strong {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installments-analytics__empty {
+  margin: 0;
+  padding: 32px 18px;
+  color: var(--c-text-muted, #64748b);
+  text-align: center;
+}
+
+.installments-beneficiary-chart__school-average {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.65rem;
+}
+
+.installments-beneficiary-chart__rows {
+  display: grid;
+  padding: 4px 18px 16px;
+  border-block-start: 1px solid var(--c-border, #edf0f4);
+}
+
+.installments-beneficiary-chart__row {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.85fr) minmax(120px, 1.7fr) minmax(92px, 0.75fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 52px;
+  border-block-end: 1px solid var(--c-border, #edf0f4);
+}
+
+.installments-beneficiary-chart__service {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.installments-beneficiary-chart__service strong {
+  overflow: hidden;
+  color: var(--c-text, #10213f);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installments-beneficiary-chart__service small {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.6rem;
+}
+
+.installments-beneficiary-chart__track {
+  position: relative;
+  height: 2px;
+  border-radius: 99px;
+  background: var(--c-border, #dfe6ef);
+}
+
+.installments-beneficiary-chart__track > span {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: var(--marker-position);
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--c-surface, #fff);
+  border-radius: 50%;
+  background: var(--installments-primary);
+  box-shadow: 0 0 0 1px var(--installments-primary);
+  transform: translate(50%, -50%);
+}
+
+[dir='ltr'] .installments-beneficiary-chart__track > span {
+  transform: translate(-50%, -50%);
+}
+
+.installments-beneficiary-chart__track > .installments-beneficiary-chart__average {
+  width: 2px;
+  height: 28px;
+  border: 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--installments-primary) 65%, transparent);
+  box-shadow: none;
+}
+
+.installments-beneficiary-chart__track > [data-tone='overdue'] {
+  background: var(--installments-overdue);
+  box-shadow: 0 0 0 1px var(--installments-overdue);
+}
+
+.installments-beneficiary-chart__values {
+  display: grid;
+  gap: 2px;
+  font-size: 0.62rem;
+  text-align: end;
+}
+
+.installments-beneficiary-chart__values > span:first-child { color: var(--installments-primary); }
+.installments-beneficiary-chart__values [data-tone='overdue'] { color: var(--installments-overdue); }
+
+.installments-work-queue {
+  overflow: hidden;
+}
+
+.installments-work-queue__head {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 0;
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #10213f);
+  cursor: pointer;
+  font: inherit;
+}
+
+.installments-work-queue__head:hover { background: var(--c-surface-2, #f7f9fc); }
+.installments-work-queue__head:focus-visible { outline: 2px solid var(--installments-primary); outline-offset: -2px; }
+
+.installments-work-queue__head > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.installments-work-queue__head svg { color: var(--installments-primary); }
+
+.installments-work-queue__head strong { font-size: 0.9rem; }
+
+.installments-work-queue__head bdi {
+  display: inline-grid;
+  min-width: 28px;
+  min-height: 22px;
+  place-content: center;
+  border-radius: 99px;
+  background: var(--installments-primary-soft);
+  color: var(--installments-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.installments-work-queue__head > span:last-child {
+  color: var(--installments-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.installments-work-queue .finance-receivable-list__results {
+  border-block-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.installments-table__identity,
+.installments-table__finance,
+.installments-table__status {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.installments-table__identity strong {
+  color: var(--c-text, #10213f);
+  font-size: 0.78rem;
+}
+
+.installments-table__identity small,
+.installments-table__finance small,
+.installments-table__status small {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.64rem;
+}
+
+.installments-table__progress {
+  display: block;
+  width: min(170px, 100%);
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--c-surface-2, #edf1f6);
+}
+
+.installments-table__progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--installments-paid);
+}
+
+@media (max-width: 1260px) {
+  .installments-smart-filters__form {
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+  }
+
+  .installments-smart-filters__form .finance-receivable-list__search {
+    grid-column: span 2;
+  }
+
+  .installments-analytics__main-grid,
+  .installments-analytics__secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .installments-analytics__side {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .installments-attention { border-block-start: 0; border-inline-start: 1px solid var(--c-border, #e2e8f0); }
+}
+
+@media (max-width: 900px) {
+  .installments-analytics__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .installments-analytics__metric + .installments-analytics__metric {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--c-border, #e2e8f0);
+  }
+
+  .installments-analytics__metric:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .installments-service-performance__head { display: none; }
+
+  .installments-service-performance__row {
+    grid-template-columns: minmax(140px, 1fr) minmax(70px, 0.45fr) minmax(105px, 0.65fr) minmax(0, 1.65fr) 60px;
+  }
+
+  .installments-service-performance__total-row {
+    grid-template-columns: minmax(140px, 1fr) minmax(70px, 0.45fr) minmax(105px, 0.65fr) minmax(0, 1.65fr) 60px;
+  }
+
+  .installments-service-performance__total { display: none; }
+}
+
+@media (max-width: 700px) {
+  .installments-smart-filters__form {
+    grid-template-columns: 1fr;
+  }
+
+  .installments-smart-filters__form .finance-receivable-list__search {
+    grid-column: auto;
+  }
+
+  .installments-smart-filters__quick { align-items: flex-start; }
+  .installments-smart-filters__as-of { width: 100%; margin-inline-start: 0; }
+
+  .installments-analytics__side { display: flex; }
+  .installments-attention { border-inline-start: 0; border-block-start: 1px solid var(--c-border, #e2e8f0); }
+
+  .installments-service-performance__row,
+  .installments-service-performance__total-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .installments-service-performance__students { justify-content: flex-end; }
+  .installments-service-performance__average {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .installments-service-performance__average small {
+    display: inline;
+    color: var(--c-text-muted, #64748b);
+    font-size: 0.68rem;
+  }
+  .installments-service-performance__bar-wrap { grid-column: 1 / -1; }
+  .installments-service-performance__total-note { grid-column: 1 / -1; }
+  .installments-service-performance__rate { grid-column: 1 / -1; grid-template-columns: auto 1fr; align-items: center; text-align: start; }
+
+  .installments-timeline__plot {
+    grid-template-columns: repeat(4, minmax(76px, 1fr));
+    overflow-x: auto;
+  }
+
+  .installments-timeline__meta {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .installments-beneficiary-chart__row {
+    grid-template-columns: minmax(90px, 0.8fr) minmax(100px, 1.3fr);
+  }
+
+  .installments-beneficiary-chart__values { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+  .installments-work-queue__head > span:last-child { display: none; }
+}
