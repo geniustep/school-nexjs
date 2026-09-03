@@ -7,6 +7,7 @@ import { RequireAdminPermission } from '@/components/admin/require-admin-permiss
 import { PageHeader } from '@/components/ui/primitives';
 import { AgreementsListPanel } from '@/features/admin/finance/agreements-list-panel';
 import { FinanceAgreementsSchoolPanel } from '@/features/admin/finance/finance-agreements-school-panel';
+import { AllSchoolsAgreementsPanel } from '@/features/admin/finance/all-schools-agreements-panel';
 import {
   FinanceHubStudentScope,
   useFinanceHubStudentScope,
@@ -25,6 +26,7 @@ export default function AdminFinanceAgreementsPage() {
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/agreements');
   const stateFilter = searchParams.get('state') ?? '';
   const billingPartnerId = searchParams.get('billing_partner_id') ?? '';
+  const allSchools = searchParams.get('scope') === 'all-schools';
 
   if (!canViewFinanceAgreements(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -54,16 +56,34 @@ export default function AdminFinanceAgreementsPage() {
         title={t('admin.finance.agreements.title')}
         subtitle={t('admin.finance.agreements.subtitle')}
       />
-      <p className="muted">{t('admin.finance.agreements.scopeNote')}</p>
-      <FinanceHubStudentScope studentId={studentId} onStudentChange={setStudentId}>
-        {({ studentId: id }) => (
-          <AgreementsListPanel
-            studentId={id}
-            returnTo={returnTo}
-            initialState={stateFilter || undefined}
-          />
-        )}
-      </FinanceHubStudentScope>
+      <div className="toolbar">
+        <Link
+          href={
+            allSchools
+              ? '/admin/finance/agreements'
+              : '/admin/finance/agreements?scope=all-schools'
+          }
+          className="btn btn--ghost btn--sm"
+        >
+          {allSchools ? t('common.back') : t('common.viewAll')}
+        </Link>
+      </div>
+      {allSchools ? (
+        <AllSchoolsAgreementsPanel returnTo={returnTo} />
+      ) : (
+        <>
+          <p className="muted">{t('admin.finance.agreements.scopeNote')}</p>
+          <FinanceHubStudentScope studentId={studentId} onStudentChange={setStudentId}>
+            {({ studentId: id }) => (
+              <AgreementsListPanel
+                studentId={id}
+                returnTo={returnTo}
+                initialState={stateFilter || undefined}
+              />
+            )}
+          </FinanceHubStudentScope>
+        </>
+      )}
     </RequireAdminPermission>
   );
 }
