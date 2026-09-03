@@ -70,9 +70,9 @@ export default function AdminStudentsPage() {
   const [view, setView] = useStudentsListView();
 
   const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
-    endpoints.admin.classes,
+    allSchoolsMode ? null : endpoints.admin.classes,
   );
-  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const levelsState = useAdminResource<Level[]>(allSchoolsMode ? null : endpoints.admin.levels);
   const { feeTypes, loading: feeTypesLoading } = useStudentsListFeeTypeOptions();
   const state = useStudentsListResource(appliedQuery, levelsState.data, levelsState.loading);
   const serviceCounts = useStudentsFinancialServiceCounts(appliedQuery);
