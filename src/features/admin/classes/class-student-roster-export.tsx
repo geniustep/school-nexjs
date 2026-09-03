@@ -21,6 +21,9 @@ type RosterClass = {
 type Labels = {
   button: string;
   title: string;
+  classRoster: string;
+  teacherRoster: string;
+  rosterKind: string;
   teacher: string;
   subject: string;
   className: string;
@@ -46,6 +49,9 @@ const LABELS: Record<'ar' | 'fr' | 'en' | 'es', Labels> = {
   ar: {
     button: 'تصدير لائحة التلاميذ',
     title: 'لائحة تلاميذ القسم',
+    classRoster: 'لائحة القسم',
+    teacherRoster: 'لائحة الأستاذ والمادة',
+    rosterKind: 'نوع اللائحة',
     teacher: 'الأستاذ(ة)',
     subject: 'المادة',
     className: 'القسم',
@@ -69,6 +75,9 @@ const LABELS: Record<'ar' | 'fr' | 'en' | 'es', Labels> = {
   fr: {
     button: 'Exporter la liste des élèves',
     title: 'Liste des élèves de la classe',
+    classRoster: 'Liste de la classe',
+    teacherRoster: "Liste de l’enseignant et de la matière",
+    rosterKind: 'Type de liste',
     teacher: 'Enseignant(e)',
     subject: 'Matière',
     className: 'Classe',
@@ -92,6 +101,9 @@ const LABELS: Record<'ar' | 'fr' | 'en' | 'es', Labels> = {
   en: {
     button: 'Export student roster',
     title: 'Class student roster',
+    classRoster: 'Class roster',
+    teacherRoster: 'Teacher and subject roster',
+    rosterKind: 'Roster type',
     teacher: 'Teacher',
     subject: 'Subject',
     className: 'Class',
@@ -115,6 +127,9 @@ const LABELS: Record<'ar' | 'fr' | 'en' | 'es', Labels> = {
   es: {
     button: 'Exportar lista de alumnos',
     title: 'Lista de alumnos de la clase',
+    classRoster: 'Lista de la clase',
+    teacherRoster: 'Lista del profesor y la asignatura',
+    rosterKind: 'Tipo de lista',
     teacher: 'Profesor(a)',
     subject: 'Asignatura',
     className: 'Clase',
@@ -238,6 +253,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
   const [error, setError] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<TeachingAssignment[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [rosterKind, setRosterKind] = useState<'class' | 'teacher'>('class');
   const [teacherId, setTeacherId] = useState<number | null>(null);
   const [subjectId, setSubjectId] = useState<number | null>(null);
   const academicYearId = resolveAcademicYearId(cls);
@@ -278,6 +294,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
       setError(null);
       setAssignments([]);
       setStudents([]);
+      setRosterKind('class');
       setTeacherId(null);
       setSubjectId(null);
 
@@ -299,12 +316,12 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
       if (cancelled) return;
       setLoading(false);
 
-      if (!assignmentRes.success || !studentResult.ok) {
+      if (!studentResult.ok) {
         setError(labels.exportFailed);
         return;
       }
 
-      const nextAssignments = activeAssignments(assignmentRes.data);
+      const nextAssignments = assignmentRes.success ? activeAssignments(assignmentRes.data) : [];
       setAssignments(nextAssignments);
       setStudents(studentResult.data);
       const first = nextAssignments[0];
@@ -327,7 +344,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
   }, [teacherId, subjectId, subjects]);
 
   function openPdfPrint() {
-    if (!selectedAssignment) return;
+    if (rosterKind === 'teacher' && !selectedAssignment) return;
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error(labels.popupBlocked);
@@ -338,6 +355,10 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
     const direction = locale === 'ar' ? 'rtl' : 'ltr';
     const schoolName = cls.school?.name ?? '';
     const academicYear = resolveAcademicYearName(cls, selectedAssignment);
+    const teacherMeta = rosterKind === 'teacher' && selectedAssignment
+      ? `<div><strong>${escapeHtml(labels.teacher)}:</strong> ${escapeHtml(selectedAssignment.teacher.name)}</div>
+         <div><strong>${escapeHtml(labels.subject)}:</strong> ${escapeHtml(selectedAssignment.subject.name)}</div>`
+      : '';
     const tableRows = rows.map((row) => `
       <tr>
         <td class="number">${row.number}</td>
@@ -379,8 +400,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
     <h1>${escapeHtml(labels.title)}</h1>
   </header>
   <section class="meta">
-    <div><strong>${escapeHtml(labels.teacher)}:</strong> ${escapeHtml(selectedAssignment.teacher.name)}</div>
-    <div><strong>${escapeHtml(labels.subject)}:</strong> ${escapeHtml(selectedAssignment.subject.name)}</div>
+    ${teacherMeta}
     <div><strong>${escapeHtml(labels.className)}:</strong> ${escapeHtml(cls.name)}</div>
     <div><strong>${escapeHtml(labels.academicYear)}:</strong> ${escapeHtml(academicYear)}</div>
   </section>
@@ -406,7 +426,7 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
   }
 
   async function downloadExcel() {
-    if (!selectedAssignment || excelLoading) return;
+    if ((rosterKind === 'teacher' && !selectedAssignment) || excelLoading) return;
     setExcelLoading(true);
     try {
       const ExcelJS = await import('exceljs');
@@ -435,10 +455,12 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
       worksheet.getCell('A2').font = { bold: true, size: 16 };
       worksheet.getCell('A2').alignment = { horizontal: 'center' };
 
-      worksheet.mergeCells('A3:B3');
-      worksheet.getCell('A3').value = `${labels.teacher}: ${selectedAssignment.teacher.name}`;
-      worksheet.mergeCells('C3:E3');
-      worksheet.getCell('C3').value = `${labels.subject}: ${selectedAssignment.subject.name}`;
+      if (rosterKind === 'teacher' && selectedAssignment) {
+        worksheet.mergeCells('A3:B3');
+        worksheet.getCell('A3').value = `${labels.teacher}: ${selectedAssignment.teacher.name}`;
+        worksheet.mergeCells('C3:E3');
+        worksheet.getCell('C3').value = `${labels.subject}: ${selectedAssignment.subject.name}`;
+      }
       worksheet.mergeCells('A4:B4');
       worksheet.getCell('A4').value = `${labels.className}: ${cls.name}`;
       worksheet.mergeCells('C4:E4');
@@ -484,8 +506,9 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
       const anchor = document.createElement('a');
       const filename = [
         labels.title,
-        selectedAssignment.teacher.name,
-        selectedAssignment.subject.name,
+        ...(rosterKind === 'teacher' && selectedAssignment
+          ? [selectedAssignment.teacher.name, selectedAssignment.subject.name]
+          : []),
         cls.name,
       ].map(safeFilenamePart).join('_');
       anchor.href = url;
@@ -502,7 +525,10 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
     }
   }
 
-  const canExport = !loading && !error && selectedAssignment != null && rows.length > 0;
+  const canExport = !loading
+    && !error
+    && rows.length > 0
+    && (rosterKind === 'class' || selectedAssignment != null);
 
   return (
     <>
@@ -539,35 +565,35 @@ export function ClassStudentRosterExport({ cls }: { cls: RosterClass }) {
 
           {loading ? <p className="muted">{labels.loading}</p> : null}
           {error ? <p className="muted">{error}</p> : null}
-          {!loading && !error && assignments.length === 0 ? <p className="muted">{labels.noAssignments}</p> : null}
-
-          {!loading && !error && assignments.length > 0 ? (
+          {!loading && !error ? (
             <>
               <label className="col" style={{ gap: 6 }}>
-                <span className="tiny muted">{labels.teacher}</span>
-                <select
-                  className="input"
-                  value={teacherId ?? ''}
-                  onChange={(event) => setTeacherId(Number(event.target.value))}
-                >
-                  {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
-                  ))}
+                <span className="tiny muted">{labels.rosterKind}</span>
+                <select className="input" value={rosterKind} onChange={(event) => setRosterKind(event.target.value as 'class' | 'teacher')}>
+                  <option value="class">{labels.classRoster}</option>
+                  <option value="teacher">{labels.teacherRoster}</option>
                 </select>
               </label>
 
-              <label className="col" style={{ gap: 6 }}>
-                <span className="tiny muted">{labels.subject}</span>
-                <select
-                  className="input"
-                  value={subjectId ?? ''}
-                  onChange={(event) => setSubjectId(Number(event.target.value))}
-                >
-                  {subjects.map((subject) => (
-                    <option key={subject.id} value={subject.id}>{subject.name}</option>
-                  ))}
-                </select>
-              </label>
+              {rosterKind === 'teacher' && assignments.length > 0 ? (
+                <>
+                  <label className="col" style={{ gap: 6 }}>
+                    <span className="tiny muted">{labels.teacher}</span>
+                    <select className="input" value={teacherId ?? ''} onChange={(event) => setTeacherId(Number(event.target.value))}>
+                      {teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.name}</option>)}
+                    </select>
+                  </label>
+
+                  <label className="col" style={{ gap: 6 }}>
+                    <span className="tiny muted">{labels.subject}</span>
+                    <select className="input" value={subjectId ?? ''} onChange={(event) => setSubjectId(Number(event.target.value))}>
+                      {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
+                    </select>
+                  </label>
+                </>
+              ) : null}
+
+              {rosterKind === 'teacher' && assignments.length === 0 ? <p className="muted">{labels.noAssignments}</p> : null}
 
               <div className="row" style={{ justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <span className="tiny muted">{labels.academicYear}: {resolveAcademicYearName(cls, selectedAssignment)}</span>
