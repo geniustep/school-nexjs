@@ -336,7 +336,7 @@ export function receiptAllowsAction(receipt: FinanceReceipt | null | undefined, 
   return action === 'view' || action === 'download' || action === 'print';
 }
 
-export type ReceiptPrintLayout = 'a4' | 'a5' | 'thermal_80mm';
+export type ReceiptPrintLayout = 'a4' | 'a5' | 'a5_dual_a6_family' | 'thermal_80mm';
 
 export function buildReceiptPdfFilename(
   receipt: FinanceReceipt,
