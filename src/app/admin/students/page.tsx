@@ -41,6 +41,10 @@ import type { FeeType } from '@/types/finance';
 import '@/features/admin/students/student-360.css';
 import '@/features/admin/students/students-list-density.css';
 
+type StudentListColumnKey = 'student' | 'class_level' | 'status' | 'massar' | 'birth' | 'gender' | 'phone' | 'school_number';
+
+const DEFAULT_STUDENT_LIST_COLUMNS: StudentListColumnKey[] = ['student', 'class_level', 'status'];
+
 function StudentAvatar({ name }: { name: string }) {
   return (
     <span className="students-list__avatar" aria-hidden="true">
@@ -67,6 +71,8 @@ export default function AdminStudentsPage() {
   } = useStudentsListFilterState();
   const [importOpen, setImportOpen] = useState(false);
   const [view, setView] = useStudentsListView();
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<StudentListColumnKey[]>(DEFAULT_STUDENT_LIST_COLUMNS);
+  const [columnSearch, setColumnSearch] = useState('');
 
   const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
     endpoints.admin.classes,
@@ -121,7 +127,11 @@ export default function AdminStudentsPage() {
       action={canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm students-list__quick-create-trigger"><span aria-hidden="true">+</span>{t('admin.studentsList.quickCreate.submit')}</Link> : undefined} />
   );
 
-  const columns: Column<Student>[] = useMemo(() => [
+  const tableLabels = useMemo(() => locale === 'ar'
+    ? { customize: 'تخصيص الأعمدة', add: 'أضف عمودًا…', none: 'لا توجد أعمدة مطابقة.', massar: 'رقم مسار', birth: 'تاريخ الازدياد', gender: 'الجنس', phone: 'هاتف التواصل', schoolNumber: 'رقم التلميذ', male: 'ذكر', female: 'أنثى', moveBefore: 'حرّك قبل', moveAfter: 'حرّك بعد', remove: 'حذف' }
+    : { customize: 'Customize columns', add: 'Add a column…', none: 'No matching columns.', massar: 'Massar code', birth: 'Date of birth', gender: 'Gender', phone: 'Contact phone', schoolNumber: 'Student number', male: 'Male', female: 'Female', moveBefore: 'Move earlier', moveAfter: 'Move later', remove: 'Remove' }, [locale]);
+
+  const availableColumns: Column<Student>[] = useMemo(() => [
     {
       key: 'student', header: t('admin.studentsList.columnStudent'), render: (s) => {
         const name = getStudentDisplayName(s);
@@ -140,7 +150,54 @@ export default function AdminStudentsPage() {
     {
       key: 'status', header: t('academic.status'), render: (s) => s.status === 'active' ? null : <Badge tone="slate">{statusLabel(t, s.status)}</Badge>,
     },
-  ], [t]);
+    {
+      key: 'massar', header: tableLabels.massar, render: (s) => <span dir="ltr" className="mono">{s.massar_code ?? '—'}</span>,
+    },
+    {
+      key: 'birth', header: tableLabels.birth, render: (s) => s.date_of_birth ? <span dir="ltr">{s.date_of_birth}</span> : '—',
+    },
+    {
+      key: 'gender', header: tableLabels.gender, render: (s) => s.gender === 'male' ? tableLabels.male : s.gender === 'female' ? tableLabels.female : '—',
+    },
+    {
+      key: 'phone', header: tableLabels.phone, render: (s) => {
+        const phones = Array.from(new Set((s.parents ?? []).map((parent) => parent.phone?.trim()).filter((phone): phone is string => Boolean(phone))));
+        return <span dir="ltr">{s.phone?.trim() || phones.join(' · ') || '—'}</span>;
+      },
+    },
+    {
+      key: 'school_number', header: tableLabels.schoolNumber, render: (s) => <span dir="ltr" className="mono">{s.school_number ?? s.code ?? s.matricule ?? '—'}</span>,
+    },
+  ], [t, tableLabels]);
+  const columns = useMemo(() => visibleColumnKeys
+    .map((key) => availableColumns.find((column) => column.key === key))
+    .filter((column): column is Column<Student> => column != null), [availableColumns, visibleColumnKeys]);
+  const availableToAdd = useMemo(() => {
+    const search = columnSearch.trim().toLocaleLowerCase(locale);
+    return availableColumns.filter((column) => !visibleColumnKeys.includes(column.key as StudentListColumnKey)
+      && (!search || String(column.header).toLocaleLowerCase(locale).includes(search)));
+  }, [availableColumns, columnSearch, locale, visibleColumnKeys]);
+
+  function addColumn(key: StudentListColumnKey) {
+    setVisibleColumnKeys((current) => current.includes(key) ? current : [...current, key]);
+    setColumnSearch('');
+  }
+
+  function removeColumn(key: StudentListColumnKey) {
+    if (key === 'student') return;
+    setVisibleColumnKeys((current) => current.filter((item) => item !== key));
+  }
+
+  function moveColumn(key: StudentListColumnKey, targetIndex: number) {
+    setVisibleColumnKeys((current) => {
+      const sourceIndex = current.indexOf(key);
+      if (sourceIndex < 0 || sourceIndex === targetIndex) return current;
+      const next = [...current];
+      next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, key);
+      return next;
+    });
+  }
 
   return (
     <div className="students-list-page">
@@ -192,6 +249,29 @@ export default function AdminStudentsPage() {
           <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>{t('admin.studentsList.viewList')}</button>
           <button type="button" aria-pressed={view === 'kanban'} onClick={() => setView('kanban')}>{t('admin.studentsList.viewKanban')}</button>
         </div>
+        {view === 'list' ? <details className="students-list__more-actions">
+          <summary className="btn btn--ghost btn--sm">{tableLabels.customize}</summary>
+          <div className="students-list__more-actions-menu" style={{ minWidth: 330 }}>
+            <div className="col" style={{ gap: 8 }}>
+              <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
+                {visibleColumnKeys.map((key, index) => {
+                  const column = availableColumns.find((item) => item.key === key);
+                  const label = String(column?.header ?? key);
+                  return <span key={key} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 6px', border: '1px solid var(--c-border)', borderRadius: 999, background: 'var(--c-surface-2)' }}>
+                    {label}
+                    <button type="button" className="btn btn--ghost btn--sm" disabled={index === 0} aria-label={tableLabels.moveBefore} onClick={() => moveColumn(key, index - 1)}>↑</button>
+                    <button type="button" className="btn btn--ghost btn--sm" disabled={index === visibleColumnKeys.length - 1} aria-label={tableLabels.moveAfter} onClick={() => moveColumn(key, index + 1)}>↓</button>
+                    {key !== 'student' ? <button type="button" className="btn btn--ghost btn--sm" aria-label={tableLabels.remove} onClick={() => removeColumn(key)}>×</button> : null}
+                  </span>;
+                })}
+              </div>
+              <input type="search" value={columnSearch} onChange={(event) => setColumnSearch(event.target.value)} placeholder={tableLabels.add} aria-label={tableLabels.add} />
+              {columnSearch ? <div className="col" style={{ gap: 4 }}>
+                {availableToAdd.length ? availableToAdd.map((column) => <button key={column.key} type="button" className="btn btn--ghost btn--sm" style={{ justifyContent: 'flex-start' }} onClick={() => addColumn(column.key as StudentListColumnKey)}>+ {column.header}</button>) : <span className="muted tiny">{tableLabels.none}</span>}
+              </div> : null}
+            </div>
+          </div>
+        </details> : null}
       </div>
 
       {state.fetching ? <p className="students-list__fetching-hint" aria-live="polite">{t('admin.studentsList.refetching')}</p> : null}
