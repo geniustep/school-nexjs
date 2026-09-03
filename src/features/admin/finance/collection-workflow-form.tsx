@@ -470,6 +470,8 @@ function CollectionWorkflowFormReady({
 
   function handleAmountChange(value: string) {
     amountManuallyEditedRef.current = true;
+    // A direct amount edit should redistribute the entered value across the selected installments.
+    setManualAllocation(false);
     setAmount(value);
     setPreview(null);
     setPreviewError(null);
@@ -540,7 +542,7 @@ function CollectionWorkflowFormReady({
   }, [selectedInstallmentIds, selectedInstallments, manualAllocation]);
 
   useEffect(() => {
-    if (!selectedInstallmentIds.length || manualAllocation) return;
+    if (!selectedInstallmentIds.length) return;
     if (!amountManuallyEditedRef.current) return;
     const rows = selectedInstallments;
     if (!rows.length) return;
@@ -1050,16 +1052,6 @@ function CollectionWorkflowFormReady({
                 ? t('admin.finance.quickPayment.paymentSection')
                 : t('admin.finance.collections.paymentSection')}
             </h4>
-            {flexiblePrepaymentFlow && step === 'payment' ? (
-              <MonthlyInstallmentPicker
-                installments={openInstallments}
-                loading={collectibleState.loading}
-                currency={journalCurrency}
-                selectedIds={selectedInstallmentIds}
-                allocationInputs={allocationInputs}
-                onAllocationChange={handleMonthlyAllocationChange}
-              />
-            ) : null}
             <QuickPaymentCoreFields
               variant={embedded ? 'drawer' : 'default'}
               amount={amount}
@@ -1088,6 +1080,16 @@ function CollectionWorkflowFormReady({
               collectionDate={collectionDate}
               onCollectionDateChange={setCollectionDate}
               reference={reference}
+            {flexiblePrepaymentFlow && step === 'payment' ? (
+              <MonthlyInstallmentPicker
+                installments={openInstallments}
+                loading={collectibleState.loading}
+                currency={journalCurrency}
+                selectedIds={selectedInstallmentIds}
+                allocationInputs={allocationInputs}
+                onAllocationChange={handleMonthlyAllocationChange}
+              />
+            ) : null}
               onReferenceChange={setReference}
               chequeValues={{
                 chequeNumber,
