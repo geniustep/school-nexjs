@@ -100,9 +100,12 @@ export interface ClassRemovalResponse {
   reason?: string;
 }
 
+/** Canonical class-list gender composition supplied by Odoo. */
 export interface ClassGenderSummary {
-  male_count: number;
-  female_count: number;
+  male: number;
+  female: number;
+  unspecified: number;
+  total: number;
 }
 
 export interface SchoolClass {
