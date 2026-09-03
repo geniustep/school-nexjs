@@ -24,7 +24,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { useAnnouncementsList } from '@/features/announcements/hooks/use-announcements-list';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
-import { formatSchoolLabel } from '@/lib/admin/school-label';
+import { AdminSchoolContextSwitcher } from '@/components/admin/admin-school-context-switcher';
 import { cn } from '@/lib/utils/cn';
 import type { AdminChannel } from '@/types/admin-channel';
 import type { CommunicationContent } from '@/types/communication';
@@ -196,8 +196,6 @@ export function AdminSidebar({
     });
   }, [onCollapsedChange]);
 
-  const schoolLabel = user.school ? formatSchoolLabel(user.school, t) : null;
-
   return (
     <aside
       id="admin-sidebar"
@@ -232,11 +230,7 @@ export function AdminSidebar({
           <Avatar name={user.name} />
           {!collapsed ? (
             <div className="focus-v2__identity-copy">
-              {schoolLabel ? (
-                <span className="focus-v2__school" title={schoolLabel}>
-                  {schoolLabel}
-                </span>
-              ) : null}
+              <AdminSchoolContextSwitcher />
               <span className="focus-v2__user" title={user.name}>
                 {user.name}
               </span>
