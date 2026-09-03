@@ -26,15 +26,19 @@ type TrackGroup = {
   studentCount: number;
 };
 
-function classTitle(cls: SchoolClass, locale: string, fallback: string): string {
+function classTitle(cls: SchoolClass, fallback: string): string {
   const code = cls.code?.trim() || '';
   const alias = cls.display_alias?.trim();
   if (alias && alias !== code) return alias;
   const displayName = cls.display_name?.trim();
   if (displayName && displayName !== code && displayName !== cls.level?.name?.trim()) return displayName;
   const section = cls.section_name?.trim();
-  if (section) return locale === 'ar' && !section.startsWith('القسم') ? `القسم ${section}` : section;
-  return cls.name?.trim() || fallback;
+  if (section) return section.replace(/^القسم\s+/, '');
+
+  const name = cls.name?.trim();
+  if (name) return name;
+
+  return fallback;
 }
 
 function studentCount(cls: SchoolClass) {
@@ -93,27 +97,36 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
   const readiness = resolveClassReadinessPresentation(cls.readiness, locale);
   const { assigned, percent, overCapacity } = occupancy(cls);
   const genders = genderSummary(cls);
-  const title = classTitle(cls, locale, t('common.class'));
-  const occupancyLabel = locale === 'ar' ? 'التلاميذ / السعة' : 'Élèves / capacité';
-  const readinessLabel = locale === 'ar' ? 'الجاهزية' : 'Préparation';
-  const maleLabel = locale === 'ar' ? 'تلميذ' : 'Garçons';
-  const femaleLabel = locale === 'ar' ? 'تلميذة' : 'Filles';
+  const title = classTitle(cls, t('common.class'));
+  const isArabic = locale === 'ar';
+  const readinessLabel = isArabic ? 'جاهزية القسم' : 'Préparation de la classe';
+  const occupancyLabel = isArabic ? 'التلاميذ / السعة' : 'Élèves / capacité';
+  const maleLabel = isArabic ? 'تلميذ' : 'Garçons';
+  const femaleLabel = isArabic ? 'تلميذة' : 'Filles';
 
   return <button type="button" className="classes-browser__class-card" onClick={onNavigate}>
     <span className="classes-browser__card-topline">
-      <span className="classes-browser__class-identity"><strong dir="auto">{title}</strong></span>
-      {!cls.readiness || !readiness ? <span className="classes-browser__readiness-unknown">{readinessLabel}: —</span> : <Badge tone={readiness.tone}>{readiness.label}</Badge>}
+      <span className="classes-browser__class-identity"><span className="classes-browser__class-kicker">{isArabic ? 'القسم' : 'Classe'}</span><strong dir="auto">{title}</strong></span>
+      {!cls.readiness || !readiness ? <span className="classes-browser__readiness-unknown">{isArabic ? 'الجاهزية غير متاحة' : 'Préparation indisponible'}</span> : <Badge tone={readiness.tone}>{readiness.label}</Badge>}
     </span>
-    {cls.readiness && readiness ? <span className="classes-browser__readiness-line"><span>{readinessLabel}</span><strong className="mono" dir="ltr">{cls.readiness.completed} / {cls.readiness.total}</strong></span> : null}
-    <span className="classes-browser__occupancy">
-      <span className="classes-browser__occupancy-copy"><span>{occupancyLabel}</span><strong className="mono" dir="ltr">{assigned}{cls.capacity ? ` / ${cls.capacity}` : ''}</strong></span>
-      {percent != null ? <><span className="classes-browser__occupancy-bar" aria-hidden><span data-over-capacity={overCapacity || undefined} style={{ width: `${Math.min(percent, 100)}%` }} /></span><span className="classes-browser__occupancy-percent" data-over-capacity={overCapacity || undefined}><bdi dir="ltr">{percent}%</bdi></span></> : <span className="classes-browser__occupancy-percent">—</span>}
+
+    <span className="classes-browser__card-metrics">
+      <span className="classes-browser__readiness-metric">
+        <span className="classes-browser__readiness-value" data-status={cls.readiness?.status}><strong className="mono" dir="ltr">{cls.readiness?.completed ?? '—'}{cls.readiness ? `/${cls.readiness.total}` : ''}</strong></span>
+        <span><small>{readinessLabel}</small><strong>{cls.readiness && readiness ? readiness.label : '—'}</strong></span>
+      </span>
+      <span className="classes-browser__occupancy">
+        <span className="classes-browser__occupancy-copy"><span>{occupancyLabel}</span><strong className="mono" dir="ltr">{assigned}{cls.capacity ? ` / ${cls.capacity}` : ''}</strong></span>
+        {percent != null ? <><span className="classes-browser__occupancy-bar" aria-hidden><span data-over-capacity={overCapacity || undefined} style={{ width: `${Math.min(percent, 100)}%` }} /></span><span className="classes-browser__occupancy-percent" data-over-capacity={overCapacity || undefined}><bdi dir="ltr">{percent}%</bdi></span></> : <span className="classes-browser__occupancy-percent">—</span>}
+      </span>
     </span>
-    {genders ? <span className="classes-browser__gender-summary" aria-label={locale === 'ar' ? `${genders.male} تلاميذ و${genders.female} تلميذات` : `${genders.male} garçons et ${genders.female} filles`}>
+
+    {genders ? <span className="classes-browser__gender-summary" aria-label={isArabic ? `${genders.male} تلاميذ و${genders.female} تلميذات` : `${genders.male} garçons et ${genders.female} filles`}>
       <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--male"><span aria-hidden>♂</span><strong className="mono" dir="ltr">{genders.male}</strong><small>{maleLabel}</small></span>
       <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--female"><span aria-hidden>♀</span><strong className="mono" dir="ltr">{genders.female}</strong><small>{femaleLabel}</small></span>
     </span> : null}
-    {cls.track?.name || !['active', ''].includes(cls.status) ? <span className="classes-browser__card-footnote">{cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}{cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}</span> : null}
+
+    <span className="classes-browser__card-footnote">{cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}{cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}<span className="classes-browser__open-hint" aria-hidden>‹</span></span>
   </button>;
 }
 
