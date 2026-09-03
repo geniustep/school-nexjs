@@ -65,7 +65,12 @@ function getColumnValue(student: Student, key: ColumnKey, index: number, labels:
     case 'class': return student.class?.name ?? '';
     case 'gender': return student.gender === 'male' ? labels.male : student.gender === 'female' ? labels.female : '';
     case 'birth': return birth(student.date_of_birth);
-    case 'phone': return student.phone ?? '';
+    case 'phone': {
+      const guardianPhones = (student.parents ?? [])
+        .map((parent) => parent.phone?.trim())
+        .filter((phone): phone is string => Boolean(phone));
+      return student.phone?.trim() || Array.from(new Set(guardianPhones)).join(' · ');
+    }
     case 'address': return student.residence_address ?? '';
     case 'notes': return '';
   }
