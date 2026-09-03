@@ -82,6 +82,7 @@ export function useStudentsListResource(
     switching,
     activeAcademicYearId,
     academicYearError,
+    schoolViewMode,
   } = useAdminSession();
   const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
   const safeActiveSchoolId =
@@ -90,7 +91,8 @@ export function useStudentsListResource(
   const missingAcademicYear = safeActiveSchoolId != null && activeAcademicYearId == null;
   const pendingAcademicYear = missingAcademicYear && academicYearError == null;
 
-  const clientCycle = studentsListUsesClientCycleFilter(filters);
+  const allSchoolsMode = schoolViewMode === 'all';
+  const clientCycle = !allSchoolsMode && studentsListUsesClientCycleFilter(filters);
   const cycleLevelIds = useMemo(
     () => (clientCycle ? collectCycleLevelIds(levels ?? [], filters.cycleCode) : []),
     [clientCycle, levels, filters.cycleCode],
@@ -101,8 +103,12 @@ export function useStudentsListResource(
     [clientCycle, filters],
   );
   const serverState = useGlobalAcademicYearResource<Student[]>(
-    clientCycle || pendingActiveSchool ? null : endpoints.admin.students,
+    clientCycle || pendingActiveSchool || allSchoolsMode ? null : endpoints.admin.students,
     serverParams,
+  );
+  const allSchoolsState = useAdminResource<Student[]>(
+    allSchoolsMode ? endpoints.admin.allSchoolsStudents : null,
+    allSchoolsMode ? { page: filters.page, page_size: 50, search: filters.search || undefined, state: filters.statusFilter || undefined } : undefined,
   );
 
   const [clientLoading, setClientLoading] = useState(false);
@@ -199,6 +205,10 @@ export function useStudentsListResource(
   }, [mergedRows, filters.page]);
 
   const reloadClient = useCallback(() => setClientNonce((n) => n + 1), []);
+
+  if (allSchoolsMode) {
+    return allSchoolsState;
+  }
 
   if (!clientCycle) {
     const waiting = pendingActiveSchool || switching;
