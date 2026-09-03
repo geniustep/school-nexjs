@@ -1080,16 +1080,6 @@ function CollectionWorkflowFormReady({
               collectionDate={collectionDate}
               onCollectionDateChange={setCollectionDate}
               reference={reference}
-            {flexiblePrepaymentFlow && step === 'payment' ? (
-              <MonthlyInstallmentPicker
-                installments={openInstallments}
-                loading={collectibleState.loading}
-                currency={journalCurrency}
-                selectedIds={selectedInstallmentIds}
-                allocationInputs={allocationInputs}
-                onAllocationChange={handleMonthlyAllocationChange}
-              />
-            ) : null}
               onReferenceChange={setReference}
               chequeValues={{
                 chequeNumber,
@@ -1114,6 +1104,17 @@ function CollectionWorkflowFormReady({
               notes={notes}
               onNotesChange={setNotes}
             />
+
+            {flexiblePrepaymentFlow && step === 'payment' ? (
+              <MonthlyInstallmentPicker
+                installments={openInstallments}
+                loading={collectibleState.loading}
+                currency={journalCurrency}
+                selectedIds={selectedInstallmentIds}
+                allocationInputs={allocationInputs}
+                onAllocationChange={handleMonthlyAllocationChange}
+              />
+            ) : null}
 
             {flexiblePrepaymentFlow && step === 'payment' ? (
               <CollectionAllocationPreviewPanel
