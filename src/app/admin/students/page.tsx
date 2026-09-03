@@ -27,6 +27,7 @@ import { StudentsListFilters } from '@/features/admin/students/components/studen
 import { StudentsFinancialServiceCountCards } from '@/features/admin/students/components/students-financial-service-count-cards';
 import { isStaleStudentsListServiceSelection } from '@/features/admin/students/utils/students-list-service-visibility';
 import { useSession } from '@/features/auth/session-context';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasStudentImportCapability } from '@/features/admin/students/import/student-import-capability';
@@ -52,6 +53,8 @@ export default function AdminStudentsPage() {
   const router = useRouter();
   const t = useT();
   const user = useSession();
+  const { schoolViewMode, setActiveSchool } = useAdminSession();
+  const allSchoolsMode = schoolViewMode === 'all';
   const canAddStudent = canCreateStudents(user);
   const canImportStudents = hasStudentImportCapability(user);
   const canExportStudents = hasPermission(user, 'export_data');
@@ -119,16 +122,19 @@ export default function AdminStudentsPage() {
         {studentClassLabel(s.class)}<span className="tiny muted"> · {studentLevelLabel(s.level)}</span>
       </span>,
     },
+    ...(allSchoolsMode ? [{
+      key: 'school', header: t('admin.activeSchool'), render: (s: Student) => <span dir="auto">{s.school?.name ?? '—'}</span>,
+    } satisfies Column<Student>] : []),
     {
       key: 'status', header: t('academic.status'), render: (s) => s.status === 'active' ? null : <Badge tone="slate">{statusLabel(t, s.status)}</Badge>,
     },
-  ], [t]);
+  ], [t, allSchoolsMode]);
 
   return (
     <div className="students-list-page">
       <PageHeader
         title={t('nav.students')}
-        actions={canAddStudent || canShowSecondaryActions ? <div className="students-list__header-actions">
+        actions={!allSchoolsMode && (canAddStudent || canShowSecondaryActions) ? <div className="students-list__header-actions">
           {canAddStudent ? <Link href="/admin/students/new" className="btn btn--primary btn--sm students-list__quick-create-trigger"><span aria-hidden="true">+</span>{t('admin.studentsList.quickCreate.submit')}</Link> : null}
           {canShowSecondaryActions ? <details className="students-list__more-actions">
             <summary className="btn btn--ghost btn--sm">{t('common.more')}</summary>
@@ -149,16 +155,18 @@ export default function AdminStudentsPage() {
         </div> : null}
       />
 
+      {allSchoolsMode ? <p className="muted">{t('admin.activeSchool')}: {t('common.all')}</p> : null}
+
       {importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
 
-      <StudentsFinancialServiceCountCards
+      {!allSchoolsMode ? <StudentsFinancialServiceCountCards
         items={serviceCounts.items} feeTypes={feeTypes} totalStudents={serviceCounts.totalStudents}
         initialLoading={serviceCounts.initialLoading} fetching={serviceCounts.fetching} error={serviceCounts.error}
         serviceId={serviceId} servicePresence={servicePresence}
         onSelectAll={clearServiceFilter} onSelectService={selectServiceHas} onRetry={serviceCounts.reload}
-      />
+      /> : null}
 
-      <div className="students-list__toolbar-wrap">
+      {!allSchoolsMode ? <div className="students-list__toolbar-wrap">
         <StudentsListFilters
           search={search} cycleCode={cycleCode} levelId={levelId} classId={classId}
           statusFilter={statusFilter} accountFilter={accountFilter} serviceId={serviceId} servicePresence={servicePresence}
@@ -173,13 +181,13 @@ export default function AdminStudentsPage() {
           <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>{t('admin.studentsList.viewList')}</button>
           <button type="button" aria-pressed={view === 'kanban'} onClick={() => setView('kanban')}>{t('admin.studentsList.viewKanban')}</button>
         </div>
-      </div>
+      </div> : null}
 
       {state.fetching ? <p className="students-list__fetching-hint" aria-live="polite">{t('admin.studentsList.refetching')}</p> : null}
       <div className={state.fetching ? 'students-list__results students-list__results--fetching' : 'students-list__results'} aria-busy={state.fetching || undefined}>
         <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={(d) => d.length === 0} empty={listEmptyState}>
           {(students) => <>
-            {view === 'kanban' ? <StudentsKanban students={students} /> : <div className="students-list__table"><DataTable columns={columns} rows={students} rowKey={(s) => s.id} onRowClick={(s) => router.push(`/admin/students/${s.id}`)} /></div>}
+            {!allSchoolsMode && view === 'kanban' ? <StudentsKanban students={students} /> : <div className="students-list__table"><DataTable columns={columns} rows={students} rowKey={(s) => `${s.school?.id ?? 'active'}-${s.id}`} onRowClick={(s) => { if (s.school?.id != null && s.school.id !== undefined) { void setActiveSchool(s.school.id).then((switched) => { if (switched) router.push(`/admin/students/${s.id}`); }); return; } router.push(`/admin/students/${s.id}`); }} /></div>}
             {pg ? <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} /> : null}
           </>}
         </ResourceView>
