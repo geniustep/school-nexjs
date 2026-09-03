@@ -44,7 +44,7 @@ describe('resolveAgreementAmendmentEffectivePeriods tenant binding', () => {
     expect(odooApiFetchMock).not.toHaveBeenCalled();
   });
 
-  it('passes Host tenant backend into odooApiFetch', async () => {
+  it('passes Host tenant backend and trusted active school into odooApiFetch', async () => {
     odooApiFetchMock.mockResolvedValue({
       kind: 'json',
       status: 200,
@@ -71,11 +71,49 @@ describe('resolveAgreementAmendmentEffectivePeriods tenant binding', () => {
       tenant: string;
       backendBaseUrl: string;
       host?: string | null;
+      query?: Record<string, string>;
     };
     expect(opts.tenant).toBe('school');
     expect(opts.backendBaseUrl).toBe('https://api-school.example');
     expect(opts.host).toBe('school.raqeem.ma');
+    expect(opts.query).toEqual({ agreement_id: '9', active_school_id: '3' });
     expect(opts.backendBaseUrl).not.toContain('SHOULD-NOT-USE');
+  });
+
+  it('keeps the trusted active school when the effective-period list falls back to agreement lookup', async () => {
+    odooApiFetchMock
+      .mockResolvedValueOnce({
+        kind: 'json',
+        status: 404,
+        body: {
+          success: false,
+          error: { code: 'not_found', message: 'x', details: {} },
+          meta: {},
+        },
+      })
+      .mockResolvedValueOnce({
+        kind: 'json',
+        status: 200,
+        body: {
+          success: true,
+          data: { id: 9, academic_year_id: 100, lines: [] },
+          meta: {},
+        },
+      });
+
+    const result = await resolveAgreementAmendmentEffectivePeriods({
+      studentId: 7,
+      agreementId: 9,
+      tenant: 'alwah',
+      backendBaseUrl: 'https://api-alwah.example',
+      userId: 42,
+      activeSchoolId: 4,
+    });
+
+    expect(result.success).toBe(false);
+    expect(odooApiFetchMock.mock.calls[1][1]).toMatchObject({
+      query: { active_school_id: '4' },
+    });
   });
 
   it('isolates PERIOD_CACHE by user and active school', async () => {
