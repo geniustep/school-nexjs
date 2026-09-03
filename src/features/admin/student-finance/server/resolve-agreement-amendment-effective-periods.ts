@@ -30,10 +30,15 @@ type TenantBoundFetch = {
   tenant: string;
   backendBaseUrl: string;
   host?: string | null;
+  activeSchoolId?: number | null;
 };
 
 const PERIOD_CACHE = new Map<string, AgreementAmendmentPeriodOption[]>();
 const PERIOD_CACHE_MAX = 64;
+
+function activeSchoolQuery(activeSchoolId: number | null | undefined): Record<string, string> {
+  return activeSchoolId != null ? { active_school_id: String(activeSchoolId) } : {};
+}
 
 function cacheKey(parts: {
   tenant: string;
@@ -70,6 +75,7 @@ async function fetchOdooAgreement(
       tenant: opts.tenant,
       backendBaseUrl: opts.backendBaseUrl,
       host: opts.host,
+      query: activeSchoolQuery(opts.activeSchoolId),
     },
   );
   if (result.kind !== 'json' || !result.body.success || !result.body.data) return null;
@@ -88,7 +94,7 @@ async function fetchOdooAcademicYearDates(
     tenant: opts.tenant,
     backendBaseUrl: opts.backendBaseUrl,
     host: opts.host,
-    query: { page: '1', page_size: '100' },
+    query: { page: '1', page_size: '100', ...activeSchoolQuery(opts.activeSchoolId) },
   });
   if (result.kind !== 'json' || !result.body.success) return null;
   const items =
@@ -109,7 +115,7 @@ async function tryFetchOdooEffectivePeriodsList(
     tenant: opts.tenant,
     backendBaseUrl: opts.backendBaseUrl,
     host: opts.host,
-    query: { agreement_id: String(agreementId) },
+    query: { agreement_id: String(agreementId), ...activeSchoolQuery(opts.activeSchoolId) },
   });
   if (result.kind !== 'json' || !result.body.success) return null;
   const normalized = normalizeAgreementAmendmentPeriodOptions(result.body.data);
@@ -122,13 +128,14 @@ async function probeBillingPeriodId(input: {
   periodId: number;
   line: AgreementAmendmentRequestPayload['line'];
 } & TenantBoundFetch): Promise<OdooEffectivePeriodRecord | null> {
-  const payload: AgreementAmendmentRequestPayload = {
+  const payload: AgreementAmendmentRequestPayload & { active_school_id?: number } = {
     agreement_id: input.agreementId,
     operation_type: 'modify_line',
     effective_period_id: input.periodId,
     reason: 'period discovery',
     line: input.line,
   };
+  if (input.activeSchoolId != null) payload.active_school_id = input.activeSchoolId;
   const result = await odooApiFetch<{
     effective_period?: OdooEffectivePeriodRecord;
     allowed?: boolean;
@@ -229,6 +236,7 @@ export async function resolveAgreementAmendmentEffectivePeriods(input: {
     tenant,
     backendBaseUrl,
     host: input.host,
+    activeSchoolId: input.activeSchoolId ?? null,
   };
 
   const listed = await tryFetchOdooEffectivePeriodsList(
