@@ -102,9 +102,9 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
   return <button type="button" className="classes-browser__class-card" onClick={onNavigate}>
     <span className="classes-browser__card-topline">
       <span className="classes-browser__class-identity"><strong dir="auto">{title}</strong></span>
-      {!cls.readiness ? <span className="classes-browser__readiness-unknown">{readinessLabel}: —</span> : <Badge tone={readiness.tone}>{readiness.label}</Badge>}
+      {!cls.readiness || !readiness ? <span className="classes-browser__readiness-unknown">{readinessLabel}: —</span> : <Badge tone={readiness.tone}>{readiness.label}</Badge>}
     </span>
-    {cls.readiness ? <span className="classes-browser__readiness-line"><span>{readinessLabel}</span><strong className="mono" dir="ltr">{cls.readiness.completed} / {cls.readiness.total}</strong></span> : null}
+    {cls.readiness && readiness ? <span className="classes-browser__readiness-line"><span>{readinessLabel}</span><strong className="mono" dir="ltr">{cls.readiness.completed} / {cls.readiness.total}</strong></span> : null}
     <span className="classes-browser__occupancy">
       <span className="classes-browser__occupancy-copy"><span>{occupancyLabel}</span><strong className="mono" dir="ltr">{assigned}{cls.capacity ? ` / ${cls.capacity}` : ''}</strong></span>
       {percent != null ? <><span className="classes-browser__occupancy-bar" aria-hidden><span data-over-capacity={overCapacity || undefined} style={{ width: `${Math.min(percent, 100)}%` }} /></span><span className="classes-browser__occupancy-percent" data-over-capacity={overCapacity || undefined}><bdi dir="ltr">{percent}%</bdi></span></> : <span className="classes-browser__occupancy-percent">—</span>}
