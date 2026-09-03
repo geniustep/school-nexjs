@@ -65,12 +65,10 @@ function Metric({
 
 function ServicePerformanceRows({
   facets,
-  summary,
   selectedServiceIds,
   onToggleService,
 }: {
   facets: FinanceInstallmentServiceFacet[];
-  summary: FinanceInstallmentListSummary | null;
   selectedServiceIds: number[];
   onToggleService: (serviceId: number) => void;
 }) {
@@ -87,9 +85,8 @@ function ServicePerformanceRows({
       </div>
       <div className="installments-service-performance__head" aria-hidden>
         <span>{t('admin.finance.installments.analytics.service')}</span>
-        <span>{t('admin.finance.installments.analytics.students')}</span>
+        <span>{t('admin.finance.installments.analytics.beneficiaries')}</span>
         <span>{t('admin.finance.installments.analytics.totalDue')}</span>
-        <span>{t('admin.finance.installments.analytics.averagePerStudent')}</span>
         <span>{t('admin.finance.installments.analytics.performance')}</span>
         <span>{t('admin.finance.installments.analytics.collectionRate')}</span>
       </div>
@@ -100,7 +97,7 @@ function ServicePerformanceRows({
           const paidPct = segmentPercent(performance.paidAmount, performance.totalAmount);
           const expectedPct = segmentPercent(performance.expectedAmount, performance.totalAmount);
           const overduePct = segmentPercent(performance.overdueAmount, performance.totalAmount);
-          const studentCount = facet.student_count;
+          const beneficiaries = facet.beneficiary_count;
 
           return (
             <button
@@ -121,23 +118,12 @@ function ServicePerformanceRows({
                   <small>{t('admin.finance.installments.analytics.installmentsCount', { count: facet.count })}</small>
                 </span>
               </span>
-              <span
-                className="installments-service-performance__students"
-                aria-label={studentCount == null
-                  ? t('admin.finance.installments.analytics.students')
-                  : t('admin.finance.installments.analytics.studentCount', { count: studentCount })}
-              >
+              <span className="installments-service-performance__beneficiaries">
                 <IconUsers size={15} aria-hidden />
-                <bdi dir="ltr">{studentCount ?? t('common.dash')}</bdi>
+                <bdi dir="ltr">{beneficiaries ?? t('common.dash')}</bdi>
               </span>
               <span className="installments-service-performance__total">
                 <FinanceMoney amount={performance.totalAmount} />
-              </span>
-              <span className="installments-service-performance__average">
-                <small>{t('admin.finance.installments.analytics.averagePerStudent')}</small>
-                {facet.average_amount_per_student == null
-                  ? t('common.dash')
-                  : <FinanceMoney amount={facet.average_amount_per_student} />}
               </span>
               <span className="installments-service-performance__bar-wrap">
                 <span className="installments-service-performance__amounts">
@@ -166,35 +152,6 @@ function ServicePerformanceRows({
             </button>
           );
         })}
-        {summary ? (
-          <div
-            className="installments-service-performance__total-row"
-            aria-label={t('admin.finance.installments.analytics.totalCurrentScope')}
-          >
-            <strong className="installments-service-performance__total-label">
-              {t('admin.finance.installments.analytics.totalCurrentScope')}
-            </strong>
-            <span className="installments-service-performance__students">
-              <IconUsers size={15} aria-hidden />
-              <bdi dir="ltr">{summary.student_count ?? t('common.dash')}</bdi>
-            </span>
-            <span className="installments-service-performance__total">
-              <FinanceMoney amount={summary.total_amount ?? 0} />
-            </span>
-            <span className="installments-service-performance__average">
-              <small>{t('admin.finance.installments.analytics.averagePerStudent')}</small>
-              {summary.average_amount_per_student == null
-                ? t('common.dash')
-                : <FinanceMoney amount={summary.average_amount_per_student} />}
-            </span>
-            <span className="installments-service-performance__total-note">
-              {t('admin.finance.installments.analytics.weightedAverageHint')}
-            </span>
-            <span className="installments-service-performance__rate">
-              <strong dir="ltr">{Math.round(summary.collection_rate ?? 0)}%</strong>
-            </span>
-          </div>
-        ) : null}
       </div>
     </div>
   );
@@ -513,12 +470,7 @@ export function InstallmentsAnalyticsWorkspace({
               </button>
             ) : null}
           </div>
-          <ServicePerformanceRows
-            facets={serviceFacets}
-            summary={summary}
-            selectedServiceIds={selectedServiceIds}
-            onToggleService={onToggleService}
-          />
+          <ServicePerformanceRows facets={serviceFacets} selectedServiceIds={selectedServiceIds} onToggleService={onToggleService} />
           <TimelineChart timeline={timeline} selectedServices={selectedFacets} />
         </section>
         <aside className="installments-analytics__side">

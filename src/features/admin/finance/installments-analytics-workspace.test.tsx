@@ -16,7 +16,6 @@ const facets: FinanceInstallmentServiceFacet[] = [
     service_name: 'التمدرس',
     count: 20,
     beneficiary_count: 10,
-    student_count: 12,
     total_amount: 2000,
     total_paid: 1200,
     total_remaining: 800,
@@ -24,7 +23,6 @@ const facets: FinanceInstallmentServiceFacet[] = [
     total_overdue: 300,
     average_due_per_beneficiary: 200,
     average_overdue_per_beneficiary: 30,
-    average_amount_per_student: 166.67,
     collection_rate: 60,
   },
   {
@@ -32,7 +30,6 @@ const facets: FinanceInstallmentServiceFacet[] = [
     service_name: 'النقل المدرسي',
     count: 8,
     beneficiary_count: 4,
-    student_count: 5,
     total_amount: 800,
     total_paid: 320,
     total_remaining: 480,
@@ -40,7 +37,6 @@ const facets: FinanceInstallmentServiceFacet[] = [
     total_overdue: 200,
     average_due_per_beneficiary: 200,
     average_overdue_per_beneficiary: 50,
-    average_amount_per_student: 160,
     collection_rate: 40,
   },
 ];
@@ -65,7 +61,6 @@ function renderWorkspace(overrides?: Partial<React.ComponentProps<typeof Install
     summary: {
       total_count: 28,
       beneficiary_count: 14,
-      student_count: 17,
       total_amount: 2800,
       total_paid: 1520,
       total_remaining: 1280,
@@ -73,7 +68,6 @@ function renderWorkspace(overrides?: Partial<React.ComponentProps<typeof Install
       total_overdue: 500,
       collection_rate: 54.3,
       average_due_per_beneficiary: 200,
-      average_amount_per_student: 164.71,
     },
     serviceFacets: facets,
     timeline: [],
@@ -106,22 +100,6 @@ describe('InstallmentsAnalyticsWorkspace', () => {
     await userEvent.click(screen.getByRole('button', { name: 'إضافة أو إزالة خدمة النقل المدرسي من المقارنة' }));
 
     expect(onToggleService).toHaveBeenCalledWith(2);
-  });
-
-  it('shows the authoritative per-student average in every service row and the total row', () => {
-    const { container } = renderWorkspace();
-
-    const serviceRows = container.querySelectorAll('.installments-service-performance__row');
-    expect(serviceRows).toHaveLength(2);
-    expect(serviceRows[0]?.querySelector('.installments-service-performance__students')?.textContent).toContain('12');
-    expect(serviceRows[0]?.querySelector('.installments-service-performance__average')?.textContent).toContain('166');
-    expect(serviceRows[1]?.querySelector('.installments-service-performance__students')?.textContent).toContain('5');
-    expect(serviceRows[1]?.querySelector('.installments-service-performance__average')?.textContent).toContain('160');
-
-    const totalRow = screen.getByLabelText('مجموع النطاق الحالي');
-    expect(totalRow.textContent).toContain('17');
-    expect(totalRow.querySelector('.installments-service-performance__average')?.textContent).toContain('164');
-    expect(totalRow.textContent).toContain('المتوسط العام محسوب من إجمالي المبالغ وعدد التلاميذ الفريدين.');
   });
 
   it('opens the highest-overdue service through one combined action', async () => {

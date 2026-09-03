@@ -230,10 +230,9 @@
 .installments-timeline__legend [data-tone='overdue']::before { background: var(--installments-overdue); }
 
 .installments-service-performance__head,
-.installments-service-performance__row,
-.installments-service-performance__total-row {
+.installments-service-performance__row {
   display: grid;
-  grid-template-columns: minmax(150px, 1.05fr) minmax(70px, 0.45fr) minmax(100px, 0.65fr) minmax(110px, 0.72fr) minmax(230px, 1.8fr) minmax(66px, 0.45fr);
+  grid-template-columns: minmax(150px, 1.05fr) minmax(80px, 0.55fr) minmax(110px, 0.7fr) minmax(250px, 2fr) minmax(66px, 0.45fr);
   gap: 12px;
   align-items: center;
 }
@@ -274,26 +273,8 @@
   box-shadow: inset 3px 0 0 var(--installments-primary);
 }
 
-.installments-service-performance__total-row {
-  min-height: 68px;
-  padding: 12px 16px;
-  border-block-start: 2px solid var(--c-border, #dbe3ed);
-  background: var(--c-surface-2, #f7f9fc);
-}
-
-.installments-service-performance__total-label {
-  color: var(--c-text, #10213f);
-  font-size: 0.82rem;
-}
-
-.installments-service-performance__total-note {
-  color: var(--c-text-muted, #64748b);
-  font-size: 0.68rem;
-  line-height: 1.5;
-}
-
 .installments-service-performance__service,
-.installments-service-performance__students {
+.installments-service-performance__beneficiaries {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -327,19 +308,14 @@
 }
 
 .installments-service-performance__service small,
-.installments-service-performance__students {
+.installments-service-performance__beneficiaries {
   color: var(--c-text-muted, #64748b);
   font-size: 0.68rem;
 }
 
-.installments-service-performance__total .finance-amount,
-.installments-service-performance__average .finance-amount {
+.installments-service-performance__total .finance-amount {
   color: var(--c-text, #10213f);
   font-size: 0.78rem;
-}
-
-.installments-service-performance__average small {
-  display: none;
 }
 
 .installments-service-performance__bar-wrap {
@@ -950,11 +926,7 @@
   .installments-service-performance__head { display: none; }
 
   .installments-service-performance__row {
-    grid-template-columns: minmax(140px, 1fr) minmax(70px, 0.45fr) minmax(105px, 0.65fr) minmax(0, 1.65fr) 60px;
-  }
-
-  .installments-service-performance__total-row {
-    grid-template-columns: minmax(140px, 1fr) minmax(70px, 0.45fr) minmax(105px, 0.65fr) minmax(0, 1.65fr) 60px;
+    grid-template-columns: minmax(140px, 1fr) minmax(74px, 0.55fr) minmax(0, 1.65fr) 60px;
   }
 
   .installments-service-performance__total { display: none; }
@@ -975,27 +947,13 @@
   .installments-analytics__side { display: flex; }
   .installments-attention { border-inline-start: 0; border-block-start: 1px solid var(--c-border, #e2e8f0); }
 
-  .installments-service-performance__row,
-  .installments-service-performance__total-row {
+  .installments-service-performance__row {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
   }
 
-  .installments-service-performance__students { justify-content: flex-end; }
-  .installments-service-performance__average {
-    display: flex;
-    grid-column: 1 / -1;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .installments-service-performance__average small {
-    display: inline;
-    color: var(--c-text-muted, #64748b);
-    font-size: 0.68rem;
-  }
+  .installments-service-performance__beneficiaries { justify-content: flex-end; }
   .installments-service-performance__bar-wrap { grid-column: 1 / -1; }
-  .installments-service-performance__total-note { grid-column: 1 / -1; }
   .installments-service-performance__rate { grid-column: 1 / -1; grid-template-columns: auto 1fr; align-items: center; text-align: start; }
 
   .installments-timeline__plot {

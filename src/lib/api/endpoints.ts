@@ -623,6 +623,7 @@ export const endpoints = {
     financePaymentCollectionAllocate: (collectionId: number | string) =>
       `/admin/finance/payment-collections/${collectionId}/allocate`,
     financeAgreements: '/admin/finance/agreements',
+    financeAgreementsAllSchools: '/admin/finance/agreements/all-schools',
     financeAgreementAdjustments: (id: number | string) =>
       `/admin/finance/agreements/${id}/adjustments`,
     financeAgreementAdjustment: (agreementId: number | string, adjustmentId: number | string) =>
