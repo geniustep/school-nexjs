@@ -8,7 +8,7 @@
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
-import { Card, InfoBanner } from '@/components/ui/primitives';
+import { Card, InfoBanner, PageHeader } from '@/components/ui/primitives';
 import { AdminExecutiveDashboard } from '@/features/admin/dashboard/admin-executive-dashboard';
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
@@ -25,16 +25,23 @@ import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
+import type { SchoolRef } from '@/types/api';
+type AllSchoolsDashboardItem = { school: SchoolRef; dashboard: AdminDashboard };
+
 import v2Styles from '@/features/admin/dashboard/admin-executive-dashboard-v2.module.css';
 
 export default function AdminDashboardPage() {
   const user = useSession();
-  const { activeSchoolId, schools } = useAdminSession();
+  const { activeSchoolId, schools, schoolViewMode } = useAdminSession();
+  const allSchoolsMode = schoolViewMode === 'all';
   const t = useT();
   const variant = resolveDashboardVariant(user);
   const staffWorkspace = resolveAdminStaffWorkspace(user);
   const state = useAdminResource<AdminDashboard>(
-    variant.fetchFullDashboardApi ? endpoints.admin.dashboard : null,
+    !allSchoolsMode && variant.fetchFullDashboardApi ? endpoints.admin.dashboard : null,
+  );
+  const allSchoolsState = useAdminResource<AllSchoolsDashboardItem[]>(
+    allSchoolsMode ? endpoints.admin.allSchoolsDashboard : null,
   );
 
   if (!isConfiguredAdmin(user)) {
@@ -69,6 +76,27 @@ export default function AdminDashboardPage() {
       description={t('admin.scopedDashboardDesc')}
     />
   ) : null;
+
+  if (allSchoolsMode) {
+    return (
+      <div className="admin-workspace admin-workspace--dashboard">
+        <PageHeader title="كل المدارس" subtitle="عرض موحّد للقراءة فقط؛ تبقى كل البيانات ضمن المدرسة المصرّح بها." />
+        <ResourceView state={allSchoolsState} loadingLabel={t('common.loading')}>
+          {(items) => <div className="grid grid--3">{items.map(({ school, dashboard }) => (
+            <Card key={school.id}>
+              <h2 dir="auto">{school.name}</h2>
+              <dl>
+                <div><dt>{t('nav.students')}</dt><dd className="mono">{dashboard.total_students ?? 0}</dd></div>
+                <div><dt>{t('nav.classes')}</dt><dd className="mono">{dashboard.total_classes ?? 0}</dd></div>
+                <div><dt>{t('nav.parents')}</dt><dd className="mono">{dashboard.total_parents ?? 0}</dd></div>
+                <div><dt>{t('nav.teachers')}</dt><dd className="mono">{dashboard.total_teachers ?? 0}</dd></div>
+              </dl>
+            </Card>
+          ))}</div>}
+        </ResourceView>
+      </div>
+    );
+  }
 
   if (shouldUsePedagogicalDashboard(user)) {
     return (
