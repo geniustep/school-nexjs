@@ -2338,6 +2338,171 @@
   grid-column: 1 / -1;
 }
 
+.monthly-installment-picker {
+  display: grid;
+  gap: 10px;
+  margin-block-end: 16px;
+}
+
+.monthly-installment-picker__head,
+.monthly-installment-picker__month-head,
+.monthly-installment-picker__month-toggle,
+.monthly-installment-picker__row,
+.monthly-installment-picker__row-copy,
+.monthly-installment-picker__partial {
+  display: flex;
+  align-items: center;
+}
+
+.monthly-installment-picker__head,
+.monthly-installment-picker__month-head {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.monthly-installment-picker__head h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.monthly-installment-picker__head p {
+  margin: 3px 0 0;
+}
+
+.monthly-installment-picker__count {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--c-surface-2, #f8fafc);
+  color: var(--c-text-muted, #475569);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.monthly-installment-picker__months {
+  display: grid;
+  gap: 8px;
+}
+
+.monthly-installment-picker__month {
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+  overflow: clip;
+}
+
+.monthly-installment-picker__month.is-open {
+  border-color: color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 42%, var(--c-border, #e2e8f0));
+}
+
+.monthly-installment-picker__month-head {
+  min-height: 48px;
+  padding-inline-end: 12px;
+}
+
+.monthly-installment-picker__month-toggle {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.monthly-installment-picker__month-toggle > span:last-child {
+  display: grid;
+  gap: 2px;
+  text-align: start;
+}
+
+.monthly-installment-picker__chevron {
+  display: inline-flex;
+  width: 18px;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-text-muted, #64748b);
+  font-size: 1.1rem;
+}
+
+.monthly-installment-picker__month-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  color: var(--c-text-muted, #475569);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.monthly-installment-picker__month-select input,
+.monthly-installment-picker__row > input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--raqeem-secondary, #24a6a1);
+}
+
+.monthly-installment-picker__rows {
+  display: grid;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.monthly-installment-picker__row {
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.monthly-installment-picker__row + .monthly-installment-picker__row {
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.monthly-installment-picker__row.is-selected {
+  background: color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 7%, #fff);
+}
+
+.monthly-installment-picker__row.is-disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.monthly-installment-picker__row-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 3px 7px;
+}
+
+.monthly-installment-picker__row-copy > strong {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.monthly-installment-picker__row-amount {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.monthly-installment-picker__partial {
+  gap: 5px;
+  width: min(150px, 35vw);
+}
+
+.monthly-installment-picker__partial .finance-amount-input {
+  min-width: 0;
+  width: 100%;
+  text-align: end;
+}
+
+.monthly-installment-picker__partial > span {
+  color: var(--c-text-muted, #475569);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .finance-amount-field__input {
   display: flex;
   align-items: stretch;
@@ -5245,6 +5410,26 @@
 
   .collection-dues-chip {
     min-width: 0;
+  }
+
+  .monthly-installment-picker__month-head {
+    padding-inline-end: 10px;
+  }
+
+  .monthly-installment-picker__month-select span {
+    display: none;
+  }
+
+  .monthly-installment-picker__row {
+    align-items: flex-start;
+  }
+
+  .monthly-installment-picker__row-amount {
+    align-self: center;
+  }
+
+  .monthly-installment-picker__partial {
+    width: min(120px, 34vw);
   }
 }
 
