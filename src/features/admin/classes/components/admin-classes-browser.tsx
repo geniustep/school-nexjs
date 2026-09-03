@@ -56,14 +56,13 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
   const readiness = resolveClassReadinessPresentation(cls.readiness, locale);
   const { assigned, percent, overCapacity } = occupancy(cls);
   const genders = genderSummary(cls);
-  const code = cls.recommended_display_code?.trim() || cls.academic_code?.trim() || cls.code?.trim();
   const title = classTitle(cls, locale, t('common.class'));
   const occupancyLabel = locale === 'ar' ? 'الامتلاء' : 'Occupation';
   const readinessLabel = locale === 'ar' ? 'الجاهزية' : 'Préparation';
   const maleLabel = locale === 'ar' ? 'تلاميذ' : 'Garçons';
   const femaleLabel = locale === 'ar' ? 'تلميذات' : 'Filles';
   return <button type="button" className="classes-browser__class-card" onClick={onNavigate}>
-    <span className="classes-browser__card-topline"><span className="classes-browser__class-identity"><strong dir="auto">{title}</strong>{code ? <span className="classes-browser__class-code mono" dir="ltr">{code}</span> : null}</span>{!cls.readiness ? <span className="classes-browser__readiness-unknown">{readinessLabel}: —</span> : readiness ? <Badge tone={readiness.tone}>{readiness.label}</Badge> : null}</span>
+    <span className="classes-browser__card-topline"><span className="classes-browser__class-identity"><strong dir="auto">{title}</strong></span>{!cls.readiness ? <span className="classes-browser__readiness-unknown">{readinessLabel}: —</span> : readiness ? <Badge tone={readiness.tone}>{readiness.label}</Badge> : null}</span>
     {cls.readiness ? <span className="classes-browser__readiness-line"><span>{readinessLabel}</span><strong className="mono" dir="ltr">{cls.readiness.completed} / {cls.readiness.total}</strong></span> : null}
     <span className="classes-browser__occupancy"><span className="classes-browser__occupancy-copy"><span>{occupancyLabel}</span><strong className="mono" dir="ltr">{assigned}{cls.capacity ? ` / ${cls.capacity}` : ''}</strong></span>{percent != null ? <><span className="classes-browser__occupancy-bar" aria-hidden><span data-over-capacity={overCapacity || undefined} style={{ width: `${Math.min(percent, 100)}%` }} /></span><span className="classes-browser__occupancy-percent" data-over-capacity={overCapacity || undefined}><bdi dir="ltr">{percent}%</bdi></span></> : <span className="classes-browser__occupancy-percent">—</span>}</span>
     {genders ? <span className="classes-browser__gender-summary" aria-label={locale === 'ar' ? `${genders.male} تلاميذ و${genders.female} تلميذات` : `${genders.male} garçons et ${genders.female} filles`}><span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--male"><span aria-hidden>♂</span><strong className="mono" dir="ltr">{genders.male}</strong><small>{maleLabel}</small></span><span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--female"><span aria-hidden>♀</span><strong className="mono" dir="ltr">{genders.female}</strong><small>{femaleLabel}</small></span></span> : null}
