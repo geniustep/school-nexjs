@@ -24,6 +24,7 @@ export const endpoints = {
 
   admin: {
     dashboard: '/admin/dashboard',
+    allSchoolsDashboard: '/admin/all-schools/dashboard',
     executiveDashboard: '/admin/dashboard/executive',
     schoolBranding: '/admin/school-branding',
     adminRequests: '/admin/admin-requests',
@@ -32,6 +33,7 @@ export const endpoints = {
       `/admin/admin-requests/${id}/${action}`,
 
     students: '/admin/students',
+    allSchoolsStudents: '/admin/all-schools/students',
     /** Multi-child family registration (REGISTRATION-FINANCE-3D1/3D2). */
     studentsBatchRegistration: '/admin/students/batch-registration',
     studentsOptions: '/admin/students/options',
@@ -105,6 +107,7 @@ export const endpoints = {
     studentsExport: '/admin/students/export',
 
     parents: '/admin/parents',
+    allSchoolsParents: '/admin/all-schools/parents',
     parentsOptions: '/admin/parents/options',
     parent: (id: number | string) => `/admin/parents/${id}`,
     parentUpdate: (id: number | string) => `/admin/parents/${id}/update`,
@@ -135,6 +138,7 @@ export const endpoints = {
     teachersExport: '/admin/teachers/export',
 
     classes: '/admin/classes',
+    allSchoolsClasses: '/admin/all-schools/classes',
     class: (id: number | string) => `/admin/classes/${id}`,
     classUpdate: (id: number | string) => `/admin/classes/${id}/update`,
     classArchive: (id: number | string) => `/admin/classes/${id}/archive`,
