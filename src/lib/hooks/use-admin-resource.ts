@@ -10,6 +10,13 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ListParams } from '@/types/api';
 
+function isAllSchoolsReadPath(path: string | null): boolean {
+  return path === endpoints.admin.allSchoolsDashboard ||
+    path === endpoints.admin.allSchoolsStudents ||
+    path === endpoints.admin.allSchoolsParents ||
+    path === endpoints.admin.allSchoolsClasses;
+}
+
 function isAdminApiPath(path: string | null): boolean {
   return !!path && path.startsWith('/admin/');
 }
@@ -49,7 +56,7 @@ export function useAdminResource<T>(
     activeSchoolId != null && allowedSchoolIds.includes(activeSchoolId) ? activeSchoolId : null;
 
   const mergedQuery = useMemo(() => {
-    if (!isAdminApiPath(path) || safeActiveSchoolId == null) return query;
+    if (!isAdminApiPath(path) || isAllSchoolsReadPath(path) || safeActiveSchoolId == null) return query;
     return {
       ...query,
       active_school_id: safeActiveSchoolId,
@@ -60,7 +67,7 @@ export function useAdminResource<T>(
   }, [path, query, safeActiveSchoolId, activeAcademicYearId]);
 
   const pendingActiveSchool =
-    !!path && isAdminApiPath(path) && requiresActiveSchool && safeActiveSchoolId == null;
+    !!path && isAdminApiPath(path) && !isAllSchoolsReadPath(path) && requiresActiveSchool && safeActiveSchoolId == null;
 
   // Strict global-year consumers must not issue an unscoped request while the
   // remembered/header year is still resolving. This prevents a historical
