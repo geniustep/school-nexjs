@@ -25,9 +25,10 @@ import { useStudentsListView } from '@/features/admin/students/hooks/use-student
 import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
 import { StudentsFinancialServiceCountCards } from '@/features/admin/students/components/students-financial-service-count-cards';
+import { StudentsFilteredRosterExport } from '@/features/admin/students/components/students-filtered-roster-export';
 import { isStaleStudentsListServiceSelection } from '@/features/admin/students/utils/students-list-service-visibility';
 import { useSession } from '@/features/auth/session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasStudentImportCapability } from '@/features/admin/students/import/student-import-capability';
 import { canCreateStudents } from '@/lib/permissions/academic-capabilities';
@@ -51,6 +52,7 @@ function StudentAvatar({ name }: { name: string }) {
 export default function AdminStudentsPage() {
   const router = useRouter();
   const t = useT();
+  const { locale } = useLocale();
   const user = useSession();
   const canAddStudent = canCreateStudents(user);
   const canImportStudents = hasStudentImportCapability(user);
@@ -80,6 +82,22 @@ export default function AdminStudentsPage() {
     const byId = new Map(feeTypes.map((ft) => [ft.id, ft]));
     return serviceCounts.items.map((item) => byId.get(item.service_id)).filter((ft): ft is FeeType => ft != null);
   }, [feeTypes, serviceCounts.initialLoading, serviceCounts.items]);
+
+  const rosterFilterDescription = useMemo(() => {
+    const parts: string[] = [];
+    const ar = locale === 'ar';
+    if (search.trim()) parts.push(`${ar ? 'بحث' : 'Search'}: ${search.trim()}`);
+    if (cycleCode) parts.push(`${ar ? 'السلك' : 'Cycle'}: ${cycleCode}`);
+    const selectedLevel = (levelsState.data ?? []).find((level) => String(level.id) === levelId);
+    if (selectedLevel) parts.push(`${ar ? 'المستوى' : 'Level'}: ${selectedLevel.name}`);
+    const selectedClass = (classesState.data ?? []).find((cls) => String(cls.id) === classId);
+    if (selectedClass) parts.push(`${ar ? 'القسم' : 'Class'}: ${selectedClass.name}`);
+    const selectedService = feeTypes.find((service) => String(service.id) === serviceId);
+    if (selectedService) parts.push(`${ar ? (servicePresence === 'not_has' ? 'بدون خدمة' : 'خدمة') : 'Service'}: ${selectedService.name}`);
+    if (statusFilter) parts.push(statusLabel(t, statusFilter));
+    if (accountFilter) parts.push(accountFilter === 'has_account' ? (ar ? 'له حساب' : 'Has account') : accountFilter === 'no_account' ? (ar ? 'دون حساب' : 'No account') : (ar ? 'حساب غير نشط' : 'Inactive account'));
+    return parts.join(' · ') || (locale === 'ar' ? 'الكل' : locale === 'fr' ? 'Tous les élèves' : 'All students');
+  }, [search, cycleCode, levelId, classId, serviceId, servicePresence, statusFilter, accountFilter, levelsState.data, classesState.data, feeTypes, t, locale]);
 
   useEffect(() => {
     if (!serviceId) return;
@@ -139,7 +157,8 @@ export default function AdminStudentsPage() {
                 showImport
                 importOpen={importOpen}
                 onToggleImport={() => setImportOpen((v) => !v)}
-                extra={canImportStudents || canAddStudent ? <>
+                extra={canExportStudents || canImportStudents || canAddStudent ? <>
+                  {canExportStudents ? <StudentsFilteredRosterExport filters={appliedQuery} levels={levelsState.data ?? []} filterDescription={rosterFilterDescription} /> : null}
                   {canAddStudent ? <Link href="/admin/students/family/new" className="btn btn--ghost btn--sm">{t('admin.student360.familyRegistration.entryFromList')}</Link> : null}
                   {canImportStudents ? <Link href="/admin/students/import" className="btn btn--ghost btn--sm">{t('admin.studentImport.openImport')}</Link> : null}
                 </> : null}
