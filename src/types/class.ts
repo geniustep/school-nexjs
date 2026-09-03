@@ -100,6 +100,14 @@ export interface ClassRemovalResponse {
   reason?: string;
 }
 
+/** Canonical class-list gender composition supplied by Odoo. */
+export interface ClassGenderSummary {
+  male: number;
+  female: number;
+  unspecified: number;
+  total: number;
+}
+
 export interface SchoolClass {
   id: number;
   name: string;
@@ -127,6 +135,8 @@ export interface SchoolClass {
   student_count: number;
   /** Canonical active annual-enrollment occupancy returned by the class list contract. */
   assigned_count?: number | null;
+  /** Optional student-gender split when supplied by the class list contract. */
+  gender_summary?: ClassGenderSummary | null;
   capacity: number | null;
   teachers: Ref[];
   subjects: Subject[];
