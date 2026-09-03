@@ -57,10 +57,14 @@ function countStudents(classes: SchoolClass[]) {
 
 function genderSummary(cls: SchoolClass) {
   const summary = cls.gender_summary;
-  if (!summary || !Number.isFinite(summary.male_count) || !Number.isFinite(summary.female_count)) return null;
-  const total = summary.male_count + summary.female_count;
-  if (total <= 0) return null;
-  return { male: summary.male_count, female: summary.female_count, total };
+  if (!summary) return null;
+
+  const male = Number.isFinite(summary.male) ? summary.male : 0;
+  const female = Number.isFinite(summary.female) ? summary.female : 0;
+  const unspecified = Number.isFinite(summary.unspecified) ? summary.unspecified : 0;
+  const total = male + female + unspecified;
+
+  return total > 0 ? { male, female, unspecified, total } : null;
 }
 
 function buildTrackGroups(classes: SchoolClass[], levels: Level[]): TrackGroup[] {
@@ -105,6 +109,14 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
   const occupancyLabel = isArabic ? 'التلاميذ / السعة' : 'Élèves / capacité';
   const maleLabel = isArabic ? 'تلميذ' : 'Garçons';
   const femaleLabel = isArabic ? 'تلميذة' : 'Filles';
+  const unspecifiedLabel = isArabic ? 'غير محدد' : 'Non précisé';
+  const genderAriaLabel = genders
+    ? [
+      `${genders.male} ${maleLabel}`,
+      `${genders.female} ${femaleLabel}`,
+      ...(genders.unspecified ? [`${genders.unspecified} ${unspecifiedLabel}`] : []),
+    ].join(isArabic ? '، ' : ', ')
+    : '';
 
   return <button type="button" className="classes-browser__class-card" onClick={onNavigate}>
     <span className="classes-browser__card-topline">
@@ -123,14 +135,16 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
       </span>
     </span>
 
-    {genders ? <span className="classes-browser__gender-summary" aria-label={isArabic ? `${genders.male} تلاميذ و${genders.female} تلميذات` : `${genders.male} garçons et ${genders.female} filles`}>
+    {genders ? <span className="classes-browser__gender-summary" aria-label={genderAriaLabel}>
       <span className="classes-browser__gender-summary-copy">
         <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--male"><span aria-hidden>♂</span><strong className="mono" dir="ltr">{genders.male}</strong><small>{maleLabel}</small></span>
         <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--female"><span aria-hidden>♀</span><strong className="mono" dir="ltr">{genders.female}</strong><small>{femaleLabel}</small></span>
+        {genders.unspecified ? <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--unspecified"><span aria-hidden>•</span><strong className="mono" dir="ltr">{genders.unspecified}</strong><small>{unspecifiedLabel}</small></span> : null}
       </span>
       <span className="classes-browser__gender-distribution-bar" aria-hidden>
         <span className="classes-browser__gender-distribution-segment classes-browser__gender-distribution-segment--male" style={{ width: `${(genders.male / genders.total) * 100}%` }} />
         <span className="classes-browser__gender-distribution-segment classes-browser__gender-distribution-segment--female" style={{ width: `${(genders.female / genders.total) * 100}%` }} />
+        {genders.unspecified ? <span className="classes-browser__gender-distribution-segment classes-browser__gender-distribution-segment--unspecified" style={{ width: `${(genders.unspecified / genders.total) * 100}%` }} /> : null}
       </span>
     </span> : null}
 
