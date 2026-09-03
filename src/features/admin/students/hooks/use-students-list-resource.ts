@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { buildGlobalAcademicYearQuery } from '@/features/academic-context/utils/global-academic-year-query';
 import type { ResourceState } from '@/lib/hooks/use-resource';
 import { useAdminSession } from '@/features/auth/admin-session-context';
