@@ -72,7 +72,7 @@ export default function AdminClassesPage() {
   const allSchoolsColumns: Column<SchoolClass>[] = useMemo(() => [
     { key: 'school', header: t('admin.activeSchool'), render: (cls) => <span dir="auto">{cls.school?.name ?? '—'}</span> },
     { key: 'class', header: t('common.class'), render: (cls) => <strong dir="auto">{cls.display_name ?? cls.name}</strong> },
-    { key: 'level', header: t('nav.levels'), render: (cls) => <span dir="auto">{cls.level?.name ?? '—'}</span> },
+    { key: 'level', header: 'المستوى', render: (cls) => <span dir="auto">{cls.level?.name ?? '—'}</span> },
     { key: 'students', header: t('nav.students'), render: (cls) => <span className="mono">{cls.assigned_count ?? cls.student_count}</span> },
   ], [t]);
 
