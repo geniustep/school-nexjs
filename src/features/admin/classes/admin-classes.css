@@ -39,3 +39,20 @@
 .classes-browser__card-footnote{min-height:20px;margin-top:auto;padding-top:9px;border-block-start:1px solid var(--c-border)}
 .classes-browser__open-hint{margin-inline-start:auto;color:var(--c-primary);font-size:1.35rem;font-weight:800;line-height:.8}
 @media(max-width:540px){.classes-browser__class-card{min-height:0}.classes-browser__card-metrics{grid-template-columns:1fr;gap:10px}.classes-browser__readiness-metric{padding:0;border:0}.classes-browser__occupancy{padding-top:10px;border-block-start:1px solid var(--c-border)}}
+
+
+/* Student gender composition: counts remain explicit; the bar communicates proportion only. */
+.classes-browser__gender-summary{display:block;padding-top:2px}
+.classes-browser__gender-summary-copy{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-block-end:7px}
+.classes-browser__gender-summary-item{display:inline-flex;align-items:baseline;gap:4px;min-height:0;padding:0;border:0;background:transparent;font-size:.76rem}
+.classes-browser__gender-summary-item>span{font-size:1rem}
+.classes-browser__gender-summary-item strong{font-size:.9rem}
+.classes-browser__gender-summary-item small{font-size:.72rem}
+.classes-browser__gender-summary-item--male,.classes-browser__gender-summary-item--male>span,.classes-browser__gender-summary-item--male strong{color:#2563eb}
+.classes-browser__gender-summary-item--female,.classes-browser__gender-summary-item--female>span,.classes-browser__gender-summary-item--female strong{color:#c0268d}
+.classes-browser__gender-summary-item small{color:var(--c-text-muted)}
+.classes-browser__gender-distribution-bar{display:flex;overflow:hidden;height:9px;border-radius:999px;background:var(--c-surface-2);box-shadow:inset 0 0 0 1px rgb(15 23 42 / .04)}
+.classes-browser__gender-distribution-segment{display:block;height:100%;min-width:0;transition:width .2s ease}
+.classes-browser__gender-distribution-segment--male{background:#60a5fa}
+.classes-browser__gender-distribution-segment--female{background:#f472b6}
+@media(max-width:540px){.classes-browser__gender-summary-copy{gap:8px}.classes-browser__gender-summary-item{font-size:.72rem}.classes-browser__gender-summary-item strong{font-size:.84rem}}

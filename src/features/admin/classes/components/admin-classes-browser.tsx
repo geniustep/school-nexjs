@@ -58,7 +58,9 @@ function countStudents(classes: SchoolClass[]) {
 function genderSummary(cls: SchoolClass) {
   const summary = cls.gender_summary;
   if (!summary || !Number.isFinite(summary.male_count) || !Number.isFinite(summary.female_count)) return null;
-  return { male: summary.male_count, female: summary.female_count };
+  const total = summary.male_count + summary.female_count;
+  if (total <= 0) return null;
+  return { male: summary.male_count, female: summary.female_count, total };
 }
 
 function buildTrackGroups(classes: SchoolClass[], levels: Level[]): TrackGroup[] {
@@ -122,8 +124,14 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
     </span>
 
     {genders ? <span className="classes-browser__gender-summary" aria-label={isArabic ? `${genders.male} تلاميذ و${genders.female} تلميذات` : `${genders.male} garçons et ${genders.female} filles`}>
-      <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--male"><span aria-hidden>♂</span><strong className="mono" dir="ltr">{genders.male}</strong><small>{maleLabel}</small></span>
-      <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--female"><span aria-hidden>♀</span><strong className="mono" dir="ltr">{genders.female}</strong><small>{femaleLabel}</small></span>
+      <span className="classes-browser__gender-summary-copy">
+        <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--male"><span aria-hidden>♂</span><strong className="mono" dir="ltr">{genders.male}</strong><small>{maleLabel}</small></span>
+        <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--female"><span aria-hidden>♀</span><strong className="mono" dir="ltr">{genders.female}</strong><small>{femaleLabel}</small></span>
+      </span>
+      <span className="classes-browser__gender-distribution-bar" aria-hidden>
+        <span className="classes-browser__gender-distribution-segment classes-browser__gender-distribution-segment--male" style={{ width: `${(genders.male / genders.total) * 100}%` }} />
+        <span className="classes-browser__gender-distribution-segment classes-browser__gender-distribution-segment--female" style={{ width: `${(genders.female / genders.total) * 100}%` }} />
+      </span>
     </span> : null}
 
     <span className="classes-browser__card-footnote">{cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}{cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}<span className="classes-browser__open-hint" aria-hidden>‹</span></span>
