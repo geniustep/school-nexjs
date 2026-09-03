@@ -20,6 +20,7 @@ import { normalizeParentListItems } from '@/features/admin/parents/utils/normali
 import { resolveParentsListEmptyVariant } from '@/features/admin/parents/utils/parents-list-empty';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useT } from '@/features/i18n/locale-context';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ListParams } from '@/types/api';
 import type { Parent } from '@/types/parent';
@@ -29,6 +30,8 @@ const PARENTS_PAGE_SIZE = 50;
 
 export default function AdminParentsPage() {
   const t = useT();
+  const { schoolViewMode } = useAdminSession();
+  const allSchoolsMode = schoolViewMode === 'all';
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
@@ -45,7 +48,10 @@ export default function AdminParentsPage() {
   useEffect(() => { setPage(1); }, [debouncedSearch, statusFilter, accountFilter, childrenFilter, relationshipFilter, languageFilter, hideWithoutChildren]);
 
   const params: ListParams = { page, page_size: PARENTS_PAGE_SIZE, search: debouncedSearch.trim() || undefined, ...accountQuery };
-  const state = useAdminResource<Parent[]>(endpoints.admin.parents, params);
+  const state = useAdminResource<Parent[]>(
+    allSchoolsMode ? endpoints.admin.allSchoolsParents : endpoints.admin.parents,
+    allSchoolsMode ? { page, page_size: PARENTS_PAGE_SIZE, search: debouncedSearch.trim() || undefined } : params,
+  );
   const pg = state.meta?.pagination;
   const hasActiveFilters = Boolean(accountFilter || hasActiveParentFamilyFilters(filterState, debouncedSearch));
 
@@ -67,7 +73,7 @@ export default function AdminParentsPage() {
       title={t('nav.parents')}
       subtitle={pg ? t('admin.parentsList.subtitleWithCount', { total: pg.total }) : t('admin.parentsListDesc')}
       actions={
-        <AdminListActions
+        !allSchoolsMode ? <AdminListActions
           addHref="/admin/parents/new"
           addCapability="guardians.create"
           managePermission="manage_parents"
@@ -81,11 +87,11 @@ export default function AdminParentsPage() {
               {t('admin.parentActivation.title')}
             </Link>
           }
-        />
+        /> : null
       }
     />
     {importOpen ? <CsvImportPanel importPath={endpoints.admin.parentsImport} onDone={() => state.reload()} /> : null}
-    <ParentsListFilters search={search} statusFilter={statusFilter} accountFilter={accountFilter} childrenFilter={childrenFilter} relationshipFilter={relationshipFilter} languageFilter={languageFilter} hideWithoutChildren={hideWithoutChildren} hasActiveFilters={hasActiveFilters} onSearchChange={setSearch} onSearchClear={clearSearch} onStatusFilterChange={setStatusFilter} onAccountFilterChange={setAccountFilter} onChildrenFilterChange={setChildrenFilter} onRelationshipFilterChange={setRelationshipFilter} onLanguageFilterChange={setLanguageFilter} onHideWithoutChildrenChange={setHideWithoutChildren} onReset={resetFilters} />
+    {!allSchoolsMode ? <ParentsListFilters search={search} statusFilter={statusFilter} accountFilter={accountFilter} childrenFilter={childrenFilter} relationshipFilter={relationshipFilter} languageFilter={languageFilter} hideWithoutChildren={hideWithoutChildren} hasActiveFilters={hasActiveFilters} onSearchChange={setSearch} onSearchClear={clearSearch} onStatusFilterChange={setStatusFilter} onAccountFilterChange={setAccountFilter} onChildrenFilterChange={setChildrenFilter} onRelationshipFilterChange={setRelationshipFilter} onLanguageFilterChange={setLanguageFilter} onHideWithoutChildrenChange={setHideWithoutChildren} onReset={resetFilters} /> : <p className="muted">عرض للقراءة فقط عبر المدارس المصرّح بها.</p>}
     {state.fetching ? <p className="parents-list__fetching-hint" aria-live="polite">{t('admin.parentsList.refetching')}</p> : null}
     <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={() => !state.loading && families.length === 0} empty={listEmptyState}>
       {() => <><ParentsFamilyList families={families} />{pg ? <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} pageSize={PARENTS_PAGE_SIZE} onPage={setPage} /> : null}</>}
