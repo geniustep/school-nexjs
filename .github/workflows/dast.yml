@@ -3,6 +3,8 @@ name: DAST
 on:
   push:
     branches: [dev]
+  pull_request:
+    branches: [dev]
   schedule:
     - cron: "41 3 * * 2"
   workflow_dispatch:
