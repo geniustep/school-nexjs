@@ -26,21 +26,17 @@ type TrackGroup = {
   studentCount: number;
 };
 
-function classTitle(cls: SchoolClass, locale: string, fallback: string): string {
+function classTitle(cls: SchoolClass, fallback: string): string {
   const code = cls.code?.trim() || '';
   const alias = cls.display_alias?.trim();
   if (alias && alias !== code) return alias;
   const displayName = cls.display_name?.trim();
   if (displayName && displayName !== code && displayName !== cls.level?.name?.trim()) return displayName;
   const section = cls.section_name?.trim();
-  if (section) return locale === 'ar' && !section.startsWith('القسم') ? `القسم ${section}` : section;
+  if (section) return section.replace(/^القسم\s+/, '');
 
   const name = cls.name?.trim();
-  if (name) {
-    const looksLikeCode = /^[A-Za-z0-9_-]+$/.test(name);
-    if (looksLikeCode) return locale === 'ar' ? `القسم ${name}` : `Classe ${name}`;
-    return name;
-  }
+  if (name) return name;
 
   return fallback;
 }
@@ -101,7 +97,7 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
   const readiness = resolveClassReadinessPresentation(cls.readiness, locale);
   const { assigned, percent, overCapacity } = occupancy(cls);
   const genders = genderSummary(cls);
-  const title = classTitle(cls, locale, t('common.class'));
+  const title = classTitle(cls, t('common.class'));
   const isArabic = locale === 'ar';
   const readinessLabel = isArabic ? 'جاهزية القسم' : 'Préparation de la classe';
   const occupancyLabel = isArabic ? 'التلاميذ / السعة' : 'Élèves / capacité';
@@ -130,7 +126,7 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
       <span className="classes-browser__gender-summary-item classes-browser__gender-summary-item--female"><span aria-hidden>♀</span><strong className="mono" dir="ltr">{genders.female}</strong><small>{femaleLabel}</small></span>
     </span> : null}
 
-    {cls.track?.name || !['active', ''].includes(cls.status) ? <span className="classes-browser__card-footnote">{cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}{cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}<span className="classes-browser__open-hint" aria-hidden>‹</span></span> : null}
+    <span className="classes-browser__card-footnote">{cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}{cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}<span className="classes-browser__open-hint" aria-hidden>‹</span></span>
   </button>;
 }
 
