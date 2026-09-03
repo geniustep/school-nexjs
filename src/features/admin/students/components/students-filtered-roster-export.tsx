@@ -19,24 +19,24 @@ import {
 } from '../utils/students-list-cycle-filter';
 import type { StudentsListFilterValues } from '../utils/students-list-url';
 
-type ColumnKey = 'number' | 'name' | 'schoolNumber' | 'massar' | 'level' | 'class' | 'gender' | 'birth' | 'notes';
+type ColumnKey = 'number' | 'name' | 'schoolNumber' | 'massar' | 'level' | 'class' | 'gender' | 'birth' | 'phone' | 'address' | 'notes';
 
 type Labels = {
   title: string; filter: string; columns: string; resetColumns: string; number: string; name: string;
-  schoolNumber: string; massar: string; level: string; className: string; gender: string; birth: string;
+  schoolNumber: string; massar: string; level: string; className: string; gender: string; birth: string; phone: string; address: string;
   notes: string; male: string; female: string; pdf: string; excel: string; close: string; loading: string;
-  empty: string; failed: string; popup: string; count: string;
+  empty: string; failed: string; popup: string; count: string; addColumn: string; noColumnsFound: string; moveBefore: string; moveAfter: string; remove: string;
 };
 
 const labelsByLocale: Record<'ar' | 'fr' | 'en' | 'es', Labels> = {
-  ar: { title: 'لائحة التلاميذ', filter: 'الفلاتر المعتمدة', columns: 'الأعمدة المطلوبة', resetColumns: 'إعادة الضبط', number: '#', name: 'اسم التلميذ', schoolNumber: 'رقم التلميذ', massar: 'رقم مسار', level: 'المستوى', className: 'القسم', gender: 'الجنس', birth: 'تاريخ الازدياد', notes: 'ملاحظات', male: 'ذكر', female: 'أنثى', pdf: 'PDF / طباعة', excel: 'Excel', close: 'إغلاق', loading: 'جارٍ تجهيز اللائحة…', empty: 'لا يوجد تلاميذ مطابقون للفلاتر الحالية.', failed: 'تعذر تجهيز اللائحة. أعد المحاولة.', popup: 'اسمح بالنوافذ المنبثقة ثم أعد المحاولة.', count: 'عدد التلاميذ' },
-  fr: { title: 'Liste des élèves', filter: 'Filtres appliqués', columns: 'Colonnes souhaitées', resetColumns: 'Réinitialiser', number: '#', name: 'Nom de l’élève', schoolNumber: 'N° élève', massar: 'Code Massar', level: 'Niveau', className: 'Classe', gender: 'Sexe', birth: 'Date de naissance', notes: 'Observations', male: 'Garçon', female: 'Fille', pdf: 'PDF / Imprimer', excel: 'Excel', close: 'Fermer', loading: 'Préparation de la liste…', empty: 'Aucun élève ne correspond aux filtres actuels.', failed: 'Impossible de préparer la liste. Réessayez.', popup: 'Autorisez les fenêtres pop-up puis réessayez.', count: "Nombre d’élèves" },
-  en: { title: 'Student roster', filter: 'Applied filters', columns: 'Columns to include', resetColumns: 'Reset', number: '#', name: 'Student name', schoolNumber: 'Student number', massar: 'Massar code', level: 'Level', className: 'Class', gender: 'Gender', birth: 'Date of birth', notes: 'Notes', male: 'Male', female: 'Female', pdf: 'PDF / Print', excel: 'Excel', close: 'Close', loading: 'Preparing roster…', empty: 'No students match the current filters.', failed: 'Could not prepare the roster. Please try again.', popup: 'Allow pop-ups and try again.', count: 'Students' },
-  es: { title: 'Lista de alumnos', filter: 'Filtros aplicados', columns: 'Columnas necesarias', resetColumns: 'Restablecer', number: '#', name: 'Nombre del alumno', schoolNumber: 'N.º de alumno', massar: 'Código Massar', level: 'Nivel', className: 'Clase', gender: 'Sexo', birth: 'Fecha de nacimiento', notes: 'Observaciones', male: 'Masculino', female: 'Femenino', pdf: 'PDF / Imprimir', excel: 'Excel', close: 'Cerrar', loading: 'Preparando la lista…', empty: 'Ningún alumno coincide con los filtros actuales.', failed: 'No se pudo preparar la lista. Inténtalo de nuevo.', popup: 'Permite las ventanas emergentes e inténtalo de nuevo.', count: 'Alumnos' },
+  ar: { title: 'لائحة التلاميذ', filter: 'الفلاتر المعتمدة', columns: 'الأعمدة المطلوبة', resetColumns: 'إعادة الضبط', number: '#', name: 'اسم التلميذ', schoolNumber: 'رقم التلميذ', massar: 'رقم مسار', level: 'المستوى', className: 'القسم', gender: 'الجنس', birth: 'تاريخ الازدياد', phone: 'الهاتف', address: 'العنوان', notes: 'ملاحظات', male: 'ذكر', female: 'أنثى', pdf: 'PDF / طباعة', excel: 'Excel', close: 'إغلاق', loading: 'جارٍ تجهيز اللائحة…', empty: 'لا يوجد تلاميذ مطابقون للفلاتر الحالية.', failed: 'تعذر تجهيز اللائحة. أعد المحاولة.', popup: 'اسمح بالنوافذ المنبثقة ثم أعد المحاولة.', count: 'عدد التلاميذ', addColumn: 'أضف عمودًا…', noColumnsFound: 'لا توجد أعمدة مطابقة.', moveBefore: 'حرّك قبل', moveAfter: 'حرّك بعد', remove: 'حذف' },
+  fr: { title: 'Liste des élèves', filter: 'Filtres appliqués', columns: 'Colonnes souhaitées', resetColumns: 'Réinitialiser', number: '#', name: 'Nom de l’élève', schoolNumber: 'N° élève', massar: 'Code Massar', level: 'Niveau', className: 'Classe', gender: 'Sexe', birth: 'Date de naissance', phone: 'Téléphone', address: 'Adresse', notes: 'Observations', male: 'Garçon', female: 'Fille', pdf: 'PDF / Imprimer', excel: 'Excel', close: 'Fermer', loading: 'Préparation de la liste…', empty: 'Aucun élève ne correspond aux filtres actuels.', failed: 'Impossible de préparer la liste. Réessayez.', popup: 'Autorisez les fenêtres pop-up puis réessayez.', count: "Nombre d’élèves", addColumn: 'Ajouter une colonne…', noColumnsFound: 'Aucune colonne correspondante.', moveBefore: 'Déplacer avant', moveAfter: 'Déplacer après', remove: 'Supprimer' },
+  en: { title: 'Student roster', filter: 'Applied filters', columns: 'Columns to include', resetColumns: 'Reset', number: '#', name: 'Student name', schoolNumber: 'Student number', massar: 'Massar code', level: 'Level', className: 'Class', gender: 'Gender', birth: 'Date of birth', phone: 'Phone', address: 'Address', notes: 'Notes', male: 'Male', female: 'Female', pdf: 'PDF / Print', excel: 'Excel', close: 'Close', loading: 'Preparing roster…', empty: 'No students match the current filters.', failed: 'Could not prepare the roster. Please try again.', popup: 'Allow pop-ups and try again.', count: 'Students', addColumn: 'Add a column…', noColumnsFound: 'No matching columns.', moveBefore: 'Move earlier', moveAfter: 'Move later', remove: 'Remove' },
+  es: { title: 'Lista de alumnos', filter: 'Filtros aplicados', columns: 'Columnas necesarias', resetColumns: 'Restablecer', number: '#', name: 'Nombre del alumno', schoolNumber: 'N.º de alumno', massar: 'Código Massar', level: 'Nivel', className: 'Clase', gender: 'Sexo', birth: 'Fecha de nacimiento', phone: 'Teléfono', address: 'Dirección', notes: 'Observaciones', male: 'Masculino', female: 'Femenino', pdf: 'PDF / Imprimir', excel: 'Excel', close: 'Cerrar', loading: 'Preparando la lista…', empty: 'Ningún alumno coincide con los filtros actuales.', failed: 'No se pudo preparar la lista. Inténtalo de nuevo.', popup: 'Permite las ventanas emergentes e inténtalo de nuevo.', count: 'Alumnos', addColumn: 'Añadir una columna…', noColumnsFound: 'No hay columnas coincidentes.', moveBefore: 'Mover antes', moveAfter: 'Mover después', remove: 'Eliminar' },
 };
 
 const DEFAULT_COLUMNS: ColumnKey[] = ['number', 'name', 'massar', 'birth', 'notes'];
-const COLUMN_ORDER: ColumnKey[] = ['number', 'name', 'schoolNumber', 'massar', 'level', 'class', 'gender', 'birth', 'notes'];
+const COLUMN_ORDER: ColumnKey[] = ['number', 'name', 'schoolNumber', 'massar', 'level', 'class', 'gender', 'birth', 'phone', 'address', 'notes'];
 
 function esc(value: string) {
   return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char] ?? char));
@@ -51,6 +51,10 @@ function filename(value: string) {
   return value.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '-').trim() || 'students';
 }
 
+function columnLabel(labels: Labels, key: ColumnKey) {
+  return labels[key === 'class' ? 'className' : key];
+}
+
 function getColumnValue(student: Student, key: ColumnKey, index: number, labels: Labels) {
   switch (key) {
     case 'number': return String(index + 1);
@@ -61,12 +65,14 @@ function getColumnValue(student: Student, key: ColumnKey, index: number, labels:
     case 'class': return student.class?.name ?? '';
     case 'gender': return student.gender === 'male' ? labels.male : student.gender === 'female' ? labels.female : '';
     case 'birth': return birth(student.date_of_birth);
+    case 'phone': return student.phone ?? '';
+    case 'address': return student.residence_address ?? '';
     case 'notes': return '';
   }
 }
 
 function isLtrColumn(key: ColumnKey) {
-  return key === 'number' || key === 'schoolNumber' || key === 'massar' || key === 'birth';
+  return key === 'number' || key === 'schoolNumber' || key === 'massar' || key === 'birth' || key === 'phone';
 }
 
 export function StudentsFilteredRosterExport({ filters, levels, filterDescription }: {
@@ -81,13 +87,19 @@ export function StudentsFilteredRosterExport({ filters, levels, filterDescriptio
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [rows, setRows] = useState<Student[]>([]);
   const [selectedColumns, setSelectedColumns] = useState<ColumnKey[]>(DEFAULT_COLUMNS);
+  const [columnSearch, setColumnSearch] = useState('');
+  const [draggedColumn, setDraggedColumn] = useState<ColumnKey | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sorted = useMemo(
     () => [...rows].sort((a, b) => getStudentDisplayName(a).localeCompare(getStudentDisplayName(b), locale === 'ar' ? 'ar' : 'fr')),
     [rows, locale],
   );
-  const columns = useMemo(() => COLUMN_ORDER.filter((key) => selectedColumns.includes(key)), [selectedColumns]);
+  const columns = selectedColumns;
+  const availableColumns = useMemo(() => {
+    const search = columnSearch.trim().toLocaleLowerCase(locale);
+    return COLUMN_ORDER.filter((key) => !selectedColumns.includes(key) && (!search || columnLabel(labels, key).toLocaleLowerCase(locale).includes(search)));
+  }, [columnSearch, labels, locale, selectedColumns]);
 
   async function loadAll(levelId?: number) {
     const query = buildStudentsListQueryParams({ ...filters, levelId: levelId ? String(levelId) : filters.levelId, page: 1 });
@@ -131,12 +143,24 @@ export function StudentsFilteredRosterExport({ filters, levels, filterDescriptio
     dialogRef.current?.close();
   }
 
-  function toggleColumn(key: ColumnKey) {
+  function addColumn(key: ColumnKey) {
+    setSelectedColumns((current) => current.includes(key) ? current : [...current, key]);
+    setColumnSearch('');
+  }
+
+  function removeColumn(key: ColumnKey) {
+    if (key === 'name') return;
+    setSelectedColumns((current) => current.filter((item) => item !== key));
+  }
+
+  function moveColumn(key: ColumnKey, targetIndex: number) {
     setSelectedColumns((current) => {
-      if (key === 'name') return current;
-      return current.includes(key)
-        ? current.filter((item) => item !== key)
-        : COLUMN_ORDER.filter((item) => item === key || current.includes(item));
+      const sourceIndex = current.indexOf(key);
+      if (sourceIndex < 0 || sourceIndex === targetIndex) return current;
+      const next = [...current];
+      next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, key);
+      return next;
     });
   }
 
@@ -147,7 +171,7 @@ export function StudentsFilteredRosterExport({ filters, levels, filterDescriptio
       return;
     }
 
-    const headers = columns.map((key) => `<th>${esc(labels[key === 'class' ? 'className' : key])}</th>`).join('');
+    const headers = columns.map((key) => `<th>${esc(columnLabel(labels, key))}</th>`).join('');
     const table = sorted.map((student, index) => `<tr>${columns.map((key) => {
       const direction = isLtrColumn(key) ? ' dir="ltr"' : '';
       return `<td${direction}>${esc(getColumnValue(student, key, index, labels))}</td>`;
@@ -176,7 +200,7 @@ export function StudentsFilteredRosterExport({ filters, levels, filterDescriptio
       sheet.mergeCells(`A3:${endColumn}3`);
       sheet.getCell('A3').value = `${labels.count}: ${sorted.length}`;
       const header = sheet.getRow(4);
-      header.values = columns.map((key) => labels[key === 'class' ? 'className' : key]);
+      header.values = columns.map((key) => columnLabel(labels, key));
       header.font = { bold: true };
       header.alignment = { horizontal: 'center', vertical: 'middle' };
       sorted.forEach((student, index) => sheet.addRow(columns.map((key) => getColumnValue(student, key, index, labels))));
@@ -204,11 +228,38 @@ export function StudentsFilteredRosterExport({ filters, levels, filterDescriptio
         <span className="muted tiny">{labels.filter}: {filterDescription}</span>
         <fieldset className="field" style={{ margin: 0 }}>
           <legend>{labels.columns}</legend>
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8 }}>
-            {COLUMN_ORDER.map((key) => <label key={key} className="row" style={{ gap: 6, alignItems: 'center' }}>
-              <input type="checkbox" checked={selectedColumns.includes(key)} disabled={key === 'name'} onChange={() => toggleColumn(key)} />
-              {labels[key === 'class' ? 'className' : key]}
-            </label>)}
+          <div className="card" style={{ padding: 10, boxShadow: 'none' }}>
+            <div className="row" style={{ flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+              {columns.map((key, index) => <span
+                key={key}
+                draggable
+                onDragStart={() => setDraggedColumn(key)}
+                onDragEnd={() => setDraggedColumn(null)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => {
+                  if (draggedColumn) moveColumn(draggedColumn, index);
+                  setDraggedColumn(null);
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 6px', border: '1px solid var(--c-border)', borderRadius: 999, background: 'var(--c-surface-2)', cursor: 'grab' }}
+              >
+                <span aria-hidden="true">⠿</span>
+                {columnLabel(labels, key)}
+                <button type="button" className="btn btn--ghost btn--sm" disabled={index === 0} aria-label={labels.moveBefore} onClick={() => moveColumn(key, index - 1)}>↑</button>
+                <button type="button" className="btn btn--ghost btn--sm" disabled={index === columns.length - 1} aria-label={labels.moveAfter} onClick={() => moveColumn(key, index + 1)}>↓</button>
+                {key !== 'name' ? <button type="button" className="btn btn--ghost btn--sm" aria-label={labels.remove} onClick={() => removeColumn(key)}>×</button> : null}
+              </span>)}
+            </div>
+            <input
+              type="search"
+              value={columnSearch}
+              onChange={(event) => setColumnSearch(event.target.value)}
+              placeholder={labels.addColumn}
+              aria-label={labels.addColumn}
+              style={{ width: '100%' }}
+            />
+            {columnSearch ? <div className="col" style={{ gap: 4, marginTop: 8 }}>
+              {availableColumns.length ? availableColumns.map((key) => <button key={key} type="button" className="btn btn--ghost btn--sm" style={{ justifyContent: 'flex-start' }} onClick={() => addColumn(key)}>+ {columnLabel(labels, key)}</button>) : <span className="muted tiny">{labels.noColumnsFound}</span>}
+            </div> : null}
           </div>
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedColumns(DEFAULT_COLUMNS)} style={{ marginTop: 10 }}>{labels.resetColumns}</button>
         </fieldset>
