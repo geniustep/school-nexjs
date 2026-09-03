@@ -16,8 +16,12 @@ import type { CurrentUser } from '@/types/user';
 
 type AcademicYearContextError = { code: string; message: string };
 
+export type AdminSchoolViewMode = 'single' | 'all';
+
 interface AdminSessionValue {
   activeSchoolId: number | null;
+  schoolViewMode: AdminSchoolViewMode;
+  setSchoolViewMode: (mode: AdminSchoolViewMode) => void;
   schools: SchoolRef[];
   requiresActiveSchool: boolean;
   switching: boolean;
@@ -107,6 +111,7 @@ export function AdminSessionProvider({
   );
 
   const [activeSchoolId, setActiveSchoolId] = useState<number | null>(resolvedActiveSchoolId);
+  const [schoolViewMode, setSchoolViewMode] = useState<AdminSchoolViewMode>('single');
   const [switching, setSwitching] = useState(false);
   const [activeAcademicYearId, setActiveAcademicYearId] = useState<number | null>(null);
   const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
@@ -215,6 +220,7 @@ export function AdminSessionProvider({
         setAcademicYearError(null);
         setAcademicYearLoading(true);
         setActiveSchoolId(schoolId);
+        setSchoolViewMode('single');
         router.refresh();
         return true;
       } catch {
@@ -248,6 +254,8 @@ export function AdminSessionProvider({
   const value = useMemo(
     () => ({
       activeSchoolId,
+      schoolViewMode,
+      setSchoolViewMode,
       schools,
       requiresActiveSchool,
       switching,
@@ -260,6 +268,7 @@ export function AdminSessionProvider({
     }),
     [
       activeSchoolId,
+      schoolViewMode,
       schools,
       requiresActiveSchool,
       switching,
@@ -282,6 +291,8 @@ export function useAdminSession(): AdminSessionValue {
   if (!ctx) {
     return {
       activeSchoolId: null,
+      schoolViewMode: 'single',
+      setSchoolViewMode: () => undefined,
       schools: [],
       requiresActiveSchool: false,
       switching: false,
