@@ -30,6 +30,7 @@ import {
 import { CollectionFormBlockers } from '@/features/admin/finance/collection-form-blockers';
 import { getCollectionSubmitBlockers } from '@/features/admin/finance/collection-form-validation';
 import { ReceivableAllocationSection } from '@/features/admin/finance/receivable-allocation-section';
+import { MonthlyInstallmentPicker } from '@/features/admin/finance/monthly-installment-picker';
 import { CollectionDuesSelectionStep } from '@/features/admin/finance/collection-dues-selection-step';
 import { SelectedStudentFinanceBar } from '@/features/admin/finance/selected-student-finance-bar';
 import '@/features/admin/finance/finance-ui.css';
@@ -264,6 +265,7 @@ function CollectionWorkflowFormReady({
   const idempotencyKeyRef = useRef<string | null>(null);
   const postedCollectionIdRef = useRef<number | null>(null);
   const amountManuallyEditedRef = useRef(false);
+  const previewRequestIdRef = useRef(0);
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
   const [chequeBranch, setChequeBranch] = useState('');
@@ -478,6 +480,20 @@ function CollectionWorkflowFormReady({
     setSelectedInstallmentIds(ids);
   }
 
+  function handleMonthlyAllocationChange(values: Record<number, string>) {
+    const selectedIds = Object.entries(values)
+      .filter(([, raw]) => Number(raw) > 0)
+      .map(([id]) => Number(id));
+    const total = sumAllocationAmounts(values);
+    amountManuallyEditedRef.current = false;
+    setManualAllocation(selectedIds.length > 0);
+    setSelectedInstallmentIds(selectedIds);
+    setAllocationInputs(values);
+    setAmount(total > 0 ? String(total) : '');
+    setPreview(null);
+    setPreviewError(null);
+  }
+
   function applyQuickSelection(mode: 'overdue' | 'due' | 'next' | 'all_open' | 'custom') {
     amountManuallyEditedRef.current = false;
     if (mode === 'all_open') {
@@ -629,6 +645,7 @@ function CollectionWorkflowFormReady({
       setPreview(null);
       return;
     }
+    const requestId = ++previewRequestIdRef.current;
     setPreviewLoading(true);
     setPreviewError(null);
     setPreview(null);
@@ -666,6 +683,7 @@ function CollectionWorkflowFormReady({
       query,
     );
 
+    if (requestId !== previewRequestIdRef.current) return;
     setPreviewLoading(false);
 
     if (!res.success) {
@@ -689,6 +707,35 @@ function CollectionWorkflowFormReady({
 
     setPreview(normalized);
   }
+
+  useEffect(() => {
+    if (!flexiblePrepaymentFlow || step !== 'payment') return;
+    if (!selectedStudent || !academicYearId || gateBlock.blocked) return;
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setPreview(null);
+      setPreviewError(null);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      void runCollectionPreview();
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [
+    flexiblePrepaymentFlow,
+    step,
+    selectedStudent?.id,
+    academicYearId,
+    parsedAmount,
+    manualAllocation,
+    allocationInputs,
+    resolvedBilling.billingPartnerId,
+    resolvedBilling.billingProfileId,
+    agreementSummary?.id,
+    agreementSummary?.agreement_id,
+    activeSchoolId,
+    gateBlock.blocked,
+  ]);
 
   function buildPayload(): CreatePaymentCollectionPayload | null {
     if (!selectedStudent || !canProceedPayment) return null;
@@ -823,9 +870,6 @@ function CollectionWorkflowFormReady({
   const wrapperClass = embedded ? 'form-stack finance-collection-workflow' : 'card form-stack finance-collection-workflow finance-collection-workflow--page';
   const pageMode = !embedded;
   const installmentFlow = false;
-  const previewActionLabel = embedded
-    ? t('admin.finance.quickPayment.previewAction')
-    : t('admin.finance.collectionWorkflow.previewDistributionAction');
   const confirmActionLabel = embedded
     ? t('admin.finance.quickPayment.confirmAction')
     : t('admin.finance.collectionWorkflow.recordCollectionAction');
@@ -1006,6 +1050,16 @@ function CollectionWorkflowFormReady({
                 ? t('admin.finance.quickPayment.paymentSection')
                 : t('admin.finance.collections.paymentSection')}
             </h4>
+            {flexiblePrepaymentFlow && step === 'payment' ? (
+              <MonthlyInstallmentPicker
+                installments={openInstallments}
+                loading={collectibleState.loading}
+                currency={journalCurrency}
+                selectedIds={selectedInstallmentIds}
+                allocationInputs={allocationInputs}
+                onAllocationChange={handleMonthlyAllocationChange}
+              />
+            ) : null}
             <QuickPaymentCoreFields
               variant={embedded ? 'drawer' : 'default'}
               amount={amount}
@@ -1017,7 +1071,7 @@ function CollectionWorkflowFormReady({
               }
               amountHint={
                 flexiblePrepaymentFlow
-                  ? t('admin.finance.collectionWorkflow.paidAmountHint')
+                  ? t('admin.finance.collectionWorkflow.paidAmountFromInstallmentsHint')
                   : undefined
               }
               amountDisabled={flexiblePrepaymentFlow && gateBlock.blocked}
@@ -1057,55 +1111,7 @@ function CollectionWorkflowFormReady({
               }}
               notes={notes}
               onNotesChange={setNotes}
-              afterAmount={
-                flexiblePrepaymentFlow ? (
-                  <div
-                    className={`finance-quick-payment-allocation-card${
-                      manualAllocation
-                        ? ' finance-quick-payment-allocation-card--manual'
-                        : ' finance-quick-payment-allocation-card--auto'
-                    }`}
-                  >
-                    <label className="finance-quick-payment-allocation-card__toggle collection-skip-allocation">
-                      <input
-                        type="checkbox"
-                        checked={manualAllocation}
-                        onChange={(e) => {
-                          setManualAllocation(e.target.checked);
-                          setAllocationInputs({});
-                          setPreview(null);
-                          setPreviewError(null);
-                        }}
-                      />
-                      <span className="finance-quick-payment-allocation-card__toggle-copy">
-                        <strong>{t('admin.finance.collectionWorkflow.manualAllocationToggle')}</strong>
-                      </span>
-                    </label>
-                    <p className="finance-quick-payment-allocation-card__hint" role="status">
-                      {manualAllocation
-                        ? t('admin.finance.collectionWorkflow.manualAllocationHint')
-                        : t('admin.finance.collectionWorkflow.autoAllocationHint')}
-                    </p>
-                  </div>
-                ) : null
-              }
             />
-
-            {flexiblePrepaymentFlow && manualAllocation && step === 'payment' ? (
-              <ReceivableAllocationSection
-                installments={openInstallments}
-                loading={collectibleState.loading}
-                currency={journalCurrency}
-                collectionAmount={parsedAmount}
-                allocationInputs={allocationInputs}
-                onAllocationChange={(values) => {
-                  setAllocationInputs(values);
-                  setPreview(null);
-                }}
-                skipAllocation={false}
-                onSkipAllocationChange={() => undefined}
-              />
-            ) : null}
 
             {flexiblePrepaymentFlow && step === 'payment' ? (
               <CollectionAllocationPreviewPanel
@@ -1330,29 +1336,16 @@ function CollectionWorkflowFormReady({
             </div>
             <div className="finance-collection-workflow__footer-primary">
               {flexiblePrepaymentFlow && step === 'payment' ? (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn--secondary"
-                    disabled={
-                      previewLoading ||
-                      gateBlock.blocked ||
-                      !Number.isFinite(parsedAmount) ||
-                      parsedAmount <= 0
-                    }
-                    onClick={() => void runCollectionPreview()}
-                  >
-                    {previewLoading ? t('common.loading') : previewActionLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--primary"
-                    disabled={!canProceedPayment || !previewValid}
-                    onClick={() => setStep('review')}
-                  >
-                    {t('admin.finance.collectionWorkflow.continueToReview')}
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={!canProceedPayment || !previewValid || previewLoading}
+                  onClick={() => setStep('review')}
+                >
+                  {previewLoading
+                    ? t('admin.finance.collectionWorkflow.previewLoading')
+                    : t('admin.finance.collectionWorkflow.continueToReview')}
+                </button>
               ) : null}
               {flexiblePrepaymentFlow && step === 'review' ? (
                 <button
