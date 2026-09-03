@@ -124,7 +124,7 @@ export default function AdminStudentsPage() {
     },
     ...(allSchoolsMode ? [{
       key: 'school', header: t('admin.activeSchool'), render: (s: Student) => <span dir="auto">{s.school?.name ?? '—'}</span>,
-    } satisfies Column<Student>] : []),
+    } as Column<Student>] : []),
     {
       key: 'status', header: t('academic.status'), render: (s) => s.status === 'active' ? null : <Badge tone="slate">{statusLabel(t, s.status)}</Badge>,
     },
@@ -155,7 +155,7 @@ export default function AdminStudentsPage() {
         </div> : null}
       />
 
-      {allSchoolsMode ? <p className="muted">{t('admin.activeSchool')}: {t('common.all')}</p> : null}
+      {allSchoolsMode ? <p className="muted">{t('admin.activeSchool')}: كل المدارس</p> : null}
 
       {importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
 
