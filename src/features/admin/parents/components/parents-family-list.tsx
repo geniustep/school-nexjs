@@ -1,10 +1,11 @@
 'use client';
 
 /** @raqeem-design docs/design/RAQEEM-DESIGN.md @design-status adopted */
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
 import type { ParentFamilyGroup } from '@/features/admin/parents/utils/group-parents-by-family';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, type TranslateFn } from '@/features/i18n/locale-context';
 import type { Locale } from '@/lib/i18n/config';
 import { pluralForm } from '@/lib/i18n/count-plural';
@@ -19,10 +20,17 @@ function childrenCountLabel(t: TranslateFn, locale: Locale, count: number): stri
 
 export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] }) {
   const { t, locale } = useLocale();
+  const router = useRouter();
+  const { schoolViewMode, setActiveSchool } = useAdminSession();
+  const openInSchool = (schoolId: number | undefined, href: string) => {
+    if (schoolViewMode !== 'all' || schoolId == null) { router.push(href); return; }
+    void setActiveSchool(schoolId).then((switched) => { if (switched) router.push(href); });
+  };
   return <div className="parents-family-list">
     {families.map((family, familyIndex) => <article key={`${family.id}-${familyIndex}`} className={`parents-family-card${family.children.length === 0 ? ' parents-family-card--solo' : ''}`}>
       <div className="parents-family-card__accent" aria-hidden="true" />
       <div className="parents-family-card__body">
+        {schoolViewMode === 'all' ? <p className="tiny muted" dir="auto">{family.guardians[0]?.parent.school?.name ?? '—'}</p> : null}
         <div className="parents-family-card__field">
           <span className="parents-family-card__field-label">{t('admin.linkedChildren')}{family.children.length > 0 ? <span className="parents-family-card__children-count"> ({childrenCountLabel(t, locale, family.children.length)})</span> : null}:</span>
           <div className="parents-family-card__field-value">
@@ -31,7 +39,7 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
               const classLabel = studentClassLabel(child.class);
               const levelLabel = studentLevelLabel(child.level);
               return <li key={`${child.id ?? 'child'}-${childIndex}`} className="parents-family-card__child-item">
-                {typeof child.id === 'number' ? <Link href={`/admin/students/${child.id}`} className="parents-family-card__child-name" dir="auto">{name}</Link> : <span className="parents-family-card__child-name" dir="auto">{name}</span>}
+                {typeof child.id === 'number' ? <button type="button" className="parents-family-card__child-name" dir="auto" onClick={() => openInSchool(family.guardians[0]?.parent.school?.id, `/admin/students/${child.id}`)}>{name}</button> : <span className="parents-family-card__child-name" dir="auto">{name}</span>}
                 {classLabel !== '—' || levelLabel !== '—' ? <span className="parents-family-card__child-academic tiny muted">{classLabel !== '—' ? <span dir="auto">{classLabel}</span> : null}{classLabel !== '—' && levelLabel !== '—' ? <span aria-hidden="true"> · </span> : null}{levelLabel !== '—' ? <span dir="auto">{levelLabel}</span> : null}</span> : null}
               </li>;
             })}</ul> : <span className="muted">{t('admin.noLinkedChildren')}</span>}
@@ -42,7 +50,7 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
           <ul className="parents-family-card__guardian-lines">{family.guardians.map(({ parent, relationshipType }, guardianIndex) => <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
             <span className="parents-family-card__guardian-role">{relationshipTypeLabel(t, relationshipType)}:</span>
             <div className="parents-family-card__guardian-content">
-              <Link href={`/admin/parents/${parent.id}`} className="parents-family-card__guardian-name" dir="auto">{parent.name}</Link>
+              <button type="button" className="parents-family-card__guardian-name" dir="auto" onClick={() => openInSchool(parent.school?.id, `/admin/parents/${parent.id}`)}>{parent.name}</button>
               {parent.phone ?? parent.mobile ? <span className="parents-family-card__guardian-meta"><span className="mono" dir="ltr">{parent.phone ?? parent.mobile}</span></span> : null}
             </div>
           </li>)}</ul>
