@@ -62,13 +62,15 @@ describe('requested full registration adjustments', () => {
     expect(payload.last_name).toBe('التوبي');
   });
 
-  it('prefers the complete French/Latin pair for canonical fields while preserving Arabic', () => {
+  it('keeps the complete Arabic pair canonical while preserving the French/Latin pair', () => {
     const value = input();
     value.student.firstNameFr = 'Yasmine';
     value.student.lastNameFr = 'Toubi';
     const payload = buildFullRegistrationPayload(value);
-    expect(payload.first_name).toBe('Yasmine');
-    expect(payload.last_name).toBe('Toubi');
+    expect(payload.first_name).toBe('ياسمين');
+    expect(payload.last_name).toBe('التوبي');
+    expect(payload.first_name_ar).toBe('ياسمين');
+    expect(payload.last_name_ar).toBe('التوبي');
     expect(payload.name_ar).toBe('ياسمين التوبي');
     expect(payload.name_latin).toBe('Yasmine Toubi');
   });

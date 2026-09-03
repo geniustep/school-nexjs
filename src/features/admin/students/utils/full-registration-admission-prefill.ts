@@ -128,13 +128,15 @@ export function mapAdmissionPrefillToFullRegistration(
     };
   }
 
+  const gender = text(profile.gender);
+
   return {
     student: {
       firstNameAr: profile.firstName ?? '',
       lastNameAr: profile.lastName ?? '',
       firstNameFr: profile.firstNameLatin ?? '',
       lastNameFr: profile.lastNameLatin ?? '',
-      gender: profile.gender ?? '',
+      ...(gender ? { gender } : {}),
       dateOfBirth: profile.dateOfBirth ?? '',
       previousSchool: profile.previousSchool ?? '',
       address: profile.residenceAddress ?? '',

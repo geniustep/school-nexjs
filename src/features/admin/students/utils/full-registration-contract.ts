@@ -296,14 +296,26 @@ export function buildFullRegistrationPayload(
   const lastNameAr = clean(input.student.lastNameAr);
   const firstNameFr = clean(input.student.firstNameFr);
   const lastNameFr = clean(input.student.lastNameFr);
+  const arabicComplete = Boolean(firstNameAr && lastNameAr);
   const latinComplete = Boolean(firstNameFr && lastNameFr);
-  const canonicalFirstName = latinComplete ? firstNameFr : firstNameAr;
-  const canonicalLastName = latinComplete ? lastNameFr : lastNameAr;
+  const canonicalFirstName = arabicComplete ? firstNameAr : firstNameFr;
+  const canonicalLastName = arabicComplete ? lastNameAr : lastNameFr;
 
   return {
     admission_id: input.admissionId ?? undefined,
     first_name: canonicalFirstName,
     last_name: canonicalLastName,
+    ...(arabicComplete
+      ? {
+          first_name_ar: firstNameAr,
+          last_name_ar: lastNameAr,
+        }
+      : latinComplete
+        ? {
+            first_name_fr: firstNameFr,
+            last_name_fr: lastNameFr,
+          }
+        : {}),
     name_ar: [firstNameAr, lastNameAr].filter(Boolean).join(' '),
     name_latin: [firstNameFr, lastNameFr].filter(Boolean).join(' '),
     gender: clean(input.student.gender),
