@@ -150,7 +150,7 @@ export function AdminClassesBrowser({ classes, levels }: { classes: SchoolClass[
   const statuses = useMemo(() => [...new Set(classes.map((cls) => cls.status).filter(Boolean))].sort(), [classes]);
   const structureClasses = useMemo(() => filterClassesForBrowser(classes, levels, { academicYear, status }), [classes, levels, academicYear, status]);
   const cycleGroups = useMemo(() => groupClassesByCycle(structureClasses, levels), [structureClasses, levels]);
-  const cycleChoices = useMemo(() => cycleGroups.map((group) => group.cycle).filter((cycle): cycle is NonNullable<typeof cycle> => cycle != null), [cycleGroups]);
+  const cycleChoices = useMemo(() => cycleGroups.map((group) => group.cycle), [cycleGroups]);
   const cycleScopedClasses = useMemo(() => filterClassesForBrowser(structureClasses, levels, { cycleId }), [structureClasses, levels, cycleId]);
   const trackChoices = useMemo(() => {
     const byId = new Map<number, TrackRef>();
