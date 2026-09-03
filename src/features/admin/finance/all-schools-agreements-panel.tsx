@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -13,7 +12,6 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import { refName } from '@/lib/utils/finance';
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
