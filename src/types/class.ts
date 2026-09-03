@@ -151,4 +151,6 @@ export interface SchoolClass {
   can_delete?: boolean;
   can_deactivate?: boolean;
   usage?: SchoolClassUsage;
+  /** Present only in the read-only all-schools view. */
+  school?: Ref | null;
 }
