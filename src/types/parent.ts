@@ -113,6 +113,8 @@ export interface Parent extends IdentityDocumentReadFields {
   archive_reason?: string | null;
   delete_impact?: GuardianDeleteImpact;
   delete_blockers?: string[];
+  /** Present only in the read-only all-schools view. */
+  school?: Ref | null;
   /** @deprecated Legacy account panel shape */
   legacy_account?: UserAccountInfo | null;
 }
