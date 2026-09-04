@@ -41,7 +41,6 @@ type ExportModel = {
   filenameBase: string;
   dir: 'rtl' | 'ltr';
   lang: string;
-  currency: string;
   summary: Array<{ label: string; value: ExportScalar }>;
   columns: string[];
   rows: ExportScalar[][];
@@ -412,13 +411,11 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
     summary: CollectionReportSummary,
     paymentMethods: CollectionReportAggregationRow[],
   ): ExportModel {
-    const currency = summary.currency_name ?? '';
     return {
       title: t('admin.finance.collectionReports.pageTitle'),
       filenameBase: reportFilename(filters),
       dir,
       lang: locale,
-      currency,
       summary: summaryRows(summary, paymentMethods),
       columns: [
         t('admin.finance.collectionReports.columns.date'),
@@ -453,13 +450,11 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
     summary: CollectionReportSummary,
     paymentMethods: CollectionReportAggregationRow[],
   ): ExportModel {
-    const currency = summary.currency_name ?? '';
     return {
       title: t('admin.finance.collectionReports.pageTitle'),
       filenameBase: `${reportFilename(filters)}-${filters.aggDimension}`,
       dir,
       lang: locale,
-      currency,
       summary: summaryRows(summary, paymentMethods),
       columns: [
         t(`admin.finance.collectionReports.agg.${filters.aggDimension}.name`),
