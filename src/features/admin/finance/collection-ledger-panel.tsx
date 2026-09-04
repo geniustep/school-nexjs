@@ -106,6 +106,11 @@ const COPY = {
   },
 } as const;
 
+type LedgerBadgeCopy = {
+  historicalBadge: string;
+  operationalBadge: string;
+};
+
 function LedgerKpi({ label, amount, currency }: { label: string; amount: number; currency: unknown }) {
   return (
     <div className="collection-ledger__kpi">
@@ -115,7 +120,7 @@ function LedgerKpi({ label, amount, currency }: { label: string; amount: number;
   );
 }
 
-function RecordTypeBadge({ record, copy }: { record: CollectionLedgerRecord; copy: (typeof COPY)['ar'] }) {
+function RecordTypeBadge({ record, copy }: { record: CollectionLedgerRecord; copy: LedgerBadgeCopy }) {
   const historical = record.record_type === 'historical';
   return (
     <span className={`collection-ledger__type-badge ${historical ? 'is-historical' : 'is-operational'}`}>
