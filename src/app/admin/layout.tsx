@@ -3,6 +3,7 @@ import { isSchoolAccessSuspended } from '@/lib/auth/admin-access-status';
 import { PortalLayout } from '@/components/layout/portal-layout';
 import { AdminPageGuard } from '@/components/admin/admin-page-guard';
 import { Card } from '@/components/ui/primitives';
+import { AdminAllSchoolsRouteGate } from '@/features/admin/all-schools/admin-all-schools-route-gate';
 import './dashboard/dashboard-refinements.css';
 
 function SuspendedAdminNotice() {
@@ -34,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <PortalLayout user={user}>
       <AdminPageGuard>
-        {children}
+        <AdminAllSchoolsRouteGate>{children}</AdminAllSchoolsRouteGate>
       </AdminPageGuard>
     </PortalLayout>
   );
