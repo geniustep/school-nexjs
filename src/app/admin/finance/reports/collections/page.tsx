@@ -5,6 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
+import { CollectionLedgerPanel } from '@/features/admin/finance/collection-ledger-panel';
 import { CollectionReportsExportActions } from '@/features/admin/finance/collection-reports-export-actions';
 import { CollectionReportsHeaderSummary } from '@/features/admin/finance/collection-reports-header-summary';
 import { CollectionReportsOperationsPanel } from '@/features/admin/finance/collection-reports-operations-panel';
@@ -73,9 +74,6 @@ export default function AdminFinanceCollectionReportsPage() {
       const params = new URLSearchParams(searchParams.toString());
       const next: CollectionReportsFilters = { ...filters, ...updates } as CollectionReportsFilters;
 
-      // Keep the last valid report visible and do not call the Backend with an
-      // inverted date range. The operations panel surfaces the recoverable
-      // validation error while Odoo remains the final validation boundary.
       if (
         next.dateMode === 'range' &&
         next.dateFrom.trim() &&
@@ -104,7 +102,6 @@ export default function AdminFinanceCollectionReportsPage() {
         }
       }
 
-      // Enforce date XOR range in the URL.
       if (next.dateMode === 'day') {
         params.delete('date_from');
         params.delete('date_to');
@@ -124,6 +121,8 @@ export default function AdminFinanceCollectionReportsPage() {
     [defaults.date, filters, router, searchParams],
   );
 
+  const operationalAnalysis = filters.view === 'aggregations';
+
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
       <Link href="/admin/finance" className="back-link">
@@ -132,10 +131,19 @@ export default function AdminFinanceCollectionReportsPage() {
       <PageHeader
         title={t('admin.finance.collectionReports.pageTitle')}
         subtitle={t('admin.finance.collectionReports.pageDesc')}
-        actions={<CollectionReportsExportActions filters={filters} />}
+        actions={operationalAnalysis ? <CollectionReportsExportActions filters={filters} /> : undefined}
       />
-      <CollectionReportsHeaderSummary filters={filters} />
-      <CollectionReportsOperationsPanel filters={filters} onFiltersChange={onFiltersChange} />
+
+      {operationalAnalysis ? (
+        <>
+          <CollectionReportsHeaderSummary filters={filters} />
+          <CollectionReportsOperationsPanel filters={filters} onFiltersChange={onFiltersChange} />
+        </>
+      ) : (
+        <CollectionLedgerPanel
+          onOpenOperationalAnalysis={() => onFiltersChange({ view: 'aggregations', page: 1 })}
+        />
+      )}
     </RequireAdminPermission>
   );
 }
