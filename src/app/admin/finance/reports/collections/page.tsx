@@ -5,6 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
+import { CollectionReportsExportActions } from '@/features/admin/finance/collection-reports-export-actions';
 import { CollectionReportsPanel } from '@/features/admin/finance/collection-reports-panel';
 import {
   defaultCollectionReportsFilters,
@@ -132,6 +133,7 @@ export default function AdminFinanceCollectionReportsPage() {
         title={t('admin.finance.collectionReports.pageTitle')}
         subtitle={t('admin.finance.collectionReports.pageDesc')}
       />
+      <CollectionReportsExportActions filters={filters} />
       <CollectionReportsPanel filters={filters} onFiltersChange={onFiltersChange} />
     </RequireAdminPermission>
   );
