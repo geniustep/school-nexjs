@@ -3,6 +3,82 @@
  * @design-status adopted
  */
 
+.finance-collection-reports-header-summary {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.05fr) minmax(170px, 0.9fr) minmax(280px, 1.7fr) minmax(120px, 0.65fr);
+  gap: 0;
+  margin-block: 8px 16px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 18%, var(--c-border, #e2e8f0));
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--raqeem-primary, #243b6b) 7%, transparent);
+}
+
+.finance-collection-reports-header-summary__item {
+  min-width: 0;
+  padding: 14px 16px;
+  border-inline-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-collection-reports-header-summary__item:first-child {
+  border-inline-start: 0;
+}
+
+.finance-collection-reports-header-summary__total {
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 6%, #fff);
+}
+
+.finance-collection-reports-header-summary__label {
+  display: block;
+  margin-block-end: 6px;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.finance-collection-reports-header-summary__value {
+  display: block;
+  color: var(--c-text, #0f172a);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.finance-collection-reports-header-summary__total .finance-collection-reports-header-summary__value {
+  color: var(--raqeem-primary, #243b6b);
+  font-size: 1.22rem;
+}
+
+.finance-collection-reports-header-summary__method-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.finance-collection-reports-header-summary__method {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-surface, #fff) 94%, var(--raqeem-primary, #243b6b) 6%);
+  color: var(--c-text, #0f172a);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.finance-collection-reports-header-summary__method strong {
+  font-size: 0.76rem;
+}
+
+.finance-collection-reports-header-summary__placeholder {
+  color: var(--c-text-muted, #94a3b8);
+}
+
 .finance-collection-reports-ops__date-presets {
   align-items: center;
 }
@@ -105,63 +181,12 @@
   outline: none;
 }
 
-.finance-collection-reports-ops__kpis {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.finance-collection-reports-ops__kpi:first-child {
-  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 32%, var(--c-border, #e2e8f0));
-  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 6%, #fff);
-}
-
-.finance-collection-reports-ops__scope-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border-inline-start: 3px solid var(--raqeem-primary, #243b6b);
-  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 5%, #fff);
-  border-radius: 8px;
-  font-size: 0.8rem;
-  color: var(--c-text-muted, #64748b);
-}
-
-.finance-collection-reports-ops__scope-summary strong {
-  color: var(--c-text, #0f172a);
-  white-space: nowrap;
-}
-
+/* Replaced by the compact page-header summary above. Keep the underlying data
+ * consumption intact because the analysis view still uses the same payload. */
+.finance-collection-reports-ops__kpis,
+.finance-collection-reports-ops__scope-summary,
 .finance-collection-reports-ops__payment-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding-block: 2px;
-}
-
-.finance-collection-reports-ops__payment-item {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--c-border, #e2e8f0);
-  border-radius: 8px;
-  background: var(--c-surface, #fff);
-  color: var(--c-text, #0f172a);
-  padding: 6px 9px;
-  font: inherit;
-  font-size: 0.76rem;
-  cursor: pointer;
-}
-
-.finance-collection-reports-ops__payment-item:hover,
-.finance-collection-reports-ops__payment-item:focus-visible {
-  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 35%, var(--c-border, #e2e8f0));
-  outline: none;
-}
-
-.finance-collection-reports-ops__payment-item strong {
-  font-size: 0.78rem;
+  display: none;
 }
 
 .finance-collection-reports-ops__stack {
@@ -192,9 +217,18 @@
   outline: none;
 }
 
-@media (max-width: 900px) {
-  .finance-collection-reports-ops__kpis {
+@media (max-width: 980px) {
+  .finance-collection-reports-header-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .finance-collection-reports-header-summary__item:nth-child(3) {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--c-border, #e2e8f0);
+  }
+
+  .finance-collection-reports-header-summary__item:nth-child(4) {
+    border-block-start: 1px solid var(--c-border, #e2e8f0);
   }
 }
 
@@ -206,15 +240,21 @@
   .finance-collection-reports-ops__primary-select {
     flex: 1 1 100%;
   }
-
-  .finance-collection-reports-ops__scope-summary {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
-@media (max-width: 520px) {
-  .finance-collection-reports-ops__kpis {
+@media (max-width: 560px) {
+  .finance-collection-reports-header-summary {
     grid-template-columns: 1fr;
+  }
+
+  .finance-collection-reports-header-summary__item,
+  .finance-collection-reports-header-summary__item:nth-child(3),
+  .finance-collection-reports-header-summary__item:nth-child(4) {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--c-border, #e2e8f0);
+  }
+
+  .finance-collection-reports-header-summary__item:first-child {
+    border-block-start: 0;
   }
 }
