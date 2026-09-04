@@ -1,10 +1,14 @@
 'use client';
 
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 
 export function AcademicYearSwitcher({ hideLabel = false }: { hideLabel?: boolean }) {
   const t = useT();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     activeAcademicYearId,
     academicYears,
@@ -12,6 +16,8 @@ export function AcademicYearSwitcher({ hideLabel = false }: { hideLabel?: boolea
     academicYearError,
     setActiveAcademicYear,
   } = useAdminSession();
+
+  if (isAllSchoolsReadMode(pathname, searchParams)) return null;
 
   const label = t('academicContext.fields.academicYear');
   const placeholder = academicYearLoading
