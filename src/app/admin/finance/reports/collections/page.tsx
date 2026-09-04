@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { CollectionReportsExportActions } from '@/features/admin/finance/collection-reports-export-actions';
+import { CollectionReportsHeaderSummary } from '@/features/admin/finance/collection-reports-header-summary';
 import { CollectionReportsOperationsPanel } from '@/features/admin/finance/collection-reports-operations-panel';
 import {
   defaultCollectionReportsFilters,
@@ -131,8 +132,9 @@ export default function AdminFinanceCollectionReportsPage() {
       <PageHeader
         title={t('admin.finance.collectionReports.pageTitle')}
         subtitle={t('admin.finance.collectionReports.pageDesc')}
+        actions={<CollectionReportsExportActions filters={filters} />}
       />
-      <CollectionReportsExportActions filters={filters} />
+      <CollectionReportsHeaderSummary filters={filters} />
       <CollectionReportsOperationsPanel filters={filters} onFiltersChange={onFiltersChange} />
     </RequireAdminPermission>
   );
