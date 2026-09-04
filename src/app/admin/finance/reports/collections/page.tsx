@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { CollectionReportsExportActions } from '@/features/admin/finance/collection-reports-export-actions';
-import { CollectionReportsPanel } from '@/features/admin/finance/collection-reports-panel';
+import { CollectionReportsOperationsPanel } from '@/features/admin/finance/collection-reports-operations-panel';
 import {
   defaultCollectionReportsFilters,
   isCollectionReportAggDimension,
@@ -73,9 +73,8 @@ export default function AdminFinanceCollectionReportsPage() {
       const next: CollectionReportsFilters = { ...filters, ...updates } as CollectionReportsFilters;
 
       // Keep the last valid report visible and do not call the Backend with an
-      // inverted date range. Odoo remains the final validation boundary, but
-      // normal UI interaction must never turn this recoverable input mistake
-      // into a full-page 422 error state.
+      // inverted date range. The operations panel surfaces the recoverable
+      // validation error while Odoo remains the final validation boundary.
       if (
         next.dateMode === 'range' &&
         next.dateFrom.trim() &&
@@ -134,7 +133,7 @@ export default function AdminFinanceCollectionReportsPage() {
         subtitle={t('admin.finance.collectionReports.pageDesc')}
       />
       <CollectionReportsExportActions filters={filters} />
-      <CollectionReportsPanel filters={filters} onFiltersChange={onFiltersChange} />
+      <CollectionReportsOperationsPanel filters={filters} onFiltersChange={onFiltersChange} />
     </RequireAdminPermission>
   );
 }
