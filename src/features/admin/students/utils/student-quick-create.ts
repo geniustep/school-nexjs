@@ -1,55 +1,48 @@
-import type { StudentCreatePayload } from '@/types/student-360';
-import { buildFullNamePreview, todayIsoDate } from './student-profile';
+import type {
+  StudentQuickRegistrationGuardianInput,
+  StudentQuickRegistrationLanguage,
+  StudentQuickRegistrationPayload,
+} from '@/types/student-quick-registration';
+import type { RelationshipType } from '@/types/student-360';
+import { todayIsoDate } from './student-profile';
+
+export type StudentQuickCreateGuardianDraft = {
+  name: string;
+  phone: string;
+  relationshipType: RelationshipType;
+};
 
 export type StudentQuickCreateInput = {
+  language: StudentQuickRegistrationLanguage;
   firstName: string;
   lastName: string;
-  firstNameLatin: string;
-  lastNameLatin: string;
-  gender: string;
   cycleId: string;
   levelId: string;
   schoolId: number | null;
   academicYearId: number | null;
+  guardianIsFinancialResponsible: boolean;
+  createGuardian: boolean;
+  guardians: StudentQuickCreateGuardianDraft[];
 };
 
 export type StudentQuickCreateValidation =
   | {
       valid: true;
+      language: StudentQuickRegistrationLanguage;
       firstName: string;
       lastName: string;
-      firstNameLatin: string;
-      lastNameLatin: string;
-      gender: string;
       levelId: number;
       schoolId: number;
       academicYearId: number;
+      guardianIsFinancialResponsible: boolean;
+      guardians: StudentQuickRegistrationGuardianInput[];
     }
-  | { valid: false; error: 'name_ar' | 'name_latin' | 'gender' | 'cycle' | 'level' | 'context' };
-
-export type StudentQuickRegistrationPayload = StudentCreatePayload & {
-  quick_registration: {
-    enabled: true;
-  };
-};
+  | { valid: false; error: 'name' | 'cycle' | 'level' | 'context' | 'guardian' };
 
 export function validateStudentQuickCreateInput(input: StudentQuickCreateInput): StudentQuickCreateValidation {
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
-  const firstNameLatin = input.firstNameLatin.trim();
-  const lastNameLatin = input.lastNameLatin.trim();
-  const gender = input.gender.trim();
-
-  const hasArabicName = Boolean(firstName && lastName);
-  const hasLatinName = Boolean(firstNameLatin && lastNameLatin);
-  const hasPartialArabicName = Boolean(firstName || lastName) && !hasArabicName;
-  const hasPartialLatinName = Boolean(firstNameLatin || lastNameLatin) && !hasLatinName;
-
-  if (hasPartialArabicName || (!hasArabicName && !hasLatinName)) {
-    return { valid: false, error: 'name_ar' };
-  }
-  if (hasPartialLatinName) return { valid: false, error: 'name_latin' };
-  if (!gender) return { valid: false, error: 'gender' };
+  if (!firstName || !lastName) return { valid: false, error: 'name' };
   if (!input.cycleId.trim()) return { valid: false, error: 'cycle' };
 
   const levelId = Number(input.levelId);
@@ -58,46 +51,46 @@ export function validateStudentQuickCreateInput(input: StudentQuickCreateInput):
     return { valid: false, error: 'context' };
   }
 
-  const canonicalFirstName = hasArabicName ? firstName : firstNameLatin;
-  const canonicalLastName = hasArabicName ? lastName : lastNameLatin;
+  const shouldCreateGuardians = input.guardianIsFinancialResponsible && input.createGuardian;
+  const guardians: StudentQuickRegistrationGuardianInput[] = [];
+  if (shouldCreateGuardians) {
+    if (input.guardians.length === 0) return { valid: false, error: 'guardian' };
+    for (const guardian of input.guardians) {
+      const name = guardian.name.trim();
+      const phone = guardian.phone.trim();
+      const relationshipType = String(guardian.relationshipType ?? '').trim();
+      if (!name || !phone || !relationshipType) return { valid: false, error: 'guardian' };
+      guardians.push({ name, phone, relationship_type: guardian.relationshipType });
+    }
+  }
 
   return {
     valid: true,
-    firstName: canonicalFirstName,
-    lastName: canonicalLastName,
-    firstNameLatin,
-    lastNameLatin,
-    gender,
+    language: input.language,
+    firstName,
+    lastName,
     levelId,
     schoolId: input.schoolId,
     academicYearId: input.academicYearId,
+    guardianIsFinancialResponsible: input.guardianIsFinancialResponsible,
+    guardians,
   };
 }
 
-export function buildStudentQuickCreateSuccessHref(studentId: number): string {
-  if (!Number.isInteger(studentId) || studentId <= 0) return '/admin/students';
-  return `/admin/students/${studentId}?postSetup=1`;
-}
-
-/** Smallest supported quick-registration payload: Student + Enrollment core, no class in request. */
+/**
+ * Quick Registration V1 request. Odoo owns class selection, billing, finance,
+ * service rules and durable post-registration processing.
+ */
 export function buildStudentQuickCreatePayload(
   input: Extract<StudentQuickCreateValidation, { valid: true }>,
   enrollmentDate = todayIsoDate(),
 ): StudentQuickRegistrationPayload {
-  const hasArabicName = Boolean(input.firstName && input.lastName && !input.firstNameLatin && !input.lastNameLatin)
-    ? true
-    : /[\u0600-\u06FF]/.test(`${input.firstName} ${input.lastName}`);
-  const nameAr = hasArabicName ? buildFullNamePreview(input.firstName, input.lastName) : undefined;
-  const nameLatin = input.firstNameLatin && input.lastNameLatin
-    ? buildFullNamePreview(input.firstNameLatin, input.lastNameLatin)
-    : undefined;
+  const selectedNamePair = input.language === 'ar'
+    ? { first_name_ar: input.firstName, last_name_ar: input.lastName }
+    : { first_name_fr: input.firstName, last_name_fr: input.lastName };
 
   return {
-    first_name: input.firstName,
-    last_name: input.lastName,
-    ...(nameAr ? { name_ar: nameAr } : {}),
-    ...(nameLatin ? { name_latin: nameLatin } : {}),
-    gender: input.gender,
+    ...selectedNamePair,
     status: 'active',
     active: true,
     admission_date: enrollmentDate,
@@ -108,6 +101,11 @@ export function buildStudentQuickCreatePayload(
       level_id: input.levelId,
       enrollment_date: enrollmentDate,
     },
-    quick_registration: { enabled: true },
+    quick_registration: {
+      enabled: true,
+      guardian_is_financial_responsible: input.guardianIsFinancialResponsible,
+      create_guardians: input.guardianIsFinancialResponsible ? input.guardians : [],
+      auto_finance_setup: true,
+    },
   };
 }
