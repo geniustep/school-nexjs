@@ -51,6 +51,45 @@ type ExportKind = 'excel' | 'pdf';
 
 const EXPORT_PAGE_BATCH_SIZE = 4;
 
+const EXPORT_SUMMARY_COPY = {
+  ar: {
+    operationDate: 'تاريخ العملية',
+    period: 'الفترة',
+    from: 'من',
+    to: 'إلى',
+    totalAmount: 'المبلغ الكامل',
+    byPaymentMethod: 'حسب وسيلة الدفع',
+    operations: 'عدد العمليات',
+  },
+  en: {
+    operationDate: 'Operation date',
+    period: 'Period',
+    from: 'From',
+    to: 'to',
+    totalAmount: 'Total amount',
+    byPaymentMethod: 'By payment method',
+    operations: 'Operations',
+  },
+  fr: {
+    operationDate: "Date de l'opération",
+    period: 'Période',
+    from: 'Du',
+    to: 'au',
+    totalAmount: 'Montant total',
+    byPaymentMethod: 'Par moyen de paiement',
+    operations: 'Opérations',
+  },
+  es: {
+    operationDate: 'Fecha de la operación',
+    period: 'Periodo',
+    from: 'Del',
+    to: 'al',
+    totalAmount: 'Importe total',
+    byPaymentMethod: 'Por medio de pago',
+    operations: 'Operaciones',
+  },
+} as const;
+
 function safeFilenamePart(value: string): string {
   return value.replace(/[^0-9A-Za-z_-]+/g, '-').replace(/^-+|-+$/g, '') || 'report';
 }
@@ -99,10 +138,11 @@ function createPrintHtml(model: ExportModel): string {
     * { box-sizing: border-box; }
     body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #111; direction: ${model.dir}; }
     h1 { margin: 0 0 12px; font-size: 20px; }
-    .summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
-    .summary-item { border: 1px solid #ddd; border-radius: 6px; padding: 7px 9px; }
-    .summary-item span { display: block; font-size: 9px; color: #555; margin-bottom: 3px; }
-    .summary-item strong { font-size: 11px; }
+    .summary { display: grid; grid-template-columns: 1.15fr 1fr 2fr .7fr; gap: 8px; margin-bottom: 14px; }
+    .summary-item { border: 1px solid #d9dee7; border-radius: 8px; padding: 8px 10px; background: #fafbfc; min-width: 0; }
+    .summary-item span { display: block; font-size: 9px; color: #667085; margin-bottom: 4px; }
+    .summary-item strong { display: block; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+    .summary-item:nth-child(2) strong { font-size: 13px; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8.5px; }
     th, td { border: 1px solid #d7d7d7; padding: 5px 6px; vertical-align: top; overflow-wrap: anywhere; }
     th { background: #f3f3f3; font-weight: 700; }
@@ -134,16 +174,53 @@ async function downloadExcel(model: ExportModel): Promise<void> {
   titleCell.font = { bold: true, size: 16 };
   titleCell.alignment = { horizontal: model.dir === 'rtl' ? 'right' : 'left' };
 
-  let rowNumber = 3;
-  for (const item of model.summary) {
-    const row = worksheet.getRow(rowNumber++);
-    row.getCell(1).value = item.label;
-    row.getCell(1).font = { bold: true };
-    row.getCell(2).value = item.value;
-  }
-  rowNumber += 1;
+  const summaryCount = model.summary.length;
+  const summaryLabelRow = worksheet.getRow(3);
+  const summaryValueRow = worksheet.getRow(4);
+  summaryLabelRow.height = 20;
+  summaryValueRow.height = 34;
 
-  const headerRow = worksheet.getRow(rowNumber++);
+  model.summary.forEach((item, index) => {
+    const startColumn = Math.floor((index * width) / summaryCount) + 1;
+    const endColumn = Math.max(
+      startColumn,
+      Math.floor(((index + 1) * width) / summaryCount),
+    );
+
+    if (endColumn > startColumn) {
+      worksheet.mergeCells(3, startColumn, 3, endColumn);
+      worksheet.mergeCells(4, startColumn, 4, endColumn);
+    }
+
+    const labelCell = summaryLabelRow.getCell(startColumn);
+    labelCell.value = item.label;
+    labelCell.font = { bold: true, size: 9 };
+    labelCell.alignment = {
+      horizontal: model.dir === 'rtl' ? 'right' : 'left',
+      vertical: 'middle',
+    };
+    labelCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF4F6F8' },
+    };
+
+    const valueCell = summaryValueRow.getCell(startColumn);
+    valueCell.value = item.value;
+    valueCell.font = { bold: true, size: index === 1 ? 13 : 11 };
+    valueCell.alignment = {
+      horizontal: model.dir === 'rtl' ? 'right' : 'left',
+      vertical: 'middle',
+      wrapText: true,
+    };
+    valueCell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFFAFBFC' },
+    };
+  });
+
+  const headerRow = worksheet.getRow(6);
   headerRow.values = model.columns;
   headerRow.font = { bold: true };
 
@@ -205,6 +282,7 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
   const t = useT();
   const { locale, dir } = useLocale();
   const { formatDate } = useFormat();
+  const copy = EXPORT_SUMMARY_COPY[locale];
   const { activeSchoolId, schools, requiresActiveSchool, switching } = useAdminSession();
   const [exporting, setExporting] = useState<ExportKind | null>(null);
 
@@ -270,6 +348,7 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
   async function fetchAggregation(): Promise<{
     items: CollectionReportAggregationRow[];
     summary: CollectionReportSummary;
+    paymentMethods: CollectionReportAggregationRow[];
   }> {
     const response = await api.get<unknown>(
       endpoints.admin.financeCollectionReportsAggregations,
@@ -281,35 +360,49 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
     return {
       items: aggregationRowsForDimension(payload.aggregations, filters.aggDimension),
       summary: payload.summary,
+      paymentMethods: payload.aggregations.by_payment_method ?? [],
     };
   }
 
-  function summaryRows(summary: CollectionReportSummary): ExportModel['summary'] {
+  function summaryRows(
+    summary: CollectionReportSummary,
+    paymentMethods: CollectionReportAggregationRow[],
+  ): ExportModel['summary'] {
     const currency = summary.currency_name ?? '';
+    const dateLabel = filters.dateMode === 'range' ? copy.period : copy.operationDate;
+    const dateValue =
+      filters.dateMode === 'range'
+        ? `${copy.from} ${formatDate(filters.dateFrom)} ${copy.to} ${formatDate(filters.dateTo)}`
+        : formatDate(filters.date);
+    const paymentMethodsValue = paymentMethods
+      .filter((row) => primaryAggregationAmount('payment_method', row) !== 0)
+      .map((row) => {
+        const label = paymentMethodLabel(String(row.id ?? row.display_name ?? ''), t);
+        const amount = formatMoney(
+          primaryAggregationAmount('payment_method', row),
+          currency,
+          locale,
+        );
+        return `${label} ${amount}`;
+      })
+      .join(' · ');
+
     return [
       {
-        label: t('admin.finance.collectionReports.summary.total'),
+        label: dateLabel,
+        value: dateValue || t('common.dash'),
+      },
+      {
+        label: copy.totalAmount,
         value: formatMoney(summary.total_confirmed_collections_amount, currency, locale),
       },
       {
-        label: t('admin.finance.collectionReports.summary.collectionsCount'),
+        label: copy.byPaymentMethod,
+        value: paymentMethodsValue || t('common.dash'),
+      },
+      {
+        label: copy.operations,
         value: summary.collections_count,
-      },
-      ...(summary.distinct_payers_count == null
-        ? []
-        : [
-            {
-              label: t('admin.finance.collectionReports.summary.payersCount'),
-              value: summary.distinct_payers_count,
-            },
-          ]),
-      {
-        label: t('admin.finance.collectionReports.summary.allocated'),
-        value: formatMoney(summary.allocated_amount, currency, locale),
-      },
-      {
-        label: t('admin.finance.collectionReports.summary.unallocated'),
-        value: formatMoney(summary.unallocated_amount, currency, locale),
       },
     ];
   }
@@ -317,6 +410,7 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
   function detailModel(
     items: CollectionReportDetailRow[],
     summary: CollectionReportSummary,
+    paymentMethods: CollectionReportAggregationRow[],
   ): ExportModel {
     const currency = summary.currency_name ?? '';
     return {
@@ -325,7 +419,7 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
       dir,
       lang: locale,
       currency,
-      summary: summaryRows(summary),
+      summary: summaryRows(summary, paymentMethods),
       columns: [
         t('admin.finance.collectionReports.columns.date'),
         t('admin.finance.collectionReports.columns.student'),
@@ -357,6 +451,7 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
   function aggregationModel(
     items: CollectionReportAggregationRow[],
     summary: CollectionReportSummary,
+    paymentMethods: CollectionReportAggregationRow[],
   ): ExportModel {
     const currency = summary.currency_name ?? '';
     return {
@@ -365,7 +460,7 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
       dir,
       lang: locale,
       currency,
-      summary: summaryRows(summary),
+      summary: summaryRows(summary, paymentMethods),
       columns: [
         t(`admin.finance.collectionReports.agg.${filters.aggDimension}.name`),
         t('admin.finance.collectionReports.agg.collectionsCount'),
@@ -392,10 +487,14 @@ export function CollectionReportsExportActions({ filters }: { filters: Collectio
   async function buildExportModel(): Promise<ExportModel> {
     if (filters.view === 'aggregations') {
       const result = await fetchAggregation();
-      return aggregationModel(result.items, result.summary);
+      return aggregationModel(result.items, result.summary, result.paymentMethods);
     }
-    const result = await fetchAllDetails();
-    return detailModel(result.items, result.summary);
+
+    const [details, aggregation] = await Promise.all([
+      fetchAllDetails(),
+      fetchAggregation(),
+    ]);
+    return detailModel(details.items, details.summary, aggregation.paymentMethods);
   }
 
   async function runExport(kind: ExportKind) {
