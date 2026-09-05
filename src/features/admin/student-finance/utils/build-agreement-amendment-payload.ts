@@ -19,6 +19,23 @@ function stripUndefined<T extends Record<string, unknown>>(obj: T): T {
   return out as T;
 }
 
+export function isSingleInstallmentAmendmentForm(form: AgreementAmendmentFormState): boolean {
+  const periodId = form.effectivePeriodId.trim();
+  return (
+    form.operationType === 'modify_line' &&
+    form.amendmentPath === 'period_range' &&
+    periodId !== '' &&
+    form.effectivePeriodEndId.trim() === periodId
+  );
+}
+
+function resolveFormPayloadOperationType(
+  form: AgreementAmendmentFormState,
+): AgreementAmendmentOperationType {
+  if (isSingleInstallmentAmendmentForm(form)) return 'adjust_installment_amount';
+  return resolvePayloadOperationType(form.operationType, form.amendmentPath);
+}
+
 function readLinePayload(
   operationType: AgreementAmendmentOperationType,
   form: AgreementAmendmentFormState,
@@ -75,7 +92,7 @@ export function buildAgreementAmendmentPreviewPayload(
   form: AgreementAmendmentFormState,
   selectedLine?: AgreementAmendmentLineOption | null,
 ): AgreementAmendmentRequestPayload {
-  const payloadOperationType = resolvePayloadOperationType(form.operationType, form.amendmentPath);
+  const payloadOperationType = resolveFormPayloadOperationType(form);
   const payload: AgreementAmendmentRequestPayload = {
     agreement_id: agreementId,
     operation_type: payloadOperationType,
