@@ -219,21 +219,11 @@ function receiptRemaining(receipt: FinanceReceipt): number | undefined {
   ]);
   if (direct != null) return direct;
 
-  const totalRemaining = firstMoney(readMeta(receipt.totals ?? receipt.snapshot?.totals), [
+  return firstMoney(readMeta(receipt.totals ?? receipt.snapshot?.totals), [
     'remaining_after_payment',
     'remaining_amount',
     'balance_after_payment',
   ]);
-  if (totalRemaining != null) return totalRemaining;
-
-  const rows = receiptRows(receipt);
-  const rowRemainings = rows
-    .map((row) => row.remaining_after_payment)
-    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
-  if (rows.length && rowRemainings.length === rows.length) {
-    return rowRemainings.reduce((sum, value) => sum + value, 0);
-  }
-  return undefined;
 }
 
 async function waitForReceiptImages(): Promise<void> {
