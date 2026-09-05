@@ -47,7 +47,9 @@ describe('AgreementAmendmentRangeRail scope selector', () => {
       />,
     );
 
-    expect(screen.getByRole('radio', { name: 'هذا الشهر وما بعده' })).toBeChecked();
+    expect(
+      (screen.getByRole('radio', { name: 'هذا الشهر وما بعده' }) as HTMLInputElement).checked,
+    ).toBe(true);
     fireEvent.click(screen.getByRole('radio', { name: 'هذا الشهر فقط' }));
     fireEvent.click(screen.getByRole('button', { name: /October 2026/i }));
 
@@ -70,7 +72,9 @@ describe('AgreementAmendmentRangeRail scope selector', () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByRole('radio', { name: 'هذا الشهر فقط' })).toBeChecked(),
+      expect(
+        (screen.getByRole('radio', { name: 'هذا الشهر فقط' }) as HTMLInputElement).checked,
+      ).toBe(true),
     );
     fireEvent.click(screen.getByRole('radio', { name: 'هذا الشهر وما بعده' }));
     expect(onEndSelect).toHaveBeenCalledWith('');
