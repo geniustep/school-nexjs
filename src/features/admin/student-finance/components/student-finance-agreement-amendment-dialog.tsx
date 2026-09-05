@@ -48,6 +48,7 @@ import {
   canSubmitAgreementAmendmentReason,
   usesPeriodRangeForForm,
 } from '../utils/build-agreement-amendment-payload';
+import { prepareAgreementAmendmentPayload } from '../utils/prepare-agreement-amendment-payload';
 import { normalizeAgreementAmendmentPreview } from '../utils/normalize-agreement-amendment-preview';
 import {
   resolveAmendmentAgreementLineOptions,
@@ -438,7 +439,22 @@ export function StudentFinanceAgreementAmendmentDialog({
     setPreview(null);
     setPreviewReady(false);
     const payload = buildAgreementAmendmentPreviewPayload(agreementId, form, selectedLine);
-    const res = await previewAgreementAmendment(studentId, payload);
+    const prepared = await prepareAgreementAmendmentPayload(studentId, payload);
+    if (!prepared.success) {
+      setPreviewLoading(false);
+      setPreview(null);
+      setPreviewReady(false);
+      setFormError(
+        resolveAgreementAmendmentErrorMessage(
+          prepared.error?.code,
+          prepared.error?.message,
+          t,
+          prepared.error,
+        ),
+      );
+      return;
+    }
+    const res = await previewAgreementAmendment(studentId, prepared.data);
     setPreviewLoading(false);
 
     if (!res.success) {
@@ -468,7 +484,21 @@ export function StudentFinanceAgreementAmendmentDialog({
 
     setApplyLoading(true);
     const payload = buildAgreementAmendmentApplyPayload(agreementId, form, selectedLine);
-    const res = await applyAgreementAmendment(studentId, payload);
+    const prepared = await prepareAgreementAmendmentPayload(studentId, payload);
+    if (!prepared.success) {
+      setApplyLoading(false);
+      setFormError(
+        resolveAgreementAmendmentErrorMessage(
+          prepared.error?.code,
+          prepared.error?.message,
+          t,
+          prepared.error,
+        ),
+      );
+      setShowApplyConfirm(false);
+      return;
+    }
+    const res = await applyAgreementAmendment(studentId, prepared.data);
     setApplyLoading(false);
 
     if (!res.success) {
@@ -694,6 +724,9 @@ export function StudentFinanceAgreementAmendmentDialog({
                     endPeriodId={form.effectivePeriodEndId}
                     loading={periodsLoading}
                     disabled={!canEdit}
+                    scopeSelectionEnabled={
+                      form.operationType === 'modify_line' && form.amendmentPath === 'period_range'
+                    }
                     onStartSelect={(periodId) => {
                       setForm((prev) => ({
                         ...prev,
