@@ -1,10 +1,35 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useT } from '@/features/i18n/locale-context';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { AgreementAmendmentPeriodOption } from '../types/agreement-amendment';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import { sortAgreementAmendmentPeriodOptions } from '../utils/sort-agreement-amendment-period-options';
+
+const SCOPE_COPY = {
+  ar: {
+    legend: 'نطاق التغيير',
+    single: 'هذا الشهر فقط',
+    future: 'هذا الشهر وما بعده',
+  },
+  fr: {
+    legend: 'Portée du changement',
+    single: 'Ce mois uniquement',
+    future: 'Ce mois et les suivants',
+  },
+  en: {
+    legend: 'Change scope',
+    single: 'This month only',
+    future: 'This month and later',
+  },
+  es: {
+    legend: 'Alcance del cambio',
+    single: 'Solo este mes',
+    future: 'Este mes y los siguientes',
+  },
+} as const;
+
+type AmendmentRangeScope = 'single' | 'future';
 
 function findPeriodIndex(periods: AgreementAmendmentPeriodOption[], periodId: string): number {
   return periods.findIndex((period) => String(period.id) === periodId);
@@ -27,6 +52,7 @@ export function AgreementAmendmentRangeRail({
   endPeriodId,
   loading,
   disabled,
+  scopeSelectionEnabled = false,
   onStartSelect,
   onEndSelect,
 }: {
@@ -35,11 +61,22 @@ export function AgreementAmendmentRangeRail({
   endPeriodId: string;
   loading?: boolean;
   disabled?: boolean;
+  scopeSelectionEnabled?: boolean;
   onStartSelect: (periodId: string) => void;
   onEndSelect: (periodId: string) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const scopeCopy = SCOPE_COPY[locale] ?? SCOPE_COPY.en;
+  const [scope, setScope] = useState<AmendmentRangeScope>('future');
   const sortedPeriods = useMemo(() => sortAgreementAmendmentPeriodOptions(periods), [periods]);
+
+  useEffect(() => {
+    if (!scopeSelectionEnabled || !startPeriodId) return;
+    setScope(endPeriodId === startPeriodId ? 'single' : 'future');
+  }, [scopeSelectionEnabled, startPeriodId, endPeriodId]);
+
+  const singleScopeActive = scopeSelectionEnabled && scope === 'single';
   const visualEndPeriodId = resolveVisualEndPeriodId(sortedPeriods, startPeriodId, endPeriodId);
 
   const startIndex = findPeriodIndex(sortedPeriods, startPeriodId);
@@ -48,9 +85,26 @@ export function AgreementAmendmentRangeRail({
   const rangeEnd =
     startIndex >= 0 && endIndex >= 0 ? Math.max(startIndex, endIndex) : startIndex >= 0 ? startIndex : -1;
 
+  function updateScope(nextScope: AmendmentRangeScope) {
+    setScope(nextScope);
+    if (!startPeriodId) return;
+    if (nextScope === 'single') {
+      onEndSelect(startPeriodId);
+      return;
+    }
+    if (endPeriodId === startPeriodId) onEndSelect('');
+  }
+
   function handlePeriodClick(period: AgreementAmendmentPeriodOption) {
     if (disabled || period.selectable === false) return;
     const periodId = String(period.id);
+
+    if (singleScopeActive) {
+      onStartSelect(periodId);
+      onEndSelect(periodId);
+      return;
+    }
+
     const clickedIndex = findPeriodIndex(sortedPeriods, periodId);
 
     if (!startPeriodId) {
@@ -84,6 +138,36 @@ export function AgreementAmendmentRangeRail({
 
   return (
     <div className="student-finance-amendment-range-rail">
+      {scopeSelectionEnabled ? (
+        <fieldset className="student-finance-amendment-path-selector">
+          <legend className="tiny muted">{scopeCopy.legend}</legend>
+          <div className="row">
+            <label className="student-finance-amendment-path-selector__option">
+              <input
+                type="radio"
+                name="amendmentRangeScope"
+                value="single"
+                checked={scope === 'single'}
+                onChange={() => updateScope('single')}
+                disabled={disabled}
+              />
+              {scopeCopy.single}
+            </label>
+            <label className="student-finance-amendment-path-selector__option">
+              <input
+                type="radio"
+                name="amendmentRangeScope"
+                value="future"
+                checked={scope === 'future'}
+                onChange={() => updateScope('future')}
+                disabled={disabled}
+              />
+              {scopeCopy.future}
+            </label>
+          </div>
+        </fieldset>
+      ) : null}
+
       <p className="tiny muted student-finance-amendment-range-rail__hint">
         {t('admin.student360.financeWorkspace.agreementAmendment.rangeRailHint')}
       </p>
@@ -126,7 +210,7 @@ export function AgreementAmendmentRangeRail({
                 <span className="student-finance-amendment-range-rail__label" dir="auto">
                   {label}
                 </span>
-                {isStart ? (
+                {isStart && !isEnd ? (
                   <span className="student-finance-amendment-range-rail__handle">
                     {t('admin.student360.financeWorkspace.agreementAmendment.fromMonth')}
                   </span>
@@ -138,7 +222,9 @@ export function AgreementAmendmentRangeRail({
                 ) : null}
                 {isStart && isEnd ? (
                   <span className="student-finance-amendment-range-rail__handle">
-                    {t('admin.student360.financeWorkspace.agreementAmendment.toEndOfYear')}
+                    {singleScopeActive
+                      ? scopeCopy.single
+                      : t('admin.student360.financeWorkspace.agreementAmendment.toEndOfYear')}
                   </span>
                 ) : null}
               </button>
@@ -150,11 +236,13 @@ export function AgreementAmendmentRangeRail({
         <p className="student-finance-amendment-range-rail__summary" dir="auto">
           {t('admin.student360.financeWorkspace.agreementAmendment.selectedPeriodRange')}:{' '}
           {formatAmendmentEffectivePeriodLabel(startPeriod, t)}
-          {endPeriod && endPeriod.id !== startPeriod.id
-            ? ` → ${formatAmendmentEffectivePeriodLabel(endPeriod, t)}`
-            : endPeriod
-              ? ` → ${t('admin.student360.financeWorkspace.agreementAmendment.toEndOfYear')}`
-              : ''}
+          {singleScopeActive
+            ? ` — ${scopeCopy.single}`
+            : endPeriod && endPeriod.id !== startPeriod.id
+              ? ` → ${formatAmendmentEffectivePeriodLabel(endPeriod, t)}`
+              : endPeriod
+                ? ` → ${t('admin.student360.financeWorkspace.agreementAmendment.toEndOfYear')}`
+                : ''}
         </p>
       ) : null}
       <p className="tiny muted student-finance-amendment-range-rail__backend-note">
