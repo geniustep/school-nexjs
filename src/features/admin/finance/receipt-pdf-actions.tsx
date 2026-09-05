@@ -8,6 +8,7 @@ import {
   previewReceiptPdf,
   type ReceiptPdfLang,
 } from '@/lib/api/finance-receipt';
+import { buildReceiptHtmlPrintPath } from '@/lib/utils/finance-receipt-html-print';
 import { receiptAllowsAction } from '@/lib/utils/normalize-finance-receipt';
 import type { ReceiptPrintLayout } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
@@ -27,6 +28,16 @@ function dualA6FamilyReceiptLabel(locale: string): string {
     default:
       return 'Dual family receipt — A5';
   }
+}
+
+function htmlDoubleReceiptLabel(locale: string): string {
+  return locale === 'fr' ? 'Imprimer le reçu A5 — HTML' : 'طباعة وصل A5 مزدوج — HTML';
+}
+
+function popupBlockedMessage(locale: string): string {
+  return locale === 'fr'
+    ? "La fenêtre d’impression a été bloquée. Autorisez les fenêtres contextuelles puis réessayez."
+    : 'تم منع نافذة الطباعة المنبثقة. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.';
 }
 
 function ReceiptPrintSegmentedControl<T extends string>({
@@ -77,6 +88,7 @@ export function ReceiptPdfActions({
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | null>(null);
   const canDownload =
     receiptAllowsAction(receipt, 'download') || receiptAllowsAction(receipt, 'print');
+  const htmlPrintHref = buildReceiptHtmlPrintPath(receipt.id, lang);
 
   const runPdfAction = useCallback(
     async (action: 'preview' | 'download') => {
@@ -96,6 +108,31 @@ export function ReceiptPdfActions({
     },
     [busyAction, canDownload, lang, printLayout, receipt, t, toast],
   );
+
+  const openHtmlPrintPopup = useCallback(() => {
+    if (!canDownload) return;
+    const screenWidth = window.screen?.availWidth || 1200;
+    const screenHeight = window.screen?.availHeight || 900;
+    const width = Math.min(920, Math.max(720, screenWidth - 80));
+    const height = Math.min(1080, Math.max(760, screenHeight - 80));
+    const left = Math.max(0, Math.round((screenWidth - width) / 2));
+    const top = Math.max(0, Math.round((screenHeight - height) / 2));
+    const features = [
+      'popup=yes',
+      'resizable=yes',
+      'scrollbars=yes',
+      `width=${width}`,
+      `height=${height}`,
+      `left=${left}`,
+      `top=${top}`,
+    ].join(',');
+    const popup = window.open(htmlPrintHref, `raqeem-receipt-print-${receipt.id}`, features);
+    if (!popup) {
+      toast.error(popupBlockedMessage(locale));
+      return;
+    }
+    popup.focus();
+  }, [canDownload, htmlPrintHref, locale, receipt.id, toast]);
 
   if (!canDownload) return null;
 
@@ -142,6 +179,14 @@ export function ReceiptPdfActions({
       <div className="receipt-print-panel__actions">
         <button
           type="button"
+          className="btn btn--primary btn--sm"
+          title="HTML · A5 · 2 × A6"
+          onClick={openHtmlPrintPopup}
+        >
+          {htmlDoubleReceiptLabel(locale)}
+        </button>
+        <button
+          type="button"
           className="btn btn--ghost btn--sm"
           disabled={busyAction != null}
           onClick={() => void runPdfAction('preview')}
@@ -153,7 +198,7 @@ export function ReceiptPdfActions({
         </button>
         <button
           type="button"
-          className="btn btn--primary btn--sm"
+          className="btn btn--ghost btn--sm"
           disabled={busyAction != null}
           onClick={() => void runPdfAction('download')}
           aria-busy={busyAction === 'download'}
