@@ -1,0 +1,24 @@
+@media print {
+  html:has(body .receipt-html-print-page),
+  body:has(.receipt-html-print-page) {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body:has(.receipt-html-print-page) .receipt-html-print-page {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  body:has(.receipt-html-print-page) .receipt-html-sheet {
+    height: 205mm !important;
+    margin: 2.5mm auto 0 !important;
+    grid-template-rows: 98.5mm 2mm 98.5mm !important;
+  }
+
+  body:has(.receipt-html-print-page) .receipt-html-cut-line {
+    height: 2mm !important;
+    min-height: 0 !important;
+    align-self: center !important;
+  }
+}
