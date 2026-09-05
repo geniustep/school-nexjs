@@ -23,6 +23,14 @@ function normalizeNumberId(value: unknown): number | undefined {
   return undefined;
 }
 
+function firstString(source: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
 /** Preserve order; drop non-numeric entries without throwing. */
 function normalizeInvolvedStudentIds(value: unknown): number[] | undefined {
   if (!Array.isArray(value)) return undefined;
@@ -77,8 +85,10 @@ function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
   const remainingAfter =
     normalizeMoneyValue(source.remaining_after_payment) ??
     normalizeMoneyValue(source.remaining_after) ??
+    normalizeMoneyValue(source.balance_after_payment) ??
     undefined;
-  return {
+
+  const row: FinanceReceiptAllocation & Record<string, unknown> = {
     id: typeof source.id === 'number' ? source.id : undefined,
     installment_id: typeof source.installment_id === 'number' ? source.installment_id : undefined,
     student_fee_id: typeof source.student_fee_id === 'number' ? source.student_fee_id : undefined,
@@ -98,16 +108,22 @@ function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
     is_partial: source.is_partial === true || (amount != null && remainingAfter != null && remainingAfter > 0),
     remaining_after_payment: remainingAfter,
   };
+
+  const massar = firstString(source, ['massar', 'massar_number', 'massar_code', 'massar_id']);
+  const schoolNumber = firstString(source, ['school_number', 'student_code', 'code']);
+  const className = firstString(source, ['class_name', 'section_name', 'classroom_name']);
+  const levelName = firstString(source, ['level_name', 'grade_name']);
+  if (massar) row.massar = massar;
+  if (schoolNumber) row.school_number = schoolNumber;
+  if (className) row.class_name = className;
+  if (levelName) row.level_name = levelName;
+
+  return row;
 }
 
 function normalizeReceiptChild(raw: unknown): FinanceReceiptChildBreakdown | null {
   if (!raw || typeof raw !== 'object') return null;
   const source = raw as Record<string, unknown>;
-  const allocations = Array.isArray(source.allocations)
-    ? source.allocations
-        .map(normalizeAllocation)
-        .filter((row): row is FinanceReceiptAllocation => row != null)
-    : undefined;
   const studentId =
     typeof source.student_id === 'number'
       ? source.student_id
@@ -120,14 +136,49 @@ function normalizeReceiptChild(raw: unknown): FinanceReceiptChildBreakdown | nul
       : typeof source.name === 'string'
         ? source.name
         : undefined;
+  const massar = firstString(source, ['massar', 'massar_number', 'massar_code', 'massar_id']);
+  const schoolNumber = firstString(source, ['school_number', 'student_code', 'code']);
+  const className = firstString(source, ['class_name', 'section_name', 'classroom_name']);
+  const levelName = firstString(source, ['level_name', 'grade_name']);
+
+  const allocations = Array.isArray(source.allocations)
+    ? source.allocations
+        .map(normalizeAllocation)
+        .filter((row): row is FinanceReceiptAllocation => row != null)
+        .map((row) => {
+          const enriched = row as FinanceReceiptAllocation & Record<string, unknown>;
+          if (!enriched.student_id && studentId) enriched.student_id = studentId;
+          if (!enriched.student_name && studentName) enriched.student_name = studentName;
+          if (!enriched.massar && massar) enriched.massar = massar;
+          if (!enriched.school_number && schoolNumber) enriched.school_number = schoolNumber;
+          if (!enriched.class_name && className) enriched.class_name = className;
+          if (!enriched.level_name && levelName) enriched.level_name = levelName;
+          return row;
+        })
+    : undefined;
+
   if (studentId == null && !studentName && !allocations?.length) return null;
-  return {
+
+  const child: FinanceReceiptChildBreakdown & Record<string, unknown> = {
     student_id: studentId,
     student_name: studentName,
     allocated_amount: normalizeMoneyValue(source.allocated_amount) ?? undefined,
     unallocated_amount: normalizeMoneyValue(source.unallocated_amount) ?? undefined,
     allocations,
   };
+  if (massar) child.massar = massar;
+  if (schoolNumber) child.school_number = schoolNumber;
+  if (className) child.class_name = className;
+  if (levelName) child.level_name = levelName;
+
+  const remaining =
+    normalizeMoneyValue(source.remaining_after_payment) ??
+    normalizeMoneyValue(source.remaining_amount) ??
+    normalizeMoneyValue(source.balance_after_payment) ??
+    undefined;
+  if (remaining != null) child.remaining_after_payment = remaining;
+
+  return child;
 }
 
 function normalizeReceiptChildren(raw: unknown): FinanceReceiptChildBreakdown[] | undefined {
@@ -141,13 +192,20 @@ function normalizeReceiptChildren(raw: unknown): FinanceReceiptChildBreakdown[] 
 function normalizeTotals(raw: unknown): FinanceReceiptTotals | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   const source = raw as Record<string, unknown>;
-  return {
+  const totals: FinanceReceiptTotals & Record<string, unknown> = {
     collection_amount: normalizeMoneyValue(source.collection_amount) ?? undefined,
     allocated_amount: normalizeMoneyValue(source.allocated_amount) ?? undefined,
     unallocated_amount: normalizeMoneyValue(source.unallocated_amount) ?? undefined,
     allocation_status:
       typeof source.allocation_status === 'string' ? source.allocation_status : undefined,
   };
+  const remaining =
+    normalizeMoneyValue(source.remaining_after_payment) ??
+    normalizeMoneyValue(source.remaining_amount) ??
+    normalizeMoneyValue(source.balance_after_payment) ??
+    undefined;
+  if (remaining != null) totals.remaining_after_payment = remaining;
+  return totals;
 }
 
 function normalizeSnapshot(raw: unknown): FinanceReceiptSnapshot | undefined {
@@ -232,11 +290,10 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
   const totals = normalizeTotals(source.totals);
   const snapshot = normalizeSnapshot(source.snapshot);
   const settlementRaw = readRecord(source.settlement);
-  const children =
-    normalizeReceiptChildren(source.children) ?? snapshot?.children;
+  const children = normalizeReceiptChildren(source.children) ?? snapshot?.children;
   const childrenCount = resolveChildrenCount(source.children_count, children);
 
-  return {
+  const receipt: FinanceReceipt & Record<string, unknown> = {
     id: source.id,
     number: typeof source.number === 'string' ? source.number : undefined,
     receipt_number:
@@ -316,6 +373,16 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
         ? source.currency
         : snapshot?.collection?.currency,
   };
+
+  const remaining =
+    normalizeMoneyValue(source.remaining_after_payment) ??
+    normalizeMoneyValue(source.remaining_amount) ??
+    normalizeMoneyValue(source.balance_after_payment) ??
+    normalizeMoneyValue((totals as Record<string, unknown> | undefined)?.remaining_after_payment) ??
+    undefined;
+  if (remaining != null) receipt.remaining_after_payment = remaining;
+
+  return receipt;
 }
 
 export function parseFinanceReceiptList(data: unknown): FinanceReceipt[] {
