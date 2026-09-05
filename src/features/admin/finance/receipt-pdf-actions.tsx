@@ -8,6 +8,7 @@ import {
   previewReceiptPdf,
   type ReceiptPdfLang,
 } from '@/lib/api/finance-receipt';
+import { buildReceiptHtmlPrintPath } from '@/lib/utils/finance-receipt-html-print';
 import { receiptAllowsAction } from '@/lib/utils/normalize-finance-receipt';
 import type { ReceiptPrintLayout } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
@@ -27,6 +28,10 @@ function dualA6FamilyReceiptLabel(locale: string): string {
     default:
       return 'Dual family receipt — A5';
   }
+}
+
+function htmlDoubleReceiptLabel(locale: string): string {
+  return locale === 'fr' ? 'Imprimer le reçu A5 — HTML' : 'طباعة وصل A5 مزدوج — HTML';
 }
 
 function ReceiptPrintSegmentedControl<T extends string>({
@@ -77,6 +82,7 @@ export function ReceiptPdfActions({
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | null>(null);
   const canDownload =
     receiptAllowsAction(receipt, 'download') || receiptAllowsAction(receipt, 'print');
+  const htmlPrintHref = buildReceiptHtmlPrintPath(receipt.id, defaultReceiptLang(locale));
 
   const runPdfAction = useCallback(
     async (action: 'preview' | 'download') => {
@@ -140,6 +146,15 @@ export function ReceiptPdfActions({
         />
       </div>
       <div className="receipt-print-panel__actions">
+        <a
+          href={htmlPrintHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn--primary btn--sm"
+          title="HTML · A5 · 2 × A6"
+        >
+          {htmlDoubleReceiptLabel(locale)}
+        </a>
         <button
           type="button"
           className="btn btn--ghost btn--sm"
@@ -153,7 +168,7 @@ export function ReceiptPdfActions({
         </button>
         <button
           type="button"
-          className="btn btn--primary btn--sm"
+          className="btn btn--ghost btn--sm"
           disabled={busyAction != null}
           onClick={() => void runPdfAction('download')}
           aria-busy={busyAction === 'download'}
