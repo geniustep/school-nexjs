@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useMemo, useRef } from 'react';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
@@ -183,6 +183,77 @@ function receiptAllocationRows(receipt: FinanceReceipt): FinanceReceiptAllocatio
   );
 }
 
+async function waitForReceiptImages(): Promise<void> {
+  const images = Array.from(
+    document.querySelectorAll<HTMLImageElement>('img[data-receipt-print-image="school-logo"]'),
+  );
+
+  await Promise.all(
+    images.map(async (image) => {
+      if (!image.complete) {
+        await new Promise<void>((resolve) => {
+          let done = false;
+          const finish = () => {
+            if (done) return;
+            done = true;
+            resolve();
+          };
+          image.addEventListener('load', finish, { once: true });
+          image.addEventListener('error', finish, { once: true });
+          window.setTimeout(finish, 2500);
+        });
+      }
+
+      if (image.complete && image.naturalWidth > 0 && typeof image.decode === 'function') {
+        try {
+          await image.decode();
+        } catch {
+          // Rendering can continue with the already-loaded image or the visual fallback.
+        }
+      }
+    }),
+  );
+}
+
+function SchoolReceiptMark({
+  schoolName,
+  schoolCode,
+}: {
+  schoolName: string;
+  schoolCode: string | null;
+}) {
+  const [logoFailed, setLogoFailed] = useState(false);
+  const schoolInitial = schoolName.trim().charAt(0) || 'R';
+  const displayCode = schoolCode || 'R';
+  const logoUrl = schoolCode
+    ? `/api/public/school-branding/logo?school_code=${encodeURIComponent(schoolCode)}`
+    : null;
+
+  return (
+    <div className="receipt-html-school-mark" aria-label={schoolName}>
+      {logoUrl && !logoFailed ? (
+        <img
+          src={logoUrl}
+          alt={`شعار ${schoolName}`}
+          data-receipt-print-image="school-logo"
+          onError={() => setLogoFailed(true)}
+          style={{
+            width: '22mm',
+            height: '17mm',
+            maxWidth: '22mm',
+            objectFit: 'contain',
+            objectPosition: 'center',
+            display: 'block',
+          }}
+        />
+      ) : (
+        <span>{schoolInitial}</span>
+      )}
+      <small dir="ltr">{displayCode}</small>
+    </div>
+  );
+}
+
 function Fact({
   icon,
   ar,
@@ -238,8 +309,7 @@ function ReceiptCopy({
   const paymentDate = snapshot?.collection?.payment_date ?? receipt.issued_at;
   const receiptNumber = receipt.number ?? receipt.receipt_number ?? `#${receipt.id}`;
   const schoolName = school?.name ?? 'Raqeem School';
-  const schoolCode = school?.code?.trim() || String(receipt.school_id ?? 'R');
-  const schoolInitial = schoolName.trim().charAt(0) || 'R';
+  const schoolCode = school?.code?.trim() || null;
   const issuer = issuedByName(receipt) ?? '—';
   const method = paymentMethodLabel(receipt.payment_method);
   const density = allocations.length > 9 ? 'dense' : allocations.length > 5 ? 'compact' : 'normal';
@@ -263,10 +333,7 @@ function ReceiptCopy({
           <span>Reçu de Paiement</span>
         </div>
 
-        <div className="receipt-html-school-mark" aria-label={schoolName}>
-          <span>{schoolInitial}</span>
-          <small dir="ltr">{schoolCode}</small>
-        </div>
+        <SchoolReceiptMark schoolName={schoolName} schoolCode={schoolCode} />
       </header>
 
       <section className="receipt-html-overview">
@@ -398,14 +465,27 @@ export default function AdminFinanceReceiptHtmlPrintPage({
   }, [receipt]);
 
   useEffect(() => {
-    if (!autoPrint || !canPrint || printedRef.current) return;
+    if (!autoPrint || !canPrint || !receipt || printedRef.current) return;
+    let cancelled = false;
     const timer = window.setTimeout(() => {
-      if (printedRef.current) return;
-      printedRef.current = true;
-      window.print();
-    }, 900);
-    return () => window.clearTimeout(timer);
-  }, [autoPrint, canPrint]);
+      void (async () => {
+        await waitForReceiptImages();
+        if (cancelled || printedRef.current) return;
+        printedRef.current = true;
+        window.print();
+      })();
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [autoPrint, canPrint, receipt]);
+
+  const handlePrint = async () => {
+    await waitForReceiptImages();
+    window.print();
+  };
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
@@ -416,7 +496,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
             <span>A5 · نسختان · HTML</span>
           </div>
           <div className="receipt-html-print-toolbar__actions">
-            <button type="button" className="btn btn--primary" onClick={() => window.print()}>
+            <button type="button" className="btn btn--primary" onClick={() => void handlePrint()}>
               {text.print}
             </button>
             <button type="button" className="btn btn--ghost" onClick={() => window.close()}>
