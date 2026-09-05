@@ -63,13 +63,14 @@ describe('normalize-finance-receipt', () => {
     expect(receiptAllowsAction(receipt, 'issue')).toBe(false);
   });
 
-  it('preserves multi-student children snapshot breakdown', () => {
+  it('preserves multi-student children snapshot breakdown and student print metadata', () => {
     const receipt = normalizeFinanceReceipt({
       id: 88,
       number: 'PAY/2026/000100',
       state: 'issued',
       collection_amount: 5000,
       allocated_amount: 5000,
+      remaining_after_payment: 600,
       is_multi_student: true,
       collection_scope: 'family',
       involved_student_ids: [6857, 6858],
@@ -82,19 +83,23 @@ describe('normalize-finance-receipt', () => {
           {
             student_id: 1,
             student_name: 'أحمد العلوي',
+            massar_number: 'G123456789',
+            class_name: 'السادس أ',
             allocated_amount: 2500,
             allocations: [
-              { description: 'التسجيل', amount: 1500 },
-              { description: 'قسط شتنبر', amount: 1000 },
+              { description: 'التسجيل', amount: 1500, remaining_after_payment: 0 },
+              { description: 'قسط شتنبر', amount: 1000, remaining_after_payment: 300 },
             ],
           },
           {
             student_id: 2,
             student_name: 'سلمى العلوي',
+            massar: 'H987654321',
+            section_name: 'الرابع ب',
             allocated_amount: 2500,
             allocations: [
-              { description: 'التسجيل', amount: 1500 },
-              { description: 'قسط شتنبر', amount: 1000 },
+              { description: 'التسجيل', amount: 1500, remaining_after_payment: 0 },
+              { description: 'قسط شتنبر', amount: 1000, remaining_after_payment: 300 },
             ],
           },
         ],
@@ -110,6 +115,21 @@ describe('normalize-finance-receipt', () => {
     expect(receipt?.children?.[0]?.student_name).toBe('أحمد العلوي');
     expect(receipt?.children?.[0]?.allocations).toHaveLength(2);
     expect(receipt?.children?.[1]?.allocated_amount).toBe(2500);
+
+    const firstChild = receipt?.children?.[0] as unknown as Record<string, unknown>;
+    const secondChild = receipt?.children?.[1] as unknown as Record<string, unknown>;
+    const firstAllocation = receipt?.children?.[0]?.allocations?.[1] as unknown as Record<string, unknown>;
+    const normalizedReceipt = receipt as unknown as Record<string, unknown>;
+
+    expect(firstChild.massar).toBe('G123456789');
+    expect(firstChild.class_name).toBe('السادس أ');
+    expect(secondChild.massar).toBe('H987654321');
+    expect(secondChild.class_name).toBe('الرابع ب');
+    expect(firstAllocation.student_name).toBe('أحمد العلوي');
+    expect(firstAllocation.massar).toBe('G123456789');
+    expect(firstAllocation.class_name).toBe('السادس أ');
+    expect(firstAllocation.remaining_after_payment).toBe(300);
+    expect(normalizedReceipt.remaining_after_payment).toBe(600);
   });
 
   it('falls back children_count from children length and drops invalid involved ids', () => {
