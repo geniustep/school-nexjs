@@ -15,22 +15,38 @@ import {
   normalizeReceiptHtmlPrintLang,
   type ReceiptHtmlPrintLang,
 } from '@/lib/utils/finance-receipt-html-print';
-import type { FinanceReceipt, FinanceReceiptAllocation } from '@/types/finance';
+import type {
+  FinanceReceipt,
+  FinanceReceiptAllocation,
+} from '@/types/finance';
 import './receipt-html-print.css';
 
 type CopyKind = 'admin' | 'payer';
-type ReceiptIconName = 'calendar' | 'clock' | 'wallet' | 'user' | 'phone' | 'pin' | 'mail';
+type MetaRecord = Record<string, unknown>;
+
+type StudentDisplay = {
+  id?: number;
+  name: string;
+  massar?: string;
+  schoolNumber?: string;
+  className?: string;
+  levelName?: string;
+};
+
+type ReceiptRow = FinanceReceiptAllocation & {
+  studentDisplay: StudentDisplay;
+};
 
 const UI_TEXT = {
   ar: {
-    preview: 'معاينة وصل الأداء',
+    preview: 'معاينة الوصل',
     print: 'طباعة الوصل',
     close: 'إغلاق',
     unavailable: 'هذا الوصل غير متاح للطباعة.',
     noLines: 'لا توجد تفاصيل توزيع مرفقة بهذا الوصل.',
   },
   fr: {
-    preview: 'Aperçu du reçu de paiement',
+    preview: 'Aperçu du reçu',
     print: 'Imprimer le reçu',
     close: 'Fermer',
     unavailable: "Ce reçu n’est pas disponible à l’impression.",
@@ -38,78 +54,27 @@ const UI_TEXT = {
   },
 } as const;
 
-function ReceiptIcon({ name }: { name: ReceiptIconName }) {
-  const common = {
-    width: 18,
-    height: 18,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true,
-  };
-
-  switch (name) {
-    case 'calendar':
-      return (
-        <svg {...common}>
-          <rect x="3" y="5" width="18" height="16" rx="2" />
-          <path d="M8 3v4M16 3v4M3 10h18" />
-        </svg>
-      );
-    case 'clock':
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 2" />
-        </svg>
-      );
-    case 'wallet':
-      return (
-        <svg {...common}>
-          <path d="M4 7.5h15a2 2 0 0 1 2 2v8.5H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12" />
-          <path d="M16 11h5v4h-5a2 2 0 0 1 0-4Z" />
-        </svg>
-      );
-    case 'user':
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21a8 8 0 0 1 16 0" />
-        </svg>
-      );
-    case 'phone':
-      return (
-        <svg {...common}>
-          <path d="M6.6 3.8 9 3l2 5-1.8 1.1a14 14 0 0 0 5.7 5.7L16 13l5 2-1 2.4a3 3 0 0 1-3.2 1.8A16.5 16.5 0 0 1 4.8 7a3 3 0 0 1 1.8-3.2Z" />
-        </svg>
-      );
-    case 'pin':
-      return (
-        <svg {...common}>
-          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-          <circle cx="12" cy="10" r="2.5" />
-        </svg>
-      );
-    case 'mail':
-      return (
-        <svg {...common}>
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="m4 7 8 6 8-6" />
-        </svg>
-      );
-  }
+function readMeta(value: unknown): MetaRecord {
+  return value && typeof value === 'object' ? (value as MetaRecord) : {};
 }
 
-function bilingual(ar: string, fr: string) {
-  return (
-    <span className="receipt-html-bi-label">
-      <b>{ar}</b>
-      <small>{fr}</small>
-    </span>
-  );
+function firstString(source: MetaRecord, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+function firstMoney(source: MetaRecord, keys: string[]): number | undefined {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) {
+      return Number(value);
+    }
+  }
+  return undefined;
 }
 
 function formatDate(value: string | null | undefined, lang: ReceiptHtmlPrintLang): string {
@@ -120,17 +85,6 @@ function formatDate(value: string | null | undefined, lang: ReceiptHtmlPrintLang
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(date);
-}
-
-function formatTime(value: string | null | undefined, lang: ReceiptHtmlPrintLang): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
   }).format(date);
 }
 
@@ -147,47 +101,135 @@ function formatMoney(
   return `${value} ${currency || 'MAD'}`;
 }
 
-function paymentMethodLabel(method: string | undefined): { ar: string; fr: string } {
+function paymentMethodLabel(method: string | undefined): string {
   const normalized = (method ?? '').trim().toLowerCase();
-  const labels: Record<string, { ar: string; fr: string }> = {
-    cash: { ar: 'نقدًا', fr: 'Espèces' },
-    cheque: { ar: 'شيك', fr: 'Chèque' },
-    check: { ar: 'شيك', fr: 'Chèque' },
-    transfer: { ar: 'تحويل بنكي', fr: 'Virement' },
-    bank: { ar: 'تحويل بنكي', fr: 'Virement' },
-    card: { ar: 'بطاقة', fr: 'Carte' },
+  const labels: Record<string, string> = {
+    cash: 'نقدًا',
+    cheque: 'شيك',
+    check: 'شيك',
+    transfer: 'تحويل بنكي',
+    bank: 'تحويل بنكي',
+    card: 'بطاقة',
   };
-  return labels[normalized] ?? { ar: method || '—', fr: method || '—' };
+  return labels[normalized] ?? method ?? '—';
 }
 
 function issuedByName(receipt: FinanceReceipt): string | null {
   if (typeof receipt.issued_by === 'string') return receipt.issued_by;
   if (receipt.issued_by && typeof receipt.issued_by === 'object') {
     const name = (receipt.issued_by as { name?: unknown }).name;
-    if (typeof name === 'string' && name.trim()) return name;
+    if (typeof name === 'string' && name.trim()) return name.trim();
   }
   return receipt.snapshot?.audit?.created_by ?? null;
 }
 
-function receiptAllocationRows(receipt: FinanceReceipt): FinanceReceiptAllocation[] {
-  const direct = receipt.allocations ?? receipt.snapshot?.allocations ?? [];
-  if (direct.length) return direct;
+function studentDisplayFrom(
+  sourceValue: unknown,
+  fallbackName = '—',
+  fallbackId?: number,
+): StudentDisplay {
+  const source = readMeta(sourceValue);
+  return {
+    id:
+      typeof source.student_id === 'number'
+        ? source.student_id
+        : typeof source.id === 'number'
+          ? source.id
+          : fallbackId,
+    name:
+      firstString(source, ['student_name', 'name', 'full_name', 'display_name']) ?? fallbackName,
+    massar: firstString(source, ['massar', 'massar_number', 'massar_code', 'massar_id']),
+    schoolNumber: firstString(source, ['school_number', 'student_code', 'code']),
+    className: firstString(source, ['class_name', 'section_name', 'classroom_name']),
+    levelName: firstString(source, ['level_name', 'grade_name']),
+  };
+}
 
+function mergeStudentDisplay(primary: StudentDisplay, fallback: StudentDisplay): StudentDisplay {
+  return {
+    id: primary.id ?? fallback.id,
+    name: primary.name !== '—' ? primary.name : fallback.name,
+    massar: primary.massar ?? fallback.massar,
+    schoolNumber: primary.schoolNumber ?? fallback.schoolNumber,
+    className: primary.className ?? fallback.className,
+    levelName: primary.levelName ?? fallback.levelName,
+  };
+}
+
+function childrenDisplay(receipt: FinanceReceipt): StudentDisplay[] {
   const children = receipt.children ?? receipt.snapshot?.children ?? [];
-  return children.flatMap((child) =>
-    (child.allocations ?? []).map((line) => ({
-      ...line,
-      student_name: line.student_name ?? child.student_name,
-      student_id: line.student_id ?? child.student_id,
-    })),
-  );
+  if (children.length) {
+    return children.map((child) =>
+      studentDisplayFrom(child, child.student_name ?? '—', child.student_id),
+    );
+  }
+
+  const snapshotStudent = receipt.snapshot?.student;
+  if (snapshotStudent || receipt.student_name) {
+    return [
+      studentDisplayFrom(
+        snapshotStudent,
+        receipt.student_name ?? snapshotStudent?.name ?? '—',
+        receipt.student_id,
+      ),
+    ];
+  }
+  return [];
+}
+
+function receiptRows(receipt: FinanceReceipt): ReceiptRow[] {
+  const children = receipt.children ?? receipt.snapshot?.children ?? [];
+  const childRows = children.flatMap((child) => {
+    const childDisplay = studentDisplayFrom(child, child.student_name ?? '—', child.student_id);
+    return (child.allocations ?? []).map((allocation) => ({
+      ...allocation,
+      studentDisplay: mergeStudentDisplay(
+        studentDisplayFrom(
+          allocation,
+          allocation.student_name ?? childDisplay.name,
+          allocation.student_id ?? childDisplay.id,
+        ),
+        childDisplay,
+      ),
+    }));
+  });
+
+  // Family receipts prefer the child breakdown because flat allocations may omit sibling identity.
+  if (childRows.length) return childRows;
+
+  const direct = receipt.allocations ?? receipt.snapshot?.allocations ?? [];
+  const fallback = childrenDisplay(receipt)[0] ?? {
+    id: receipt.student_id,
+    name: receipt.student_name ?? '—',
+  };
+  return direct.map((allocation) => ({
+    ...allocation,
+    studentDisplay: mergeStudentDisplay(
+      studentDisplayFrom(allocation, allocation.student_name ?? fallback.name, allocation.student_id),
+      fallback,
+    ),
+  }));
+}
+
+function receiptRemaining(receipt: FinanceReceipt): number | undefined {
+  const direct = firstMoney(readMeta(receipt), [
+    'remaining_after_payment',
+    'remaining_amount',
+    'balance_after_payment',
+  ]);
+  if (direct != null) return direct;
+
+  return firstMoney(readMeta(receipt.totals ?? receipt.snapshot?.totals), [
+    'remaining_after_payment',
+    'remaining_amount',
+    'balance_after_payment',
+  ]);
 }
 
 async function waitForReceiptImages(): Promise<void> {
   const images = Array.from(
     document.querySelectorAll<HTMLImageElement>('img[data-receipt-print-image="school-logo"]'),
   );
-
   await Promise.all(
     images.map(async (image) => {
       if (!image.complete) {
@@ -203,80 +245,74 @@ async function waitForReceiptImages(): Promise<void> {
           window.setTimeout(finish, 2500);
         });
       }
-
       if (image.complete && image.naturalWidth > 0 && typeof image.decode === 'function') {
         try {
           await image.decode();
         } catch {
-          // Rendering can continue with the already-loaded image or the visual fallback.
+          // Printing can continue with the browser-rendered image or visual fallback.
         }
       }
     }),
   );
 }
 
-function SchoolReceiptMark({
-  schoolName,
-  schoolCode,
-}: {
-  schoolName: string;
-  schoolCode: string | null;
-}) {
+function SchoolIdentity({ schoolName, schoolCode }: { schoolName: string; schoolCode: string | null }) {
   const [logoFailed, setLogoFailed] = useState(false);
-  const schoolInitial = schoolName.trim().charAt(0) || 'R';
-  const displayCode = schoolCode || 'R';
+  const initial = schoolName.trim().charAt(0) || 'ر';
   const logoUrl = schoolCode
     ? `/api/public/school-branding/logo?school_code=${encodeURIComponent(schoolCode)}`
     : null;
 
   return (
-    <div className="receipt-html-school-mark" aria-label={schoolName}>
+    <div className="receipt-school-identity" aria-label={schoolName}>
       {logoUrl && !logoFailed ? (
         <img
           src={logoUrl}
           alt={`شعار ${schoolName}`}
           data-receipt-print-image="school-logo"
           onError={() => setLogoFailed(true)}
-          style={{
-            width: '22mm',
-            height: '17mm',
-            maxWidth: '22mm',
-            objectFit: 'contain',
-            objectPosition: 'center',
-            display: 'block',
-          }}
         />
       ) : (
-        <span>{schoolInitial}</span>
+        <span className="receipt-school-identity__fallback">{initial}</span>
       )}
-      <small dir="ltr">{displayCode}</small>
+      <strong dir="auto">{schoolName}</strong>
     </div>
   );
 }
 
-function Fact({
-  icon,
-  ar,
-  fr,
-  value,
-  secondary,
-}: {
-  icon: ReceiptIconName;
-  ar: string;
-  fr: string;
-  value: string;
-  secondary?: string;
-}) {
+function StudentMeta({ student }: { student: StudentDisplay }) {
+  const details = [
+    student.className ? `القسم: ${student.className}` : null,
+    student.massar ? `مسار: ${student.massar}` : null,
+  ].filter((value): value is string => !!value);
+
   return (
-    <div className="receipt-html-fact">
-      <span className="receipt-html-fact__icon">
-        <ReceiptIcon name={icon} />
-      </span>
-      <span className="receipt-html-fact__text">
-        {bilingual(ar, fr)}
-        <strong dir="auto">{value}</strong>
-        {secondary ? <small dir="auto">{secondary}</small> : null}
-      </span>
+    <div className="receipt-student-cell">
+      <strong dir="auto">{student.name}</strong>
+      {details.length ? (
+        <small>
+          {details.map((detail, index) => (
+            <span key={detail} dir={detail.startsWith('مسار:') ? 'ltr' : 'auto'}>
+              {index ? ' · ' : ''}{detail}
+            </span>
+          ))}
+        </small>
+      ) : student.schoolNumber ? (
+        <small dir="ltr">{student.schoolNumber}</small>
+      ) : null}
+    </div>
+  );
+}
+
+function SiblingRoster({ students }: { students: StudentDisplay[] }) {
+  if (students.length <= 1) return null;
+  return (
+    <div className="receipt-siblings" aria-label="التلاميذ المشمولون في الوصل">
+      {students.map((student, index) => (
+        <div className="receipt-siblings__student" key={`${student.id ?? student.name}-${index}`}>
+          <StudentMeta student={student} />
+        </div>
+      ))}
     </div>
   );
 }
@@ -292,14 +328,8 @@ function ReceiptCopy({
 }) {
   const snapshot = receipt.snapshot;
   const school = snapshot?.school;
-  const student = snapshot?.student;
-  const allocations = receiptAllocationRows(receipt);
-  const children = receipt.children ?? snapshot?.children ?? [];
-  const childrenNames = children
-    .map((child) => child.student_name)
-    .filter((name): name is string => typeof name === 'string' && !!name.trim());
-  const studentName = student?.name ?? receipt.student_name ?? '—';
-  const fallbackStudent = childrenNames.length === 1 ? childrenNames[0] : studentName;
+  const rows = receiptRows(receipt);
+  const students = childrenDisplay(receipt);
   const payerName =
     receipt.actual_payer_name?.trim() ||
     snapshot?.payer?.name ||
@@ -310,128 +340,96 @@ function ReceiptCopy({
   const receiptNumber = receipt.number ?? receipt.receipt_number ?? `#${receipt.id}`;
   const schoolName = school?.name ?? 'Raqeem School';
   const schoolCode = school?.code?.trim() || null;
-  const issuer = issuedByName(receipt) ?? '—';
+  const issuer = issuedByName(receipt);
   const method = paymentMethodLabel(receipt.payment_method);
-  const density = allocations.length > 9 ? 'dense' : allocations.length > 5 ? 'compact' : 'normal';
-  const chequeNumber = receipt.cheque?.number;
-  const reference = snapshot?.collection?.reference;
+  const remaining = receiptRemaining(receipt);
+  const density = rows.length > 8 ? 'dense' : rows.length > 4 || students.length > 2 ? 'compact' : 'normal';
 
   return (
     <article className="receipt-html-copy" data-density={density}>
-      <header className="receipt-html-copy__header">
-        <div className="receipt-html-school-name">
-          <strong dir="auto">{schoolName}</strong>
-          <span>Établissement scolaire</span>
-          {school?.address ? <small dir="auto">{school.address}</small> : null}
+      <header className="receipt-copy-header">
+        <SchoolIdentity schoolName={schoolName} schoolCode={schoolCode} />
+        <div className="receipt-number-card">
+          <div className="receipt-number-card__number">
+            <span>رقم الوصل</span>
+            <strong dir="ltr">{receiptNumber}</strong>
+          </div>
+          <div className="receipt-number-card__barcode" aria-hidden="true" />
+          <div className="receipt-number-card__date">
+            <span>تاريخ الأداء</span>
+            <strong dir="ltr">{formatDate(paymentDate, lang)}</strong>
+          </div>
         </div>
-
-        <div className="receipt-html-title-block">
-          <span className="receipt-html-copy__copy-label">
-            {copy === 'admin' ? 'نسخة الإدارة' : 'نسخة المؤدي'}
-          </span>
-          <h1>وصل الأداء</h1>
-          <span>Reçu de Paiement</span>
-        </div>
-
-        <SchoolReceiptMark schoolName={schoolName} schoolCode={schoolCode} />
       </header>
 
-      <section className="receipt-html-overview">
-        <div className="receipt-html-facts-grid">
-          <Fact icon="calendar" ar="تاريخ الأداء" fr="Date de paiement" value={formatDate(paymentDate, lang)} />
-          <Fact icon="clock" ar="الساعة" fr="Heure" value={formatTime(paymentDate, lang)} />
-          <Fact icon="wallet" ar="طريقة الأداء" fr="Mode de paiement" value={method.ar} secondary={method.fr} />
-          <Fact icon="user" ar="المستلم" fr="Reçu par" value={issuer} />
+      <section className="receipt-payment-facts">
+        <div>
+          <span>طريقة الأداء</span>
+          <strong dir="auto">{method}</strong>
         </div>
-
-        <div className="receipt-html-number-card">
-          {bilingual('رقم الوصل', 'N° de reçu')}
-          <strong dir="ltr">{receiptNumber}</strong>
-          <div className="receipt-html-number-card__barcode" aria-hidden="true" />
-          <div className="receipt-html-number-card__extras">
-            <span dir="auto">{payerName}</span>
-            {student?.code ? <span dir="ltr">#{student.code}</span> : null}
-          </div>
+        <i aria-hidden="true" />
+        <div>
+          <span>المؤدي</span>
+          <strong dir="auto">{payerName}</strong>
         </div>
       </section>
 
-      <section className="receipt-html-details">
-        <div className="receipt-html-details__title">تفاصيل الأداء <span>• Détails du paiement</span></div>
-        <div className="receipt-html-table" role="table" aria-label="تفاصيل الأداء">
-          <div className="receipt-html-table__row receipt-html-table__head" role="row">
-            <span role="columnheader">التلميذ <small>Élève</small></span>
-            <span role="columnheader">الخدمة / الرسم <small>Service / Frais</small></span>
-            <span role="columnheader">المبلغ <small>Montant</small></span>
+      <SiblingRoster students={students} />
+
+      <section className="receipt-details">
+        <div className="receipt-table" role="table" aria-label="تفاصيل الأداء">
+          <div className="receipt-table__row receipt-table__head" role="row">
+            <span role="columnheader">التلميذ</span>
+            <span role="columnheader">الخدمة / الرسم</span>
+            <span role="columnheader">المبلغ</span>
           </div>
-          {allocations.length ? (
-            allocations.map((row, index) => (
-              <div className="receipt-html-table__row" role="row" key={`${row.id ?? row.installment_id ?? index}-${index}`}>
-                <span role="cell" dir="auto">{row.student_name ?? fallbackStudent}</span>
+          {rows.length ? (
+            rows.map((row, index) => (
+              <div className="receipt-table__row" role="row" key={`${row.id ?? row.installment_id ?? index}-${index}`}>
+                <span role="cell"><StudentMeta student={row.studentDisplay} /></span>
                 <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
-                <strong role="cell" dir="ltr">{formatMoney(row.amount, receipt.currency, lang)}</strong>
+                <strong role="cell" dir="ltr">
+                  {formatMoney(row.amount, receipt.currency, lang)}
+                  {typeof row.remaining_after_payment === 'number' && row.remaining_after_payment > 0 ? (
+                    <small>الباقي: {formatMoney(row.remaining_after_payment, receipt.currency, lang)}</small>
+                  ) : null}
+                </strong>
               </div>
             ))
           ) : (
-            <div className="receipt-html-table__empty">{UI_TEXT[lang].noLines}</div>
+            <div className="receipt-table__empty">{UI_TEXT[lang].noLines}</div>
           )}
-          <div className="receipt-html-table__row receipt-html-table__total" role="row">
-            <span />
-            <span>{bilingual('المجموع', 'Total')}</span>
-            <strong dir="ltr">{formatMoney(receipt.collection_amount, receipt.currency, lang)}</strong>
-          </div>
         </div>
       </section>
 
-      <footer className="receipt-html-copy__footer">
-        <div className="receipt-html-thanks">
-          <span className="receipt-html-thanks__icon">
-            <ReceiptIcon name="user" />
-          </span>
-          <span>
-            <strong>شكرًا لكم على ثقتكم</strong>
-            <small>Merci pour votre confiance</small>
-          </span>
-        </div>
+      <section className="receipt-total-card">
+        <span>المجموع</span>
+        <strong dir="ltr">{formatMoney(receipt.collection_amount, receipt.currency, lang)}</strong>
+        {remaining != null && remaining > 0 ? (
+          <small dir="ltr">الباقي: {formatMoney(remaining, receipt.currency, lang)}</small>
+        ) : null}
+      </section>
 
-        <div className="receipt-html-signature">
-          <strong>إمضاء</strong>
-          <small>Signature</small>
-          <span />
-        </div>
-
-        <div className="receipt-html-contact-line">
-          {school?.address ? (
-            <span><ReceiptIcon name="pin" /><b dir="auto">{school.address}</b></span>
-          ) : null}
-          {school?.phone ? (
-            <span><ReceiptIcon name="phone" /><b dir="ltr">{school.phone}</b></span>
-          ) : null}
-          {school?.email ? (
-            <span><ReceiptIcon name="mail" /><b dir="ltr">{school.email}</b></span>
-          ) : null}
-          {reference ? <span className="receipt-html-contact-line__reference" dir="auto">{reference}</span> : null}
-          {chequeNumber ? <span className="receipt-html-contact-line__reference" dir="auto">Chèque: {chequeNumber}</span> : null}
-        </div>
+      <footer className="receipt-copy-footer">
+        <div className="receipt-thanks">شكرًا لكم على ثقتكم</div>
+        {copy === 'admin' && issuer ? (
+          <div className="receipt-issuer" dir="auto">{issuer}</div>
+        ) : <span />}
       </footer>
     </article>
   );
 }
 
-function DoubleReceiptSheet({
-  receipt,
-  lang,
-}: {
-  receipt: FinanceReceipt;
-  lang: ReceiptHtmlPrintLang;
-}) {
+function DoubleReceiptSheet({ receipt, lang }: { receipt: FinanceReceipt; lang: ReceiptHtmlPrintLang }) {
   return (
     <div className="receipt-html-sheet" dir="rtl">
       <ReceiptCopy receipt={receipt} lang={lang} copy="admin" />
       <div className="receipt-html-cut-line" aria-hidden="true">
-        <span className="receipt-html-cut-line__scissors">✂</span>
+        <span>✂</span>
         <i />
-        <small>يرجى قص هنا بعد الطباعة</small>
+        <small>قص هنا</small>
         <i />
+        <span>✂</span>
       </div>
       <ReceiptCopy receipt={receipt} lang={lang} copy="payer" />
     </div>
@@ -461,7 +459,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
   useEffect(() => {
     if (!receipt) return;
     const receiptNumber = receipt.number ?? receipt.receipt_number ?? String(receipt.id);
-    document.title = `وصل الأداء — ${receiptNumber}`;
+    document.title = receiptNumber;
   }, [receipt]);
 
   useEffect(() => {
@@ -493,7 +491,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
         <div className="receipt-html-print-toolbar">
           <div>
             <strong>{text.preview}</strong>
-            <span>A5 · نسختان · HTML</span>
+            <span>A5 · HTML</span>
           </div>
           <div className="receipt-html-print-toolbar__actions">
             <button type="button" className="btn btn--primary" onClick={() => void handlePrint()}>
@@ -508,9 +506,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
         {state.loading && !receipt ? <LoadingState label="…" /> : null}
         {state.error ? <ApiErrorView error={state.error} onRetry={state.reload} /> : null}
         {receipt && !canPrint ? (
-          <div className="receipt-html-print-message" role="alert">
-            {text.unavailable}
-          </div>
+          <div className="receipt-html-print-message" role="alert">{text.unavailable}</div>
         ) : null}
         {receipt && canPrint ? <DoubleReceiptSheet receipt={receipt} lang={lang} /> : null}
       </main>
