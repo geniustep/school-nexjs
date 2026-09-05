@@ -16,7 +16,7 @@ function operationalInstallmentError(
     success: false,
     error: {
       code: 'operational_installment_id_not_available_to_ui',
-      message: 'تعذر تحديد القسط التشغيلي المطابق لهذه الفترة بصورة آمنة.',
+      message: 'operational_installment_id_not_available_to_ui',
       details: { reason },
     },
     meta: {},
