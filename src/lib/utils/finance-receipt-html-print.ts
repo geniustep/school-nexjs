@@ -12,6 +12,6 @@ export function buildReceiptHtmlPrintPath(
   options: { autoPrint?: boolean } = {},
 ): string {
   const params = new URLSearchParams({ lang });
-  if (options.autoPrint !== false) params.set('auto', '1');
+  if (options.autoPrint === true) params.set('auto', '1');
   return `/admin/finance/receipts/${encodeURIComponent(String(receiptId))}/print?${params.toString()}`;
 }
