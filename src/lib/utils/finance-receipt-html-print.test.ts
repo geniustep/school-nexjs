@@ -5,17 +5,18 @@ import {
 } from '@/lib/utils/finance-receipt-html-print';
 
 describe('HTML A5 double receipt print contract', () => {
-  it('builds a Next.js-only print route with automatic printing enabled', () => {
+  it('builds a Next.js-only preview route without automatic printing by default', () => {
     const path = buildReceiptHtmlPrintPath(1716, 'ar');
 
-    expect(path).toBe('/admin/finance/receipts/1716/print?lang=ar&auto=1');
+    expect(path).toBe('/admin/finance/receipts/1716/print?lang=ar');
     expect(path).not.toContain('/api/');
     expect(path.toLowerCase()).not.toContain('pdf');
+    expect(path).not.toContain('auto=1');
   });
 
-  it('can open the HTML preview without invoking automatic printing', () => {
-    expect(buildReceiptHtmlPrintPath('RCPT-42', 'fr', { autoPrint: false })).toBe(
-      '/admin/finance/receipts/RCPT-42/print?lang=fr',
+  it('can explicitly request automatic printing when needed', () => {
+    expect(buildReceiptHtmlPrintPath('RCPT-42', 'fr', { autoPrint: true })).toBe(
+      '/admin/finance/receipts/RCPT-42/print?lang=fr&auto=1',
     );
   });
 
