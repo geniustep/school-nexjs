@@ -99,9 +99,9 @@ export function AgreementAmendmentRangeRail({
     if (disabled || period.selectable === false) return;
     const periodId = String(period.id);
 
-    if (singleScopeActive) {
+    if (scopeSelectionEnabled) {
       onStartSelect(periodId);
-      onEndSelect(periodId);
+      onEndSelect(singleScopeActive ? periodId : '');
       return;
     }
 
