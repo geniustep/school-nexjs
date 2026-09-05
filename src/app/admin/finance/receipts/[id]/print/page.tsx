@@ -19,22 +19,44 @@ import type { FinanceReceipt, FinanceReceiptAllocation } from '@/types/finance';
 import './receipt-html-print.css';
 
 type CopyKind = 'admin' | 'payer';
-type ReceiptIconName = 'calendar' | 'clock' | 'wallet' | 'user' | 'phone' | 'pin' | 'mail';
+type ReceiptIconName = 'calendar' | 'wallet' | 'user' | 'leaf';
 
 const UI_TEXT = {
   ar: {
-    preview: 'معاينة وصل الأداء',
+    preview: 'معاينة الطباعة',
     print: 'طباعة الوصل',
     close: 'إغلاق',
     unavailable: 'هذا الوصل غير متاح للطباعة.',
     noLines: 'لا توجد تفاصيل توزيع مرفقة بهذا الوصل.',
+    receiptNumber: 'رقم الوصل',
+    paymentDate: 'تاريخ الأداء',
+    payer: 'المؤدي',
+    paymentMethod: 'طريقة الأداء',
+    student: 'التلميذ',
+    service: 'الخدمة / الرسم',
+    amount: 'المبلغ',
+    total: 'المجموع',
+    thanks: 'شكرًا لكم على ثقتكم',
+    cutHere: 'قص هنا',
+    sheetMeta: 'A5 · نسختان · HTML',
   },
   fr: {
-    preview: 'Aperçu du reçu de paiement',
+    preview: "Aperçu d’impression",
     print: 'Imprimer le reçu',
     close: 'Fermer',
     unavailable: "Ce reçu n’est pas disponible à l’impression.",
     noLines: "Aucun détail d’affectation n’est joint à ce reçu.",
+    receiptNumber: 'N° du reçu',
+    paymentDate: 'Date de paiement',
+    payer: 'Payeur',
+    paymentMethod: 'Mode de paiement',
+    student: 'Élève',
+    service: 'Service / Frais',
+    amount: 'Montant',
+    total: 'Total',
+    thanks: 'Merci pour votre confiance',
+    cutHere: 'Couper ici',
+    sheetMeta: 'A5 · 2 exemplaires · HTML',
   },
 } as const;
 
@@ -59,13 +81,6 @@ function ReceiptIcon({ name }: { name: ReceiptIconName }) {
           <path d="M8 3v4M16 3v4M3 10h18" />
         </svg>
       );
-    case 'clock':
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v5l3 2" />
-        </svg>
-      );
     case 'wallet':
       return (
         <svg {...common}>
@@ -80,57 +95,24 @@ function ReceiptIcon({ name }: { name: ReceiptIconName }) {
           <path d="M4 21a8 8 0 0 1 16 0" />
         </svg>
       );
-    case 'phone':
+    case 'leaf':
       return (
         <svg {...common}>
-          <path d="M6.6 3.8 9 3l2 5-1.8 1.1a14 14 0 0 0 5.7 5.7L16 13l5 2-1 2.4a3 3 0 0 1-3.2 1.8A16.5 16.5 0 0 1 4.8 7a3 3 0 0 1 1.8-3.2Z" />
-        </svg>
-      );
-    case 'pin':
-      return (
-        <svg {...common}>
-          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-          <circle cx="12" cy="10" r="2.5" />
-        </svg>
-      );
-    case 'mail':
-      return (
-        <svg {...common}>
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="m4 7 8 6 8-6" />
+          <path d="M5 18c7 0 12-4.5 13-12-7.5.4-12 4.5-13 12Z" />
+          <path d="M5 18c3-4.5 6.5-7.4 11-9.5M5 18v3" />
         </svg>
       );
   }
-}
-
-function bilingual(ar: string, fr: string) {
-  return (
-    <span className="receipt-html-bi-label">
-      <b>{ar}</b>
-      <small>{fr}</small>
-    </span>
-  );
 }
 
 function formatDate(value: string | null | undefined, lang: ReceiptHtmlPrintLang): string {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA', {
+  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA-u-nu-latn', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(date);
-}
-
-function formatTime(value: string | null | undefined, lang: ReceiptHtmlPrintLang): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
   }).format(date);
 }
 
@@ -140,7 +122,7 @@ function formatMoney(
   lang: ReceiptHtmlPrintLang,
 ): string {
   if (amount == null || !Number.isFinite(amount)) return '—';
-  const value = new Intl.NumberFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA', {
+  const value = new Intl.NumberFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA-u-nu-latn', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -224,7 +206,6 @@ function SchoolReceiptMark({
 }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const schoolInitial = schoolName.trim().charAt(0) || 'R';
-  const displayCode = schoolCode || 'R';
   const logoUrl = schoolCode
     ? `/api/public/school-branding/logo?school_code=${encodeURIComponent(schoolCode)}`
     : null;
@@ -237,45 +218,31 @@ function SchoolReceiptMark({
           alt={`شعار ${schoolName}`}
           data-receipt-print-image="school-logo"
           onError={() => setLogoFailed(true)}
-          style={{
-            width: '22mm',
-            height: '17mm',
-            maxWidth: '22mm',
-            objectFit: 'contain',
-            objectPosition: 'center',
-            display: 'block',
-          }}
         />
       ) : (
         <span>{schoolInitial}</span>
       )}
-      <small dir="ltr">{displayCode}</small>
     </div>
   );
 }
 
-function Fact({
+function PaymentMetaItem({
   icon,
-  ar,
-  fr,
+  label,
   value,
-  secondary,
 }: {
-  icon: ReceiptIconName;
-  ar: string;
-  fr: string;
+  icon: 'wallet' | 'user';
+  label: string;
   value: string;
-  secondary?: string;
 }) {
   return (
-    <div className="receipt-html-fact">
-      <span className="receipt-html-fact__icon">
+    <div className="receipt-html-payment-meta__item">
+      <span className="receipt-html-payment-meta__icon">
         <ReceiptIcon name={icon} />
       </span>
-      <span className="receipt-html-fact__text">
-        {bilingual(ar, fr)}
+      <span className="receipt-html-payment-meta__text">
+        <small>{label}</small>
         <strong dir="auto">{value}</strong>
-        {secondary ? <small dir="auto">{secondary}</small> : null}
       </span>
     </div>
   );
@@ -290,6 +257,7 @@ function ReceiptCopy({
   lang: ReceiptHtmlPrintLang;
   copy: CopyKind;
 }) {
+  const text = UI_TEXT[lang];
   const snapshot = receipt.snapshot;
   const school = snapshot?.school;
   const student = snapshot?.student;
@@ -310,58 +278,49 @@ function ReceiptCopy({
   const receiptNumber = receipt.number ?? receipt.receipt_number ?? `#${receipt.id}`;
   const schoolName = school?.name ?? 'Raqeem School';
   const schoolCode = school?.code?.trim() || null;
-  const issuer = issuedByName(receipt) ?? '—';
+  const issuer = issuedByName(receipt);
   const method = paymentMethodLabel(receipt.payment_method);
+  const methodValue = lang === 'fr' ? method.fr : method.ar;
   const density = allocations.length > 9 ? 'dense' : allocations.length > 5 ? 'compact' : 'normal';
-  const chequeNumber = receipt.cheque?.number;
-  const reference = snapshot?.collection?.reference;
 
   return (
-    <article className="receipt-html-copy" data-density={density}>
+    <article className="receipt-html-copy" data-density={density} data-copy={copy}>
       <header className="receipt-html-copy__header">
-        <div className="receipt-html-school-name">
-          <strong dir="auto">{schoolName}</strong>
-          <span>Établissement scolaire</span>
-          {school?.address ? <small dir="auto">{school.address}</small> : null}
-        </div>
-
-        <div className="receipt-html-title-block">
-          <span className="receipt-html-copy__copy-label">
-            {copy === 'admin' ? 'نسخة الإدارة' : 'نسخة المؤدي'}
-          </span>
-          <h1>وصل الأداء</h1>
-          <span>Reçu de Paiement</span>
-        </div>
-
-        <SchoolReceiptMark schoolName={schoolName} schoolCode={schoolCode} />
-      </header>
-
-      <section className="receipt-html-overview">
-        <div className="receipt-html-facts-grid">
-          <Fact icon="calendar" ar="تاريخ الأداء" fr="Date de paiement" value={formatDate(paymentDate, lang)} />
-          <Fact icon="clock" ar="الساعة" fr="Heure" value={formatTime(paymentDate, lang)} />
-          <Fact icon="wallet" ar="طريقة الأداء" fr="Mode de paiement" value={method.ar} secondary={method.fr} />
-          <Fact icon="user" ar="المستلم" fr="Reçu par" value={issuer} />
-        </div>
-
         <div className="receipt-html-number-card">
-          {bilingual('رقم الوصل', 'N° de reçu')}
-          <strong dir="ltr">{receiptNumber}</strong>
-          <div className="receipt-html-number-card__barcode" aria-hidden="true" />
-          <div className="receipt-html-number-card__extras">
-            <span dir="auto">{payerName}</span>
-            {student?.code ? <span dir="ltr">#{student.code}</span> : null}
+          <div className="receipt-html-number-card__main">
+            <small>{text.receiptNumber}</small>
+            <strong dir="ltr">{receiptNumber}</strong>
+            <div className="receipt-html-number-card__barcode" aria-hidden="true" />
+          </div>
+          <div className="receipt-html-number-card__date">
+            <span className="receipt-html-number-card__date-icon">
+              <ReceiptIcon name="calendar" />
+            </span>
+            <span>
+              <small>{text.paymentDate}</small>
+              <strong dir="ltr">{formatDate(paymentDate, lang)}</strong>
+            </span>
           </div>
         </div>
+
+        <div className="receipt-html-school-brand">
+          <SchoolReceiptMark schoolName={schoolName} schoolCode={schoolCode} />
+          <strong dir="auto">{schoolName}</strong>
+        </div>
+      </header>
+
+      <section className="receipt-html-payment-meta">
+        <PaymentMetaItem icon="user" label={text.payer} value={payerName} />
+        <span className="receipt-html-payment-meta__divider" aria-hidden="true" />
+        <PaymentMetaItem icon="wallet" label={text.paymentMethod} value={methodValue} />
       </section>
 
       <section className="receipt-html-details">
-        <div className="receipt-html-details__title">تفاصيل الأداء <span>• Détails du paiement</span></div>
-        <div className="receipt-html-table" role="table" aria-label="تفاصيل الأداء">
+        <div className="receipt-html-table" role="table" aria-label={text.paymentMethod}>
           <div className="receipt-html-table__row receipt-html-table__head" role="row">
-            <span role="columnheader">التلميذ <small>Élève</small></span>
-            <span role="columnheader">الخدمة / الرسم <small>Service / Frais</small></span>
-            <span role="columnheader">المبلغ <small>Montant</small></span>
+            <span role="columnheader">{text.student}</span>
+            <span role="columnheader">{text.service}</span>
+            <span role="columnheader">{text.amount}</span>
           </div>
           {allocations.length ? (
             allocations.map((row, index) => (
@@ -372,45 +331,37 @@ function ReceiptCopy({
               </div>
             ))
           ) : (
-            <div className="receipt-html-table__empty">{UI_TEXT[lang].noLines}</div>
+            <div className="receipt-html-table__empty">{text.noLines}</div>
           )}
-          <div className="receipt-html-table__row receipt-html-table__total" role="row">
-            <span />
-            <span>{bilingual('المجموع', 'Total')}</span>
-            <strong dir="ltr">{formatMoney(receipt.collection_amount, receipt.currency, lang)}</strong>
-          </div>
         </div>
       </section>
 
+      <section className="receipt-html-total-card" aria-label={text.total}>
+        <span className="receipt-html-total-card__line" aria-hidden="true" />
+        <span className="receipt-html-total-card__value">
+          <small>{text.total}</small>
+          <strong dir="ltr">{formatMoney(receipt.collection_amount, receipt.currency, lang)}</strong>
+        </span>
+        <span className="receipt-html-total-card__line" aria-hidden="true" />
+      </section>
+
       <footer className="receipt-html-copy__footer">
+        {copy === 'admin' && issuer ? (
+          <div className="receipt-html-issuer" dir="auto">
+            <span className="receipt-html-issuer__icon">
+              <ReceiptIcon name="user" />
+            </span>
+            <strong>{issuer}</strong>
+          </div>
+        ) : (
+          <span className="receipt-html-copy__footer-spacer" aria-hidden="true" />
+        )}
+
         <div className="receipt-html-thanks">
+          <strong>{text.thanks}</strong>
           <span className="receipt-html-thanks__icon">
-            <ReceiptIcon name="user" />
+            <ReceiptIcon name="leaf" />
           </span>
-          <span>
-            <strong>شكرًا لكم على ثقتكم</strong>
-            <small>Merci pour votre confiance</small>
-          </span>
-        </div>
-
-        <div className="receipt-html-signature">
-          <strong>إمضاء</strong>
-          <small>Signature</small>
-          <span />
-        </div>
-
-        <div className="receipt-html-contact-line">
-          {school?.address ? (
-            <span><ReceiptIcon name="pin" /><b dir="auto">{school.address}</b></span>
-          ) : null}
-          {school?.phone ? (
-            <span><ReceiptIcon name="phone" /><b dir="ltr">{school.phone}</b></span>
-          ) : null}
-          {school?.email ? (
-            <span><ReceiptIcon name="mail" /><b dir="ltr">{school.email}</b></span>
-          ) : null}
-          {reference ? <span className="receipt-html-contact-line__reference" dir="auto">{reference}</span> : null}
-          {chequeNumber ? <span className="receipt-html-contact-line__reference" dir="auto">Chèque: {chequeNumber}</span> : null}
         </div>
       </footer>
     </article>
@@ -424,14 +375,16 @@ function DoubleReceiptSheet({
   receipt: FinanceReceipt;
   lang: ReceiptHtmlPrintLang;
 }) {
+  const text = UI_TEXT[lang];
   return (
-    <div className="receipt-html-sheet" dir="rtl">
+    <div className="receipt-html-sheet" dir={lang === 'fr' ? 'ltr' : 'rtl'}>
       <ReceiptCopy receipt={receipt} lang={lang} copy="admin" />
       <div className="receipt-html-cut-line" aria-hidden="true">
         <span className="receipt-html-cut-line__scissors">✂</span>
         <i />
-        <small>يرجى قص هنا بعد الطباعة</small>
+        <small>{text.cutHere}</small>
         <i />
+        <span className="receipt-html-cut-line__scissors">✂</span>
       </div>
       <ReceiptCopy receipt={receipt} lang={lang} copy="payer" />
     </div>
@@ -461,7 +414,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
   useEffect(() => {
     if (!receipt) return;
     const receiptNumber = receipt.number ?? receipt.receipt_number ?? String(receipt.id);
-    document.title = `وصل الأداء — ${receiptNumber}`;
+    document.title = receiptNumber;
   }, [receipt]);
 
   useEffect(() => {
@@ -489,11 +442,11 @@ export default function AdminFinanceReceiptHtmlPrintPage({
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
-      <main className="receipt-html-print-page" dir="rtl">
+      <main className="receipt-html-print-page" dir={lang === 'fr' ? 'ltr' : 'rtl'}>
         <div className="receipt-html-print-toolbar">
           <div>
             <strong>{text.preview}</strong>
-            <span>A5 · نسختان · HTML</span>
+            <span>{text.sheetMeta}</span>
           </div>
           <div className="receipt-html-print-toolbar__actions">
             <button type="button" className="btn btn--primary" onClick={() => void handlePrint()}>
