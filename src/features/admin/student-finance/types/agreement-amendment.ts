@@ -2,7 +2,8 @@ export type AgreementAmendmentOperationType =
   | 'add_line'
   | 'cancel_line'
   | 'modify_line'
-  | 'adjust_line_amount';
+  | 'adjust_line_amount'
+  | 'adjust_installment_amount';
 
 export type AgreementAmendmentPath = 'adjust_amount' | 'period_range';
 
@@ -10,6 +11,7 @@ export interface AgreementAmendmentLinePayload {
   source_line_id?: number;
   agreement_line_id?: number;
   fee_type_id?: number;
+  operational_installment_id?: number;
   amount?: number;
   new_unit_price?: number;
 }
