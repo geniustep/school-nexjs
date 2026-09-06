@@ -6,8 +6,10 @@
  */
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import { Card } from '@/components/ui/primitives';
+import { useAllSchoolsCopy } from '@/features/admin/all-schools/all-schools-i18n';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
@@ -22,6 +24,7 @@ import {
 } from '@/lib/permissions/finance';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { canSeeChannels, canSeeStudentData } from '@/lib/permissions/scope';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
 import {
@@ -268,6 +271,10 @@ export function AdminStaffOperationalDashboard({
   user: CurrentUser;
   workspace: AdminStaffWorkspace;
 }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
+  const allSchoolsCopy = useAllSchoolsCopy();
   const t = useT();
   const { locale } = useLocale();
   const copy = WORKSPACE_COPY[locale];
@@ -275,7 +282,7 @@ export function AdminStaffOperationalDashboard({
   const { activeSchoolId, schools } = useAdminSession();
 
   const activeRef = schools.find((school) => school.id === activeSchoolId) ?? user.school ?? null;
-  const schoolLabel = formatSchoolLabel(activeRef, t);
+  const schoolLabel = allSchools ? allSchoolsCopy.allSchools : formatSchoolLabel(activeRef, t);
   const canViewAdmissions = hasPermission(user, ADMISSION_VIEW);
   const canOpenFinance = canViewFinance(user);
   const canRecordCollection = canCollectPayments(user) && canViewPayments(user);
@@ -446,7 +453,11 @@ export function AdminStaffOperationalDashboard({
 
   const attendance = d.attendance_today;
   const totalRecorded = attendance?.total_recorded ?? attendance?.total ?? 0;
-  const recentMessageCount = canOpenChannels ? d.latest_messages?.length ?? 0 : null;
+  const recentMessageCount = canOpenChannels
+    ? allSchools
+      ? null
+      : d.latest_messages?.length ?? 0
+    : null;
 
   const userName = user.name?.trim() ?? '';
   const hasTechnicalAdminName = !userName || /^(administrator|admin)$/i.test(userName);
@@ -538,7 +549,7 @@ export function AdminStaffOperationalDashboard({
               items={[
                 { key: 'collected', label: copy.collectedTotal, value: financeValue(collectedTotal), tone: 'green' },
                 { key: 'overdue', label: copy.overdueTotal, value: financeValue(overdueTotal), tone: overdueTotal != null && overdueTotal > 0 ? 'red' : undefined },
-                { key: 'followup', label: copy.followupFamilies, value: canOpenFinance ? (financeState.loading ? '…' : followupCount) : '—', tone: followupCount > 0 ? 'amber' : undefined },
+                { key: 'followup', label: copy.followupFamilies, value: canOpenFinance ? (allSchools ? '—' : financeState.loading ? '…' : followupCount) : '—', tone: !allSchools && followupCount > 0 ? 'amber' : undefined },
               ]}
             />
           </AdminOperationCard>
@@ -606,7 +617,9 @@ export function AdminStaffOperationalDashboard({
           title={t('dashboard.latestMessages')}
           action={<Link className="admin-section__action" href="/admin/channels">{t('dashboard.allChannels')} →</Link>}
         >
-          {d.latest_messages?.length ? (
+          {allSchools ? (
+            <p className="admin-empty-hint">{copy.dataUnavailable}</p>
+          ) : d.latest_messages?.length ? (
             <Card pad={false}>
               <div className="msg-feed">
                 {d.latest_messages.map((message) => (

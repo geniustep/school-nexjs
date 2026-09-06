@@ -92,6 +92,7 @@ export type StudentsFinancialServiceCountCardsProps = {
   onSelectAll: () => void;
   onSelectService: (serviceId: string) => void;
   onRetry: () => void;
+  readOnly?: boolean;
 };
 
 export function StudentsFinancialServiceCountCards({
@@ -106,6 +107,7 @@ export function StudentsFinancialServiceCountCards({
   onSelectAll,
   onSelectService,
   onRetry,
+  readOnly = false,
 }: StudentsFinancialServiceCountCardsProps) {
   const { t, locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
@@ -121,6 +123,59 @@ export function StudentsFinancialServiceCountCards({
   const canExpand = items.length > STUDENTS_SERVICE_COUNTS_INITIAL_VISIBLE;
   const allSelected = !serviceId;
   const clarifyHasCount = servicePresence === 'not_has';
+
+  if (readOnly) {
+    return (
+      <section
+        className="students-service-counts"
+        aria-label={t('admin.studentsList.serviceCounts.title')}
+      >
+        <header className="students-service-counts__header">
+          <h2 className="students-service-counts__title">
+            {t('admin.studentsList.serviceCounts.title')}
+          </h2>
+          <p className="students-service-counts__hint muted">
+            {t('admin.studentsList.serviceCounts.hint')}
+          </p>
+        </header>
+        <div className="students-service-counts__grid">
+          <button
+            type="button"
+            className="students-service-counts__card students-service-counts__card--all students-service-counts__card--tone-neutral students-service-counts__card--active"
+            aria-pressed="true"
+            aria-disabled="true"
+            data-all-schools-mutation="true"
+          >
+            <span className="students-service-counts__glyph" aria-hidden="true">∗</span>
+            <span className="students-service-counts__body">
+              <span className="students-service-counts__name">
+                {t('admin.studentsList.serviceCounts.allStudents')}
+              </span>
+              <span className="students-service-counts__count">
+                {studentCountLabel(t, locale, totalStudents)}
+              </span>
+            </span>
+            <span className="students-service-counts__selected">
+              {t('admin.studentsList.serviceCounts.selected')}
+            </span>
+          </button>
+          {Array.from({ length: 4 }, (_, index) => (
+            <span
+              key={index}
+              className="students-service-counts__card students-service-counts__card--tone-neutral"
+              aria-disabled="true"
+            >
+              <span className="students-service-counts__glyph" aria-hidden="true">·</span>
+              <span className="students-service-counts__body">
+                <span className="students-service-counts__name">—</span>
+                <span className="students-service-counts__count">—</span>
+              </span>
+            </span>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   if (initialLoading) {
     return (

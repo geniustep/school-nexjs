@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
@@ -15,6 +15,8 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
+import { mergeAllSchoolsClassLevels } from '@/features/admin/all-schools/all-schools-academic-options';
+import { useOpenSchoolRecord } from '@/features/admin/all-schools/use-open-school-record';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useStudentsListFilterState } from '@/features/admin/students/hooks/use-students-list-filter-state';
@@ -29,6 +31,7 @@ import { StudentsFilteredRosterExport } from '@/features/admin/students/componen
 import { isStaleStudentsListServiceSelection } from '@/features/admin/students/utils/students-list-service-visibility';
 import { useSession } from '@/features/auth/session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasStudentImportCapability } from '@/features/admin/students/import/student-import-capability';
 import { canCreateStudents } from '@/lib/permissions/academic-capabilities';
@@ -36,7 +39,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Student } from '@/types/student';
-import type { Level } from '@/types/class';
+import type { Level, SchoolClass } from '@/types/class';
 import type { FeeType } from '@/types/finance';
 import '@/features/admin/students/student-360.css';
 import '@/features/admin/students/students-list-density.css';
@@ -44,6 +47,7 @@ import '@/features/admin/students/students-list-density.css';
 type StudentListColumnKey = 'student' | 'class_level' | 'status' | 'massar' | 'birth' | 'gender' | 'phone' | 'school_number';
 
 const DEFAULT_STUDENT_LIST_COLUMNS: StudentListColumnKey[] = ['student', 'class_level', 'status'];
+const STUDENTS_FILTER_CLASS_QUERY = { page_size: 500 };
 
 function StudentAvatar({ name }: { name: string }) {
   return (
@@ -55,6 +59,10 @@ function StudentAvatar({ name }: { name: string }) {
 
 export default function AdminStudentsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
+  const { openRecord } = useOpenSchoolRecord();
   const t = useT();
   const { locale } = useLocale();
   const user = useSession();
@@ -74,39 +82,56 @@ export default function AdminStudentsPage() {
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<StudentListColumnKey[]>(DEFAULT_STUDENT_LIST_COLUMNS);
   const [columnSearch, setColumnSearch] = useState('');
 
-  const classesState = useGlobalAcademicYearResource<import('@/types/class').SchoolClass[]>(
+  const classesState = useGlobalAcademicYearResource<SchoolClass[]>(
     endpoints.admin.classes,
+    STUDENTS_FILTER_CLASS_QUERY,
   );
-  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, STUDENTS_FILTER_CLASS_QUERY);
+  const availableLevels = useMemo(
+    () =>
+      allSchools
+        ? mergeAllSchoolsClassLevels(classesState.data ?? [], levelsState.data ?? [])
+        : levelsState.data ?? [],
+    [allSchools, classesState.data, levelsState.data],
+  );
   const { feeTypes, loading: feeTypesLoading } = useStudentsListFeeTypeOptions();
-  const state = useStudentsListResource(appliedQuery, levelsState.data, levelsState.loading);
+  const state = useStudentsListResource(
+    appliedQuery,
+    availableLevels,
+    levelsState.loading || (allSchools && classesState.loading),
+  );
   const serviceCounts = useStudentsFinancialServiceCounts(appliedQuery);
   const pg = state.meta?.pagination;
 
+  useEffect(() => {
+    if (allSchools && serviceId) clearServiceFilter();
+  }, [allSchools, serviceId, clearServiceFilter]);
+
   const serviceFilterOptions = useMemo((): FeeType[] => {
+    if (allSchools) return [];
     if (serviceCounts.initialLoading) return feeTypes;
     const byId = new Map(feeTypes.map((ft) => [ft.id, ft]));
     return serviceCounts.items.map((item) => byId.get(item.service_id)).filter((ft): ft is FeeType => ft != null);
-  }, [feeTypes, serviceCounts.initialLoading, serviceCounts.items]);
+  }, [allSchools, feeTypes, serviceCounts.initialLoading, serviceCounts.items]);
 
   const rosterFilterDescription = useMemo(() => {
     const parts: string[] = [];
     const ar = locale === 'ar';
     if (search.trim()) parts.push(`${ar ? 'بحث' : 'Search'}: ${search.trim()}`);
     if (cycleCode) parts.push(`${ar ? 'السلك' : 'Cycle'}: ${cycleCode}`);
-    const selectedLevel = (levelsState.data ?? []).find((level) => String(level.id) === levelId);
+    const selectedLevel = availableLevels.find((level) => String(level.id) === levelId);
     if (selectedLevel) parts.push(`${ar ? 'المستوى' : 'Level'}: ${selectedLevel.name}`);
     const selectedClass = (classesState.data ?? []).find((cls) => String(cls.id) === classId);
     if (selectedClass) parts.push(`${ar ? 'القسم' : 'Class'}: ${selectedClass.name}`);
     const selectedService = feeTypes.find((service) => String(service.id) === serviceId);
-    if (selectedService) parts.push(`${ar ? (servicePresence === 'not_has' ? 'بدون خدمة' : 'خدمة') : 'Service'}: ${selectedService.name}`);
+    if (!allSchools && selectedService) parts.push(`${ar ? (servicePresence === 'not_has' ? 'بدون خدمة' : 'خدمة') : 'Service'}: ${selectedService.name}`);
     if (statusFilter) parts.push(statusLabel(t, statusFilter));
     if (accountFilter) parts.push(accountFilter === 'has_account' ? (ar ? 'له حساب' : 'Has account') : accountFilter === 'no_account' ? (ar ? 'دون حساب' : 'No account') : (ar ? 'حساب غير نشط' : 'Inactive account'));
     return parts.join(' · ') || (locale === 'ar' ? 'الكل' : locale === 'fr' ? 'Tous les élèves' : 'All students');
-  }, [search, cycleCode, levelId, classId, serviceId, servicePresence, statusFilter, accountFilter, levelsState.data, classesState.data, feeTypes, t, locale]);
+  }, [allSchools, search, cycleCode, levelId, classId, serviceId, servicePresence, statusFilter, accountFilter, availableLevels, classesState.data, feeTypes, t, locale]);
 
   useEffect(() => {
-    if (!serviceId) return;
+    if (allSchools || !serviceId) return;
     const feeTypesLoaded = !feeTypesLoading;
     const countsLoaded = !serviceCounts.initialLoading;
     if (!feeTypesLoaded && !countsLoaded) return;
@@ -117,7 +142,7 @@ export default function AdminStudentsPage() {
       countServiceIds: serviceCounts.items.map((item) => item.service_id),
     });
     if (stale) clearServiceFilter();
-  }, [serviceId, feeTypes, feeTypesLoading, serviceCounts.initialLoading, serviceCounts.items, clearServiceFilter]);
+  }, [allSchools, serviceId, feeTypes, feeTypesLoading, serviceCounts.initialLoading, serviceCounts.items, clearServiceFilter]);
 
   const listEmptyState = hasActiveQuery ? (
     <EmptyState icon="🔍" title={t('admin.studentsList.noMatch.title')} description={t('admin.studentsList.noMatch.description')}
@@ -136,9 +161,10 @@ export default function AdminStudentsPage() {
       key: 'student', header: t('admin.studentsList.columnStudent'), render: (s) => {
         const name = getStudentDisplayName(s);
         const ref = s.school_number ?? s.code ?? s.massar_code ?? null;
+        const meta = [ref, s.school?.name].filter((value): value is string => Boolean(value?.trim())).join(' · ');
         return <div className="students-list__student-cell"><StudentAvatar name={name} /><div className="students-list__student-text">
           <strong className="students-list__student-name" title={name} dir="auto">{name}</strong>
-          {ref ? <span className="students-list__student-ref mono muted" dir="auto" title={ref}>{ref}</span> : null}
+          {meta ? <span className="students-list__student-ref mono muted" dir="auto" title={meta}>{meta}</span> : null}
         </div></div>;
       },
     },
@@ -173,9 +199,9 @@ export default function AdminStudentsPage() {
     .map((key) => availableColumns.find((column) => column.key === key))
     .filter((column): column is Column<Student> => column != null), [availableColumns, visibleColumnKeys]);
   const availableToAdd = useMemo(() => {
-    const search = columnSearch.trim().toLocaleLowerCase(locale);
+    const searchValue = columnSearch.trim().toLocaleLowerCase(locale);
     return availableColumns.filter((column) => !visibleColumnKeys.includes(column.key as StudentListColumnKey)
-      && (!search || String(column.header).toLocaleLowerCase(locale).includes(search)));
+      && (!searchValue || String(column.header).toLocaleLowerCase(locale).includes(searchValue)));
   }, [availableColumns, columnSearch, locale, visibleColumnKeys]);
 
   function addColumn(key: StudentListColumnKey) {
@@ -214,8 +240,10 @@ export default function AdminStudentsPage() {
                 showImport
                 importOpen={importOpen}
                 onToggleImport={() => setImportOpen((v) => !v)}
+                readOnly={allSchools}
+                preserveReadOnlyGeometry={allSchools}
                 extra={canExportStudents || canImportStudents || canAddStudent ? <>
-                  {canExportStudents ? <StudentsFilteredRosterExport filters={appliedQuery} levels={levelsState.data ?? []} filterDescription={rosterFilterDescription} /> : null}
+                  {canExportStudents ? <StudentsFilteredRosterExport filters={appliedQuery} levels={availableLevels} filterDescription={rosterFilterDescription} /> : null}
                   {canAddStudent ? <Link href="/admin/students/family/new" className="btn btn--ghost btn--sm">{t('admin.student360.familyRegistration.entryFromList')}</Link> : null}
                   {canImportStudents ? <Link href="/admin/students/import" className="btn btn--ghost btn--sm">{t('admin.studentImport.openImport')}</Link> : null}
                 </> : null}
@@ -225,21 +253,22 @@ export default function AdminStudentsPage() {
         </div> : null}
       />
 
-      {importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
+      {!allSchools && importOpen ? <CsvImportPanel importPath={endpoints.admin.studentsImport} instructions={t('admin.studentsImportInstructions')} onDone={() => state.reload()} /> : null}
 
       <StudentsFinancialServiceCountCards
-        items={serviceCounts.items} feeTypes={feeTypes} totalStudents={serviceCounts.totalStudents}
-        initialLoading={serviceCounts.initialLoading} fetching={serviceCounts.fetching} error={serviceCounts.error}
-        serviceId={serviceId} servicePresence={servicePresence}
+        items={allSchools ? [] : serviceCounts.items} feeTypes={feeTypes} totalStudents={allSchools ? pg?.total ?? 0 : serviceCounts.totalStudents}
+        initialLoading={allSchools ? false : serviceCounts.initialLoading} fetching={allSchools ? false : serviceCounts.fetching} error={allSchools ? null : serviceCounts.error}
+        serviceId={allSchools ? '' : serviceId} servicePresence={allSchools ? '' : servicePresence}
         onSelectAll={clearServiceFilter} onSelectService={selectServiceHas} onRetry={serviceCounts.reload}
+        readOnly={allSchools}
       />
 
       <div className="students-list__toolbar-wrap">
         <StudentsListFilters
           search={search} cycleCode={cycleCode} levelId={levelId} classId={classId}
-          statusFilter={statusFilter} accountFilter={accountFilter} serviceId={serviceId} servicePresence={servicePresence}
-          levels={levelsState.data ?? []} classes={classesState.data ?? []} feeTypes={serviceFilterOptions}
-          feeTypesLoading={feeTypesLoading || serviceCounts.initialLoading} hasActiveFilters={hasActiveFilters}
+          statusFilter={statusFilter} accountFilter={accountFilter} serviceId={allSchools ? '' : serviceId} servicePresence={allSchools ? '' : servicePresence}
+          levels={availableLevels} classes={classesState.data ?? []} feeTypes={serviceFilterOptions}
+          feeTypesLoading={allSchools ? false : feeTypesLoading || serviceCounts.initialLoading} serviceReadOnly={allSchools} hasActiveFilters={hasActiveFilters}
           onSearchChange={setSearch} onSearchClear={clearSearch} onCycleCodeChange={setCycleCode}
           onLevelIdChange={setLevelId} onClassIdChange={setClassId} onStatusFilterChange={setStatusFilter}
           onAccountFilterChange={setAccountFilter} onServiceIdChange={setServiceId}
@@ -278,7 +307,14 @@ export default function AdminStudentsPage() {
       <div className={state.fetching ? 'students-list__results students-list__results--fetching' : 'students-list__results'} aria-busy={state.fetching || undefined}>
         <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={(d) => d.length === 0} empty={listEmptyState}>
           {(students) => <>
-            {view === 'kanban' ? <StudentsKanban students={students} /> : <div className="students-list__table"><DataTable columns={columns} rows={students} rowKey={(s) => s.id} onRowClick={(s) => router.push(`/admin/students/${s.id}`)} /></div>}
+            {view === 'kanban' ? <StudentsKanban students={students} /> : <div className="students-list__table"><DataTable columns={columns} rows={students} rowKey={(s) => s.id} onRowClick={(s) => {
+              const href = `/admin/students/${s.id}`;
+              if (allSchools && s.school?.id) {
+                void openRecord(s.school.id, href);
+                return;
+              }
+              router.push(href);
+            }} /></div>}
             {pg ? <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} /> : null}
           </>}
         </ResourceView>

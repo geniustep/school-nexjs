@@ -117,8 +117,15 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
       ...(genders.unspecified ? [`${genders.unspecified} ${unspecifiedLabel}`] : []),
     ].join(isArabic ? '، ' : ', ')
     : '';
+  const href = `/admin/classes/${cls.id}`;
 
-  return <button type="button" className="classes-browser__class-card" onClick={onNavigate}>
+  return <button
+    type="button"
+    className="classes-browser__class-card"
+    data-all-schools-record-school-id={cls.school?.id ?? undefined}
+    data-all-schools-record-href={cls.school?.id ? href : undefined}
+    onClick={onNavigate}
+  >
     <span className="classes-browser__card-topline">
       <span className="classes-browser__class-identity"><span className="classes-browser__class-kicker">{isArabic ? 'القسم' : 'Classe'}</span><strong dir="auto">{title}</strong></span>
       {!cls.readiness || !readiness ? <span className="classes-browser__readiness-unknown">{isArabic ? 'الجاهزية غير متاحة' : 'Préparation indisponible'}</span> : <Badge tone={readiness.tone}>{readiness.label}</Badge>}
@@ -148,7 +155,12 @@ function ClassCard({ cls, onNavigate }: { cls: SchoolClass; onNavigate: () => vo
       </span>
     </span> : null}
 
-    <span className="classes-browser__card-footnote">{cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}{cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}<span className="classes-browser__open-hint" aria-hidden>‹</span></span>
+    <span className="classes-browser__card-footnote">
+      {cls.track?.name ? <span dir="auto">{cls.track.name}</span> : null}
+      {cls.school?.name ? <span className="muted" dir="auto">{cls.school.name}</span> : null}
+      {cls.status !== 'active' ? <Badge tone="slate">{statusLabel(t, cls.status)}</Badge> : null}
+      <span className="classes-browser__open-hint" aria-hidden>‹</span>
+    </span>
   </button>;
 }
 

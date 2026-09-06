@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   buildStudentsListSearchParams,
   parseStudentsListUrl,
+  replaceStudentsListUrl,
   serializeStudentsListUrl,
   studentsListHasActiveQuery,
   studentsListToApiParams,
@@ -65,6 +66,25 @@ describe('students-list-url', () => {
         page: 2,
       }),
     ).toBe('page=2');
+  });
+
+  it('preserves the external all-schools scope when replacing list filters', () => {
+    const replace = vi.fn();
+    replaceStudentsListUrl(
+      { replace },
+      '/admin/students',
+      new URLSearchParams('scope=all-schools&search=old&page=3'),
+      {
+        ...STUDENTS_LIST_DEFAULT_FILTERS,
+        search: 'new',
+        page: 1,
+      },
+    );
+
+    expect(replace).toHaveBeenCalledWith(
+      '/admin/students?search=new&scope=all-schools',
+      { scroll: false },
+    );
   });
 
   it('detects active query state', () => {

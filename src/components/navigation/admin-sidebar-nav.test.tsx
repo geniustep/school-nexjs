@@ -32,6 +32,7 @@ const sections: NavSection[] = [
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/admin/dashboard',
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 afterEach(() => {

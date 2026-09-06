@@ -36,7 +36,7 @@ describe('shared useResource / useAdminResource SSOT options', () => {
 
   it('useAdminResource forwards UseResourceOptions without forcing false', () => {
     expect(adminSrc).toContain('options?: UseResourceOptions');
-    expect(adminSrc).toContain('useResource<T>(effectivePath, mergedQuery, options)');
+    expect(adminSrc).toMatch(/useResource<[^>]+>\(effectivePath, mergedQuery, options\)/);
     expect(adminSrc).not.toMatch(/keepPreviousData:\s*false/);
   });
 

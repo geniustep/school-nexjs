@@ -1,6 +1,6 @@
 // Parent / unified person profile — GET /admin/parents/{id}
 
-import type { Ref } from './api';
+import type { Ref, SchoolRef } from './api';
 import type { UserAccountInfo } from './account';
 import type { StaffPasswordPolicy } from './academic-setup';
 import type { StudentNameFields } from './student';
@@ -69,6 +69,7 @@ export interface ParentChild extends StudentNameFields {
   id: number;
   code?: string | null;
   school_number?: string | null;
+  school?: SchoolRef | null;
   class?: Ref | null;
   level?: Ref | null;
   relationship?: ParentChildRelationship | null;
@@ -78,6 +79,7 @@ export interface Parent extends IdentityDocumentReadFields {
   id: number;
   code?: string | null;
   name: string;
+  school?: SchoolRef | null;
   display_name?: string | null;
   phone: string | null;
   mobile?: string | null;
