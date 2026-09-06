@@ -1,0 +1,24 @@
+/*
+ * Dense A5 receipt column alignment guard.
+ * Both split tables must share the same grid row so their combined height
+ * is the maximum column height, never the sum of both columns.
+ */
+.receipt-details__columns {
+  grid-template-rows: auto;
+  grid-auto-flow: column;
+  align-items: start;
+}
+
+.receipt-details__column--left,
+.receipt-details__column--right {
+  grid-row: 1;
+  align-self: start;
+}
+
+.receipt-details__column--left {
+  grid-column: 1;
+}
+
+.receipt-details__column--right {
+  grid-column: 2;
+}

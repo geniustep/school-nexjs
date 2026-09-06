@@ -15,6 +15,11 @@ const printDir = join(
 
 const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
 const fixCss = readFileSync(join(printDir, 'receipt-html-print-fix.css'), 'utf8');
+const columnAlignmentCss = readFileSync(
+  join(printDir, 'receipt-html-print-column-alignment.css'),
+  'utf8',
+);
+const layoutSource = readFileSync(join(printDir, 'layout.tsx'), 'utf8');
 
 describe('HTML receipt visual parity regression', () => {
   it('keeps the total outside the flexible details flow', () => {
@@ -57,6 +62,16 @@ describe('HTML receipt visual parity regression', () => {
     expect(pageSource).toContain('receipt-details__columns');
     expect(fixCss).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
     expect(pageSource.indexOf('receipt-details')).toBeLessThan(pageSource.indexOf('receipt-total-card'));
+  });
+
+  it('pins both split tables to the same grid row so their heights do not stack', () => {
+    expect(layoutSource).toContain("import './receipt-html-print-column-alignment.css';");
+    expect(columnAlignmentCss).toContain('.receipt-details__column--left,');
+    expect(columnAlignmentCss).toContain('.receipt-details__column--right');
+    expect(columnAlignmentCss).toContain('grid-row: 1;');
+    expect(columnAlignmentCss).toContain('grid-column: 1;');
+    expect(columnAlignmentCss).toContain('grid-column: 2;');
+    expect(columnAlignmentCss).toContain('align-items: start;');
   });
 
   it('preserves the one-page A5 geometry and exact cut midpoint contract for every receipt size', () => {
