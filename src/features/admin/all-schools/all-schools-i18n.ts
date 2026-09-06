@@ -8,6 +8,7 @@ export interface AllSchoolsCopy {
   readOnly: string;
   school: string;
   switchFailed: string;
+  chooseSchoolForAction: string;
   massar: string;
   phone: string;
   searchParents: string;
@@ -24,6 +25,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     readOnly: 'عرض موحّد للقراءة فقط عبر المدارس المصرح بها.',
     school: 'المدرسة',
     switchFailed: 'تعذر الانتقال إلى مدرسة السجل. لم يتم فتحه.',
+    chooseSchoolForAction: 'اختر مدرسة محددة لتنفيذ هذا الإجراء.',
     massar: 'رقم مسار',
     phone: 'الهاتف',
     searchParents: 'البحث عن ولي أمر',
@@ -38,6 +40,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     readOnly: 'Vue en lecture seule de vos établissements autorisés.',
     school: 'Établissement',
     switchFailed: 'Impossible de basculer vers l’établissement de la fiche. La fiche n’a pas été ouverte.',
+    chooseSchoolForAction: 'Choisissez un établissement précis pour effectuer cette action.',
     massar: 'Code Massar',
     phone: 'Téléphone',
     searchParents: 'Rechercher un responsable',
@@ -52,6 +55,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     readOnly: 'Read-only view across your authorized schools.',
     school: 'School',
     switchFailed: 'Could not switch to the record school. The record was not opened.',
+    chooseSchoolForAction: 'Choose a specific school to perform this action.',
     massar: 'Massar code',
     phone: 'Phone',
     searchParents: 'Search guardians',
@@ -65,7 +69,8 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     allSchools: 'Todos los centros',
     readOnly: 'Vista de solo lectura de los centros autorizados.',
     school: 'Centro',
-    switchFailed: 'No se pudo cambiar al centro del registro. El registro no se abrió.',
+    switchFailed: 'No se pudo cambiar al centro de la ficha. La ficha no se abrió.',
+    chooseSchoolForAction: 'Elija un centro específico para realizar esta acción.',
     massar: 'Código Massar',
     phone: 'Teléfono',
     searchParents: 'Buscar responsables',
@@ -76,6 +81,10 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     late: 'Con retraso',
   },
 };
+
+export function allSchoolsLabel(locale: Locale): string {
+  return COPY[locale].allSchools;
+}
 
 export function useAllSchoolsCopy(): AllSchoolsCopy {
   const { locale } = useLocale();
