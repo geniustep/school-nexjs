@@ -20,6 +20,8 @@ export function useStudentSearchQuery(query: string) {
   const requestSeq = useRef(0);
 
   useEffect(() => {
+    const seq = ++requestSeq.current;
+
     if (!shouldFetchStudentSearch(debouncedQuery)) {
       setResults([]);
       setSuggestion(null);
@@ -28,11 +30,17 @@ export function useStudentSearchQuery(query: string) {
       return;
     }
 
-    const seq = ++requestSeq.current;
+    const controller = new AbortController();
     setLoading(true);
     setError(false);
 
-    executeStudentSearchQuery(debouncedQuery, activeSchoolId, seq, () => requestSeq.current)
+    executeStudentSearchQuery(
+      debouncedQuery,
+      activeSchoolId,
+      seq,
+      () => requestSeq.current,
+      controller.signal,
+    )
       .then((outcome) => {
         if (outcome.kind === 'stale') return;
         if (outcome.kind === 'error') {
@@ -54,6 +62,11 @@ export function useStudentSearchQuery(query: string) {
         setLoading(false);
         setError(true);
       });
+
+    return () => {
+      controller.abort();
+      if (requestSeq.current === seq) requestSeq.current += 1;
+    };
   }, [debouncedQuery, activeSchoolId]);
 
   return { loading, error, results, suggestion };

@@ -10,6 +10,10 @@ import { sanitizeClientApiErrorMessage } from '@/lib/utils/user-facing-error';
 
 const PROXY_BASE = '/api/odoo';
 
+type ApiGetOptions = {
+  signal?: AbortSignal;
+};
+
 function buildUrl(path: string, query?: ListParams): string {
   const clean = path.startsWith('/') ? path : `/${path}`;
   const url = `${PROXY_BASE}${clean}`;
@@ -135,16 +139,18 @@ function normalizeGuardianLinkPartnerResponse<T>(path: string, response: ApiResp
 }
 
 export const api = {
-  async get<T>(path: string, query?: ListParams): Promise<ApiResponse<T>> {
+  async get<T>(path: string, query?: ListParams, options?: ApiGetOptions): Promise<ApiResponse<T>> {
     try {
       const res = await fetch(buildUrl(path, query), {
         method: 'GET',
         headers: proxyHeaders(),
         credentials: 'same-origin',
         cache: 'no-store',
+        signal: options?.signal,
       });
       return parse<T>(res);
-    } catch {
+    } catch (error) {
+      if (options?.signal?.aborted) throw error;
       return {
         success: false,
         error: {
