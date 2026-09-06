@@ -280,6 +280,10 @@
     grid-template-rows: 98.5mm 2mm 98.5mm !important;
   }
 
+  body:has(.receipt-html-print-page) .receipt-html-sheet[data-layout='double'] {
+    gap: 0 !important;
+  }
+
   body:has(.receipt-html-print-page) .receipt-html-cut-line {
     height: 2mm !important;
     min-height: 0 !important;
