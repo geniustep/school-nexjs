@@ -1,6 +1,6 @@
 // Student resources — mirrors API_REPORT.md §3 (admin/students, student-view).
 
-import type { Ref } from './api';
+import type { Ref, SchoolRef } from './api';
 import type { UserAccountInfo } from './account';
 import type { SiblingLine, SiblingsFieldsSource } from './sibling-line';
 
@@ -39,6 +39,7 @@ export interface Student extends StudentNameFields, SiblingsFieldsSource {
   school_number?: string | null;
   massar_code?: string | null;
   matricule?: string | null;
+  school?: SchoolRef | null;
   level: Ref | null;
   class: Ref | null;
   /** May be omitted when no guardian is linked (data-quality in Odoo). */
