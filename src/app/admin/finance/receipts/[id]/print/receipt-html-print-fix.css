@@ -281,6 +281,7 @@
   }
 
   body:has(.receipt-html-print-page) .receipt-html-sheet[data-layout='double'] {
+    padding: 3mm !important;
     gap: 0 !important;
   }
 
