@@ -5,6 +5,7 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { AgreementAmendmentPeriodOption } from '../types/agreement-amendment';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import { sortAgreementAmendmentPeriodOptions } from '../utils/sort-agreement-amendment-period-options';
+import { useAgreementAmendmentAutoPreview } from './use-agreement-amendment-auto-preview';
 import './agreement-amendment-studio.css';
 
 const SCOPE_COPY = {
@@ -70,6 +71,7 @@ export function AgreementAmendmentRangeRail({
   const { locale } = useLocale();
   const scopeCopy = SCOPE_COPY[locale] ?? SCOPE_COPY.en;
   const [scope, setScope] = useState<AmendmentRangeScope>('future');
+  const { rootRef, scheduleAutoPreview } = useAgreementAmendmentAutoPreview<HTMLDivElement>();
   const sortedPeriods = useMemo(() => sortAgreementAmendmentPeriodOptions(periods), [periods]);
 
   useEffect(() => {
@@ -91,9 +93,11 @@ export function AgreementAmendmentRangeRail({
     if (!startPeriodId) return;
     if (nextScope === 'single') {
       onEndSelect(startPeriodId);
+      scheduleAutoPreview();
       return;
     }
     if (endPeriodId === startPeriodId) onEndSelect('');
+    scheduleAutoPreview();
   }
 
   function handlePeriodClick(period: AgreementAmendmentPeriodOption) {
@@ -103,6 +107,7 @@ export function AgreementAmendmentRangeRail({
     if (scopeSelectionEnabled) {
       onStartSelect(periodId);
       onEndSelect(singleScopeActive ? periodId : '');
+      scheduleAutoPreview();
       return;
     }
 
@@ -111,21 +116,25 @@ export function AgreementAmendmentRangeRail({
     if (!startPeriodId) {
       onStartSelect(periodId);
       onEndSelect('');
+      scheduleAutoPreview();
       return;
     }
 
     if (startPeriodId === periodId && !endPeriodId) {
       onEndSelect(visualEndPeriodId || periodId);
+      scheduleAutoPreview();
       return;
     }
 
     if (clickedIndex < startIndex) {
       onStartSelect(periodId);
       onEndSelect('');
+      scheduleAutoPreview();
       return;
     }
 
     onEndSelect(periodId);
+    scheduleAutoPreview();
   }
 
   const startPeriod =
@@ -138,7 +147,7 @@ export function AgreementAmendmentRangeRail({
       : null;
 
   return (
-    <div className="student-finance-amendment-range-rail">
+    <div ref={rootRef} className="student-finance-amendment-range-rail">
       {scopeSelectionEnabled ? (
         <fieldset className="student-finance-amendment-path-selector">
           <legend className="tiny muted">{scopeCopy.legend}</legend>
