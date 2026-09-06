@@ -88,6 +88,7 @@ export function StudentsListFilters({
   classes,
   feeTypes,
   feeTypesLoading,
+  serviceReadOnly = false,
   hasActiveFilters,
   onSearchChange,
   onSearchClear,
@@ -104,6 +105,7 @@ export function StudentsListFilters({
   classes: SchoolClass[];
   feeTypes: FeeType[];
   feeTypesLoading?: boolean;
+  serviceReadOnly?: boolean;
   hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
   onSearchClear: () => void;
@@ -309,14 +311,21 @@ export function StudentsListFilters({
             </select>
           </label>
 
-          <label className="students-list-filters__more-field">
+          <label
+            className="students-list-filters__more-field"
+            data-all-schools-mutation={serviceReadOnly ? 'true' : undefined}
+            aria-disabled={serviceReadOnly || undefined}
+          >
             <span className="students-list-filters__more-label">{t('admin.studentsList.filters.service')}</span>
             <select
               className="input"
-              value={serviceId}
-              onChange={(event) => onServiceIdChange(event.target.value)}
+              value={serviceReadOnly ? '' : serviceId}
+              onChange={(event) => {
+                if (!serviceReadOnly) onServiceIdChange(event.target.value);
+              }}
               aria-label={t('admin.studentsList.filters.service')}
-              disabled={feeTypesLoading && sortedFeeTypes.length === 0}
+              aria-disabled={serviceReadOnly || undefined}
+              disabled={!serviceReadOnly && feeTypesLoading && sortedFeeTypes.length === 0}
             >
               <option value="">{t('admin.studentsList.filters.allServices')}</option>
               {sortedFeeTypes.map((feeType) => (
@@ -327,7 +336,7 @@ export function StudentsListFilters({
             </select>
           </label>
 
-          {serviceId ? (
+          {serviceId && !serviceReadOnly ? (
             <label className="students-list-filters__more-field">
               <span className="students-list-filters__more-label">
                 {t('admin.studentsList.filters.servicePresence')}
@@ -387,12 +396,12 @@ export function StudentsListFilters({
               {t('admin.studentsList.filters.chipStatus', { status: statusLabel(t, statusFilter) })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
-          {serviceId ? (
+          {serviceId && !serviceReadOnly ? (
             <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onServiceIdChange('')}>
               {t('admin.studentsList.filters.chipService', { service: selectedServiceLabel ?? serviceId })}<span aria-hidden="true">×</span>
             </button>
           ) : null}
-          {serviceId ? (
+          {serviceId && !serviceReadOnly ? (
             <button type="button" className="students-list-filters__chip students-list-filters__chip--action" onClick={() => onServiceIdChange('')}>
               {t('admin.studentsList.filters.chipServicePresence', { presence: servicePresenceLabel(t, effectivePresence) })}<span aria-hidden="true">×</span>
             </button>
