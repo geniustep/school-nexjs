@@ -11,7 +11,7 @@ import type { StudentSearchHit, StudentSearchResponseMeta } from '@/types/studen
  */
 
 export const STUDENT_SEARCH_MIN_QUERY_LENGTH = 2;
-export const STUDENT_SEARCH_DEBOUNCE_MS = 400;
+export const STUDENT_SEARCH_DEBOUNCE_MS = 150;
 export const STUDENT_SEARCH_PAGE = 1;
 export const STUDENT_SEARCH_PAGE_SIZE = 10;
 export const STUDENT_LIST_PAGE_SIZE = 20;
@@ -107,11 +107,12 @@ export function parseStudentSearchSuggestion(meta: ApiMeta | undefined): string 
 export async function fetchStudentSearchHits(
   query: string,
   activeSchoolId: number | null | undefined,
+  signal?: AbortSignal,
 ): Promise<StudentSearchFetchResult> {
-  const res = await api.get<StudentSearchHit[]>(
-    ADMIN_STUDENTS_SEARCH_PATH,
-    buildStudentSearchQueryParams(query, activeSchoolId),
-  );
+  const params = buildStudentSearchQueryParams(query, activeSchoolId);
+  const res = signal
+    ? await api.get<StudentSearchHit[]>(ADMIN_STUDENTS_SEARCH_PATH, params, { signal })
+    : await api.get<StudentSearchHit[]>(ADMIN_STUDENTS_SEARCH_PATH, params);
   if (!res.success) {
     throw new Error(res.error?.message ?? 'student_search_failed');
   }
@@ -131,12 +132,14 @@ export async function executeStudentSearchQuery(
   activeSchoolId: number | null | undefined,
   seq: number,
   getCurrentSeq: () => number,
+  signal?: AbortSignal,
 ): Promise<StudentSearchQueryOutcome> {
   try {
-    const { results, suggestion } = await fetchStudentSearchHits(query, activeSchoolId);
+    const { results, suggestion } = await fetchStudentSearchHits(query, activeSchoolId, signal);
     if (seq !== getCurrentSeq()) return { kind: 'stale' };
     return { kind: 'success', results, suggestion };
   } catch {
+    if (signal?.aborted) return { kind: 'stale' };
     if (seq !== getCurrentSeq()) return { kind: 'stale' };
     return { kind: 'error' };
   }
