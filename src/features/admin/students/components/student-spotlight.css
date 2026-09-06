@@ -219,24 +219,60 @@
 }
 
 .student-spotlight__actions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 2px;
+  align-self: flex-start;
+  gap: 0;
   min-width: 0;
+  max-width: 100%;
+  margin-block-start: 2px;
+  padding: 1px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 82%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c-surface-2) 72%, transparent);
   white-space: nowrap;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.student-spotlight__actions::-webkit-scrollbar {
+  display: none;
 }
 
 .student-spotlight__action {
+  position: relative;
   min-height: 26px;
-  padding-inline: 6px;
+  padding: 2px 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--c-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
+  line-height: 1.2;
+}
+
+.student-spotlight__action + .student-spotlight__action::before {
+  content: '';
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 1px;
+  background: var(--c-border);
+  pointer-events: none;
+}
+
+.student-spotlight__action:not(:disabled):hover {
+  background: var(--c-surface);
+  color: var(--c-text);
 }
 
 .student-spotlight__action:focus-visible {
   outline: 2px solid var(--c-primary);
-  outline-offset: 2px;
+  outline-offset: 1px;
+  background: var(--c-surface);
 }
 
 .student-spotlight-trigger {
