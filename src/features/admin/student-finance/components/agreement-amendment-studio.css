@@ -33,11 +33,43 @@
   resize: none;
 }
 
+/* Services stay visible without an internal scroller: compact cards, selected card expands. */
 .academic-setup-drawer:has(.student-finance-amendment-form)
   .student-finance-amendment-line-picker__list {
-  max-height: 132px;
-  overflow-y: auto;
-  padding-inline-end: 3px;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-line-picker__list > li {
+  min-width: 0;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-line-picker__card {
+  height: 100%;
+  padding: 7px 8px;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-line-picker__card:not(.student-finance-amendment-line-picker__card--selected)
+  .student-finance-amendment-line-picker__meta,
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-line-picker__card:not(.student-finance-amendment-line-picker__card--selected)
+  .student-finance-amendment-line-picker__reason {
+  display: none;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-line-picker__card--selected
+  .student-finance-amendment-line-picker__meta {
+  margin-top: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
 }
 
 .academic-setup-drawer:has(.student-finance-amendment-form)
@@ -362,6 +394,8 @@
     width: 100vw;
   }
 
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-line-picker__list,
   .academic-setup-drawer:has(.student-finance-amendment-form)
     .student-finance-amendment-range-rail__scroll {
     grid-template-columns: repeat(2, minmax(0, 1fr));

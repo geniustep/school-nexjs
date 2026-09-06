@@ -35,6 +35,13 @@ describe('Finance Amendment Studio live-preview layout contract', () => {
     expect(css).toContain("button[type='button']");
   });
 
+  it('keeps the service chooser compact without an internal scrolling list', () => {
+    expect(css).toContain('.student-finance-amendment-line-picker__list');
+    expect(css).toContain('max-height: none');
+    expect(css).toContain('overflow: visible');
+    expect(css).toContain('.student-finance-amendment-line-picker__card--selected');
+  });
+
   it('requests preview automatically after form input/change and guards busy preview state', () => {
     expect(autoPreviewSource).toContain("form.addEventListener('input'");
     expect(autoPreviewSource).toContain("form.addEventListener('change'");
