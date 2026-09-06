@@ -7,16 +7,19 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { Card } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT, useLocale } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
+import { useAllSchoolsCopy } from '@/features/admin/all-schools/all-schools-i18n';
 import {
   resolveDashboardVariant,
   resolveDashboardWidgets,
   type AdminQuickActionId,
 } from '@/lib/admin/dashboard-registry';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
@@ -59,6 +62,10 @@ export function AdminCommandDashboard({
   const { formatDate, formatDateTime } = useFormat();
   const session = useSession();
   const effectiveUser = user ?? session;
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchoolsCopy = useAllSchoolsCopy();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
 
   const today = todayIso();
   const att = d.attendance_today;
@@ -85,7 +92,9 @@ export function AdminCommandDashboard({
     : hasClickableInterventions
       ? t('admin.cmd.interventionDesc')
       : t('admin.cmd.interventionDescNeutral');
-  const schoolName = formatSchoolLabel(effectiveUser.school, t);
+  const schoolName = allSchools
+    ? allSchoolsCopy.allSchools
+    : formatSchoolLabel(effectiveUser.school, t);
 
   const quickActions = useMemo(() => {
     const catalog: Record<
@@ -347,15 +356,15 @@ export function AdminCommandDashboard({
             <div className="admin-academic-grid">
               <Link href="/admin/homeworks" className="admin-academic-metric">
                 <span>{t('dashboard.publishedHomeworks')}</span>
-                <strong>{d.published_homeworks ?? 0}</strong>
+                <strong>{d.published_homeworks ?? '—'}</strong>
               </Link>
               <Link href="/admin/resources" className="admin-academic-metric">
                 <span>{t('dashboard.publishedResources')}</span>
-                <strong>{d.published_resources ?? 0}</strong>
+                <strong>{d.published_resources ?? '—'}</strong>
               </Link>
               <Link href="/admin/exams" className="admin-academic-metric">
                 <span>{t('dashboard.upcomingExams')}</span>
-                <strong>{d.upcoming_exams_count ?? 0}</strong>
+                <strong>{d.upcoming_exams_count ?? '—'}</strong>
               </Link>
               <Link
                 href="/admin/exam-results"
@@ -365,11 +374,11 @@ export function AdminCommandDashboard({
                 )}
               >
                 <span>{t('dashboard.draftExamResults')}</span>
-                <strong>{d.draft_exam_results_count ?? 0}</strong>
+                <strong>{d.draft_exam_results_count ?? '—'}</strong>
               </Link>
               <Link href="/admin/exam-results" className="admin-academic-metric">
                 <span>{t('dashboard.publishedExamResults')}</span>
-                <strong>{d.published_exam_results_count ?? 0}</strong>
+                <strong>{d.published_exam_results_count ?? '—'}</strong>
               </Link>
               <Link
                 href="/admin/exams"
@@ -379,7 +388,7 @@ export function AdminCommandDashboard({
                 )}
               >
                 <span>{t('dashboard.examsMissingResults')}</span>
-                <strong>{d.exams_missing_results ?? 0}</strong>
+                <strong>{d.exams_missing_results ?? '—'}</strong>
               </Link>
             </div>
             {d.next_exam && (
