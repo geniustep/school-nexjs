@@ -55,10 +55,12 @@ describe('HTML receipt final visual contract', () => {
     expect(pageSource).not.toContain('<SiblingRoster');
   });
 
-  it('removes class/section from the receipt while keeping level and Massar support', () => {
+  it('removes class/section data from the receipt while keeping level and Massar support', () => {
     expect(pageSource).not.toContain('القسم:');
-    expect(pageSource).not.toContain('className');
+    expect(pageSource).not.toContain('className?: string');
+    expect(pageSource).not.toContain('className: primary.className');
     expect(pageSource).not.toContain("['class_name', 'section_name', 'classroom_name', 'class_label']");
+    expect(pageSource).not.toContain("relationLabel(source, ['class', 'section', 'classroom'])");
     expect(pageSource).toContain("['level_name', 'grade_name', 'academic_level_name', 'level_label']");
     expect(pageSource).toContain("['massar', 'massar_number', 'massar_code', 'massar_id']");
     expect(pageSource).toContain('المستوى:');
