@@ -3,10 +3,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import { parseFinanceQuickListResponse } from '@/lib/utils/finance-list-response';
 import type { ApiResponse } from '@/types/api';
 import type { StudentInstallment } from '../types';
-import type {
-  AgreementAmendmentPeriodOption,
-  AgreementAmendmentRequestPayload,
-} from '../types/agreement-amendment';
+import type { AgreementAmendmentRequestPayload } from '../types/agreement-amendment';
+import { fetchAgreementAmendmentEffectivePeriods } from '../api/finance-admin-api';
 import { resolveOperationalInstallmentId } from './resolve-operational-installment-id';
 
 function operationalInstallmentError(
@@ -84,42 +82,51 @@ export async function prepareAgreementAmendmentPayload(
     return operationalInstallmentError('missing_target_identity');
   }
 
-  const periodsRes = await api.get<AgreementAmendmentPeriodOption[]>(
-    endpoints.admin.studentFinanceAgreementAmendmentEffectivePeriods(studentId),
-    { agreement_id: payload.agreement_id },
-  );
-  if (!periodsRes.success) return periodsRes;
+  try {
+    // Reuse the normalized same-origin BFF contract. The raw Odoo response may expose
+    // top-level `periods` with snake_case boundaries; the BFF converts those fields to
+    // `periodStart` / `periodEnd` before this resolver consumes them.
+    const periodsRes = await fetchAgreementAmendmentEffectivePeriods(
+      studentId,
+      payload.agreement_id,
+    );
+    if (!periodsRes.success) return periodsRes;
 
-  const period = periodsRes.data.find((item) => item.id === effectivePeriodId);
-  if (!period?.periodStart || !period.periodEnd) {
-    return operationalInstallmentError('effective_period_boundaries_missing');
-  }
+    const period = periodsRes.data.find((item) => item.id === effectivePeriodId);
+    if (!period?.periodStart || !period.periodEnd) {
+      return operationalInstallmentError('effective_period_boundaries_missing');
+    }
 
-  const installmentsRes = await fetchAllOperationalInstallments(
-    studentId,
-    payload.line.fee_type_id,
-  );
-  if (!installmentsRes.success) return installmentsRes;
+    const installmentsRes = await fetchAllOperationalInstallments(
+      studentId,
+      payload.line.fee_type_id,
+    );
+    if (!installmentsRes.success) return installmentsRes;
 
-  const resolution = resolveOperationalInstallmentId(installmentsRes.data, {
-    agreementId: payload.agreement_id,
-    agreementLineId,
-    periodStart: period.periodStart,
-    periodEnd: period.periodEnd,
-  });
-  if (!resolution.ok) {
-    return operationalInstallmentError(resolution.reason);
-  }
+    const resolution = resolveOperationalInstallmentId(installmentsRes.data, {
+      agreementId: payload.agreement_id,
+      agreementLineId,
+      periodStart: period.periodStart,
+      periodEnd: period.periodEnd,
+    });
+    if (!resolution.ok) {
+      return operationalInstallmentError(resolution.reason);
+    }
 
-  return {
-    success: true,
-    data: {
-      ...payload,
-      line: {
-        ...payload.line,
-        operational_installment_id: resolution.operationalInstallmentId,
+    return {
+      success: true,
+      data: {
+        ...payload,
+        line: {
+          ...payload.line,
+          operational_installment_id: resolution.operationalInstallmentId,
+        },
       },
-    },
-    meta: {},
-  };
+      meta: {},
+    };
+  } catch {
+    // Fail closed and return a normal UI error instead of allowing a rejected read to
+    // escape the submit handler and leave the preview action in a loading state.
+    return operationalInstallmentError('request_failed');
+  }
 }
