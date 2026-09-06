@@ -2,6 +2,7 @@
 
 /** @raqeem-design docs/design/RAQEEM-DESIGN.md @design-status adopted */
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
@@ -20,6 +21,7 @@ import { normalizeParentListItems } from '@/features/admin/parents/utils/normali
 import { resolveParentsListEmptyVariant } from '@/features/admin/parents/utils/parents-list-empty';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useT } from '@/features/i18n/locale-context';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ListParams } from '@/types/api';
 import type { Parent } from '@/types/parent';
@@ -29,6 +31,9 @@ const PARENTS_PAGE_SIZE = 50;
 
 export default function AdminParentsPage() {
   const t = useT();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
@@ -50,8 +55,15 @@ export default function AdminParentsPage() {
   const hasActiveFilters = Boolean(accountFilter || hasActiveParentFamilyFilters(filterState, debouncedSearch));
 
   const normalizedParents = useMemo(() => {
-    const normalized = normalizeParentListItems(state.data ?? []);
-    return expandParentsWithFamilyGuardians(state.data ?? [], normalized);
+    const rawRows = state.data ?? [];
+    const schoolByParentId = new Map(
+      rawRows.flatMap((parent) => parent.school ? [[parent.id, parent.school] as const] : []),
+    );
+    const normalized = normalizeParentListItems(rawRows).map((parent) => ({
+      ...parent,
+      school: parent.school ?? schoolByParentId.get(parent.id) ?? null,
+    }));
+    return expandParentsWithFamilyGuardians(rawRows, normalized);
   }, [state.data]);
   const groupedFamilies = useMemo(() => groupParentsByFamily(normalizedParents), [normalizedParents]);
   const families = useMemo(() => filterParentFamilies(groupedFamilies, filterState, debouncedSearch, { serverSearchAuthoritative: true }), [groupedFamilies, filterState, debouncedSearch]);
@@ -76,6 +88,8 @@ export default function AdminParentsPage() {
           showImport
           importOpen={importOpen}
           onToggleImport={() => setImportOpen((v) => !v)}
+          readOnly={allSchools}
+          preserveReadOnlyGeometry={allSchools}
           extra={
             <Link href="/admin/parents/activation-campaign" className="btn btn--ghost btn--sm">
               {t('admin.parentActivation.title')}
@@ -84,7 +98,7 @@ export default function AdminParentsPage() {
         />
       }
     />
-    {importOpen ? <CsvImportPanel importPath={endpoints.admin.parentsImport} onDone={() => state.reload()} /> : null}
+    {!allSchools && importOpen ? <CsvImportPanel importPath={endpoints.admin.parentsImport} onDone={() => state.reload()} /> : null}
     <ParentsListFilters search={search} statusFilter={statusFilter} accountFilter={accountFilter} childrenFilter={childrenFilter} relationshipFilter={relationshipFilter} languageFilter={languageFilter} hideWithoutChildren={hideWithoutChildren} hasActiveFilters={hasActiveFilters} onSearchChange={setSearch} onSearchClear={clearSearch} onStatusFilterChange={setStatusFilter} onAccountFilterChange={setAccountFilter} onChildrenFilterChange={setChildrenFilter} onRelationshipFilterChange={setRelationshipFilter} onLanguageFilterChange={setLanguageFilter} onHideWithoutChildrenChange={setHideWithoutChildren} onReset={resetFilters} />
     {state.fetching ? <p className="parents-list__fetching-hint" aria-live="polite">{t('admin.parentsList.refetching')}</p> : null}
     <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={() => !state.loading && families.length === 0} empty={listEmptyState}>

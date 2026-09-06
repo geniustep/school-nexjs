@@ -28,6 +28,8 @@ interface AdminListActionsProps {
   importPermission?: Permission;
   extra?: React.ReactNode;
   readOnly?: boolean;
+  /** Keep the exact action geometry while an enclosing read-only boundary blocks execution. */
+  preserveReadOnlyGeometry?: boolean;
 }
 
 export function AdminListActions({
@@ -45,12 +47,13 @@ export function AdminListActions({
   importPermission = 'import_data',
   extra,
   readOnly = isAdminReadOnlyPhase(),
+  preserveReadOnlyGeometry = false,
 }: AdminListActionsProps) {
   const t = useT();
   const user = useSession();
   const { activeAcademicYearId } = useAdminSession();
 
-  if (readOnly) return null;
+  if (readOnly && !preserveReadOnlyGeometry) return null;
 
   const teacherYearExport = exportPath === endpoints.admin.teachersExport;
   const effectiveExportQuery =
@@ -79,7 +82,12 @@ export function AdminListActions({
   if (!showAdd && !showExport && !showImportBtn && !extra) return null;
 
   return (
-    <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+    <div
+      className="row"
+      style={{ gap: 8, flexWrap: 'wrap' }}
+      data-all-schools-mutation={readOnly ? 'true' : undefined}
+      aria-disabled={readOnly || undefined}
+    >
       {showAdd && (
         <Link className="btn btn--primary btn--sm" href={addHref}>
           {addLabel ?? t('admin.add')}

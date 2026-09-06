@@ -1,13 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { buildGlobalAcademicYearQuery } from '@/features/academic-context/utils/global-academic-year-query';
+import { ALL_SCHOOLS_ENDPOINTS } from '@/features/admin/all-schools/all-schools-contract';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import type { ResourceState } from '@/lib/hooks/use-resource';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { ApiErrorBody, ApiMeta } from '@/types/api';
+import type { ApiErrorBody, ApiMeta, ListParams } from '@/types/api';
 import type { Level } from '@/types/class';
 import type { Student } from '@/types/student';
 import {
@@ -20,11 +23,24 @@ import {
 import { studentsListToApiParams, type StudentsListFilterValues } from '../utils/students-list-url';
 import { buildStudentsListQueryParams } from '../utils/student-search-query';
 
+function allSchoolsStudentParams(base: ListParams): ListParams {
+  const params: ListParams = { ...base };
+  if (params.status != null && params.state == null) params.state = params.status;
+  delete params.status;
+  delete params.active_school_id;
+  delete params.academic_year_id;
+  delete params.service_id;
+  delete params.service_group_id;
+  delete params.service_presence;
+  return params;
+}
+
 async function fetchAllStudentsForLevel(
   levelId: number,
   filters: StudentsListFilterValues,
   activeSchoolId: number | null | undefined,
-  activeAcademicYearId: number,
+  activeAcademicYearId: number | null,
+  allSchools: boolean,
 ): Promise<Student[]> {
   const base = buildStudentsListQueryParams({
     search: filters.search,
@@ -32,8 +48,8 @@ async function fetchAllStudentsForLevel(
     levelId: String(levelId),
     statusFilter: filters.statusFilter,
     accountFilter: filters.accountFilter,
-    serviceId: filters.serviceId,
-    servicePresence: filters.servicePresence,
+    serviceId: allSchools ? '' : filters.serviceId,
+    servicePresence: allSchools ? '' : filters.servicePresence,
     page: 1,
   });
 
@@ -42,18 +58,26 @@ async function fetchAllStudentsForLevel(
   let totalPages = 1;
 
   do {
-    const res = await api.get<Student[]>(
-      endpoints.admin.students,
-      buildGlobalAcademicYearQuery(
-        {
-          ...base,
-          page,
-          page_size: STUDENTS_LIST_API_PAGE_SIZE_CAP,
-          active_school_id: activeSchoolId ?? undefined,
-        },
-        activeAcademicYearId,
-      ),
-    );
+    const rawParams: ListParams = {
+      ...base,
+      page,
+      page_size: STUDENTS_LIST_API_PAGE_SIZE_CAP,
+    };
+    const res = allSchools
+      ? await api.get<Student[]>(
+          ALL_SCHOOLS_ENDPOINTS.students,
+          allSchoolsStudentParams(rawParams),
+        )
+      : await api.get<Student[]>(
+          endpoints.admin.students,
+          buildGlobalAcademicYearQuery(
+            {
+              ...rawParams,
+              active_school_id: activeSchoolId ?? undefined,
+            },
+            activeAcademicYearId,
+          ),
+        );
     if (!res.success) {
       throw new Error(res.error?.message ?? 'students_cycle_fetch_failed');
     }
@@ -69,12 +93,17 @@ async function fetchAllStudentsForLevel(
 /**
  * Students list data source.
  * Server path for normal filters; per-level merge when cycle is selected without level.
+ * In All-Schools the same canonical hook uses the safe aggregate endpoint and never
+ * injects the active school/year or unsupported financial-service filters.
  */
 export function useStudentsListResource(
   filters: StudentsListFilterValues,
   levels: Level[] | null,
   levelsLoading: boolean,
 ): ResourceState<Student[]> {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
   const {
     activeSchoolId,
     requiresActiveSchool,
@@ -86,8 +115,8 @@ export function useStudentsListResource(
   const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
   const safeActiveSchoolId =
     activeSchoolId != null && allowedSchoolIds.includes(activeSchoolId) ? activeSchoolId : null;
-  const pendingActiveSchool = requiresActiveSchool && safeActiveSchoolId == null;
-  const missingAcademicYear = safeActiveSchoolId != null && activeAcademicYearId == null;
+  const pendingActiveSchool = !allSchools && requiresActiveSchool && safeActiveSchoolId == null;
+  const missingAcademicYear = !allSchools && safeActiveSchoolId != null && activeAcademicYearId == null;
   const pendingAcademicYear = missingAcademicYear && academicYearError == null;
 
   const clientCycle = studentsListUsesClientCycleFilter(filters);
@@ -96,9 +125,16 @@ export function useStudentsListResource(
     [clientCycle, levels, filters.cycleCode],
   );
 
+  const effectiveFilters = useMemo<StudentsListFilterValues>(
+    () =>
+      allSchools
+        ? { ...filters, serviceId: '', servicePresence: '' }
+        : filters,
+    [allSchools, filters],
+  );
   const serverParams = useMemo(
-    () => (clientCycle ? undefined : studentsListToApiParams(filters)),
-    [clientCycle, filters],
+    () => (clientCycle ? undefined : studentsListToApiParams(effectiveFilters)),
+    [clientCycle, effectiveFilters],
   );
   const serverState = useGlobalAcademicYearResource<Student[]>(
     clientCycle || pendingActiveSchool ? null : endpoints.admin.students,
@@ -114,26 +150,27 @@ export function useStudentsListResource(
   const clientFetchKey = useMemo(
     () =>
       JSON.stringify({
-        cycleCode: filters.cycleCode,
-        search: filters.search,
-        classId: filters.classId,
-        statusFilter: filters.statusFilter,
-        accountFilter: filters.accountFilter,
-        serviceId: filters.serviceId,
-        servicePresence: filters.servicePresence,
+        cycleCode: effectiveFilters.cycleCode,
+        search: effectiveFilters.search,
+        classId: effectiveFilters.classId,
+        statusFilter: effectiveFilters.statusFilter,
+        accountFilter: effectiveFilters.accountFilter,
+        serviceId: effectiveFilters.serviceId,
+        servicePresence: effectiveFilters.servicePresence,
         levelIds: cycleLevelIds,
-        schoolId: safeActiveSchoolId,
-        academicYearId: activeAcademicYearId,
+        schoolId: allSchools ? 'all-schools' : safeActiveSchoolId,
+        academicYearId: allSchools ? 'per-school-current' : activeAcademicYearId,
         nonce: clientNonce,
       }),
     [
-      filters.cycleCode,
-      filters.search,
-      filters.classId,
-      filters.statusFilter,
-      filters.accountFilter,
-      filters.serviceId,
-      filters.servicePresence,
+      allSchools,
+      effectiveFilters.cycleCode,
+      effectiveFilters.search,
+      effectiveFilters.classId,
+      effectiveFilters.statusFilter,
+      effectiveFilters.accountFilter,
+      effectiveFilters.serviceId,
+      effectiveFilters.servicePresence,
       cycleLevelIds,
       safeActiveSchoolId,
       activeAcademicYearId,
@@ -143,7 +180,7 @@ export function useStudentsListResource(
 
   useEffect(() => {
     if (!clientCycle || pendingActiveSchool || missingAcademicYear) return;
-    if (levelsLoading || activeAcademicYearId == null) return;
+    if (levelsLoading || (!allSchools && activeAcademicYearId == null)) return;
 
     let active = true;
     setClientLoading(true);
@@ -162,9 +199,10 @@ export function useStudentsListResource(
           cycleLevelIds.map((levelId) =>
             fetchAllStudentsForLevel(
               levelId,
-              filters,
+              effectiveFilters,
               safeActiveSchoolId,
               activeAcademicYearId,
+              allSchools,
             ),
           ),
         );
@@ -201,7 +239,7 @@ export function useStudentsListResource(
   const reloadClient = useCallback(() => setClientNonce((n) => n + 1), []);
 
   if (!clientCycle) {
-    const waiting = pendingActiveSchool || switching;
+    const waiting = pendingActiveSchool || (!allSchools && switching);
     return {
       ...serverState,
       loading: serverState.loading || waiting,
@@ -211,7 +249,11 @@ export function useStudentsListResource(
     };
   }
 
-  const waiting = pendingActiveSchool || pendingAcademicYear || switching || levelsLoading;
+  const waiting =
+    pendingActiveSchool ||
+    pendingAcademicYear ||
+    (!allSchools && switching) ||
+    levelsLoading;
   const loading = clientLoading || waiting;
 
   return {
@@ -220,7 +262,7 @@ export function useStudentsListResource(
     fetching: loading && clientPage.rows !== null,
     data: clientPage.rows,
     meta: clientPage.meta,
-    error: clientError ?? academicYearError,
+    error: clientError ?? (allSchools ? null : academicYearError),
     reload: reloadClient,
   };
 }

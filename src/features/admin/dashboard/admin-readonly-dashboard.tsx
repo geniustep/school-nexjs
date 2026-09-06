@@ -6,14 +6,17 @@
  */
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import { PageHeader } from '@/components/ui/primitives';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { SchoolEmptyState } from '@/components/states/states';
+import { useAllSchoolsCopy } from '@/features/admin/all-schools/all-schools-i18n';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { useT } from '@/features/i18n/locale-context';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
@@ -24,6 +27,10 @@ function safeTotal(meta: { pagination?: { total?: number } } | null | undefined)
 }
 
 export function AdminReadonlyDashboard() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
+  const copy = useAllSchoolsCopy();
   const user = useSession();
   const { activeSchoolId } = useAdminSession();
   const t = useT();
@@ -182,9 +189,10 @@ export function AdminReadonlyDashboard() {
     return <SchoolEmptyState description={t('admin.dashboardNoPermissions')} />;
   }
 
-  const schoolLabel =
-    user.school?.name ??
-    (activeSchoolId != null ? `${t('admin.activeSchool')} #${activeSchoolId}` : '');
+  const schoolLabel = allSchools
+    ? copy.allSchools
+    : user.school?.name ??
+      (activeSchoolId != null ? `${t('admin.activeSchool')} #${activeSchoolId}` : '');
 
   return (
     <>

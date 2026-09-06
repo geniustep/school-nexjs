@@ -115,7 +115,11 @@ export function replaceStudentsListUrl(
   currentParams: URLSearchParams,
   nextState: StudentsListFilterValues,
 ): void {
-  const nextQs = serializeStudentsListUrl(nextState);
+  const nextParams = buildStudentsListSearchParams(nextState);
+  const scope = currentParams.get('scope');
+  if (scope) nextParams.set('scope', scope);
+
+  const nextQs = nextParams.toString();
   const currentQs = currentParams.toString();
   if (nextQs === currentQs) return;
   router.replace(nextQs ? `${pathname}?${nextQs}` : pathname, { scroll: false });

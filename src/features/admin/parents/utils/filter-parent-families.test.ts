@@ -14,6 +14,7 @@ function makeFamily(
 ): ParentFamilyGroup {
   return {
     id: children.map((c) => c.id).join('-') || 'solo',
+    school: null,
     children: children.map((c) => ({ id: c.id, name: c.name, relationship: null })),
     guardians: guardianNames.map((name, index) => ({
       parent: {

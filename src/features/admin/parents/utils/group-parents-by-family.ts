@@ -1,4 +1,5 @@
 import type { Parent, ParentChild } from '@/types/parent';
+import type { SchoolRef } from '@/types/api';
 import type { RelationshipType } from '@/types/student-360';
 import { getStudentDisplayName } from '@/lib/utils/student';
 
@@ -8,8 +9,9 @@ export interface FamilyGuardian {
 }
 
 export interface ParentFamilyGroup {
-  /** Stable key from sorted child ids, or parent id for guardian-only rows. */
+  /** Stable key from school + sorted child ids, or guardian id for guardian-only rows. */
   id: string;
+  school: SchoolRef | null;
   children: ParentChild[];
   guardians: FamilyGuardian[];
 }
@@ -51,6 +53,14 @@ function resolveChildLinkKey(child: ParentChild): string | null {
   return null;
 }
 
+function schoolKey(parent: Parent): string {
+  return parent.school?.id != null ? `school:${parent.school.id}` : 'school:unknown';
+}
+
+function parentNodeKey(parent: Parent): string {
+  return `${schoolKey(parent)}:parent:${parent.id}`;
+}
+
 function resolveGuardianRelationshipType(
   parent: Parent,
   familyChildKeys: ReadonlySet<string>,
@@ -79,14 +89,14 @@ function resolveGuardianRelationshipType(
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0][0];
 }
 
-function mergeChildren(parents: Parent[]): ParentChild[] {
+function mergeChildren(parents: Parent[], school: SchoolRef | null): ParentChild[] {
   const byKey = new Map<string, ParentChild>();
 
   for (const parent of parents) {
     for (const child of getParentChildren(parent)) {
       const key = resolveChildLinkKey(child);
       if (!key || byKey.has(key)) continue;
-      byKey.set(key, child);
+      byKey.set(key, child.school ? child : { ...child, school });
     }
   }
 
@@ -104,7 +114,12 @@ function getChildSortKey(child: ParentChild): string {
   );
 }
 
-function buildFamilyId(children: ParentChild[], guardianIds: number[]): string {
+function buildFamilyId(
+  children: ParentChild[],
+  guardianIds: number[],
+  school: SchoolRef | null,
+): string {
+  const schoolPart = school?.id != null ? `s${school.id}` : 'sunknown';
   const guardianPart = [...new Set(guardianIds)].sort((a, b) => a - b).join('-') || 'none';
   if (children.length > 0) {
     const childPart =
@@ -113,26 +128,32 @@ function buildFamilyId(children: ParentChild[], guardianIds: number[]): string {
         .filter((key): key is string => key != null)
         .sort()
         .join('|') || 'unknown';
-    return `family-${childPart}-g${guardianPart}`;
+    return `${schoolPart}-family-${childPart}-g${guardianPart}`;
   }
-  return `solo-g${guardianPart}`;
+  return `${schoolPart}-solo-g${guardianPart}`;
 }
 
-/** Union-find grouping: guardians sharing at least one child belong to the same family. */
+/**
+ * Union-find grouping: guardians sharing at least one child belong to the same family.
+ * School identity is part of every graph key so all-schools rows can never merge families
+ * across school boundaries, including legacy name-only child fallbacks.
+ */
 export function groupParentsByFamily(parents: Parent[]): ParentFamilyGroup[] {
   if (parents.length === 0) return [];
 
-  const uniqueParents = [...new Map(parents.map((p) => [p.id, p])).values()];
-  const parentById = new Map(uniqueParents.map((p) => [p.id, p]));
-  const parentIds = uniqueParents.map((p) => p.id);
-  const roots = new Map<number, number>();
+  const uniqueParents = [
+    ...new Map(parents.map((parent) => [parentNodeKey(parent), parent])).values(),
+  ];
+  const parentByKey = new Map(uniqueParents.map((parent) => [parentNodeKey(parent), parent]));
+  const parentKeys = uniqueParents.map(parentNodeKey);
+  const roots = new Map<string, string>();
 
-  for (const id of parentIds) {
-    roots.set(id, id);
+  for (const key of parentKeys) {
+    roots.set(key, key);
   }
 
-  function find(id: number): number {
-    let current = id;
+  function find(key: string): string {
+    let current = key;
     while (roots.get(current) !== current) {
       const parent = roots.get(current)!;
       roots.set(current, roots.get(parent)!);
@@ -141,7 +162,7 @@ export function groupParentsByFamily(parents: Parent[]): ParentFamilyGroup[] {
     return current;
   }
 
-  function union(a: number, b: number): void {
+  function union(a: string, b: string): void {
     const rootA = find(a);
     const rootB = find(b);
     if (rootA !== rootB) {
@@ -149,69 +170,76 @@ export function groupParentsByFamily(parents: Parent[]): ParentFamilyGroup[] {
     }
   }
 
-  const childKeyToParentIds = new Map<string, number[]>();
+  const childKeyToParentKeys = new Map<string, string[]>();
   for (const parent of uniqueParents) {
     for (const child of getParentChildren(parent)) {
       const childKey = resolveChildLinkKey(child);
       if (!childKey) continue;
-      const list = childKeyToParentIds.get(childKey) ?? [];
-      list.push(parent.id);
-      childKeyToParentIds.set(childKey, list);
+      const scopedChildKey = `${schoolKey(parent)}|${childKey}`;
+      const list = childKeyToParentKeys.get(scopedChildKey) ?? [];
+      list.push(parentNodeKey(parent));
+      childKeyToParentKeys.set(scopedChildKey, list);
     }
   }
 
-  for (const linkedParentIds of childKeyToParentIds.values()) {
-    for (let i = 1; i < linkedParentIds.length; i += 1) {
-      union(linkedParentIds[0], linkedParentIds[i]);
+  for (const linkedParentKeys of childKeyToParentKeys.values()) {
+    for (let i = 1; i < linkedParentKeys.length; i += 1) {
+      union(linkedParentKeys[0], linkedParentKeys[i]);
     }
   }
 
-  const groupedIds = new Map<number, number[]>();
-  for (const id of parentIds) {
-    const root = find(id);
-    const bucket = groupedIds.get(root) ?? [];
-    bucket.push(id);
-    groupedIds.set(root, bucket);
+  const groupedKeys = new Map<string, string[]>();
+  for (const key of parentKeys) {
+    const root = find(key);
+    const bucket = groupedKeys.get(root) ?? [];
+    bucket.push(key);
+    groupedKeys.set(root, bucket);
   }
 
   const families: ParentFamilyGroup[] = [];
 
-  for (const memberIds of groupedIds.values()) {
-    const uniqueMemberIds = [...new Set(memberIds)];
-    const members = uniqueMemberIds
-      .map((id) => parentById.get(id))
-      .filter((p): p is Parent => p != null);
-    const children = mergeChildren(members);
+  for (const memberKeys of groupedKeys.values()) {
+    const members = [...new Set(memberKeys)]
+      .map((key) => parentByKey.get(key))
+      .filter((parent): parent is Parent => parent != null);
+    const school = members.find((member) => member.school)?.school ?? null;
+    const children = mergeChildren(members, school);
     const familyChildKeys = new Set(
       children
         .map((child) => resolveChildLinkKey(child))
         .filter((key): key is string => key != null),
     );
 
-    const guardiansByParentId = new Map<number, FamilyGuardian>();
+    const guardiansByParentKey = new Map<string, FamilyGuardian>();
     for (const parent of members) {
-      if (!guardiansByParentId.has(parent.id)) {
-        guardiansByParentId.set(parent.id, {
+      const key = parentNodeKey(parent);
+      if (!guardiansByParentKey.has(key)) {
+        guardiansByParentKey.set(key, {
           parent,
           relationshipType: resolveGuardianRelationshipType(parent, familyChildKeys),
         });
       }
     }
 
-    const guardians = [...guardiansByParentId.values()].sort(
+    const guardians = [...guardiansByParentKey.values()].sort(
       (a, b) =>
         guardianOrderIndex(a.relationshipType) - guardianOrderIndex(b.relationshipType) ||
         a.parent.name.localeCompare(b.parent.name, undefined, { sensitivity: 'base' }),
     );
 
     families.push({
-      id: buildFamilyId(children, uniqueMemberIds),
+      id: buildFamilyId(children, members.map((member) => member.id), school),
+      school,
       children,
       guardians,
     });
   }
 
   return families.sort((a, b) => {
+    const aSchool = a.school?.name ?? '';
+    const bSchool = b.school?.name ?? '';
+    const schoolCompare = aSchool.localeCompare(bSchool, undefined, { sensitivity: 'base' });
+    if (schoolCompare !== 0) return schoolCompare;
     const aKey = a.children[0] ? getChildSortKey(a.children[0]) : a.guardians[0]?.parent.name ?? '';
     const bKey = b.children[0] ? getChildSortKey(b.children[0]) : b.guardians[0]?.parent.name ?? '';
     return aKey.localeCompare(bKey, undefined, { sensitivity: 'base' });

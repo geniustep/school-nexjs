@@ -8,7 +8,7 @@
 // and class detail UI for subject–teacher assignments and enrollment history.
 
 import type { LevelLinkedItems, SchoolLevelUsage } from './academic-levels';
-import type { Ref } from './api';
+import type { Ref, SchoolRef } from './api';
 
 export interface TrackRef extends Ref {
   code?: string | null;
@@ -111,6 +111,7 @@ export interface ClassGenderSummary {
 export interface SchoolClass {
   id: number;
   name: string;
+  school?: SchoolRef | null;
   code: string | null;
   display_name?: string | null;
   display_alias?: string | null;
