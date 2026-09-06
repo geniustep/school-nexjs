@@ -7,12 +7,10 @@
 
 import Link from 'next/link';
 import { useMemo, type ReactNode } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT, useLocale } from '@/features/i18n/locale-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useAllSchoolsCopy } from '@/features/admin/all-schools/all-schools-i18n';
 import { ExecutiveKpiMoney } from '@/features/admin/dashboard/executive-dashboard-ui';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import {
@@ -26,7 +24,6 @@ import {
   resolveDashboardWidgets,
   type AdminQuickActionId,
 } from '@/lib/admin/dashboard-registry';
-import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { canViewSettings, canAccessStaffCenter } from '@/lib/permissions/academic-setup';
 import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
@@ -187,10 +184,6 @@ function ExecutiveDirectorView({
   const { locale } = useLocale();
   const { formatDate, formatDateTime } = useFormat();
   const { schools, activeSchoolId } = useAdminSession();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const allSchoolsCopy = useAllSchoolsCopy();
-  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
 
   const today = todayIso();
   const att = d.attendance_today;
@@ -202,9 +195,7 @@ function ExecutiveDirectorView({
   const scopedMode = variant.scopedMode;
 
   const activeRef = schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;
-  const schoolName = allSchools
-    ? allSchoolsCopy.allSchools
-    : formatSchoolLabel(activeRef, t);
+  const schoolName = formatSchoolLabel(activeRef, t);
 
   const executiveState = useAdminResource<unknown>(endpoints.admin.executiveDashboard);
   const executive = useMemo(
@@ -467,6 +458,7 @@ function ExecutiveDirectorView({
           href: '/admin/admissions',
         });
       } else if (executiveAdmissions) {
+        // Last-resort fallback only when admissions dashboard is unavailable.
         cards.push({
           id: 'admissions',
           label: t('admin.executive.kpiAdmissions'),
@@ -700,6 +692,10 @@ function ExecutiveDirectorView({
     ? t('admin.executive.dataRefreshing')
     : t('admin.executive.dataUpdated', { time: formatDateTime(new Date().toISOString()) });
 
+  // The executive contract intentionally does not expose a weekly schedule or
+  // artificial priority ranks. Keep the decision surface tied to its live
+  // interventions, preserving the server-provided order while promoting items
+  // that explicitly need follow-up (amber) first.
   const dailyPriorities = [...allInterventionItems]
     .sort((a, b) => Number(b.tone === 'amber') - Number(a.tone === 'amber'))
     .slice(0, 4);
@@ -734,6 +730,11 @@ function ExecutiveDirectorView({
     },
   ];
 
+  /*
+   * The director dashboard is intentionally a decision surface, not a
+   * re-skin of the legacy executive panels below.  It uses the same live
+   * payloads and routes, but gives the day’s work a single reading order.
+   */
   const priorityRank = (item: AdminActionItem) => {
     if (item.id.includes('attendance') || item.id.includes('absence')) return 0;
     if (item.id.includes('admission') || item.id.includes('registration')) return 1;
@@ -767,6 +768,10 @@ function ExecutiveDirectorView({
     if (item.href?.includes('/announcements') || item.href?.includes('/channels')) return 'messages';
     return item.id;
   };
+  // Avoid presenting several variants of the same operational queue as the
+  // director's entire day. One most-urgent live item per domain is clearer;
+  // fewer than four priorities is an honest empty-state outcome, not a gap
+  // filled with synthetic work.
   const seenPriorityDomains = new Set<string>();
   const decisionPriorities = [...allInterventionItems]
     .sort((a, b) => priorityRank(a) - priorityRank(b))
@@ -779,6 +784,8 @@ function ExecutiveDirectorView({
     .slice(0, 4);
   const financeOverdue = executiveFinance?.overdue ?? financeTotals?.total_overdue ?? financeTotals?.overdue_amount;
   const financeOverdueCount = executiveFinance?.families_overdue_count;
+  // `collected_today` is the only dashboard value whose period is explicitly
+  // today. Do not substitute a monthly or arbitrary-period total here.
   const todayRevenue = normalizeMoneyValue(executiveFinance?.collected_today);
   const todayRevenueCurrency = executiveFinance?.currency;
   const pulseLabels: Record<string, string> = {
@@ -1466,3 +1473,4 @@ export function AdminExecutiveDashboard({
 
   return <ExecutiveDirectorView data={data} user={user} />;
 }
+
