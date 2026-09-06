@@ -30,7 +30,6 @@ type StudentDisplay = {
   name: string;
   massar?: string;
   schoolNumber?: string;
-  className?: string;
   levelName?: string;
 };
 
@@ -95,12 +94,12 @@ function normalizeIdentity(value: string | undefined): string {
 
 function ReceiptIcon({ name }: { name: ReceiptIconName }) {
   const common = {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: 1.8,
+    strokeWidth: 2.3,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     'aria-hidden': true,
@@ -109,8 +108,9 @@ function ReceiptIcon({ name }: { name: ReceiptIconName }) {
   if (name === 'calendar') {
     return (
       <svg {...common}>
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M8 3v4M16 3v4M3 10h18" />
+        <rect x="3" y="4.5" width="18" height="16.5" rx="2.4" />
+        <path d="M8 2.8v4M16 2.8v4M3 9.4h18" />
+        <path d="M7.2 13h3M13.8 13h3M7.2 16.7h3M13.8 16.7h3" />
       </svg>
     );
   }
@@ -118,25 +118,31 @@ function ReceiptIcon({ name }: { name: ReceiptIconName }) {
   if (name === 'wallet') {
     return (
       <svg {...common}>
-        <path d="M4 7.5h15a2 2 0 0 1 2 2v8.5H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12" />
-        <path d="M16 11h5v4h-5a2 2 0 0 1 0-4Z" />
+        <path d="M4 6.5h14.5A2.5 2.5 0 0 1 21 9v9H5a2.5 2.5 0 0 1-2.5-2.5V6.7A2.7 2.7 0 0 1 5.2 4h11.3" />
+        <path d="M15.5 11h5.5v4.5h-5.5a2.25 2.25 0 0 1 0-4.5Z" />
+        <circle cx="16.7" cy="13.25" r="0.7" fill="currentColor" stroke="none" />
       </svg>
     );
   }
 
   return (
     <svg {...common}>
-      <circle cx="12" cy="8" r="4" />
+      <circle cx="12" cy="7.5" r="4" />
       <path d="M4 21a8 8 0 0 1 16 0" />
+      <path d="M7 18.2c1.35-1.2 3-1.8 5-1.8s3.65.6 5 1.8" />
     </svg>
   );
 }
 
-function formatDate(value: string | null | undefined, lang: ReceiptHtmlPrintLang): string {
+function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
+
+  const isoDate = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDate) return `${isoDate[3]}/${isoDate[2]}/${isoDate[1]}`;
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-MA' : 'ar-MA', {
+  return new Intl.DateTimeFormat('en-GB', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -185,7 +191,6 @@ function studentDisplayFrom(
 ): StudentDisplay {
   const source = readMeta(sourceValue);
   const nestedStudent = readMeta(source.student);
-  const classRecord = readMeta(source.class ?? source.section ?? source.classroom);
 
   return {
     id:
@@ -206,15 +211,9 @@ function studentDisplayFrom(
     schoolNumber:
       firstString(source, ['school_number', 'student_code', 'code']) ??
       firstString(nestedStudent, ['school_number', 'student_code', 'code']),
-    className:
-      firstString(source, ['class_name', 'section_name', 'classroom_name', 'class_label']) ??
-      relationLabel(source, ['class', 'section', 'classroom']) ??
-      firstString(nestedStudent, ['class_name', 'section_name', 'classroom_name', 'class_label']) ??
-      relationLabel(nestedStudent, ['class', 'section', 'classroom']),
     levelName:
       firstString(source, ['level_name', 'grade_name', 'academic_level_name', 'level_label']) ??
       relationLabel(source, ['level', 'grade']) ??
-      firstString(classRecord, ['level_name', 'grade_name', 'academic_level_name']) ??
       firstString(nestedStudent, ['level_name', 'grade_name', 'academic_level_name', 'level_label']) ??
       relationLabel(nestedStudent, ['level', 'grade']),
   };
@@ -226,7 +225,6 @@ function mergeStudentDisplay(primary: StudentDisplay, fallback: StudentDisplay):
     name: primary.name !== '—' ? primary.name : fallback.name,
     massar: primary.massar ?? fallback.massar,
     schoolNumber: primary.schoolNumber ?? fallback.schoolNumber,
-    className: primary.className ?? fallback.className,
     levelName: primary.levelName ?? fallback.levelName,
   };
 }
@@ -405,17 +403,12 @@ function SchoolIdentity({ schoolName, schoolCode }: { schoolName: string; school
 }
 
 function StudentMeta({ student }: { student: StudentDisplay }) {
-  const academic = [
-    student.levelName ? `المستوى: ${student.levelName}` : null,
-    student.className ? `القسم: ${student.className}` : null,
-  ].filter((value): value is string => !!value);
-
   return (
     <div className="receipt-student-cell">
       <strong dir="auto">{student.name}</strong>
-      {academic.length ? (
+      {student.levelName ? (
         <small className="receipt-student-cell__academic" dir="auto">
-          {academic.join(' · ')}
+          المستوى: {student.levelName}
         </small>
       ) : null}
       {student.massar ? (
@@ -433,15 +426,43 @@ function StudentMeta({ student }: { student: StudentDisplay }) {
   );
 }
 
-function SiblingRoster({ students }: { students: StudentDisplay[] }) {
-  if (students.length <= 1) return null;
+function ReceiptTable({
+  rows,
+  receipt,
+  lang,
+  ariaLabel,
+}: {
+  rows: ReceiptRow[];
+  receipt: FinanceReceipt;
+  lang: ReceiptHtmlPrintLang;
+  ariaLabel: string;
+}) {
   return (
-    <div className="receipt-siblings" aria-label="التلاميذ المشمولون في الوصل">
-      {students.map((student, index) => (
-        <div className="receipt-siblings__student" key={`${student.id ?? student.name}-${index}`}>
-          <StudentMeta student={student} />
-        </div>
-      ))}
+    <div className="receipt-table" role="table" aria-label={ariaLabel}>
+      <div className="receipt-table__row receipt-table__head" role="row">
+        <span role="columnheader">التلميذ</span>
+        <span role="columnheader">الخدمة / الرسم</span>
+        <span role="columnheader">المبلغ</span>
+      </div>
+      {rows.map((row, index) => {
+        const rowBalance = rowRemaining(row);
+        return (
+          <div
+            className="receipt-table__row"
+            role="row"
+            key={`${row.id ?? row.installment_id ?? index}-${index}`}
+          >
+            <span role="cell"><StudentMeta student={row.studentDisplay} /></span>
+            <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
+            <strong role="cell" dir="ltr">
+              {formatMoney(row.amount, receipt.currency, lang)}
+              {rowBalance != null && rowBalance > 0 ? (
+                <small>الباقي: {formatMoney(rowBalance, receipt.currency, lang)}</small>
+              ) : null}
+            </strong>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -458,7 +479,10 @@ function ReceiptCopy({
   const snapshot = receipt.snapshot;
   const school = snapshot?.school;
   const rows = receiptRows(receipt);
-  const students = childrenDisplay(receipt);
+  const splitTable = rows.length > 6;
+  const splitIndex = Math.ceil(rows.length / 2);
+  const rightRows = splitTable ? rows.slice(0, splitIndex) : rows;
+  const leftRows = splitTable ? rows.slice(splitIndex) : [];
   const payerName =
     receipt.actual_payer_name?.trim() ||
     snapshot?.payer?.name ||
@@ -472,14 +496,13 @@ function ReceiptCopy({
   const issuer = issuedByName(receipt);
   const method = paymentMethodLabel(receipt.payment_method);
   const remaining = receiptRemaining(receipt);
-  const density =
-    rows.length > 9 || students.length > 4
-      ? 'extended'
-      : rows.length > 7
-        ? 'dense'
-        : rows.length > 4 || students.length > 2
-          ? 'compact'
-          : 'normal';
+  const density = splitTable
+    ? rows.length > 16
+      ? 'split-dense'
+      : 'split'
+    : rows.length > 4
+      ? 'compact'
+      : 'normal';
 
   return (
     <article className="receipt-html-copy" data-density={density}>
@@ -497,7 +520,9 @@ function ReceiptCopy({
             </span>
             <span className="receipt-number-card__date-text">
               <span>تاريخ الأداء</span>
-              <strong dir="ltr">{formatDate(paymentDate, lang)}</strong>
+              <strong className="receipt-number-card__date-value" dir="ltr">
+                {formatDate(paymentDate)}
+              </strong>
             </span>
           </div>
         </div>
@@ -525,39 +550,23 @@ function ReceiptCopy({
         </div>
       </section>
 
-      <SiblingRoster students={students} />
-
-      <section className="receipt-details">
-        <div className="receipt-table" role="table" aria-label="تفاصيل الأداء">
-          <div className="receipt-table__row receipt-table__head" role="row">
-            <span role="columnheader">التلميذ</span>
-            <span role="columnheader">الخدمة / الرسم</span>
-            <span role="columnheader">المبلغ</span>
-          </div>
-          {rows.length ? (
-            rows.map((row, index) => {
-              const rowBalance = rowRemaining(row);
-              return (
-                <div
-                  className="receipt-table__row"
-                  role="row"
-                  key={`${row.id ?? row.installment_id ?? index}-${index}`}
-                >
-                  <span role="cell"><StudentMeta student={row.studentDisplay} /></span>
-                  <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
-                  <strong role="cell" dir="ltr">
-                    {formatMoney(row.amount, receipt.currency, lang)}
-                    {rowBalance != null && rowBalance > 0 ? (
-                      <small>الباقي: {formatMoney(rowBalance, receipt.currency, lang)}</small>
-                    ) : null}
-                  </strong>
-                </div>
-              );
-            })
+      <section className="receipt-details" data-columns={splitTable ? '2' : '1'}>
+        {rows.length ? (
+          splitTable ? (
+            <div className="receipt-details__columns">
+              <div className="receipt-details__column receipt-details__column--right">
+                <ReceiptTable rows={rightRows} receipt={receipt} lang={lang} ariaLabel="تفاصيل الأداء — الجزء الأول" />
+              </div>
+              <div className="receipt-details__column receipt-details__column--left">
+                <ReceiptTable rows={leftRows} receipt={receipt} lang={lang} ariaLabel="تفاصيل الأداء — الجزء الثاني" />
+              </div>
+            </div>
           ) : (
-            <div className="receipt-table__empty">{UI_TEXT[lang].noLines}</div>
-          )}
-        </div>
+            <ReceiptTable rows={rows} receipt={receipt} lang={lang} ariaLabel="تفاصيل الأداء" />
+          )
+        ) : (
+          <div className="receipt-table receipt-table__empty">{UI_TEXT[lang].noLines}</div>
+        )}
       </section>
 
       <section className="receipt-total-card">
@@ -579,12 +588,8 @@ function ReceiptCopy({
 }
 
 function DoubleReceiptSheet({ receipt, lang }: { receipt: FinanceReceipt; lang: ReceiptHtmlPrintLang }) {
-  const rows = receiptRows(receipt);
-  const students = childrenDisplay(receipt);
-  const extended = rows.length > 9 || students.length > 4;
-
   return (
-    <div className="receipt-html-sheet" data-layout={extended ? 'extended' : 'double'} dir="rtl">
+    <div className="receipt-html-sheet" data-layout="double" dir="rtl">
       <ReceiptCopy receipt={receipt} lang={lang} copy="admin" />
       <div className="receipt-html-cut-line" aria-hidden="true">
         <span>✂</span>
