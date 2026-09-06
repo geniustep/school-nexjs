@@ -8,10 +8,12 @@ function makeParent(
   name: string,
   children: Array<{ id: number; name: string; relationship_type?: string }>,
   relation: string | null = null,
+  school?: { id: number; name: string },
 ): Parent {
   return {
     id,
     name,
+    school: school ?? null,
     phone: null,
     email: null,
     relation,
@@ -19,6 +21,7 @@ function makeParent(
     children: children.map((child) => ({
       id: child.id,
       name: child.name,
+      school: school ?? null,
       relationship: child.relationship_type
         ? { relationship_type: child.relationship_type, relationship_id: child.id * 100 + id }
         : null,
@@ -87,6 +90,21 @@ describe('groupParentsByFamily', () => {
     const families = groupParentsByFamily(parents);
 
     expect(families).toHaveLength(2);
+  });
+
+  it('never merges matching child identities across schools', () => {
+    const schoolA = { id: 101, name: 'School A' };
+    const schoolB = { id: 202, name: 'School B' };
+    const parents = [
+      makeParent(1, 'Parent A', [{ id: 10, name: 'Same Child', relationship_type: 'father' }], 'father', schoolA),
+      makeParent(2, 'Parent B', [{ id: 10, name: 'Same Child', relationship_type: 'mother' }], 'mother', schoolB),
+    ];
+
+    const families = groupParentsByFamily(parents);
+
+    expect(families).toHaveLength(2);
+    expect(families.map((family) => family.school?.id).sort()).toEqual([101, 202]);
+    expect(families.every((family) => family.guardians.length === 1)).toBe(true);
   });
 
   it('deduplicates repeated parent rows from the API', () => {
