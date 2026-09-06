@@ -17,7 +17,7 @@ const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
 const fixCss = readFileSync(join(printDir, 'receipt-html-print-fix.css'), 'utf8');
 
 describe('HTML receipt visual parity regression', () => {
-  it('does not let the total card absorb the optional sibling flexible row', () => {
+  it('keeps the total outside the flexible details flow', () => {
     expect(fixCss).toContain('display: flex !important');
     expect(fixCss).toContain('flex-direction: column !important');
     expect(fixCss).toContain('.receipt-total-card');
@@ -25,7 +25,7 @@ describe('HTML receipt visual parity regression', () => {
     expect(fixCss).toContain('margin-top: auto !important');
   });
 
-  it('keeps the approved school identity, receipt/date card and barcode structure', () => {
+  it('keeps the school identity, receipt/date card and barcode structure', () => {
     expect(pageSource).toContain('receipt-school-identity');
     expect(pageSource).toContain('receipt-number-card__barcode');
     expect(pageSource).toContain('receipt-number-card__date');
@@ -40,18 +40,31 @@ describe('HTML receipt visual parity regression', () => {
     expect(pageSource).not.toContain('المستلم');
   });
 
-  it('retains Massar, class, sibling and backend remaining-value support', () => {
+  it('retains level, Massar, family matching and backend remaining-value support without class output', () => {
     expect(pageSource).toContain("['massar', 'massar_number', 'massar_code', 'massar_id']");
-    expect(pageSource).toContain("['class_name', 'section_name', 'classroom_name', 'class_label']");
-    expect(pageSource).toContain('SiblingRoster');
+    expect(pageSource).toContain("['level_name', 'grade_name', 'academic_level_name', 'level_label']");
+    expect(pageSource).not.toContain('القسم:');
+    expect(pageSource).not.toContain('SiblingRoster');
+    expect(pageSource).toContain('matchChild');
     expect(pageSource).toContain('remaining_after_payment');
     expect(pageSource).toContain('remaining_amount');
     expect(pageSource).toContain('balance_after_payment');
   });
 
-  it('preserves the one-page A5 geometry and exact cut midpoint contract', () => {
+  it('uses two equal detail columns for dense receipts and keeps the total below them', () => {
+    expect(pageSource).toContain('rows.length > 6');
+    expect(pageSource).toContain('Math.ceil(rows.length / 2)');
+    expect(pageSource).toContain('receipt-details__columns');
+    expect(fixCss).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
+    expect(pageSource.indexOf('receipt-details')).toBeLessThan(pageSource.indexOf('receipt-total-card'));
+  });
+
+  it('preserves the one-page A5 geometry and exact cut midpoint contract for every receipt size', () => {
+    expect(pageSource).toContain('data-layout="double"');
+    expect(fixCss).toContain('width: 148mm !important');
     expect(fixCss).toContain('height: 205mm !important');
     expect(fixCss).toContain('margin: 2.5mm auto 0 !important');
     expect(fixCss).toContain('grid-template-rows: 98.5mm 2mm 98.5mm !important');
+    expect(fixCss).not.toContain("data-layout='extended'");
   });
 });
