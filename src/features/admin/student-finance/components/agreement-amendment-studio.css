@@ -1,0 +1,254 @@
+/* Finance Amendment Studio — scoped to the agreement amendment drawer only. */
+.academic-setup-drawer:has(.student-finance-amendment-form) {
+  width: min(1180px, calc(100vw - 32px));
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form) .academic-setup-drawer__head {
+  flex-shrink: 0;
+  padding: 14px 20px;
+  background: #fff;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form) .academic-setup-drawer__body {
+  min-height: 0;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-form {
+  max-width: 760px;
+  margin-inline: auto;
+  padding: 4px;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-line-picker__list {
+  max-height: 170px;
+  overflow-y: auto;
+  padding-inline-end: 3px;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-path-selector {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-path-selector > legend {
+  padding-inline: 5px;
+  font-weight: 700;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-path-selector > .row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-path-selector__option {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 11px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-path-selector__option:has(input:checked) {
+  border-color: color-mix(in srgb, #0d9488 42%, var(--c-border, #e2e8f0));
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__track-wrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__track {
+  display: none;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__scroll {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  overflow: visible;
+  padding: 0;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point {
+  position: relative;
+  inset: auto;
+  width: auto;
+  min-width: 0;
+  min-height: 58px;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--c-text, #0f172a);
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, #0d9488 42%, var(--c-border, #e2e8f0));
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--in-range {
+  border-color: color-mix(in srgb, #0d9488 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #ccfbf1 65%, #fff);
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--start,
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--end {
+  border-color: #0d9488;
+  background: #f0fdfa;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #0d9488 12%, transparent);
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__dot {
+  position: static;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--in-range
+  .student-finance-amendment-range-rail__dot {
+  background: #5eead4;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--start
+  .student-finance-amendment-range-rail__dot,
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__point--end
+  .student-finance-amendment-range-rail__dot {
+  background: #0d9488;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__label {
+  position: static;
+  max-width: 100%;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  font-weight: 700;
+  text-align: center;
+  white-space: normal;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__handle {
+  position: static;
+  max-width: 100%;
+  font-size: 0.64rem;
+  line-height: 1.2;
+  color: #0f766e;
+  white-space: normal;
+  text-align: center;
+}
+
+.academic-setup-drawer:has(.student-finance-amendment-form)
+  .student-finance-amendment-range-rail__summary {
+  margin: 9px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f0fdfa;
+  color: #0f766e;
+  font-size: 0.78rem;
+}
+
+@media (min-width: 1050px) and (min-height: 720px) {
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .academic-setup-drawer__body:has(> .student-finance-amendment-preview) {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .academic-setup-drawer__body:has(> .student-finance-amendment-preview)
+    > .student-finance-amendment-form {
+    flex: 0 0 46%;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 16px 18px;
+    overflow-y: auto;
+    background: #fff;
+    border-inline-end: 1px solid var(--c-border, #e2e8f0);
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .academic-setup-drawer__body:has(> .student-finance-amendment-preview)
+    > .student-finance-amendment-preview {
+    flex: 1 1 54%;
+    min-width: 0;
+    margin: 0;
+    padding: 18px 20px;
+    overflow-y: auto;
+    background: var(--c-surface-2, #f8fafc);
+  }
+}
+
+@media (max-width: 1049px), (max-height: 719px) {
+  .academic-setup-drawer:has(.student-finance-amendment-form) {
+    width: min(840px, 100vw);
+  }
+}
+
+@media (max-width: 680px) {
+  .academic-setup-drawer:has(.student-finance-amendment-form) {
+    width: 100vw;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-range-rail__scroll {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-path-selector > .row {
+    grid-template-columns: 1fr;
+  }
+}
