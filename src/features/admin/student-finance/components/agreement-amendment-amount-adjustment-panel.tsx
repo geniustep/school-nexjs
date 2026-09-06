@@ -5,6 +5,7 @@ import { useT } from '@/features/i18n/locale-context';
 import type { AgreementAmendmentLineOption } from '../utils/resolve-amendment-form-options';
 import { computeAmountAdjustmentDelta } from '../utils/agreement-amendment-path';
 import { resolveAgreementAmendmentBlockReasonKey } from '../utils/agreement-amendment-line-display';
+import { useAgreementAmendmentAutoPreview } from './use-agreement-amendment-auto-preview';
 
 export function AgreementAmendmentAmountAdjustmentPanel({
   line,
@@ -20,6 +21,7 @@ export function AgreementAmendmentAmountAdjustmentPanel({
   onAmountChange: (value: string) => void;
 }) {
   const t = useT();
+  const { rootRef } = useAgreementAmendmentAutoPreview<HTMLElement>();
   const currentAmount = line.unitPrice ?? line.amount;
   const { diff, kind } = computeAmountAdjustmentDelta(currentAmount, newAmount);
 
@@ -30,7 +32,7 @@ export function AgreementAmendmentAmountAdjustmentPanel({
     blockReasonKey && t(blockReasonKey) !== blockReasonKey ? t(blockReasonKey) : null;
 
   return (
-    <section className="student-finance-amendment-amount-panel stack">
+    <section ref={rootRef} className="student-finance-amendment-amount-panel stack">
       <h4>{t('admin.student360.financeWorkspace.agreementAmendment.adjustLineAmountTitle')}</h4>
       <p className="tiny muted student-finance-amendment-amount-panel__note">
         {t('admin.student360.financeWorkspace.agreementAmendment.oneTimeAmountAmendableNote')}
