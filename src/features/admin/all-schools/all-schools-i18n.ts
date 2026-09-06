@@ -9,6 +9,7 @@ export interface AllSchoolsCopy {
   school: string;
   switchFailed: string;
   chooseSchoolForAction: string;
+  currentYearPerSchool: string;
   massar: string;
   phone: string;
   searchParents: string;
@@ -26,6 +27,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     school: 'المدرسة',
     switchFailed: 'تعذر الانتقال إلى مدرسة السجل. لم يتم فتحه.',
     chooseSchoolForAction: 'اختر مدرسة محددة لتنفيذ هذا الإجراء.',
+    currentYearPerSchool: 'السنة الجارية لكل مدرسة',
     massar: 'رقم مسار',
     phone: 'الهاتف',
     searchParents: 'البحث عن ولي أمر',
@@ -41,6 +43,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     school: 'Établissement',
     switchFailed: 'Impossible de basculer vers l’établissement de la fiche. La fiche n’a pas été ouverte.',
     chooseSchoolForAction: 'Choisissez un établissement précis pour effectuer cette action.',
+    currentYearPerSchool: 'Année en cours de chaque établissement',
     massar: 'Code Massar',
     phone: 'Téléphone',
     searchParents: 'Rechercher un responsable',
@@ -56,6 +59,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     school: 'School',
     switchFailed: 'Could not switch to the record school. The record was not opened.',
     chooseSchoolForAction: 'Choose a specific school to perform this action.',
+    currentYearPerSchool: 'Current year for each school',
     massar: 'Massar code',
     phone: 'Phone',
     searchParents: 'Search guardians',
@@ -71,6 +75,7 @@ const COPY: Record<Locale, AllSchoolsCopy> = {
     school: 'Centro',
     switchFailed: 'No se pudo cambiar al centro de la ficha. La ficha no se abrió.',
     chooseSchoolForAction: 'Elija un centro específico para realizar esta acción.',
+    currentYearPerSchool: 'Año actual de cada centro',
     massar: 'Código Massar',
     phone: 'Teléfono',
     searchParents: 'Buscar responsables',
