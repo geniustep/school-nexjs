@@ -62,6 +62,7 @@ function firstString(source: MetaRecord, keys: string[]): string | undefined {
   for (const key of keys) {
     const value = source[key];
     if (typeof value === 'string' && value.trim()) return value.trim();
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
   }
   return undefined;
 }
@@ -129,18 +130,26 @@ function studentDisplayFrom(
   fallbackId?: number,
 ): StudentDisplay {
   const source = readMeta(sourceValue);
+  const sourceId = source.student_id ?? source.id;
   return {
-    id:
-      typeof source.student_id === 'number'
-        ? source.student_id
-        : typeof source.id === 'number'
-          ? source.id
-          : fallbackId,
+    id: typeof sourceId === 'number' ? sourceId : fallbackId,
     name:
       firstString(source, ['student_name', 'name', 'full_name', 'display_name']) ?? fallbackName,
-    massar: firstString(source, ['massar', 'massar_number', 'massar_code', 'massar_id']),
+    massar: firstString(source, [
+      'massar',
+      'massar_number',
+      'massar_code',
+      'massar_id',
+      'massar_no',
+    ]),
     schoolNumber: firstString(source, ['school_number', 'student_code', 'code']),
-    className: firstString(source, ['class_name', 'section_name', 'classroom_name']),
+    className: firstString(source, [
+      'class_name',
+      'section_name',
+      'classroom_name',
+      'section',
+      'class',
+    ]),
     levelName: firstString(source, ['level_name', 'grade_name']),
   };
 }
@@ -156,73 +165,165 @@ function mergeStudentDisplay(primary: StudentDisplay, fallback: StudentDisplay):
   };
 }
 
+function studentKey(student: StudentDisplay): string {
+  if (student.id != null) return `id:${student.id}`;
+  return `name:${student.name.trim().toLocaleLowerCase()}`;
+}
+
+function childSources(receipt: FinanceReceipt): unknown[] {
+  const direct = Array.isArray(receipt.children) ? receipt.children : [];
+  const snapshot = Array.isArray(receipt.snapshot?.children) ? receipt.snapshot.children : [];
+  return [...direct, ...snapshot];
+}
+
+function childAllocations(sourceValue: unknown): FinanceReceiptAllocation[] {
+  const allocations = readMeta(sourceValue).allocations;
+  return Array.isArray(allocations) ? (allocations as FinanceReceiptAllocation[]) : [];
+}
+
 function childrenDisplay(receipt: FinanceReceipt): StudentDisplay[] {
-  const children = receipt.children ?? receipt.snapshot?.children ?? [];
-  if (children.length) {
-    return children.map((child) =>
-      studentDisplayFrom(child, child.student_name ?? '—', child.student_id),
-    );
-  }
+  const byKey = new Map<string, StudentDisplay>();
+  const add = (student: StudentDisplay) => {
+    const key = studentKey(student);
+    const current = byKey.get(key);
+    byKey.set(key, current ? mergeStudentDisplay(current, student) : student);
+  };
+
+  childSources(receipt).forEach((child) => {
+    const meta = readMeta(child);
+    const fallbackId = typeof meta.student_id === 'number' ? meta.student_id : undefined;
+    add(studentDisplayFrom(child, firstString(meta, ['student_name', 'name']) ?? '—', fallbackId));
+  });
 
   const snapshotStudent = receipt.snapshot?.student;
   if (snapshotStudent || receipt.student_name) {
-    return [
+    add(
       studentDisplayFrom(
         snapshotStudent,
         receipt.student_name ?? snapshotStudent?.name ?? '—',
         receipt.student_id,
       ),
-    ];
+    );
   }
-  return [];
+
+  return [...byKey.values()].filter((student) => student.name !== '—' || student.id != null);
+}
+
+function findStudentForAllocation(
+  allocation: FinanceReceiptAllocation,
+  students: StudentDisplay[],
+): StudentDisplay | undefined {
+  if (allocation.student_id != null) {
+    const byId = students.find((student) => student.id === allocation.student_id);
+    if (byId) return byId;
+  }
+  if (allocation.student_name) {
+    const normalized = allocation.student_name.trim().toLocaleLowerCase();
+    return students.find((student) => student.name.trim().toLocaleLowerCase() === normalized);
+  }
+  return undefined;
+}
+
+function allocationKey(allocation: FinanceReceiptAllocation, index: number): string {
+  const meta = readMeta(allocation);
+  const identity = firstString(meta, ['id', 'allocation_id']);
+  if (identity) return `allocation:${identity}`;
+
+  const installment = firstString(meta, ['installment_id', 'fee_id', 'line_id']) ?? '';
+  const student = firstString(meta, ['student_id', 'student_name']) ?? '';
+  const amount = firstMoney(meta, ['amount']) ?? '';
+  const description = firstString(meta, ['description', 'label']) ?? '';
+  return `signature:${student}:${installment}:${amount}:${description}:${index}`;
 }
 
 function receiptRows(receipt: FinanceReceipt): ReceiptRow[] {
-  const children = receipt.children ?? receipt.snapshot?.children ?? [];
-  const childRows = children.flatMap((child) => {
-    const childDisplay = studentDisplayFrom(child, child.student_name ?? '—', child.student_id);
-    return (child.allocations ?? []).map((allocation) => ({
+  const students = childrenDisplay(receipt);
+  const rows = new Map<string, ReceiptRow>();
+  let sequence = 0;
+
+  for (const child of childSources(receipt)) {
+    const childMeta = readMeta(child);
+    const childDisplay = studentDisplayFrom(
+      child,
+      firstString(childMeta, ['student_name', 'name']) ?? '—',
+      typeof childMeta.student_id === 'number' ? childMeta.student_id : undefined,
+    );
+
+    for (const allocation of childAllocations(child)) {
+      const key = allocationKey(allocation, sequence++);
+      const allocationDisplay = studentDisplayFrom(
+        allocation,
+        allocation.student_name ?? childDisplay.name,
+        allocation.student_id ?? childDisplay.id,
+      );
+      rows.set(key, {
+        ...allocation,
+        studentDisplay: mergeStudentDisplay(allocationDisplay, childDisplay),
+      });
+    }
+  }
+
+  const directAllocations = [
+    ...(Array.isArray(receipt.allocations) ? receipt.allocations : []),
+    ...(Array.isArray(receipt.snapshot?.allocations) ? receipt.snapshot.allocations : []),
+  ];
+
+  for (const allocation of directAllocations) {
+    const key = allocationKey(allocation, sequence++);
+    if (rows.has(key)) continue;
+
+    const matched = findStudentForAllocation(allocation, students);
+    const safeFallback =
+      matched ??
+      (students.length === 1
+        ? students[0]
+        : {
+            id: allocation.student_id ?? undefined,
+            name: allocation.student_name ?? '—',
+          });
+
+    rows.set(key, {
       ...allocation,
       studentDisplay: mergeStudentDisplay(
         studentDisplayFrom(
           allocation,
-          allocation.student_name ?? childDisplay.name,
-          allocation.student_id ?? childDisplay.id,
+          allocation.student_name ?? safeFallback.name,
+          allocation.student_id ?? safeFallback.id,
         ),
-        childDisplay,
+        safeFallback,
       ),
-    }));
-  });
+    });
+  }
 
-  // Family receipts prefer the child breakdown because flat allocations may omit sibling identity.
-  if (childRows.length) return childRows;
+  return [...rows.values()];
+}
 
-  const direct = receipt.allocations ?? receipt.snapshot?.allocations ?? [];
-  const fallback = childrenDisplay(receipt)[0] ?? {
-    id: receipt.student_id,
-    name: receipt.student_name ?? '—',
-  };
-  return direct.map((allocation) => ({
-    ...allocation,
-    studentDisplay: mergeStudentDisplay(
-      studentDisplayFrom(allocation, allocation.student_name ?? fallback.name, allocation.student_id),
-      fallback,
-    ),
-  }));
+function allocationRemaining(allocation: FinanceReceiptAllocation): number | undefined {
+  return firstMoney(readMeta(allocation), [
+    'remaining_after_payment',
+    'remaining_amount',
+    'remaining',
+    'balance_after_payment',
+    'balance',
+  ]);
 }
 
 function receiptRemaining(receipt: FinanceReceipt): number | undefined {
   const direct = firstMoney(readMeta(receipt), [
     'remaining_after_payment',
     'remaining_amount',
+    'remaining',
     'balance_after_payment',
+    'balance',
   ]);
   if (direct != null) return direct;
 
   return firstMoney(readMeta(receipt.totals ?? receipt.snapshot?.totals), [
     'remaining_after_payment',
     'remaining_amount',
+    'remaining',
     'balance_after_payment',
+    'balance',
   ]);
 }
 
@@ -284,6 +385,9 @@ function StudentMeta({ student }: { student: StudentDisplay }) {
   const details = [
     student.className ? `القسم: ${student.className}` : null,
     student.massar ? `مسار: ${student.massar}` : null,
+    student.schoolNumber && student.schoolNumber !== student.massar
+      ? `رقم التلميذ: ${student.schoolNumber}`
+      : null,
   ].filter((value): value is string => !!value);
 
   return (
@@ -292,13 +396,11 @@ function StudentMeta({ student }: { student: StudentDisplay }) {
       {details.length ? (
         <small>
           {details.map((detail, index) => (
-            <span key={detail} dir={detail.startsWith('مسار:') ? 'ltr' : 'auto'}>
+            <span key={detail} dir={detail.includes('مسار:') || detail.includes('رقم التلميذ:') ? 'ltr' : 'auto'}>
               {index ? ' · ' : ''}{detail}
             </span>
           ))}
         </small>
-      ) : student.schoolNumber ? (
-        <small dir="ltr">{student.schoolNumber}</small>
       ) : null}
     </div>
   );
@@ -348,7 +450,6 @@ function ReceiptCopy({
   return (
     <article className="receipt-html-copy" data-density={density}>
       <header className="receipt-copy-header">
-        <SchoolIdentity schoolName={schoolName} schoolCode={schoolCode} />
         <div className="receipt-number-card">
           <div className="receipt-number-card__number">
             <span>رقم الوصل</span>
@@ -360,6 +461,7 @@ function ReceiptCopy({
             <strong dir="ltr">{formatDate(paymentDate, lang)}</strong>
           </div>
         </div>
+        <SchoolIdentity schoolName={schoolName} schoolCode={schoolCode} />
       </header>
 
       <section className="receipt-payment-facts">
@@ -384,18 +486,21 @@ function ReceiptCopy({
             <span role="columnheader">المبلغ</span>
           </div>
           {rows.length ? (
-            rows.map((row, index) => (
-              <div className="receipt-table__row" role="row" key={`${row.id ?? row.installment_id ?? index}-${index}`}>
-                <span role="cell"><StudentMeta student={row.studentDisplay} /></span>
-                <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
-                <strong role="cell" dir="ltr">
-                  {formatMoney(row.amount, receipt.currency, lang)}
-                  {typeof row.remaining_after_payment === 'number' && row.remaining_after_payment > 0 ? (
-                    <small>الباقي: {formatMoney(row.remaining_after_payment, receipt.currency, lang)}</small>
-                  ) : null}
-                </strong>
-              </div>
-            ))
+            rows.map((row, index) => {
+              const rowRemaining = allocationRemaining(row);
+              return (
+                <div className="receipt-table__row" role="row" key={`${row.id ?? row.installment_id ?? index}-${index}`}>
+                  <span role="cell"><StudentMeta student={row.studentDisplay} /></span>
+                  <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
+                  <strong role="cell" dir="ltr">
+                    {formatMoney(row.amount, receipt.currency, lang)}
+                    {rowRemaining != null ? (
+                      <small>الباقي: {formatMoney(rowRemaining, receipt.currency, lang)}</small>
+                    ) : null}
+                  </strong>
+                </div>
+              );
+            })
           ) : (
             <div className="receipt-table__empty">{UI_TEXT[lang].noLines}</div>
           )}
@@ -405,7 +510,7 @@ function ReceiptCopy({
       <section className="receipt-total-card">
         <span>المجموع</span>
         <strong dir="ltr">{formatMoney(receipt.collection_amount, receipt.currency, lang)}</strong>
-        {remaining != null && remaining > 0 ? (
+        {remaining != null ? (
           <small dir="ltr">الباقي: {formatMoney(remaining, receipt.currency, lang)}</small>
         ) : null}
       </section>
