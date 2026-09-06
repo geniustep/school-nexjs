@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import type { ResourceState, UseResourceOptions } from '@/lib/hooks/use-resource';
 import type { ListParams } from '@/types/api';
 import { buildGlobalAcademicYearQuery } from '../utils/global-academic-year-query';
@@ -18,13 +20,16 @@ export function useGlobalAcademicYearResource<T>(
   query?: ListParams,
   options?: UseResourceOptions,
 ): ResourceState<T> {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
   const { activeAcademicYearId, academicYearError } = useAdminSession();
-  const missingAcademicYear = !!path && activeAcademicYearId == null;
+  const missingAcademicYear = !allSchools && !!path && activeAcademicYearId == null;
   const pendingAcademicYear = missingAcademicYear && academicYearError == null;
 
   const scopedQuery = useMemo(
-    () => buildGlobalAcademicYearQuery(query, activeAcademicYearId),
-    [query, activeAcademicYearId],
+    () => (allSchools ? query : buildGlobalAcademicYearQuery(query, activeAcademicYearId)),
+    [allSchools, query, activeAcademicYearId],
   );
 
   const state = useAdminResource<T>(
@@ -40,7 +45,7 @@ export function useGlobalAcademicYearResource<T>(
       loading,
       initialLoading: loading && state.data === null,
       fetching: state.fetching && !pendingAcademicYear,
-      error: state.error ?? academicYearError,
+      error: allSchools ? state.error : state.error ?? academicYearError,
     };
-  }, [state, pendingAcademicYear, academicYearError]);
+  }, [allSchools, state, pendingAcademicYear, academicYearError]);
 }
