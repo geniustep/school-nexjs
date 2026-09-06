@@ -67,13 +67,22 @@ describe('HTML receipt final visual contract', () => {
     expect(pageSource).not.toContain('من قام بإصدار الوصل');
   });
 
-  it('prints family student metadata including Massar and class when supplied by the receipt contract', () => {
+  it('shows Massar and student level when supplied, and never prints the class/section', () => {
     expect(pageSource).toContain("['massar', 'massar_number', 'massar_code', 'massar_id']");
-    expect(pageSource).toContain("['class_name', 'section_name', 'classroom_name']");
+    expect(pageSource).toContain("'level_name'");
+    expect(pageSource).toContain('المستوى:');
+    expect(pageSource).toContain('مسار:');
+    expect(pageSource).not.toContain('القسم:');
+    expect(pageSource).not.toContain('className');
+  });
+
+  it('preserves every sibling and maps flat allocation rows back to the correct child', () => {
     expect(pageSource).toContain('SiblingRoster');
     expect(pageSource).toContain('التلاميذ المشمولون في الوصل');
-    expect(pageSource).toContain('القسم:');
-    expect(pageSource).toContain('مسار:');
+    expect(pageSource).toContain('nestedOwners');
+    expect(pageSource).toContain('matchingStudent');
+    expect(pageSource).toContain("students.find((student) => student.id === allocation.student_id)");
+    expect(pageSource).not.toContain('childrenDisplay(receipt)[0]');
   });
 
   it('shows remaining amounts only when the backend receipt provides them', () => {

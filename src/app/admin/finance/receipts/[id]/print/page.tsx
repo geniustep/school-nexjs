@@ -29,7 +29,6 @@ type StudentDisplay = {
   name: string;
   massar?: string;
   schoolNumber?: string;
-  className?: string;
   levelName?: string;
 };
 
@@ -140,8 +139,14 @@ function studentDisplayFrom(
       firstString(source, ['student_name', 'name', 'full_name', 'display_name']) ?? fallbackName,
     massar: firstString(source, ['massar', 'massar_number', 'massar_code', 'massar_id']),
     schoolNumber: firstString(source, ['school_number', 'student_code', 'code']),
-    className: firstString(source, ['class_name', 'section_name', 'classroom_name']),
-    levelName: firstString(source, ['level_name', 'grade_name']),
+    levelName: firstString(source, [
+      'level_name',
+      'grade_name',
+      'academic_level_name',
+      'student_level_name',
+      'level',
+      'grade',
+    ]),
   };
 }
 
@@ -151,7 +156,6 @@ function mergeStudentDisplay(primary: StudentDisplay, fallback: StudentDisplay):
     name: primary.name !== '—' ? primary.name : fallback.name,
     massar: primary.massar ?? fallback.massar,
     schoolNumber: primary.schoolNumber ?? fallback.schoolNumber,
-    className: primary.className ?? fallback.className,
     levelName: primary.levelName ?? fallback.levelName,
   };
 }
@@ -177,38 +181,82 @@ function childrenDisplay(receipt: FinanceReceipt): StudentDisplay[] {
   return [];
 }
 
+function allocationIdentity(allocation: FinanceReceiptAllocation): string | null {
+  if (allocation.id != null) return `allocation:${allocation.id}`;
+  if (allocation.installment_id != null) return `installment:${allocation.installment_id}`;
+  if (allocation.student_fee_id != null) return `fee:${allocation.student_fee_id}`;
+  return null;
+}
+
+function matchingStudent(
+  allocation: FinanceReceiptAllocation,
+  students: StudentDisplay[],
+  nestedOwners: Map<string, StudentDisplay>,
+): StudentDisplay | undefined {
+  if (allocation.student_id != null) {
+    const byId = students.find((student) => student.id === allocation.student_id);
+    if (byId) return byId;
+  }
+
+  if (allocation.student_name?.trim()) {
+    const normalizedName = allocation.student_name.trim();
+    const byName = students.find((student) => student.name === normalizedName);
+    if (byName) return byName;
+  }
+
+  const identity = allocationIdentity(allocation);
+  if (identity) {
+    const nestedOwner = nestedOwners.get(identity);
+    if (nestedOwner) return nestedOwner;
+  }
+
+  return students.length === 1 ? students[0] : undefined;
+}
+
 function receiptRows(receipt: FinanceReceipt): ReceiptRow[] {
   const children = receipt.children ?? receipt.snapshot?.children ?? [];
-  const childRows = children.flatMap((child) => {
+  const students = childrenDisplay(receipt);
+  const nestedOwners = new Map<string, StudentDisplay>();
+  const childRows: ReceiptRow[] = [];
+
+  children.forEach((child) => {
     const childDisplay = studentDisplayFrom(child, child.student_name ?? '—', child.student_id);
-    return (child.allocations ?? []).map((allocation) => ({
-      ...allocation,
-      studentDisplay: mergeStudentDisplay(
-        studentDisplayFrom(
-          allocation,
-          allocation.student_name ?? childDisplay.name,
-          allocation.student_id ?? childDisplay.id,
+    (child.allocations ?? []).forEach((allocation) => {
+      const identity = allocationIdentity(allocation);
+      if (identity) nestedOwners.set(identity, childDisplay);
+      childRows.push({
+        ...allocation,
+        studentDisplay: mergeStudentDisplay(
+          studentDisplayFrom(
+            allocation,
+            allocation.student_name ?? childDisplay.name,
+            allocation.student_id ?? childDisplay.id,
+          ),
+          childDisplay,
         ),
-        childDisplay,
-      ),
-    }));
+      });
+    });
   });
 
-  // Family receipts prefer the child breakdown because flat allocations may omit sibling identity.
-  if (childRows.length) return childRows;
-
+  // Prefer the authoritative flat allocation list when present, but recover sibling identity
+  // from child breakdowns so family receipts never silently attribute every row to the first child.
   const direct = receipt.allocations ?? receipt.snapshot?.allocations ?? [];
-  const fallback = childrenDisplay(receipt)[0] ?? {
-    id: receipt.student_id,
-    name: receipt.student_name ?? '—',
-  };
-  return direct.map((allocation) => ({
-    ...allocation,
-    studentDisplay: mergeStudentDisplay(
-      studentDisplayFrom(allocation, allocation.student_name ?? fallback.name, allocation.student_id),
-      fallback,
-    ),
-  }));
+  if (direct.length) {
+    return direct.map((allocation) => {
+      const owner = matchingStudent(allocation, students, nestedOwners);
+      const rawDisplay = studentDisplayFrom(
+        allocation,
+        allocation.student_name ?? owner?.name ?? '—',
+        allocation.student_id ?? owner?.id,
+      );
+      return {
+        ...allocation,
+        studentDisplay: owner ? mergeStudentDisplay(rawDisplay, owner) : rawDisplay,
+      };
+    });
+  }
+
+  return childRows;
 }
 
 function receiptRemaining(receipt: FinanceReceipt): number | undefined {
@@ -281,21 +329,20 @@ function SchoolIdentity({ schoolName, schoolCode }: { schoolName: string; school
 }
 
 function StudentMeta({ student }: { student: StudentDisplay }) {
-  const details = [
-    student.className ? `القسم: ${student.className}` : null,
-    student.massar ? `مسار: ${student.massar}` : null,
-  ].filter((value): value is string => !!value);
+  const hasAcademicMeta = !!student.levelName || !!student.massar;
 
   return (
     <div className="receipt-student-cell">
       <strong dir="auto">{student.name}</strong>
-      {details.length ? (
+      {hasAcademicMeta ? (
         <small>
-          {details.map((detail, index) => (
-            <span key={detail} dir={detail.startsWith('مسار:') ? 'ltr' : 'auto'}>
-              {index ? ' · ' : ''}{detail}
+          {student.levelName ? <span dir="auto">المستوى: {student.levelName}</span> : null}
+          {student.levelName && student.massar ? <span aria-hidden="true"> · </span> : null}
+          {student.massar ? (
+            <span>
+              مسار: <b dir="ltr">{student.massar}</b>
             </span>
-          ))}
+          ) : null}
         </small>
       ) : student.schoolNumber ? (
         <small dir="ltr">{student.schoolNumber}</small>
