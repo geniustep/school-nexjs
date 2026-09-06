@@ -5,6 +5,7 @@
  * @design-status adopted
  */
 
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
@@ -14,9 +15,11 @@ import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-das
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
 import { AdminStaffOperationalDashboard } from '@/features/admin/dashboard/admin-staff-operational-dashboard';
+import { useAllSchoolsCopy } from '@/features/admin/all-schools/all-schools-i18n';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { resolveDashboardVariant, shouldShowActiveSchoolBannerOnDashboard } from '@/lib/admin/dashboard-registry';
 import { resolveAdminStaffWorkspace } from '@/lib/admin/admin-staff-workspace';
 import { shouldShowDashboardContextPanel } from '@/lib/admin/executive-dashboard';
@@ -28,6 +31,10 @@ import type { AdminDashboard } from '@/types/dashboard';
 import v2Styles from '@/features/admin/dashboard/admin-executive-dashboard-v2.module.css';
 
 export default function AdminDashboardPage() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
+  const copy = useAllSchoolsCopy();
   const user = useSession();
   const { activeSchoolId, schools } = useAdminSession();
   const t = useT();
@@ -59,7 +66,7 @@ export default function AdminDashboardPage() {
 
   const activeRef =
     schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;
-  const schoolLabel = formatSchoolLabel(activeRef, t);
+  const schoolLabel = allSchools ? copy.allSchools : formatSchoolLabel(activeRef, t);
 
   const scopeBanner = variant.showScopedAccessBanner ? (
     <InfoBanner
