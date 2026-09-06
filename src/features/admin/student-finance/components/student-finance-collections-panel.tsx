@@ -9,7 +9,7 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { CollectionRecordStatus } from './collection-record-status';
 import { StudentReceiptsSection } from '@/features/admin/student-finance/components/student-receipts-section';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale } from '@/features/i18n/locale-context';
 import { resolveCollectionPayerLabel } from '@/features/admin/finance/collection-payer-label';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { paymentMethodLabel } from '@/lib/utils/finance';
@@ -31,7 +31,7 @@ export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) 
     canCollect,
     onOpenCollection,
   } = props;
-  const t = useT();
+  const { t, locale } = useLocale();
   const { formatDate } = useFormat();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
   const currency = resolveStudentFinanceCurrency({
@@ -57,7 +57,7 @@ export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) 
         key: 'method',
         header: t('admin.student360.financeOps.collections.method'),
         render: (row) => {
-          const label = paymentMethodLabel(row.payment_method, t);
+          const label = paymentMethodLabel(row.payment_method, t, locale);
           if (isChequePayment(row.payment_method) && row.state !== 'cancelled') {
             return `${label} — ${t('admin.student360.financeWorkspace.collections.pendingCheque')}`;
           }
@@ -89,7 +89,7 @@ export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) 
         render: (row) => <CollectionRecordStatus row={row} />,
       },
     ],
-    [t, formatDate, currency],
+    [t, locale, formatDate, currency],
   );
 
   const collections = workspace?.recent_collections ?? [];

@@ -15,7 +15,7 @@ import {
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { paymentMethodLabel } from '@/lib/utils/finance';
@@ -31,7 +31,7 @@ export function StudentReceiptsSection({
   returnTo?: string;
   refreshSignal?: number;
 }) {
-  const t = useT();
+  const { t, locale } = useLocale();
   const { formatDateTime } = useFormat();
   const [selectedReceiptId, setSelectedReceiptId] = useState<number | null>(null);
 
@@ -74,7 +74,7 @@ export function StudentReceiptsSection({
       {
         key: 'method',
         header: t('admin.finance.paymentMethod'),
-        render: (row) => paymentMethodLabel(row.payment_method, t),
+        render: (row) => paymentMethodLabel(row.payment_method, t, locale),
       },
       {
         key: 'state',
@@ -97,7 +97,7 @@ export function StudentReceiptsSection({
         ),
       },
     ],
-    [formatDateTime, t],
+    [formatDateTime, locale, t],
   );
 
   return (
