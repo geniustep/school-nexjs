@@ -24,14 +24,19 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
       <div className="parents-family-card__accent" aria-hidden="true" />
       <div className="parents-family-card__body">
         <div className="parents-family-card__field">
-          <span className="parents-family-card__field-label">{t('admin.linkedChildren')}{family.children.length > 0 ? <span className="parents-family-card__children-count"> ({childrenCountLabel(t, locale, family.children.length)})</span> : null}:</span>
+          <span className="parents-family-card__field-label">
+            {t('admin.linkedChildren')}{family.children.length > 0 ? <span className="parents-family-card__children-count"> ({childrenCountLabel(t, locale, family.children.length)})</span> : null}
+            {family.school ? <span className="tiny muted" dir="auto"> · {family.school.name}</span> : null}:
+          </span>
           <div className="parents-family-card__field-value">
             {family.children.length > 0 ? <ul className="parents-family-card__children-list">{family.children.map((child, childIndex) => {
               const name = getStudentDisplayName(child);
               const classLabel = studentClassLabel(child.class);
               const levelLabel = studentLevelLabel(child.level);
+              const schoolId = child.school?.id ?? family.school?.id;
+              const href = `/admin/students/${child.id}`;
               return <li key={`${child.id ?? 'child'}-${childIndex}`} className="parents-family-card__child-item">
-                {typeof child.id === 'number' ? <Link href={`/admin/students/${child.id}`} className="parents-family-card__child-name" dir="auto">{name}</Link> : <span className="parents-family-card__child-name" dir="auto">{name}</span>}
+                {typeof child.id === 'number' ? <Link href={href} data-all-schools-record-school-id={schoolId ?? undefined} data-all-schools-record-href={schoolId ? href : undefined} className="parents-family-card__child-name" dir="auto">{name}</Link> : <span className="parents-family-card__child-name" dir="auto">{name}</span>}
                 {classLabel !== '—' || levelLabel !== '—' ? <span className="parents-family-card__child-academic tiny muted">{classLabel !== '—' ? <span dir="auto">{classLabel}</span> : null}{classLabel !== '—' && levelLabel !== '—' ? <span aria-hidden="true"> · </span> : null}{levelLabel !== '—' ? <span dir="auto">{levelLabel}</span> : null}</span> : null}
               </li>;
             })}</ul> : <span className="muted">{t('admin.noLinkedChildren')}</span>}
@@ -39,13 +44,17 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
         </div>
         <div className="parents-family-card__field parents-family-card__field--guardians">
           <span className="parents-family-card__field-label">{t('admin.parentsList.guardiansTitle')}:</span>
-          <ul className="parents-family-card__guardian-lines">{family.guardians.map(({ parent, relationshipType }, guardianIndex) => <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
-            <span className="parents-family-card__guardian-role">{relationshipTypeLabel(t, relationshipType)}:</span>
-            <div className="parents-family-card__guardian-content">
-              <Link href={`/admin/parents/${parent.id}`} className="parents-family-card__guardian-name" dir="auto">{parent.name}</Link>
-              {parent.phone ?? parent.mobile ? <span className="parents-family-card__guardian-meta"><span className="mono" dir="ltr">{parent.phone ?? parent.mobile}</span></span> : null}
-            </div>
-          </li>)}</ul>
+          <ul className="parents-family-card__guardian-lines">{family.guardians.map(({ parent, relationshipType }, guardianIndex) => {
+            const schoolId = parent.school?.id ?? family.school?.id;
+            const href = `/admin/parents/${parent.id}`;
+            return <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
+              <span className="parents-family-card__guardian-role">{relationshipTypeLabel(t, relationshipType)}:</span>
+              <div className="parents-family-card__guardian-content">
+                <Link href={href} data-all-schools-record-school-id={schoolId ?? undefined} data-all-schools-record-href={schoolId ? href : undefined} className="parents-family-card__guardian-name" dir="auto">{parent.name}</Link>
+                {parent.phone ?? parent.mobile ? <span className="parents-family-card__guardian-meta"><span className="mono" dir="ltr">{parent.phone ?? parent.mobile}</span></span> : null}
+              </div>
+            </li>;
+          })}</ul>
         </div>
       </div>
     </article>)}
