@@ -15,7 +15,6 @@ import { studentKanbanLevelShortLabel } from '../utils/student-kanban-class-shor
 import {
   resolveStudentKanbanQuickActions,
   type StudentKanbanAction,
-  type StudentKanbanActionId,
 } from '../utils/student-kanban-card-actions';
 import { resolveStudentKanbanCycleTone } from '../utils/student-kanban-cycle-tone';
 import { StudentPhotoVisual } from './student-photo-visual';
@@ -76,6 +75,7 @@ export function StudentsKanbanCard({
   const profileHref = `/admin/students/${student.id}`;
   const levelShort = studentKanbanLevelShortLabel(student.level);
   const cycleTone = resolveStudentKanbanCycleTone(student);
+  const schoolId = student.school?.id;
 
   const { visible, more } = useMemo(
     () => resolveStudentKanbanQuickActions(user, student),
@@ -130,6 +130,11 @@ export function StudentsKanbanCard({
               {levelShort}
             </span>
           ) : null}
+          {student.school?.name ? (
+            <span className="students-kanban-card__level" title={student.school.name} dir="auto">
+              {student.school.name}
+            </span>
+          ) : null}
           <label className="students-kanban-card__select">
             <input
               type="checkbox"
@@ -146,6 +151,8 @@ export function StudentsKanbanCard({
       <div className="students-kanban-card__body">
         <Link
           href={profileHref}
+          data-all-schools-record-school-id={schoolId ?? undefined}
+          data-all-schools-record-href={schoolId ? profileHref : undefined}
           className="students-kanban-card__avatar-link"
           aria-label={displayName}
         >
@@ -162,7 +169,14 @@ export function StudentsKanbanCard({
           />
         </Link>
 
-        <Link href={profileHref} className="students-kanban-card__name" dir="auto" title={displayName}>
+        <Link
+          href={profileHref}
+          data-all-schools-record-school-id={schoolId ?? undefined}
+          data-all-schools-record-href={schoolId ? profileHref : undefined}
+          className="students-kanban-card__name"
+          dir="auto"
+          title={displayName}
+        >
           {displayName}
         </Link>
       </div>
@@ -173,6 +187,8 @@ export function StudentsKanbanCard({
             <Link
               key={action.id}
               href={action.href}
+              data-all-schools-record-school-id={schoolId ?? undefined}
+              data-all-schools-record-href={schoolId ? action.href : undefined}
               className="students-kanban-card__icon-btn"
               title={t(action.labelKey)}
               aria-label={t(action.labelKey)}
@@ -206,6 +222,8 @@ export function StudentsKanbanCard({
                     <Link
                       key={action.id}
                       href={action.href}
+                      data-all-schools-record-school-id={schoolId ?? undefined}
+                      data-all-schools-record-href={schoolId ? action.href : undefined}
                       role="menuitem"
                       className="students-kanban-card__menu-item"
                       onClick={() => setMenuOpen(false)}
