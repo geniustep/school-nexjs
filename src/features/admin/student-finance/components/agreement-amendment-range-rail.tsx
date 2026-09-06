@@ -5,6 +5,7 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { AgreementAmendmentPeriodOption } from '../types/agreement-amendment';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import { sortAgreementAmendmentPeriodOptions } from '../utils/sort-agreement-amendment-period-options';
+import './agreement-amendment-studio.css';
 
 const SCOPE_COPY = {
   ar: {
