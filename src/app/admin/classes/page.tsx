@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -15,9 +16,11 @@ import { PageHeader } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { AdminClassesBrowser } from '@/features/admin/classes/components/admin-classes-browser';
 import { canonicalizeClassStudentCounts } from '@/features/admin/classes/utils/canonical-class-count';
+import { mergeAllSchoolsClassLevels } from '@/features/admin/all-schools/all-schools-academic-options';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { useT } from '@/features/i18n/locale-context';
 import { useLocale } from '@/features/i18n/locale-context';
+import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, SchoolClass } from '@/types/class';
 
@@ -28,23 +31,35 @@ const CLASSES_BROWSER_QUERY = { page_size: 500 };
 export default function AdminClassesPage() {
   const t = useT();
   const { locale } = useLocale();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const allSchools = isAllSchoolsReadMode(pathname, searchParams);
   const [importOpen, setImportOpen] = useState(false);
   const classesState = useGlobalAcademicYearResource<SchoolClass[]>(
     endpoints.admin.classes,
     CLASSES_BROWSER_QUERY,
   );
-  // Levels are reference/options data and remain year-independent.
+  // Levels are reference/options data and remain year-independent. In All-Schools,
+  // concrete level ids are completed from class rows while borrowing canonical
+  // cycle metadata from the active-school reference catalog where identities match.
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, CLASSES_BROWSER_QUERY);
   const canonicalClasses = useMemo(
     () => canonicalizeClassStudentCounts(classesState.data ?? []),
     [classesState.data],
+  );
+  const browserLevels = useMemo(
+    () =>
+      allSchools
+        ? mergeAllSchoolsClassLevels(canonicalClasses, levelsState.data ?? [])
+        : levelsState.data ?? [],
+    [allSchools, canonicalClasses, levelsState.data],
   );
 
   const combinedState = useMemo<ResourceState<ClassesPageData>>(
     () => ({
       data:
         classesState.data != null
-          ? { classes: canonicalClasses, levels: levelsState.data ?? [] }
+          ? { classes: canonicalClasses, levels: browserLevels }
           : null,
       loading: classesState.loading || levelsState.loading,
       initialLoading: classesState.initialLoading || levelsState.initialLoading,
@@ -56,7 +71,7 @@ export default function AdminClassesPage() {
         levelsState.reload();
       },
     }),
-    [canonicalClasses, classesState, levelsState],
+    [browserLevels, canonicalClasses, classesState, levelsState],
   );
 
   return (
@@ -78,11 +93,13 @@ export default function AdminClassesPage() {
               showImport
               importOpen={importOpen}
               onToggleImport={() => setImportOpen((v) => !v)}
+              readOnly={allSchools}
+              preserveReadOnlyGeometry={allSchools}
             />
           </div>
         }
       />
-      {importOpen ? (
+      {!allSchools && importOpen ? (
         <CsvImportPanel
           importPath={endpoints.admin.classesImport}
           onDone={() => combinedState.reload()}
