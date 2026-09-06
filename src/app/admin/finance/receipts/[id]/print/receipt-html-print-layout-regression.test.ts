@@ -42,7 +42,7 @@ describe('HTML receipt visual parity regression', () => {
 
   it('retains Massar, class, sibling and backend remaining-value support', () => {
     expect(pageSource).toContain("['massar', 'massar_number', 'massar_code', 'massar_id']");
-    expect(pageSource).toContain("['class_name', 'section_name', 'classroom_name']");
+    expect(pageSource).toContain("['class_name', 'section_name', 'classroom_name', 'class_label']");
     expect(pageSource).toContain('SiblingRoster');
     expect(pageSource).toContain('remaining_after_payment');
     expect(pageSource).toContain('remaining_amount');
