@@ -1,3 +1,4 @@
+import type { Locale } from '@/lib/i18n/config';
 import type { StudentFeeState, FeePlanState, PaymentCollectionState } from '@/types/finance';
 
 /** Normalize API currency fields that may arrive as a code string or `{ name, symbol }` ref. */
@@ -119,14 +120,31 @@ export function feeBalanceAmount(row: {
   return v == null || Number.isNaN(v) ? undefined : v;
 }
 
+const IMPORT_UNSPECIFIED_PAYMENT_METHOD_LABEL: Record<Locale, string> = {
+  ar: 'غير محددة',
+  fr: 'Non renseigné',
+  en: 'Not provided',
+  es: 'No indicado',
+};
+
 export function paymentMethodLabel(
   method: string | { code?: string; name?: string; label?: string } | undefined | null,
   t: (key: string) => string,
+  locale?: Locale,
 ): string {
   if (!method) return '—';
   const code = typeof method === 'string' ? method : method.code ?? method.name ?? method.label ?? '';
   if (!code) return '—';
   const snake = code.toLowerCase();
+
+  // Import provenance must stay internal. When the original payment method is
+  // unknown, render honest human-facing semantics instead of the technical enum.
+  if (snake === 'import_unspecified') {
+    if (locale) return IMPORT_UNSPECIFIED_PAYMENT_METHOD_LABEL[locale];
+    const dash = t('common.dash');
+    return dash === 'common.dash' ? '—' : dash;
+  }
+
   const camel = snake.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
   const candidates = [
     `admin.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`,
