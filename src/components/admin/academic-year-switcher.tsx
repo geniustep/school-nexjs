@@ -35,11 +35,10 @@ export function AcademicYearSwitcher({ hideLabel = false }: { hideLabel?: boolea
         className="input input--sm school-switcher__select"
         value={allSchools ? 'all-schools-current' : activeAcademicYearId ?? ''}
         disabled={
-          allSchools ||
-          academicYearLoading ||
-          Boolean(academicYearError) ||
-          academicYears.length === 0
+          !allSchools &&
+          (academicYearLoading || Boolean(academicYearError) || academicYears.length === 0)
         }
+        aria-disabled={allSchools || undefined}
         onChange={(event) => {
           if (allSchools) return;
           const id = Number(event.target.value);
