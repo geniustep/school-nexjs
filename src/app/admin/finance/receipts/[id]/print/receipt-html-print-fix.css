@@ -1,3 +1,79 @@
+/*
+ * A5 receipt visual-parity guard.
+ *
+ * The base receipt component supports optional sibling metadata. A CSS grid with
+ * an implicit optional row allowed the total card to inherit the flexible track
+ * when that sibling row was absent, producing the oversized mint block seen in
+ * print preview. The copy uses a vertical flex flow instead so optional content
+ * never changes which block receives the remaining height.
+ */
+.receipt-html-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-content: initial !important;
+}
+
+.receipt-copy-header,
+.receipt-payment-facts,
+.receipt-siblings,
+.receipt-details,
+.receipt-total-card {
+  flex: 0 0 auto !important;
+}
+
+.receipt-copy-footer {
+  flex: 0 0 auto !important;
+  margin-top: auto !important;
+}
+
+.receipt-total-card {
+  min-height: 14mm !important;
+}
+
+/* Bring the normal-density copy closer to the approved visual mock-up. */
+.receipt-html-copy[data-density='normal'] .receipt-school-identity img {
+  width: 32mm !important;
+  height: 15mm !important;
+  max-width: 32mm !important;
+  max-height: 15mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-school-identity strong {
+  font-size: 3.85mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-number-card {
+  max-width: 78mm;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-payment-facts span {
+  font-size: 2.15mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-payment-facts strong {
+  font-size: 2.65mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-table__row {
+  font-size: 2.12mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-table__head {
+  font-size: 2.22mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-student-cell > strong {
+  font-size: 2.08mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-student-cell > small {
+  font-size: 1.5mm !important;
+}
+
+.receipt-html-copy[data-density='normal'] .receipt-total-card > strong {
+  font-size: 5.65mm !important;
+}
+
 @media print {
   html:has(body .receipt-html-print-page),
   body:has(.receipt-html-print-page) {
