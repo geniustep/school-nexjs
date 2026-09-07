@@ -79,6 +79,133 @@ const ATT_TONE: Record<AttendanceStatus, 'green' | 'red' | 'amber' | 'blue'> = {
   left_early: 'blue',
 };
 
+const DIRECTOR_DAILY_COPY = {
+  ar: {
+    attendanceDataPending: 'لم تكتمل بيانات الحضور بعد',
+    severityUrgent: 'عاجل',
+    severityHigh: 'مرتفع',
+    severityMedium: 'متوسط',
+    severityLow: 'منخفض',
+    needsAction: 'يتطلب تدخلك',
+    adminResponsible: 'مسؤول: الإدارة',
+    inFollowup: 'قيد المتابعة',
+    viewAbsence: 'عرض الغياب',
+    processAdmissions: 'معالجة الطلبات',
+    openFinance: 'عرض مركز المالية',
+    openMessagesTasks: 'فتح الرسائل والمهام',
+    viewDetails: 'عرض التفاصيل',
+    pulseAttendance: 'الحضور',
+    pulseStudents: 'التلاميذ والتسجيل',
+    pulseLearning: 'التعلم والتقويم',
+    pulseFinance: 'المالية',
+    surfaceLabel: 'لوحة القيادة اليومية',
+    prioritiesTitle: 'أولويات اليوم',
+    openTodayCollections: 'فتح تحصيلات اليوم',
+    todayRevenue: 'مداخيل اليوم',
+    unavailable: 'غير متاحة حاليًا',
+    collectToday: 'تحصيل اليوم',
+    sendMessage: 'إرسال رسالة',
+    schoolPulse: 'نبض المؤسسة',
+    newAssessments: 'تقييمات جديدة',
+    overdueAccounts: 'حسابًا متأخرًا',
+    weeklyFollowup: 'متابعة هذا الأسبوع',
+    noWeeklyFollowup: 'لا توجد متابعة مجدولة هذا الأسبوع',
+  },
+  en: {
+    attendanceDataPending: 'Attendance data is not complete yet',
+    severityUrgent: 'Urgent',
+    severityHigh: 'High',
+    severityMedium: 'Medium',
+    severityLow: 'Low',
+    needsAction: 'Needs your action',
+    adminResponsible: 'Owner: Administration',
+    inFollowup: 'In follow-up',
+    viewAbsence: 'View absences',
+    processAdmissions: 'Process applications',
+    openFinance: 'Open finance center',
+    openMessagesTasks: 'Open messages and tasks',
+    viewDetails: 'View details',
+    pulseAttendance: 'Attendance',
+    pulseStudents: 'Students & registration',
+    pulseLearning: 'Learning & assessment',
+    pulseFinance: 'Finance',
+    surfaceLabel: 'Daily dashboard',
+    prioritiesTitle: "Today's priorities",
+    openTodayCollections: "Open today's collections",
+    todayRevenue: "Today's revenue",
+    unavailable: 'Currently unavailable',
+    collectToday: 'Collect payment',
+    sendMessage: 'Send message',
+    schoolPulse: 'School pulse',
+    newAssessments: 'new assessments',
+    overdueAccounts: 'overdue accounts',
+    weeklyFollowup: "This week's follow-up",
+    noWeeklyFollowup: 'No follow-up scheduled this week',
+  },
+  fr: {
+    attendanceDataPending: 'Les données de présence ne sont pas encore complètes',
+    severityUrgent: 'Urgent',
+    severityHigh: 'Élevée',
+    severityMedium: 'Moyenne',
+    severityLow: 'Faible',
+    needsAction: 'Intervention requise',
+    adminResponsible: 'Responsable : administration',
+    inFollowup: 'En suivi',
+    viewAbsence: 'Voir les absences',
+    processAdmissions: 'Traiter les demandes',
+    openFinance: 'Ouvrir le centre financier',
+    openMessagesTasks: 'Ouvrir les messages et tâches',
+    viewDetails: 'Voir les détails',
+    pulseAttendance: 'Présence',
+    pulseStudents: 'Élèves et inscriptions',
+    pulseLearning: 'Apprentissage et évaluation',
+    pulseFinance: 'Finances',
+    surfaceLabel: 'Tableau de bord quotidien',
+    prioritiesTitle: 'Priorités du jour',
+    openTodayCollections: 'Ouvrir les encaissements du jour',
+    todayRevenue: 'Recettes du jour',
+    unavailable: 'Indisponible actuellement',
+    collectToday: 'Encaissement du jour',
+    sendMessage: 'Envoyer un message',
+    schoolPulse: 'Pouls de l’établissement',
+    newAssessments: 'nouvelles évaluations',
+    overdueAccounts: 'comptes en retard',
+    weeklyFollowup: 'Suivi de cette semaine',
+    noWeeklyFollowup: 'Aucun suivi planifié cette semaine',
+  },
+  es: {
+    attendanceDataPending: 'Los datos de asistencia aún no están completos',
+    severityUrgent: 'Urgente',
+    severityHigh: 'Alta',
+    severityMedium: 'Media',
+    severityLow: 'Baja',
+    needsAction: 'Requiere tu intervención',
+    adminResponsible: 'Responsable: administración',
+    inFollowup: 'En seguimiento',
+    viewAbsence: 'Ver ausencias',
+    processAdmissions: 'Gestionar solicitudes',
+    openFinance: 'Abrir centro financiero',
+    openMessagesTasks: 'Abrir mensajes y tareas',
+    viewDetails: 'Ver detalles',
+    pulseAttendance: 'Asistencia',
+    pulseStudents: 'Alumnos y matrículas',
+    pulseLearning: 'Aprendizaje y evaluación',
+    pulseFinance: 'Finanzas',
+    surfaceLabel: 'Panel diario',
+    prioritiesTitle: 'Prioridades de hoy',
+    openTodayCollections: 'Abrir cobros de hoy',
+    todayRevenue: 'Ingresos de hoy',
+    unavailable: 'No disponible actualmente',
+    collectToday: 'Registrar cobro',
+    sendMessage: 'Enviar mensaje',
+    schoolPulse: 'Pulso de la escuela',
+    newAssessments: 'evaluaciones nuevas',
+    overdueAccounts: 'cuentas atrasadas',
+    weeklyFollowup: 'Seguimiento de esta semana',
+    noWeeklyFollowup: 'No hay seguimiento programado esta semana',
+  },
+} as const;
+
 function pickFinanceTotals(data: AdminFinanceOverview | null) {
   const overview = normalizeFinanceOverview(data);
   return overview?.totals ?? overview?.summary ?? null;
@@ -182,6 +309,7 @@ function ExecutiveDirectorView({
 }) {
   const t = useT();
   const { locale } = useLocale();
+  const directorCopy = DIRECTOR_DAILY_COPY[locale];
   const { formatDate, formatDateTime } = useFormat();
   const { schools, activeSchoolId } = useAdminSession();
 
@@ -707,7 +835,7 @@ function ExecutiveDirectorView({
       value: attendanceKpi.displayValue,
       hint:
         attendanceKpi.state === 'unavailable' || attendanceKpi.displayValue === '—'
-          ? 'لم تكتمل بيانات الحضور بعد'
+          ? directorCopy.attendanceDataPending
           : attendanceKpi.state === 'partial'
             ? t('admin.executive.kpiAttendanceExecutiveHint', {
                 absent: attendanceGaps?.absent_today_count ?? 0,
@@ -743,22 +871,28 @@ function ExecutiveDirectorView({
   };
   const priorityMeta = (item: AdminActionItem, index: number) => {
     const rank = priorityRank(item);
-    const severity = rank === 0 ? 'عاجل' : rank === 1 ? 'مرتفع' : rank === 2 ? 'متوسط' : 'منخفض';
+    const severity = rank === 0
+      ? directorCopy.severityUrgent
+      : rank === 1
+        ? directorCopy.severityHigh
+        : rank === 2
+          ? directorCopy.severityMedium
+          : directorCopy.severityLow;
     const status = index === 0
-      ? 'يتطلب تدخلك'
+      ? directorCopy.needsAction
       : item.id.includes('admission') || item.id.includes('registration')
-        ? 'مسؤول: الإدارة'
+        ? directorCopy.adminResponsible
         : item.id.includes('finance')
-          ? 'قيد المتابعة'
+          ? directorCopy.inFollowup
           : undefined;
     return { severity, status };
   };
   const priorityAction = (item: AdminActionItem) => {
-    if (item.href?.includes('/attendance')) return 'عرض الغياب';
-    if (item.href?.includes('/admissions')) return 'معالجة الطلبات';
-    if (item.href?.includes('/finance')) return 'عرض مركز المالية';
-    if (item.href?.includes('/announcements')) return 'فتح الرسائل والمهام';
-    return 'عرض التفاصيل';
+    if (item.href?.includes('/attendance')) return directorCopy.viewAbsence;
+    if (item.href?.includes('/admissions')) return directorCopy.processAdmissions;
+    if (item.href?.includes('/finance')) return directorCopy.openFinance;
+    if (item.href?.includes('/announcements')) return directorCopy.openMessagesTasks;
+    return directorCopy.viewDetails;
   };
   const priorityDomain = (item: AdminActionItem) => {
     if (item.href?.includes('/attendance')) return 'attendance';
@@ -789,37 +923,37 @@ function ExecutiveDirectorView({
   const todayRevenue = normalizeMoneyValue(executiveFinance?.collected_today);
   const todayRevenueCurrency = executiveFinance?.currency;
   const pulseLabels: Record<string, string> = {
-    attendance: 'الحضور',
-    students: 'التلاميذ والتسجيل',
-    learning: 'التعلم والتقويم',
-    finance: 'المالية',
+    attendance: directorCopy.pulseAttendance,
+    students: directorCopy.pulseStudents,
+    learning: directorCopy.pulseLearning,
+    finance: directorCopy.pulseFinance,
   };
 
   if (widgets.executiveLayout) {
     return (
-    <main className="director-daily-surface" aria-label="لوحة القيادة اليومية">
+    <main className="director-daily-surface" aria-label={directorCopy.surfaceLabel}>
       <section className="director-daily-priorities" aria-labelledby="daily-priorities-title">
         <header className="director-daily-heading">
           <div className="director-daily-heading__identity">
-            <h1 id="daily-priorities-title">أولويات اليوم</h1>
+            <h1 id="daily-priorities-title">{directorCopy.prioritiesTitle}</h1>
             <time dateTime={today}>{formatDate(today)}</time>
           </div>
           <div className="director-daily-heading__tools">
-            <Link className="director-revenue-summary" href="/admin/finance/collections" aria-label="فتح تحصيلات اليوم">
-              <span>مداخيل اليوم</span>
+            <Link className="director-revenue-summary" href="/admin/finance/collections" aria-label={directorCopy.openTodayCollections}>
+              <span>{directorCopy.todayRevenue}</span>
               <strong>
                 {todayRevenue != null ? (
                   <FinanceMoney amount={todayRevenue} currency={todayRevenueCurrency} />
                 ) : (
-                  'غير متاحة حاليًا'
+                  directorCopy.unavailable
                 )}
               </strong>
             </Link>
             <Link className="director-header-action director-header-action--primary" href="/admin/finance/collections/new">
-              تحصيل اليوم
+              {directorCopy.collectToday}
             </Link>
             <Link className="director-header-action" href="/admin/communication/compose">
-              إرسال رسالة
+              {directorCopy.sendMessage}
             </Link>
           </div>
         </header>
@@ -855,12 +989,12 @@ function ExecutiveDirectorView({
       </section>
 
       <section className="director-pulse" aria-labelledby="director-pulse-title">
-        <h2 id="director-pulse-title">نبض المؤسسة</h2>
+        <h2 id="director-pulse-title">{directorCopy.schoolPulse}</h2>
         <div className="director-pulse-grid">
           {pulseCards.map((card) => (
             <Link key={card.id} href={card.href} className="director-pulse-item">
               <span className="director-pulse-label">{pulseLabels[card.id] ?? card.label}</span>
-              <strong className="director-pulse-value">{card.id === 'learning' && card.value !== '—' ? <>{card.value} تقييمات جديدة</> : card.id === 'finance' && financeOverdueCount ? <>{financeOverdueCount} حساباً متأخراً · <FinanceMoney amount={normalizeMoneyValue(financeOverdue) ?? 0} currency={executiveFinance?.currency ?? financeTotals?.currency} /></> : card.value}</strong>
+              <strong className="director-pulse-value">{card.id === 'learning' && card.value !== '—' ? <>{card.value} {directorCopy.newAssessments}</> : card.id === 'finance' && financeOverdueCount ? <>{financeOverdueCount} {directorCopy.overdueAccounts} · <FinanceMoney amount={normalizeMoneyValue(financeOverdue) ?? 0} currency={executiveFinance?.currency ?? financeTotals?.currency} /></> : card.value}</strong>
               <span className="director-pulse-hint">{card.hint}</span>
               <span className="director-pulse-chevron" aria-hidden="true">‹</span>
             </Link>
@@ -870,7 +1004,7 @@ function ExecutiveDirectorView({
 
       <div className="director-bottom-grid">
         <section className="director-summary" aria-labelledby="director-week-title">
-          <h2 id="director-week-title">متابعة هذا الأسبوع</h2>
+          <h2 id="director-week-title">{directorCopy.weeklyFollowup}</h2>
           <ul>
             {d.next_exam ? (
               <li>
@@ -881,7 +1015,7 @@ function ExecutiveDirectorView({
                 </Link>
               </li>
             ) : (
-              <li className="director-daily-empty">لا توجد متابعة مجدولة هذا الأسبوع</li>
+              <li className="director-daily-empty">{directorCopy.noWeeklyFollowup}</li>
             )}
           </ul>
         </section>
@@ -1426,7 +1560,7 @@ function ExecutiveDirectorView({
       </div>
 
       <section className="daily-pulse" aria-label={t('admin.executive.kpiSectionTitle')}>
-        <header className="daily-pulse__head"><h2>نبض المؤسسة</h2></header>
+        <header className="daily-pulse__head"><h2>{directorCopy.schoolPulse}</h2></header>
         <div className="daily-pulse__grid">
           {pulseCards.map((card) => (
             <Link key={card.id} href={card.href} className="daily-pulse__item">
@@ -1450,7 +1584,7 @@ function ExecutiveDirectorView({
           ) : <ExecutiveEmpty icon="◌" title={t('common.dash')} />}
         </section>
         <section className="daily-summary" aria-labelledby="daily-week-title">
-          <h2 id="daily-week-title">متابعة هذا الأسبوع</h2>
+          <h2 id="daily-week-title">{directorCopy.weeklyFollowup}</h2>
           <p className="daily-summary__empty">{d.next_exam ? t('admin.cmd.reviewNextExam', { name: d.next_exam.name }) : t('common.dash')}</p>
         </section>
       </div>
@@ -1473,4 +1607,3 @@ export function AdminExecutiveDashboard({
 
   return <ExecutiveDirectorView data={data} user={user} />;
 }
-
