@@ -68,162 +68,218 @@ export function StudentFinanceWorkspaceHeader({
     !shouldHideCollectButton;
   const showCollectEnabled = showCollectButton && collectPaymentAllowed !== false;
   const showCollectDisabled = showCollectButton && collectPaymentAllowed === false;
-  const hasActions =
+  const showSecondaryActions =
     showSchedule ||
     showAgreement ||
-    showCollectEnabled ||
-    showCollectDisabled ||
     !!billingPartnerId ||
-    showChangePlan ||
-    showReviewAgreement;
+    !!showChangePlan ||
+    !!showReviewAgreement;
+  const hasActions = showCollectEnabled || showCollectDisabled || showSecondaryActions;
+
+  const secondaryActionsLabel = [
+    billingPartnerId ? t('admin.finance.billingAccounts.openPayerAccount') : null,
+    showSchedule ? t('admin.student360.financeWorkspace.openSchedule') : null,
+    showAgreement ? t('admin.student360.financeWorkspace.actions.manageAgreement') : null,
+    showReviewAgreement
+      ? reviewAgreementKind === 'fix'
+        ? t('admin.student360.financeWorkspace.inactiveAgreement.fixAction')
+        : t('admin.student360.financeWorkspace.inactiveAgreement.reviewAction')
+      : null,
+    showChangePlan ? t('admin.student360.financeWorkspace.changePlan.replace.action') : null,
+  ]
+    .filter((label): label is string => Boolean(label))
+    .join(' · ');
 
   return (
     <header className="student-finance-command-bar">
       <div className="student-finance-command-bar__accent" aria-hidden="true" />
       <div className="student-finance-command-bar__inner">
-      <div className="student-finance-command-bar__top">
-        <div className="student-finance-command-bar__identity">
-          <span className="student-finance-command-bar__glyph" aria-hidden="true">
-            ◈
-          </span>
-          <div className="student-finance-command-bar__copy">
-            <h2 className="student-finance-command-bar__title">
-              {t('admin.student360.financeWorkspace.pageTitle')}
-            </h2>
-            <p className="student-finance-command-bar__desc">
-              {t('admin.student360.financeWorkspace.pageDescription')}
-            </p>
+        <div className="student-finance-command-bar__top">
+          <div className="student-finance-command-bar__identity">
+            <span className="student-finance-command-bar__glyph" aria-hidden="true">
+              ◈
+            </span>
+            <div className="student-finance-command-bar__copy">
+              <h2 className="student-finance-command-bar__title">
+                {t('admin.student360.financeWorkspace.pageTitle')}
+              </h2>
+              <p className="student-finance-command-bar__desc">
+                {t('admin.student360.financeWorkspace.pageDescription')}
+              </p>
+            </div>
+          </div>
+
+          <div className="student-finance-command-bar__context">
+            {yearsLoading && !academicYears.length ? (
+              <StudentYearSelectSkeleton />
+            ) : (
+              <label className="student-finance-command-bar__year">
+                <span className="student-finance-command-bar__year-label">
+                  {t('admin.student360.finance.academicYear')}
+                </span>
+                <span className="student-finance-command-bar__year-control">
+                  <span className="student-finance-command-bar__year-icon" aria-hidden="true">
+                    ▦
+                  </span>
+                  <select
+                    className="student-finance-command-bar__year-select"
+                    value={effectiveYearId}
+                    onChange={(e) => onYearChange(e.target.value)}
+                    disabled={yearsLoading || !academicYears.length}
+                    aria-label={t('admin.student360.finance.academicYear')}
+                  >
+                    {academicYears.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="student-finance-command-bar__year-chevron" aria-hidden="true">
+                    ▾
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
         </div>
 
-        <div className="student-finance-command-bar__context">
-          {yearsLoading && !academicYears.length ? (
-            <StudentYearSelectSkeleton />
-          ) : (
-            <label className="student-finance-command-bar__year">
-              <span className="student-finance-command-bar__year-label">
-                {t('admin.student360.finance.academicYear')}
-              </span>
-              <span className="student-finance-command-bar__year-control">
-                <span className="student-finance-command-bar__year-icon" aria-hidden="true">
-                  ▦
-                </span>
-                <select
-                  className="student-finance-command-bar__year-select"
-                  value={effectiveYearId}
-                  onChange={(e) => onYearChange(e.target.value)}
-                  disabled={yearsLoading || !academicYears.length}
-                  aria-label={t('admin.student360.finance.academicYear')}
-                >
-                  {academicYears.map((year) => (
-                    <option key={year.id} value={year.id}>
-                      {year.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="student-finance-command-bar__year-chevron" aria-hidden="true">
-                  ▾
-                </span>
-              </span>
-            </label>
-          )}
-        </div>
-      </div>
-
-      {hasActions ? (
-        <div className="student-finance-command-bar__foot">
-          <div className="student-finance-command-bar__links">
-            {billingPartnerId ? (
-              <Link
-                href={`/admin/finance/billing-accounts/${billingPartnerId}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
-                className="student-finance-command-bar__link"
-              >
-                {t('admin.finance.billingAccounts.openPayerAccount')}
-              </Link>
-            ) : null}
-          </div>
-
-          <div className="student-finance-command-bar__actions">
-            {showSchedule ? (
-              <button
-                type="button"
-                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                onClick={onOpenSchedule}
-              >
-                <span aria-hidden="true">▦</span>
-                {t('admin.student360.financeWorkspace.openSchedule')}
-              </button>
-            ) : null}
-            {showAgreement ? (
-              <button
-                type="button"
-                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                onClick={onOpenAgreements}
-              >
-                <span aria-hidden="true">✎</span>
-                {t('admin.student360.financeWorkspace.actions.manageAgreement')}
-              </button>
-            ) : null}
-            {showReviewAgreement ? (
-              <button
-                type="button"
-                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost student-finance-command-bar__btn--review-agreement"
-                onClick={onReviewAgreement}
-              >
-                <span aria-hidden="true">⚠</span>
-                {reviewAgreementKind === 'fix'
-                  ? t('admin.student360.financeWorkspace.inactiveAgreement.fixAction')
-                  : t('admin.student360.financeWorkspace.inactiveAgreement.reviewAction')}
-              </button>
-            ) : null}
-            {showChangePlan ? (
-              <button
-                type="button"
-                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                aria-label={t('admin.student360.financeWorkspace.changePlan.replace.action')}
-                title={
-                  changePlanHint ??
-                  t('admin.student360.financeWorkspace.changePlan.replace.actionHint')
-                }
-                onClick={onOpenChangePlan}
-              >
-                <span aria-hidden="true">↻</span>
-                <span className="student-finance-command-bar__btn-label">
-                  {t('admin.student360.financeWorkspace.changePlan.replace.action')}
-                </span>
-              </button>
-            ) : null}
-            {showCollectEnabled ? (
-              <button
-                type="button"
-                className="student-finance-command-bar__btn student-finance-command-bar__btn--primary"
-                onClick={onRecordPayment}
-              >
-                <span aria-hidden="true">+</span>
-                {t('admin.student360.financeWorkspace.actions.recordPayment')}
-              </button>
-            ) : null}
-            {showCollectDisabled ? (
-              <span
-                className="student-finance-collect-blocked student-finance-collect-blocked--command-bar"
-                title={
-                  collectBlockMessage ??
-                  t('admin.student360.financeWorkspace.collectPayment.blockedMessage')
-                }
-              >
+        {hasActions ? (
+          <div className="student-finance-command-bar__foot">
+            <div className="student-finance-command-bar__actions">
+              {showCollectEnabled ? (
                 <button
                   type="button"
                   className="student-finance-command-bar__btn student-finance-command-bar__btn--primary"
-                  disabled
+                  onClick={onRecordPayment}
                 >
                   <span aria-hidden="true">+</span>
                   {t('admin.student360.financeWorkspace.actions.recordPayment')}
                 </button>
-              </span>
-            ) : null}
+              ) : null}
+              {showCollectDisabled ? (
+                <span
+                  className="student-finance-collect-blocked student-finance-collect-blocked--command-bar"
+                  title={
+                    collectBlockMessage ??
+                    t('admin.student360.financeWorkspace.collectPayment.blockedMessage')
+                  }
+                >
+                  <button
+                    type="button"
+                    className="student-finance-command-bar__btn student-finance-command-bar__btn--primary"
+                    disabled
+                  >
+                    <span aria-hidden="true">+</span>
+                    {t('admin.student360.financeWorkspace.actions.recordPayment')}
+                  </button>
+                </span>
+              ) : null}
+
+              {showSecondaryActions ? (
+                <details style={{ position: 'relative' }}>
+                  <summary
+                    className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                    aria-label={secondaryActionsLabel}
+                    title={secondaryActionsLabel}
+                    style={{ listStyle: 'none', justifyContent: 'center', minWidth: 42 }}
+                  >
+                    <span aria-hidden="true">•••</span>
+                  </summary>
+                  <div
+                    className="student-finance-command-bar__actions"
+                    role="group"
+                    aria-label={secondaryActionsLabel}
+                    style={{
+                      position: 'absolute',
+                      zIndex: 40,
+                      insetInlineEnd: 0,
+                      top: 'calc(100% + 8px)',
+                      minWidth: 'min(290px, calc(100vw - 32px))',
+                      marginInlineStart: 0,
+                      padding: 8,
+                      flexDirection: 'column',
+                      alignItems: 'stretch',
+                      background: 'var(--surface, #fff)',
+                      border: '1px solid var(--c-border, #e2e8f0)',
+                      borderRadius: 12,
+                      boxShadow: '0 14px 32px rgb(15 23 42 / 0.14)',
+                    }}
+                  >
+                    {billingPartnerId ? (
+                      <Link
+                        href={`/admin/finance/billing-accounts/${billingPartnerId}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
+                        className="student-finance-command-bar__link"
+                      >
+                        {t('admin.finance.billingAccounts.openPayerAccount')}
+                      </Link>
+                    ) : null}
+                    {showSchedule ? (
+                      <button
+                        type="button"
+                        className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                        onClick={(event) => {
+                          event.currentTarget.closest('details')?.removeAttribute('open');
+                          onOpenSchedule();
+                        }}
+                      >
+                        <span aria-hidden="true">▦</span>
+                        {t('admin.student360.financeWorkspace.openSchedule')}
+                      </button>
+                    ) : null}
+                    {showAgreement ? (
+                      <button
+                        type="button"
+                        className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                        onClick={(event) => {
+                          event.currentTarget.closest('details')?.removeAttribute('open');
+                          onOpenAgreements();
+                        }}
+                      >
+                        <span aria-hidden="true">✎</span>
+                        {t('admin.student360.financeWorkspace.actions.manageAgreement')}
+                      </button>
+                    ) : null}
+                    {showReviewAgreement ? (
+                      <button
+                        type="button"
+                        className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost student-finance-command-bar__btn--review-agreement"
+                        onClick={(event) => {
+                          event.currentTarget.closest('details')?.removeAttribute('open');
+                          onReviewAgreement?.();
+                        }}
+                      >
+                        <span aria-hidden="true">⚠</span>
+                        {reviewAgreementKind === 'fix'
+                          ? t('admin.student360.financeWorkspace.inactiveAgreement.fixAction')
+                          : t('admin.student360.financeWorkspace.inactiveAgreement.reviewAction')}
+                      </button>
+                    ) : null}
+                    {showChangePlan ? (
+                      <button
+                        type="button"
+                        className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                        aria-label={t('admin.student360.financeWorkspace.changePlan.replace.action')}
+                        title={
+                          changePlanHint ??
+                          t('admin.student360.financeWorkspace.changePlan.replace.actionHint')
+                        }
+                        onClick={(event) => {
+                          event.currentTarget.closest('details')?.removeAttribute('open');
+                          onOpenChangePlan?.();
+                        }}
+                      >
+                        <span aria-hidden="true">↻</span>
+                        <span className="student-finance-command-bar__btn-label">
+                          {t('admin.student360.financeWorkspace.changePlan.replace.action')}
+                        </span>
+                      </button>
+                    ) : null}
+                  </div>
+                </details>
+              ) : null}
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
       </div>
     </header>
   );

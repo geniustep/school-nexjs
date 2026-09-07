@@ -55,43 +55,36 @@ export function StudentFinanceExecutiveSummary({
         label: t('admin.student360.financeWorkspace.executive.remainingActual'),
         value: <FinanceMoney amount={metrics.remaining_actual} currency={currency ?? undefined} />,
         tone: (metrics.remaining_actual ?? 0) > 0 ? ('red' as const) : ('green' as const),
-        emphasis: true,
-      },
-      {
-        key: 'paid_confirmed',
-        label: t('admin.student360.financeWorkspace.executive.paidConfirmed'),
-        value: <FinanceMoney amount={metrics.paid_confirmed} currency={currency ?? undefined} />,
-        tone: 'green' as const,
-        emphasis: true,
       },
       {
         key: 'overdue',
         label: t('admin.student360.financeWorkspace.executive.overdue'),
         value: <FinanceMoney amount={metrics.overdue} currency={currency ?? undefined} />,
         tone: overdue > 0 ? ('red' as const) : ('green' as const),
-        emphasis: true,
       },
       {
-        key: 'unconfirmed_coverage',
-        label: t('admin.student360.financeWorkspace.executive.unconfirmedCoverage'),
-        value: <FinanceMoney amount={metrics.unconfirmed_coverage} currency={currency ?? undefined} />,
-        tone: (metrics.unconfirmed_coverage ?? 0) > 0 ? ('amber' as const) : ('neutral' as const),
-        emphasis: true,
+        key: 'paid_confirmed',
+        label: t('admin.student360.financeWorkspace.executive.paidConfirmed'),
+        value: <FinanceMoney amount={metrics.paid_confirmed} currency={currency ?? undefined} />,
+        tone: 'green' as const,
       },
     ];
 
     const secondaryKpis = [
       {
+        key: 'unconfirmed_coverage',
+        label: t('admin.student360.financeWorkspace.executive.unconfirmedCoverage'),
+        value: <FinanceMoney amount={metrics.unconfirmed_coverage} currency={currency ?? undefined} />,
+      },
+      {
         key: 'net_assessed',
         label: t('admin.student360.financeWorkspace.executive.netAssessed'),
         value: <FinanceMoney amount={metrics.annual_total} currency={currency ?? undefined} />,
-        tone: 'neutral' as const,
       },
       {
         key: 'next_installment',
         label: t('admin.student360.financeWorkspace.executive.nextInstallment'),
         value: nextInstallmentValue,
-        tone: 'blue' as const,
       },
     ];
 
@@ -169,14 +162,17 @@ export function StudentFinanceExecutiveSummary({
         ))}
       </div>
 
-      <div className="student-finance-hero__secondary">
+      <dl
+        className="student-finance-hero__insight-stats"
+        aria-label={t('admin.student360.financeWorkspace.executive.title')}
+      >
         {secondaryKpis.map((item) => (
-          <article key={item.key} className={`student-finance-kpi ${toneClass(item.tone)}`}>
-            <span className="student-finance-kpi__label">{item.label}</span>
-            <span className="student-finance-kpi__value">{item.value}</span>
-          </article>
+          <div key={item.key}>
+            <dt>{item.label}</dt>
+            <dd>{item.value}</dd>
+          </div>
         ))}
-      </div>
+      </dl>
 
       {health?.hasPendingCheque ? (
         <div className="student-finance-hero__insight" role="note">
@@ -232,7 +228,10 @@ export function StudentFinanceExecutiveSummary({
       ) : null}
 
       {(chequeSummary?.rejected_count ?? 0) > 0 ? (
-        <div className="student-finance-hero__insight student-finance-hero__insight--danger" role="alert">
+        <div
+          className="student-finance-hero__insight student-finance-hero__insight--danger"
+          role="alert"
+        >
           <div className="student-finance-hero__insight-icon" aria-hidden="true">
             !
           </div>
@@ -255,7 +254,10 @@ export function StudentFinanceExecutiveSummary({
       ) : null}
 
       {(chequeSummary?.cancelled_count ?? 0) > 0 ? (
-        <div className="student-finance-hero__insight student-finance-hero__insight--warn" role="note">
+        <div
+          className="student-finance-hero__insight student-finance-hero__insight--warn"
+          role="note"
+        >
           <div className="student-finance-hero__insight-icon" aria-hidden="true">
             !
           </div>
