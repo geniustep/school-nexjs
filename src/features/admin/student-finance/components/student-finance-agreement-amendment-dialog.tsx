@@ -64,6 +64,8 @@ import { AgreementAmendmentPricingContractPreview } from './agreement-amendment-
 import { AgreementAmendmentAmountAdjustmentPanel } from './agreement-amendment-amount-adjustment-panel';
 import { AgreementAmendmentLinePicker } from './agreement-amendment-line-picker';
 import { AgreementAmendmentRangeRail } from './agreement-amendment-range-rail';
+import { AgreementAmendmentReasonSelector } from './agreement-amendment-reason-selector';
+import { AgreementAmendmentLivePreviewPanel } from './agreement-amendment-live-preview-panel';
 
 function defaultForm(): AgreementAmendmentFormState {
   return {
@@ -548,22 +550,14 @@ export function StudentFinanceAgreementAmendmentDialog({
             </select>
           </label>
 
-          <label>
-            <span className="tiny muted">
-              {t('admin.student360.financeWorkspace.agreementAmendment.reason')}
-            </span>
-            <textarea
-              className="input"
-              rows={3}
-              value={form.reason}
-              onChange={(e) => {
-                setForm((prev) => ({ ...prev, reason: e.target.value }));
-                invalidatePreview();
-              }}
-              disabled={!canEdit}
-              required
-            />
-          </label>
+          <AgreementAmendmentReasonSelector
+            value={form.reason}
+            disabled={!canEdit}
+            onChange={(reason) => {
+              setForm((prev) => ({ ...prev, reason }));
+              invalidatePreview();
+            }}
+          />
 
           {form.operationType === 'add_line' ? (
             <>
@@ -868,8 +862,21 @@ export function StudentFinanceAgreementAmendmentDialog({
           </div>
         </form>
 
+        <AgreementAmendmentLivePreviewPanel
+          form={form}
+          selectedLine={selectedLine}
+          periods={periodOptions}
+          preview={preview}
+          previewLoading={previewLoading}
+          error={formError}
+          currency={currency}
+        />
+
         {preview ? (
-          <section className="student-finance-amendment-preview stack" aria-live="polite">
+          <section
+            className="student-finance-amendment-preview student-finance-amendment-preview--legacy stack"
+            aria-hidden="true"
+          >
             <h3>{t('admin.student360.financeWorkspace.agreementAmendment.previewTitle')}</h3>
 
             {shouldShowAgreementAmendmentBlockingReasons(preview) ? (
