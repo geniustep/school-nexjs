@@ -8,6 +8,26 @@ function isAllowed(actions: StudentOverviewAllowedActions | undefined, key: stri
   return actions[key] === true;
 }
 
+export type StudentOverviewEditAccess = 'pending' | 'allowed' | 'denied' | 'unavailable';
+
+export function resolveOverviewEditAccess(
+  overview: StudentOverviewData | null | undefined,
+  state: {
+    loading: boolean;
+    hasError: boolean;
+    endpointUnavailable: boolean;
+  },
+): StudentOverviewEditAccess {
+  if (state.loading) return 'pending';
+  if (state.hasError || state.endpointUnavailable) return 'unavailable';
+  if (!overview) return 'pending';
+
+  const allowed = isAllowed(overview.allowed_actions, 'edit_student');
+  if (allowed === true) return 'allowed';
+  if (allowed === false) return 'denied';
+  return 'unavailable';
+}
+
 export function resolveOverviewEditAllowed(
   overview: StudentOverviewData | null | undefined,
   caps: StudentCapabilities,
