@@ -53,7 +53,7 @@ import {
   canViewStudentHealth,
   resolveStudentCapabilities,
 } from '../utils/resolve-capabilities';
-import { resolveOverviewEditAllowed } from '../utils/resolve-overview-allowed-actions';
+import { resolveOverviewEditAccess } from '../utils/resolve-overview-allowed-actions';
 import { StudentEditPhotoSection } from './student-edit-photo-section';
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 import type { SiblingLine } from '@/types/sibling-line';
@@ -189,7 +189,11 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
 
   const details = detailsState.data;
   const caps = details ? resolveStudentCapabilities(details.capabilities, user) : null;
-  const canEdit = caps ? resolveOverviewEditAllowed(overviewState.data, caps) : false;
+  const editAccess = resolveOverviewEditAccess(overviewState.data, {
+    loading: overviewState.loading,
+    hasError: Boolean(overviewState.error),
+    endpointUnavailable: overviewState.endpointUnavailable,
+  });
   const showHealth = caps ? canViewStudentHealth(caps) : false;
   const showDocuments = caps ? canViewStudentDocuments(caps) : false;
   const canManageHealth = caps ? canManageStudentHealth(caps) : false;
@@ -313,7 +317,25 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
     return <ApiErrorView error={detailsState.error!} onRetry={detailsState.reload} />;
   }
 
-  if (!canEdit) {
+  if (editAccess === 'pending') {
+    return <LoadingState label={t('common.loading')} />;
+  }
+
+  if (editAccess === 'unavailable') {
+    return (
+      <ApiErrorView
+        error={
+          overviewState.error ?? {
+            code: 'server_error',
+            message: t('errors.loadFailedRetry'),
+          }
+        }
+        onRetry={overviewState.reload}
+      />
+    );
+  }
+
+  if (editAccess === 'denied') {
     return (
       <ApiErrorView
         error={{ code: 'forbidden', message: t('admin.studentForbidden') }}
