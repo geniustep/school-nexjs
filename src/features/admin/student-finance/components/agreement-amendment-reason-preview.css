@@ -334,3 +334,135 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Compact desktop continuation: each Studio column scrolls independently and cards use the available width efficiently. */
+@media (min-width: 960px) and (min-height: 700px) {
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .academic-setup-drawer__body > .student-finance-amendment-form.student-finance-amendment-form {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 10px 12px 16px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview.student-finance-amendment-live-preview {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    gap: 7px;
+    padding: 10px 12px 16px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__section {
+    padding: 7px 8px;
+    border-radius: 10px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__section > h4,
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__section-title-row > h4 {
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__readiness {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__readiness-item {
+    gap: 1px 5px;
+    padding: 5px 6px;
+    border-radius: 8px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__readiness-item > strong {
+    font-size: 0.71rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__months {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 1px;
+    min-height: 38px;
+    padding: 5px 4px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month > strong {
+    width: 100%;
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month > .tiny {
+    grid-column: auto;
+    font-size: 0.62rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month-index {
+    display: none;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month--single {
+    grid-column: span 2;
+    justify-self: stretch;
+    min-height: 44px;
+    padding: 6px 8px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month--single > strong {
+    font-size: 0.82rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__money-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__money-grid > div {
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-range-rail__point {
+    min-height: 44px;
+    padding: 4px 3px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-range-rail__label {
+    font-size: 0.67rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-range-rail__handle {
+    font-size: 0.56rem;
+  }
+}
