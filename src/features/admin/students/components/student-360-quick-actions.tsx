@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { IconMoreHorizontal } from '@/components/icons/admin-icons';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
+import { Student360PaymentEntry } from '@/features/admin/student-finance/components/student-360-payment-entry';
+import { useStudentFamilyFinanceSummary } from '@/features/admin/student-finance/hooks/use-student-family-finance';
 import { useStudentFinancialOverview } from '@/features/admin/student-finance/hooks/use-student-financial-overview';
 import { resolveFinanceYearId } from '@/features/admin/student-finance/utils/resolve-finance-year-id';
 import { resolveStudentFinanceOverviewMetrics } from '@/features/admin/student-finance/utils/resolve-student-finance-overview';
@@ -33,7 +35,6 @@ export function Student360QuickActions({
   onOpenTab,
   onArchiveSuccess,
   onEdit,
-  onRecordPayment,
 }: {
   details: StudentDetailsData;
   caps: StudentCapabilities;
@@ -44,11 +45,13 @@ export function Student360QuickActions({
   onArchiveSuccess: () => void;
   /** Kept for callers that still pass an edit handler; edit uses editHref Link. */
   onEdit?: () => void;
+  /** Legacy route callback; direct payment entry no longer navigates through the finance tab. */
   onRecordPayment?: () => void;
 }) {
   const t = useT();
   const user = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [paymentEntryOpen, setPaymentEntryOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const s = details.student;
   const canManage = resolveOverviewEditAllowed(overview, caps) && !archived;
@@ -66,6 +69,12 @@ export function Student360QuickActions({
     financeYearId,
     showFinance && canCollect && !!financeYearId,
   );
+  const familySummaryState = useStudentFamilyFinanceSummary(
+    s.id,
+    showFinance && canCollect,
+  );
+  const familySummaryReady =
+    familySummaryState.data !== null || familySummaryState.error !== null;
   const financeMetrics = resolveStudentFinanceOverviewMetrics(financialOverviewState.data);
   const financePayment = resolveStudentHeaderFinancePaymentPresentation({
     showFinance,
@@ -132,81 +141,105 @@ export function Student360QuickActions({
   const showOverflow = canManage && (overflowActions.length > 0 || canArchive);
 
   return (
-    <div className="student-360-quick-actions" ref={rootRef}>
-      {financePayment.visible ? (
-        <button
-          type="button"
-          className={`btn btn--sm student-360-quick-actions__payment student-360-quick-actions__payment--${financePayment.tone}`}
-          onClick={onRecordPayment}
-          title={
-            financePayment.tone === 'overdue'
-              ? t('admin.student360.overview.badges.financeOverdue')
-              : undefined
-          }
-        >
-          <span className="student-360-quick-actions__payment-icon" aria-hidden="true">
-            +
-          </span>
-          {t('admin.student360.financeWorkspace.actions.recordPayment')}
-        </button>
-      ) : null}
-
-      {canManage ? (
-        <Link href={editHref} className="btn btn--ghost btn--sm student-360-quick-actions__edit">
-          {t('admin.student360.quickActions.editProfile')}
-        </Link>
-      ) : null}
-
-      {showOverflow ? (
-        <div className="student-360-quick-actions__more">
+    <>
+      <div className="student-360-quick-actions" ref={rootRef}>
+        {financePayment.visible ? (
           <button
             type="button"
-            className="btn btn--ghost btn--sm student-360-quick-actions__more-btn"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            onClick={() => setMenuOpen((v) => !v)}
+            className={`btn btn--sm student-360-quick-actions__payment student-360-quick-actions__payment--${financePayment.tone}`}
+            onClick={() => setPaymentEntryOpen(true)}
+            title={
+              financePayment.tone === 'overdue'
+                ? t('admin.student360.overview.badges.financeOverdue')
+                : undefined
+            }
           >
-            <IconMoreHorizontal aria-hidden="true" />
-            <span className="visually-hidden">{t('admin.student360.quickActions.more')}</span>
+            <span className="student-360-quick-actions__payment-icon" aria-hidden="true">
+              +
+            </span>
+            {t('admin.student360.financeWorkspace.actions.recordPayment')}
           </button>
-          {menuOpen ? (
-            <div className="student-360-quick-actions__menu" role="menu">
-              {overflowActions.map((action) => (
-                <button
-                  key={action.key}
-                  type="button"
-                  role="menuitem"
-                  className="student-360-quick-actions__menu-item"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    if (action.key === 'enrollment') {
-                      onEdit?.();
-                      return;
-                    }
-                    if (action.tab) onOpenTab(action.tab);
-                  }}
-                >
-                  {overflowLabels[action.key]}
-                </button>
-              ))}
-              {canArchive ? (
-                <div className="student-360-quick-actions__menu-archive" role="none">
-                  <ConfirmActionButton
-                    label={t('admin.archive')}
-                    confirmMessage={t('admin.confirmArchive')}
-                    path={endpoints.admin.studentArchive(s.id)}
-                    variant="danger"
-                    onSuccess={() => {
+        ) : null}
+
+        {canManage ? (
+          <Link href={editHref} className="btn btn--ghost btn--sm student-360-quick-actions__edit">
+            {t('admin.student360.quickActions.editProfile')}
+          </Link>
+        ) : null}
+
+        {showOverflow ? (
+          <div className="student-360-quick-actions__more">
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm student-360-quick-actions__more-btn"
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <IconMoreHorizontal aria-hidden="true" />
+              <span className="visually-hidden">{t('admin.student360.quickActions.more')}</span>
+            </button>
+            {menuOpen ? (
+              <div className="student-360-quick-actions__menu" role="menu">
+                {overflowActions.map((action) => (
+                  <button
+                    key={action.key}
+                    type="button"
+                    role="menuitem"
+                    className="student-360-quick-actions__menu-item"
+                    onClick={() => {
                       setMenuOpen(false);
-                      onArchiveSuccess();
+                      if (action.key === 'enrollment') {
+                        onEdit?.();
+                        return;
+                      }
+                      if (action.tab) onOpenTab(action.tab);
                     }}
-                  />
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+                  >
+                    {overflowLabels[action.key]}
+                  </button>
+                ))}
+                {canArchive ? (
+                  <div className="student-360-quick-actions__menu-archive" role="none">
+                    <ConfirmActionButton
+                      label={t('admin.archive')}
+                      confirmMessage={t('admin.confirmArchive')}
+                      path={endpoints.admin.studentArchive(s.id)}
+                      variant="danger"
+                      onSuccess={() => {
+                        setMenuOpen(false);
+                        onArchiveSuccess();
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      {financePayment.visible ? (
+        <Student360PaymentEntry
+          open={paymentEntryOpen}
+          studentId={s.id}
+          details={details}
+          academicYearId={financeYearId ? Number(financeYearId) : undefined}
+          billingProfileId={financialOverviewState.data?.billing_profile_id ?? undefined}
+          billingPartnerId={
+            financialOverviewState.data?.billing_profile?.billing_partner_id ?? undefined
+          }
+          financialOverview={financialOverviewState.data}
+          prefetchedFamilySummary={familySummaryState.data}
+          prefetchedFamilySummaryReady={familySummaryReady}
+          onOpenChange={setPaymentEntryOpen}
+          onSuccess={() => {
+            financialOverviewState.reload();
+            familySummaryState.reload();
+          }}
+          onOverviewUpdate={financialOverviewState.applyPatch}
+        />
       ) : null}
-    </div>
+    </>
   );
 }

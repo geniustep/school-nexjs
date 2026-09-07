@@ -5,7 +5,11 @@ import { FamilyCollectionDrawer } from '@/features/admin/finance/family-collecti
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { StudentDetailsData } from '@/types/student-360';
-import type { CollectionUpdatedOverview, StudentFinancialOverview } from '@/types/student-financial-overview';
+import type { FamilyFinanceSummary } from '@/types/family-finance';
+import type {
+  CollectionUpdatedOverview,
+  StudentFinancialOverview,
+} from '@/types/student-financial-overview';
 import { useStudentFamilyFinanceSummary } from '../hooks/use-student-family-finance';
 import { resolveStudentFamilyPaymentChoice } from '../utils/resolve-student-family-payment-choice';
 import { resolveStudent360PaymentEntryRoute } from '../utils/resolve-student-360-payment-entry-route';
@@ -18,6 +22,8 @@ export function Student360PaymentEntry({
   billingProfileId,
   billingPartnerId,
   financialOverview,
+  prefetchedFamilySummary,
+  prefetchedFamilySummaryReady,
   onOpenChange,
   onSuccess,
   onOverviewUpdate,
@@ -29,6 +35,8 @@ export function Student360PaymentEntry({
   billingProfileId?: number;
   billingPartnerId?: number | null;
   financialOverview?: StudentFinancialOverview | null;
+  prefetchedFamilySummary?: FamilyFinanceSummary | null;
+  prefetchedFamilySummaryReady?: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
   onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
@@ -42,18 +50,26 @@ export function Student360PaymentEntry({
     studentName: string;
   } | null>(null);
   const resolvedForOpenRef = useRef(false);
-
-  const { data: familySummary, loading: familySummaryLoading } = useStudentFamilyFinanceSummary(
-    studentId,
-    open,
-  );
   const familyFetchStartedRef = useRef(false);
+  const hasPrefetchedFamilySummaryState = prefetchedFamilySummaryReady !== undefined;
+
+  const internalFamilySummaryState = useStudentFamilyFinanceSummary(
+    studentId,
+    open && !hasPrefetchedFamilySummaryState,
+  );
+  const familySummary = hasPrefetchedFamilySummaryState
+    ? (prefetchedFamilySummary ?? null)
+    : internalFamilySummaryState.data;
+  const familySummaryLoading = hasPrefetchedFamilySummaryState
+    ? !prefetchedFamilySummaryReady
+    : internalFamilySummaryState.loading;
 
   const paymentChoiceContext = useMemo(
     () =>
       resolveStudentFamilyPaymentChoice({
         summary: familySummary,
-        fallbackFamilyId: billingPartnerId ?? financialOverview?.billing_profile?.billing_partner_id,
+        fallbackFamilyId:
+          billingPartnerId ?? financialOverview?.billing_profile?.billing_partner_id,
       }),
     [familySummary, billingPartnerId, financialOverview?.billing_profile?.billing_partner_id],
   );
@@ -82,10 +98,14 @@ export function Student360PaymentEntry({
 
     if (resolvedForOpenRef.current) return;
     if (familySummaryLoading) {
-      familyFetchStartedRef.current = true;
+      if (!hasPrefetchedFamilySummaryState) {
+        familyFetchStartedRef.current = true;
+      }
       return;
     }
-    if (!familyFetchStartedRef.current) return;
+    if (!hasPrefetchedFamilySummaryState) {
+      if (!familyFetchStartedRef.current) return;
+    }
 
     resolvedForOpenRef.current = true;
 
@@ -104,7 +124,13 @@ export function Student360PaymentEntry({
     setFamilyContext(null);
     setStudentDrawerOpen(true);
     setFamilyDrawerOpen(false);
-  }, [open, entryRoute, familySummary, familySummaryLoading, details.student]);
+  }, [
+    open,
+    entryRoute,
+    familySummaryLoading,
+    hasPrefetchedFamilySummaryState,
+    details.student,
+  ]);
 
   function handleStudentDrawerClose() {
     setStudentDrawerOpen(false);
