@@ -250,6 +250,7 @@ export function StudentFinanceWorkspaceShell({
 
   useEffect(() => {
     if (searchParams.get('collect') !== '1') return;
+    if (phase !== 'ready') return;
     if (billingContext.collectPaymentAllowed) {
       setPaymentEntryOpen(true);
     }
@@ -259,7 +260,7 @@ export function StudentFinanceWorkspaceShell({
     router.replace(query ? `/admin/students/${studentId}?${query}` : `/admin/students/${studentId}?tab=finance`, {
       scroll: false,
     });
-  }, [searchParams, billingContext.collectPaymentAllowed, router, studentId]);
+  }, [searchParams, phase, billingContext.collectPaymentAllowed, router, studentId]);
 
   const refreshFinanceData = useCallback(() => {
     setFinanceRefreshSignal((n) => n + 1);
