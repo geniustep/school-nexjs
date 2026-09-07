@@ -103,7 +103,9 @@ export function Student360PaymentEntry({
       }
       return;
     }
-    if (!hasPrefetchedFamilySummaryState && !familyFetchStartedRef.current) return;
+    if (!hasPrefetchedFamilySummaryState) {
+      if (!familyFetchStartedRef.current) return;
+    }
 
     resolvedForOpenRef.current = true;
 
