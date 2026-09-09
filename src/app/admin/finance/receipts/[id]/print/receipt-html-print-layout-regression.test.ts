@@ -19,6 +19,7 @@ const columnAlignmentCss = readFileSync(
   join(printDir, 'receipt-html-print-column-alignment.css'),
   'utf8',
 );
+const frenchCss = readFileSync(join(printDir, 'receipt-html-print-fr.css'), 'utf8');
 const layoutSource = readFileSync(join(printDir, 'layout.tsx'), 'utf8');
 
 describe('HTML receipt visual parity regression', () => {
@@ -38,8 +39,10 @@ describe('HTML receipt visual parity regression', () => {
   });
 
   it('keeps payer-only payment facts and the centered authoritative total', () => {
-    expect(pageSource).toContain('<span>طريقة الأداء</span>');
-    expect(pageSource).toContain('<span>المؤدي</span>');
+    expect(pageSource).toContain("paymentMethod: 'طريقة الأداء'");
+    expect(pageSource).toContain("payer: 'المؤدي'");
+    expect(pageSource).toContain("paymentMethod: 'Mode de paiement'");
+    expect(pageSource).toContain("payer: 'Payeur'");
     expect(pageSource).toContain('receipt.collection_amount');
     expect(pageSource).not.toContain('الساعة');
     expect(pageSource).not.toContain('المستلم');
@@ -72,6 +75,15 @@ describe('HTML receipt visual parity regression', () => {
     expect(columnAlignmentCss).toContain('grid-column: 1;');
     expect(columnAlignmentCss).toContain('grid-column: 2;');
     expect(columnAlignmentCss).toContain('align-items: start;');
+  });
+
+  it('keeps French direction overrides separate from the fixed A5 geometry', () => {
+    expect(layoutSource).toContain("import './receipt-html-print-fr.css';");
+    expect(frenchCss).toContain(".receipt-html-sheet[data-lang='fr']");
+    expect(frenchCss).toContain('direction: ltr !important');
+    expect(frenchCss).not.toContain('@page');
+    expect(frenchCss).not.toContain('width: 148mm');
+    expect(frenchCss).not.toContain('height: 205mm');
   });
 
   it('preserves the one-page A5 geometry and exact cut midpoint contract for every receipt size', () => {
