@@ -84,6 +84,92 @@
   overflow-wrap: anywhere;
 }
 
+.servicesSummary {
+  margin-top: 16px;
+  border-top: 1px solid rgb(226 232 240 / 0.82);
+  padding-top: 13px;
+}
+
+.servicesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.servicesHeader h4 {
+  margin: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.servicesCount {
+  display: inline-grid;
+  min-width: 24px;
+  min-height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--c-surface-soft, #f8fafc);
+  color: var(--c-muted, #64748b);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.servicesList {
+  display: grid;
+}
+
+.serviceLine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  border-top: 1px solid rgb(226 232 240 / 0.62);
+  padding: 8px 0;
+}
+
+.serviceLine:first-child {
+  border-top: 0;
+}
+
+.serviceName {
+  min-width: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.84rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.servicePricing {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.serviceUnitPrice {
+  color: var(--c-text, #334155);
+  font-weight: 650;
+}
+
+.serviceQuantity {
+  color: var(--c-muted, #64748b);
+  font-weight: 650;
+}
+
+.serviceTotal {
+  margin-inline-start: 4px;
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
 .statusPill {
   display: inline-flex;
   align-items: center;
@@ -408,6 +494,16 @@
 
   .agreementFacts {
     grid-template-columns: 1fr;
+  }
+
+  .serviceLine {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .servicePricing {
+    justify-content: flex-start;
+    white-space: normal;
   }
 
   .monthToggle {
