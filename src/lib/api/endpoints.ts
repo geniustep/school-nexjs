@@ -572,6 +572,7 @@ export const endpoints = {
     studentFinanceRepairActionApply: (studentId: number | string, actionCode: string) =>
       `/admin/students/${studentId}/finance/repair-actions/${actionCode}/apply`,
     financePaymentCollections: '/admin/finance/payment-collections',
+    financeImportCollectionBatches: '/admin/finance/import-collections/batches',
     financePaymentCollectionPreview: '/admin/finance/payment-collections/preview',
     financePaymentCollection: (id: number | string) => `/admin/finance/payment-collections/${id}`,
     financePaymentCollectionConfirm: (id: number | string) =>
