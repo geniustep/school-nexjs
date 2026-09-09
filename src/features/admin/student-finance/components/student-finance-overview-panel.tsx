@@ -252,7 +252,7 @@ export function StudentFinanceOverviewPanel({
 
   useEffect(() => {
     if (!monthGroups.length) {
-      setExpandedMonths((current) => (current.size ? new Set() : current));
+      setExpandedMonths((current) => (current.size ? new Set<string>() : current));
       return;
     }
 
