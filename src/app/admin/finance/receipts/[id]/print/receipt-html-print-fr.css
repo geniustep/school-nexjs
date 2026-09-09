@@ -1,0 +1,36 @@
+/* French A5 receipt localization overrides.
+ * Keep the exact same A5 geometry and density modes; only reading direction/alignment changes.
+ */
+.receipt-html-print-page[data-lang='fr'],
+.receipt-html-sheet[data-lang='fr'],
+.receipt-html-sheet[data-lang='fr'] .receipt-html-copy {
+  direction: ltr;
+}
+
+.receipt-html-sheet[data-lang='fr'] .receipt-school-identity,
+.receipt-html-sheet[data-lang='fr'] .receipt-number-card__number,
+.receipt-html-sheet[data-lang='fr'] .receipt-number-card__date,
+.receipt-html-sheet[data-lang='fr'] .receipt-payment-facts > div,
+.receipt-html-sheet[data-lang='fr'] .receipt-payment-fact,
+.receipt-html-sheet[data-lang='fr'] .receipt-details__column,
+.receipt-html-sheet[data-lang='fr'] .receipt-student-cell,
+.receipt-html-sheet[data-lang='fr'] .receipt-copy-footer {
+  direction: ltr !important;
+}
+
+.receipt-html-sheet[data-lang='fr'] .receipt-table__row > strong {
+  text-align: right !important;
+}
+
+.receipt-html-sheet[data-lang='fr'] .receipt-student-cell__identifier {
+  justify-content: flex-start;
+}
+
+.receipt-html-sheet[data-lang='fr'] .receipt-number-card__date {
+  border-inline-start: 0 !important;
+  border-inline-end: 0.22mm solid #cbdce2;
+}
+
+.receipt-html-sheet[data-lang='fr'] .receipt-html-cut-line small {
+  direction: ltr;
+}
