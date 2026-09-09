@@ -12,6 +12,7 @@ import {
   receiptAllowsAction,
 } from '@/lib/utils/normalize-finance-receipt';
 import {
+  buildReceiptHtmlPrintPath,
   normalizeReceiptHtmlPrintLang,
   type ReceiptHtmlPrintLang,
 } from '@/lib/utils/finance-receipt-html-print';
@@ -42,15 +43,53 @@ const UI_TEXT = {
     preview: 'معاينة الوصل',
     print: 'طباعة الوصل',
     close: 'إغلاق',
+    switchLanguage: 'Français',
     unavailable: 'هذا الوصل غير متاح للطباعة.',
     noLines: 'لا توجد تفاصيل توزيع مرفقة بهذا الوصل.',
+    receiptNumber: 'رقم الوصل',
+    paymentDate: 'تاريخ الأداء',
+    paymentMethod: 'طريقة الأداء',
+    payer: 'المؤدي',
+    student: 'التلميذ',
+    service: 'الخدمة / الرسم',
+    amount: 'المبلغ',
+    remaining: 'الباقي',
+    level: 'المستوى',
+    massar: 'رقم مسار',
+    schoolNumber: 'الرقم المدرسي',
+    total: 'المجموع',
+    thanks: 'شكرًا لكم على ثقتكم',
+    cutHere: 'قص هنا',
+    details: 'تفاصيل الأداء',
+    detailsPart1: 'تفاصيل الأداء — الجزء الأول',
+    detailsPart2: 'تفاصيل الأداء — الجزء الثاني',
+    schoolLogo: 'شعار',
   },
   fr: {
     preview: 'Aperçu du reçu',
     print: 'Imprimer le reçu',
     close: 'Fermer',
+    switchLanguage: 'العربية',
     unavailable: "Ce reçu n’est pas disponible à l’impression.",
     noLines: "Aucun détail d’affectation n’est joint à ce reçu.",
+    receiptNumber: 'N° du reçu',
+    paymentDate: 'Date de paiement',
+    paymentMethod: 'Mode de paiement',
+    payer: 'Payeur',
+    student: 'Élève',
+    service: 'Service / frais',
+    amount: 'Montant',
+    remaining: 'Reste',
+    level: 'Niveau',
+    massar: 'N° Massar',
+    schoolNumber: 'N° scolaire',
+    total: 'Total',
+    thanks: 'Merci pour votre confiance',
+    cutHere: 'Couper ici',
+    details: 'Détails du paiement',
+    detailsPart1: 'Détails du paiement — partie 1',
+    detailsPart2: 'Détails du paiement — partie 2',
+    schoolLogo: 'Logo de',
   },
 } as const;
 
@@ -162,17 +201,29 @@ function formatMoney(
   return `${value} ${currency || 'MAD'}`;
 }
 
-function paymentMethodLabel(method: string | undefined): string {
+function paymentMethodLabel(method: string | undefined, lang: ReceiptHtmlPrintLang): string {
   const normalized = (method ?? '').trim().toLowerCase();
-  const labels: Record<string, string> = {
-    cash: 'نقدًا',
-    cheque: 'شيك',
-    check: 'شيك',
-    transfer: 'تحويل بنكي',
-    bank: 'تحويل بنكي',
-    card: 'بطاقة',
+  const labels: Record<ReceiptHtmlPrintLang, Record<string, string>> = {
+    ar: {
+      cash: 'نقدًا',
+      cheque: 'شيك',
+      check: 'شيك',
+      transfer: 'تحويل بنكي',
+      bank: 'تحويل بنكي',
+      card: 'بطاقة',
+      import_unspecified: 'غير محدد',
+    },
+    fr: {
+      cash: 'Espèces',
+      cheque: 'Chèque',
+      check: 'Chèque',
+      transfer: 'Virement bancaire',
+      bank: 'Virement bancaire',
+      card: 'Carte',
+      import_unspecified: 'Non précisé',
+    },
   };
-  return labels[normalized] ?? method ?? '—';
+  return labels[lang][normalized] ?? method ?? '—';
 }
 
 function issuedByName(receipt: FinanceReceipt): string | null {
@@ -378,9 +429,18 @@ async function waitForReceiptImages(): Promise<void> {
   );
 }
 
-function SchoolIdentity({ schoolName, schoolCode }: { schoolName: string; schoolCode: string | null }) {
+function SchoolIdentity({
+  schoolName,
+  schoolCode,
+  lang,
+}: {
+  schoolName: string;
+  schoolCode: string | null;
+  lang: ReceiptHtmlPrintLang;
+}) {
   const [logoFailed, setLogoFailed] = useState(false);
-  const initial = schoolName.trim().charAt(0) || 'ر';
+  const text = UI_TEXT[lang];
+  const initial = schoolName.trim().charAt(0) || (lang === 'fr' ? 'R' : 'ر');
   const logoUrl = schoolCode
     ? `/api/public/school-branding/logo?school_code=${encodeURIComponent(schoolCode)}`
     : null;
@@ -390,7 +450,7 @@ function SchoolIdentity({ schoolName, schoolCode }: { schoolName: string; school
       {logoUrl && !logoFailed ? (
         <img
           src={logoUrl}
-          alt={`شعار ${schoolName}`}
+          alt={`${text.schoolLogo} ${schoolName}`}
           data-receipt-print-image="school-logo"
           onError={() => setLogoFailed(true)}
         />
@@ -402,23 +462,24 @@ function SchoolIdentity({ schoolName, schoolCode }: { schoolName: string; school
   );
 }
 
-function StudentMeta({ student }: { student: StudentDisplay }) {
+function StudentMeta({ student, lang }: { student: StudentDisplay; lang: ReceiptHtmlPrintLang }) {
+  const text = UI_TEXT[lang];
   return (
     <div className="receipt-student-cell">
       <strong dir="auto">{student.name}</strong>
       {student.levelName ? (
         <small className="receipt-student-cell__academic" dir="auto">
-          المستوى: {student.levelName}
+          {text.level}: {student.levelName}
         </small>
       ) : null}
       {student.massar ? (
         <small className="receipt-student-cell__identifier">
-          <span>رقم مسار:</span>
+          <span>{text.massar}:</span>
           <b dir="ltr">{student.massar}</b>
         </small>
       ) : student.schoolNumber ? (
         <small className="receipt-student-cell__identifier">
-          <span>الرقم المدرسي:</span>
+          <span>{text.schoolNumber}:</span>
           <b dir="ltr">{student.schoolNumber}</b>
         </small>
       ) : null}
@@ -437,12 +498,13 @@ function ReceiptTable({
   lang: ReceiptHtmlPrintLang;
   ariaLabel: string;
 }) {
+  const text = UI_TEXT[lang];
   return (
     <div className="receipt-table" role="table" aria-label={ariaLabel}>
       <div className="receipt-table__row receipt-table__head" role="row">
-        <span role="columnheader">التلميذ</span>
-        <span role="columnheader">الخدمة / الرسم</span>
-        <span role="columnheader">المبلغ</span>
+        <span role="columnheader">{text.student}</span>
+        <span role="columnheader">{text.service}</span>
+        <span role="columnheader">{text.amount}</span>
       </div>
       {rows.map((row, index) => {
         const rowBalance = rowRemaining(row);
@@ -452,12 +514,12 @@ function ReceiptTable({
             role="row"
             key={`${row.id ?? row.installment_id ?? index}-${index}`}
           >
-            <span role="cell"><StudentMeta student={row.studentDisplay} /></span>
+            <span role="cell"><StudentMeta student={row.studentDisplay} lang={lang} /></span>
             <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
             <strong role="cell" dir="ltr">
               {formatMoney(row.amount, receipt.currency, lang)}
               {rowBalance != null && rowBalance > 0 ? (
-                <small>الباقي: {formatMoney(rowBalance, receipt.currency, lang)}</small>
+                <small>{text.remaining}: {formatMoney(rowBalance, receipt.currency, lang)}</small>
               ) : null}
             </strong>
           </div>
@@ -483,6 +545,12 @@ function ReceiptCopy({
   const splitIndex = Math.ceil(rows.length / 2);
   const rightRows = splitTable ? rows.slice(0, splitIndex) : rows;
   const leftRows = splitTable ? rows.slice(splitIndex) : [];
+  const firstColumnClass = lang === 'fr'
+    ? 'receipt-details__column--left'
+    : 'receipt-details__column--right';
+  const secondColumnClass = lang === 'fr'
+    ? 'receipt-details__column--right'
+    : 'receipt-details__column--left';
   const payerName =
     receipt.actual_payer_name?.trim() ||
     snapshot?.payer?.name ||
@@ -494,8 +562,10 @@ function ReceiptCopy({
   const schoolName = school?.name ?? 'Raqeem School';
   const schoolCode = school?.code?.trim() || null;
   const issuer = issuedByName(receipt);
-  const method = paymentMethodLabel(receipt.payment_method);
+  const method = paymentMethodLabel(receipt.payment_method, lang);
   const remaining = receiptRemaining(receipt);
+  const text = UI_TEXT[lang];
+  const direction = lang === 'fr' ? 'ltr' : 'rtl';
   const density = splitTable
     ? rows.length > 16
       ? 'split-dense'
@@ -505,12 +575,12 @@ function ReceiptCopy({
       : 'normal';
 
   return (
-    <article className="receipt-html-copy" data-density={density}>
+    <article className="receipt-html-copy" data-density={density} data-lang={lang} dir={direction}>
       <header className="receipt-copy-header">
-        <SchoolIdentity schoolName={schoolName} schoolCode={schoolCode} />
+        <SchoolIdentity schoolName={schoolName} schoolCode={schoolCode} lang={lang} />
         <div className="receipt-number-card">
           <div className="receipt-number-card__number">
-            <span>رقم الوصل</span>
+            <span>{text.receiptNumber}</span>
             <strong dir="ltr">{receiptNumber}</strong>
           </div>
           <div className="receipt-number-card__barcode" aria-hidden="true" />
@@ -519,7 +589,7 @@ function ReceiptCopy({
               <ReceiptIcon name="calendar" />
             </span>
             <span className="receipt-number-card__date-text">
-              <span>تاريخ الأداء</span>
+              <span>{text.paymentDate}</span>
               <strong className="receipt-number-card__date-value" dir="ltr">
                 {formatDate(paymentDate)}
               </strong>
@@ -534,7 +604,7 @@ function ReceiptCopy({
             <ReceiptIcon name="wallet" />
           </span>
           <span className="receipt-payment-fact__text">
-            <span>طريقة الأداء</span>
+            <span>{text.paymentMethod}</span>
             <strong dir="auto">{method}</strong>
           </span>
         </div>
@@ -544,7 +614,7 @@ function ReceiptCopy({
             <ReceiptIcon name="user" />
           </span>
           <span className="receipt-payment-fact__text">
-            <span>المؤدي</span>
+            <span>{text.payer}</span>
             <strong dir="auto">{payerName}</strong>
           </span>
         </div>
@@ -554,31 +624,31 @@ function ReceiptCopy({
         {rows.length ? (
           splitTable ? (
             <div className="receipt-details__columns">
-              <div className="receipt-details__column receipt-details__column--right">
-                <ReceiptTable rows={rightRows} receipt={receipt} lang={lang} ariaLabel="تفاصيل الأداء — الجزء الأول" />
+              <div className={`receipt-details__column ${firstColumnClass}`}>
+                <ReceiptTable rows={rightRows} receipt={receipt} lang={lang} ariaLabel={text.detailsPart1} />
               </div>
-              <div className="receipt-details__column receipt-details__column--left">
-                <ReceiptTable rows={leftRows} receipt={receipt} lang={lang} ariaLabel="تفاصيل الأداء — الجزء الثاني" />
+              <div className={`receipt-details__column ${secondColumnClass}`}>
+                <ReceiptTable rows={leftRows} receipt={receipt} lang={lang} ariaLabel={text.detailsPart2} />
               </div>
             </div>
           ) : (
-            <ReceiptTable rows={rows} receipt={receipt} lang={lang} ariaLabel="تفاصيل الأداء" />
+            <ReceiptTable rows={rows} receipt={receipt} lang={lang} ariaLabel={text.details} />
           )
         ) : (
-          <div className="receipt-table receipt-table__empty">{UI_TEXT[lang].noLines}</div>
+          <div className="receipt-table receipt-table__empty">{text.noLines}</div>
         )}
       </section>
 
       <section className="receipt-total-card">
-        <span>المجموع</span>
+        <span>{text.total}</span>
         <strong dir="ltr">{formatMoney(receipt.collection_amount, receipt.currency, lang)}</strong>
         {remaining != null && remaining > 0 ? (
-          <small dir="ltr">الباقي: {formatMoney(remaining, receipt.currency, lang)}</small>
+          <small dir={direction}>{text.remaining}: <b dir="ltr">{formatMoney(remaining, receipt.currency, lang)}</b></small>
         ) : null}
       </section>
 
       <footer className="receipt-copy-footer">
-        <div className="receipt-thanks">شكرًا لكم على ثقتكم</div>
+        <div className="receipt-thanks">{text.thanks}</div>
         {copy === 'admin' && issuer ? (
           <div className="receipt-issuer" dir="auto">{issuer}</div>
         ) : <span />}
@@ -588,13 +658,15 @@ function ReceiptCopy({
 }
 
 function DoubleReceiptSheet({ receipt, lang }: { receipt: FinanceReceipt; lang: ReceiptHtmlPrintLang }) {
+  const text = UI_TEXT[lang];
+  const direction = lang === 'fr' ? 'ltr' : 'rtl';
   return (
-    <div className="receipt-html-sheet" data-layout="double" dir="rtl">
+    <div className="receipt-html-sheet" data-layout="double" data-lang={lang} dir={direction}>
       <ReceiptCopy receipt={receipt} lang={lang} copy="admin" />
       <div className="receipt-html-cut-line" aria-hidden="true">
         <span>✂</span>
         <i />
-        <small>قص هنا</small>
+        <small>{text.cutHere}</small>
         <i />
         <span>✂</span>
       </div>
@@ -622,6 +694,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
     (receiptAllowsAction(receipt, 'print') || receiptAllowsAction(receipt, 'download'));
   const printedRef = useRef(false);
   const text = UI_TEXT[lang];
+  const direction = lang === 'fr' ? 'ltr' : 'rtl';
 
   useEffect(() => {
     if (!receipt) return;
@@ -652,15 +725,23 @@ export default function AdminFinanceReceiptHtmlPrintPage({
     window.print();
   };
 
+  const handleLanguageSwitch = () => {
+    const nextLang: ReceiptHtmlPrintLang = lang === 'fr' ? 'ar' : 'fr';
+    window.location.assign(buildReceiptHtmlPrintPath(id, nextLang));
+  };
+
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
-      <main className="receipt-html-print-page" dir="rtl">
+      <main className="receipt-html-print-page" data-lang={lang} dir={direction}>
         <div className="receipt-html-print-toolbar">
           <div>
             <strong>{text.preview}</strong>
             <span>A5 · HTML</span>
           </div>
           <div className="receipt-html-print-toolbar__actions">
+            <button type="button" className="btn btn--ghost" onClick={handleLanguageSwitch}>
+              {text.switchLanguage}
+            </button>
             <button type="button" className="btn btn--primary" onClick={() => void handlePrint()}>
               {text.print}
             </button>
