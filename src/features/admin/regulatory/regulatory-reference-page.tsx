@@ -15,9 +15,10 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useLocale } from '@/features/i18n/locale-context';
-import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
+import { canShowAcademicListAdd, hasUserCapability } from '@/lib/permissions/academic-capabilities';
 import { fetchRegulatoryReferenceOverview, projectRegulatoryReferenceToCalendar } from './api';
 import { regulatoryCalendarState, type RegulatoryCalendarState } from './regulatory-calendar-state';
+import { RegulatoryUpdatesSetting } from './regulatory-updates-setting';
 import type { RegulatoryReferenceItem, RegulatoryReferenceOverview } from './types';
 import './regulatory-reference.css';
 
@@ -300,6 +301,7 @@ export function RegulatoryReferencePage() {
     legacyPermission: 'manage_timetable',
     capability: 'manage_timetable',
   });
+  const canManageUpdates = hasUserCapability(user, 'academic_calendar.create');
 
   const load = useCallback(async () => {
     if (activeAcademicYearId == null) {
@@ -359,6 +361,8 @@ export function RegulatoryReferencePage() {
             </button>
           }
         />
+
+        <RegulatoryUpdatesSetting canManage={canManageUpdates} />
 
         {error ? <div className="regulatory-reference__alert regulatory-reference__alert--error">{error}</div> : null}
         {loading || academicYearLoading ? (
