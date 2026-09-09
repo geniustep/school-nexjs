@@ -4,8 +4,12 @@ import { useMemo } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import { endpoints } from '@/lib/api/endpoints';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { normalizeBillingAccountSummary } from '@/lib/utils/normalize-billing-account';
 import type { ChequeSummary } from '@/types/student-financial-overview';
 import type { StudentFinanceOverviewMetrics } from '../utils/resolve-student-finance-overview';
+import styles from './student-finance-executive-summary.module.css';
 
 type MetricTone = 'neutral' | 'green' | 'amber' | 'red' | 'blue';
 
@@ -26,6 +30,14 @@ export function StudentFinanceExecutiveSummary({
 }) {
   const t = useT();
   const { formatDate } = useFormat();
+  const billingPartnerId = metrics?.billing_partner_id ?? null;
+  const familyState = useAdminResource<unknown>(
+    billingPartnerId ? endpoints.admin.financeBillingAccountSummary(billingPartnerId) : null,
+  );
+  const familySummary = useMemo(
+    () => normalizeBillingAccountSummary(familyState.data),
+    [familyState.data],
+  );
 
   const { primaryKpis, secondaryKpis, health } = useMemo(() => {
     if (!metrics) {
@@ -35,7 +47,6 @@ export function StudentFinanceExecutiveSummary({
     const currency = metrics.currency;
     const overdue = metrics.overdue ?? 0;
     const hasPendingCheque = metrics.has_pending_cheque;
-    const unallocated = metrics.cheque_pending_unallocated ?? 0;
 
     const nextInstallmentValue =
       metrics.next_installment_amount != null ? (
@@ -71,11 +82,20 @@ export function StudentFinanceExecutiveSummary({
     ];
 
     const secondaryKpis = [
-      {
-        key: 'unconfirmed_coverage',
-        label: t('admin.student360.financeWorkspace.executive.unconfirmedCoverage'),
-        value: <FinanceMoney amount={metrics.unconfirmed_coverage} currency={currency ?? undefined} />,
-      },
+      ...((metrics.unconfirmed_coverage ?? 0) > 0
+        ? [
+            {
+              key: 'unconfirmed_coverage',
+              label: t('admin.student360.financeWorkspace.executive.unconfirmedCoverage'),
+              value: (
+                <FinanceMoney
+                  amount={metrics.unconfirmed_coverage}
+                  currency={currency ?? undefined}
+                />
+              ),
+            },
+          ]
+        : []),
       {
         key: 'net_assessed',
         label: t('admin.student360.financeWorkspace.executive.netAssessed'),
@@ -88,21 +108,25 @@ export function StudentFinanceExecutiveSummary({
       },
     ];
 
-    const health = {
-      overdueClear: overdue === 0,
-      hasPendingCheque,
-      hasUnallocatedCheque: unallocated > 0,
+    return {
+      primaryKpis,
+      secondaryKpis,
+      health: { hasPendingCheque },
     };
-
-    return { primaryKpis, secondaryKpis, health };
   }, [metrics, t, formatDate]);
 
   if (!metrics) return null;
 
+  const familyStudentCount =
+    familySummary?.summary.student_count ?? familySummary?.students.length ?? 0;
+  const showFamilySummary = familyStudentCount > 1 && familySummary != null;
+  const familyName =
+    familySummary?.billing_account.display_name ?? familySummary?.billing_account.name ?? null;
+
   return (
     <section
-      className="student-finance-hero"
-      aria-label={t('admin.student360.financeWorkspace.executive.title')}
+      className={`student-finance-hero ${styles.summaryRoot}`}
+      aria-label={t('admin.student360.financeWorkspace.pageTitle')}
     >
       {billingContextHeadlineKey ? (
         <div className="student-finance-hero__context" role="status">
@@ -116,41 +140,8 @@ export function StudentFinanceExecutiveSummary({
           )}
         </div>
       ) : null}
-      <div className="student-finance-hero__head">
-        <div className="student-finance-hero__title-block">
-          <h3 className="student-finance-hero__title">
-            {t('admin.student360.financeWorkspace.executive.title')}
-          </h3>
-        </div>
-        <div className="student-finance-hero__status" role="status" aria-live="polite">
-          {health?.overdueClear ? (
-            <span className="student-finance-hero__chip student-finance-hero__chip--ok">
-              {t('admin.student360.financeWorkspace.executive.overdue')}: 0
-            </span>
-          ) : (
-            <span className="student-finance-hero__chip student-finance-hero__chip--danger">
-              {t('admin.student360.financeWorkspace.executive.overdue')}
-            </span>
-          )}
-          {health?.hasPendingCheque ? (
-            <span className="student-finance-hero__chip student-finance-hero__chip--warn">
-              {t('admin.student360.financeWorkspace.metrics.pendingCheques')}
-            </span>
-          ) : null}
-          {(chequeSummary?.rejected_count ?? 0) > 0 ? (
-            <span className="student-finance-hero__chip student-finance-hero__chip--danger">
-              {t('admin.student360.financeWorkspace.metrics.rejectedOrReturnedCheques')}
-            </span>
-          ) : null}
-          {(chequeSummary?.cancelled_count ?? 0) > 0 ? (
-            <span className="student-finance-hero__chip student-finance-hero__chip--muted">
-              {t('admin.student360.financeWorkspace.metrics.cancelledCheques')}
-            </span>
-          ) : null}
-        </div>
-      </div>
 
-      <div className="student-finance-hero__primary">
+      <div className={`student-finance-hero__primary ${styles.primary}`}>
         {primaryKpis.map((item) => (
           <article
             key={item.key}
@@ -162,17 +153,64 @@ export function StudentFinanceExecutiveSummary({
         ))}
       </div>
 
-      <dl
-        className="student-finance-hero__insight-stats"
-        aria-label={t('admin.student360.financeWorkspace.executive.title')}
-      >
-        {secondaryKpis.map((item) => (
-          <div key={item.key}>
-            <dt>{item.label}</dt>
-            <dd>{item.value}</dd>
+      {secondaryKpis.length ? (
+        <dl className={styles.secondaryFacts}>
+          {secondaryKpis.map((item) => (
+            <div key={item.key} className={styles.secondaryFact}>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
+      {showFamilySummary && familySummary ? (
+        <aside className={styles.familySummary} aria-label={familyName ?? undefined}>
+          <div className={styles.familyHead}>
+            <div className={styles.familyIdentity}>
+              {familyName ? (
+                <strong className={styles.familyName} dir="auto">
+                  {familyName}
+                </strong>
+              ) : null}
+              <span className={styles.familyCount}>
+                {t('admin.finance.billingAccounts.studentCountLabel', {
+                  count: String(familyStudentCount),
+                })}
+              </span>
+            </div>
           </div>
-        ))}
-      </dl>
+          <dl className={styles.familyMetrics}>
+            <div className={styles.familyMetric}>
+              <dt>{t('admin.student360.financeWorkspace.executive.remainingActual')}</dt>
+              <dd>
+                <FinanceMoney
+                  amount={familySummary.summary.total_remaining}
+                  currency={familySummary.summary.currency}
+                />
+              </dd>
+            </div>
+            <div className={styles.familyMetric}>
+              <dt>{t('admin.student360.financeWorkspace.executive.overdue')}</dt>
+              <dd>
+                <FinanceMoney
+                  amount={familySummary.summary.total_overdue}
+                  currency={familySummary.summary.currency}
+                />
+              </dd>
+            </div>
+            <div className={styles.familyMetric}>
+              <dt>{t('admin.student360.financeWorkspace.executive.paidConfirmed')}</dt>
+              <dd>
+                <FinanceMoney
+                  amount={familySummary.summary.confirmed_paid}
+                  currency={familySummary.summary.currency}
+                />
+              </dd>
+            </div>
+          </dl>
+        </aside>
+      ) : null}
 
       {health?.hasPendingCheque ? (
         <div className="student-finance-hero__insight" role="note">
