@@ -1,0 +1,516 @@
+.overview {
+  display: grid;
+  gap: 18px;
+}
+
+.agreementSection {
+  margin: 0;
+}
+
+.contextGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.contextCard {
+  min-width: 0;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.agreementCard {
+  padding-block: 15px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.cardMeta {
+  margin: 5px 0 0;
+  color: var(--c-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.cardEmpty {
+  margin: 14px 0 0;
+  color: var(--c-muted, #64748b);
+  font-size: 0.88rem;
+}
+
+.agreementHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.agreementFacts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin: 16px 0 0;
+}
+
+.fact {
+  min-width: 0;
+}
+
+.fact dt {
+  margin-bottom: 4px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.74rem;
+}
+
+.fact dd {
+  margin: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.9rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.servicesSummary {
+  margin-top: 16px;
+  border-top: 1px solid rgb(226 232 240 / 0.82);
+  padding-top: 13px;
+}
+
+.servicesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.servicesHeader h4 {
+  margin: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.servicesCount {
+  display: inline-grid;
+  min-width: 24px;
+  min-height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--c-surface-soft, #f8fafc);
+  color: var(--c-muted, #64748b);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.servicesList {
+  display: grid;
+}
+
+.serviceLine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  border-top: 1px solid rgb(226 232 240 / 0.62);
+  padding: 8px 0;
+}
+
+.serviceLine:first-child {
+  border-top: 0;
+}
+
+.serviceName {
+  min-width: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.84rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.servicePricing {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.serviceUnitPrice {
+  color: var(--c-text, #334155);
+  font-weight: 650;
+}
+
+.serviceQuantity {
+  color: var(--c-muted, #64748b);
+  font-weight: 650;
+}
+
+.serviceTotal {
+  margin-inline-start: 4px;
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.statusOk {
+  background: rgb(22 163 74 / 0.1);
+  color: #15803d;
+}
+
+.statusWarn {
+  background: rgb(217 119 6 / 0.1);
+  color: #b45309;
+}
+
+.statusDanger {
+  background: rgb(220 38 38 / 0.09);
+  color: #b91c1c;
+}
+
+.statusNeutral {
+  background: rgb(100 116 139 / 0.1);
+  color: #475569;
+}
+
+.responsibleName {
+  margin: 16px 0 0;
+  color: var(--c-text, #0f172a);
+  font-size: 1.02rem;
+  font-weight: 750;
+}
+
+.familyNames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.familyName,
+.familyMore {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border-radius: 999px;
+  background: var(--c-surface-soft, #f8fafc);
+  border: 1px solid var(--c-border, #e2e8f0);
+  padding: 4px 10px;
+  color: var(--c-text, #0f172a);
+  font-size: 0.8rem;
+}
+
+.familyMore {
+  color: var(--c-muted, #64748b);
+  font-weight: 700;
+}
+
+.installmentsSection {
+  min-width: 0;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  padding-top: 18px;
+}
+
+.installmentsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.sectionMeta {
+  margin: 4px 0 0;
+  color: var(--c-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  padding: 5px 11px;
+  color: var(--c-text, #334155);
+  font: inherit;
+  font-size: 0.79rem;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.filterChip:hover {
+  background: var(--c-surface-soft, #f8fafc);
+}
+
+.filterChipActive {
+  border-color: rgb(37 99 235 / 0.34);
+  background: rgb(37 99 235 / 0.07);
+  box-shadow: inset 0 0 0 1px rgb(37 99 235 / 0.05);
+}
+
+.filterCount {
+  display: inline-grid;
+  min-width: 22px;
+  min-height: 22px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(100 116 139 / 0.1);
+  padding-inline: 6px;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.filterChipActive .filterCount {
+  background: rgb(37 99 235 / 0.12);
+}
+
+.monthList {
+  display: grid;
+  gap: 9px;
+}
+
+.monthGroup {
+  overflow: hidden;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+}
+
+.monthToggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 0;
+  background: var(--c-surface-soft, #f8fafc);
+  padding: 11px 14px;
+  color: var(--c-text, #0f172a);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.monthToggle:hover {
+  background: #f1f5f9;
+}
+
+.monthIdentity,
+.monthMeta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.monthChevron {
+  color: var(--c-muted, #64748b);
+  font-size: 0.8rem;
+}
+
+.monthLabel {
+  font-size: 0.88rem;
+  text-transform: capitalize;
+}
+
+.monthStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.monthStatusOverdue {
+  background: rgb(220 38 38 / 0.09);
+  color: #b91c1c;
+}
+
+.monthStatusDue {
+  background: rgb(217 119 6 / 0.1);
+  color: #b45309;
+}
+
+.monthStatusUpcoming {
+  background: rgb(37 99 235 / 0.08);
+  color: #1d4ed8;
+}
+
+.monthStatusPaid {
+  background: rgb(22 163 74 / 0.09);
+  color: #15803d;
+}
+
+.monthStatusNeutral {
+  background: rgb(100 116 139 / 0.09);
+  color: #475569;
+}
+
+.monthCount {
+  display: inline-grid;
+  min-width: 24px;
+  min-height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(100 116 139 / 0.1);
+  color: var(--c-muted, #64748b);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.installmentsTable {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.installmentsTable th {
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+  background: var(--surface, #fff);
+  padding: 9px 12px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-align: start;
+  white-space: nowrap;
+}
+
+.installmentsTable td {
+  border-bottom: 1px solid rgb(226 232 240 / 0.72);
+  padding: 11px 12px;
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  vertical-align: middle;
+}
+
+.installmentsTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.installmentsTable tbody tr:hover {
+  background: rgb(248 250 252 / 0.7);
+}
+
+.installmentName {
+  display: grid;
+  gap: 3px;
+  min-width: 160px;
+}
+
+.installmentName strong {
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.installmentPeriod {
+  color: var(--c-muted, #64748b);
+  font-size: 0.72rem;
+}
+
+.emptyState {
+  border: 1px dashed var(--c-border, #cbd5e1);
+  border-radius: 14px;
+  padding: 24px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .agreementFacts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .contextCard {
+    padding: 14px;
+  }
+
+  .cardHeader,
+  .installmentsHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .agreementHeading {
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .agreementFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceLine {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .servicePricing {
+    justify-content: flex-start;
+    white-space: normal;
+  }
+
+  .monthToggle {
+    align-items: flex-start;
+  }
+
+  .monthMeta {
+    flex-shrink: 0;
+  }
+}
