@@ -16,6 +16,10 @@ import {
   normalizeReceiptHtmlPrintLang,
   type ReceiptHtmlPrintLang,
 } from '@/lib/utils/finance-receipt-html-print';
+import {
+  useReceiptFrenchIdentities,
+  type ReceiptLocalizedIdentities,
+} from './receipt-localized-identities';
 import type {
   FinanceReceipt,
   FinanceReceiptAllocation,
@@ -533,14 +537,25 @@ function ReceiptCopy({
   receipt,
   lang,
   copy,
+  identities,
 }: {
   receipt: FinanceReceipt;
   lang: ReceiptHtmlPrintLang;
   copy: CopyKind;
+  identities: ReceiptLocalizedIdentities;
 }) {
   const snapshot = receipt.snapshot;
   const school = snapshot?.school;
-  const rows = receiptRows(receipt);
+  const baseRows = receiptRows(receipt);
+  const rows = lang === 'fr'
+    ? baseRows.map((row) => {
+        const studentId = row.studentDisplay.id;
+        const storedFrenchName = studentId ? identities.studentNames[studentId] : undefined;
+        return storedFrenchName
+          ? { ...row, studentDisplay: { ...row.studentDisplay, name: storedFrenchName } }
+          : row;
+      })
+    : baseRows;
   const splitTable = rows.length > 6;
   const splitIndex = Math.ceil(rows.length / 2);
   const rightRows = splitTable ? rows.slice(0, splitIndex) : rows;
@@ -552,6 +567,7 @@ function ReceiptCopy({
     ? 'receipt-details__column--right'
     : 'receipt-details__column--left';
   const payerName =
+    (lang === 'fr' ? identities.payerName : null) ||
     receipt.actual_payer_name?.trim() ||
     snapshot?.payer?.name ||
     receipt.payer_name ||
@@ -559,7 +575,10 @@ function ReceiptCopy({
     '—';
   const paymentDate = snapshot?.collection?.payment_date ?? receipt.issued_at;
   const receiptNumber = receipt.number ?? receipt.receipt_number ?? `#${receipt.id}`;
-  const schoolName = school?.name ?? 'Raqeem School';
+  const schoolName =
+    (lang === 'fr' ? identities.schoolName : null) ||
+    school?.name ||
+    'Raqeem School';
   const schoolCode = school?.code?.trim() || null;
   const issuer = issuedByName(receipt);
   const method = paymentMethodLabel(receipt.payment_method, lang);
@@ -657,12 +676,20 @@ function ReceiptCopy({
   );
 }
 
-function DoubleReceiptSheet({ receipt, lang }: { receipt: FinanceReceipt; lang: ReceiptHtmlPrintLang }) {
+function DoubleReceiptSheet({
+  receipt,
+  lang,
+  identities,
+}: {
+  receipt: FinanceReceipt;
+  lang: ReceiptHtmlPrintLang;
+  identities: ReceiptLocalizedIdentities;
+}) {
   const text = UI_TEXT[lang];
   const direction = lang === 'fr' ? 'ltr' : 'rtl';
   return (
     <div className="receipt-html-sheet" data-layout="double" data-lang={lang} dir={direction}>
-      <ReceiptCopy receipt={receipt} lang={lang} copy="admin" />
+      <ReceiptCopy receipt={receipt} lang={lang} copy="admin" identities={identities} />
       <div className="receipt-html-cut-line" aria-hidden="true">
         <span>✂</span>
         <i />
@@ -670,7 +697,7 @@ function DoubleReceiptSheet({ receipt, lang }: { receipt: FinanceReceipt; lang: 
         <i />
         <span>✂</span>
       </div>
-      <ReceiptCopy receipt={receipt} lang={lang} copy="payer" />
+      <ReceiptCopy receipt={receipt} lang={lang} copy="payer" identities={identities} />
     </div>
   );
 }
@@ -689,6 +716,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
     () => (state.data ? normalizeFinanceReceipt(state.data) : null),
     [state.data],
   );
+  const identities = useReceiptFrenchIdentities(receipt, state.data, lang === 'fr');
   const canPrint =
     !!receipt &&
     (receiptAllowsAction(receipt, 'print') || receiptAllowsAction(receipt, 'download'));
@@ -703,7 +731,13 @@ export default function AdminFinanceReceiptHtmlPrintPage({
   }, [receipt]);
 
   useEffect(() => {
-    if (!autoPrint || !canPrint || !receipt || printedRef.current) return;
+    if (
+      !autoPrint ||
+      !canPrint ||
+      !receipt ||
+      (lang === 'fr' && !identities.ready) ||
+      printedRef.current
+    ) return;
     let cancelled = false;
     const timer = window.setTimeout(() => {
       void (async () => {
@@ -718,9 +752,10 @@ export default function AdminFinanceReceiptHtmlPrintPage({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [autoPrint, canPrint, receipt]);
+  }, [autoPrint, canPrint, receipt, lang, identities.ready]);
 
   const handlePrint = async () => {
+    if (lang === 'fr' && !identities.ready) return;
     await waitForReceiptImages();
     window.print();
   };
@@ -742,7 +777,12 @@ export default function AdminFinanceReceiptHtmlPrintPage({
             <button type="button" className="btn btn--ghost" onClick={handleLanguageSwitch}>
               {text.switchLanguage}
             </button>
-            <button type="button" className="btn btn--primary" onClick={() => void handlePrint()}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={lang === 'fr' && !identities.ready}
+              onClick={() => void handlePrint()}
+            >
               {text.print}
             </button>
             <button type="button" className="btn btn--ghost" onClick={() => window.close()}>
@@ -756,7 +796,9 @@ export default function AdminFinanceReceiptHtmlPrintPage({
         {receipt && !canPrint ? (
           <div className="receipt-html-print-message" role="alert">{text.unavailable}</div>
         ) : null}
-        {receipt && canPrint ? <DoubleReceiptSheet receipt={receipt} lang={lang} /> : null}
+        {receipt && canPrint ? (
+          <DoubleReceiptSheet receipt={receipt} lang={lang} identities={identities} />
+        ) : null}
       </main>
     </RequireAdminPermission>
   );
