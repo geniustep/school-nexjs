@@ -32,11 +32,19 @@ describe('French HTML receipt identity contract', () => {
     expect(pageSource).toContain('identities.studentNames[studentId]');
   });
 
-  it('resolves the payer from the parent read contract with stored Latin aliases first', () => {
-    expect(identitySource).toContain('endpoints.admin.parent(id)');
-    expect(identitySource).toContain('normalizeParentProfile(data)?.name');
-    expect(identitySource).toContain('readInitialPayerName');
-    expect(pageSource).toContain("(lang === 'fr' ? identities.payerName : null)");
+  it('resolves a payer partner through the student guardian contract before parent detail', () => {
+    expect(identitySource).toContain('endpoints.admin.studentGuardians(studentId)');
+    expect(identitySource).toContain('guardian.partner_id');
+    expect(identitySource).toContain('guardian.person_id');
+    expect(identitySource).toContain('fetchParentFrenchNameByGuardianId(guardianId)');
+    expect(identitySource).toContain('endpoints.admin.parent(guardianId)');
+    expect(identitySource).not.toContain('endpoints.admin.parent(id)');
+  });
+
+  it('never treats billing_partner_id as a school.parent id', () => {
+    expect(identitySource).toContain('addPartnerId(receipt.billing_partner_id)');
+    expect(identitySource).toContain('Only explicit guardian_id values are safe');
+    expect(identitySource).not.toContain('addGuardianId(receipt.billing_partner_id)');
   });
 
   it('keeps Arabic receipt names on the existing receipt data path', () => {

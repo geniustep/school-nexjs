@@ -8,6 +8,12 @@ import type { FinanceReceipt } from '@/types/finance';
 
 type RecordValue = Record<string, unknown>;
 
+type PayerIdentityCandidates = {
+  guardianIds: number[];
+  partnerIds: number[];
+  names: string[];
+};
+
 export type ReceiptLocalizedIdentities = {
   schoolName: string | null;
   payerName: string | null;
@@ -31,6 +37,10 @@ function firstString(source: RecordValue, keys: string[]): string | null {
     if (value) return value;
   }
   return null;
+}
+
+function positiveId(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
 }
 
 function composedLatinName(source: RecordValue): string | null {
@@ -70,10 +80,7 @@ export function readFrenchStoredName(value: unknown): string | null {
 
 function recordId(value: unknown): number | null {
   const source = asRecord(value);
-  const candidate = source.student_id ?? source.id;
-  return typeof candidate === 'number' && Number.isInteger(candidate) && candidate > 0
-    ? candidate
-    : null;
+  return positiveId(source.student_id ?? source.id);
 }
 
 function collectRawChildren(rawReceipt: unknown): unknown[] {
@@ -87,7 +94,8 @@ function collectRawChildren(rawReceipt: unknown): unknown[] {
 export function collectReceiptStudentIds(receipt: FinanceReceipt, rawReceipt?: unknown): number[] {
   const ids = new Set<number>();
   const add = (candidate: unknown) => {
-    if (typeof candidate === 'number' && Number.isInteger(candidate) && candidate > 0) ids.add(candidate);
+    const id = positiveId(candidate);
+    if (id) ids.add(id);
   };
 
   add(receipt.student_id);
@@ -117,12 +125,7 @@ function readInitialStudentNames(rawReceipt: unknown): Record<number, string> {
 function receiptPayerRecords(receipt: FinanceReceipt, rawReceipt: unknown): unknown[] {
   const raw = asRecord(rawReceipt);
   const snapshot = asRecord(raw.snapshot);
-  return [
-    raw.payer,
-    snapshot.payer,
-    receipt.payer,
-    receipt.snapshot?.payer,
-  ];
+  return [raw.payer, snapshot.payer, receipt.payer, receipt.snapshot?.payer];
 }
 
 function readInitialPayerName(receipt: FinanceReceipt, rawReceipt: unknown): string | null {
@@ -139,22 +142,61 @@ function readInitialSchoolName(rawReceipt: unknown): string | null {
   return readFrenchStoredName(snapshot.school) ?? readFrenchStoredName(raw.school);
 }
 
-function payerCandidateIds(receipt: FinanceReceipt, rawReceipt: unknown): number[] {
-  const ids = new Set<number>();
-  const add = (candidate: unknown) => {
-    if (typeof candidate === 'number' && Number.isInteger(candidate) && candidate > 0) ids.add(candidate);
+function normalizedName(value: unknown): string | null {
+  const name = cleanString(value);
+  return name ? name.toLocaleLowerCase() : null;
+}
+
+function payerIdentityCandidates(
+  receipt: FinanceReceipt,
+  rawReceipt: unknown,
+): PayerIdentityCandidates {
+  const guardianIds = new Set<number>();
+  const partnerIds = new Set<number>();
+  const names = new Set<string>();
+  const raw = asRecord(rawReceipt);
+  const snapshot = asRecord(raw.snapshot);
+
+  const addGuardianId = (candidate: unknown) => {
+    const id = positiveId(candidate);
+    if (id) guardianIds.add(id);
   };
+  const addPartnerId = (candidate: unknown) => {
+    const id = positiveId(candidate);
+    if (id) partnerIds.add(id);
+  };
+  const addName = (candidate: unknown) => {
+    const name = normalizedName(candidate);
+    if (name) names.add(name);
+  };
+
+  // Only explicit guardian_id values are safe to send to /admin/parents/{id}.
+  // billing_partner_id / partner_id / person_id belong to res.partner identity space.
+  addGuardianId(raw.guardian_id);
+  addGuardianId(snapshot.guardian_id);
 
   for (const payer of receiptPayerRecords(receipt, rawReceipt)) {
     const record = asRecord(payer);
-    add(record.id);
-    add(record.guardian_id);
-    add(record.person_id);
-    add(record.partner_id);
+    addGuardianId(record.guardian_id);
+    addPartnerId(record.partner_id);
+    addPartnerId(record.person_id);
+    // A payer snapshot id is treated as a person/partner identity unless the contract
+    // explicitly names it guardian_id. This avoids /parents/{partner_id} 404s.
+    addPartnerId(record.id);
+    addName(record.name);
+    addName(record.display_name);
   }
-  add(receipt.billing_partner_id);
 
-  return [...ids];
+  addPartnerId(receipt.billing_partner_id);
+  addName(receipt.actual_payer_name);
+  addName(receipt.payer_name);
+  addName(receipt.billing_partner_name);
+
+  return {
+    guardianIds: [...guardianIds],
+    partnerIds: [...partnerIds],
+    names: [...names],
+  };
 }
 
 function readStudentFrenchName(data: unknown): string | null {
@@ -166,9 +208,59 @@ function readParentFrenchName(data: unknown): string | null {
   const explicit = readFrenchStoredName(data);
   if (explicit) return explicit;
 
-  // /admin/parents/{id} is the same read contract used by the parent profile page.
-  // Its display name is a safe final fallback when no dedicated Latin alias is exposed.
+  // Parent detail can expose only the current display_name on older tenants.
+  // Keep it as a final non-translated fallback after the correct guardian id was resolved.
   return normalizeParentProfile(data)?.name?.trim() || null;
+}
+
+function guardianRelationshipItems(data: unknown): RecordValue[] {
+  if (Array.isArray(data)) return data.map(asRecord).filter((item) => Object.keys(item).length > 0);
+  const root = asRecord(data);
+  const items = Array.isArray(root.items) ? root.items : [];
+  return items.map(asRecord).filter((item) => Object.keys(item).length > 0);
+}
+
+function guardianRecord(relationship: RecordValue): RecordValue {
+  const nested = asRecord(relationship.guardian);
+  return Object.keys(nested).length ? nested : relationship;
+}
+
+function relationshipGuardianId(relationship: RecordValue): number | null {
+  const guardian = guardianRecord(relationship);
+  return (
+    positiveId(guardian.guardian_id) ??
+    positiveId(relationship.guardian_id) ??
+    positiveId(guardian.id)
+  );
+}
+
+function relationshipMatchesPayer(
+  relationship: RecordValue,
+  candidates: PayerIdentityCandidates,
+): boolean {
+  const guardian = guardianRecord(relationship);
+  const guardianId = relationshipGuardianId(relationship);
+  if (guardianId && candidates.guardianIds.includes(guardianId)) return true;
+
+  const partnerCandidates = [
+    guardian.partner_id,
+    guardian.person_id,
+    relationship.partner_id,
+    relationship.person_id,
+  ]
+    .map(positiveId)
+    .filter((id): id is number => id != null);
+  if (partnerCandidates.some((id) => candidates.partnerIds.includes(id))) return true;
+
+  const relationshipNames = [
+    guardian.name,
+    guardian.display_name,
+    relationship.guardian_name,
+    relationship.name,
+  ]
+    .map(normalizedName)
+    .filter((name): name is string => name != null);
+  return relationshipNames.some((name) => candidates.names.includes(name));
 }
 
 async function fetchSchoolFrenchName(): Promise<string | null> {
@@ -194,17 +286,53 @@ async function fetchStudentFrenchName(studentId: number): Promise<string | null>
   }
 }
 
-async function fetchPayerFrenchName(ids: number[]): Promise<string | null> {
-  for (const id of ids) {
+async function fetchParentFrenchNameByGuardianId(guardianId: number): Promise<string | null> {
+  try {
+    const response = await api.get<unknown>(endpoints.admin.parent(guardianId));
+    return response.success ? readParentFrenchName(response.data) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchPayerFrenchName(
+  receipt: FinanceReceipt,
+  rawReceipt: unknown,
+  studentIds: number[],
+): Promise<string | null> {
+  const candidates = payerIdentityCandidates(receipt, rawReceipt);
+
+  // Explicit guardian ids are already in the school.parent identity space.
+  for (const guardianId of candidates.guardianIds) {
+    const name = await fetchParentFrenchNameByGuardianId(guardianId);
+    if (name) return name;
+  }
+
+  // Receipt billing_partner_id is a res.partner id, not a school.parent id.
+  // Resolve partner/person -> guardian profile through the student's verified guardian contract.
+  for (const studentId of studentIds) {
     try {
-      const response = await api.get<unknown>(endpoints.admin.parent(id));
+      const response = await api.get<unknown>(endpoints.admin.studentGuardians(studentId));
       if (!response.success) continue;
-      const name = readParentFrenchName(response.data);
+      const relationships = guardianRelationshipItems(response.data);
+      const match = relationships.find((relationship) =>
+        relationshipMatchesPayer(relationship, candidates),
+      );
+      if (!match) continue;
+
+      const guardian = guardianRecord(match);
+      const embeddedFrenchName = readFrenchStoredName(guardian);
+      if (embeddedFrenchName) return embeddedFrenchName;
+
+      const guardianId = relationshipGuardianId(match);
+      if (!guardianId) continue;
+      const name = await fetchParentFrenchNameByGuardianId(guardianId);
       if (name) return name;
     } catch {
-      // Try the next identity candidate; receipt data remains the fallback.
+      // Keep the receipt snapshot name as fallback; never guess another guardian.
     }
   }
+
   return null;
 }
 
@@ -238,10 +366,11 @@ export function useReceiptFrenchIdentities(
 
     void (async () => {
       const studentIds = collectReceiptStudentIds(receipt, rawReceipt);
-      const payerIds = payerCandidateIds(receipt, rawReceipt);
       const [schoolName, payerName, studentPairs] = await Promise.all([
         initial.schoolName ? Promise.resolve(initial.schoolName) : fetchSchoolFrenchName(),
-        initial.payerName ? Promise.resolve(initial.payerName) : fetchPayerFrenchName(payerIds),
+        initial.payerName
+          ? Promise.resolve(initial.payerName)
+          : fetchPayerFrenchName(receipt, rawReceipt, studentIds),
         Promise.all(
           studentIds.map(async (studentId) => {
             const existing = initial.studentNames[studentId];
