@@ -59,7 +59,9 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
       if (!(target instanceof Element)) return;
       if (
         target.closest('.student-finance-amendment-line-picker__card') ||
-        target.closest('.student-finance-amendment-ambiguous__list')
+        target.closest('.student-finance-amendment-ambiguous__list') ||
+        target.closest('.student-finance-amendment-sparse-period__toggle') ||
+        target.closest('.student-finance-amendment-sparse-period__override')
       ) {
         scheduleAutoPreview();
       }
