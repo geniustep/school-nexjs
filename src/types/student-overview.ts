@@ -115,16 +115,7 @@ export interface StudentOverviewQuickLink {
   url?: string;
 }
 
-export interface StudentOverviewAllowedActions {
-  edit_student?: boolean;
-  archive_student?: boolean;
-  manage_guardians?: boolean;
-  manage_documents?: boolean;
-  manage_health?: boolean;
-  view_finance?: boolean;
-  collect_payments?: boolean;
-  [key: string]: boolean | undefined;
-}
+export type StudentOverviewAllowedActions = string[];
 
 export interface StudentOverviewProfile {
   full_name?: string | null;

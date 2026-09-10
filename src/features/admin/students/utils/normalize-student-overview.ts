@@ -244,13 +244,16 @@ function normalizeQuickLink(raw: unknown): StudentOverviewQuickLink | null {
 }
 
 function normalizeAllowedActions(raw: unknown): StudentOverviewAllowedActions | undefined {
-  const record = asRecord(raw);
-  if (!record) return undefined;
-  const actions: StudentOverviewAllowedActions = {};
-  for (const [key, value] of Object.entries(record)) {
-    if (typeof value === 'boolean') actions[key] = value;
+  if (!Array.isArray(raw)) return undefined;
+  if (
+    !raw.every(
+      (item): item is string =>
+        typeof item === 'string' && item.length > 0 && item === item.trim(),
+    )
+  ) {
+    return undefined;
   }
-  return Object.keys(actions).length ? actions : undefined;
+  return [...raw];
 }
 
 function normalizeCapabilities(raw: unknown): StudentCapabilities | undefined {

@@ -1,12 +1,7 @@
 import type { StudentCapabilities } from '@/types/student-360';
-import type { StudentOverviewAllowedActions, StudentOverviewData } from '@/types/student-overview';
+import type { StudentOverviewData } from '@/types/student-overview';
 import { canArchiveStudents } from '@/lib/permissions/academic-capabilities';
 import type { CurrentUser } from '@/types/user';
-
-function isAllowed(actions: StudentOverviewAllowedActions | undefined, key: string): boolean | undefined {
-  if (!actions || !(key in actions)) return undefined;
-  return actions[key] === true;
-}
 
 export type StudentOverviewEditAccess = 'pending' | 'allowed' | 'denied' | 'unavailable';
 
@@ -21,38 +16,30 @@ export function resolveOverviewEditAccess(
   if (state.loading) return 'pending';
   if (state.hasError || state.endpointUnavailable) return 'unavailable';
   if (!overview) return 'pending';
+  if (!overview.allowed_actions) return 'unavailable';
 
-  const allowed = isAllowed(overview.allowed_actions, 'edit_student');
-  if (allowed === true) return 'allowed';
-  if (allowed === false) return 'denied';
-  return 'unavailable';
+  return overview.allowed_actions.includes('edit') ? 'allowed' : 'denied';
 }
 
 export function resolveOverviewEditAllowed(
   overview: StudentOverviewData | null | undefined,
-  caps: StudentCapabilities,
+  _caps: StudentCapabilities,
 ): boolean {
-  const allowed = isAllowed(overview?.allowed_actions, 'edit_student');
-  if (allowed === false) return false;
-  return caps.can_manage;
+  return overview?.allowed_actions?.includes('edit') === true;
 }
 
 export function resolveOverviewArchiveAllowed(
-  overview: StudentOverviewData | null | undefined,
+  _overview: StudentOverviewData | null | undefined,
   caps: StudentCapabilities,
   user?: CurrentUser | null,
 ): boolean {
-  const allowed = isAllowed(overview?.allowed_actions, 'archive_student');
-  if (allowed === false) return false;
   if (user) return canArchiveStudents(user);
   return caps.can_manage;
 }
 
 export function resolveOverviewManageGuardiansAllowed(
-  overview: StudentOverviewData | null | undefined,
+  _overview: StudentOverviewData | null | undefined,
   caps: StudentCapabilities,
 ): boolean {
-  const allowed = isAllowed(overview?.allowed_actions, 'manage_guardians');
-  if (allowed === false) return false;
   return caps.can_manage_guardians;
 }
