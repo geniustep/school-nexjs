@@ -96,6 +96,15 @@ export interface AgreementAmendmentPeriodImpact {
   blockingReasons: AgreementAmendmentWarning[];
 }
 
+export interface AgreementAmendmentCurrentAgreementBrief {
+  id: number | null;
+  name: string | null;
+  state: string | null;
+  netAmount: number | null;
+  remainingTotal: number | null;
+  paidTotal: number | null;
+}
+
 export interface AgreementAmendmentPreviewResponse {
   allowed?: boolean;
   can_apply?: boolean;
@@ -107,6 +116,7 @@ export interface AgreementAmendmentPreviewResponse {
   delta?: number;
   currency?: string;
   pricing_contract?: unknown;
+  current_agreement?: unknown;
   selection_mode?: string;
   selected_period_ids?: unknown[];
   period_impacts?: unknown[];
@@ -143,6 +153,7 @@ export interface NormalizedAgreementAmendmentPreview {
   delta: number | null;
   currency: string | null;
   pricingContract: AgreementAmendmentPricingContract | null;
+  currentAgreement?: AgreementAmendmentCurrentAgreementBrief | null;
   selectionMode?: string | null;
   selectedPeriodIds?: number[];
   periodImpacts?: AgreementAmendmentPeriodImpact[];
