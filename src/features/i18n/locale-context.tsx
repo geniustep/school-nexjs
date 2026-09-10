@@ -42,6 +42,21 @@ const TRANSLATION_KEY_ALIASES: Record<string, string> = {
   'admin.staffCenter.permissionsTitle': 'admin.academicSetup.staffCapabilities.sectionTitle',
 };
 
+const STUDENT_FINANCE_TERM_OVERRIDES: Record<Locale, Record<string, string>> = {
+  ar: {
+    'admin.student360.financialAgreement.columns.quantity': 'عدد الأشهر',
+  },
+  en: {
+    'admin.student360.financialAgreement.columns.quantity': 'Months',
+  },
+  fr: {
+    'admin.student360.financialAgreement.columns.quantity': 'Nombre de mois',
+  },
+  es: {
+    'admin.student360.financialAgreement.columns.quantity': 'Número de meses',
+  },
+};
+
 function persistLocale(locale: Locale) {
   try {
     localStorage.setItem(LOCALE_STORAGE_KEY, locale);
@@ -87,6 +102,8 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const t = useCallback<TranslateFn>(
     (key, params) => {
       const resolvedKey = TRANSLATION_KEY_ALIASES[key] ?? key;
+      const financeTermOverride = STUDENT_FINANCE_TERM_OVERRIDES[locale]?.[resolvedKey];
+      if (financeTermOverride) return financeTermOverride;
       return (
         translateClassDistributionMessage(locale, resolvedKey, params) ??
         translate(locale, resolvedKey, params)

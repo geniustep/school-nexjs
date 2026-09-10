@@ -7,6 +7,11 @@ export type AgreementAmendmentOperationType =
 
 export type AgreementAmendmentPath = 'adjust_amount' | 'period_range';
 
+export interface AgreementAmendmentPeriodAmountOverridePayload {
+  effective_period_id: number;
+  amount: number;
+}
+
 export interface AgreementAmendmentLinePayload {
   source_line_id?: number;
   agreement_line_id?: number;
@@ -14,6 +19,7 @@ export interface AgreementAmendmentLinePayload {
   operational_installment_id?: number;
   amount?: number;
   new_unit_price?: number;
+  period_amount_overrides?: AgreementAmendmentPeriodAmountOverridePayload[];
 }
 
 export interface AgreementAmendmentAmbiguousLineCandidate {
@@ -37,6 +43,7 @@ export interface AgreementAmendmentRequestPayload {
   agreement_id: number;
   operation_type: AgreementAmendmentOperationType;
   effective_period_id?: number;
+  effective_period_ids?: number[];
   effective_period_end_id?: number;
   effective_date?: string;
   reason: string;
@@ -77,6 +84,18 @@ export interface AgreementAmendmentWarning {
   params?: Record<string, string | number>;
 }
 
+export interface AgreementAmendmentPeriodImpact {
+  effectivePeriodId: number | null;
+  periodKey: string | null;
+  label: string | null;
+  currentAmount: number | null;
+  proposedAmount: number | null;
+  delta: number | null;
+  overrideApplied: boolean;
+  amendable: boolean;
+  blockingReasons: AgreementAmendmentWarning[];
+}
+
 export interface AgreementAmendmentPreviewResponse {
   allowed?: boolean;
   can_apply?: boolean;
@@ -88,6 +107,9 @@ export interface AgreementAmendmentPreviewResponse {
   delta?: number;
   currency?: string;
   pricing_contract?: unknown;
+  selection_mode?: string;
+  selected_period_ids?: unknown[];
+  period_impacts?: unknown[];
   affected_periods?: unknown[];
   locked_periods?: unknown[];
   warnings?: unknown[];
@@ -121,6 +143,9 @@ export interface NormalizedAgreementAmendmentPreview {
   delta: number | null;
   currency: string | null;
   pricingContract: AgreementAmendmentPricingContract | null;
+  selectionMode?: string | null;
+  selectedPeriodIds?: number[];
+  periodImpacts?: AgreementAmendmentPeriodImpact[];
   affectedPeriods: string[];
   lockedPeriods: string[];
   warnings: AgreementAmendmentWarning[];
@@ -136,6 +161,8 @@ export interface AgreementAmendmentFormState {
   amendmentPath: AgreementAmendmentPath | '';
   effectivePeriodId: string;
   effectivePeriodEndId: string;
+  selectedPeriodIds?: string[];
+  periodAmountOverrides?: Record<string, string>;
   reason: string;
   sourceLineId: string;
   feeTypeId: string;
