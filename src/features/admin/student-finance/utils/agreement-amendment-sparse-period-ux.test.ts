@@ -133,7 +133,7 @@ describe('sparse agreement amendment UX contract', () => {
 
     expect(preview.selectionMode).toBe('sparse');
     expect(preview.selectedPeriodIds).toEqual([101, 105]);
-    expect(preview.periodImpacts[1]).toMatchObject({
+    expect((preview.periodImpacts ?? [])[1]).toMatchObject({
       effectivePeriodId: 105,
       currentAmount: 500,
       proposedAmount: 1500,
