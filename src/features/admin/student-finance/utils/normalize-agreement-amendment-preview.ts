@@ -1,4 +1,5 @@
 import type {
+  AgreementAmendmentCurrentAgreementBrief,
   AgreementAmendmentInstallmentPreview,
   AgreementAmendmentPeriodImpact,
   AgreementAmendmentPreviewResponse,
@@ -111,6 +112,21 @@ function readNumberArray(value: unknown): number[] {
   return [...new Set(numbers)];
 }
 
+function readCurrentAgreement(value: unknown): AgreementAmendmentCurrentAgreementBrief | null {
+  const rec = asRecord(value);
+  if (!rec) return null;
+  const id = readFiniteNumber(rec.id);
+  if (id == null) return null;
+  return {
+    id,
+    name: readString(rec.name),
+    state: readString(rec.state),
+    netAmount: readFiniteNumber(rec.net_amount),
+    remainingTotal: readFiniteNumber(rec.remaining_total),
+    paidTotal: readFiniteNumber(rec.paid_total),
+  };
+}
+
 function readPeriodImpacts(value: unknown): AgreementAmendmentPeriodImpact[] {
   if (!Array.isArray(value)) return [];
   const impacts: AgreementAmendmentPeriodImpact[] = [];
@@ -217,6 +233,9 @@ export function normalizeAgreementAmendmentPreview(
     delta: readFiniteNumber(data.delta) ?? readFiniteNumber(root.delta),
     currency: readString(data.currency) ?? readString(root.currency),
     pricingContract,
+    currentAgreement:
+      readCurrentAgreement(data.current_agreement) ??
+      readCurrentAgreement(root.current_agreement),
     selectionMode: readString(data.selection_mode) ?? readString(root.selection_mode),
     selectedPeriodIds: [
       ...new Set([
