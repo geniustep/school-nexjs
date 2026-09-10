@@ -43,6 +43,16 @@ export type HistoricalCollectionInstallmentSource = {
   remaining_amount?: number;
 };
 
+export type HistoricalCollectionInstallmentsResponseData = {
+  items?: HistoricalCollectionInstallmentSource[];
+};
+
+export function extractHistoricalCollectionInstallmentItems(
+  data: HistoricalCollectionInstallmentsResponseData | null | undefined,
+): HistoricalCollectionInstallmentSource[] {
+  return Array.isArray(data?.items) ? data.items : [];
+}
+
 export type HistoricalCollectionTemplateRow = {
   studentCode: string;
   studentName: string;

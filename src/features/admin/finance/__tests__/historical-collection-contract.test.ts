@@ -6,6 +6,7 @@ import {
   buildHistoricalCollectionBatchPayload,
   buildHistoricalCollectionTemplateRows,
   canConfirmHistoricalCollectionImport,
+  extractHistoricalCollectionInstallmentItems,
   findMissingHistoricalCollectionHeaders,
   HISTORICAL_COLLECTION_HEADERS,
   type HistoricalCollectionParsedRow,
@@ -41,6 +42,16 @@ function row(overrides: Partial<HistoricalCollectionParsedRow> = {}): Historical
 }
 
 describe('historical collection Excel contract', () => {
+  it('extracts installment rows from the Odoo list response envelope', () => {
+    const items = [
+      { student_id: 10, fee_id: 50, school_id: 27, academic_year_id: 9, remaining_amount: 400 },
+      { student_id: 11, fee_id: 51, school_id: 27, academic_year_id: 9, remaining_amount: 500 },
+    ];
+
+    expect(extractHistoricalCollectionInstallmentItems({ items })).toEqual(items);
+    expect(extractHistoricalCollectionInstallmentItems(undefined)).toEqual([]);
+  });
+
   it('deduplicates installment rows into one student-fee template row and totals remaining amount', () => {
     const rows = buildHistoricalCollectionTemplateRows([
       { student_id: 10, fee_id: 50, school_id: 27, academic_year_id: 9, student_name: 'أحمد', remaining_amount: 400 },
