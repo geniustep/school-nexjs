@@ -97,7 +97,6 @@ export function AgreementAmendmentLinePicker({
           const amountAmendable = lineSupportsAdjustLineAmount(line);
           const periodAmendable = lineSupportsPeriodAmendment(line);
           const fullyBlocked = isLineFullyBlockedForAmendment(line);
-          const compactPrice = line.unitPrice ?? line.amount;
 
           return (
             <li key={line.id}>
@@ -122,16 +121,11 @@ export function AgreementAmendmentLinePicker({
                   onSelect(String(line.id));
                 }}
               >
-                <div className="student-finance-amendment-line-picker__head student-finance-amendment-line-picker__head--compact">
-                  <AgreementLineOperationalStateBadge source={line} />
+                <div className="student-finance-amendment-line-picker__head">
                   <span className="student-finance-amendment-line-picker__name" dir="auto">
                     {line.label}
                   </span>
-                  {compactPrice != null ? (
-                    <span className="student-finance-amendment-line-picker__compact-price">
-                      <FinanceMoney amount={compactPrice} currency={currency ?? undefined} />
-                    </span>
-                  ) : null}
+                  <AgreementLineOperationalStateBadge source={line} showDescription />
                   {line.duplicateServiceWarning ? (
                     <span className="student-finance-amendment-line-picker__badge">
                       {t('admin.student360.financeWorkspace.agreementAmendment.duplicateServiceWarning')}
