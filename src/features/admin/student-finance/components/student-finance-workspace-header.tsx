@@ -70,7 +70,13 @@ export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHea
             .student-finance-subtabs__tab[data-tab='overview'].is-active
           )
           .student-finance-workspace__panel
-          > section:not(.student-finance-repair-center) {
+          > section:not(.student-finance-repair-center),
+        .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel
+          > div:has(> section)
+          > section {
           grid-area: auto;
           grid-column: 2;
           min-width: 0;
@@ -80,6 +86,7 @@ export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHea
             .student-finance-subtabs__tab[data-tab='overview'].is-active
           )
           .student-finance-workspace__panel
+          > div:has(> section)
           > section:last-of-type {
           grid-area: auto;
           grid-column: 1;
@@ -101,7 +108,14 @@ export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHea
             .student-finance-subtabs__tab[data-tab='overview'].is-active
           )
           .student-finance-workspace__panel
-          > * {
+          > *,
+        [dir='rtl']
+          .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel
+          > div:has(> section)
+          > section {
           direction: rtl;
         }
 
@@ -123,7 +137,8 @@ export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHea
               .student-finance-subtabs__tab[data-tab='overview'].is-active
             )
             .student-finance-workspace__panel
-            > section:last-of-type {
+            > div:has(> section)
+            > section {
             grid-area: auto;
             grid-column: auto;
             position: static;
@@ -134,7 +149,14 @@ export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHea
               .student-finance-subtabs__tab[data-tab='overview'].is-active
             )
             .student-finance-workspace__panel
-            > * {
+            > *,
+          [dir='rtl']
+            .student-finance-workspace:has(
+              .student-finance-subtabs__tab[data-tab='overview'].is-active
+            )
+            .student-finance-workspace__panel
+            > div:has(> section)
+            > section {
             direction: inherit;
           }
         }
