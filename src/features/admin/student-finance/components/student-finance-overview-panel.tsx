@@ -287,6 +287,10 @@ export function StudentFinanceOverviewPanel({
     },
   ];
 
+  const visibleFilterOptions = filterOptions.filter(
+    (option) => option.key !== 'paid' || filterCounts.paid > 0 || filter === 'paid',
+  );
+
   if (financialOverviewLoading && !financialOverview) {
     return <StudentSectionSkeleton rows={4} />;
   }
@@ -400,8 +404,12 @@ export function StudentFinanceOverviewPanel({
           </Link>
         </header>
 
-        <div className={styles.filterBar} role="toolbar">
-          {filterOptions.map((option) => (
+        <div
+          className={styles.filterBar}
+          role="toolbar"
+          aria-label={t('admin.student360.financeWorkspace.tabs.schedule')}
+        >
+          {visibleFilterOptions.map((option) => (
             <button
               key={option.key}
               type="button"
@@ -468,86 +476,97 @@ export function StudentFinanceOverviewPanel({
                   </button>
 
                   {expanded ? (
-                    <div className={styles.tableWrap}>
-                      <table className={styles.installmentsTable}>
-                        <thead>
-                          <tr>
-                            <th scope="col">
-                              {t('admin.student360.financeWorkspace.schedule.columns.fee')}
-                            </th>
-                            <th scope="col">
-                              {t('admin.student360.financeWorkspace.schedule.columns.dueDate')}
-                            </th>
-                            <th scope="col">
-                              {t('admin.student360.financeWorkspace.schedule.columns.amount')}
-                            </th>
-                            <th scope="col">
-                              {t('admin.student360.financeWorkspace.schedule.columns.paid')}
-                            </th>
-                            <th scope="col">
-                              {t('admin.student360.financeWorkspace.schedule.columns.remaining')}
-                            </th>
-                            <th scope="col">
-                              {t('admin.student360.financeWorkspace.schedule.columns.status')}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {group.rows.map((row) => {
-                            const displayName =
-                              resolveInstallmentDisplayLabel(row, locale) ||
-                              row.fee_name ||
-                              row.fee_type_name ||
-                              refName(row.service) ||
-                              t('common.dash');
-                            const classification = classifications.get(row.id) ?? 'other';
-                            const pendingCheque = hasInstallmentPendingChequeCoverage(row);
-                            const paymentStatus = resolveEffectiveInstallmentPaymentStatus(row);
-                            const timingStatus =
-                              classification === 'due'
-                                ? 'due'
-                                : resolveEffectiveInstallmentTimingStatus(row) ??
-                                  row.timing_status ??
-                                  'not_applicable';
+                    <div className={styles.installmentRows}>
+                      {group.rows.map((row) => {
+                        const displayName =
+                          resolveInstallmentDisplayLabel(row, locale) ||
+                          row.fee_name ||
+                          row.fee_type_name ||
+                          refName(row.service) ||
+                          t('common.dash');
+                        const classification = classifications.get(row.id) ?? 'other';
+                        const pendingCheque = hasInstallmentPendingChequeCoverage(row);
+                        const paymentStatus = resolveEffectiveInstallmentPaymentStatus(row);
+                        const timingStatus =
+                          classification === 'due'
+                            ? 'due'
+                            : resolveEffectiveInstallmentTimingStatus(row) ??
+                              row.timing_status ??
+                              'not_applicable';
+                        const showConfirmedPaid =
+                          typeof row.confirmed_paid_amount === 'number' &&
+                          Number.isFinite(row.confirmed_paid_amount) &&
+                          row.confirmed_paid_amount > 0;
 
-                            return (
-                              <tr key={row.id}>
-                                <td>
-                                  <div className={styles.installmentName} dir="auto">
-                                    <strong>{displayName}</strong>
-                                    {row.period_label ? (
-                                      <span className={styles.installmentPeriod}>
-                                        {row.period_label}
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                </td>
-                                <td>{row.due_date ? formatDate(row.due_date) : t('common.dash')}</td>
-                                <td>
-                                  <FinanceMoney amount={row.amount} currency={currency} />
-                                </td>
-                                <td>
+                        return (
+                          <article key={row.id} className={styles.installmentRow}>
+                            <div className={styles.installmentRowHeader}>
+                              <div className={styles.installmentName} dir="auto">
+                                <strong>{displayName}</strong>
+                                {row.period_label ? (
+                                  <span className={styles.installmentPeriod}>
+                                    {row.period_label}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className={styles.installmentRemaining}>
+                                <span className={styles.installmentFactLabel}>
+                                  {t('admin.student360.financeWorkspace.schedule.columns.remaining')}
+                                </span>
+                                <strong>
                                   <FinanceMoney
-                                    amount={row.confirmed_paid_amount}
+                                    amount={row.remaining_amount}
                                     currency={currency}
                                   />
-                                </td>
-                                <td>
-                                  <FinanceMoney amount={row.remaining_amount} currency={currency} />
-                                </td>
-                                <td>
-                                  <InstallmentRowStatusBadges
-                                    paymentStatus={paymentStatus}
-                                    timingStatus={timingStatus}
-                                    isVisible={row.is_visible}
-                                    pendingChequeCoverage={pendingCheque}
-                                  />
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                </strong>
+                              </div>
+                            </div>
+
+                            <div className={styles.installmentFacts}>
+                              <div className={styles.installmentFact}>
+                                <span className={styles.installmentFactLabel}>
+                                  {t('admin.student360.financeWorkspace.schedule.columns.amount')}
+                                </span>
+                                <strong>
+                                  <FinanceMoney amount={row.amount} currency={currency} />
+                                </strong>
+                              </div>
+
+                              {showConfirmedPaid ? (
+                                <div className={styles.installmentFact}>
+                                  <span className={styles.installmentFactLabel}>
+                                    {t('admin.student360.financeWorkspace.schedule.columns.paid')}
+                                  </span>
+                                  <strong>
+                                    <FinanceMoney
+                                      amount={row.confirmed_paid_amount}
+                                      currency={currency}
+                                    />
+                                  </strong>
+                                </div>
+                              ) : null}
+
+                              <div className={styles.installmentFact}>
+                                <span className={styles.installmentFactLabel}>
+                                  {t('admin.student360.financeWorkspace.schedule.columns.dueDate')}
+                                </span>
+                                <strong>
+                                  {row.due_date ? formatDate(row.due_date) : t('common.dash')}
+                                </strong>
+                              </div>
+                            </div>
+
+                            <div className={styles.installmentStatuses}>
+                              <InstallmentRowStatusBadges
+                                paymentStatus={paymentStatus}
+                                timingStatus={timingStatus}
+                                isVisible={row.is_visible}
+                                pendingChequeCoverage={pendingCheque}
+                              />
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
                   ) : null}
                 </article>
