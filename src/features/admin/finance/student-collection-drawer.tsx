@@ -46,7 +46,6 @@ export function StudentCollectionDrawer({
 
   function handleDone(collection: PaymentCollection) {
     if (handledCollectionIdRef.current === collection.id) {
-      onClose();
       return;
     }
     handledCollectionIdRef.current = collection.id;
@@ -55,7 +54,6 @@ export function StudentCollectionDrawer({
     if (collection.payment_method === 'cheque' || collection.payment_method === 'check') {
       toast.show(t('admin.finance.collectionWorkflow.chequePendingNote'), 'info');
     }
-    onClose();
   }
 
   function handleOverviewUpdate(overview: CollectionUpdatedOverview) {
