@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type {
   AgreementAmendmentPeriodImpact,
   AgreementAmendmentPeriodOption,
 } from '../types/agreement-amendment';
-import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
+import {
+  formatAmendmentPreviewPeriodLabel,
+  reconcileSparsePeriodSelectionWithPreview,
+} from './agreement-amendment-preview-model';
 import './agreement-amendment-sparse-period-ux.css';
 
 const COPY = {
@@ -81,24 +84,48 @@ export function AgreementAmendmentSparsePeriodGrid({
   const t = useT();
   const { locale } = useLocale();
   const copy = COPY[locale] ?? COPY.en;
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [editingOverrideId, setEditingOverrideId] = useState<string | null>(null);
+
+  const notifyPreviewAfterStateUpdate = () => {
+    window.setTimeout(() => {
+      rootRef.current?.dispatchEvent(new Event('change', { bubbles: true }));
+    }, 0);
+  };
+
+  useEffect(() => {
+    if (!periodImpacts.length || !selectedPeriodIds.length) return;
+    const reconciled = reconcileSparsePeriodSelectionWithPreview({
+      selectedPeriodIds,
+      periodAmountOverrides,
+      periodImpacts,
+    });
+    if (!reconciled.changed) return;
+
+    for (const periodId of reconciled.blockedPeriodIds) {
+      if (selectedPeriodIds.includes(periodId)) onToggle(periodId);
+    }
+
+    // Re-run the preview only after the reduced selection has reached the form state.
+    notifyPreviewAfterStateUpdate();
+  }, [onToggle, periodAmountOverrides, periodImpacts, selectedPeriodIds]);
 
   if (loading) {
     return <span className="tiny muted">{t('common.loading')}</span>;
   }
 
   return (
-    <div className="student-finance-amendment-sparse-periods">
+    <div ref={rootRef} className="student-finance-amendment-sparse-periods">
       {periods.map((period) => {
         const id = String(period.id);
-        const selectable = period.selectable !== false;
+        const impact = periodImpacts.find((item) => item.effectivePeriodId === period.id) ?? null;
+        const selectable = period.selectable !== false && impact?.amendable !== false;
         const selected = selectedPeriodIds.includes(id);
         const overrideValue = periodAmountOverrides[id] ?? '';
         const hasOverride = overrideValue.trim() !== '';
-        const impact = periodImpacts.find((item) => item.effectivePeriodId === period.id) ?? null;
         const currentAmount = impact?.currentAmount ?? baseCurrentAmount ?? null;
         const proposedAmount = impact?.proposedAmount ?? null;
-        const label = formatAmendmentEffectivePeriodLabel(period, t);
+        const label = formatAmendmentPreviewPeriodLabel(period, locale);
         const editing = editingOverrideId === id;
 
         return (
@@ -118,7 +145,10 @@ export function AgreementAmendmentSparsePeriodGrid({
                 type="checkbox"
                 checked={selected}
                 disabled={disabled || !selectable}
-                onChange={() => onToggle(id)}
+                onChange={() => {
+                  onToggle(id);
+                  notifyPreviewAfterStateUpdate();
+                }}
               />
               <span className="student-finance-amendment-sparse-period__check" aria-hidden>
                 {selected ? '✓' : ''}
@@ -168,7 +198,10 @@ export function AgreementAmendmentSparsePeriodGrid({
                         step="0.01"
                         value={overrideValue}
                         autoFocus
-                        onChange={(event) => onOverrideChange(id, event.target.value)}
+                        onChange={(event) => {
+                          onOverrideChange(id, event.target.value);
+                          notifyPreviewAfterStateUpdate();
+                        }}
                         disabled={disabled}
                       />
                     </label>
@@ -180,6 +213,7 @@ export function AgreementAmendmentSparsePeriodGrid({
                           onClick={() => {
                             onOverrideClear(id);
                             setEditingOverrideId(null);
+                            notifyPreviewAfterStateUpdate();
                           }}
                           disabled={disabled}
                         >

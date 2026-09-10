@@ -1,12 +1,15 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useLocale, useT } from '@/features/i18n/locale-context';
+import { fetchFinancialAgreement } from '../api/finance-admin-api';
 import type {
   AgreementAmendmentFormState,
   AgreementAmendmentPeriodOption,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
+import type { FinancialAgreement } from '../types';
 import type { AgreementAmendmentLineOption } from '../utils/resolve-amendment-form-options';
 import { canSubmitAgreementAmendmentForm } from '../utils/build-agreement-amendment-payload';
 import {
@@ -19,18 +22,22 @@ import {
   resolveAgreementAmendmentBlockingMessage,
   resolveAgreementAmendmentWarningMessage,
 } from '../utils/resolve-agreement-amendment-warning';
-import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import { AgreementAmendmentPricingContractPreview } from './agreement-amendment-pricing-contract-preview';
-import { resolveAffectedMonthLabels } from './agreement-amendment-preview-model';
+import {
+  formatAmendmentPreviewPeriodLabel,
+  resolveAffectedMonthLabels,
+} from './agreement-amendment-preview-model';
+import { buildAgreementAnnualSummary } from './agreement-amendment-annual-summary';
 import './agreement-amendment-reason-preview.css';
+import './agreement-amendment-annual-summary.css';
 
 const COPY = {
   ar: {
     title: 'المعاينة',
-    subtitle: 'النتيجة المالية المؤكدة من Odoo',
+    subtitle: 'المعاينة المالية قبل التفعيل',
     waiting: 'أكمل الاختيارات لتظهر النتيجة',
-    updating: 'جاري التحقق مع Odoo…',
-    resultReady: 'تم التحقق من Odoo',
+    updating: 'جاري تحديث المعاينة…',
+    resultReady: 'تم تحديث المعاينة',
     operation: 'العملية',
     modify: 'تعديل خدمة',
     add: 'إضافة خدمة',
@@ -48,21 +55,142 @@ const COPY = {
     applyAllowed: 'جاهز للتفعيل',
     needsReview: 'غير جاهز للتفعيل',
     specialPrice: 'سعر خاص',
-    backendAffected: 'الأشهر التي أكدها Odoo',
-    backendChanges: 'التغييرات التي سينفذها Odoo',
+    backendAffected: 'الأشهر المتأثرة',
+    backendChanges: 'التغييرات المتوقعة',
     created: 'إنشاء',
     updated: 'تعديل',
     cancelled: 'إزالة',
     noBackendResult: 'لم تصل نتيجة مالية بعد.',
+    annualTitle: 'الخلاصة السنوية',
+    annualSubtitle: 'القيم الحالية المعتمدة',
+    annualTotal: 'المجموع السنوي الحالي',
+    annualImpact: 'أثر التعديل المعاين',
+    servicesTitle: 'تفصيل الخدمات',
+    annualUnavailable: 'المجموع السنوي غير متاح حاليًا.',
+    serviceTotalUnavailable: 'غير متاح',
+    unitPrice: 'السعر',
+    periodCount: 'عدد الفترات',
+    annualLoading: 'جاري تحميل الخلاصة السنوية…',
   },
   fr: {
-    title: 'Aperçu', subtitle: 'Résultat financier confirmé par Odoo', waiting: 'Complétez les choix pour afficher le résultat', updating: 'Vérification avec Odoo…', resultReady: 'Vérifié par Odoo', operation: 'Opération', modify: 'Modifier un service', add: 'Ajouter un service', remove: 'Retirer un service', service: 'Service', newPrice: 'Prix', selectedMonths: 'Mois', effectiveFrom: 'À partir de', reason: 'Motif', financialImpact: 'Impact financier', monthDetails: 'Détail des mois', amountBefore: 'Avant', amountAfter: 'Après', delta: 'Écart', applyAllowed: 'Prêt à appliquer', needsReview: 'Non prêt à appliquer', specialPrice: 'Prix spécial', backendAffected: 'Mois confirmés par Odoo', backendChanges: 'Modifications qui seront appliquées par Odoo', created: 'Création', updated: 'Modification', cancelled: 'Retrait', noBackendResult: 'Aucun résultat financier reçu pour le moment.',
+    title: 'Aperçu',
+    subtitle: 'Aperçu financier avant application',
+    waiting: 'Complétez les choix pour afficher le résultat',
+    updating: 'Mise à jour de l’aperçu…',
+    resultReady: 'Aperçu mis à jour',
+    operation: 'Opération',
+    modify: 'Modifier un service',
+    add: 'Ajouter un service',
+    remove: 'Retirer un service',
+    service: 'Service',
+    newPrice: 'Prix',
+    selectedMonths: 'Mois',
+    effectiveFrom: 'À partir de',
+    reason: 'Motif',
+    financialImpact: 'Impact financier',
+    monthDetails: 'Détail des mois',
+    amountBefore: 'Avant',
+    amountAfter: 'Après',
+    delta: 'Écart',
+    applyAllowed: 'Prêt à appliquer',
+    needsReview: 'Non prêt à appliquer',
+    specialPrice: 'Prix spécial',
+    backendAffected: 'Mois concernés',
+    backendChanges: 'Modifications prévues',
+    created: 'Création',
+    updated: 'Modification',
+    cancelled: 'Retrait',
+    noBackendResult: 'Aucun résultat financier reçu pour le moment.',
+    annualTitle: 'Résumé annuel',
+    annualSubtitle: 'Valeurs actuelles validées',
+    annualTotal: 'Total annuel actuel',
+    annualImpact: 'Impact de la modification prévisualisée',
+    servicesTitle: 'Détail par service',
+    annualUnavailable: 'Le total annuel n’est pas disponible actuellement.',
+    serviceTotalUnavailable: 'Indisponible',
+    unitPrice: 'Prix',
+    periodCount: 'Nombre de périodes',
+    annualLoading: 'Chargement du résumé annuel…',
   },
   en: {
-    title: 'Preview', subtitle: 'Financial result confirmed by Odoo', waiting: 'Complete the choices to show the result', updating: 'Checking with Odoo…', resultReady: 'Verified by Odoo', operation: 'Operation', modify: 'Modify service', add: 'Add service', remove: 'Remove service', service: 'Service', newPrice: 'Price', selectedMonths: 'Months', effectiveFrom: 'Starting', reason: 'Reason', financialImpact: 'Financial impact', monthDetails: 'Month details', amountBefore: 'Before', amountAfter: 'After', delta: 'Difference', applyAllowed: 'Ready to apply', needsReview: 'Not ready to apply', specialPrice: 'Special price', backendAffected: 'Months confirmed by Odoo', backendChanges: 'Changes Odoo will apply', created: 'Create', updated: 'Update', cancelled: 'Remove', noBackendResult: 'No financial result has been received yet.',
+    title: 'Preview',
+    subtitle: 'Financial preview before applying',
+    waiting: 'Complete the choices to show the result',
+    updating: 'Updating preview…',
+    resultReady: 'Preview updated',
+    operation: 'Operation',
+    modify: 'Modify service',
+    add: 'Add service',
+    remove: 'Remove service',
+    service: 'Service',
+    newPrice: 'Price',
+    selectedMonths: 'Months',
+    effectiveFrom: 'Starting',
+    reason: 'Reason',
+    financialImpact: 'Financial impact',
+    monthDetails: 'Month details',
+    amountBefore: 'Before',
+    amountAfter: 'After',
+    delta: 'Difference',
+    applyAllowed: 'Ready to apply',
+    needsReview: 'Not ready to apply',
+    specialPrice: 'Special price',
+    backendAffected: 'Affected months',
+    backendChanges: 'Expected changes',
+    created: 'Create',
+    updated: 'Update',
+    cancelled: 'Remove',
+    noBackendResult: 'No financial result has been received yet.',
+    annualTitle: 'Annual summary',
+    annualSubtitle: 'Current approved values',
+    annualTotal: 'Current annual total',
+    annualImpact: 'Previewed amendment impact',
+    servicesTitle: 'Service breakdown',
+    annualUnavailable: 'The annual total is not currently available.',
+    serviceTotalUnavailable: 'Unavailable',
+    unitPrice: 'Price',
+    periodCount: 'Period count',
+    annualLoading: 'Loading annual summary…',
   },
   es: {
-    title: 'Vista previa', subtitle: 'Resultado financiero confirmado por Odoo', waiting: 'Complete las opciones para mostrar el resultado', updating: 'Verificando con Odoo…', resultReady: 'Verificado por Odoo', operation: 'Operación', modify: 'Modificar servicio', add: 'Añadir servicio', remove: 'Eliminar servicio', service: 'Servicio', newPrice: 'Precio', selectedMonths: 'Meses', effectiveFrom: 'Desde', reason: 'Motivo', financialImpact: 'Impacto financiero', monthDetails: 'Detalle de meses', amountBefore: 'Antes', amountAfter: 'Después', delta: 'Diferencia', applyAllowed: 'Listo para aplicar', needsReview: 'No listo para aplicar', specialPrice: 'Precio especial', backendAffected: 'Meses confirmados por Odoo', backendChanges: 'Cambios que aplicará Odoo', created: 'Crear', updated: 'Modificar', cancelled: 'Eliminar', noBackendResult: 'Aún no se recibió un resultado financiero.',
+    title: 'Vista previa',
+    subtitle: 'Vista previa financiera antes de aplicar',
+    waiting: 'Complete las opciones para mostrar el resultado',
+    updating: 'Actualizando la vista previa…',
+    resultReady: 'Vista previa actualizada',
+    operation: 'Operación',
+    modify: 'Modificar servicio',
+    add: 'Añadir servicio',
+    remove: 'Eliminar servicio',
+    service: 'Servicio',
+    newPrice: 'Precio',
+    selectedMonths: 'Meses',
+    effectiveFrom: 'Desde',
+    reason: 'Motivo',
+    financialImpact: 'Impacto financiero',
+    monthDetails: 'Detalle de meses',
+    amountBefore: 'Antes',
+    amountAfter: 'Después',
+    delta: 'Diferencia',
+    applyAllowed: 'Listo para aplicar',
+    needsReview: 'No listo para aplicar',
+    specialPrice: 'Precio especial',
+    backendAffected: 'Meses afectados',
+    backendChanges: 'Cambios previstos',
+    created: 'Crear',
+    updated: 'Modificar',
+    cancelled: 'Eliminar',
+    noBackendResult: 'Aún no se recibió un resultado financiero.',
+    annualTitle: 'Resumen anual',
+    annualSubtitle: 'Valores actuales validados',
+    annualTotal: 'Total anual actual',
+    annualImpact: 'Impacto de la modificación previsualizada',
+    servicesTitle: 'Detalle por servicio',
+    annualUnavailable: 'El total anual no está disponible actualmente.',
+    serviceTotalUnavailable: 'No disponible',
+    unitPrice: 'Precio',
+    periodCount: 'Número de períodos',
+    annualLoading: 'Cargando resumen anual…',
   },
 } as const;
 
@@ -91,6 +219,35 @@ export function AgreementAmendmentLivePreviewPanel({
   const selectedPeriodIds = form.selectedPeriodIds ?? [];
   const periodImpacts = preview?.periodImpacts ?? [];
   const readyForBackend = canSubmitAgreementAmendmentForm(form, selectedLine);
+  const [annualAgreement, setAnnualAgreement] = useState<FinancialAgreement | null>(null);
+  const [annualLoading, setAnnualLoading] = useState(false);
+  const annualAgreementId = preview?.currentAgreement?.id ?? null;
+
+  useEffect(() => {
+    if (annualAgreementId == null) {
+      setAnnualAgreement(null);
+      setAnnualLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setAnnualLoading(true);
+    void fetchFinancialAgreement(annualAgreementId).then((res) => {
+      if (cancelled) return;
+      setAnnualLoading(false);
+      setAnnualAgreement(res.success && res.data ? res.data : null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [annualAgreementId]);
+
+  const annualSummary = useMemo(
+    () => buildAgreementAnnualSummary(annualAgreement),
+    [annualAgreement],
+  );
+  const annualTotal = annualSummary.total ?? preview?.currentAgreement?.netAmount ?? null;
+  const annualCurrency = annualAgreement?.currency?.name ?? preview?.currency ?? currency ?? undefined;
+
   const operationLabel =
     form.operationType === 'add_line'
       ? copy.add
@@ -100,7 +257,7 @@ export function AgreementAmendmentLivePreviewPanel({
   const selectedMonthLabels = selectedPeriodIds
     .map((periodId) => periods.find((period) => String(period.id) === periodId))
     .filter((period): period is AgreementAmendmentPeriodOption => Boolean(period))
-    .map((period) => formatAmendmentEffectivePeriodLabel(period, t));
+    .map((period) => formatAmendmentPreviewPeriodLabel(period, locale));
   const effectivePeriod = periods.find((period) => String(period.id) === form.effectivePeriodId) ?? null;
   const backendAffectedMonths = preview
     ? resolveAffectedMonthLabels({
@@ -167,7 +324,7 @@ export function AgreementAmendmentLivePreviewPanel({
             {form.operationType === 'modify_line'
               ? selectedMonthLabels.length || '—'
               : effectivePeriod
-                ? formatAmendmentEffectivePeriodLabel(effectivePeriod, t)
+                ? formatAmendmentPreviewPeriodLabel(effectivePeriod, locale)
                 : '—'}
           </strong>
         </div>
@@ -288,6 +445,60 @@ export function AgreementAmendmentLivePreviewPanel({
               ))}
             </section>
           ) : null}
+
+          <section className="student-finance-amendment-annual-summary">
+            <div className="student-finance-amendment-annual-summary__head">
+              <div>
+                <h4>{copy.annualTitle}</h4>
+                <p className="tiny muted">{copy.annualSubtitle}</p>
+              </div>
+            </div>
+
+            {annualLoading ? <p className="tiny muted">{copy.annualLoading}</p> : null}
+
+            <div className="student-finance-amendment-annual-summary__total">
+              <span>{copy.annualTotal}</span>
+              <strong>
+                {annualTotal != null ? (
+                  <FinanceMoney amount={annualTotal} currency={annualCurrency} />
+                ) : copy.annualUnavailable}
+              </strong>
+            </div>
+
+            {preview.delta != null ? (
+              <div className="student-finance-amendment-annual-summary__impact">
+                <span>{copy.annualImpact}</span>
+                <strong><FinanceMoney amount={preview.delta} currency={annualCurrency} /></strong>
+              </div>
+            ) : null}
+
+            {annualSummary.services.length ? (
+              <div className="student-finance-amendment-annual-summary__services">
+                <h5 className="student-finance-amendment-annual-summary__services-title">{copy.servicesTitle}</h5>
+                {annualSummary.services.map((service) => (
+                  <div key={service.key} className="student-finance-amendment-annual-summary__service">
+                    <div className="student-finance-amendment-annual-summary__service-info">
+                      <strong dir="auto">{service.label}</strong>
+                      {(service.unitPrice != null || service.periodCount != null) ? (
+                        <span className="student-finance-amendment-annual-summary__service-meta">
+                          {service.unitPrice != null ? (
+                            <>{copy.unitPrice}: <FinanceMoney amount={service.unitPrice} currency={annualCurrency} /></>
+                          ) : null}
+                          {service.unitPrice != null && service.periodCount != null ? ' · ' : null}
+                          {service.periodCount != null ? `${copy.periodCount}: ${service.periodCount}` : null}
+                        </span>
+                      ) : null}
+                    </div>
+                    <strong className="student-finance-amendment-annual-summary__service-total">
+                      {service.total != null ? (
+                        <FinanceMoney amount={service.total} currency={annualCurrency} />
+                      ) : copy.serviceTotalUnavailable}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </section>
         </>
       ) : null}
     </section>

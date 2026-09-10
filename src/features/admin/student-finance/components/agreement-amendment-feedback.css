@@ -174,7 +174,7 @@
   font-size: 0.72rem;
 }
 
-/* Restore manual preview as a fallback. Apply is always visible and only becomes enabled after Odoo allows it. */
+/* Keep manual preview as a fallback. Apply stays visible and unlocks only after a valid preview. */
 .academic-setup-drawer:has(.student-finance-amendment-form)
   .student-finance-amendment-form > .student-finance-amendment-form__actions > button[type='submit'] {
   display: inline-flex;
@@ -195,12 +195,13 @@
   justify-content: center;
 }
 
+/* Internal implementation details must never be exposed as helper copy. */
 .academic-setup-drawer:has(.student-finance-amendment-form)
   .student-finance-amendment-form__action-note {
-  margin-top: -2px;
+  display: none;
 }
 
-/* Stronger preview hierarchy. All financial values below are display-only; Odoo remains authoritative. */
+/* Stronger preview hierarchy. Financial values remain display-only. */
 .academic-setup-drawer:has(.student-finance-amendment-form)
   .student-finance-amendment-live-preview {
   display: grid;
