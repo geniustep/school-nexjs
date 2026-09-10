@@ -112,23 +112,41 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     ).toEqual(['شتنبر 2026', 'أكتوبر 2026']);
   });
 
-  it('removes blocked months and their special prices from sparse selection', () => {
+  it('removes every blocked month and its special price from sparse selection', () => {
     const result = reconcileSparsePeriodSelectionWithPreview({
-      selectedPeriodIds: ['291', '292', '293'],
-      periodAmountOverrides: { '292': '900', '293': '1200' },
+      selectedPeriodIds: ['291', '292', '293', '294'],
+      periodAmountOverrides: { '292': '900', '293': '1200', '294': '800' },
       periodImpacts: [
         { effectivePeriodId: 291, amendable: true },
         { effectivePeriodId: 292, amendable: false },
         { effectivePeriodId: 293, amendable: true },
+        { effectivePeriodId: 294, amendable: false },
       ],
     });
-    expect(result.blockedPeriodIds).toEqual(['292']);
+    expect(result.blockedPeriodIds).toEqual(['292', '294']);
     expect(result.selectedPeriodIds).toEqual(['291', '293']);
     expect(result.periodAmountOverrides).toEqual({ '293': '1200' });
     expect(result.changed).toBe(true);
   });
 
-  it('reruns preview after sparse period state settles and reacts to sparse controls', () => {
+  it('owns sparse reconciliation in the parent and re-previews the exact reduced payload', () => {
+    expect(dialogSource).toContain('reconcileSparsePeriodSelectionWithPreview');
+    expect(dialogSource).toContain('const nextForm: SparseAgreementAmendmentFormState');
+    expect(dialogSource).toContain('await requestPreview(nextForm, false)');
+    expect(dialogSource).toContain('setBlockedPeriodIds');
+    expect(sparseGridSource).not.toContain('reconcileSparsePeriodSelectionWithPreview');
+    expect(sparseGridSource).not.toContain('useEffect(() =>');
+  });
+
+  it('invalidates stale preview responses so an old blocked result cannot win the race', () => {
+    expect(dialogSource).toContain('const previewRequestSeqRef = useRef(0)');
+    expect(dialogSource).toContain('previewRequestSeqRef.current += 1');
+    expect(dialogSource).toContain('const requestId = ++previewRequestSeqRef.current');
+    expect(dialogSource).toContain('if (requestId !== previewRequestSeqRef.current) return;');
+    expect(dialogSource).toContain('setPreviewLoading(false)');
+  });
+
+  it('keeps automatic preview triggers for sparse controls after state changes', () => {
     expect(sparseGridSource).toContain('notifyPreviewAfterStateUpdate');
     expect(sparseGridSource).toContain('window.setTimeout');
     expect(sparseGridSource).toContain("dispatchEvent(new Event('change', { bubbles: true }))");
@@ -145,21 +163,24 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(dialogSource).toContain('<AgreementAmendmentMonthRail');
   });
 
-  it('places reason before price and always renders preview and apply actions', () => {
+  it('places reason before price and keeps apply gated by the latest authoritative preview', () => {
     expect(dialogSource.indexOf('<AgreementAmendmentReasonSelector')).toBeLessThan(
       dialogSource.indexOf('student-finance-amendment-new-price'),
     );
     expect(dialogSource).toContain('type="submit"');
+    expect(dialogSource).toContain('preview?.canApply === true');
     expect(dialogSource).toContain('disabled={applyLoading || previewLoading || !applyReady}');
-    expect(dialogSource).not.toContain('previewReady && preview?.canApply ? (');
+    expect(dialogSource).toContain('resolveAgreementAmendmentBlockingMessage');
+    expect(dialogSource).toContain('سبب عدم الجاهزية:');
   });
 
-  it('keeps the financial preview implementation-neutral for the end user', () => {
+  it('keeps end-user preview copy implementation-neutral', () => {
     expect(previewSource).toContain('المعاينة المالية قبل التفعيل');
     expect(previewSource).toContain('تم تحديث المعاينة');
     expect(previewSource).toContain('الأشهر المتأثرة');
     expect(previewSource).toContain('التغييرات المتوقعة');
     expect(previewSource).not.toContain('Odoo');
+    expect(dialogSource).not.toContain('Odoo');
     expect(feedbackCssSource).toContain('.student-finance-amendment-form__action-note');
     expect(feedbackCssSource).toContain('display: none');
     expect(previewSource).toContain('preview.createdInstallments.length');
@@ -179,7 +200,6 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
         { id: 2, service_name: 'النقل', schedule_total: 15000, unit_price: 1500, schedule_period_count: 10 },
       ],
     });
-    // Deliberately inconsistent service totals prove the UI is not summing them locally.
     expect(summary.total).toBe(25000);
     expect(summary.services.map((service) => service.total)).toEqual([12000, 15000]);
     expect(previewSource).toContain('preview.delta');
