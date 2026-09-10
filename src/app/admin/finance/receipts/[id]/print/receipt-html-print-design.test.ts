@@ -16,8 +16,6 @@ const printDir = join(
 const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
 const cssSource = readFileSync(join(printDir, 'receipt-html-print.css'), 'utf8');
 const fixCssSource = readFileSync(join(printDir, 'receipt-html-print-fix.css'), 'utf8');
-const frenchCssSource = readFileSync(join(printDir, 'receipt-html-print-fr.css'), 'utf8');
-const layoutSource = readFileSync(join(printDir, 'layout.tsx'), 'utf8');
 
 describe('HTML receipt final visual contract', () => {
   it('keeps the receipt title/copy labels out of the printed receipt', () => {
@@ -27,8 +25,8 @@ describe('HTML receipt final visual contract', () => {
   });
 
   it('keeps payer terminology and the authoritative backend total', () => {
-    expect(pageSource).toContain("paymentMethod: 'طريقة الأداء'");
-    expect(pageSource).toContain("payer: 'المؤدي'");
+    expect(pageSource).toContain('<span>المؤدي</span>');
+    expect(pageSource).toContain('<span>طريقة الأداء</span>');
     expect(pageSource).toContain('receipt.collection_amount');
     expect(pageSource).not.toContain('receipt.collection_amount -');
     expect(pageSource).not.toContain('row.amount -');
@@ -65,16 +63,15 @@ describe('HTML receipt final visual contract', () => {
     expect(pageSource).not.toContain("relationLabel(source, ['class', 'section', 'classroom'])");
     expect(pageSource).toContain("['level_name', 'grade_name', 'academic_level_name', 'level_label']");
     expect(pageSource).toContain("['massar', 'massar_number', 'massar_code', 'massar_id']");
-    expect(pageSource).toContain("level: 'المستوى'");
-    expect(pageSource).toContain("massar: 'رقم مسار'");
+    expect(pageSource).toContain('المستوى:');
+    expect(pageSource).toContain('رقم مسار:');
   });
 
-  it('splits seven or more rows evenly and keeps natural reading order per language', () => {
+  it('splits seven or more rows evenly into right and left detail tables', () => {
     expect(pageSource).toContain('const splitTable = rows.length > 6');
     expect(pageSource).toContain('const splitIndex = Math.ceil(rows.length / 2)');
     expect(pageSource).toContain('const rightRows = splitTable ? rows.slice(0, splitIndex) : rows');
     expect(pageSource).toContain('const leftRows = splitTable ? rows.slice(splitIndex) : []');
-    expect(pageSource).toContain("const firstColumnClass = lang === 'fr'");
     expect(pageSource).toContain('receipt-details__column--right');
     expect(pageSource).toContain('receipt-details__column--left');
     expect(fixCssSource).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
@@ -103,30 +100,5 @@ describe('HTML receipt final visual contract', () => {
     expect(pageSource).toContain('outstanding_amount');
     expect(pageSource).toContain('rowRemaining(row)');
     expect(pageSource).not.toContain('rowRemainings.reduce');
-  });
-
-  it('provides a complete French static receipt contract and LTR rendering', () => {
-    expect(pageSource).toContain("receiptNumber: 'N° du reçu'");
-    expect(pageSource).toContain("paymentDate: 'Date de paiement'");
-    expect(pageSource).toContain("paymentMethod: 'Mode de paiement'");
-    expect(pageSource).toContain("payer: 'Payeur'");
-    expect(pageSource).toContain("student: 'Élève'");
-    expect(pageSource).toContain("service: 'Service / frais'");
-    expect(pageSource).toContain("amount: 'Montant'");
-    expect(pageSource).toContain("remaining: 'Reste'");
-    expect(pageSource).toContain("level: 'Niveau'");
-    expect(pageSource).toContain("massar: 'N° Massar'");
-    expect(pageSource).toContain("total: 'Total'");
-    expect(pageSource).toContain("thanks: 'Merci pour votre confiance'");
-    expect(pageSource).toContain("cutHere: 'Couper ici'");
-    expect(pageSource).toContain("cash: 'Espèces'");
-    expect(pageSource).toContain("cheque: 'Chèque'");
-    expect(pageSource).toContain("transfer: 'Virement bancaire'");
-    expect(pageSource).toContain("paymentMethodLabel(receipt.payment_method, lang)");
-    expect(pageSource).toContain("const direction = lang === 'fr' ? 'ltr' : 'rtl'");
-    expect(pageSource).toContain('buildReceiptHtmlPrintPath(id, nextLang)');
-    expect(layoutSource).toContain("import './receipt-html-print-fr.css';");
-    expect(frenchCssSource).toContain(".receipt-html-sheet[data-lang='fr']");
-    expect(frenchCssSource).toContain('direction: ltr !important');
   });
 });

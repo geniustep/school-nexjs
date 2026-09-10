@@ -4,7 +4,6 @@ import { resolveInstallmentDisplayLabel } from './resolve-installment-display';
 
 export interface StudentFinanceOverviewMetrics {
   currency: string | null;
-  billing_partner_id?: number | null;
   annual_total: number | null;
   due_to_date: number | null;
   paid: number | null;
@@ -63,7 +62,6 @@ export function resolveStudentFinanceOverviewMetrics(
 
   return {
     currency: resolveFinanceCurrency(totals.currency?.name ?? totals.currency),
-    billing_partner_id: overview.billing_profile?.billing_partner_id ?? null,
     annual_total: totals.annual_total,
     due_to_date: totals.due_to_date,
     paid: totals.paid,

@@ -1,31 +1,36 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from '@/features/i18n/locale-context';
 import {
   getAmendmentReasonPresetOptions,
   resolveAmendmentReasonPresetLabel,
   type AmendmentReasonPresetKey,
 } from './agreement-amendment-preview-model';
+import { useAgreementAmendmentAutoPreview } from './use-agreement-amendment-auto-preview';
 
 const COPY = {
   ar: {
-    label: 'سبب التعديل',
+    legend: 'سبب التعديل',
+    hint: 'اختر السبب الأقرب. يمكنك كتابة سبب مخصص عند اختيار «أخرى».',
     otherLabel: 'اكتب السبب',
     otherPlaceholder: 'مثال: تسوية استثنائية بعد مراجعة الملف…',
   },
   fr: {
-    label: 'Motif de la modification',
+    legend: 'Motif de la modification',
+    hint: 'Choisissez le motif le plus proche. « Autre » permet de saisir un motif personnalisé.',
     otherLabel: 'Précisez le motif',
     otherPlaceholder: 'Ex. régularisation exceptionnelle après révision du dossier…',
   },
   en: {
-    label: 'Reason for change',
+    legend: 'Reason for change',
+    hint: 'Choose the closest reason. Select “Other” to enter a custom reason.',
     otherLabel: 'Enter the reason',
     otherPlaceholder: 'Example: exceptional adjustment after reviewing the record…',
   },
   es: {
-    label: 'Motivo del cambio',
+    legend: 'Motivo del cambio',
+    hint: 'Elija el motivo más cercano. Seleccione «Otro» para escribir un motivo personalizado.',
     otherLabel: 'Escriba el motivo',
     otherPlaceholder: 'Ej.: ajuste excepcional tras revisar el expediente…',
   },
@@ -43,40 +48,50 @@ export function AgreementAmendmentReasonSelector({
   const { locale } = useLocale();
   const localizedCopy = COPY[locale] ?? COPY.en;
   const options = useMemo(() => getAmendmentReasonPresetOptions(locale), [locale]);
+  const [preset, setPreset] = useState<AmendmentReasonPresetKey>('manager_decision');
+  const [customReason, setCustomReason] = useState('');
+  const { rootRef, scheduleAutoPreview } = useAgreementAmendmentAutoPreview<HTMLFieldSetElement>();
 
-  const preset = useMemo<AmendmentReasonPresetKey>(() => {
-    const matched = options.find(
-      (option) => option.key !== 'other' && option.label === value.trim(),
-    );
-    if (matched) return matched.key;
-    return value.trim() ? 'other' : 'manager_decision';
-  }, [options, value]);
+  useEffect(() => {
+    if (preset === 'other') return;
+    const nextReason = resolveAmendmentReasonPresetLabel(locale, preset);
+    if (value !== nextReason) onChange(nextReason);
+  }, [locale, onChange, preset, value]);
 
   function selectPreset(nextPreset: AmendmentReasonPresetKey) {
+    setPreset(nextPreset);
     if (nextPreset === 'other') {
-      onChange('');
-      return;
+      onChange(customReason.trim());
+    } else {
+      onChange(resolveAmendmentReasonPresetLabel(locale, nextPreset));
     }
-    onChange(resolveAmendmentReasonPresetLabel(locale, nextPreset));
+    scheduleAutoPreview();
   }
 
   return (
-    <div className="student-finance-amendment-reason-selector">
-      <label className="student-finance-amendment-reason-selector__control">
-        <span>{localizedCopy.label}</span>
-        <select
-          className="input"
-          value={preset}
-          onChange={(event) => selectPreset(event.target.value as AmendmentReasonPresetKey)}
-          disabled={disabled}
-        >
-          {options.map((option) => (
-            <option key={option.key} value={option.key}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <fieldset ref={rootRef} className="student-finance-amendment-reason-selector">
+      <legend>{localizedCopy.legend}</legend>
+      <p className="tiny muted student-finance-amendment-reason-selector__hint">
+        {localizedCopy.hint}
+      </p>
+      <div className="student-finance-amendment-reason-selector__options">
+        {options.map((option) => (
+          <label
+            key={option.key}
+            className="student-finance-amendment-reason-selector__option"
+          >
+            <input
+              type="radio"
+              name="agreementAmendmentReasonPreset"
+              value={option.key}
+              checked={preset === option.key}
+              onChange={() => selectPreset(option.key)}
+              disabled={disabled}
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </div>
 
       {preset === 'other' ? (
         <label className="student-finance-amendment-reason-selector__custom">
@@ -84,14 +99,19 @@ export function AgreementAmendmentReasonSelector({
           <textarea
             className="input"
             rows={2}
-            value={value}
+            value={customReason}
             placeholder={localizedCopy.otherPlaceholder}
-            onChange={(event) => onChange(event.target.value)}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setCustomReason(nextValue);
+              onChange(nextValue.trim());
+              scheduleAutoPreview();
+            }}
             required
             disabled={disabled}
           />
         </label>
       ) : null}
-    </div>
+    </fieldset>
   );
 }
