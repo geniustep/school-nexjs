@@ -1,16 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type {
   AgreementAmendmentPeriodImpact,
   AgreementAmendmentPeriodOption,
 } from '../types/agreement-amendment';
-import {
-  formatAmendmentPreviewPeriodLabel,
-  reconcileSparsePeriodSelectionWithPreview,
-} from './agreement-amendment-preview-model';
+import { formatAmendmentPreviewPeriodLabel } from './agreement-amendment-preview-model';
 import './agreement-amendment-sparse-period-ux.css';
 
 const COPY = {
@@ -92,23 +89,6 @@ export function AgreementAmendmentSparsePeriodGrid({
       rootRef.current?.dispatchEvent(new Event('change', { bubbles: true }));
     }, 0);
   };
-
-  useEffect(() => {
-    if (!periodImpacts.length || !selectedPeriodIds.length) return;
-    const reconciled = reconcileSparsePeriodSelectionWithPreview({
-      selectedPeriodIds,
-      periodAmountOverrides,
-      periodImpacts,
-    });
-    if (!reconciled.changed) return;
-
-    for (const periodId of reconciled.blockedPeriodIds) {
-      if (selectedPeriodIds.includes(periodId)) onToggle(periodId);
-    }
-
-    // Re-run the preview only after the reduced selection has reached the form state.
-    notifyPreviewAfterStateUpdate();
-  }, [onToggle, periodAmountOverrides, periodImpacts, selectedPeriodIds]);
 
   if (loading) {
     return <span className="tiny muted">{t('common.loading')}</span>;
