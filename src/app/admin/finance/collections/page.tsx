@@ -37,10 +37,17 @@ export default function AdminFinanceCollectionsPage() {
         title={t('admin.finance.collectionsTitle')}
         subtitle={t('admin.finance.collectionsDesc')}
         actions={
-          canCollectPayments(user) && journalsAvailable ? (
-            <Link href={newCollectionHref} className="btn btn--primary btn--sm">
-              {t('admin.finance.recordCollection')}
-            </Link>
+          canCollectPayments(user) ? (
+            <>
+              <Link href="/admin/finance/collections/import" className="btn btn--ghost btn--sm">
+                استيراد التحصيلات التاريخية
+              </Link>
+              {journalsAvailable ? (
+                <Link href={newCollectionHref} className="btn btn--primary btn--sm">
+                  {t('admin.finance.recordCollection')}
+                </Link>
+              ) : null}
+            </>
           ) : undefined
         }
       />
