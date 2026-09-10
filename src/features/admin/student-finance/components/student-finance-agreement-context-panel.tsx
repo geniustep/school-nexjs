@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import { endpoints } from '@/lib/api/endpoints';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import type { StudentDetailsData } from '@/types/student-360';
 import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 import type {
@@ -15,7 +17,7 @@ import { resolveFeePlanPresentation } from '../utils/resolve-fee-plan-presentati
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { isAgreementAmendmentAllowed } from '../utils/resolve-agreement-amendment-action';
 import { StudentFinanceAgreementAmendmentDialog } from './student-finance-agreement-amendment-dialog';
-import styles from './student-finance-overview-panel.module.css';
+import styles from './student-finance-agreement-context-panel.module.css';
 
 const HISTORICAL_ONLY_LINE_STATES = new Set([
   'cancelled_historical_only',
@@ -93,16 +95,21 @@ export function StudentFinanceAgreementContextPanel({
   );
 
   const currentAgreement = agreement ?? workspace?.current_agreement ?? null;
-  const agreementLines = useMemo(
-    () => (currentAgreement?.lines ?? []).filter(shouldShowAgreementLine),
-    [currentAgreement],
+  const agreementDetailState = useAdminResource<FinancialAgreement>(
+    currentAgreement?.id ? endpoints.admin.financialAgreement(currentAgreement.id) : null,
   );
-  const canAmendAgreement = isAgreementAmendmentAllowed(workspace, currentAgreement);
+  const displayAgreement = agreementDetailState.data ?? currentAgreement;
+
+  const agreementLines = useMemo(
+    () => (displayAgreement?.lines ?? []).filter(shouldShowAgreementLine),
+    [displayAgreement],
+  );
+  const canAmendAgreement = isAgreementAmendmentAllowed(workspace, displayAgreement);
   const hasAgreementContext =
     feePlan.hasValidPlan ||
     feePlan.agreementState != null ||
     feePlan.agreementNumber != null ||
-    currentAgreement != null;
+    displayAgreement != null;
 
   const actionLabel = canAmendAgreement
     ? t('admin.student360.financeWorkspace.agreementAmendment.action')
@@ -120,27 +127,29 @@ export function StudentFinanceAgreementContextPanel({
     onOpenAgreements?.();
   };
 
+  const currency = displayAgreement?.currency?.name ?? feePlan.currency ?? undefined;
+
   return (
     <section
-      className={styles.agreementSection}
+      className={styles.section}
       aria-label={t('admin.student360.financeWorkspace.tabs.agreements')}
     >
-      <article className={`${styles.contextCard} ${styles.agreementCard}`}>
-        <header className={styles.cardHeader}>
-          <div className={styles.agreementHeading}>
-            <div>
-              <h3 className={styles.cardTitle}>
+      <article className={styles.card}>
+        <header className={styles.header}>
+          <div className={styles.identity}>
+            <div className={styles.titleBlock}>
+              <h3 className={styles.title}>
                 {t('admin.student360.financeWorkspace.tabs.agreements')}
               </h3>
               {feePlan.agreementNumber ? (
-                <p className={`${styles.cardMeta} mono`} dir="auto">
+                <p className={`${styles.reference} mono`} dir="auto">
                   {feePlan.agreementNumber}
                 </p>
               ) : null}
             </div>
             {feePlan.agreementState ? (
               <span
-                className={`${styles.statusPill} ${agreementStatusClass(feePlan.agreementUiStatus)}`}
+                className={`${styles.status} ${agreementStatusClass(feePlan.agreementUiStatus)}`}
               >
                 {resolveFinanceAgreementStateLabel(t, feePlan.agreementState, {
                   hasBillableContext: feePlan.showAsInactive,
@@ -148,6 +157,7 @@ export function StudentFinanceAgreementContextPanel({
               </span>
             ) : null}
           </div>
+
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -161,7 +171,7 @@ export function StudentFinanceAgreementContextPanel({
 
         {hasAgreementContext ? (
           <>
-            <dl className={styles.agreementFacts}>
+            <dl className={styles.facts}>
               {feePlan.feePlanName ? (
                 <div className={styles.fact}>
                   <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.feePlanName')}</dt>
@@ -172,14 +182,8 @@ export function StudentFinanceAgreementContextPanel({
                 <div className={styles.fact}>
                   <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.netAmount')}</dt>
                   <dd>
-                    <FinanceMoney amount={feePlan.netAmount} currency={feePlan.currency ?? undefined} />
+                    <FinanceMoney amount={feePlan.netAmount} currency={currency} />
                   </dd>
-                </div>
-              ) : null}
-              {feePlan.validFrom ? (
-                <div className={styles.fact}>
-                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.validFrom')}</dt>
-                  <dd>{formatDate(feePlan.validFrom)}</dd>
                 </div>
               ) : null}
               {feePlan.billingPartnerLabel ? (
@@ -188,18 +192,28 @@ export function StudentFinanceAgreementContextPanel({
                   <dd dir="auto">{feePlan.billingPartnerLabel}</dd>
                 </div>
               ) : null}
+              {feePlan.validFrom ? (
+                <div className={styles.fact}>
+                  <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.validFrom')}</dt>
+                  <dd>{formatDate(feePlan.validFrom)}</dd>
+                </div>
+              ) : null}
             </dl>
 
-            {agreementLines.length ? (
+            {agreementDetailState.initialLoading && !agreementDetailState.data ? (
+              <p className={styles.loading}>{t('common.loading')}</p>
+            ) : agreementLines.length ? (
               <section
-                className={styles.servicesSummary}
+                className={styles.lines}
                 aria-label={t('admin.student360.familyFinance.children.services')}
               >
-                <div className={styles.servicesHeader}>
-                  <h4>{t('admin.student360.familyFinance.children.services')}</h4>
-                  <span className={styles.servicesCount}>{agreementLines.length}</span>
-                </div>
-                <div className={styles.servicesList}>
+                <header className={styles.linesHeader}>
+                  <h4 className={styles.linesTitle}>
+                    {t('admin.student360.familyFinance.children.services')}
+                  </h4>
+                  <span className={styles.linesCount}>{agreementLines.length}</span>
+                </header>
+                <div className={styles.linesList}>
                   {agreementLines.map((line, index) => {
                     const label = agreementLineLabel(line) ?? t('common.dash');
                     const quantity = agreementLineQuantity(line);
@@ -208,37 +222,57 @@ export function StudentFinanceAgreementContextPanel({
                       typeof line.unit_price === 'number' && Number.isFinite(line.unit_price)
                         ? line.unit_price
                         : null;
-                    const showTotal =
-                      total != null &&
-                      (unitPrice == null || quantity == null || quantity > 1 || total !== unitPrice);
+                    const discount =
+                      typeof line.discount_amount === 'number' && line.discount_amount > 0
+                        ? line.discount_amount
+                        : null;
+                    const periodStart = line.period_start ?? line.service_from ?? null;
+                    const periodEnd = line.period_end ?? line.service_until ?? null;
 
                     return (
-                      <div
-                        key={line.id ?? `${label}-${index}`}
-                        className={styles.serviceLine}
-                      >
-                        <strong className={styles.serviceName} dir="auto">
-                          {label}
-                        </strong>
-                        <div className={styles.servicePricing}>
-                          {unitPrice != null ? (
-                            <span className={styles.serviceUnitPrice}>
-                              <FinanceMoney
-                                amount={unitPrice}
-                                currency={feePlan.currency ?? undefined}
-                              />
+                      <div key={line.id ?? `${label}-${index}`} className={styles.line}>
+                        <div className={styles.lineIdentity}>
+                          <strong className={styles.lineName} dir="auto">
+                            {label}
+                          </strong>
+                          {periodStart || periodEnd ? (
+                            <span className={styles.linePeriod}>
+                              {periodStart ? formatDate(periodStart) : t('common.dash')} —{' '}
+                              {periodEnd ? formatDate(periodEnd) : t('common.dash')}
                             </span>
                           ) : null}
-                          {quantity != null && quantity > 1 ? (
-                            <span className={styles.serviceQuantity}>× {quantity}</span>
+                        </div>
+
+                        <div className={styles.linePricing}>
+                          {unitPrice != null ? (
+                            <span className={styles.lineMetric}>
+                              {t('admin.student360.financialAgreement.columns.unitPrice')}:
+                              <strong>
+                                <FinanceMoney amount={unitPrice} currency={currency} />
+                              </strong>
+                            </span>
                           ) : null}
-                          {showTotal ? (
-                            <strong className={styles.serviceTotal}>
-                              <FinanceMoney
-                                amount={total}
-                                currency={feePlan.currency ?? undefined}
-                              />
-                            </strong>
+                          {quantity != null ? (
+                            <span className={styles.lineMetric}>
+                              {t('admin.student360.financialAgreement.columns.quantity')}:
+                              <strong>{quantity}</strong>
+                            </span>
+                          ) : null}
+                          {discount != null ? (
+                            <span className={styles.lineMetric}>
+                              {t('admin.student360.financialAgreement.columns.discount')}:
+                              <strong>
+                                <FinanceMoney amount={discount} currency={currency} />
+                              </strong>
+                            </span>
+                          ) : null}
+                          {total != null ? (
+                            <span className={`${styles.lineMetric} ${styles.lineNet}`}>
+                              {t('admin.student360.financialAgreement.columns.net')}:
+                              <strong>
+                                <FinanceMoney amount={total} currency={currency} />
+                              </strong>
+                            </span>
                           ) : null}
                         </div>
                       </div>
@@ -246,10 +280,14 @@ export function StudentFinanceAgreementContextPanel({
                   })}
                 </div>
               </section>
-            ) : null}
+            ) : (
+              <p className={styles.empty}>
+                {t('admin.student360.financeWorkspace.agreementContext.noValidFeePlan')}
+              </p>
+            )}
           </>
         ) : (
-          <p className={styles.cardEmpty}>
+          <p className={styles.empty}>
             {t('admin.student360.financeWorkspace.agreementContext.noValidFeePlan')}
           </p>
         )}
@@ -258,11 +296,12 @@ export function StudentFinanceAgreementContextPanel({
       <StudentFinanceAgreementAmendmentDialog
         open={amendmentOpen}
         studentId={studentId}
-        agreement={currentAgreement}
+        agreement={displayAgreement}
         workspaceAllowed={canAmendAgreement}
         onClose={() => setAmendmentOpen(false)}
         onSuccess={() => {
           setAmendmentOpen(false);
+          agreementDetailState.reload();
           onRefresh?.();
         }}
       />
