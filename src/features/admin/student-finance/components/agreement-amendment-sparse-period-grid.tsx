@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type {
   AgreementAmendmentPeriodImpact,
   AgreementAmendmentPeriodOption,
 } from '../types/agreement-amendment';
-import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
+import {
+  formatAmendmentPreviewPeriodLabel,
+  reconcileSparsePeriodSelectionWithPreview,
+} from './agreement-amendment-preview-model';
 import './agreement-amendment-sparse-period-ux.css';
 
 const COPY = {
@@ -81,24 +84,43 @@ export function AgreementAmendmentSparsePeriodGrid({
   const t = useT();
   const { locale } = useLocale();
   const copy = COPY[locale] ?? COPY.en;
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const [editingOverrideId, setEditingOverrideId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!periodImpacts.length || !selectedPeriodIds.length) return;
+    const reconciled = reconcileSparsePeriodSelectionWithPreview({
+      selectedPeriodIds,
+      periodAmountOverrides,
+      periodImpacts,
+    });
+    if (!reconciled.changed) return;
+
+    for (const periodId of reconciled.blockedPeriodIds) {
+      if (selectedPeriodIds.includes(periodId)) onToggle(periodId);
+    }
+
+    // Let the parent form state settle, then ask the existing auto-preview hook
+    // to verify the reduced, Odoo-amendable selection again.
+    rootRef.current?.dispatchEvent(new Event('change', { bubbles: true }));
+  }, [onToggle, periodAmountOverrides, periodImpacts, selectedPeriodIds]);
 
   if (loading) {
     return <span className="tiny muted">{t('common.loading')}</span>;
   }
 
   return (
-    <div className="student-finance-amendment-sparse-periods">
+    <div ref={rootRef} className="student-finance-amendment-sparse-periods">
       {periods.map((period) => {
         const id = String(period.id);
-        const selectable = period.selectable !== false;
+        const impact = periodImpacts.find((item) => item.effectivePeriodId === period.id) ?? null;
+        const selectable = period.selectable !== false && impact?.amendable !== false;
         const selected = selectedPeriodIds.includes(id);
         const overrideValue = periodAmountOverrides[id] ?? '';
         const hasOverride = overrideValue.trim() !== '';
-        const impact = periodImpacts.find((item) => item.effectivePeriodId === period.id) ?? null;
         const currentAmount = impact?.currentAmount ?? baseCurrentAmount ?? null;
         const proposedAmount = impact?.proposedAmount ?? null;
-        const label = formatAmendmentEffectivePeriodLabel(period, t);
+        const label = formatAmendmentPreviewPeriodLabel(period, locale);
         const editing = editingOverrideId === id;
 
         return (
