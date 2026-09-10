@@ -28,10 +28,11 @@ type StudentFinanceWorkspaceHeaderProps = {
 };
 
 /**
- * Finance is already nested inside Student 360. The finance workspace owns its
- * own compact context, so the large student profile hero is intentionally
- * suppressed while Finance is mounted. Agreement and schedule remain internal
- * routes for exceptional workflows, but are not user-facing finance tabs.
+ * Finance remains part of Student 360, so the main student profile header stays
+ * visible as the page context. Agreement and schedule remain internal routes
+ * for exceptional workflows but are not exposed as user-facing finance tabs.
+ * On the overview, the compact installment schedule is presented as a left
+ * sidebar while agreement and billing context stay in the main column.
  */
 export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHeaderProps) {
   const t = useT();
@@ -40,29 +41,102 @@ export function StudentFinanceWorkspaceHeader(_props: StudentFinanceWorkspaceHea
   return (
     <>
       <style jsx global>{`
-        .student-360-shell:has(.student-finance-workspace)
-          .student-360-profile-hero
-          .student-360-header {
-          display: none;
-        }
-
-        .student-360-shell:has(.student-finance-workspace) .student-360-profile-hero {
-          border-radius: 12px;
-          box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-        }
-
-        .student-360-shell:has(.student-finance-workspace)
-          .student-360-profile-hero
-          .student-360-tabs-sticky {
-          border-top: 0;
-          border-radius: 12px;
-        }
-
         .student-finance-workspace
           .student-finance-subtabs__group:has(.student-finance-subtabs__tab[data-tab='agreements']),
         .student-finance-workspace
           .student-finance-subtabs__group:has(.student-finance-subtabs__tab[data-tab='schedule']) {
           display: none;
+        }
+
+        .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel {
+          display: grid;
+          grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
+          align-items: start;
+          gap: 18px;
+        }
+
+        .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel
+          > .student-finance-repair-center {
+          grid-column: 1 / -1;
+        }
+
+        .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel
+          > section:not(.student-finance-repair-center) {
+          grid-area: auto;
+          grid-column: 2;
+          min-width: 0;
+        }
+
+        .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel
+          > section:last-of-type {
+          grid-area: auto;
+          grid-column: 1;
+          align-self: start;
+          position: sticky;
+          top: 16px;
+        }
+
+        [dir='rtl']
+          .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel {
+          direction: ltr;
+        }
+
+        [dir='rtl']
+          .student-finance-workspace:has(
+            .student-finance-subtabs__tab[data-tab='overview'].is-active
+          )
+          .student-finance-workspace__panel
+          > * {
+          direction: rtl;
+        }
+
+        @media (max-width: 1100px) {
+          .student-finance-workspace:has(
+              .student-finance-subtabs__tab[data-tab='overview'].is-active
+            )
+            .student-finance-workspace__panel {
+            display: block;
+            direction: inherit;
+          }
+
+          .student-finance-workspace:has(
+              .student-finance-subtabs__tab[data-tab='overview'].is-active
+            )
+            .student-finance-workspace__panel
+            > section:not(.student-finance-repair-center),
+          .student-finance-workspace:has(
+              .student-finance-subtabs__tab[data-tab='overview'].is-active
+            )
+            .student-finance-workspace__panel
+            > section:last-of-type {
+            grid-area: auto;
+            grid-column: auto;
+            position: static;
+          }
+
+          [dir='rtl']
+            .student-finance-workspace:has(
+              .student-finance-subtabs__tab[data-tab='overview'].is-active
+            )
+            .student-finance-workspace__panel
+            > * {
+            direction: inherit;
+          }
         }
       `}</style>
 
