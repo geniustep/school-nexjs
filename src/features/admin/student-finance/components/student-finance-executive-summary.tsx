@@ -1,20 +1,35 @@
 'use client';
 
-import { useMemo } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { normalizeBillingAccountSummary } from '@/lib/utils/normalize-billing-account';
+import { useLocale } from '@/features/i18n/locale-context';
 import type { ChequeSummary } from '@/types/student-financial-overview';
 import type { StudentFinanceOverviewMetrics } from '../utils/resolve-student-finance-overview';
 import styles from './student-finance-executive-summary.module.css';
 
-type MetricTone = 'neutral' | 'green' | 'amber' | 'red' | 'blue';
+type MetricTone = 'neutral' | 'success' | 'danger' | 'warning';
+type MoroccanExecutiveLabel =
+  | 'remaining'
+  | 'overdue'
+  | 'paid'
+  | 'pending'
+  | 'annualTotal'
+  | 'nextInstallment';
 
-function toneClass(tone?: MetricTone): string {
-  return tone ? `student-finance-kpi--${tone}` : 'student-finance-kpi--neutral';
+const MOROCCAN_ARABIC_LABELS: Record<MoroccanExecutiveLabel, string> = {
+  remaining: 'الباقي للأداء',
+  overdue: 'المتأخرات',
+  paid: 'المؤدى',
+  pending: 'مبلغ في انتظار التأكيد',
+  annualTotal: 'واجبات السنة',
+  nextInstallment: 'القسط المقبل',
+};
+
+function metricToneClass(tone: MetricTone): string {
+  if (tone === 'danger') return styles.metricDanger;
+  if (tone === 'success') return styles.metricSuccess;
+  if (tone === 'warning') return styles.metricWarning;
+  return styles.metricNeutral;
 }
 
 export function StudentFinanceExecutiveSummary({
@@ -28,100 +43,86 @@ export function StudentFinanceExecutiveSummary({
   billingContextHeadlineKey?: string | null;
   billingContextMessage?: string | null;
 }) {
-  const t = useT();
+  const { t, locale } = useLocale();
   const { formatDate } = useFormat();
-  const billingPartnerId = metrics?.billing_partner_id ?? null;
-  const familyState = useAdminResource<unknown>(
-    billingPartnerId ? endpoints.admin.financeBillingAccountSummary(billingPartnerId) : null,
-  );
-  const familySummary = useMemo(
-    () => normalizeBillingAccountSummary(familyState.data),
-    [familyState.data],
-  );
-
-  const { primaryKpis, secondaryKpis, health } = useMemo(() => {
-    if (!metrics) {
-      return { primaryKpis: [], secondaryKpis: [], health: null };
-    }
-
-    const currency = metrics.currency;
-    const overdue = metrics.overdue ?? 0;
-    const hasPendingCheque = metrics.has_pending_cheque;
-
-    const nextInstallmentValue =
-      metrics.next_installment_amount != null ? (
-        <span className="student-finance-kpi__next">
-          <FinanceMoney amount={metrics.next_installment_amount} currency={currency ?? undefined} />
-          {metrics.next_installment_date ? (
-            <span className="student-finance-kpi__next-date">{formatDate(metrics.next_installment_date)}</span>
-          ) : null}
-        </span>
-      ) : (
-        <span className="student-finance-kpi__empty">{t('common.dash')}</span>
-      );
-
-    const primaryKpis = [
-      {
-        key: 'remaining_actual',
-        label: t('admin.student360.financeWorkspace.executive.remainingActual'),
-        value: <FinanceMoney amount={metrics.remaining_actual} currency={currency ?? undefined} />,
-        tone: (metrics.remaining_actual ?? 0) > 0 ? ('red' as const) : ('green' as const),
-      },
-      {
-        key: 'overdue',
-        label: t('admin.student360.financeWorkspace.executive.overdue'),
-        value: <FinanceMoney amount={metrics.overdue} currency={currency ?? undefined} />,
-        tone: overdue > 0 ? ('red' as const) : ('green' as const),
-      },
-      {
-        key: 'paid_confirmed',
-        label: t('admin.student360.financeWorkspace.executive.paidConfirmed'),
-        value: <FinanceMoney amount={metrics.paid_confirmed} currency={currency ?? undefined} />,
-        tone: 'green' as const,
-      },
-    ];
-
-    const secondaryKpis = [
-      ...((metrics.unconfirmed_coverage ?? 0) > 0
-        ? [
-            {
-              key: 'unconfirmed_coverage',
-              label: t('admin.student360.financeWorkspace.executive.unconfirmedCoverage'),
-              value: (
-                <FinanceMoney
-                  amount={metrics.unconfirmed_coverage}
-                  currency={currency ?? undefined}
-                />
-              ),
-            },
-          ]
-        : []),
-      {
-        key: 'net_assessed',
-        label: t('admin.student360.financeWorkspace.executive.netAssessed'),
-        value: <FinanceMoney amount={metrics.annual_total} currency={currency ?? undefined} />,
-      },
-      {
-        key: 'next_installment',
-        label: t('admin.student360.financeWorkspace.executive.nextInstallment'),
-        value: nextInstallmentValue,
-      },
-    ];
-
-    return {
-      primaryKpis,
-      secondaryKpis,
-      health: { hasPendingCheque },
-    };
-  }, [metrics, t, formatDate]);
 
   if (!metrics) return null;
 
-  const familyStudentCount =
-    familySummary?.summary.student_count ?? familySummary?.students.length ?? 0;
-  const showFamilySummary = familyStudentCount > 1 && familySummary != null;
-  const familyName =
-    familySummary?.billing_account.display_name ?? familySummary?.billing_account.name ?? null;
+  const currency = metrics.currency;
+  const overdue = metrics.overdue ?? 0;
+  const hasPendingCheque = metrics.has_pending_cheque;
+  const isArabic = locale === 'ar';
+  const label = (key: MoroccanExecutiveLabel, translationKey: string) =>
+    isArabic ? MOROCCAN_ARABIC_LABELS[key] : t(translationKey);
+
+  const nextInstallmentValue =
+    metrics.next_installment_amount != null ? (
+      <span className={styles.metricNext}>
+        <FinanceMoney amount={metrics.next_installment_amount} currency={currency ?? undefined} />
+        {metrics.next_installment_date ? (
+          <span className={styles.metricDate}>{formatDate(metrics.next_installment_date)}</span>
+        ) : null}
+      </span>
+    ) : (
+      <span className={styles.metricEmpty}>{t('common.dash')}</span>
+    );
+
+  const summaryItems = [
+    {
+      key: 'remaining_actual',
+      label: label(
+        'remaining',
+        'admin.student360.financeWorkspace.executive.remainingActual',
+      ),
+      value: <FinanceMoney amount={metrics.remaining_actual} currency={currency ?? undefined} />,
+      tone: 'neutral' as const,
+    },
+    {
+      key: 'overdue',
+      label: label('overdue', 'admin.student360.financeWorkspace.executive.overdue'),
+      value: <FinanceMoney amount={metrics.overdue} currency={currency ?? undefined} />,
+      tone: overdue > 0 ? ('danger' as const) : ('neutral' as const),
+    },
+    {
+      key: 'paid_confirmed',
+      label: label('paid', 'admin.student360.financeWorkspace.executive.paidConfirmed'),
+      value: <FinanceMoney amount={metrics.paid_confirmed} currency={currency ?? undefined} />,
+      tone: 'success' as const,
+    },
+    ...((metrics.unconfirmed_coverage ?? 0) > 0
+      ? [
+          {
+            key: 'unconfirmed_coverage',
+            label: label(
+              'pending',
+              'admin.student360.financeWorkspace.executive.unconfirmedCoverage',
+            ),
+            value: (
+              <FinanceMoney
+                amount={metrics.unconfirmed_coverage}
+                currency={currency ?? undefined}
+              />
+            ),
+            tone: 'warning' as const,
+          },
+        ]
+      : []),
+    {
+      key: 'annual_total',
+      label: label('annualTotal', 'admin.student360.financeWorkspace.executive.netAssessed'),
+      value: <FinanceMoney amount={metrics.annual_total} currency={currency ?? undefined} />,
+      tone: 'neutral' as const,
+    },
+    {
+      key: 'next_installment',
+      label: label(
+        'nextInstallment',
+        'admin.student360.financeWorkspace.executive.nextInstallment',
+      ),
+      value: nextInstallmentValue,
+      tone: 'neutral' as const,
+    },
+  ];
 
   return (
     <section
@@ -141,78 +142,16 @@ export function StudentFinanceExecutiveSummary({
         </div>
       ) : null}
 
-      <div className={`student-finance-hero__primary ${styles.primary}`}>
-        {primaryKpis.map((item) => (
-          <article
-            key={item.key}
-            className={`student-finance-kpi student-finance-kpi--primary ${toneClass(item.tone)}`}
-          >
-            <span className="student-finance-kpi__label">{item.label}</span>
-            <span className="student-finance-kpi__value">{item.value}</span>
-          </article>
-        ))}
-      </div>
-
-      {secondaryKpis.length ? (
-        <dl className={styles.secondaryFacts}>
-          {secondaryKpis.map((item) => (
-            <div key={item.key} className={styles.secondaryFact}>
-              <dt>{item.label}</dt>
-              <dd>{item.value}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
-
-      {showFamilySummary && familySummary ? (
-        <aside className={styles.familySummary} aria-label={familyName ?? undefined}>
-          <div className={styles.familyHead}>
-            <div className={styles.familyIdentity}>
-              {familyName ? (
-                <strong className={styles.familyName} dir="auto">
-                  {familyName}
-                </strong>
-              ) : null}
-              <span className={styles.familyCount}>
-                {t('admin.finance.billingAccounts.studentCountLabel', {
-                  count: String(familyStudentCount),
-                })}
-              </span>
-            </div>
+      <dl className={styles.metricStrip}>
+        {summaryItems.map((item) => (
+          <div key={item.key} className={`${styles.metric} ${metricToneClass(item.tone)}`}>
+            <dt className={styles.metricLabel}>{item.label}</dt>
+            <dd className={styles.metricValue}>{item.value}</dd>
           </div>
-          <dl className={styles.familyMetrics}>
-            <div className={styles.familyMetric}>
-              <dt>{t('admin.student360.financeWorkspace.executive.remainingActual')}</dt>
-              <dd>
-                <FinanceMoney
-                  amount={familySummary.summary.total_remaining}
-                  currency={familySummary.summary.currency}
-                />
-              </dd>
-            </div>
-            <div className={styles.familyMetric}>
-              <dt>{t('admin.student360.financeWorkspace.executive.overdue')}</dt>
-              <dd>
-                <FinanceMoney
-                  amount={familySummary.summary.total_overdue}
-                  currency={familySummary.summary.currency}
-                />
-              </dd>
-            </div>
-            <div className={styles.familyMetric}>
-              <dt>{t('admin.student360.financeWorkspace.executive.paidConfirmed')}</dt>
-              <dd>
-                <FinanceMoney
-                  amount={familySummary.summary.confirmed_paid}
-                  currency={familySummary.summary.currency}
-                />
-              </dd>
-            </div>
-          </dl>
-        </aside>
-      ) : null}
+        ))}
+      </dl>
 
-      {health?.hasPendingCheque ? (
+      {hasPendingCheque ? (
         <div className="student-finance-hero__insight" role="note">
           <div className="student-finance-hero__insight-icon" aria-hidden="true">
             !

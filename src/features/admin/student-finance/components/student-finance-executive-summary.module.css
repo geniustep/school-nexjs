@@ -1,123 +1,86 @@
 .summaryRoot:global(.student-finance-hero) {
-  padding-block: 14px;
+  padding-block: 12px;
 }
 
-.primary :global(.student-finance-kpi) {
-  min-height: 0;
-  padding: 12px 14px;
-}
-
-.primary :global(.student-finance-kpi__value) {
-  margin-top: 3px;
-}
-
-.secondaryFacts {
+.metricStrip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin: 10px 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 1px;
+  margin: 0;
   padding: 0;
-  border: 1px solid var(--c-border-subtle, #eef2f7);
-  border-radius: 10px;
   overflow: hidden;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
   background: var(--c-border-subtle, #eef2f7);
 }
 
-.secondaryFact {
+.metric {
   min-width: 0;
-  padding: 7px 11px;
+  min-height: 72px;
+  padding: 10px 12px;
   background: var(--surface, #fff);
 }
 
-.secondaryFact + .secondaryFact {
-  border-inline-start: 1px solid var(--c-border-subtle, #eef2f7);
-}
-
-.secondaryFact dt {
+.metricLabel {
   margin: 0;
-  font-size: 0.68rem;
-  font-weight: 600;
   color: var(--text-muted, #64748b);
-}
-
-.secondaryFact dd {
-  margin: 2px 0 0;
-  font-size: 0.82rem;
+  font-size: 0.68rem;
   font-weight: 650;
+}
+
+.metricValue {
+  margin: 5px 0 0;
+  color: var(--text, #0f172a);
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.metricNeutral .metricValue {
   color: var(--text, #0f172a);
 }
 
-.familySummary {
-  margin-top: 10px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 12%, var(--c-border, #e2e8f0));
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--c-primary, #2563eb) 3%, var(--surface, #fff));
+.metricDanger .metricValue {
+  color: var(--c-danger, #dc2626);
 }
 
-.familyHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 12px;
+.metricSuccess .metricValue {
+  color: var(--c-success, #15803d);
 }
 
-.familyIdentity {
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
+.metricWarning .metricValue {
+  color: var(--c-warning, #b45309);
 }
 
-.familyName {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text, #0f172a);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.familyCount {
-  font-size: 0.68rem;
-  color: var(--text-muted, #64748b);
-  white-space: nowrap;
-}
-
-.familyMetrics {
+.metricNext {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin: 8px 0 0;
-  padding: 0;
+  gap: 3px;
 }
 
-.familyMetric {
-  min-width: 0;
+.metricDate {
+  color: var(--text-muted, #64748b);
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
-.familyMetric dt {
-  margin: 0;
-  font-size: 0.64rem;
+.metricEmpty {
   color: var(--text-muted, #64748b);
 }
 
-.familyMetric dd {
-  margin: 2px 0 0;
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: var(--text, #0f172a);
+@media (max-width: 900px) {
+  .metricStrip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 720px) {
-  .secondaryFacts,
-  .familyMetrics {
-    grid-template-columns: 1fr;
+@media (max-width: 620px) {
+  .metricStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .secondaryFact + .secondaryFact {
-    border-inline-start: 0;
-    border-top: 1px solid var(--c-border-subtle, #eef2f7);
+@media (max-width: 420px) {
+  .metricStrip {
+    grid-template-columns: 1fr;
   }
 }
