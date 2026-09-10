@@ -42,11 +42,15 @@ describe('Finance Amendment Studio live-preview layout contract', () => {
     expect(css).toContain('.student-finance-amendment-line-picker__card--selected');
   });
 
-  it('requests preview automatically after form input/change and guards busy preview state', () => {
+  it('requests preview automatically through the React submit handler without native submitter gates', () => {
     expect(autoPreviewSource).toContain("form.addEventListener('input'");
     expect(autoPreviewSource).toContain("form.addEventListener('change'");
-    expect(autoPreviewSource).toContain('form.requestSubmit()');
-    expect(autoPreviewSource).toContain('submitter?.disabled');
-    expect(autoPreviewSource).toContain('BUSY_RETRY_DELAY_MS');
+    expect(autoPreviewSource).toContain(
+      "dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))",
+    );
+    expect(autoPreviewSource).not.toContain('form.requestSubmit()');
+    expect(autoPreviewSource).not.toContain('form.checkValidity()');
+    expect(autoPreviewSource).not.toContain('submitter?.disabled');
+    expect(autoPreviewSource).not.toContain('BUSY_RETRY_DELAY_MS');
   });
 });
