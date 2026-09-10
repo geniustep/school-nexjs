@@ -53,6 +53,7 @@ export function StudentFinanceOverviewPanel({
       billingPartyType: financialOverview?.billing_profile?.billing_party_type,
       t,
     });
+  const resolvedBillingLabel = billingLabel || t('common.dash');
 
   const familyState = useStudentFamilyFinanceSummary(studentId, true, financeRefreshSignal);
   const family = familyState.data;
@@ -118,7 +119,7 @@ export function StudentFinanceOverviewPanel({
             ) : null}
           </header>
           <p className={styles.responsibleName} dir="auto">
-            {billingLabel || t('common.dash')}
+            {resolvedBillingLabel}
           </p>
         </article>
 
@@ -160,7 +161,7 @@ export function StudentFinanceOverviewPanel({
         open={billingAuthorityDialogOpen}
         studentId={studentId}
         details={details}
-        currentAuthorityName={billingLabel || null}
+        currentAuthorityName={resolvedBillingLabel}
         onClose={() => setBillingAuthorityDialogOpen(false)}
         onSuccess={() => {
           setBillingAuthorityDialogOpen(false);
