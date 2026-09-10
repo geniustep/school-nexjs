@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
@@ -12,6 +13,11 @@ import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/fin
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import '@/features/admin/finance/finance-ui.css';
 
+const HISTORICAL_COLLECTION_PRODUCTION_HOSTS = new Set([
+  'alwah.raqeem.ma',
+  'nibras.raqeem.ma',
+]);
+
 export default function AdminFinanceCollectionsPage() {
   const t = useT();
   const user = useSession();
@@ -20,6 +26,11 @@ export default function AdminFinanceCollectionsPage() {
   const billingPartnerIdFilter = searchParams.get('billing_partner_id') ?? '';
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/collections');
   const { available: journalsAvailable } = useFinanceJournalsAvailable();
+  const [historicalImportEnabled, setHistoricalImportEnabled] = useState(false);
+
+  useEffect(() => {
+    setHistoricalImportEnabled(HISTORICAL_COLLECTION_PRODUCTION_HOSTS.has(window.location.hostname.toLowerCase()));
+  }, []);
 
   const newCollectionHref = appendReturnTo(
     studentIdFilter
@@ -37,10 +48,19 @@ export default function AdminFinanceCollectionsPage() {
         title={t('admin.finance.collectionsTitle')}
         subtitle={t('admin.finance.collectionsDesc')}
         actions={
-          canCollectPayments(user) && journalsAvailable ? (
-            <Link href={newCollectionHref} className="btn btn--primary btn--sm">
-              {t('admin.finance.recordCollection')}
-            </Link>
+          canCollectPayments(user) ? (
+            <>
+              {historicalImportEnabled ? (
+                <Link href="/admin/finance/collections/import" className="btn btn--ghost btn--sm">
+                  استيراد التحصيلات التاريخية
+                </Link>
+              ) : null}
+              {journalsAvailable ? (
+                <Link href={newCollectionHref} className="btn btn--primary btn--sm">
+                  {t('admin.finance.recordCollection')}
+                </Link>
+              ) : null}
+            </>
           ) : undefined
         }
       />
