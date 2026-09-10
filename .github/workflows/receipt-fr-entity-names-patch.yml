@@ -1,0 +1,107 @@
+name: Temporary receipt French entity names patch
+
+on:
+  push:
+    branches:
+      - fix/receipt-fr-entity-names-20260910
+
+permissions:
+  contents: write
+
+jobs:
+  patch-page:
+    if: ${{ !contains(github.event.head_commit.message, '[receipt-fr-page-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/receipt-fr-entity-names-20260910
+          fetch-depth: 0
+      - name: Patch receipt print page
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/app/admin/finance/receipts/[id]/print/page.tsx')
+          text = path.read_text()
+
+          def replace_once(old, new):
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'expected exactly one match, got {count}: {old[:120]!r}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              "import './receipt-html-print.css';\n",
+              "import {\n  type ReceiptFrenchEntityNames,\n  useReceiptFrenchEntityNames,\n} from './use-receipt-french-entity-names';\nimport './receipt-html-print.css';\n",
+          )
+
+          replace_once(
+              "function ReceiptCopy({\n  receipt,\n  lang,\n  copy,\n}: {\n  receipt: FinanceReceipt;\n  lang: ReceiptHtmlPrintLang;\n  copy: CopyKind;\n}) {",
+              "function ReceiptCopy({\n  receipt,\n  lang,\n  copy,\n  frenchNames,\n}: {\n  receipt: FinanceReceipt;\n  lang: ReceiptHtmlPrintLang;\n  copy: CopyKind;\n  frenchNames: ReceiptFrenchEntityNames;\n}) {",
+          )
+
+          replace_once(
+              "  const rows = receiptRows(receipt);\n",
+              "  const rows = receiptRows(receipt).map((row) => {\n    const localizedStudentName =\n      lang === 'fr' && row.studentDisplay.id\n        ? frenchNames.studentNames[row.studentDisplay.id]\n        : undefined;\n    return localizedStudentName\n      ? {\n          ...row,\n          studentDisplay: { ...row.studentDisplay, name: localizedStudentName },\n        }\n      : row;\n  });\n",
+          )
+
+          replace_once(
+              "  const payerName =\n    receipt.actual_payer_name?.trim() ||\n    snapshot?.payer?.name ||\n    receipt.payer_name ||\n    receipt.billing_partner_name ||\n    '—';",
+              "  const payerName =\n    receipt.actual_payer_name?.trim() ||\n    (lang === 'fr' && frenchNames.payerName) ||\n    snapshot?.payer?.name ||\n    receipt.payer_name ||\n    receipt.billing_partner_name ||\n    '—';",
+          )
+
+          replace_once(
+              "  const schoolName = school?.name ?? 'Raqeem School';\n",
+              "  const schoolName =\n    (lang === 'fr' && frenchNames.schoolName) || school?.name || 'Raqeem School';\n",
+          )
+
+          replace_once(
+              "function DoubleReceiptSheet({ receipt, lang }: { receipt: FinanceReceipt; lang: ReceiptHtmlPrintLang }) {",
+              "function DoubleReceiptSheet({\n  receipt,\n  lang,\n  frenchNames,\n}: {\n  receipt: FinanceReceipt;\n  lang: ReceiptHtmlPrintLang;\n  frenchNames: ReceiptFrenchEntityNames;\n}) {",
+          )
+
+          replace_once(
+              "      <ReceiptCopy receipt={receipt} lang={lang} copy=\"admin\" />",
+              "      <ReceiptCopy receipt={receipt} lang={lang} copy=\"admin\" frenchNames={frenchNames} />",
+          )
+          replace_once(
+              "      <ReceiptCopy receipt={receipt} lang={lang} copy=\"payer\" />",
+              "      <ReceiptCopy receipt={receipt} lang={lang} copy=\"payer\" frenchNames={frenchNames} />",
+          )
+
+          replace_once(
+              "  const receipt = useMemo(\n    () => (state.data ? normalizeFinanceReceipt(state.data) : null),\n    [state.data],\n  );\n",
+              "  const receipt = useMemo(\n    () => (state.data ? normalizeFinanceReceipt(state.data) : null),\n    [state.data],\n  );\n  const frenchNames = useReceiptFrenchEntityNames(receipt, lang);\n",
+          )
+
+          replace_once(
+              "    if (!autoPrint || !canPrint || !receipt || printedRef.current) return;",
+              "    if (!autoPrint || !canPrint || !receipt || frenchNames.loading || printedRef.current) return;",
+          )
+          replace_once(
+              "  }, [autoPrint, canPrint, receipt]);",
+              "  }, [autoPrint, canPrint, frenchNames.loading, receipt]);",
+          )
+
+          replace_once(
+              "        {receipt && canPrint ? <DoubleReceiptSheet receipt={receipt} lang={lang} /> : null}",
+              "        {receipt && canPrint ? (\n          <DoubleReceiptSheet receipt={receipt} lang={lang} frenchNames={frenchNames} />\n        ) : null}",
+          )
+
+          path.write_text(text)
+          PY
+      - name: Commit bounded page wiring
+        shell: bash
+        run: |
+          if git diff --quiet -- 'src/app/admin/finance/receipts/[id]/print/page.tsx'; then
+            echo 'No page patch required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- 'src/app/admin/finance/receipts/[id]/print/page.tsx'
+          git commit -m 'fix(finance): wire French receipt entity names [receipt-fr-page-patched]'
+          git push origin HEAD:fix/receipt-fr-entity-names-20260910
