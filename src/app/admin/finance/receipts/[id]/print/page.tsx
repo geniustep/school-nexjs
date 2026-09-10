@@ -20,6 +20,10 @@ import {
   useReceiptFrenchIdentities,
   type ReceiptLocalizedIdentities,
 } from './receipt-localized-identities';
+import {
+  receiptPaymentMethodLabel,
+  receiptServiceLabel,
+} from './receipt-payment-presentation';
 import type {
   FinanceReceipt,
   FinanceReceiptAllocation,
@@ -203,31 +207,6 @@ function formatMoney(
     maximumFractionDigits: 2,
   }).format(amount);
   return `${value} ${currency || 'MAD'}`;
-}
-
-function paymentMethodLabel(method: string | undefined, lang: ReceiptHtmlPrintLang): string {
-  const normalized = (method ?? '').trim().toLowerCase();
-  const labels: Record<ReceiptHtmlPrintLang, Record<string, string>> = {
-    ar: {
-      cash: 'نقدًا',
-      cheque: 'شيك',
-      check: 'شيك',
-      transfer: 'تحويل بنكي',
-      bank: 'تحويل بنكي',
-      card: 'بطاقة',
-      import_unspecified: 'غير محدد',
-    },
-    fr: {
-      cash: 'Espèces',
-      cheque: 'Chèque',
-      check: 'Chèque',
-      transfer: 'Virement bancaire',
-      bank: 'Virement bancaire',
-      card: 'Carte',
-      import_unspecified: 'Non précisé',
-    },
-  };
-  return labels[lang][normalized] ?? method ?? '—';
 }
 
 function issuedByName(receipt: FinanceReceipt): string | null {
@@ -519,7 +498,7 @@ function ReceiptTable({
             key={`${row.id ?? row.installment_id ?? index}-${index}`}
           >
             <span role="cell"><StudentMeta student={row.studentDisplay} lang={lang} /></span>
-            <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
+            <span role="cell" dir="auto">{receiptServiceLabel(row, lang)}</span>
             <strong role="cell" dir="ltr">
               {formatMoney(row.amount, receipt.currency, lang)}
               {rowBalance != null && rowBalance > 0 ? (
@@ -581,7 +560,7 @@ function ReceiptCopy({
     'Raqeem School';
   const schoolCode = school?.code?.trim() || null;
   const issuer = issuedByName(receipt);
-  const method = paymentMethodLabel(receipt.payment_method, lang);
+  const method = receiptPaymentMethodLabel(receipt.payment_method, lang);
   const remaining = receiptRemaining(receipt);
   const text = UI_TEXT[lang];
   const direction = lang === 'fr' ? 'ltr' : 'rtl';
