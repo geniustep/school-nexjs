@@ -143,9 +143,9 @@ export interface NormalizedAgreementAmendmentPreview {
   delta: number | null;
   currency: string | null;
   pricingContract: AgreementAmendmentPricingContract | null;
-  selectionMode: string | null;
-  selectedPeriodIds: number[];
-  periodImpacts: AgreementAmendmentPeriodImpact[];
+  selectionMode?: string | null;
+  selectedPeriodIds?: number[];
+  periodImpacts?: AgreementAmendmentPeriodImpact[];
   affectedPeriods: string[];
   lockedPeriods: string[];
   warnings: AgreementAmendmentWarning[];
