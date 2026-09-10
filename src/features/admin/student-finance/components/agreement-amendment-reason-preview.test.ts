@@ -36,6 +36,14 @@ const sparseGridSource = readFileSync(
   join(componentsDir, 'agreement-amendment-sparse-period-grid.tsx'),
   'utf8',
 );
+const autoPreviewSource = readFileSync(
+  join(componentsDir, 'use-agreement-amendment-auto-preview.ts'),
+  'utf8',
+);
+const feedbackCssSource = readFileSync(
+  join(componentsDir, 'agreement-amendment-feedback.css'),
+  'utf8',
+);
 
 describe('Finance Amendment reason and sparse-period UX contract', () => {
   it('keeps management decision first and uses it as the default reason', () => {
@@ -104,7 +112,7 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     ).toEqual(['شتنبر 2026', 'أكتوبر 2026']);
   });
 
-  it('removes Odoo-blocked months and their special prices from sparse selection', () => {
+  it('removes blocked months and their special prices from sparse selection', () => {
     const result = reconcileSparsePeriodSelectionWithPreview({
       selectedPeriodIds: ['291', '292', '293'],
       periodAmountOverrides: { '292': '900', '293': '1200' },
@@ -118,7 +126,14 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(result.selectedPeriodIds).toEqual(['291', '293']);
     expect(result.periodAmountOverrides).toEqual({ '293': '1200' });
     expect(result.changed).toBe(true);
+  });
+
+  it('reruns preview after sparse period state settles and reacts to sparse controls', () => {
+    expect(sparseGridSource).toContain('notifyPreviewAfterStateUpdate');
+    expect(sparseGridSource).toContain('window.setTimeout');
     expect(sparseGridSource).toContain("dispatchEvent(new Event('change', { bubbles: true }))");
+    expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__toggle");
+    expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__override");
   });
 
   it('restores modify, add, and remove operations with modify as the default', () => {
@@ -139,15 +154,21 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(dialogSource).not.toContain('previewReady && preview?.canApply ? (');
   });
 
-  it('keeps the preview backend-authoritative and shows Odoo-confirmed impact', () => {
-    expect(previewSource).toContain('النتيجة المالية المؤكدة من Odoo');
+  it('keeps the financial preview implementation-neutral for the end user', () => {
+    expect(previewSource).toContain('المعاينة المالية قبل التفعيل');
+    expect(previewSource).toContain('تم تحديث المعاينة');
+    expect(previewSource).toContain('الأشهر المتأثرة');
+    expect(previewSource).toContain('التغييرات المتوقعة');
+    expect(previewSource).not.toContain('Odoo');
+    expect(feedbackCssSource).toContain('.student-finance-amendment-form__action-note');
+    expect(feedbackCssSource).toContain('display: none');
     expect(previewSource).toContain('preview.createdInstallments.length');
     expect(previewSource).toContain('preview.updatedInstallments.length');
     expect(previewSource).toContain('preview.cancelledInstallments.length');
     expect(previewSource).toContain('periodImpacts.map');
   });
 
-  it('uses Odoo annual totals directly and never recomputes the annual agreement from services', () => {
+  it('uses authoritative annual totals directly and never recomputes the annual agreement from services', () => {
     const summary = buildAgreementAnnualSummary({
       id: 42,
       student_id: 7,
