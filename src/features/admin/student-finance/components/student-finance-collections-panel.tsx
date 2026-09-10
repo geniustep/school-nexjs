@@ -18,9 +18,13 @@ import { EmptyState } from '@/components/states/states';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
-import { FamilyCollectionContextSection } from './family-collection-context-section';
 import { StudentFinanceChequesPanel } from './student-finance-cheques-panel';
+import styles from './student-finance-collections-panel.module.css';
 
+/**
+ * Collections is a read/review workspace inside Student 360. Payment entry and
+ * open-installment selection intentionally live outside this page.
+ */
 export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) {
   const {
     studentId,
@@ -28,8 +32,6 @@ export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) 
     financialOverview,
     financeRefreshSignal = 0,
     canViewPayments,
-    canCollect,
-    onOpenCollection,
   } = props;
   const { t, locale } = useLocale();
   const { formatDate } = useFormat();
@@ -57,31 +59,37 @@ export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) 
         key: 'method',
         header: t('admin.student360.financeOps.collections.method'),
         render: (row) => {
-          const label = paymentMethodLabel(row.payment_method, t, locale);
-          if (isChequePayment(row.payment_method) && row.state !== 'cancelled') {
-            return `${label} — ${t('admin.student360.financeWorkspace.collections.pendingCheque')}`;
-          }
-          return label;
+          const method = paymentMethodLabel(row.payment_method, t, locale);
+          const methodLabel =
+            isChequePayment(row.payment_method) && row.state !== 'cancelled'
+              ? `${method} — ${t('admin.student360.financeWorkspace.collections.pendingCheque')}`
+              : method;
+          const payer =
+            row.payer_name?.trim() ||
+            resolveCollectionPayerLabel(
+              {
+                payer_name: row.payer_name,
+                billing_partner_name: (row as { billing_partner_name?: string }).billing_partner_name,
+                billing_partner: row.billing_partner,
+              },
+              t('common.dash'),
+            );
+
+          return (
+            <div className={styles.methodCell}>
+              <span className={styles.methodName}>{methodLabel}</span>
+              <span className={styles.payer} dir="auto">
+                {payer}
+              </span>
+            </div>
+          );
         },
-      },
-      {
-        key: 'payer',
-        header: t('admin.student360.financeOps.collections.payer'),
-        render: (row) =>
-          row.payer_name?.trim() ||
-          resolveCollectionPayerLabel(
-            {
-              payer_name: row.payer_name,
-              billing_partner_name: (row as { billing_partner_name?: string }).billing_partner_name,
-              billing_partner: row.billing_partner,
-            },
-            t('common.dash'),
-          ),
       },
       {
         key: 'receipt',
         header: t('admin.finance.receiptNumber'),
-        render: (row) => row.receipt_number ?? (row.receipt_id ? `#${row.receipt_id}` : t('common.dash')),
+        render: (row) =>
+          row.receipt_number ?? (row.receipt_id ? `#${row.receipt_id}` : t('common.dash')),
       },
       {
         key: 'state',
@@ -96,63 +104,52 @@ export function StudentFinanceCollectionsPanel(props: StudentFinancePanelProps) 
 
   return (
     <>
-      <FamilyCollectionContextSection
-        studentId={studentId}
-        familyId={financialOverview?.billing_profile?.billing_partner_id ?? workspace?.billing_partner?.id}
-        refreshSignal={financeRefreshSignal}
-      />
-
-      <Card className="student-finance-section">
-        <Student360SectionHeader
-          title={t('admin.student360.financeWorkspace.tabs.collections')}
-          description={t('admin.student360.financeWorkspace.collections.description')}
-          action={
-            <div className="row">
-              {canCollect ? (
-                <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
-                  {t('admin.finance.collectionWorkflow.recordPayment')}
-                </button>
-              ) : null}
+      <div className={styles.layout}>
+        <Card className={`student-finance-section ${styles.primaryCard}`}>
+          <Student360SectionHeader
+            title={t('admin.student360.financeWorkspace.tabs.collections')}
+            description={t('admin.student360.financeWorkspace.collections.description')}
+            action={
               <Link
                 href={`/admin/finance/collections?student_id=${studentId}`}
                 className="btn btn--ghost btn--sm"
               >
                 {t('admin.student360.financeOps.viewAllCollections')}
               </Link>
+            }
+          />
+
+          {collections.length === 0 ? (
+            <EmptyState title={t('admin.student360.financeWorkspace.collections.emptyTitle')} />
+          ) : (
+            <div className="student-finance-table-wrap">
+              <DataTable
+                columns={collectionColumns}
+                rows={collections}
+                rowKey={(row) => row.id}
+                onRowClick={(row) => setSelectedCollectionId(row.id)}
+              />
             </div>
-          }
-        />
-
-        {collections.length === 0 ? (
-          <EmptyState title={t('admin.student360.financeWorkspace.collections.emptyTitle')} />
-        ) : (
-          <div className="student-finance-table-wrap">
-            <DataTable
-              columns={collectionColumns}
-              rows={collections}
-              rowKey={(row) => row.id}
-              onRowClick={(row) => setSelectedCollectionId(row.id)}
-            />
-          </div>
-        )}
-      </Card>
-
-      {canViewPayments ? (
-        <Card className="student-finance-section">
-          <StudentReceiptsSection studentId={studentId} refreshSignal={financeRefreshSignal} />
+          )}
         </Card>
-      ) : null}
 
-      <section
-        className="student-finance-collections-cheques"
-        aria-label={t('admin.student360.financeWorkspace.tabs.cheques')}
-      >
-        <Student360SectionHeader
-          title={t('admin.student360.financeWorkspace.tabs.cheques')}
-          description={t('admin.student360.financeWorkspace.cheques.sectionDescription')}
-        />
-        <StudentFinanceChequesPanel {...props} />
-      </section>
+        {canViewPayments ? (
+          <Card className={`student-finance-section ${styles.receiptsCard}`}>
+            <StudentReceiptsSection studentId={studentId} refreshSignal={financeRefreshSignal} />
+          </Card>
+        ) : null}
+
+        <section
+          className={`${styles.chequesSection} student-finance-collections-cheques`}
+          aria-label={t('admin.student360.financeWorkspace.tabs.cheques')}
+        >
+          <Student360SectionHeader
+            title={t('admin.student360.financeWorkspace.tabs.cheques')}
+            description={t('admin.student360.financeWorkspace.cheques.sectionDescription')}
+          />
+          <StudentFinanceChequesPanel {...props} />
+        </section>
+      </div>
 
       <CollectionDetailDrawer
         open={selectedCollectionId != null}
