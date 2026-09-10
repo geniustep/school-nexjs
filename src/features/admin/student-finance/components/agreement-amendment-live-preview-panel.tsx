@@ -75,6 +75,7 @@ export function AgreementAmendmentLivePreviewPanel({
   const t = useT();
   const copy = COPY[locale] ?? COPY.en;
   const selectedPeriodIds = form.selectedPeriodIds ?? [];
+  const periodImpacts = preview?.periodImpacts ?? [];
   const readyForBackend = canSubmitAgreementAmendmentForm(form, selectedLine);
   const selectedMonthLabels = selectedPeriodIds
     .map((periodId) => periods.find((period) => String(period.id) === periodId))
@@ -171,11 +172,11 @@ export function AgreementAmendmentLivePreviewPanel({
             ) : null}
           </section>
 
-          {preview.periodImpacts.length ? (
+          {periodImpacts.length ? (
             <section className="student-finance-amendment-live-preview__section">
               <h4>{copy.monthDetails}</h4>
               <div className="student-finance-amendment-live-preview__period-impacts">
-                {preview.periodImpacts.map((impact, index) => (
+                {periodImpacts.map((impact, index) => (
                   <article key={`${impact.effectivePeriodId ?? 'period'}-${impact.periodKey ?? index}`} className="student-finance-amendment-live-preview__period-impact">
                     <strong dir="auto">{impact.label ?? impact.periodKey ?? '—'}</strong>
                     <div className="student-finance-amendment-live-preview__period-impact-money">
