@@ -1,0 +1,213 @@
+/** 
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * Month-first collection report period control. The two legacy period blocks
+ * in CollectionReportsOperationsPanel are hidden while the rest of that panel
+ * remains unchanged.
+ */
+
+.finance-collection-period {
+  display: grid;
+  gap: 12px;
+  margin-block-end: 10px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary, #243b6b) 18%, var(--c-border, #e2e8f0));
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--raqeem-primary, #243b6b) 5%, transparent);
+}
+
+.finance-collection-period__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.finance-collection-period__title {
+  color: var(--c-text, #0f172a);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.finance-collection-period__modes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.finance-collection-period__month-row {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.finance-collection-period__field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.finance-collection-period__field label {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.finance-collection-period__field--month {
+  flex: 1 1 210px;
+}
+
+.finance-collection-period__field--year {
+  flex: 0 1 126px;
+}
+
+.finance-collection-period__nav {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface, #fff);
+  color: var(--raqeem-primary, #243b6b);
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.finance-collection-period__nav:hover,
+.finance-collection-period__nav:focus-visible {
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 48%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 5%, var(--c-surface, #fff));
+  outline: none;
+}
+
+.finance-collection-period__today {
+  min-height: 38px;
+}
+
+.finance-collection-period__custom {
+  display: grid;
+  gap: 8px;
+}
+
+.finance-collection-period__hint {
+  margin: 0;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.finance-collection-period__custom-fields {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.finance-collection-period__apply {
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.finance-collection-period__error {
+  margin: 0;
+  color: var(--c-danger, #b42318);
+  font-size: 0.78rem;
+}
+
+.finance-collection-period__shown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.finance-collection-period__shown strong {
+  color: var(--c-text, #0f172a);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Transitional replacement: the new month/custom control owns the period UX.
+ * display:none removes the legacy controls from both layout and accessibility tree.
+ */
+.finance-collection-reports-ops > .finance-collection-reports-ops__date-presets,
+.finance-collection-reports-ops > .finance-collection-reports-ops__custom-range {
+  display: none !important;
+}
+
+/* The period is now a first-class control above the filters, so the legacy
+ * date chip is redundant. Keep all non-date filter chips untouched.
+ */
+.finance-collection-period[data-legacy-date-chip='true']
+  + .finance-collection-reports-ops
+  .finance-collection-reports-ops__chip:first-child {
+  display: none;
+}
+
+.finance-collection-period[data-legacy-date-chip='true']
+  + .finance-collection-reports-ops
+  .finance-collection-reports-ops__active-filters:has(.finance-collection-reports-ops__chip:only-child) {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .finance-collection-period__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .finance-collection-period__modes {
+    width: 100%;
+  }
+
+  .finance-collection-period__modes .finance-collection-reports__seg {
+    flex: 1 1 0;
+  }
+
+  .finance-collection-period__month-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(94px, 0.55fr) auto;
+    align-items: end;
+  }
+
+  .finance-collection-period__today {
+    grid-column: 2 / 4;
+  }
+
+  .finance-collection-period__custom-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-collection-period__apply {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .finance-collection-period {
+    padding: 12px;
+  }
+
+  .finance-collection-period__month-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .finance-collection-period__field--year {
+    grid-column: 2;
+  }
+
+  .finance-collection-period__today {
+    grid-column: 2;
+  }
+}
