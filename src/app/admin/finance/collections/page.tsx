@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { CollectionsListPanel } from '@/features/admin/finance/collections-list-panel';
@@ -12,6 +13,8 @@ import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/fin
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import '@/features/admin/finance/finance-ui.css';
 
+const HISTORICAL_COLLECTION_PRODUCTION_HOSTS = new Set(['alwah.raqeem.app', 'nibras.raqeem.app']);
+
 export default function AdminFinanceCollectionsPage() {
   const t = useT();
   const user = useSession();
@@ -20,6 +23,11 @@ export default function AdminFinanceCollectionsPage() {
   const billingPartnerIdFilter = searchParams.get('billing_partner_id') ?? '';
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/collections');
   const { available: journalsAvailable } = useFinanceJournalsAvailable();
+  const [isHistoricalCollectionProductionHost, setIsHistoricalCollectionProductionHost] = useState(false);
+
+  useEffect(() => {
+    setIsHistoricalCollectionProductionHost(HISTORICAL_COLLECTION_PRODUCTION_HOSTS.has(window.location.hostname));
+  }, []);
 
   const newCollectionHref = appendReturnTo(
     studentIdFilter
@@ -39,9 +47,11 @@ export default function AdminFinanceCollectionsPage() {
         actions={
           canCollectPayments(user) ? (
             <>
-              <Link href="/admin/finance/collections/import" className="btn btn--ghost btn--sm">
-                استيراد التحصيلات التاريخية
-              </Link>
+              {isHistoricalCollectionProductionHost ? (
+                <Link href="/admin/finance/collections/import" className="btn btn--ghost btn--sm">
+                  استيراد التحصيلات التاريخية
+                </Link>
+              ) : null}
               {journalsAvailable ? (
                 <Link href={newCollectionHref} className="btn btn--primary btn--sm">
                   {t('admin.finance.recordCollection')}
