@@ -483,16 +483,17 @@ export function StudentFinanceAgreementAmendmentDialog({
 
     setAmbiguousCandidates([]);
     const normalized = normalizeAgreementAmendmentPreview(res.data);
+    const periodImpacts = normalized.periodImpacts ?? [];
 
     if (
       allowSparseReconcile &&
       candidateForm.operationType === 'modify_line' &&
-      normalized.periodImpacts.length
+      periodImpacts.length
     ) {
       const reconciled = reconcileSparsePeriodSelectionWithPreview({
         selectedPeriodIds: candidateForm.selectedPeriodIds,
         periodAmountOverrides: candidateForm.periodAmountOverrides,
-        periodImpacts: normalized.periodImpacts,
+        periodImpacts,
       });
 
       if (reconciled.changed) {
