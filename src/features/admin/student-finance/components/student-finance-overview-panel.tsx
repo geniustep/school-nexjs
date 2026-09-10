@@ -8,6 +8,7 @@ import { StudentSectionSkeleton } from '@/features/admin/students/components/stu
 import { useFormat } from '@/features/i18n/use-format';
 import { useLocale } from '@/features/i18n/locale-context';
 import { refName } from '@/lib/utils/finance';
+import { formatFamilyChildClassLevel } from '@/lib/utils/normalize-family-finance';
 import type { StudentFinanceCapabilities } from '@/types/student-finance';
 import type { StudentInstallment } from '../types';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
@@ -126,15 +127,7 @@ export function StudentFinanceOverviewPanel({
   const familyStudentCount = family?.student_count ?? family?.children.length ?? 0;
   const showFamily = family != null && familyStudentCount > 1;
   const familyAccountId = family?.family_id ?? family?.billing_partner_id ?? null;
-  const familyNames = useMemo(
-    () =>
-      (family?.children ?? [])
-        .map((child) => child.student_name?.trim() ?? '')
-        .filter(Boolean)
-        .slice(0, 4),
-    [family?.children],
-  );
-  const hiddenFamilyNames = Math.max(0, familyStudentCount - familyNames.length);
+  const familyMembers = family?.children ?? [];
 
   const academicYearId = Number(effectiveYearId);
   const hasAcademicYear = Number.isFinite(academicYearId) && academicYearId > 0;
@@ -314,6 +307,7 @@ export function StudentFinanceOverviewPanel({
     financialOverview,
     workspaceSummary: workspace?.summary,
   });
+  const familyCurrency = family?.currency ?? currency;
 
   return (
     <div className={styles.overview}>
@@ -321,6 +315,143 @@ export function StudentFinanceOverviewPanel({
         className={styles.contextGrid}
         aria-label={t('admin.student360.financeWorkspace.billingPartyTitle')}
       >
+        {showFamily && family ? (
+          <article className={`${styles.contextCard} ${styles.familyCard}`}>
+            <header className={styles.cardHeader}>
+              <div>
+                <h3 className={styles.cardTitle}>{t('admin.student360.familyFinance.title')}</h3>
+                <p className={styles.cardMeta}>
+                  {t('admin.student360.familyFinance.childrenCount')}: {familyStudentCount}
+                </p>
+              </div>
+              {familyAccountId != null ? (
+                <Link
+                  href={`/admin/finance/billing-accounts/${familyAccountId}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
+                  className="btn btn--ghost btn--sm"
+                >
+                  {t('admin.student360.familyFinance.openBillingAccount')}
+                </Link>
+              ) : null}
+            </header>
+
+            <div className={styles.familyMetrics}>
+              <div className={styles.familyMetric}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.totalNetDue')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_net_due} currency={familyCurrency} />
+                </strong>
+              </div>
+              <div className={`${styles.familyMetric} ${styles.familyMetricPaid}`}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.totalPaid')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_paid} currency={familyCurrency} />
+                </strong>
+              </div>
+              <div className={styles.familyMetric}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.remaining')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_remaining} currency={familyCurrency} />
+                </strong>
+              </div>
+              <div className={`${styles.familyMetric} ${styles.familyMetricOverdue}`}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.overdue')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_overdue} currency={familyCurrency} />
+                </strong>
+              </div>
+            </div>
+
+            {family.next_due_date ||
+            family.next_due_amount != null ||
+            (family.credit_balance != null && family.credit_balance !== 0) ||
+            (family.unallocated_amount != null && family.unallocated_amount !== 0) ? (
+              <div className={styles.familySecondary}>
+                {family.next_due_date || family.next_due_amount != null ? (
+                  <div className={styles.familySecondaryItem}>
+                    <span>{t('admin.student360.familyFinance.nextDue.title')}</span>
+                    <strong>
+                      {family.next_due_date ? formatDate(family.next_due_date) : t('common.dash')}
+                      {family.next_due_amount != null ? (
+                        <>
+                          {' · '}
+                          <FinanceMoney amount={family.next_due_amount} currency={familyCurrency} />
+                        </>
+                      ) : null}
+                    </strong>
+                  </div>
+                ) : null}
+                {family.credit_balance != null && family.credit_balance !== 0 ? (
+                  <div className={styles.familySecondaryItem}>
+                    <span>{t('admin.student360.familyFinance.metrics.creditBalance')}</span>
+                    <strong>
+                      <FinanceMoney amount={family.credit_balance} currency={familyCurrency} />
+                    </strong>
+                  </div>
+                ) : null}
+                {family.unallocated_amount != null && family.unallocated_amount !== 0 ? (
+                  <div className={styles.familySecondaryItem}>
+                    <span>{t('admin.student360.familyFinance.metrics.unallocated')}</span>
+                    <strong>
+                      <FinanceMoney amount={family.unallocated_amount} currency={familyCurrency} />
+                    </strong>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {familyMembers.length ? (
+              <div className={styles.familyMembers}>
+                <h4 className={styles.familyMembersTitle}>
+                  {t('admin.student360.familyFinance.linkedChildrenTitle')}
+                </h4>
+                <div className={styles.familyMemberGrid}>
+                  {familyMembers.map((child) => {
+                    const childContext = formatFamilyChildClassLevel(child);
+                    return (
+                      <Link
+                        key={child.student_id}
+                        href={`/admin/students/${child.student_id}?tab=finance`}
+                        className={`${styles.familyMemberLink}${
+                          child.student_id === studentId ? ` ${styles.familyMemberCurrent}` : ''
+                        }`}
+                        aria-current={child.student_id === studentId ? 'page' : undefined}
+                      >
+                        <span className={styles.familyMemberIdentity}>
+                          <strong className={styles.familyMemberName} dir="auto">
+                            {child.student_name?.trim() || t('common.dash')}
+                          </strong>
+                          {childContext ? (
+                            <span className={styles.familyMemberContext} dir="auto">
+                              {childContext}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className={styles.familyMemberAmount}>
+                          <span>{t('admin.student360.familyFinance.metrics.remaining')}</span>
+                          <strong>
+                            <FinanceMoney
+                              amount={child.total_remaining}
+                              currency={familyCurrency}
+                            />
+                          </strong>
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </article>
+        ) : null}
+
         <article className={styles.contextCard}>
           <header className={styles.cardHeader}>
             <div>
@@ -348,39 +479,6 @@ export function StudentFinanceOverviewPanel({
             {billingLabel}
           </p>
         </article>
-
-        {showFamily && family ? (
-          <article className={styles.contextCard}>
-            <header className={styles.cardHeader}>
-              <div>
-                <h3 className={styles.cardTitle}>{t('admin.student360.familyFinance.title')}</h3>
-                <p className={styles.cardMeta}>
-                  {t('admin.student360.familyFinance.childrenCount')}: {familyStudentCount}
-                </p>
-              </div>
-              {familyAccountId != null ? (
-                <Link
-                  href={`/admin/finance/billing-accounts/${familyAccountId}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
-                  className="btn btn--ghost btn--sm"
-                >
-                  {t('admin.student360.familyFinance.openBillingAccount')}
-                </Link>
-              ) : null}
-            </header>
-            {familyNames.length ? (
-              <div className={styles.familyNames}>
-                {familyNames.map((name, index) => (
-                  <span key={`${name}-${index}`} className={styles.familyName} dir="auto">
-                    {name}
-                  </span>
-                ))}
-                {hiddenFamilyNames > 0 ? (
-                  <span className={styles.familyMore}>+{hiddenFamilyNames}</span>
-                ) : null}
-              </div>
-            ) : null}
-          </article>
-        ) : null}
       </section>
 
       <section

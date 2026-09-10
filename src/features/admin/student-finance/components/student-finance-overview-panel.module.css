@@ -34,7 +34,8 @@
 .contextGrid {
   grid-area: context;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   gap: 14px;
 }
 
@@ -256,6 +257,175 @@
 .familyMore {
   color: var(--c-muted, #64748b);
   font-weight: 700;
+}
+
+.familyCard {
+  grid-column: 1 / -1;
+  padding-block: 18px;
+}
+
+.familyMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.familyMetric {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--c-surface-soft, #f8fafc);
+  padding: 11px 12px;
+}
+
+.familyMetricPaid {
+  border-color: rgb(22 163 74 / 0.2);
+  background: rgb(22 163 74 / 0.055);
+}
+
+.familyMetricOverdue {
+  border-color: rgb(217 119 6 / 0.2);
+  background: rgb(217 119 6 / 0.055);
+}
+
+.familyMetricLabel {
+  color: var(--c-muted, #64748b);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
+.familyMetricValue {
+  min-width: 0;
+  color: var(--c-text, #0f172a);
+  font-size: 0.92rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.familyMetricPaid .familyMetricValue {
+  color: #15803d;
+}
+
+.familyMetricOverdue .familyMetricValue {
+  color: #b45309;
+}
+
+.familySecondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.familySecondaryItem {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  background: var(--c-surface-soft, #f8fafc);
+  border: 1px solid var(--c-border, #e2e8f0);
+  padding: 6px 10px;
+  color: var(--c-muted, #64748b);
+  font-size: 0.72rem;
+}
+
+.familySecondaryItem strong {
+  color: var(--c-text, #334155);
+  font-weight: 750;
+}
+
+.familyMembers {
+  margin-top: 16px;
+  border-top: 1px solid rgb(226 232 240 / 0.82);
+  padding-top: 13px;
+}
+
+.familyMembersTitle {
+  margin: 0 0 9px;
+  color: var(--c-text, #334155);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.familyMemberGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.familyMemberLink {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  padding: 10px 11px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.familyMemberLink:hover {
+  border-color: rgb(37 99 235 / 0.28);
+  background: rgb(37 99 235 / 0.035);
+}
+
+.familyMemberLink:focus-visible {
+  outline: 2px solid var(--c-primary, #2563eb);
+  outline-offset: 2px;
+}
+
+.familyMemberCurrent {
+  border-color: rgb(37 99 235 / 0.22);
+  background: rgb(37 99 235 / 0.045);
+}
+
+.familyMemberIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.familyMemberName {
+  color: var(--c-text, #0f172a);
+  font-size: 0.8rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.familyMemberContext {
+  color: var(--c-muted, #64748b);
+  font-size: 0.68rem;
+  overflow-wrap: anywhere;
+}
+
+.familyMemberAmount {
+  display: grid;
+  flex-shrink: 0;
+  gap: 2px;
+  text-align: end;
+}
+
+.familyMemberAmount > span {
+  color: var(--c-muted, #64748b);
+  font-size: 0.64rem;
+  font-weight: 600;
+}
+
+.familyMemberAmount strong {
+  color: var(--c-text, #334155);
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
 .installmentsSection {
@@ -595,6 +765,20 @@
     grid-template-columns: 1fr;
   }
 
+  .familyMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .familyMemberGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .familySecondaryItem {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 11px;
+  }
+
   .serviceLine {
     grid-template-columns: 1fr;
     gap: 5px;
@@ -619,6 +803,22 @@
   }
 
   .installmentRemaining {
+    text-align: start;
+  }
+}
+
+@media (max-width: 420px) {
+  .familyMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .familyMemberLink {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .familyMemberAmount {
+    width: 100%;
     text-align: start;
   }
 }
