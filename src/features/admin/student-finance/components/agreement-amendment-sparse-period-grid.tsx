@@ -87,6 +87,12 @@ export function AgreementAmendmentSparsePeriodGrid({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [editingOverrideId, setEditingOverrideId] = useState<string | null>(null);
 
+  const notifyPreviewAfterStateUpdate = () => {
+    window.setTimeout(() => {
+      rootRef.current?.dispatchEvent(new Event('change', { bubbles: true }));
+    }, 0);
+  };
+
   useEffect(() => {
     if (!periodImpacts.length || !selectedPeriodIds.length) return;
     const reconciled = reconcileSparsePeriodSelectionWithPreview({
@@ -100,9 +106,8 @@ export function AgreementAmendmentSparsePeriodGrid({
       if (selectedPeriodIds.includes(periodId)) onToggle(periodId);
     }
 
-    // Let the parent form state settle, then ask the existing auto-preview hook
-    // to verify the reduced, Odoo-amendable selection again.
-    rootRef.current?.dispatchEvent(new Event('change', { bubbles: true }));
+    // Re-run the preview only after the reduced selection has reached the form state.
+    notifyPreviewAfterStateUpdate();
   }, [onToggle, periodAmountOverrides, periodImpacts, selectedPeriodIds]);
 
   if (loading) {
@@ -140,7 +145,10 @@ export function AgreementAmendmentSparsePeriodGrid({
                 type="checkbox"
                 checked={selected}
                 disabled={disabled || !selectable}
-                onChange={() => onToggle(id)}
+                onChange={() => {
+                  onToggle(id);
+                  notifyPreviewAfterStateUpdate();
+                }}
               />
               <span className="student-finance-amendment-sparse-period__check" aria-hidden>
                 {selected ? '✓' : ''}
@@ -190,7 +198,10 @@ export function AgreementAmendmentSparsePeriodGrid({
                         step="0.01"
                         value={overrideValue}
                         autoFocus
-                        onChange={(event) => onOverrideChange(id, event.target.value)}
+                        onChange={(event) => {
+                          onOverrideChange(id, event.target.value);
+                          notifyPreviewAfterStateUpdate();
+                        }}
                         disabled={disabled}
                       />
                     </label>
@@ -202,6 +213,7 @@ export function AgreementAmendmentSparsePeriodGrid({
                           onClick={() => {
                             onOverrideClear(id);
                             setEditingOverrideId(null);
+                            notifyPreviewAfterStateUpdate();
                           }}
                           disabled={disabled}
                         >
