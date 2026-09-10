@@ -49,7 +49,7 @@ function workbookErrorMessage(error: unknown): string {
   return 'تعذر قراءة الملف. أعد تنزيل قالب جديد من رقيم ثم حاول مرة أخرى.';
 }
 
-async function fetchAllInstallments(): Promise<HistoricalCollectionInstallmentSource[]> {
+async function fetchAllInstallments(academicYearId: number): Promise<HistoricalCollectionInstallmentSource[]> {
   const all: HistoricalCollectionInstallmentSource[] = [];
   let page = 1;
   let totalPages = 1;
@@ -57,7 +57,7 @@ async function fetchAllInstallments(): Promise<HistoricalCollectionInstallmentSo
   do {
     const response = await api.get<HistoricalCollectionInstallmentSource[]>(
       endpoints.admin.financeInstallments,
-      { page, page_size: HISTORICAL_COLLECTION_PAGE_SIZE },
+      { page, page_size: HISTORICAL_COLLECTION_PAGE_SIZE, academic_year_id: academicYearId },
     );
     if (!response.success) throw new Error(response.error.message || response.error.code);
     all.push(...(response.data ?? []));
@@ -97,7 +97,7 @@ export function HistoricalCollectionImportPanel() {
     setDownloading(true);
     setMessage(null);
     try {
-      const installments = await fetchAllInstallments();
+      const installments = await fetchAllInstallments(selectedYear.id);
       const rows = buildHistoricalCollectionTemplateRows(installments, selectedYear.id);
       const scope = validateTemplateScope(rows, selectedYear.id);
       if (!scope.valid) {
