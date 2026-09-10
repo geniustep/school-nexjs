@@ -15,9 +15,11 @@ import {
   buildHistoricalCollectionBatchPayload,
   buildHistoricalCollectionTemplateRows,
   canConfirmHistoricalCollectionImport,
+  extractHistoricalCollectionInstallmentItems,
   validateTemplateScope,
   type HistoricalCollectionBatchResult,
   type HistoricalCollectionInstallmentSource,
+  type HistoricalCollectionInstallmentsResponseData,
   type HistoricalCollectionPreview,
 } from './historical-collection-contract';
 import {
@@ -55,12 +57,12 @@ async function fetchAllInstallments(academicYearId: number): Promise<HistoricalC
   let totalPages = 1;
 
   do {
-    const response = await api.get<HistoricalCollectionInstallmentSource[]>(
+    const response = await api.get<HistoricalCollectionInstallmentsResponseData>(
       endpoints.admin.financeInstallments,
       { page, page_size: HISTORICAL_COLLECTION_PAGE_SIZE, academic_year_id: academicYearId },
     );
     if (!response.success) throw new Error(response.error.message || response.error.code);
-    all.push(...(response.data ?? []));
+    all.push(...extractHistoricalCollectionInstallmentItems(response.data));
     totalPages = response.meta?.pagination?.total_pages ?? page;
     page += 1;
   } while (page <= totalPages);
