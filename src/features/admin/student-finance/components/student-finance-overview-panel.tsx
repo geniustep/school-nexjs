@@ -1,53 +1,93 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { ApiErrorView } from '@/components/states/states';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
-import type { StudentFinancePanelProps } from './student-finance-panel-props';
-import {
-  resolveBillingPartyLabel,
-  resolveStudentFinanceOverviewMetrics,
-} from '../utils/resolve-student-finance-overview';
-import { resolveStudentBillingSourcePresentation } from '../utils/resolve-student-billing-source-presentation';
-import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
-import { resolveChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
-import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
-import { canChangeBillingAuthority } from '../utils/resolve-billing-authority-change-visibility';
-import { FamilyFinanceSummarySection } from './family-finance-summary-section';
-import { StudentFinanceLatestCollectionPreview } from './student-finance-latest-collection-preview';
-import { BillingAuthorityChangeDialog } from './billing-authority-change-dialog';
+import { useFormat } from '@/features/i18n/use-format';
+import { useLocale } from '@/features/i18n/locale-context';
+import { refName } from '@/lib/utils/finance';
+import { formatFamilyChildClassLevel } from '@/lib/utils/normalize-family-finance';
 import type { StudentFinanceCapabilities } from '@/types/student-finance';
+import type { StudentInstallment } from '../types';
+import type { StudentFinancePanelProps } from './student-finance-panel-props';
+import { BillingAuthorityChangeDialog } from './billing-authority-change-dialog';
+import { InstallmentRowStatusBadges } from './installment-status-badges';
+import { useStudentFamilyFinanceSummary } from '../hooks/use-student-family-finance';
+import { useStudentFinanceInstallmentsPage } from '../hooks/use-student-finance-installments-page';
+import { canChangeBillingAuthority } from '../utils/resolve-billing-authority-change-visibility';
+import { resolveInstallmentDisplayLabel } from '../utils/resolve-installment-display';
+import {
+  hasInstallmentPendingChequeCoverage,
+  isInstallmentDueNowForSummary,
+  isInstallmentOverdueForSummary,
+  isInstallmentPaidForSummary,
+  isInstallmentUpcomingForSummary,
+  resolveEffectiveInstallmentPaymentStatus,
+  resolveEffectiveInstallmentTimingStatus,
+  resolveMinUnpaidInstallmentSequence,
+} from '../utils/resolve-installment-presentation';
+import { resolveBillingPartyLabel } from '../utils/resolve-student-finance-overview';
+import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
+import styles from './student-finance-overview-panel.module.css';
 
-function installmentStatusKey(state: string | null | undefined): string | null {
-  if (!state) return null;
-  const map: Record<string, string> = {
-    upcoming: 'admin.student360.financeWorkspace.schedule.status.upcoming',
-    due: 'admin.student360.financeWorkspace.schedule.status.due',
-    partially_paid: 'admin.student360.financeWorkspace.schedule.status.partiallyPaid',
-    paid: 'admin.student360.financeWorkspace.schedule.status.paid',
-    overdue: 'admin.student360.financeWorkspace.schedule.status.overdue',
-    cancelled: 'admin.student360.financeWorkspace.schedule.status.cancelled',
-    pending_cheque: 'admin.student360.financeWorkspace.schedule.status.pendingChequeCoverage',
-  };
-  return map[state] ?? null;
+type InstallmentFilter = 'all' | 'overdue' | 'due' | 'upcoming' | 'paid';
+type InstallmentClassification = Exclude<InstallmentFilter, 'all'> | 'other';
+
+interface InstallmentMonthGroup {
+  key: string;
+  label: string;
+  sortValue: number;
+  status: InstallmentClassification;
+  rows: StudentInstallment[];
 }
 
-function statusTone(state: string | null | undefined): string {
-  if (!state) return 'neutral';
-  if (state === 'overdue') return 'danger';
-  if (state === 'paid') return 'ok';
-  if (state === 'pending_cheque') return 'warn';
-  if (state === 'due' || state === 'partially_paid') return 'warn';
-  return 'neutral';
+function parseFinanceDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T12:00:00`)
+    : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function rowAnchorDate(row: StudentInstallment): Date | null {
+  return (
+    parseFinanceDate(row.due_date) ??
+    parseFinanceDate(row.period_start) ??
+    parseFinanceDate(row.period_end)
+  );
+}
+
+function classificationPriority(value: InstallmentClassification): number {
+  if (value === 'overdue') return 0;
+  if (value === 'due') return 1;
+  if (value === 'upcoming') return 2;
+  if (value === 'paid') return 3;
+  return 4;
+}
+
+function classificationLabelKey(value: InstallmentClassification): string | null {
+  if (value === 'overdue') return 'admin.student360.financeWorkspace.schedule.summary.overdue';
+  if (value === 'due') return 'admin.student360.financeWorkspace.schedule.summary.due';
+  if (value === 'upcoming') return 'admin.student360.financeWorkspace.schedule.summary.upcoming';
+  if (value === 'paid') return 'admin.student360.financeWorkspace.schedule.summary.paid';
+  return null;
+}
+
+function classificationClass(value: InstallmentClassification): string {
+  if (value === 'overdue') return styles.monthStatusOverdue;
+  if (value === 'due') return styles.monthStatusDue;
+  if (value === 'upcoming') return styles.monthStatusUpcoming;
+  if (value === 'paid') return styles.monthStatusPaid;
+  return styles.monthStatusNeutral;
 }
 
 export function StudentFinanceOverviewPanel({
   studentId,
   details,
   capabilities,
+  effectiveYearId,
   workspace,
   financialOverview,
   financialOverviewLoading,
@@ -55,274 +95,376 @@ export function StudentFinanceOverviewPanel({
   onReloadFinancialOverview,
   canCollect,
   onRefresh,
-  onOpenCollection,
+  financeRefreshSignal = 0,
+  allowInstallmentCollection = true,
 }: StudentFinancePanelProps) {
-  const t = useT();
+  const { t, locale } = useLocale();
   const { formatDate } = useFormat();
   const [billingAuthorityDialogOpen, setBillingAuthorityDialogOpen] = useState(false);
+  const [filter, setFilter] = useState<InstallmentFilter>('all');
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(() => new Set());
 
   const financeCaps = (financialOverview?.capabilities ??
     workspace?.capabilities) as StudentFinanceCapabilities | undefined;
   const canChangeBillingAuthorityAction = canChangeBillingAuthority(capabilities, financeCaps);
 
-  const metrics = useMemo(
-    () => resolveStudentFinanceOverviewMetrics(financialOverview),
-    [financialOverview],
-  );
+  const billingPartner =
+    workspace?.finance_profile?.billing_partner ??
+    workspace?.billing_partner ??
+    workspace?.current_agreement?.billing_partner ??
+    null;
+  const billingPartnerName = billingPartner ? refName(billingPartner) : null;
+  const billingLabel =
+    billingPartnerName ||
+    resolveBillingPartyLabel({
+      billingProfile: financialOverview?.billing_profile,
+      billingPartyType: financialOverview?.billing_profile?.billing_party_type,
+      t,
+    });
 
-  const billingSource = useMemo(
+  const familyState = useStudentFamilyFinanceSummary(studentId, true, financeRefreshSignal);
+  const family = familyState.data;
+  const familyStudentCount = family?.student_count ?? family?.children.length ?? 0;
+  const showFamily = family != null && familyStudentCount > 1;
+  const familyAccountId = family?.family_id ?? family?.billing_partner_id ?? null;
+  const familyMembers = family?.children ?? [];
+
+  const academicYearId = Number(effectiveYearId);
+  const hasAcademicYear = Number.isFinite(academicYearId) && academicYearId > 0;
+  const installmentsQuery = useMemo(
     () =>
-      resolveStudentBillingSourcePresentation({
-        financialOverview,
-        workspaceAgreement: workspace?.current_agreement ?? null,
-        workspace,
-      }),
-    [financialOverview, workspace],
+      hasAcademicYear
+        ? {
+            page: 1,
+            page_size: 100,
+            academic_year_id: academicYearId,
+          }
+        : null,
+    [academicYearId, hasAcademicYear],
   );
 
-  const billingContext = useMemo(
+  const installmentsState = useStudentFinanceInstallmentsPage(
+    studentId,
+    installmentsQuery,
+    hasAcademicYear,
+    financeRefreshSignal,
+  );
+  const installments = installmentsState.data;
+  const allowCollectionClassification = canCollect && allowInstallmentCollection;
+
+  const scheduleContext = useMemo(
+    () => ({
+      canCollect: allowCollectionClassification,
+      minUnpaidSequence: resolveMinUnpaidInstallmentSequence(installments),
+    }),
+    [allowCollectionClassification, installments],
+  );
+
+  const classifications = useMemo(() => {
+    const result = new Map<number, InstallmentClassification>();
+    for (const row of installments) {
+      let classification: InstallmentClassification = 'other';
+      if (isInstallmentPaidForSummary(row)) classification = 'paid';
+      else if (isInstallmentOverdueForSummary(row)) classification = 'overdue';
+      else if (isInstallmentDueNowForSummary(row, scheduleContext)) classification = 'due';
+      else if (isInstallmentUpcomingForSummary(row)) classification = 'upcoming';
+      result.set(row.id, classification);
+    }
+    return result;
+  }, [installments, scheduleContext]);
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<InstallmentFilter, number> = {
+      all: installments.length,
+      overdue: 0,
+      due: 0,
+      upcoming: 0,
+      paid: 0,
+    };
+    for (const row of installments) {
+      const classification = classifications.get(row.id);
+      if (classification && classification !== 'other') counts[classification] += 1;
+    }
+    return counts;
+  }, [classifications, installments]);
+
+  const filteredInstallments = useMemo(
     () =>
-      resolveBillingContextPresentation({
-        workspace,
-        canCollectCapability: canCollect,
-      }),
-    [workspace, canCollect],
+      filter === 'all'
+        ? installments
+        : installments.filter((row) => classifications.get(row.id) === filter),
+    [classifications, filter, installments],
   );
 
-  const financeEligibility = useMemo(
-    () =>
-      resolveChangePlanEligibility({
-        workspace,
-        financialOverview,
-        studentCapabilities: { can_view_finance: true } as never,
-      }),
-    [workspace, financialOverview],
+  const monthGroups = useMemo<InstallmentMonthGroup[]>(() => {
+    const formatter = new Intl.DateTimeFormat(locale, {
+      month: 'long',
+      year: 'numeric',
+    });
+    const groups = new Map<
+      string,
+      {
+        key: string;
+        label: string;
+        sortValue: number;
+        rows: StudentInstallment[];
+      }
+    >();
+
+    for (const row of filteredInstallments) {
+      const date = rowAnchorDate(row);
+      const key = date
+        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        : 'undated';
+      const existing = groups.get(key);
+      if (existing) {
+        existing.rows.push(row);
+        continue;
+      }
+      groups.set(key, {
+        key,
+        label: date ? formatter.format(date) : t('common.dash'),
+        sortValue: date ? date.getTime() : Number.MAX_SAFE_INTEGER,
+        rows: [row],
+      });
+    }
+
+    return [...groups.values()]
+      .sort((a, b) => a.sortValue - b.sortValue)
+      .map((group) => {
+        let status: InstallmentClassification = 'other';
+        for (const row of group.rows) {
+          const rowStatus = classifications.get(row.id) ?? 'other';
+          if (classificationPriority(rowStatus) < classificationPriority(status)) {
+            status = rowStatus;
+          }
+        }
+        return { ...group, status };
+      });
+  }, [classifications, filteredInstallments, locale, t]);
+
+  useEffect(() => {
+    if (!monthGroups.length) {
+      setExpandedMonths((current) => (current.size ? new Set<string>() : current));
+      return;
+    }
+
+    setExpandedMonths((current) => {
+      const visibleKeys = new Set(monthGroups.map((group) => group.key));
+      if ([...current].some((key) => visibleKeys.has(key))) return current;
+      const preferred =
+        monthGroups.find((group) => group.status === 'overdue') ??
+        monthGroups.find((group) => group.status === 'due') ??
+        monthGroups[0];
+      return new Set(preferred ? [preferred.key] : []);
+    });
+  }, [monthGroups]);
+
+  const filterOptions: { key: InstallmentFilter; label: string }[] = [
+    { key: 'all', label: t('admin.student360.financeOps.filters.all') },
+    {
+      key: 'overdue',
+      label: t('admin.student360.financeWorkspace.schedule.summary.overdue'),
+    },
+    {
+      key: 'due',
+      label: t('admin.student360.financeWorkspace.schedule.summary.due'),
+    },
+    {
+      key: 'upcoming',
+      label: t('admin.student360.financeWorkspace.schedule.summary.upcoming'),
+    },
+    {
+      key: 'paid',
+      label: t('admin.student360.financeWorkspace.schedule.summary.paid'),
+    },
+  ];
+
+  const visibleFilterOptions = filterOptions.filter(
+    (option) => option.key !== 'paid' || filterCounts.paid > 0 || filter === 'paid',
   );
 
-  const showOperationalBillingContext =
-    !billingSource.hasActiveAgreement &&
-    financeEligibility.hasBillableFinanceContext &&
-    (billingContext.isOperationalWithoutActiveAgreement ||
-      billingContext.inactiveAgreement != null ||
-      billingContext.showNoActiveAgreement);
-
-  const billingLabel = resolveBillingPartyLabel({
-    billingProfile: financialOverview?.billing_profile,
-    billingPartyType: financialOverview?.billing_profile?.billing_party_type,
-    t,
-  });
-
-  const chequeSummary = financialOverview?.cheque_summary;
-  const showChequeSummary =
-    chequeSummary != null &&
-    (chequeSummary.pending_count > 0 ||
-      chequeSummary.settled_count > 0 ||
-      chequeSummary.rejected_count > 0 ||
-      chequeSummary.cancelled_count > 0);
-  const showChequeClassifications =
-    showChequeSummary &&
-    (chequeSummary!.settled_count > 0 ||
-      chequeSummary!.rejected_count > 0 ||
-      chequeSummary!.cancelled_count > 0 ||
-      chequeSummary!.settled_amount > 0 ||
-      chequeSummary!.rejected_amount > 0 ||
-      chequeSummary!.cancelled_amount > 0);
-
-  if (financialOverviewLoading && !metrics) {
-    return <StudentSectionSkeleton rows={3} />;
+  if (financialOverviewLoading && !financialOverview) {
+    return <StudentSectionSkeleton rows={4} />;
   }
 
-  if (financialOverviewError) {
+  if (financialOverviewError && !financialOverview) {
     return (
       <div className="student-finance-summary-error" role="alert">
         <p>{t('admin.student360.financeOps.summaryLoadError')}</p>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={onReloadFinancialOverview}>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={onReloadFinancialOverview}
+        >
           {t('common.retry')}
         </button>
       </div>
     );
   }
 
-  const nextInstallment = financialOverview?.next_installment;
-  const nextStatusKey = installmentStatusKey(metrics?.next_installment_state);
-  const nextTitle = metrics?.next_installment_display_label;
-  const nextTone = statusTone(metrics?.next_installment_state);
-  const appliedPlans = financialOverview?.applied_plans ?? [];
+  const currency = resolveStudentFinanceCurrency({
+    financialOverview,
+    workspaceSummary: workspace?.summary,
+  });
+  const familyCurrency = family?.currency ?? currency;
 
   return (
-    <div className="student-finance-overview">
-      {billingContext.billingContextHeadlineKey ? (
-        <div className="student-finance-billing-context-headline" role="status">
-          <p className="student-finance-billing-context-headline__title">
-            {t(billingContext.billingContextHeadlineKey)}
-          </p>
-          {billingContext.billingContextMessage ? (
-            <p className="student-finance-billing-context-headline__hint tiny muted">
-              {billingContext.billingContextMessage}
-            </p>
-          ) : billingContext.showNoActiveAgreement ? (
-            <p className="student-finance-billing-context-headline__hint tiny muted">
-              {t('admin.student360.financeWorkspace.billingContext.noActiveAgreementManageable')}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-      <div className="student-finance-bento">
-        <StudentFinanceLatestCollectionPreview
-          studentId={studentId}
-          workspace={workspace}
-          financialOverview={financialOverview}
-        />
-        {nextInstallment ? (
-          <article className="student-finance-bento__card student-finance-bento__card--featured">
-            <header className="student-finance-bento__card-head">
+    <div className={styles.overview}>
+      <section
+        className={styles.contextGrid}
+        aria-label={t('admin.student360.financeWorkspace.billingPartyTitle')}
+      >
+        {showFamily && family ? (
+          <article className={`${styles.contextCard} ${styles.familyCard}`}>
+            <header className={styles.cardHeader}>
               <div>
-                <span className="student-finance-bento__eyebrow">
-                  {t('admin.student360.financeWorkspace.metrics.nextInstallment')}
-                </span>
-                <h4 className="student-finance-bento__title" dir="auto">
-                  {nextTitle ?? t('common.dash')}
-                </h4>
+                <h3 className={styles.cardTitle}>{t('admin.student360.familyFinance.title')}</h3>
+                <p className={styles.cardMeta}>
+                  {t('admin.student360.familyFinance.childrenCount')}: {familyStudentCount}
+                </p>
               </div>
-              <span className={`student-finance-status-pill student-finance-status-pill--${nextTone}`}>
-                {nextStatusKey ? t(nextStatusKey) : metrics?.next_installment_state ?? t('common.dash')}
-              </span>
-            </header>
-            <dl className="student-finance-bento__facts">
-              {metrics?.next_installment_period ? (
-                <div>
-                  <dt>{t('admin.student360.financeWorkspace.schedule.columns.period')}</dt>
-                  <dd dir="auto">{metrics.next_installment_period}</dd>
-                </div>
-              ) : null}
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.metrics.nextInstallmentAmount')}</dt>
-                <dd className="student-finance-bento__amount">
-                  <FinanceMoney amount={nextInstallment.amount} currency={metrics?.currency ?? undefined} />
-                </dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.schedule.columns.dueDate')}</dt>
-                <dd>
-                  {metrics?.next_installment_date ? formatDate(metrics.next_installment_date) : t('common.dash')}
-                </dd>
-              </div>
-            </dl>
-            <div className="student-finance-bento__card-actions">
-              <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.student360.financeWorkspace.openSchedule')}
-              </Link>
-              {billingContext.collectPaymentAllowed ? (
-                <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
-                  {t('admin.student360.financeWorkspace.actions.recordPayment')}
-                </button>
-              ) : canCollect && !billingContext.shouldHideCollectButton ? (
-                <span
-                  className="student-finance-collect-blocked"
-                  title={
-                    billingContext.collectBlockMessage ??
-                    (billingContext.collectBlockMessageKey
-                      ? t(billingContext.collectBlockMessageKey)
-                      : undefined)
-                  }
+              {familyAccountId != null ? (
+                <Link
+                  href={`/admin/finance/billing-accounts/${familyAccountId}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
+                  className="btn btn--ghost btn--sm"
                 >
-                  <button type="button" className="btn btn--primary btn--sm" disabled>
-                    {t('admin.student360.financeWorkspace.actions.recordPayment')}
-                  </button>
-                  <span className="student-finance-collect-blocked__hint tiny muted">
-                    {billingContext.collectBlockMessage ??
-                      (billingContext.collectBlockMessageKey
-                        ? t(billingContext.collectBlockMessageKey)
-                        : t('admin.student360.financeWorkspace.collectPayment.blockedMessage'))}
-                  </span>
-                </span>
+                  {t('admin.student360.familyFinance.openBillingAccount')}
+                </Link>
               ) : null}
-            </div>
-          </article>
-        ) : null}
-
-        {showChequeSummary && chequeSummary ? (
-          <article className="student-finance-bento__card student-finance-bento__card--cheques">
-            <header className="student-finance-bento__card-head">
-              <span className="student-finance-bento__eyebrow">
-                {t('admin.student360.financeWorkspace.metrics.chequeSummary')}
-              </span>
-              <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=collections`}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('common.view')}
-              </Link>
             </header>
-            <div className="student-finance-cheque-stats">
-              {chequeSummary.pending_count > 0 ? (
-                <div className="student-finance-cheque-stat student-finance-cheque-stat--pending">
-                  <span className="student-finance-cheque-stat__count">{chequeSummary.pending_count}</span>
-                  <span className="student-finance-cheque-stat__label">
-                    {t('admin.student360.financeWorkspace.metrics.pendingCheques')}
-                  </span>
-                  <FinanceMoney
-                    amount={chequeSummary.pending_amount}
-                    currency={metrics?.currency ?? undefined}
-                    className="student-finance-cheque-stat__amount"
-                  />
-                </div>
-              ) : null}
-              {showChequeClassifications ? (
-                <>
-                  <div className="student-finance-cheque-stat student-finance-cheque-stat--settled">
-                    <span className="student-finance-cheque-stat__count">{chequeSummary.settled_count}</span>
-                    <span className="student-finance-cheque-stat__label">
-                      {t('admin.student360.financeWorkspace.metrics.clearedCheques')}
-                    </span>
-                    <FinanceMoney
-                      amount={chequeSummary.settled_amount}
-                      currency={metrics?.currency ?? undefined}
-                      className="student-finance-cheque-stat__amount"
-                    />
-                  </div>
-                  <div className="student-finance-cheque-stat student-finance-cheque-stat--rejected">
-                    <span className="student-finance-cheque-stat__count">{chequeSummary.rejected_count}</span>
-                    <span className="student-finance-cheque-stat__label">
-                      {t('admin.student360.financeWorkspace.metrics.rejectedOrReturnedCheques')}
-                    </span>
-                    <FinanceMoney
-                      amount={chequeSummary.rejected_amount}
-                      currency={metrics?.currency ?? undefined}
-                      className="student-finance-cheque-stat__amount"
-                    />
-                  </div>
-                  <div className="student-finance-cheque-stat student-finance-cheque-stat--cancelled">
-                    <span className="student-finance-cheque-stat__count">{chequeSummary.cancelled_count}</span>
-                    <span className="student-finance-cheque-stat__label">
-                      {t('admin.student360.financeWorkspace.metrics.cancelledCheques')}
-                    </span>
-                    <FinanceMoney
-                      amount={chequeSummary.cancelled_amount}
-                      currency={metrics?.currency ?? undefined}
-                      className="student-finance-cheque-stat__amount"
-                    />
-                  </div>
-                </>
-              ) : null}
+
+            <div className={styles.familyMetrics}>
+              <div className={styles.familyMetric}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.totalNetDue')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_net_due} currency={familyCurrency} />
+                </strong>
+              </div>
+              <div className={`${styles.familyMetric} ${styles.familyMetricPaid}`}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.totalPaid')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_paid} currency={familyCurrency} />
+                </strong>
+              </div>
+              <div className={styles.familyMetric}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.remaining')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_remaining} currency={familyCurrency} />
+                </strong>
+              </div>
+              <div className={`${styles.familyMetric} ${styles.familyMetricOverdue}`}>
+                <span className={styles.familyMetricLabel}>
+                  {t('admin.student360.familyFinance.metrics.overdue')}
+                </span>
+                <strong className={styles.familyMetricValue}>
+                  <FinanceMoney amount={family.total_overdue} currency={familyCurrency} />
+                </strong>
+              </div>
             </div>
-            {chequeSummary.cancelled_count > 0 ? (
-              <p className="student-finance-cheque-note tiny muted" role="note">
-                {chequeSummary.cancelled_note?.trim() ||
-                  t('admin.student360.financeWorkspace.metrics.cancelledChequesNote')}
-              </p>
+
+            {family.next_due_date ||
+            family.next_due_amount != null ||
+            (family.credit_balance != null && family.credit_balance !== 0) ||
+            (family.unallocated_amount != null && family.unallocated_amount !== 0) ? (
+              <div className={styles.familySecondary}>
+                {family.next_due_date || family.next_due_amount != null ? (
+                  <div className={styles.familySecondaryItem}>
+                    <span>{t('admin.student360.familyFinance.nextDue.title')}</span>
+                    <strong>
+                      {family.next_due_date ? formatDate(family.next_due_date) : t('common.dash')}
+                      {family.next_due_amount != null ? (
+                        <>
+                          {' · '}
+                          <FinanceMoney amount={family.next_due_amount} currency={familyCurrency} />
+                        </>
+                      ) : null}
+                    </strong>
+                  </div>
+                ) : null}
+                {family.credit_balance != null && family.credit_balance !== 0 ? (
+                  <div className={styles.familySecondaryItem}>
+                    <span>{t('admin.student360.familyFinance.metrics.creditBalance')}</span>
+                    <strong>
+                      <FinanceMoney amount={family.credit_balance} currency={familyCurrency} />
+                    </strong>
+                  </div>
+                ) : null}
+                {family.unallocated_amount != null && family.unallocated_amount !== 0 ? (
+                  <div className={styles.familySecondaryItem}>
+                    <span>{t('admin.student360.familyFinance.metrics.unallocated')}</span>
+                    <strong>
+                      <FinanceMoney amount={family.unallocated_amount} currency={familyCurrency} />
+                    </strong>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {familyMembers.length ? (
+              <div className={styles.familyMembers}>
+                <h4 className={styles.familyMembersTitle}>
+                  {t('admin.student360.familyFinance.linkedChildrenTitle')}
+                </h4>
+                <div className={styles.familyMemberGrid}>
+                  {familyMembers.map((child) => {
+                    const childContext = formatFamilyChildClassLevel(child);
+                    return (
+                      <Link
+                        key={child.student_id}
+                        href={`/admin/students/${child.student_id}?tab=finance`}
+                        className={`${styles.familyMemberLink}${
+                          child.student_id === studentId ? ` ${styles.familyMemberCurrent}` : ''
+                        }`}
+                        aria-current={child.student_id === studentId ? 'page' : undefined}
+                      >
+                        <span className={styles.familyMemberIdentity}>
+                          <strong className={styles.familyMemberName} dir="auto">
+                            {child.student_name?.trim() || t('common.dash')}
+                          </strong>
+                          {childContext ? (
+                            <span className={styles.familyMemberContext} dir="auto">
+                              {childContext}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className={styles.familyMemberAmount}>
+                          <span>{t('admin.student360.familyFinance.metrics.remaining')}</span>
+                          <strong>
+                            <FinanceMoney
+                              amount={child.total_remaining}
+                              currency={familyCurrency}
+                            />
+                          </strong>
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             ) : null}
           </article>
         ) : null}
 
-        <article className="student-finance-bento__card">
-          <header className="student-finance-bento__card-head">
-            <span className="student-finance-bento__eyebrow">
-              {t('admin.student360.financeWorkspace.billingPartyTitle')}
-            </span>
+        <article className={styles.contextCard}>
+          <header className={styles.cardHeader}>
+            <div>
+              <h3 className={styles.cardTitle}>
+                {t('admin.student360.financeWorkspace.billingPartyTitle')}
+              </h3>
+              {financialOverview?.billing_profile?.effective_from ? (
+                <p className={styles.cardMeta}>
+                  {t('admin.student360.financeWorkspace.billingEffectiveFrom')}:{' '}
+                  {formatDate(financialOverview.billing_profile.effective_from)}
+                </p>
+              ) : null}
+            </div>
             {canChangeBillingAuthorityAction ? (
               <button
                 type="button"
@@ -333,148 +475,204 @@ export function StudentFinanceOverviewPanel({
               </button>
             ) : null}
           </header>
-          <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
-            <div>
-              <dt>{t('admin.finance.billingPartner')}</dt>
-              <dd dir="auto">{billingLabel}</dd>
-            </div>
-            {financialOverview?.billing_profile?.effective_from ? (
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.billingEffectiveFrom')}</dt>
-                <dd>{formatDate(financialOverview.billing_profile.effective_from)}</dd>
-              </div>
-            ) : null}
-            {financialOverview?.academic_year?.name ? (
-              <div>
-                <dt>{t('admin.student360.finance.academicYear')}</dt>
-                <dd>{financialOverview.academic_year.name}</dd>
-              </div>
-            ) : null}
-          </dl>
+          <p className={styles.responsibleName} dir="auto">
+            {billingLabel}
+          </p>
         </article>
+      </section>
 
-        <article className="student-finance-bento__card student-finance-bento__card--billing-source">
-          <header className="student-finance-bento__card-head">
-            <span className="student-finance-bento__eyebrow">
-              {billingSource.hasActiveAgreement
-                ? t('admin.student360.financeWorkspace.billingSourceTitle')
-                : t('admin.student360.financeWorkspace.appliedPlansTitle')}
-            </span>
-            {billingSource.hasActiveAgreement ? (
-              <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=agreements`}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.student360.financeWorkspace.openAgreement')}
-              </Link>
-            ) : null}
-          </header>
-          {billingSource.hasActiveAgreement ? (
-            <div className="student-finance-billing-source">
-              <p className="student-finance-billing-source__headline">
-                {t('admin.student360.financeWorkspace.billingSourceActiveAgreement')}
-              </p>
-              <p className="student-finance-billing-source__hint tiny muted">
-                {t('admin.student360.financeWorkspace.billingSourcePlanTemplateHint')}
-              </p>
-              <p className="student-finance-billing-source__plan" dir="auto">
-                {billingSource.originalPlanName
-                  ? t('admin.student360.financeWorkspace.billingSourceBuiltOnPlan', {
-                      plan: billingSource.originalPlanName,
-                    })
-                  : t('admin.student360.financeWorkspace.billingSourceBuiltOnFeePlanGeneric')}
-              </p>
-              <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
-                {billingSource.agreementNumber ? (
-                  <div>
-                    <dt>{t('admin.student360.financeWorkspace.billingSourceCurrentAgreement')}</dt>
-                    <dd dir="auto">{billingSource.agreementNumber}</dd>
-                  </div>
-                ) : null}
-                {billingSource.agreementState === 'active' ? (
-                  <div>
-                    <dt>{t('admin.student360.financeWorkspace.billingSourceStatus')}</dt>
-                    <dd>{t('admin.student360.financeWorkspace.billingSourceStatusActive')}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            </div>
-          ) : showOperationalBillingContext ? (
-            <div className="student-finance-billing-source student-finance-billing-source--inactive">
-              <p className="student-finance-billing-source__headline">
-                {t('admin.student360.financeWorkspace.billingContext.noActiveAgreement')}
-              </p>
-              <p className="student-finance-billing-source__hint">
-                {billingContext.billingContextMessage ??
-                  t('admin.student360.financeWorkspace.billingContext.noActiveAgreementExplanation')}
-              </p>
-              {billingContext.inactiveAgreement?.state ? (
-                <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
-                  <div>
-                    <dt>{t('admin.student360.financeWorkspace.inactiveAgreementReference.title')}</dt>
-                    <dd dir="auto">
-                      {billingSource.agreementNumber ?? t('common.dash')}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.student360.financeWorkspace.inactiveAgreementReference.stateLabel')}</dt>
-                    <dd>
-                      {resolveFinanceAgreementStateLabel(t, billingContext.inactiveAgreement.state, {
-                        hasBillableContext: true,
-                      })}
-                    </dd>
-                  </div>
-                </dl>
-              ) : null}
-              <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=agreements`}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.student360.financeWorkspace.agreementRepair.reviewAction')}
-              </Link>
-            </div>
-          ) : appliedPlans.length ? (
-            <div className="student-finance-plan-list">
-              {appliedPlans.map((plan) => (
-                <div key={plan.id} className="student-finance-plan-item">
-                  <div className="student-finance-plan-item__head">
-                    <strong dir="auto">{plan.name}</strong>
-                    <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
-                      {t('admin.student360.financeWorkspace.openPlan')}
-                    </Link>
-                  </div>
-                  <div className="student-finance-plan-item__metrics">
-                    <div>
-                      <span>{t('admin.student360.financeWorkspace.metrics.annualTotal')}</span>
-                      <FinanceMoney amount={plan.total_fees} currency={metrics?.currency ?? undefined} />
-                    </div>
-                    <div>
-                      <span>{t('admin.student360.financeWorkspace.metrics.paidConfirmed')}</span>
-                      <FinanceMoney amount={plan.paid} currency={metrics?.currency ?? undefined} />
-                    </div>
-                    <div>
-                      <span>{t('admin.student360.financeWorkspace.metrics.remainingActual')}</span>
-                      <FinanceMoney amount={plan.remaining} currency={metrics?.currency ?? undefined} />
-                    </div>
-                  </div>
-                  <p className="student-finance-plan-item__meta tiny muted">
-                    {t('admin.student360.financeWorkspace.feesCount')}: {plan.fees_count}
-                    {' · '}
-                    {t('admin.student360.financeWorkspace.installmentsCount')}: {plan.installments_count}
-                    {plan.state ? ` · ${plan.state}` : ''}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="student-finance-bento__empty">
-              {t('admin.student360.financeWorkspace.noAppliedPlans')}
+      <section
+        className={styles.installmentsSection}
+        aria-label={t('admin.student360.financeWorkspace.tabs.schedule')}
+      >
+        <header className={styles.installmentsHeader}>
+          <div>
+            <h3 className={styles.sectionTitle}>
+              {t('admin.student360.financeWorkspace.tabs.schedule')}
+            </h3>
+            <p className={styles.sectionMeta}>
+              {t('admin.student360.financeWorkspace.schedule.summary.total')}: {filterCounts.all}
             </p>
-          )}
-        </article>
-      </div>
+          </div>
+          <Link
+            href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
+            className="btn btn--ghost btn--sm"
+          >
+            {t('admin.student360.financeWorkspace.openSchedule')}
+          </Link>
+        </header>
 
-      <FamilyFinanceSummarySection studentId={studentId} />
+        <div
+          className={styles.filterBar}
+          role="toolbar"
+          aria-label={t('admin.student360.financeWorkspace.tabs.schedule')}
+        >
+          {visibleFilterOptions.map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              className={`${styles.filterChip}${filter === option.key ? ` ${styles.filterChipActive}` : ''}`}
+              aria-pressed={filter === option.key}
+              onClick={() => setFilter(option.key)}
+            >
+              <span>{option.label}</span>
+              <span className={styles.filterCount}>{filterCounts[option.key]}</span>
+            </button>
+          ))}
+        </div>
+
+        {installmentsState.initialLoading ? <StudentSectionSkeleton rows={5} /> : null}
+
+        {installmentsState.error ? (
+          <ApiErrorView error={installmentsState.error} onRetry={installmentsState.reload} />
+        ) : null}
+
+        {!installmentsState.initialLoading &&
+        !installmentsState.error &&
+        filteredInstallments.length === 0 ? (
+          <div className={styles.emptyState} role="status">
+            {t('admin.student360.financeWorkspace.schedule.emptyTitle')}
+          </div>
+        ) : null}
+
+        {!installmentsState.error && monthGroups.length ? (
+          <div className={styles.monthList}>
+            {monthGroups.map((group) => {
+              const expanded = expandedMonths.has(group.key);
+              const statusKey = classificationLabelKey(group.status);
+              return (
+                <article key={group.key} className={styles.monthGroup}>
+                  <button
+                    type="button"
+                    className={styles.monthToggle}
+                    aria-expanded={expanded}
+                    onClick={() =>
+                      setExpandedMonths((current) => {
+                        const next = new Set(current);
+                        if (next.has(group.key)) next.delete(group.key);
+                        else next.add(group.key);
+                        return next;
+                      })
+                    }
+                  >
+                    <span className={styles.monthIdentity}>
+                      <span className={styles.monthChevron} aria-hidden="true">
+                        {expanded ? '▾' : '▸'}
+                      </span>
+                      <strong className={styles.monthLabel}>{group.label}</strong>
+                    </span>
+                    <span className={styles.monthMeta}>
+                      {statusKey ? (
+                        <span
+                          className={`${styles.monthStatus} ${classificationClass(group.status)}`}
+                        >
+                          {t(statusKey)}
+                        </span>
+                      ) : null}
+                      <span className={styles.monthCount}>{group.rows.length}</span>
+                    </span>
+                  </button>
+
+                  {expanded ? (
+                    <div className={styles.installmentRows}>
+                      {group.rows.map((row) => {
+                        const displayName =
+                          resolveInstallmentDisplayLabel(row, locale) ||
+                          row.fee_name ||
+                          row.fee_type_name ||
+                          refName(row.service) ||
+                          t('common.dash');
+                        const classification = classifications.get(row.id) ?? 'other';
+                        const pendingCheque = hasInstallmentPendingChequeCoverage(row);
+                        const paymentStatus = resolveEffectiveInstallmentPaymentStatus(row);
+                        const timingStatus =
+                          classification === 'due'
+                            ? 'due'
+                            : resolveEffectiveInstallmentTimingStatus(row) ??
+                              row.timing_status ??
+                              'not_applicable';
+                        const showConfirmedPaid =
+                          typeof row.confirmed_paid_amount === 'number' &&
+                          Number.isFinite(row.confirmed_paid_amount) &&
+                          row.confirmed_paid_amount > 0;
+
+                        return (
+                          <article key={row.id} className={styles.installmentRow}>
+                            <div className={styles.installmentRowHeader}>
+                              <div className={styles.installmentName} dir="auto">
+                                <strong>{displayName}</strong>
+                                {row.period_label ? (
+                                  <span className={styles.installmentPeriod}>
+                                    {row.period_label}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className={styles.installmentRemaining}>
+                                <span className={styles.installmentFactLabel}>
+                                  {t('admin.student360.financeWorkspace.schedule.columns.remaining')}
+                                </span>
+                                <strong>
+                                  <FinanceMoney
+                                    amount={row.remaining_amount}
+                                    currency={currency}
+                                  />
+                                </strong>
+                              </div>
+                            </div>
+
+                            <div className={styles.installmentFacts}>
+                              <div className={styles.installmentFact}>
+                                <span className={styles.installmentFactLabel}>
+                                  {t('admin.student360.financeWorkspace.schedule.columns.amount')}
+                                </span>
+                                <strong>
+                                  <FinanceMoney amount={row.amount} currency={currency} />
+                                </strong>
+                              </div>
+
+                              {showConfirmedPaid ? (
+                                <div className={styles.installmentFact}>
+                                  <span className={styles.installmentFactLabel}>
+                                    {t('admin.student360.financeWorkspace.schedule.columns.paid')}
+                                  </span>
+                                  <strong>
+                                    <FinanceMoney
+                                      amount={row.confirmed_paid_amount}
+                                      currency={currency}
+                                    />
+                                  </strong>
+                                </div>
+                              ) : null}
+
+                              <div className={styles.installmentFact}>
+                                <span className={styles.installmentFactLabel}>
+                                  {t('admin.student360.financeWorkspace.schedule.columns.dueDate')}
+                                </span>
+                                <strong>
+                                  {row.due_date ? formatDate(row.due_date) : t('common.dash')}
+                                </strong>
+                              </div>
+                            </div>
+
+                            <div className={styles.installmentStatuses}>
+                              <InstallmentRowStatusBadges
+                                paymentStatus={paymentStatus}
+                                timingStatus={timingStatus}
+                                isVisible={row.is_visible}
+                                pendingChequeCoverage={pendingCheque}
+                              />
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        ) : null}
+      </section>
 
       <BillingAuthorityChangeDialog
         open={billingAuthorityDialogOpen}
@@ -483,6 +681,7 @@ export function StudentFinanceOverviewPanel({
         currentAuthorityName={billingLabel}
         onClose={() => setBillingAuthorityDialogOpen(false)}
         onSuccess={() => {
+          setBillingAuthorityDialogOpen(false);
           onReloadFinancialOverview();
           onRefresh();
         }}

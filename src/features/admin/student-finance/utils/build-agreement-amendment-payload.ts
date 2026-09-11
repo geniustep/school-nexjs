@@ -19,7 +19,44 @@ function stripUndefined<T extends Record<string, unknown>>(obj: T): T {
   return out as T;
 }
 
+function readSelectedPeriodValues(form: AgreementAmendmentFormState): string[] {
+  return form.selectedPeriodIds ?? [];
+}
+
+function readPeriodAmountOverrideValues(
+  form: AgreementAmendmentFormState,
+): Record<string, string> {
+  return form.periodAmountOverrides ?? {};
+}
+
+function readSparsePeriodIds(form: AgreementAmendmentFormState): number[] {
+  const ids = readSelectedPeriodValues(form)
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0);
+  return [...new Set(ids)];
+}
+
+function readSparsePeriodOverrides(form: AgreementAmendmentFormState) {
+  const selected = new Set(readSparsePeriodIds(form));
+  return Object.entries(readPeriodAmountOverrideValues(form))
+    .map(([periodId, rawAmount]) => ({
+      effective_period_id: Number(periodId),
+      amount: Number(rawAmount),
+    }))
+    .filter(
+      (item) =>
+        selected.has(item.effective_period_id) &&
+        Number.isFinite(item.amount) &&
+        item.amount > 0,
+    );
+}
+
+export function usesSparsePeriodSelection(form: AgreementAmendmentFormState): boolean {
+  return form.operationType === 'modify_line' && readSelectedPeriodValues(form).length > 0;
+}
+
 export function isSingleInstallmentAmendmentForm(form: AgreementAmendmentFormState): boolean {
+  if (usesSparsePeriodSelection(form)) return false;
   const periodId = form.effectivePeriodId.trim();
   return (
     form.operationType === 'modify_line' &&
@@ -32,6 +69,7 @@ export function isSingleInstallmentAmendmentForm(form: AgreementAmendmentFormSta
 function resolveFormPayloadOperationType(
   form: AgreementAmendmentFormState,
 ): AgreementAmendmentOperationType {
+  if (usesSparsePeriodSelection(form)) return 'modify_line';
   if (isSingleInstallmentAmendmentForm(form)) return 'adjust_installment_amount';
   return resolvePayloadOperationType(form.operationType, form.amendmentPath);
 }
@@ -72,15 +110,21 @@ function readLinePayload(
     });
   }
 
+  const periodAmountOverrides = usesSparsePeriodSelection(form)
+    ? readSparsePeriodOverrides(form)
+    : [];
+
   return stripUndefined({
     source_line_id: sourceLineId,
     agreement_line_id: agreementLineId,
     fee_type_id: feeTypeId,
     amount: Number(form.amount),
+    period_amount_overrides: periodAmountOverrides.length ? periodAmountOverrides : undefined,
   });
 }
 
 export function usesPeriodRangeForForm(form: AgreementAmendmentFormState): boolean {
+  if (usesSparsePeriodSelection(form)) return true;
   if (form.operationType === 'add_line') return true;
   if (form.operationType === 'cancel_line') return true;
   if (form.operationType === 'modify_line') return form.amendmentPath === 'period_range';
@@ -100,7 +144,9 @@ export function buildAgreementAmendmentPreviewPayload(
     line: readLinePayload(payloadOperationType, form, selectedLine),
   };
 
-  if (payloadOperationType !== 'adjust_line_amount' && usesPeriodRangeForForm(form)) {
+  if (usesSparsePeriodSelection(form)) {
+    payload.effective_period_ids = readSparsePeriodIds(form);
+  } else if (payloadOperationType !== 'adjust_line_amount' && usesPeriodRangeForForm(form)) {
     const effectivePeriodId = form.effectivePeriodId.trim();
     if (effectivePeriodId) {
       payload.effective_period_id = Number(effectivePeriodId);
@@ -143,6 +189,23 @@ export function canSubmitAgreementAmendmentForm(
   }
 
   if (form.operationType === 'modify_line') {
+    if (usesSparsePeriodSelection(form)) {
+      if (!lineSupportsModifyLine(selectedLine)) return false;
+      if (readSparsePeriodIds(form).length === 0) return false;
+      if (form.amount.trim() === '' || !Number.isFinite(Number(form.amount)) || Number(form.amount) <= 0) {
+        return false;
+      }
+      const selectedPeriodIds = readSelectedPeriodValues(form);
+      const invalidOverride = Object.entries(readPeriodAmountOverrideValues(form)).some(
+        ([periodId, rawAmount]) => {
+          if (!selectedPeriodIds.includes(periodId)) return true;
+          const amount = Number(rawAmount);
+          return rawAmount.trim() === '' || !Number.isFinite(amount) || amount <= 0;
+        },
+      );
+      return !invalidOverride;
+    }
+
     if (form.amendmentPath === 'adjust_amount') {
       if (!lineSupportsAdjustLineAmount(selectedLine)) return false;
       return form.amount.trim() !== '' && Number.isFinite(Number(form.amount)) && Number(form.amount) >= 0;

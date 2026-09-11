@@ -1,29 +1,26 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const AUTO_PREVIEW_DELAY_MS = 420;
-const BUSY_RETRY_DELAY_MS = 480;
 
 function findAmendmentForm(node: HTMLElement | null): HTMLFormElement | null {
   return node?.closest<HTMLFormElement>('form.student-finance-amendment-form') ?? null;
 }
 
-function findPreviewSubmitter(form: HTMLFormElement): HTMLButtonElement | null {
-  return form.querySelector<HTMLButtonElement>('button[type="submit"]');
-}
-
-function requestPreviewWhenReady(form: HTMLFormElement): boolean {
-  if (!form.isConnected || !form.checkValidity()) return false;
-  const submitter = findPreviewSubmitter(form);
-  if (submitter?.disabled) return false;
-  form.requestSubmit();
+function dispatchPreviewSubmit(form: HTMLFormElement): boolean {
+  if (!form.isConnected) return false;
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   return true;
 }
 
 export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
-  const rootRef = useRef<T | null>(null);
+  const [formNode, setFormNode] = useState<HTMLFormElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const rootRef = useCallback((node: T | null) => {
+    setFormNode(findAmendmentForm(node));
+  }, []);
 
   const cancelScheduledPreview = useCallback(() => {
     if (timerRef.current != null) {
@@ -36,21 +33,13 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
     cancelScheduledPreview();
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
-      const form = findAmendmentForm(rootRef.current);
-      if (!form || !form.checkValidity()) return;
-      if (requestPreviewWhenReady(form)) return;
-
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null;
-        const retryForm = findAmendmentForm(rootRef.current);
-        if (retryForm) requestPreviewWhenReady(retryForm);
-      }, BUSY_RETRY_DELAY_MS);
+      if (!formNode) return;
+      dispatchPreviewSubmit(formNode);
     }, AUTO_PREVIEW_DELAY_MS);
-  }, [cancelScheduledPreview]);
+  }, [cancelScheduledPreview, formNode]);
 
   useEffect(() => {
-    const form = findAmendmentForm(rootRef.current);
-    if (!form) return;
+    if (!formNode) return;
 
     const handleInput = () => scheduleAutoPreview();
     const handleChange = () => scheduleAutoPreview();
@@ -59,23 +48,25 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
       if (!(target instanceof Element)) return;
       if (
         target.closest('.student-finance-amendment-line-picker__card') ||
-        target.closest('.student-finance-amendment-ambiguous__list')
+        target.closest('.student-finance-amendment-ambiguous__list') ||
+        target.closest('.student-finance-amendment-sparse-period__toggle') ||
+        target.closest('.student-finance-amendment-sparse-period__override')
       ) {
         scheduleAutoPreview();
       }
     };
 
-    form.addEventListener('input', handleInput);
-    form.addEventListener('change', handleChange);
-    form.addEventListener('click', handleClick);
+    formNode.addEventListener('input', handleInput);
+    formNode.addEventListener('change', handleChange);
+    formNode.addEventListener('click', handleClick);
 
     return () => {
-      form.removeEventListener('input', handleInput);
-      form.removeEventListener('change', handleChange);
-      form.removeEventListener('click', handleClick);
+      formNode.removeEventListener('input', handleInput);
+      formNode.removeEventListener('change', handleChange);
+      formNode.removeEventListener('click', handleClick);
       cancelScheduledPreview();
     };
-  }, [cancelScheduledPreview, scheduleAutoPreview]);
+  }, [cancelScheduledPreview, formNode, scheduleAutoPreview]);
 
   return { rootRef, scheduleAutoPreview };
 }
