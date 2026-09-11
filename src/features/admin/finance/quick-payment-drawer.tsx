@@ -3,6 +3,7 @@
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useT } from '@/features/i18n/locale-context';
 import './finance-ui.css';
+import './quick-payment-simplified.css';
 
 export type QuickPaymentDrawerMode = 'student' | 'family';
 export type QuickPaymentSource = 'arrears';
