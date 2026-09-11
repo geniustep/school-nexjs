@@ -12,6 +12,14 @@ const componentsDir = join(
 );
 
 const css = readFileSync(join(componentsDir, 'agreement-amendment-studio.css'), 'utf8');
+const densityCss = readFileSync(
+  join(componentsDir, 'agreement-amendment-preview-density.css'),
+  'utf8',
+);
+const annualSummaryCss = readFileSync(
+  join(componentsDir, 'agreement-amendment-annual-summary.css'),
+  'utf8',
+);
 const autoPreviewSource = readFileSync(
   join(componentsDir, 'use-agreement-amendment-auto-preview.ts'),
   'utf8',
@@ -61,5 +69,17 @@ describe('Finance Amendment Studio live-preview layout contract', () => {
     expect(autoPreviewSource).not.toContain('form.checkValidity()');
     expect(autoPreviewSource).not.toContain('submitter?.disabled');
     expect(autoPreviewSource).not.toContain('BUSY_RETRY_DELAY_MS');
+  });
+
+  it('keeps every preview section visible while reducing desktop card height', () => {
+    expect(annualSummaryCss).toContain("@import './agreement-amendment-preview-density.css'");
+    expect(densityCss).toContain('grid-template-columns: repeat(6, minmax(0, 1fr))');
+    expect(densityCss).toContain('.student-finance-amendment-live-preview__period-impacts');
+    expect(densityCss).toContain(
+      'grid-template-columns: minmax(72px, 0.8fr) minmax(145px, 1.45fr) minmax(82px, 0.75fr) auto',
+    );
+    expect(densityCss).toContain('.student-finance-amendment-annual-summary__services');
+    expect(densityCss).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
+    expect(densityCss).not.toContain('display: none');
   });
 });
