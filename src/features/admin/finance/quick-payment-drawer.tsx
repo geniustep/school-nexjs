@@ -12,7 +12,7 @@ export function QuickPaymentDrawer({
   onClose,
   mode,
   subtitle,
-  source,
+  source: _source,
   children,
   className,
 }: {
@@ -28,14 +28,6 @@ export function QuickPaymentDrawer({
 
   if (!open) return null;
 
-  const contextKey =
-    source === 'arrears'
-      ? 'admin.finance.quickPayment.arrearsContext'
-      : mode === 'family'
-        ? 'admin.finance.quickPayment.familyContext'
-        : 'admin.finance.quickPayment.studentContext';
-
-  const showShortIntro = source !== 'arrears';
   const isFamily = mode === 'family';
 
   return (
@@ -51,16 +43,6 @@ export function QuickPaymentDrawer({
       iconClose
     >
       <div className="finance-quick-payment-drawer__shell">
-        <div className="finance-quick-payment-drawer__header-copy">
-          <div className="finance-quick-payment-drawer__lead">
-            {showShortIntro ? (
-              <p className="finance-quick-payment-drawer__intro">
-                {t('admin.finance.quickPayment.intro')}
-              </p>
-            ) : null}
-            <p className="finance-quick-payment-drawer__context">{t(contextKey)}</p>
-          </div>
-        </div>
         <div className="finance-quick-payment-drawer__content">{children}</div>
       </div>
     </SetupDrawer>
