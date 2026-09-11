@@ -192,8 +192,13 @@ function asStudent(value: unknown): CollectionReportDetailRow['student'] {
   if (!row || typeof row.id !== 'number') return null;
   return {
     id: row.id,
-    display_name: typeof row.display_name === 'string' ? row.display_name : null,
-    code: typeof row.code === 'string' ? row.code : null,
+    display_name:
+      typeof row.display_name === 'string' && row.display_name.trim()
+        ? row.display_name.trim()
+        : null,
+    // Collection reports intentionally present/export the student's human name only.
+    // The technical student code remains Backend metadata and is not rendered here.
+    code: null,
   };
 }
 
