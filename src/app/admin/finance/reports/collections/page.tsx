@@ -9,6 +9,13 @@ import { CollectionReportsExportActions } from '@/features/admin/finance/collect
 import { CollectionReportsHeaderSummary } from '@/features/admin/finance/collection-reports-header-summary';
 import { CollectionReportsOperationsPanel } from '@/features/admin/finance/collection-reports-operations-panel';
 import {
+  CollectionReportsPeriodFilter,
+  type CollectionReportsPeriodMode,
+} from '@/features/admin/finance/collection-reports-period-filter';
+import {
+  currentCollectionReportsMonthRange,
+} from '@/features/admin/finance/utils/collection-reports-period';
+import {
   defaultCollectionReportsFilters,
   isCollectionReportAggDimension,
   isCollectionReportsView,
@@ -37,8 +44,27 @@ const URL_KEYS: Record<keyof CollectionReportsFilters, string> = {
 
 function readFilters(searchParams: URLSearchParams): CollectionReportsFilters {
   const defaults = defaultCollectionReportsFilters();
+  const hasExplicitDate =
+    searchParams.has('date') ||
+    searchParams.has('date_from') ||
+    searchParams.has('date_to') ||
+    searchParams.has('date_mode');
+
+  const monthlyDefault = currentCollectionReportsMonthRange();
   const dateModeRaw = searchParams.get('date_mode') ?? '';
-  const dateMode = dateModeRaw === 'range' ? 'range' : 'day';
+  const dateMode =
+    dateModeRaw === 'range'
+      ? 'range'
+      : dateModeRaw === 'day'
+        ? 'day'
+        : searchParams.has('date_from') || searchParams.has('date_to')
+          ? 'range'
+          : searchParams.has('date')
+            ? 'day'
+            : hasExplicitDate
+              ? defaults.dateMode
+              : monthlyDefault.dateMode;
+
   const pageRaw = searchParams.get('page');
   const viewRaw = searchParams.get('view') ?? '';
   const aggRaw = searchParams.get('agg') ?? '';
@@ -46,8 +72,12 @@ function readFilters(searchParams: URLSearchParams): CollectionReportsFilters {
   return {
     dateMode,
     date: searchParams.get('date') ?? (dateMode === 'day' ? defaults.date : ''),
-    dateFrom: searchParams.get('date_from') ?? '',
-    dateTo: searchParams.get('date_to') ?? '',
+    dateFrom:
+      searchParams.get('date_from') ??
+      (!hasExplicitDate && dateMode === 'range' ? monthlyDefault.dateFrom : ''),
+    dateTo:
+      searchParams.get('date_to') ??
+      (!hasExplicitDate && dateMode === 'range' ? monthlyDefault.dateTo : ''),
     cycle: searchParams.get('cycle') ?? '',
     levelId: searchParams.get('level_id') ?? '',
     classId: searchParams.get('class_id') ?? '',
@@ -69,13 +99,16 @@ export default function AdminFinanceCollectionReportsPage() {
   const defaults = useMemo(() => defaultCollectionReportsFilters(), []);
 
   const onFiltersChange = useCallback(
-    (updates: Partial<Record<keyof CollectionReportsFilters, string | number | null>>) => {
+    (
+      updates: Partial<Record<keyof CollectionReportsFilters, string | number | null>>,
+      options?: { periodMode?: CollectionReportsPeriodMode },
+    ) => {
       const params = new URLSearchParams(searchParams.toString());
       const next: CollectionReportsFilters = { ...filters, ...updates } as CollectionReportsFilters;
 
       // Keep the last valid report visible and do not call the Backend with an
-      // inverted date range. The operations panel surfaces the recoverable
-      // validation error while Odoo remains the final validation boundary.
+      // inverted date range. The period filter surfaces the recoverable error
+      // while Odoo remains the final validation boundary.
       if (
         next.dateMode === 'range' &&
         next.dateFrom.trim() &&
@@ -116,6 +149,23 @@ export default function AdminFinanceCollectionReportsPage() {
         params.delete('date');
       }
 
+      // UI-only marker. It is intentionally not part of the Backend query.
+      // Keeping it explicit for custom mode prevents the date fields from
+      // disappearing when a custom range happens to equal a full month.
+      if (options?.periodMode === 'custom') {
+        params.set('period_ui', 'custom');
+      } else if (options?.periodMode === 'month') {
+        params.delete('period_ui');
+      } else if (
+        updates.dateMode === 'day' &&
+        updates.date === defaults.date &&
+        updates.dateFrom === '' &&
+        updates.dateTo === ''
+      ) {
+        // Legacy reset actions resolve back to the new month-first default.
+        params.delete('period_ui');
+      }
+
       const qs = params.toString();
       router.replace(
         qs ? `/admin/finance/reports/collections?${qs}` : '/admin/finance/reports/collections',
@@ -135,6 +185,7 @@ export default function AdminFinanceCollectionReportsPage() {
         actions={<CollectionReportsExportActions filters={filters} />}
       />
       <CollectionReportsHeaderSummary filters={filters} />
+      <CollectionReportsPeriodFilter filters={filters} onFiltersChange={onFiltersChange} />
       <CollectionReportsOperationsPanel filters={filters} onFiltersChange={onFiltersChange} />
     </RequireAdminPermission>
   );
