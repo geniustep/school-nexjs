@@ -2,10 +2,18 @@
 
 import Link from 'next/link';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale } from '@/features/i18n/locale-context';
 import { paymentMethodLabel } from '@/lib/utils/finance';
+import { buildReceiptHtmlPrintPath } from '@/lib/utils/finance-receipt-html-print';
 import type { CollectionUpdatedOverview } from '@/types/student-financial-overview';
 import type { CollectionSuccessSummary } from './resolve-collection-success-summary';
+
+const PRINT_RECEIPT_LABEL = {
+  ar: 'طباعة الوصل',
+  fr: 'Imprimer le reçu',
+  en: 'Print receipt',
+  es: 'Imprimir recibo',
+} as const;
 
 export function CollectionSuccessPanel({
   summary,
@@ -20,7 +28,8 @@ export function CollectionSuccessPanel({
   onViewCollection: () => void;
   onClose: () => void;
 }) {
-  const t = useT();
+  const { locale, t } = useLocale();
+  const printLang = locale === 'fr' ? 'fr' : 'ar';
 
   return (
     <div className="finance-collection-success">
@@ -82,10 +91,12 @@ export function CollectionSuccessPanel({
       <div className="row form-actions finance-collection-success__actions">
         {summary.receiptId ? (
           <Link
-            href={`/admin/finance/receipts/${summary.receiptId}`}
+            href={buildReceiptHtmlPrintPath(summary.receiptId, printLang, { autoPrint: true })}
             className="btn btn--primary btn--sm"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            {t('admin.finance.collections.openReceipt')}
+            {PRINT_RECEIPT_LABEL[locale]}
           </Link>
         ) : null}
         {pageMode && summary.collectionId ? (
