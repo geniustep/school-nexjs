@@ -2,11 +2,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  formatAmendmentPreviewPeriodLabel,
   getAmendmentReasonPresetOptions,
   isSingleMonthSelection,
+  reconcileSparsePeriodSelectionWithPreview,
   resolveAffectedMonthLabels,
   resolveAmendmentReasonPresetLabel,
 } from './agreement-amendment-preview-model';
+import { buildAgreementAnnualSummary } from './agreement-amendment-annual-summary';
 
 const componentsDir = join(
   process.cwd(),
@@ -25,25 +28,45 @@ const dialogSource = readFileSync(
   join(componentsDir, 'student-finance-agreement-amendment-dialog.tsx'),
   'utf8',
 );
+const previewSource = readFileSync(
+  join(componentsDir, 'agreement-amendment-live-preview-panel.tsx'),
+  'utf8',
+);
+const sparseGridSource = readFileSync(
+  join(componentsDir, 'agreement-amendment-sparse-period-grid.tsx'),
+  'utf8',
+);
+const autoPreviewSource = readFileSync(
+  join(componentsDir, 'use-agreement-amendment-auto-preview.ts'),
+  'utf8',
+);
+const feedbackCssSource = readFileSync(
+  join(componentsDir, 'agreement-amendment-feedback.css'),
+  'utf8',
+);
 
-describe('Finance Amendment reason and live-preview UX contract', () => {
-  it('defaults to management decision and keeps Other as the custom option', () => {
+describe('Finance Amendment reason and sparse-period UX contract', () => {
+  it('keeps management decision first and uses it as the default reason', () => {
     const options = getAmendmentReasonPresetOptions('ar');
     expect(options[0]).toEqual({ key: 'manager_decision', label: 'قرار المدير' });
     expect(options.at(-1)).toEqual({ key: 'other', label: 'أخرى' });
     expect(resolveAmendmentReasonPresetLabel('fr', 'manager_decision')).toBe(
       'Décision de la direction',
     );
+    expect(dialogSource).toContain(
+      "reason: resolveAmendmentReasonPresetLabel(locale, 'manager_decision')",
+    );
+    expect(reasonSelectorSource).toContain("return value.trim() ? 'other' : 'manager_decision'");
   });
 
-  it('requires free text only when Other is selected', () => {
-    expect(reasonSelectorSource).toContain("useState<AmendmentReasonPresetKey>('manager_decision')");
+  it('renders reason as a compact controlled selector with free text only for Other', () => {
+    expect(reasonSelectorSource).toContain('<select');
     expect(reasonSelectorSource).toContain("preset === 'other'");
-    expect(reasonSelectorSource).toContain('required');
-    expect(reasonSelectorSource).toContain('scheduleAutoPreview()');
+    expect(reasonSelectorSource).toContain('<textarea');
+    expect(reasonSelectorSource).not.toContain('type="radio"');
   });
 
-  it('keeps one selected month visible before a backend preview exists', () => {
+  it('keeps legacy month-label helpers compatible for older amendment consumers', () => {
     const periods = [
       { id: 291, label: 'شتنبر 2026', periodKey: '2026-09' },
       { id: 292, label: 'أكتوبر 2026', periodKey: '2026-10' },
@@ -60,7 +83,20 @@ describe('Finance Amendment reason and live-preview UX contract', () => {
     ).toEqual(['شتنبر 2026']);
   });
 
-  it('turns backend period keys into month names and never needs installment labels', () => {
+  it('uses plain month labels in amendment cards and preview without the legacy suffix', () => {
+    const label = formatAmendmentPreviewPeriodLabel(
+      { id: 291, label: 'شتنبر 2026', periodKey: '2026-09' },
+      'ar',
+    );
+    expect(label).toBe('شتنبر 2026');
+    expect(label).not.toContain('وما بعده');
+    expect(previewSource).toContain('formatAmendmentPreviewPeriodLabel');
+    expect(sparseGridSource).toContain('formatAmendmentPreviewPeriodLabel');
+    expect(previewSource).not.toContain('formatAmendmentEffectivePeriodLabel');
+    expect(sparseGridSource).not.toContain('formatAmendmentEffectivePeriodLabel');
+  });
+
+  it('turns backend period keys into month names for preview consumers', () => {
     const periods = [
       { id: 291, label: 'شتنبر 2026', periodKey: '2026-09' },
       { id: 292, label: 'أكتوبر 2026', periodKey: '2026-10' },
@@ -76,9 +112,99 @@ describe('Finance Amendment reason and live-preview UX contract', () => {
     ).toEqual(['شتنبر 2026', 'أكتوبر 2026']);
   });
 
-  it('renders the guided panel continuously instead of waiting for a preview response', () => {
-    expect(dialogSource).toContain('<AgreementAmendmentReasonSelector');
-    expect(dialogSource).toContain('<AgreementAmendmentLivePreviewPanel');
-    expect(dialogSource).toContain('student-finance-amendment-preview--legacy');
+  it('removes every blocked month and its special price from sparse selection', () => {
+    const result = reconcileSparsePeriodSelectionWithPreview({
+      selectedPeriodIds: ['291', '292', '293', '294'],
+      periodAmountOverrides: { '292': '900', '293': '1200', '294': '800' },
+      periodImpacts: [
+        { effectivePeriodId: 291, amendable: true },
+        { effectivePeriodId: 292, amendable: false },
+        { effectivePeriodId: 293, amendable: true },
+        { effectivePeriodId: 294, amendable: false },
+      ],
+    });
+    expect(result.blockedPeriodIds).toEqual(['292', '294']);
+    expect(result.selectedPeriodIds).toEqual(['291', '293']);
+    expect(result.periodAmountOverrides).toEqual({ '293': '1200' });
+    expect(result.changed).toBe(true);
+  });
+
+  it('owns sparse reconciliation in the parent and re-previews the exact reduced payload', () => {
+    expect(dialogSource).toContain('reconcileSparsePeriodSelectionWithPreview');
+    expect(dialogSource).toContain('const nextForm: SparseAgreementAmendmentFormState');
+    expect(dialogSource).toContain('await requestPreview(nextForm, false)');
+    expect(dialogSource).toContain('setBlockedPeriodIds');
+    expect(sparseGridSource).not.toContain('reconcileSparsePeriodSelectionWithPreview');
+    expect(sparseGridSource).not.toContain('useEffect(() =>');
+  });
+
+  it('invalidates stale preview responses so an old blocked result cannot win the race', () => {
+    expect(dialogSource).toContain('const previewRequestSeqRef = useRef(0)');
+    expect(dialogSource).toContain('previewRequestSeqRef.current += 1');
+    expect(dialogSource).toContain('const requestId = ++previewRequestSeqRef.current');
+    expect(dialogSource).toContain('if (requestId !== previewRequestSeqRef.current) return;');
+    expect(dialogSource).toContain('setPreviewLoading(false)');
+  });
+
+  it('submits auto-preview through the React submit handler without native validity or disabled-button gates', () => {
+    expect(sparseGridSource).toContain('notifyPreviewAfterStateUpdate');
+    expect(autoPreviewSource).toContain("dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))");
+    expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__toggle");
+    expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__override");
+    expect(autoPreviewSource).not.toContain('form.checkValidity()');
+    expect(autoPreviewSource).not.toContain('submitter?.disabled');
+    expect(autoPreviewSource).not.toContain('form.requestSubmit()');
+  });
+
+  it('restores modify, add, and remove operations with modify as the default', () => {
+    expect(dialogSource).toContain("operationType: 'modify_line'");
+    expect(dialogSource).toContain("['modify_line', copy.modify]");
+    expect(dialogSource).toContain("['add_line', copy.add]");
+    expect(dialogSource).toContain("['cancel_line', copy.remove]");
+    expect(dialogSource).toContain('<AgreementAmendmentSparsePeriodGrid');
+    expect(dialogSource).toContain('<AgreementAmendmentMonthRail');
+  });
+
+  it('places reason before price and keeps apply gated by the latest authoritative preview', () => {
+    expect(dialogSource.indexOf('<AgreementAmendmentReasonSelector')).toBeLessThan(
+      dialogSource.indexOf('student-finance-amendment-new-price'),
+    );
+    expect(dialogSource).toContain('type="submit"');
+    expect(dialogSource).toContain('preview?.canApply === true');
+    expect(dialogSource).toContain('disabled={applyLoading || previewLoading || !applyReady}');
+    expect(dialogSource).toContain('resolveAgreementAmendmentBlockingMessage');
+    expect(dialogSource).toContain('سبب عدم الجاهزية:');
+  });
+
+  it('keeps end-user preview copy implementation-neutral', () => {
+    expect(previewSource).toContain('المعاينة المالية قبل التفعيل');
+    expect(previewSource).toContain('تم تحديث المعاينة');
+    expect(previewSource).toContain('الأشهر المتأثرة');
+    expect(previewSource).toContain('التغييرات المتوقعة');
+    expect(previewSource).not.toContain('Odoo');
+    expect(dialogSource).not.toContain('Odoo');
+    expect(feedbackCssSource).toContain('.student-finance-amendment-form__action-note');
+    expect(feedbackCssSource).toContain('display: none');
+    expect(previewSource).toContain('preview.createdInstallments.length');
+    expect(previewSource).toContain('preview.updatedInstallments.length');
+    expect(previewSource).toContain('preview.cancelledInstallments.length');
+    expect(previewSource).toContain('periodImpacts.map');
+  });
+
+  it('uses authoritative annual totals directly and never recomputes the annual agreement from services', () => {
+    const summary = buildAgreementAnnualSummary({
+      id: 42,
+      student_id: 7,
+      state: 'active',
+      financial_summary: { schedule_total: 25000 },
+      lines: [
+        { id: 1, service_name: 'التمدرس', schedule_total: 12000, unit_price: 1200, schedule_period_count: 10 },
+        { id: 2, service_name: 'النقل', schedule_total: 15000, unit_price: 1500, schedule_period_count: 10 },
+      ],
+    });
+    expect(summary.total).toBe(25000);
+    expect(summary.services.map((service) => service.total)).toEqual([12000, 15000]);
+    expect(previewSource).toContain('preview.delta');
+    expect(previewSource).toContain('buildAgreementAnnualSummary');
   });
 });

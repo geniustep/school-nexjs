@@ -21,6 +21,11 @@ export interface AmendmentPreviewPeriodLike {
   selectable?: boolean;
 }
 
+export interface AmendmentPreviewPeriodImpactLike {
+  effectivePeriodId?: number | null;
+  amendable?: boolean;
+}
+
 const REASON_PRESETS: Record<AmendmentStudioLocale, Record<AmendmentReasonPresetKey, string>> = {
   ar: {
     manager_decision: 'قرار المدير',
@@ -114,6 +119,14 @@ function labelForPeriod(period: AmendmentPreviewPeriodLike, locale: string): str
   return key ? formatPeriodKey(key, locale) : String(period.id);
 }
 
+/** Plain month label for amendment cards/previews. Never appends the legacy "and after" suffix. */
+export function formatAmendmentPreviewPeriodLabel(
+  period: AmendmentPreviewPeriodLike,
+  locale: string,
+): string {
+  return labelForPeriod(period, locale);
+}
+
 function findPeriodForRaw(
   raw: string,
   periods: AmendmentPreviewPeriodLike[],
@@ -130,6 +143,42 @@ function findPeriodForRaw(
 
 function unique(values: string[]): string[] {
   return values.filter((value, index) => value && values.indexOf(value) === index);
+}
+
+export function reconcileSparsePeriodSelectionWithPreview({
+  selectedPeriodIds,
+  periodAmountOverrides,
+  periodImpacts,
+}: {
+  selectedPeriodIds: string[];
+  periodAmountOverrides: Record<string, string>;
+  periodImpacts: AmendmentPreviewPeriodImpactLike[];
+}): {
+  blockedPeriodIds: string[];
+  selectedPeriodIds: string[];
+  periodAmountOverrides: Record<string, string>;
+  changed: boolean;
+} {
+  const blockedPeriodIds = unique(
+    periodImpacts
+      .filter((impact) => impact.amendable === false)
+      .map((impact) => impact.effectivePeriodId)
+      .filter((id): id is number => typeof id === 'number' && Number.isFinite(id) && id > 0)
+      .map(String),
+  );
+  const blocked = new Set(blockedPeriodIds);
+  const nextSelected = selectedPeriodIds.filter((id) => !blocked.has(id));
+  const nextOverrides = Object.fromEntries(
+    Object.entries(periodAmountOverrides).filter(([periodId]) => !blocked.has(periodId)),
+  );
+  return {
+    blockedPeriodIds,
+    selectedPeriodIds: nextSelected,
+    periodAmountOverrides: nextOverrides,
+    changed:
+      nextSelected.length !== selectedPeriodIds.length ||
+      Object.keys(nextOverrides).length !== Object.keys(periodAmountOverrides).length,
+  };
 }
 
 export function resolveAffectedMonthLabels({

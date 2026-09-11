@@ -1,17 +1,19 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { useLocale } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { fetchFinancialAgreement } from '../api/finance-admin-api';
 import type {
   AgreementAmendmentFormState,
   AgreementAmendmentPeriodOption,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
+import type { FinancialAgreement } from '../types';
 import type { AgreementAmendmentLineOption } from '../utils/resolve-amendment-form-options';
-import { canSubmitAgreementAmendmentForm, usesPeriodRangeForForm } from '../utils/build-agreement-amendment-payload';
+import { canSubmitAgreementAmendmentForm } from '../utils/build-agreement-amendment-payload';
 import {
   hasAgreementAmendmentPricingContract,
-  isBlockedByOneTimeLineNotPeriodAmendable,
   resolveAgreementAmendmentPricingContractLabelMode,
   shouldShowAgreementAmendmentBlockingReasons,
   shouldShowAgreementAmendmentLegacyAmounts,
@@ -22,75 +24,180 @@ import {
 } from '../utils/resolve-agreement-amendment-warning';
 import { AgreementAmendmentPricingContractPreview } from './agreement-amendment-pricing-contract-preview';
 import {
-  isSingleMonthSelection,
+  formatAmendmentPreviewPeriodLabel,
   resolveAffectedMonthLabels,
 } from './agreement-amendment-preview-model';
-import { useT } from '@/features/i18n/locale-context';
+import { buildAgreementAnnualSummary } from './agreement-amendment-annual-summary';
 import './agreement-amendment-reason-preview.css';
+import './agreement-amendment-annual-summary.css';
 
 const COPY = {
   ar: {
-    title: 'المعاينة الحية',
-    subtitle: 'تتحدث تلقائيًا مع كل اختيار',
-    decisionSummary: 'ملخص القرار',
-    affectedMonths: 'الأشهر المتأثرة',
+    title: 'المعاينة',
+    subtitle: 'المعاينة المالية قبل التفعيل',
+    waiting: 'أكمل الاختيارات لتظهر النتيجة',
+    updating: 'جاري تحديث المعاينة…',
+    resultReady: 'تم تحديث المعاينة',
+    operation: 'العملية',
+    modify: 'تعديل خدمة',
+    add: 'إضافة خدمة',
+    remove: 'إزالة خدمة',
+    service: 'الخدمة',
+    newPrice: 'السعر',
+    selectedMonths: 'الأشهر',
+    effectiveFrom: 'ابتداءً من',
+    reason: 'السبب',
     financialImpact: 'الأثر المالي',
     monthDetails: 'تفاصيل الأشهر',
-    ready: 'جاهزة للمعاينة',
-    updating: 'جاري تحديث المعاينة…',
-    waiting: 'أكمل الحقول التالية لتظهر النتيجة المالية',
-    operation: 'العملية',
-    line: 'البند',
-    scope: 'النطاق',
-    month: 'الشهر',
-    reason: 'السبب',
-    amount: 'المبلغ',
-    complete: 'مكتمل',
-    pending: 'متبقي',
-    singleMonth: 'شهر واحد فقط',
-    futureScope: 'هذا الشهر وما بعده',
-    singleScope: 'هذا الشهر فقط',
-    periodRange: 'فترة شهرية',
-    amountOnly: 'تعديل المبلغ فقط',
-    selected: 'ضمن التعديل',
-    noMonth: 'اختر الشهر',
-    notSelected: 'لم يحدد بعد',
-    addLine: 'إضافة بند',
-    cancelLine: 'إلغاء بند',
-    modifyLine: 'تعديل بند',
-    applyAllowed: 'مسموح بالتطبيق',
-    needsReview: 'يحتاج مراجعة',
-    resultReady: 'نتيجة Odoo جاهزة',
-    previewError: 'تعذر تحديث المعاينة',
-    amountBefore: 'المبلغ قبل',
-    amountAfter: 'المبلغ بعد',
+    amountBefore: 'قبل',
+    amountAfter: 'بعد',
     delta: 'الفرق',
-    lockedMonths: 'أشهر مقفلة',
+    applyAllowed: 'جاهز للتفعيل',
+    needsReview: 'غير جاهز للتفعيل',
+    specialPrice: 'سعر خاص',
+    backendAffected: 'الأشهر المتأثرة',
+    backendChanges: 'التغييرات المتوقعة',
+    created: 'إنشاء',
+    updated: 'تعديل',
+    cancelled: 'إزالة',
+    noBackendResult: 'لم تصل نتيجة مالية بعد.',
+    annualTitle: 'الخلاصة السنوية',
+    annualSubtitle: 'القيم الحالية المعتمدة',
+    annualTotal: 'المجموع السنوي الحالي',
+    annualImpact: 'أثر التعديل المعاين',
+    servicesTitle: 'تفصيل الخدمات',
+    annualUnavailable: 'المجموع السنوي غير متاح حاليًا.',
+    serviceTotalUnavailable: 'غير متاح',
+    unitPrice: 'السعر',
+    periodCount: 'عدد الفترات',
+    annualLoading: 'جاري تحميل الخلاصة السنوية…',
   },
   fr: {
-    title: 'Aperçu en direct', subtitle: 'Se met à jour automatiquement à chaque choix', decisionSummary: 'Résumé de la décision', affectedMonths: 'Mois concernés', financialImpact: 'Impact financier', monthDetails: 'Détail des mois', ready: 'Prêt pour l’aperçu', updating: 'Mise à jour de l’aperçu…', waiting: 'Complétez les champs suivants pour afficher le résultat financier', operation: 'Opération', line: 'Élément', scope: 'Portée', month: 'Mois', reason: 'Motif', amount: 'Montant', complete: 'Complet', pending: 'Manquant', singleMonth: 'Un seul mois', futureScope: 'Ce mois et les suivants', singleScope: 'Ce mois uniquement', periodRange: 'Période mensuelle', amountOnly: 'Montant uniquement', selected: 'Inclus dans la modification', noMonth: 'Choisissez le mois', notSelected: 'Non défini', addLine: 'Ajouter un élément', cancelLine: 'Annuler un élément', modifyLine: 'Modifier un élément', applyAllowed: 'Application autorisée', needsReview: 'Révision nécessaire', resultReady: 'Résultat Odoo prêt', previewError: 'Impossible de mettre à jour l’aperçu', amountBefore: 'Montant avant', amountAfter: 'Montant après', delta: 'Écart', lockedMonths: 'Mois verrouillés',
+    title: 'Aperçu',
+    subtitle: 'Aperçu financier avant application',
+    waiting: 'Complétez les choix pour afficher le résultat',
+    updating: 'Mise à jour de l’aperçu…',
+    resultReady: 'Aperçu mis à jour',
+    operation: 'Opération',
+    modify: 'Modifier un service',
+    add: 'Ajouter un service',
+    remove: 'Retirer un service',
+    service: 'Service',
+    newPrice: 'Prix',
+    selectedMonths: 'Mois',
+    effectiveFrom: 'À partir de',
+    reason: 'Motif',
+    financialImpact: 'Impact financier',
+    monthDetails: 'Détail des mois',
+    amountBefore: 'Avant',
+    amountAfter: 'Après',
+    delta: 'Écart',
+    applyAllowed: 'Prêt à appliquer',
+    needsReview: 'Non prêt à appliquer',
+    specialPrice: 'Prix spécial',
+    backendAffected: 'Mois concernés',
+    backendChanges: 'Modifications prévues',
+    created: 'Création',
+    updated: 'Modification',
+    cancelled: 'Retrait',
+    noBackendResult: 'Aucun résultat financier reçu pour le moment.',
+    annualTitle: 'Résumé annuel',
+    annualSubtitle: 'Valeurs actuelles validées',
+    annualTotal: 'Total annuel actuel',
+    annualImpact: 'Impact de la modification prévisualisée',
+    servicesTitle: 'Détail par service',
+    annualUnavailable: 'Le total annuel n’est pas disponible actuellement.',
+    serviceTotalUnavailable: 'Indisponible',
+    unitPrice: 'Prix',
+    periodCount: 'Nombre de périodes',
+    annualLoading: 'Chargement du résumé annuel…',
   },
   en: {
-    title: 'Live preview', subtitle: 'Updates automatically with every selection', decisionSummary: 'Decision summary', affectedMonths: 'Affected months', financialImpact: 'Financial impact', monthDetails: 'Month details', ready: 'Ready for preview', updating: 'Updating preview…', waiting: 'Complete the following fields to show the financial result', operation: 'Operation', line: 'Item', scope: 'Scope', month: 'Month', reason: 'Reason', amount: 'Amount', complete: 'Complete', pending: 'Missing', singleMonth: 'One month only', futureScope: 'This month and later', singleScope: 'This month only', periodRange: 'Monthly period', amountOnly: 'Amount only', selected: 'Included in the change', noMonth: 'Choose a month', notSelected: 'Not selected', addLine: 'Add item', cancelLine: 'Cancel item', modifyLine: 'Modify item', applyAllowed: 'Allowed to apply', needsReview: 'Needs review', resultReady: 'Odoo result ready', previewError: 'Could not update preview', amountBefore: 'Amount before', amountAfter: 'Amount after', delta: 'Difference', lockedMonths: 'Locked months',
+    title: 'Preview',
+    subtitle: 'Financial preview before applying',
+    waiting: 'Complete the choices to show the result',
+    updating: 'Updating preview…',
+    resultReady: 'Preview updated',
+    operation: 'Operation',
+    modify: 'Modify service',
+    add: 'Add service',
+    remove: 'Remove service',
+    service: 'Service',
+    newPrice: 'Price',
+    selectedMonths: 'Months',
+    effectiveFrom: 'Starting',
+    reason: 'Reason',
+    financialImpact: 'Financial impact',
+    monthDetails: 'Month details',
+    amountBefore: 'Before',
+    amountAfter: 'After',
+    delta: 'Difference',
+    applyAllowed: 'Ready to apply',
+    needsReview: 'Not ready to apply',
+    specialPrice: 'Special price',
+    backendAffected: 'Affected months',
+    backendChanges: 'Expected changes',
+    created: 'Create',
+    updated: 'Update',
+    cancelled: 'Remove',
+    noBackendResult: 'No financial result has been received yet.',
+    annualTitle: 'Annual summary',
+    annualSubtitle: 'Current approved values',
+    annualTotal: 'Current annual total',
+    annualImpact: 'Previewed amendment impact',
+    servicesTitle: 'Service breakdown',
+    annualUnavailable: 'The annual total is not currently available.',
+    serviceTotalUnavailable: 'Unavailable',
+    unitPrice: 'Price',
+    periodCount: 'Period count',
+    annualLoading: 'Loading annual summary…',
   },
   es: {
-    title: 'Vista previa en vivo', subtitle: 'Se actualiza automáticamente con cada selección', decisionSummary: 'Resumen de la decisión', affectedMonths: 'Meses afectados', financialImpact: 'Impacto financiero', monthDetails: 'Detalle de meses', ready: 'Listo para vista previa', updating: 'Actualizando vista previa…', waiting: 'Complete los siguientes campos para mostrar el resultado financiero', operation: 'Operación', line: 'Elemento', scope: 'Alcance', month: 'Mes', reason: 'Motivo', amount: 'Importe', complete: 'Completo', pending: 'Falta', singleMonth: 'Un solo mes', futureScope: 'Este mes y siguientes', singleScope: 'Solo este mes', periodRange: 'Periodo mensual', amountOnly: 'Solo importe', selected: 'Incluido en el cambio', noMonth: 'Elija el mes', notSelected: 'Sin seleccionar', addLine: 'Añadir elemento', cancelLine: 'Cancelar elemento', modifyLine: 'Modificar elemento', applyAllowed: 'Aplicación permitida', needsReview: 'Necesita revisión', resultReady: 'Resultado Odoo listo', previewError: 'No se pudo actualizar la vista previa', amountBefore: 'Importe antes', amountAfter: 'Importe después', delta: 'Diferencia', lockedMonths: 'Meses bloqueados',
+    title: 'Vista previa',
+    subtitle: 'Vista previa financiera antes de aplicar',
+    waiting: 'Complete las opciones para mostrar el resultado',
+    updating: 'Actualizando la vista previa…',
+    resultReady: 'Vista previa actualizada',
+    operation: 'Operación',
+    modify: 'Modificar servicio',
+    add: 'Añadir servicio',
+    remove: 'Eliminar servicio',
+    service: 'Servicio',
+    newPrice: 'Precio',
+    selectedMonths: 'Meses',
+    effectiveFrom: 'Desde',
+    reason: 'Motivo',
+    financialImpact: 'Impacto financiero',
+    monthDetails: 'Detalle de meses',
+    amountBefore: 'Antes',
+    amountAfter: 'Después',
+    delta: 'Diferencia',
+    applyAllowed: 'Listo para aplicar',
+    needsReview: 'No listo para aplicar',
+    specialPrice: 'Precio especial',
+    backendAffected: 'Meses afectados',
+    backendChanges: 'Cambios previstos',
+    created: 'Crear',
+    updated: 'Modificar',
+    cancelled: 'Eliminar',
+    noBackendResult: 'Aún no se recibió un resultado financiero.',
+    annualTitle: 'Resumen anual',
+    annualSubtitle: 'Valores actuales validados',
+    annualTotal: 'Total anual actual',
+    annualImpact: 'Impacto de la modificación previsualizada',
+    servicesTitle: 'Detalle por servicio',
+    annualUnavailable: 'El total anual no está disponible actualmente.',
+    serviceTotalUnavailable: 'No disponible',
+    unitPrice: 'Precio',
+    periodCount: 'Número de períodos',
+    annualLoading: 'Cargando resumen anual…',
   },
 } as const;
-
-type ReadinessItem = { label: string; value: string; complete: boolean };
-
-function amountReady(form: AgreementAmendmentFormState): boolean {
-  if (form.operationType === 'cancel_line') return true;
-  if (form.operationType === 'modify_line' || form.operationType === 'add_line') {
-    return form.amount.trim() !== '' && Number.isFinite(Number(form.amount));
-  }
-  return true;
-}
 
 export function AgreementAmendmentLivePreviewPanel({
   form,
   selectedLine,
+  serviceLabel,
   periods,
   preview,
   previewLoading,
@@ -99,6 +206,7 @@ export function AgreementAmendmentLivePreviewPanel({
 }: {
   form: AgreementAmendmentFormState;
   selectedLine: AgreementAmendmentLineOption | null;
+  serviceLabel?: string | null;
   periods: AgreementAmendmentPeriodOption[];
   preview: NormalizedAgreementAmendmentPreview | null;
   previewLoading: boolean;
@@ -108,62 +216,59 @@ export function AgreementAmendmentLivePreviewPanel({
   const { locale } = useLocale();
   const t = useT();
   const copy = COPY[locale] ?? COPY.en;
-  const singleMonth = isSingleMonthSelection(form.effectivePeriodId, form.effectivePeriodEndId);
-  const monthLabels = resolveAffectedMonthLabels({
-    periods,
-    affectedPeriods: preview?.affectedPeriods,
-    effectivePeriodId: form.effectivePeriodId,
-    effectivePeriodEndId: form.effectivePeriodEndId,
-    locale,
-  });
-  const lockedMonthLabels = resolveAffectedMonthLabels({
-    periods,
-    affectedPeriods: preview?.lockedPeriods,
-    effectivePeriodId: '',
-    effectivePeriodEndId: '',
-    locale,
-  });
-  const usesMonths = usesPeriodRangeForForm(form);
+  const selectedPeriodIds = form.selectedPeriodIds ?? [];
+  const periodImpacts = preview?.periodImpacts ?? [];
+  const readyForBackend = canSubmitAgreementAmendmentForm(form, selectedLine);
+  const [annualAgreement, setAnnualAgreement] = useState<FinancialAgreement | null>(null);
+  const [annualLoading, setAnnualLoading] = useState(false);
+  const annualAgreementId = preview?.currentAgreement?.id ?? null;
+
+  useEffect(() => {
+    if (annualAgreementId == null) {
+      setAnnualAgreement(null);
+      setAnnualLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setAnnualLoading(true);
+    void fetchFinancialAgreement(annualAgreementId).then((res) => {
+      if (cancelled) return;
+      setAnnualLoading(false);
+      setAnnualAgreement(res.success && res.data ? res.data : null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [annualAgreementId]);
+
+  const annualSummary = useMemo(
+    () => buildAgreementAnnualSummary(annualAgreement),
+    [annualAgreement],
+  );
+  const annualTotal = annualSummary.total ?? preview?.currentAgreement?.netAmount ?? null;
+  const annualCurrency = annualAgreement?.currency?.name ?? preview?.currency ?? currency ?? undefined;
+
   const operationLabel =
     form.operationType === 'add_line'
-      ? copy.addLine
+      ? copy.add
       : form.operationType === 'cancel_line'
-        ? copy.cancelLine
-        : copy.modifyLine;
-  const scopeLabel = usesMonths
-    ? singleMonth
-      ? copy.singleScope
-      : copy.futureScope
-    : copy.amountOnly;
-  const lineValue =
-    form.operationType === 'add_line'
-      ? form.feeTypeId
-        ? copy.complete
-        : copy.notSelected
-      : selectedLine?.label ?? copy.notSelected;
-
-  const readiness: ReadinessItem[] = [
-    { label: copy.operation, value: operationLabel, complete: true },
-    {
-      label: copy.line,
-      value: lineValue,
-      complete: form.operationType === 'add_line' ? Boolean(form.feeTypeId) : Boolean(selectedLine),
-    },
-    {
-      label: copy.scope,
-      value: scopeLabel,
-      complete: form.operationType !== 'modify_line' || Boolean(form.amendmentPath),
-    },
-    ...(usesMonths
-      ? [{ label: copy.month, value: monthLabels[0] ?? copy.noMonth, complete: Boolean(form.effectivePeriodId) }]
-      : []),
-    { label: copy.reason, value: form.reason || copy.notSelected, complete: Boolean(form.reason.trim()) },
-    ...(form.operationType === 'cancel_line'
-      ? []
-      : [{ label: copy.amount, value: form.amount || copy.notSelected, complete: amountReady(form) }]),
-  ];
-  const pending = readiness.filter((item) => !item.complete);
-  const readyForBackend = canSubmitAgreementAmendmentForm(form, selectedLine);
+        ? copy.remove
+        : copy.modify;
+  const selectedMonthLabels = selectedPeriodIds
+    .map((periodId) => periods.find((period) => String(period.id) === periodId))
+    .filter((period): period is AgreementAmendmentPeriodOption => Boolean(period))
+    .map((period) => formatAmendmentPreviewPeriodLabel(period, locale));
+  const effectivePeriod = periods.find((period) => String(period.id) === form.effectivePeriodId) ?? null;
+  const backendAffectedMonths = preview
+    ? resolveAffectedMonthLabels({
+        periods,
+        affectedPeriods: preview.affectedPeriods,
+        effectivePeriodId: form.effectivePeriodId,
+        effectivePeriodEndId: form.effectivePeriodEndId,
+        locale,
+      })
+    : [];
+  const displayPrice = form.operationType === 'cancel_line' ? null : form.amount.trim();
 
   return (
     <section className="student-finance-amendment-preview student-finance-amendment-live-preview" aria-live="polite">
@@ -177,148 +282,157 @@ export function AgreementAmendmentLivePreviewPanel({
             'student-finance-amendment-live-preview__status',
             previewLoading
               ? 'student-finance-amendment-live-preview__status--loading'
-              : preview
+              : preview?.canApply
                 ? 'student-finance-amendment-live-preview__status--ready'
-                : readyForBackend
-                  ? 'student-finance-amendment-live-preview__status--ready'
-                  : '',
+                : preview
+                  ? 'student-finance-amendment-live-preview__status--blocked'
+                  : readyForBackend
+                    ? 'student-finance-amendment-live-preview__status--ready'
+                    : '',
           ]
             .filter(Boolean)
             .join(' ')}
         >
-          {previewLoading ? copy.updating : preview ? copy.resultReady : readyForBackend ? copy.ready : copy.waiting}
+          {previewLoading ? copy.updating : preview ? copy.resultReady : copy.waiting}
         </span>
       </header>
 
-      <section className="student-finance-amendment-live-preview__section">
-        <h4>{copy.decisionSummary}</h4>
-        <div className="student-finance-amendment-live-preview__readiness">
-          {readiness.map((item) => (
-            <div
-              key={item.label}
-              className={[
-                'student-finance-amendment-live-preview__readiness-item',
-                item.complete ? 'is-complete' : 'is-pending',
-              ].join(' ')}
-            >
-              <span className="tiny muted">{item.label}</span>
-              <strong dir="auto">{item.value}</strong>
-              <span className="tiny">{item.complete ? `✓ ${copy.complete}` : `○ ${copy.pending}`}</span>
-            </div>
-          ))}
+      <section className="student-finance-amendment-live-preview__hero">
+        <div className="student-finance-amendment-live-preview__hero-row">
+          <span className="tiny muted">{copy.operation}</span>
+          <strong>{operationLabel}</strong>
         </div>
-        {!preview && pending.length ? (
-          <p className="student-finance-amendment-live-preview__pending-note">
-            {copy.waiting}: <strong>{pending.map((item) => item.label).join('، ')}</strong>
-          </p>
+        <div className="student-finance-amendment-live-preview__hero-row">
+          <span className="tiny muted">{copy.service}</span>
+          <strong dir="auto">{serviceLabel ?? '—'}</strong>
+        </div>
+        <div className="student-finance-amendment-live-preview__hero-row">
+          <span className="tiny muted">{copy.reason}</span>
+          <strong dir="auto">{form.reason || '—'}</strong>
+        </div>
+        {displayPrice != null ? (
+          <div className="student-finance-amendment-live-preview__hero-row">
+            <span className="tiny muted">{copy.newPrice}</span>
+            <strong>{displayPrice || '—'}</strong>
+          </div>
         ) : null}
-        {error && !previewLoading ? (
-          <p className="student-finance-amendment-live-preview__error" role="alert">
-            <strong>{copy.previewError}:</strong> {error}
-          </p>
-        ) : null}
+        <div className="student-finance-amendment-live-preview__hero-row">
+          <span className="tiny muted">
+            {form.operationType === 'modify_line' ? copy.selectedMonths : copy.effectiveFrom}
+          </span>
+          <strong dir="auto">
+            {form.operationType === 'modify_line'
+              ? selectedMonthLabels.length || '—'
+              : effectivePeriod
+                ? formatAmendmentPreviewPeriodLabel(effectivePeriod, locale)
+                : '—'}
+          </strong>
+        </div>
       </section>
 
-      {usesMonths ? (
-        <section className="student-finance-amendment-live-preview__section">
-          <div className="student-finance-amendment-live-preview__section-title-row">
-            <h4>{copy.affectedMonths}</h4>
-            {monthLabels.length ? (
-              <span className="student-finance-amendment-live-preview__count">
-                {singleMonth ? copy.singleMonth : monthLabels.length}
-              </span>
-            ) : null}
-          </div>
-          {monthLabels.length ? (
-            <div className="student-finance-amendment-live-preview__months">
-              {monthLabels.map((label, index) => (
-                <article
-                  key={`${label}-${index}`}
-                  className={[
-                    'student-finance-amendment-live-preview__month',
-                    singleMonth ? 'student-finance-amendment-live-preview__month--single' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  <span className="student-finance-amendment-live-preview__month-index">
-                    {singleMonth ? '●' : index + 1}
-                  </span>
-                  <strong dir="auto">{label}</strong>
-                  <span className="tiny muted">{singleMonth ? copy.singleMonth : copy.selected}</span>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="student-finance-amendment-live-preview__empty-month">
-              <span>◷</span>
-              <strong>{copy.noMonth}</strong>
-            </div>
-          )}
-          {lockedMonthLabels.length ? (
-            <p className="student-finance-amendment-live-preview__locked" role="note">
-              {copy.lockedMonths}: {lockedMonthLabels.join('، ')}
-            </p>
-          ) : null}
-        </section>
+      {form.operationType === 'modify_line' && selectedMonthLabels.length ? (
+        <div className="student-finance-amendment-live-preview__months">
+          {selectedMonthLabels.map((label) => (
+            <span key={label} className="student-finance-amendment-live-preview__month">
+              {label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {error && !previewLoading ? (
+        <p className="student-finance-amendment-live-preview__error" role="alert">{error}</p>
       ) : null}
 
       {preview ? (
         <>
-          <section className="student-finance-amendment-live-preview__section">
+          <section className="student-finance-amendment-live-preview__section student-finance-amendment-live-preview__section--result">
             <div className="student-finance-amendment-live-preview__section-title-row">
               <h4>{copy.financialImpact}</h4>
-              <span
-                className={[
-                  'student-finance-amendment-live-preview__decision-badge',
-                  preview.canApply ? 'is-allowed' : 'is-blocked',
-                ].join(' ')}
-              >
+              <span className={[
+                'student-finance-amendment-live-preview__decision-badge',
+                preview.canApply ? 'is-allowed' : 'is-blocked',
+              ].join(' ')}>
                 {preview.canApply ? copy.applyAllowed : copy.needsReview}
               </span>
             </div>
 
-            {hasAgreementAmendmentPricingContract(preview.pricingContract) && preview.pricingContract ? (
+            {hasAgreementAmendmentPricingContract(preview.pricingContract) && preview.pricingContract && form.operationType === 'modify_line' ? (
               <AgreementAmendmentPricingContractPreview
                 contract={preview.pricingContract}
                 currency={preview.currency}
-                labelMode={resolveAgreementAmendmentPricingContractLabelMode(
-                  form.operationType,
-                  form.amendmentPath,
-                )}
+                labelMode={resolveAgreementAmendmentPricingContractLabelMode('modify_line', 'period_range')}
               />
             ) : shouldShowAgreementAmendmentLegacyAmounts(preview) ? (
               <dl className="student-finance-amendment-live-preview__money-grid">
                 {preview.amountBefore != null ? (
-                  <div>
-                    <dt>{copy.amountBefore}</dt>
-                    <dd><FinanceMoney amount={preview.amountBefore} currency={preview.currency ?? currency ?? undefined} /></dd>
-                  </div>
+                  <div><dt>{copy.amountBefore}</dt><dd><FinanceMoney amount={preview.amountBefore} currency={preview.currency ?? currency ?? undefined} /></dd></div>
                 ) : null}
                 {preview.amountAfter != null ? (
-                  <div>
-                    <dt>{copy.amountAfter}</dt>
-                    <dd><FinanceMoney amount={preview.amountAfter} currency={preview.currency ?? currency ?? undefined} /></dd>
-                  </div>
+                  <div><dt>{copy.amountAfter}</dt><dd><FinanceMoney amount={preview.amountAfter} currency={preview.currency ?? currency ?? undefined} /></dd></div>
                 ) : null}
                 {preview.delta != null ? (
-                  <div>
-                    <dt>{copy.delta}</dt>
-                    <dd><FinanceMoney amount={preview.delta} currency={preview.currency ?? currency ?? undefined} /></dd>
-                  </div>
+                  <div><dt>{copy.delta}</dt><dd><FinanceMoney amount={preview.delta} currency={preview.currency ?? currency ?? undefined} /></dd></div>
                 ) : null}
               </dl>
-            ) : null}
+            ) : (
+              <p className="tiny muted">{copy.noBackendResult}</p>
+            )}
           </section>
+
+          {backendAffectedMonths.length ? (
+            <section className="student-finance-amendment-live-preview__section">
+              <h4>{copy.backendAffected}</h4>
+              <div className="student-finance-amendment-live-preview__months">
+                {backendAffectedMonths.map((label) => (
+                  <span key={label} className="student-finance-amendment-live-preview__month student-finance-amendment-live-preview__month--confirmed">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {(preview.createdInstallments.length || preview.updatedInstallments.length || preview.cancelledInstallments.length) ? (
+            <section className="student-finance-amendment-live-preview__section">
+              <h4>{copy.backendChanges}</h4>
+              <div className="student-finance-amendment-live-preview__change-counts">
+                <div><span>{copy.created}</span><strong>{preview.createdInstallments.length}</strong></div>
+                <div><span>{copy.updated}</span><strong>{preview.updatedInstallments.length}</strong></div>
+                <div><span>{copy.cancelled}</span><strong>{preview.cancelledInstallments.length}</strong></div>
+              </div>
+            </section>
+          ) : null}
+
+          {periodImpacts.length ? (
+            <section className="student-finance-amendment-live-preview__section">
+              <h4>{copy.monthDetails}</h4>
+              <div className="student-finance-amendment-live-preview__period-impacts">
+                {periodImpacts.map((impact, index) => (
+                  <article key={`${impact.effectivePeriodId ?? 'period'}-${impact.periodKey ?? index}`} className="student-finance-amendment-live-preview__period-impact">
+                    <strong dir="auto">{impact.label ?? impact.periodKey ?? '—'}</strong>
+                    <div className="student-finance-amendment-live-preview__period-impact-money">
+                      {impact.currentAmount != null ? <FinanceMoney amount={impact.currentAmount} currency={preview.currency ?? currency ?? undefined} /> : <span>—</span>}
+                      <span aria-hidden>→</span>
+                      {impact.proposedAmount != null ? <FinanceMoney amount={impact.proposedAmount} currency={preview.currency ?? currency ?? undefined} /> : <span>—</span>}
+                    </div>
+                    {impact.delta != null ? (
+                      <span className="tiny muted">
+                        {copy.delta}: <FinanceMoney amount={impact.delta} currency={preview.currency ?? currency ?? undefined} />
+                      </span>
+                    ) : null}
+                    {impact.overrideApplied ? <span className="student-finance-amendment-live-preview__special-badge">{copy.specialPrice}</span> : null}
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {shouldShowAgreementAmendmentBlockingReasons(preview) ? (
             <section className="student-finance-amendment-live-preview__section student-finance-amendment-live-preview__section--danger" role="alert">
               {preview.blockingReasons.map((reason) => (
                 <p key={reason.code}>{resolveAgreementAmendmentBlockingMessage(reason, t)}</p>
               ))}
-              {isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
-                <p>{t('admin.student360.financeWorkspace.agreementAmendment.oneTimeBlockedHint')}</p>
-              ) : null}
             </section>
           ) : null}
 
@@ -331,6 +445,60 @@ export function AgreementAmendmentLivePreviewPanel({
               ))}
             </section>
           ) : null}
+
+          <section className="student-finance-amendment-annual-summary">
+            <div className="student-finance-amendment-annual-summary__head">
+              <div>
+                <h4>{copy.annualTitle}</h4>
+                <p className="tiny muted">{copy.annualSubtitle}</p>
+              </div>
+            </div>
+
+            {annualLoading ? <p className="tiny muted">{copy.annualLoading}</p> : null}
+
+            <div className="student-finance-amendment-annual-summary__total">
+              <span>{copy.annualTotal}</span>
+              <strong>
+                {annualTotal != null ? (
+                  <FinanceMoney amount={annualTotal} currency={annualCurrency} />
+                ) : copy.annualUnavailable}
+              </strong>
+            </div>
+
+            {preview.delta != null ? (
+              <div className="student-finance-amendment-annual-summary__impact">
+                <span>{copy.annualImpact}</span>
+                <strong><FinanceMoney amount={preview.delta} currency={annualCurrency} /></strong>
+              </div>
+            ) : null}
+
+            {annualSummary.services.length ? (
+              <div className="student-finance-amendment-annual-summary__services">
+                <h5 className="student-finance-amendment-annual-summary__services-title">{copy.servicesTitle}</h5>
+                {annualSummary.services.map((service) => (
+                  <div key={service.key} className="student-finance-amendment-annual-summary__service">
+                    <div className="student-finance-amendment-annual-summary__service-info">
+                      <strong dir="auto">{service.label}</strong>
+                      {(service.unitPrice != null || service.periodCount != null) ? (
+                        <span className="student-finance-amendment-annual-summary__service-meta">
+                          {service.unitPrice != null ? (
+                            <>{copy.unitPrice}: <FinanceMoney amount={service.unitPrice} currency={annualCurrency} /></>
+                          ) : null}
+                          {service.unitPrice != null && service.periodCount != null ? ' · ' : null}
+                          {service.periodCount != null ? `${copy.periodCount}: ${service.periodCount}` : null}
+                        </span>
+                      ) : null}
+                    </div>
+                    <strong className="student-finance-amendment-annual-summary__service-total">
+                      {service.total != null ? (
+                        <FinanceMoney amount={service.total} currency={annualCurrency} />
+                      ) : copy.serviceTotalUnavailable}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </section>
         </>
       ) : null}
     </section>

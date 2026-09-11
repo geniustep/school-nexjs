@@ -1,11 +1,16 @@
 import type {
+  AgreementAmendmentCurrentAgreementBrief,
   AgreementAmendmentInstallmentPreview,
+  AgreementAmendmentPeriodImpact,
   AgreementAmendmentPreviewResponse,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
 import { normalizeAgreementAmendmentPricingContract } from './agreement-amendment-pricing-contract';
 import { mergeAgreementAmendmentPeriodOptions } from './normalize-agreement-amendment-period-options';
-import { readAgreementAmendmentReasonCodes, readAgreementAmendmentWarnings } from './resolve-agreement-amendment-warning';
+import {
+  readAgreementAmendmentReasonCodes,
+  readAgreementAmendmentWarnings,
+} from './resolve-agreement-amendment-warning';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -19,6 +24,12 @@ function readFiniteNumber(value: unknown): number | null {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function readBool(value: unknown): boolean | null {
+  if (value === true) return true;
+  if (value === false) return false;
+  return null;
 }
 
 function readReasonCodes(value: unknown): string[] {
@@ -78,12 +89,6 @@ function readInstallmentPreviews(value: unknown): AgreementAmendmentInstallmentP
   return items;
 }
 
-function readBool(value: unknown): boolean | null {
-  if (value === true) return true;
-  if (value === false) return false;
-  return null;
-}
-
 function readStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   const codes: string[] = [];
@@ -97,6 +102,59 @@ function readStringArray(value: unknown): string[] {
     if (code) codes.push(code);
   }
   return [...new Set(codes)];
+}
+
+function readNumberArray(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  const numbers = value
+    .map((item) => readFiniteNumber(item))
+    .filter((item): item is number => item != null);
+  return [...new Set(numbers)];
+}
+
+function readCurrentAgreement(value: unknown): AgreementAmendmentCurrentAgreementBrief | null {
+  const rec = asRecord(value);
+  if (!rec) return null;
+  const id = readFiniteNumber(rec.id);
+  if (id == null) return null;
+  return {
+    id,
+    name: readString(rec.name),
+    state: readString(rec.state),
+    netAmount: readFiniteNumber(rec.net_amount),
+    remainingTotal: readFiniteNumber(rec.remaining_total),
+    paidTotal: readFiniteNumber(rec.paid_total),
+  };
+}
+
+function readPeriodImpacts(value: unknown): AgreementAmendmentPeriodImpact[] {
+  if (!Array.isArray(value)) return [];
+  const impacts: AgreementAmendmentPeriodImpact[] = [];
+  const seen = new Set<string>();
+
+  for (const item of value) {
+    const rec = asRecord(item);
+    if (!rec) continue;
+    const effectivePeriodId = readFiniteNumber(rec.effective_period_id);
+    const periodKey = readString(rec.period_key);
+    const key = `${effectivePeriodId ?? 'none'}:${periodKey ?? 'none'}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    impacts.push({
+      effectivePeriodId,
+      periodKey,
+      label: readString(rec.period_label) ?? readString(rec.label) ?? periodKey,
+      currentAmount: readFiniteNumber(rec.current_amount),
+      proposedAmount: readFiniteNumber(rec.proposed_amount),
+      delta: readFiniteNumber(rec.delta),
+      overrideApplied: readBool(rec.override_applied) === true,
+      amendable: readBool(rec.amendable) !== false,
+      blockingReasons: readAgreementAmendmentWarnings(rec.blocking_reasons),
+    });
+  }
+
+  return impacts;
 }
 
 export function normalizeAgreementAmendmentPreview(
@@ -133,11 +191,7 @@ export function normalizeAgreementAmendmentPreview(
     readBool(preview.can_apply);
 
   const canApply = canApplyExplicit ?? allowedExplicit;
-
-  const effectiveBlockingReasons =
-    canApply === true
-      ? []
-      : blockingReasons;
+  const effectiveBlockingReasons = canApply === true ? [] : blockingReasons;
 
   const amendBlockCode =
     readString(data.amend_block_code) ??
@@ -156,6 +210,18 @@ export function normalizeAgreementAmendmentPreview(
     normalizeAgreementAmendmentPricingContract(data.pricing_contract) ??
     normalizeAgreementAmendmentPricingContract(root.pricing_contract);
 
+  const periodImpacts = [
+    ...readPeriodImpacts(data.period_impacts),
+    ...readPeriodImpacts(root.period_impacts),
+  ].filter(
+    (impact, index, list) =>
+      list.findIndex(
+        (candidate) =>
+          candidate.effectivePeriodId === impact.effectivePeriodId &&
+          candidate.periodKey === impact.periodKey,
+      ) === index,
+  );
+
   return {
     allowed: allowedExplicit,
     canApply,
@@ -167,6 +233,17 @@ export function normalizeAgreementAmendmentPreview(
     delta: readFiniteNumber(data.delta) ?? readFiniteNumber(root.delta),
     currency: readString(data.currency) ?? readString(root.currency),
     pricingContract,
+    currentAgreement:
+      readCurrentAgreement(data.current_agreement) ??
+      readCurrentAgreement(root.current_agreement),
+    selectionMode: readString(data.selection_mode) ?? readString(root.selection_mode),
+    selectedPeriodIds: [
+      ...new Set([
+        ...readNumberArray(data.selected_period_ids),
+        ...readNumberArray(root.selected_period_ids),
+      ]),
+    ],
+    periodImpacts,
     affectedPeriods: [
       ...new Set([
         ...readPeriodLabels(data.affected_periods),
