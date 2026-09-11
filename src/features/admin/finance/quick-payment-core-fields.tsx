@@ -9,6 +9,7 @@ import {
   formatPaymentJournalLabel,
   inferPaymentMethodFromJournal,
   needsManualPaymentMethodSelection,
+  resolveJournalAllowedMethodCodes,
 } from '@/features/admin/finance/format-payment-journal';
 import {
   collectionReferenceLabel,
@@ -22,6 +23,40 @@ import type { PaymentJournal } from '@/types/finance';
 
 function resolveMethodCode(method: string | { code?: string }): string {
   return typeof method === 'string' ? method : method.code ?? '';
+}
+
+type DrawerMethodKind = 'cash' | 'transfer' | 'cheque';
+
+type DrawerMethodOption = {
+  kind: DrawerMethodKind;
+  methodCode: string;
+  journal: PaymentJournal;
+};
+
+const DRAWER_METHOD_CANDIDATES: Record<DrawerMethodKind, string[]> = {
+  cash: ['cash'],
+  transfer: ['bank_transfer', 'transfer', 'bank'],
+  cheque: ['cheque', 'check'],
+};
+
+function findDrawerMethodOption(
+  journals: PaymentJournal[],
+  kind: DrawerMethodKind,
+): DrawerMethodOption | null {
+  const candidates = DRAWER_METHOD_CANDIDATES[kind];
+  for (const journal of journals) {
+    const allowed = resolveJournalAllowedMethodCodes(journal);
+    for (const candidate of candidates) {
+      const actual = allowed.find((code) => code.toLowerCase() === candidate);
+      if (actual) return { kind, methodCode: actual, journal };
+    }
+  }
+  return null;
+}
+
+function drawerMethodActive(kind: DrawerMethodKind, method: string): boolean {
+  const normalized = method.toLowerCase();
+  return DRAWER_METHOD_CANDIDATES[kind].includes(normalized);
 }
 
 export type QuickPaymentCoreFieldsProps = {
@@ -103,7 +138,24 @@ export function QuickPaymentCoreFields({
     : '—';
   const isDrawer = variant === 'drawer';
 
+  const drawerMethods = useMemo(
+    () => ({
+      cash: findDrawerMethodOption(journalOptions, 'cash'),
+      transfer: findDrawerMethodOption(journalOptions, 'transfer'),
+      cheque: findDrawerMethodOption(journalOptions, 'cheque'),
+    }),
+    [journalOptions],
+  );
+
   useEffect(() => {
+    if (isDrawer && !paymentMethod && drawerMethods.cash) {
+      if (String(drawerMethods.cash.journal.id) !== journalId) {
+        onJournalChange(String(drawerMethods.cash.journal.id));
+      }
+      onPaymentMethodChange(drawerMethods.cash.methodCode);
+      return;
+    }
+
     if (!selectedJournal) return;
     const inference = inferPaymentMethodFromJournal(selectedJournal);
     if (manualPaymentMethod) {
@@ -131,7 +183,19 @@ export function QuickPaymentCoreFields({
     methodCodes,
     onPaymentMethodChange,
     manualPaymentMethod,
+    isDrawer,
+    drawerMethods.cash,
+    journalId,
+    onJournalChange,
   ]);
+
+  function selectDrawerMethod(option: DrawerMethodOption | null) {
+    if (!option) return;
+    if (String(option.journal.id) !== journalId) {
+      onJournalChange(String(option.journal.id));
+    }
+    onPaymentMethodChange(option.methodCode);
+  }
 
   const amountField = (
     <label
@@ -217,26 +281,43 @@ export function QuickPaymentCoreFields({
     </div>
   );
 
-  const paymentMethodBlock = (
+  const paymentMethodBlock = isDrawer ? (
     <div
-      className={`finance-payment-method-block${
-        isDrawer ? ' finance-quick-payment-drawer-method' : ''
-      }`}
+      className="finance-payment-method-block finance-quick-payment-drawer-method"
       data-testid="quick-payment-method-block"
     >
-      <span
-        className={
-          isDrawer
-            ? 'finance-quick-payment-drawer-method__label'
-            : 'finance-payment-method-block__label'
-        }
-      >
+      <span className="finance-quick-payment-drawer-method__label">
         {t('admin.finance.paymentMethod')}
       </span>
+      <div className="finance-quick-payment-method-buttons" role="group" aria-label={t('admin.finance.paymentMethod')}>
+        {(['cash', 'transfer', 'cheque'] as DrawerMethodKind[]).map((kind) => {
+          const option = drawerMethods[kind];
+          const labelCode = kind === 'transfer' ? 'bank_transfer' : kind;
+          const active = drawerMethodActive(kind, effectivePaymentMethod);
+          return (
+            <button
+              key={kind}
+              type="button"
+              className={`finance-quick-payment-method-button${active ? ' is-active' : ''}`}
+              onClick={() => selectDrawerMethod(option)}
+              disabled={!option || journalsLoading}
+              aria-pressed={active}
+              data-testid={`quick-payment-method-${kind}`}
+            >
+              {active ? <span aria-hidden>✓</span> : null}
+              <span>{paymentMethodLabel(labelCode, t)}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ) : (
+    <div className="finance-payment-method-block" data-testid="quick-payment-method-block">
+      <span className="finance-payment-method-block__label">{t('admin.finance.paymentMethod')}</span>
       {manualPaymentMethod ? (
         <label className="finance-payment-method-block__field">
           <select
-            className={`input${isDrawer ? ' finance-quick-payment-drawer-method__select' : ''}`}
+            className="input"
             required
             value={paymentMethod}
             onChange={(e) => onPaymentMethodChange(e.target.value)}
@@ -256,28 +337,10 @@ export function QuickPaymentCoreFields({
           </select>
         </label>
       ) : (
-        <div
-          className={
-            isDrawer
-              ? 'finance-quick-payment-drawer-method__value'
-              : 'finance-payment-method-block__value'
-          }
-        >
-          <span
-            className={
-              isDrawer
-                ? 'finance-quick-payment-drawer-method__pill'
-                : 'finance-payment-method-block__pill'
-            }
-            data-testid="quick-payment-method-readonly"
-          >
+        <div className="finance-payment-method-block__value">
+          <span className="finance-payment-method-block__pill" data-testid="quick-payment-method-readonly">
             {displayMethodLabel}
           </span>
-          {selectedJournal && isDrawer ? (
-            <span className="finance-quick-payment-drawer-method__journal tiny muted" dir="auto">
-              {formatPaymentJournalLabel(selectedJournal)}
-            </span>
-          ) : null}
         </div>
       )}
     </div>
@@ -326,48 +389,48 @@ export function QuickPaymentCoreFields({
     </div>
   );
 
+  const notesField = onNotesChange ? (
+    <label className="finance-collection-workflow__full-width">
+      {t('common.note')}
+      <textarea
+        className="input"
+        rows={3}
+        value={notes}
+        onChange={(e) => onNotesChange(e.target.value)}
+        data-testid="quick-payment-notes"
+      />
+    </label>
+  ) : null;
+
   const notesBlock =
-    onNotesChange && !isCheque ? (
-      isDrawer ? (
-        <label className="finance-quick-payment-drawer-notes finance-collection-workflow__full-width">
-          <span>{t('common.note')}</span>
-          <textarea
-            className="input"
-            rows={2}
-            value={notes}
-            onChange={(e) => onNotesChange(e.target.value)}
-            placeholder={t('admin.finance.quickPayment.additionalDetails')}
-            data-testid="quick-payment-notes"
-          />
-        </label>
-      ) : (
-        <div className="finance-quick-payment-details">
-          {!showNotes ? (
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm finance-quick-payment-details__toggle"
-              onClick={() => setShowNotes(true)}
-            >
-              {t('admin.finance.quickPayment.additionalDetails')}
-            </button>
-          ) : (
-            <details className="finance-quick-payment-details__panel" open>
-              <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
-              <label className="finance-collection-workflow__full-width">
-                {t('common.note')}
-                <textarea
-                  className="input"
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => onNotesChange(e.target.value)}
-                  data-testid="quick-payment-notes"
-                />
-              </label>
-            </details>
-          )}
-        </div>
-      )
+    onNotesChange && !isCheque && !isDrawer ? (
+      <div className="finance-quick-payment-details">
+        {!showNotes ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm finance-quick-payment-details__toggle"
+            onClick={() => setShowNotes(true)}
+          >
+            {t('admin.finance.quickPayment.additionalDetails')}
+          </button>
+        ) : (
+          <details className="finance-quick-payment-details__panel" open>
+            <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
+            {notesField}
+          </details>
+        )}
+      </div>
     ) : null;
+
+  const drawerDetails = isDrawer ? (
+    <details className="finance-quick-payment-details finance-quick-payment-details--drawer">
+      <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
+      <div className="finance-quick-payment-details__body form-stack">
+        {journalField}
+        {!isCheque ? notesField : null}
+      </div>
+    </details>
+  ) : null;
 
   return (
     <div
@@ -384,11 +447,7 @@ export function QuickPaymentCoreFields({
 
       {afterAmount}
 
-      {isDrawer ? (
-        <div className="finance-quick-payment-drawer-meta">{journalField}</div>
-      ) : (
-        journalField
-      )}
+      {!isDrawer ? journalField : null}
 
       {paymentMethodBlock}
 
@@ -400,6 +459,7 @@ export function QuickPaymentCoreFields({
 
       {methodSpecificFields}
 
+      {drawerDetails}
       {notesBlock}
 
       {footer}
