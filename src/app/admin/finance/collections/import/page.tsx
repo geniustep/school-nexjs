@@ -8,7 +8,7 @@ import { HistoricalCollectionImportPanel } from '@/features/admin/finance/histor
 import { useSession } from '@/features/auth/session-context';
 import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 
-const HISTORICAL_COLLECTION_PRODUCTION_HOSTS = new Set(['alwah.raqeem.app', 'nibras.raqeem.app']);
+const HISTORICAL_COLLECTION_PRODUCTION_HOSTS = new Set(['alwah.raqeem.ma', 'nibras.raqeem.ma']);
 
 export default function AdminFinanceHistoricalCollectionsImportPage() {
   const user = useSession();
