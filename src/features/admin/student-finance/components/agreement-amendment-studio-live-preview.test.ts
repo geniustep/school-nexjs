@@ -42,9 +42,18 @@ describe('Finance Amendment Studio live-preview layout contract', () => {
     expect(css).toContain('.student-finance-amendment-line-picker__card--selected');
   });
 
+  it('binds auto-preview when the drawer form actually mounts after being closed', () => {
+    expect(autoPreviewSource).toContain(
+      'const [formNode, setFormNode] = useState<HTMLFormElement | null>(null)',
+    );
+    expect(autoPreviewSource).toContain('const rootRef = useCallback((node: T | null) =>');
+    expect(autoPreviewSource).toContain('setFormNode(findAmendmentForm(node))');
+    expect(autoPreviewSource).toContain('if (!formNode) return');
+    expect(autoPreviewSource).toContain("formNode.addEventListener('input'");
+    expect(autoPreviewSource).toContain("formNode.addEventListener('change'");
+  });
+
   it('requests preview automatically through the React submit handler without native submitter gates', () => {
-    expect(autoPreviewSource).toContain("form.addEventListener('input'");
-    expect(autoPreviewSource).toContain("form.addEventListener('change'");
     expect(autoPreviewSource).toContain(
       "dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))",
     );
