@@ -1,0 +1,268 @@
+/* Compact amendment preview density. Keep every financial value visible while reducing vertical space. */
+@media (min-width: 960px) and (min-height: 700px) {
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview.student-finance-amendment-live-preview {
+    gap: 5px;
+    padding: 7px 9px 10px;
+    font-size: 0.82rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__header {
+    gap: 7px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__header h3 {
+    font-size: 0.98rem;
+    line-height: 1.15;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__header .tiny {
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__status,
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__decision-badge {
+    min-height: 21px;
+    padding: 2px 7px;
+    font-size: 0.63rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__hero {
+    border-radius: 8px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__hero-row {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 6px;
+    min-height: 27px;
+    padding: 3px 6px;
+    font-size: 0.73rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__hero-row .tiny {
+    font-size: 0.62rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__months {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month,
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month--single {
+    min-height: 27px;
+    padding: 3px 4px;
+    border-radius: 7px;
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__month--single {
+    grid-column: span 2;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__section {
+    padding: 5px 6px;
+    border-radius: 8px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__section > h4,
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__section-title-row > h4 {
+    margin-bottom: 3px;
+    font-size: 0.74rem;
+    line-height: 1.15;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-preview__pricing-contract > h4 {
+    margin: 0 0 3px;
+    font-size: 0.72rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-preview__pricing-contract .detail-list.compact {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px 6px;
+    margin: 0;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-preview__pricing-contract .detail-list.compact > div {
+    min-width: 0;
+    padding: 2px 3px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-preview__pricing-contract .detail-list.compact dt {
+    font-size: 0.61rem;
+    line-height: 1.1;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-preview__pricing-contract .detail-list.compact dd {
+    margin-top: 1px;
+    font-size: 0.72rem;
+    line-height: 1.1;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__change-counts {
+    gap: 3px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__change-counts > div {
+    gap: 0;
+    padding: 3px 5px;
+    border-radius: 7px;
+    font-size: 0.62rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__change-counts strong {
+    font-size: 0.82rem;
+    line-height: 1.05;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__period-impacts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__period-impact {
+    display: grid;
+    grid-template-columns: minmax(72px, 0.8fr) minmax(145px, 1.45fr) minmax(82px, 0.75fr) auto;
+    align-items: center;
+    gap: 3px 7px;
+    min-width: 0;
+    padding: 4px 6px;
+    border-radius: 7px;
+    font-size: 0.68rem;
+    line-height: 1.12;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__period-impact > strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.7rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__period-impact-money {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__period-impact > .tiny {
+    margin: 0;
+    font-size: 0.61rem;
+    white-space: nowrap;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-live-preview__special-badge {
+    padding: 2px 5px;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    white-space: nowrap;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary {
+    gap: 4px;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__head h4,
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__services-title {
+    font-size: 0.74rem;
+    line-height: 1.15;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__head .tiny {
+    font-size: 0.61rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__total,
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__impact {
+    min-height: 29px;
+    padding: 4px 6px;
+    border-radius: 7px;
+    font-size: 0.67rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__total strong {
+    font-size: 0.84rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__services-title {
+    grid-column: 1 / -1;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__service {
+    gap: 5px;
+    min-width: 0;
+    padding: 4px 6px;
+    border-radius: 7px;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__service-info {
+    gap: 0;
+    font-size: 0.68rem;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__service-meta {
+    font-size: 0.58rem;
+    line-height: 1.1;
+  }
+
+  .academic-setup-drawer:has(.student-finance-amendment-form)
+    .student-finance-amendment-annual-summary__service-total {
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
+}
