@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const AUTO_PREVIEW_DELAY_MS = 420;
 
@@ -15,8 +15,12 @@ function dispatchPreviewSubmit(form: HTMLFormElement): boolean {
 }
 
 export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
-  const rootRef = useRef<T | null>(null);
+  const [formNode, setFormNode] = useState<HTMLFormElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const rootRef = useCallback((node: T | null) => {
+    setFormNode(findAmendmentForm(node));
+  }, []);
 
   const cancelScheduledPreview = useCallback(() => {
     if (timerRef.current != null) {
@@ -29,15 +33,13 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
     cancelScheduledPreview();
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
-      const form = findAmendmentForm(rootRef.current);
-      if (!form) return;
-      dispatchPreviewSubmit(form);
+      if (!formNode) return;
+      dispatchPreviewSubmit(formNode);
     }, AUTO_PREVIEW_DELAY_MS);
-  }, [cancelScheduledPreview]);
+  }, [cancelScheduledPreview, formNode]);
 
   useEffect(() => {
-    const form = findAmendmentForm(rootRef.current);
-    if (!form) return;
+    if (!formNode) return;
 
     const handleInput = () => scheduleAutoPreview();
     const handleChange = () => scheduleAutoPreview();
@@ -54,17 +56,17 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
       }
     };
 
-    form.addEventListener('input', handleInput);
-    form.addEventListener('change', handleChange);
-    form.addEventListener('click', handleClick);
+    formNode.addEventListener('input', handleInput);
+    formNode.addEventListener('change', handleChange);
+    formNode.addEventListener('click', handleClick);
 
     return () => {
-      form.removeEventListener('input', handleInput);
-      form.removeEventListener('change', handleChange);
-      form.removeEventListener('click', handleClick);
+      formNode.removeEventListener('input', handleInput);
+      formNode.removeEventListener('change', handleChange);
+      formNode.removeEventListener('click', handleClick);
       cancelScheduledPreview();
     };
-  }, [cancelScheduledPreview, scheduleAutoPreview]);
+  }, [cancelScheduledPreview, formNode, scheduleAutoPreview]);
 
   return { rootRef, scheduleAutoPreview };
 }
