@@ -13,7 +13,7 @@ import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/fin
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import '@/features/admin/finance/finance-ui.css';
 
-const HISTORICAL_COLLECTION_PRODUCTION_HOSTS = new Set(['alwah.raqeem.app', 'nibras.raqeem.app']);
+const HISTORICAL_COLLECTION_PRODUCTION_HOSTS = new Set(['alwah.raqeem.ma', 'nibras.raqeem.ma']);
 
 export default function AdminFinanceCollectionsPage() {
   const t = useT();
