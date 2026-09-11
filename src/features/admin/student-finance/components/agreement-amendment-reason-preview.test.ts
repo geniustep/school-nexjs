@@ -146,12 +146,14 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(dialogSource).toContain('setPreviewLoading(false)');
   });
 
-  it('keeps automatic preview triggers for sparse controls after state changes', () => {
+  it('submits auto-preview through the React submit handler without native validity or disabled-button gates', () => {
     expect(sparseGridSource).toContain('notifyPreviewAfterStateUpdate');
-    expect(sparseGridSource).toContain('window.setTimeout');
-    expect(sparseGridSource).toContain("dispatchEvent(new Event('change', { bubbles: true }))");
+    expect(autoPreviewSource).toContain("dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))");
     expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__toggle");
     expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__override");
+    expect(autoPreviewSource).not.toContain('form.checkValidity()');
+    expect(autoPreviewSource).not.toContain('submitter?.disabled');
+    expect(autoPreviewSource).not.toContain('form.requestSubmit()');
   });
 
   it('restores modify, add, and remove operations with modify as the default', () => {

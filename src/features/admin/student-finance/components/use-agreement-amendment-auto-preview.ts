@@ -3,21 +3,14 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 const AUTO_PREVIEW_DELAY_MS = 420;
-const BUSY_RETRY_DELAY_MS = 480;
 
 function findAmendmentForm(node: HTMLElement | null): HTMLFormElement | null {
   return node?.closest<HTMLFormElement>('form.student-finance-amendment-form') ?? null;
 }
 
-function findPreviewSubmitter(form: HTMLFormElement): HTMLButtonElement | null {
-  return form.querySelector<HTMLButtonElement>('button[type="submit"]');
-}
-
-function requestPreviewWhenReady(form: HTMLFormElement): boolean {
-  if (!form.isConnected || !form.checkValidity()) return false;
-  const submitter = findPreviewSubmitter(form);
-  if (submitter?.disabled) return false;
-  form.requestSubmit();
+function dispatchPreviewSubmit(form: HTMLFormElement): boolean {
+  if (!form.isConnected) return false;
+  form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   return true;
 }
 
@@ -37,14 +30,8 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
       const form = findAmendmentForm(rootRef.current);
-      if (!form || !form.checkValidity()) return;
-      if (requestPreviewWhenReady(form)) return;
-
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null;
-        const retryForm = findAmendmentForm(rootRef.current);
-        if (retryForm) requestPreviewWhenReady(retryForm);
-      }, BUSY_RETRY_DELAY_MS);
+      if (!form) return;
+      dispatchPreviewSubmit(form);
     }, AUTO_PREVIEW_DELAY_MS);
   }, [cancelScheduledPreview]);
 
