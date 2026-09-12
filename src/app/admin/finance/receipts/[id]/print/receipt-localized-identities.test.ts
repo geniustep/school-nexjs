@@ -24,28 +24,19 @@ describe('French HTML receipt identity contract', () => {
     expect(identitySource).not.toContain('translate(');
   });
 
-  it('uses the stored student Latin/French field and then the fresh exact entity name', () => {
-    expect(identitySource).toContain("'name_latin'");
-    expect(identitySource).toContain('export function readStudentFrenchName');
-    expect(identitySource).toContain('readCurrentEntityName(root.student)');
-    expect(identitySource).toContain('readCurrentEntityName(root)');
+  it('uses the stored student French fields from an exact student read contract', () => {
+    expect(identitySource).toContain("'first_name_fr'");
+    expect(identitySource).toContain("'last_name_fr'");
     expect(identitySource).toContain('endpoints.admin.student(studentId)');
     expect(identitySource).toContain('collectReceiptStudentIds');
     expect(pageSource).toContain('identities.studentNames[studentId]');
   });
 
-  it('prefers stored parent name_fr and accepts the fresh parent detail name before receipt fallback', () => {
-    expect(identitySource).toContain("'name_fr'");
+  it('never treats a generic parent name as a French override', () => {
     expect(identitySource).toContain('export function readParentFrenchName');
-    expect(identitySource).toContain('readFrenchStoredName(data) ?? readCurrentEntityName(data)');
     expect(identitySource).not.toContain('normalizeParentProfile');
     expect(identitySource).not.toContain('normalizeParentProfile(data)?.name');
-  });
-
-  it('keeps historical receipt snapshots strict while fresh entity reads may use current names', () => {
-    expect(identitySource).toContain('const name = readFrenchStoredName(candidate);');
-    expect(identitySource).toContain('never on the historical receipt snapshot');
-    expect(identitySource).toContain('exact current');
+    expect(identitySource).toContain('generic `name` is not evidence of a stored French name');
   });
 
   it('keeps guardian and billing-partner id namespaces separate', () => {
@@ -57,8 +48,8 @@ describe('French HTML receipt identity contract', () => {
     expect(identitySource).toContain('endpoints.admin.parent(guardianId)');
   });
 
-  it('uses the resolved current payer name and keeps receipt data as final fallback', () => {
-    expect(identitySource).toContain('readParentFrenchName(matched)');
+  it('uses only stored French aliases for a resolved payer and keeps receipt data as fallback', () => {
+    expect(identitySource).toContain('readFrenchStoredName(matched)');
     expect(identitySource).toContain('readParentFrenchName(response.data)');
     expect(pageSource).toContain("(lang === 'fr' ? identities.payerName : null)");
     expect(pageSource).toContain('receipt.actual_payer_name?.trim()');

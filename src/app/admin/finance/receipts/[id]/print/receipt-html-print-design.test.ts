@@ -17,6 +17,10 @@ const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
 const cssSource = readFileSync(join(printDir, 'receipt-html-print.css'), 'utf8');
 const fixCssSource = readFileSync(join(printDir, 'receipt-html-print-fix.css'), 'utf8');
 const frenchCssSource = readFileSync(join(printDir, 'receipt-html-print-fr.css'), 'utf8');
+const paymentPresentationSource = readFileSync(
+  join(printDir, 'receipt-payment-presentation.ts'),
+  'utf8',
+);
 const layoutSource = readFileSync(join(printDir, 'layout.tsx'), 'utf8');
 
 describe('HTML receipt final visual contract', () => {
@@ -119,10 +123,10 @@ describe('HTML receipt final visual contract', () => {
     expect(pageSource).toContain("total: 'Total'");
     expect(pageSource).toContain("thanks: 'Merci pour votre confiance'");
     expect(pageSource).toContain("cutHere: 'Couper ici'");
-    expect(pageSource).toContain("cash: 'Espèces'");
-    expect(pageSource).toContain("cheque: 'Chèque'");
-    expect(pageSource).toContain("transfer: 'Virement bancaire'");
-    expect(pageSource).toContain("paymentMethodLabel(receipt.payment_method, lang)");
+    expect(paymentPresentationSource).toContain("cash: 'Espèces'");
+    expect(paymentPresentationSource).toContain("cheque: 'Chèque'");
+    expect(paymentPresentationSource).toContain("transfer: 'Virement bancaire'");
+    expect(pageSource).toContain('receiptPaymentMethodLabel(receipt.payment_method, lang)');
     expect(pageSource).toContain("const direction = lang === 'fr' ? 'ltr' : 'rtl'");
     expect(pageSource).toContain('buildReceiptHtmlPrintPath(id, nextLang)');
     expect(layoutSource).toContain("import './receipt-html-print-fr.css';");
