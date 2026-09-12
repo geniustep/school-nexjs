@@ -17,6 +17,12 @@ import { PermissionDeniedState } from '@/components/states/states';
 import { useSession } from '@/features/auth/session-context';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 
+function readPositiveInteger(value: string | null): number | null {
+  if (!value || !/^\d+$/.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 function readFilters(searchParams: URLSearchParams): ArrearsListFilters {
   const pageRaw = searchParams.get('page');
   const tabRaw = searchParams.get('tab') ?? '';
@@ -24,6 +30,7 @@ function readFilters(searchParams: URLSearchParams): ArrearsListFilters {
     tab: isArrearsFollowupTab(tabRaw) ? tabRaw : '',
     search: searchParams.get('search') ?? '',
     page: pageRaw && /^\d+$/.test(pageRaw) ? Number(pageRaw) : 1,
+    family: readPositiveInteger(searchParams.get('family')),
   };
 }
 
@@ -31,7 +38,10 @@ const URL_KEYS: Record<keyof ArrearsListFilters, string> = {
   tab: 'tab',
   search: 'search',
   page: 'page',
+  family: 'family',
 };
+
+type NavigationMode = 'push' | 'replace';
 
 export default function AdminFinanceArrearsPage() {
   const t = useT();
@@ -41,8 +51,11 @@ export default function AdminFinanceArrearsPage() {
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/arrears');
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
 
-  const onFiltersChange = useCallback(
-    (updates: Partial<Record<keyof ArrearsListFilters, string | number | null>>) => {
+  const updateUrl = useCallback(
+    (
+      updates: Partial<Record<keyof ArrearsListFilters, string | number | null>>,
+      mode: NavigationMode,
+    ) => {
       const params = new URLSearchParams(searchParams.toString());
       for (const [key, value] of Object.entries(updates) as Array<
         [keyof ArrearsListFilters, string | number | null]
@@ -55,10 +68,33 @@ export default function AdminFinanceArrearsPage() {
         }
       }
       const qs = params.toString();
-      router.replace(qs ? `/admin/finance/arrears?${qs}` : '/admin/finance/arrears');
+      const href = qs ? `/admin/finance/arrears?${qs}` : '/admin/finance/arrears';
+      if (mode === 'push') {
+        router.push(href);
+      } else {
+        router.replace(href);
+      }
     },
     [router, searchParams],
   );
+
+  const onFiltersChange = useCallback(
+    (updates: Partial<Record<keyof ArrearsListFilters, string | number | null>>) => {
+      updateUrl(updates, 'replace');
+    },
+    [updateUrl],
+  );
+
+  const onOpenFamily = useCallback(
+    (familyId: number) => {
+      updateUrl({ family: familyId }, 'push');
+    },
+    [updateUrl],
+  );
+
+  const onCloseFamily = useCallback(() => {
+    updateUrl({ family: null }, 'replace');
+  }, [updateUrl]);
 
   if (!canViewStudentBalance(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -73,7 +109,13 @@ export default function AdminFinanceArrearsPage() {
         title={t('admin.finance.arrears.pageTitle')}
         subtitle={t('admin.finance.arrears.pageDesc')}
       />
-      <ArrearsListPanel filters={filters} onFiltersChange={onFiltersChange} returnTo={returnTo} />
+      <ArrearsListPanel
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        onOpenFamily={onOpenFamily}
+        onCloseFamily={onCloseFamily}
+        returnTo={returnTo}
+      />
     </RequireAdminPermission>
   );
 }
