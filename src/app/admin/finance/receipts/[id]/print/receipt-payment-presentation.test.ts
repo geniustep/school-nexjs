@@ -6,14 +6,9 @@ import {
 } from './receipt-payment-presentation';
 
 describe('receipt payment presentation', () => {
-  it('defaults unspecified payment methods to cash in both receipt languages', () => {
-    expect(receiptPaymentMethodLabel(undefined, 'fr')).toBe('Espèces');
-    expect(receiptPaymentMethodLabel('import_unspecified', 'fr')).toBe('Espèces');
-    expect(receiptPaymentMethodLabel('Non précisé', 'fr')).toBe('Espèces');
-    expect(receiptPaymentMethodLabel('import_unspecified', 'ar')).toBe('نقدًا');
-  });
-
-  it('keeps known non-cash payment methods unchanged semantically', () => {
+  it('preserves the existing payment-method presentation semantics', () => {
+    expect(receiptPaymentMethodLabel('import_unspecified', 'fr')).toBe('Non précisé');
+    expect(receiptPaymentMethodLabel('import_unspecified', 'ar')).toBe('غير محدد');
     expect(receiptPaymentMethodLabel('cheque', 'fr')).toBe('Chèque');
     expect(receiptPaymentMethodLabel('transfer', 'ar')).toBe('تحويل بنكي');
     expect(receiptPaymentMethodLabel('custom_method', 'fr')).toBe('custom_method');

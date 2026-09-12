@@ -30,26 +30,11 @@ function nestedName(source: RecordValue, keys: string[]): string | null {
   return null;
 }
 
-const UNSPECIFIED_PAYMENT_METHODS = new Set([
-  '',
-  'import_unspecified',
-  'unspecified',
-  'not_specified',
-  'not specified',
-  'non précisé',
-  'non precise',
-  'non précisé(e)',
-  'غير محدد',
-]);
-
 export function receiptPaymentMethodLabel(
   method: string | null | undefined,
   lang: ReceiptHtmlPrintLang,
 ): string {
   const normalized = (method ?? '').trim().toLocaleLowerCase();
-  const cash = lang === 'fr' ? 'Espèces' : 'نقدًا';
-  if (UNSPECIFIED_PAYMENT_METHODS.has(normalized)) return cash;
-
   const labels: Record<ReceiptHtmlPrintLang, Record<string, string>> = {
     ar: {
       cash: 'نقدًا',
@@ -58,6 +43,7 @@ export function receiptPaymentMethodLabel(
       transfer: 'تحويل بنكي',
       bank: 'تحويل بنكي',
       card: 'بطاقة',
+      import_unspecified: 'غير محدد',
     },
     fr: {
       cash: 'Espèces',
@@ -66,10 +52,11 @@ export function receiptPaymentMethodLabel(
       transfer: 'Virement bancaire',
       bank: 'Virement bancaire',
       card: 'Carte',
+      import_unspecified: 'Non précisé',
     },
   };
 
-  return labels[lang][normalized] ?? method?.trim() ?? cash;
+  return labels[lang][normalized] ?? method?.trim() ?? '—';
 }
 
 function normalizeForDedupe(value: string): string {
@@ -155,7 +142,6 @@ function legacyInstallmentMarker(source: RecordValue): boolean {
 function periodLabel(source: RecordValue): string | null {
   const label = firstString(source, ['period_label', 'month_label', 'period_name']);
   if (!label || isInstallmentSegment(label)) return null;
-  // A presentation period must carry calendar meaning, not sequence notation like 3/10.
   if (/^\d+\s*\/\s*\d+$/u.test(label)) return null;
   return label;
 }
