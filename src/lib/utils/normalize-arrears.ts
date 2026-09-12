@@ -304,31 +304,16 @@ export function filterMergedRowsByTab(
   });
 }
 
+/**
+ * KPI values are authoritative only when supplied by the backend summary.
+ * The rows argument is intentionally ignored because the visible list is paginated
+ * and must never be aggregated into financial KPIs.
+ */
 export function computeArrearsSummaryFromRows(
-  rows: ArrearsMergedRow[],
+  _rows: ArrearsMergedRow[],
   apiSummary: ArrearsFollowupSummary | null,
 ): ArrearsFollowupSummary {
-  if (apiSummary?.overdue_families_count != null || apiSummary?.total_overdue_amount != null) {
-    return {
-      overdue_families_count: apiSummary.overdue_families_count ?? rows.length,
-      total_overdue_amount:
-        apiSummary.total_overdue_amount ??
-        rows.reduce((sum, row) => sum + (row.total_overdue ?? 0), 0),
-      payment_promises_count:
-        apiSummary.payment_promises_count ??
-        rows.filter((row) => row.payment_promise_date || row.payment_promise_amount).length,
-      today_followups_count:
-        apiSummary.today_followups_count ??
-        rows.filter((row) => row.next_followup_date).length,
-    };
-  }
-  const today = new Date().toISOString().slice(0, 10);
-  return {
-    overdue_families_count: rows.length,
-    total_overdue_amount: rows.reduce((sum, row) => sum + (row.total_overdue ?? 0), 0),
-    payment_promises_count: rows.filter((row) => row.payment_promise_date || row.payment_promise_amount).length,
-    today_followups_count: rows.filter((row) => row.next_followup_date?.slice(0, 10) === today).length,
-  };
+  return apiSummary ? { ...apiSummary } : {};
 }
 
 export function buildFamilyCollectHref(
