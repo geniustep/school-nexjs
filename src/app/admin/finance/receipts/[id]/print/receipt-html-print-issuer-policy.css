@@ -1,0 +1,17 @@
+/* Receipt issuer privacy/presentation contract.
+ * Personal employee/collector names are never printed on the A5 receipt.
+ * The admin copy keeps an institutional issuer label in the selected language.
+ */
+.receipt-html-copy .receipt-issuer {
+  font-size: 0 !important;
+}
+
+.receipt-html-copy[data-lang='ar'] .receipt-issuer::after {
+  content: 'صادر عن إدارة المؤسسة';
+  font-size: 1.85mm;
+}
+
+.receipt-html-copy[data-lang='fr'] .receipt-issuer::after {
+  content: "Émis par l’administration de l’établissement";
+  font-size: 1.85mm;
+}
