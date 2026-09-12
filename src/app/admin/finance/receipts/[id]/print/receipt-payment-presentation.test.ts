@@ -25,12 +25,32 @@ describe('receipt payment presentation', () => {
     expect(receiptServiceLabel(row, 'fr').match(/التمدرس/g)?.length).toBe(1);
   });
 
-  it('shows only the service name for a one-time service', () => {
+  it('shows registration with the authoritative academic year when present', () => {
     const row = {
-      description: 'التسجيل — التسجيل',
+      description: 'التسجيل — التسجيل — قسط 1/1',
+      due_date: '2026-09-01',
+      academic_year_name: '2026/2027',
+    } as FinanceReceiptAllocation & Record<string, unknown>;
+
+    expect(receiptServiceLabel(row, 'fr')).toBe('التسجيل — 2026/2027');
+    expect(receiptServiceLabel(row, 'fr')).not.toContain('قسط');
+  });
+
+  it('uses a start-of-school-year due date as registration year fallback', () => {
+    const row = {
+      description: 'التسجيل — التسجيل — قسط 1/1',
+      due_date: '2026-09-01',
     } as FinanceReceiptAllocation;
 
-    expect(receiptServiceLabel(row, 'ar')).toBe('التسجيل');
+    expect(receiptServiceLabel(row, 'fr')).toBe('التسجيل — 2026/2027');
+  });
+
+  it('shows only the clean service name for another one-time service', () => {
+    const row = {
+      description: 'التأمين — التأمين',
+    } as FinanceReceiptAllocation;
+
+    expect(receiptServiceLabel(row, 'ar')).toBe('التأمين');
   });
 
   it('uses structured service data and a monthly due date when available', () => {

@@ -102,10 +102,12 @@ function structuredServiceName(source: RecordValue): string | null {
   );
 }
 
+function legacyRawLabel(source: RecordValue): string | null {
+  return firstString(source, ['description', 'label', 'display_label', 'installment_description']);
+}
+
 function legacyServiceName(source: RecordValue): string | null {
-  const raw =
-    firstString(source, ['description', 'label', 'display_label', 'installment_description']) ??
-    null;
+  const raw = legacyRawLabel(source);
   if (!raw) return null;
   const clean = cleanLegacySegments(raw);
   return clean[0] ?? null;
@@ -163,10 +165,45 @@ function formatMonthYear(
   }).format(date);
 }
 
+function isRegistrationService(source: RecordValue, serviceName: string): boolean {
+  const identity = [
+    serviceName,
+    firstString(source, ['service_code', 'fee_code', 'service_category', 'category']) ?? '',
+  ]
+    .join(' ')
+    .toLocaleLowerCase();
+  return /(?:التسجيل|inscription|registration)/iu.test(identity);
+}
+
+function academicYearLabel(source: RecordValue, dueDate: string | null): string | null {
+  const explicit =
+    firstString(source, [
+      'academic_year_name',
+      'academic_year_label',
+      'school_year_name',
+      'school_year_label',
+    ]) ?? nestedName(source, ['academic_year', 'school_year']);
+  if (explicit) return explicit;
+
+  const raw = legacyRawLabel(source);
+  const embeddedYear = raw?.match(/\b(20\d{2})\s*[\/–-]\s*(20\d{2})\b/u);
+  if (embeddedYear) return `${embeddedYear[1]}/${embeddedYear[2]}`;
+
+  // Receipt snapshots do not always expose the academic-year label. For a
+  // registration row whose due date is at the start of a school year, the
+  // calendar date provides a safe display fallback without touching amounts.
+  const iso = dueDate?.match(/^(\d{4})-(\d{2})-(\d{2})/u);
+  if (!iso) return null;
+  const year = Number(iso[1]);
+  const month = Number(iso[2]);
+  return month >= 9 ? `${year}/${year + 1}` : null;
+}
+
 /**
  * Receipt-only display formatter. It never recalculates financial amounts.
- * One-time services show their service name once. Monthly installment rows add
- * only the calendar month/year and never expose installment sequence wording.
+ * Monthly services show service + calendar month/year. Registration shows
+ * service + academic year when the source provides it (or a safe start-of-year
+ * due-date fallback). No installment sequence wording is ever displayed.
  */
 export function receiptServiceLabel(
   row: FinanceReceiptAllocation,
@@ -176,10 +213,16 @@ export function receiptServiceLabel(
   const serviceName = structuredServiceName(source) ?? legacyServiceName(source);
   if (!serviceName) return '—';
 
+  const dueDate = cleanString(row.due_date);
+  if (isRegistrationService(source, serviceName)) {
+    const academicYear = academicYearLabel(source, dueDate);
+    return academicYear ? `${serviceName} — ${academicYear}` : serviceName;
+  }
+
   const explicitPeriod = periodLabel(source);
   const isMonthly = monthlyFrequency(source) || (legacyInstallmentMarker(source) && !!row.due_date);
   const calendarPeriod = isMonthly
-    ? explicitPeriod ?? formatMonthYear(cleanString(row.due_date), lang)
+    ? explicitPeriod ?? formatMonthYear(dueDate, lang)
     : null;
 
   return calendarPeriod ? `${serviceName} — ${calendarPeriod}` : serviceName;
