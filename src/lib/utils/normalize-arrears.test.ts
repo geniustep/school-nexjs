@@ -103,23 +103,32 @@ describe('filterMergedRowsByTab', () => {
 });
 
 describe('computeArrearsSummaryFromRows', () => {
-  it('falls back to row aggregation', () => {
-    const summary = computeArrearsSummaryFromRows(
-      [
-        {
-          family_id: 6667,
-          billing_partner_id: 6667,
-          total_overdue: 1000,
-          payment_promise_date: '2026-07-10',
-          next_followup_date: new Date().toISOString().slice(0, 10),
-        },
-      ],
-      null,
-    );
-    expect(summary.overdue_families_count).toBe(1);
-    expect(summary.total_overdue_amount).toBe(1000);
-    expect(summary.payment_promises_count).toBe(1);
-    expect(summary.today_followups_count).toBe(1);
+  const paginatedRows = [
+    {
+      family_id: 6667,
+      billing_partner_id: 6667,
+      total_overdue: 1000,
+      payment_promise_date: '2026-07-10',
+      next_followup_date: '2026-07-10',
+    },
+  ] as ReturnType<typeof mergeArrearsRows>;
+
+  it('does not derive KPI values from paginated rows when backend summary is absent', () => {
+    const summary = computeArrearsSummaryFromRows(paginatedRows, null);
+    expect(summary).toEqual({});
+  });
+
+  it('preserves a partial backend summary without filling missing fields from rows', () => {
+    const summary = computeArrearsSummaryFromRows(paginatedRows, {
+      overdue_families_count: 17,
+      total_overdue_amount: 4200,
+    });
+    expect(summary).toEqual({
+      overdue_families_count: 17,
+      total_overdue_amount: 4200,
+    });
+    expect(summary.payment_promises_count).toBeUndefined();
+    expect(summary.today_followups_count).toBeUndefined();
   });
 });
 
