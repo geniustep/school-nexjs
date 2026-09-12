@@ -1,10 +1,16 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useLocale } from '@/features/i18n/locale-context';
+import { fetchFinanceReceiptSettings } from '@/lib/api/finance-receipt-settings';
 import { paymentMethodLabel } from '@/lib/utils/finance';
-import { buildReceiptHtmlPrintPath } from '@/lib/utils/finance-receipt-html-print';
+import {
+  buildReceiptHtmlPrintPath,
+  resolveReceiptHtmlPrintLang,
+  type ReceiptHtmlPrintLang,
+} from '@/lib/utils/finance-receipt-html-print';
 import type { CollectionUpdatedOverview } from '@/types/student-financial-overview';
 import type { CollectionSuccessSummary } from './resolve-collection-success-summary';
 
@@ -14,15 +20,64 @@ export function CollectionSuccessPanel({
   pageMode,
   onViewCollection,
   onClose,
+  receiptPrintLanguage,
 }: {
   summary: CollectionSuccessSummary;
   updatedOverview?: CollectionUpdatedOverview | null;
   pageMode: boolean;
   onViewCollection: () => void;
   onClose: () => void;
+  receiptPrintLanguage?: ReceiptHtmlPrintLang | null;
 }) {
   const { t, locale } = useLocale();
-  const receiptPrintLang = locale === 'fr' ? 'fr' : 'ar';
+  const legacyReceiptPrintLang: ReceiptHtmlPrintLang = locale === 'fr' ? 'fr' : 'ar';
+  const hasExplicitPrintLanguage = receiptPrintLanguage === 'ar' || receiptPrintLanguage === 'fr';
+  const [schoolDefaultPrintLang, setSchoolDefaultPrintLang] = useState<ReceiptHtmlPrintLang | null>(
+    null,
+  );
+  const [receiptSettingsReady, setReceiptSettingsReady] = useState(
+    !summary.receiptId || hasExplicitPrintLanguage,
+  );
+
+  useEffect(() => {
+    if (!summary.receiptId || hasExplicitPrintLanguage) {
+      setSchoolDefaultPrintLang(null);
+      setReceiptSettingsReady(true);
+      return;
+    }
+
+    const controller = new AbortController();
+    let active = true;
+    setReceiptSettingsReady(false);
+
+    void fetchFinanceReceiptSettings(controller.signal)
+      .then((settings) => {
+        if (!active) return;
+        setSchoolDefaultPrintLang(settings?.default_language ?? null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSchoolDefaultPrintLang(null);
+      })
+      .finally(() => {
+        if (active) setReceiptSettingsReady(true);
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [hasExplicitPrintLanguage, summary.receiptId]);
+
+  const receiptPrintLang = useMemo(
+    () =>
+      resolveReceiptHtmlPrintLang({
+        explicitLanguage: receiptPrintLanguage,
+        schoolDefaultLanguage: schoolDefaultPrintLang,
+        legacyFallback: legacyReceiptPrintLang,
+      }),
+    [legacyReceiptPrintLang, receiptPrintLanguage, schoolDefaultPrintLang],
+  );
 
   return (
     <div className="finance-collection-success">
@@ -83,13 +138,24 @@ export function CollectionSuccessPanel({
 
       <div className="row form-actions finance-collection-success__actions">
         {summary.receiptId ? (
-          <Link
-            href={buildReceiptHtmlPrintPath(summary.receiptId, receiptPrintLang, { autoPrint: true })}
-            className="btn btn--primary btn--sm"
-            target="_blank"
-          >
-            {receiptPrintLang === 'fr' ? 'Imprimer le reçu' : 'طباعة الوصل'}
-          </Link>
+          receiptSettingsReady ? (
+            <Link
+              href={buildReceiptHtmlPrintPath(summary.receiptId, receiptPrintLang, { autoPrint: true })}
+              className="btn btn--primary btn--sm"
+              target="_blank"
+            >
+              {receiptPrintLang === 'fr' ? 'Imprimer le reçu' : 'طباعة الوصل'}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              disabled
+              aria-busy="true"
+            >
+              {legacyReceiptPrintLang === 'fr' ? 'Imprimer le reçu' : 'طباعة الوصل'}
+            </button>
+          )
         ) : null}
         {pageMode && summary.collectionId ? (
           <button type="button" className="btn btn--primary btn--sm" onClick={onViewCollection}>
