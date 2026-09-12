@@ -47,6 +47,7 @@ export type ArrearsListFilters = {
   tab: string;
   search: string;
   page: number;
+  family: number | null;
 };
 
 type ArrearsListPanelProps = {
@@ -54,6 +55,8 @@ type ArrearsListPanelProps = {
   onFiltersChange: (
     updates: Partial<Record<keyof ArrearsListFilters, string | number | null>>,
   ) => void;
+  onOpenFamily: (familyId: number) => void;
+  onCloseFamily: () => void;
   returnTo?: string;
 };
 
@@ -104,12 +107,17 @@ function KpiCard({
   );
 }
 
-export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/finance/arrears' }: ArrearsListPanelProps) {
+export function ArrearsListPanel({
+  filters,
+  onFiltersChange,
+  onOpenFamily,
+  onCloseFamily,
+  returnTo = '/admin/finance/arrears',
+}: ArrearsListPanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
   const tabValid = resolveArrearsFollowupTab(filters.tab);
 
-  const [drawerFamilyId, setDrawerFamilyId] = useState<number | null>(null);
   const [drawerFamilyLabel, setDrawerFamilyLabel] = useState<string | undefined>();
 
   const billingQuery: ListParams = useMemo(
@@ -189,8 +197,8 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
   }
 
   function openDrawer(row: ArrearsMergedRow) {
-    setDrawerFamilyId(row.family_id);
     setDrawerFamilyLabel(rowLabel(row));
+    onOpenFamily(row.family_id);
   }
 
   function setTab(next: ArrearsFollowupTab) {
@@ -349,7 +357,7 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         ),
       },
     ],
-    [t, formatDate, returnTo],
+    [t, formatDate, returnTo, onOpenFamily],
   );
 
   if (loading) {
@@ -368,23 +376,23 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         <div className="finance-billing-kpis">
           <KpiCard
             label={t('admin.finance.arrears.kpis.overdueFamilies')}
-            value={summary.overdue_families_count ?? mergedAll.length}
+            value={summary.overdue_families_count}
             tone="red"
           />
           <KpiCard
             label={t('admin.finance.arrears.kpis.totalOverdue')}
-            amount={summary.total_overdue_amount}
+            amount={summary.total_overdue_amount ?? null}
             currency={pageCurrency}
             tone="amber"
           />
           <KpiCard
             label={t('admin.finance.arrears.kpis.paymentPromises')}
-            value={summary.payment_promises_count ?? 0}
+            value={summary.payment_promises_count}
             tone="blue"
           />
           <KpiCard
             label={t('admin.finance.arrears.kpis.todayFollowups')}
-            value={summary.today_followups_count ?? 0}
+            value={summary.today_followups_count}
             tone="slate"
           />
         </div>
@@ -581,12 +589,12 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
       )}
 
       <ArrearsFollowupDrawer
-        open={drawerFamilyId != null}
-        familyId={drawerFamilyId}
+        open={filters.family != null}
+        familyId={filters.family}
         familyLabel={drawerFamilyLabel}
         onClose={() => {
-          setDrawerFamilyId(null);
           setDrawerFamilyLabel(undefined);
+          onCloseFamily();
         }}
         onSaved={reloadAll}
       />
