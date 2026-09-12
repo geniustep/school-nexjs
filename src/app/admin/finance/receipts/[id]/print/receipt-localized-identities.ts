@@ -58,9 +58,16 @@ function composedLatinName(source: RecordValue): string | null {
   return joined || null;
 }
 
+function composedCurrentName(source: RecordValue): string | null {
+  const first = firstString(source, ['first_name', 'firstName']);
+  const last = firstString(source, ['last_name', 'lastName']);
+  const joined = [first, last].filter(Boolean).join(' ').trim();
+  return joined || null;
+}
+
 /**
  * Read a stored Latin/French display value only. This never translates names and
- * deliberately never falls back to the generic Arabic/current display name.
+ * deliberately never falls back to the generic current display name.
  */
 export function readFrenchStoredName(value: unknown): string | null {
   const source = asRecord(value);
@@ -85,6 +92,34 @@ export function readFrenchStoredName(value: unknown): string | null {
     const direct = firstString(candidate, keys);
     if (direct) return direct;
     const composed = composedLatinName(candidate);
+    if (composed) return composed;
+  }
+  return null;
+}
+
+/**
+ * Exact entity detail endpoints expose the entity's current operational name even
+ * when their serializer does not repeat name_latin/name_fr. Odoo's bilingual name
+ * write contract makes that operational name the French/Latin name when one is
+ * stored. Use it only after the explicit French fields above, and only on fresh
+ * entity reads — never on the historical receipt snapshot.
+ */
+export function readCurrentEntityName(value: unknown): string | null {
+  const source = asRecord(value);
+  const person = asRecord(source.person);
+  const student = asRecord(source.student);
+  const guardian = asRecord(source.guardian);
+  const partner = asRecord(source.partner);
+
+  for (const candidate of [source, person, student, guardian, partner]) {
+    const direct = firstString(candidate, [
+      'display_name',
+      'full_name',
+      'name',
+      'student_name',
+    ]);
+    if (direct) return direct;
+    const composed = composedCurrentName(candidate);
     if (composed) return composed;
   }
   return null;
@@ -206,14 +241,23 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
   return { guardianIds: [...guardianIds], partnerIds: [...partnerIds] };
 }
 
-function readStudentFrenchName(data: unknown): string | null {
+export function readStudentFrenchName(data: unknown): string | null {
   const root = asRecord(data);
-  return readFrenchStoredName(root.student) ?? readFrenchStoredName(root);
+  return (
+    readFrenchStoredName(root.student) ??
+    readFrenchStoredName(root) ??
+    readCurrentEntityName(root.student) ??
+    readCurrentEntityName(root)
+  );
 }
 
-/** Strict: generic `name` is not evidence of a stored French name. */
+/**
+ * Prefer explicit name_fr. If the parent serializer omits it, the exact current
+ * parent/person detail name is the authoritative fallback before the old receipt
+ * snapshot name.
+ */
 export function readParentFrenchName(data: unknown): string | null {
-  return readFrenchStoredName(data);
+  return readFrenchStoredName(data) ?? readCurrentEntityName(data);
 }
 
 function arrayFromPayload(data: unknown): unknown[] {
@@ -325,7 +369,7 @@ async function fetchPayerFrenchName(
       const matched = matchingGuardianRecord(response.data, guardianIds, partnerIds);
       if (!matched) continue;
 
-      const inlineName = readFrenchStoredName(matched);
+      const inlineName = readParentFrenchName(matched);
       if (inlineName) return inlineName;
 
       const guardianId = guardianIdFromRecord(matched);
