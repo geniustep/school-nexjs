@@ -12,8 +12,14 @@ type PayerIdentityRefs = {
   partnerIds: number[];
 };
 
+type SchoolFrenchIdentity = {
+  schoolName: string | null;
+  schoolCode: string | null;
+};
+
 export type ReceiptLocalizedIdentities = {
   schoolName: string | null;
+  schoolCode: string | null;
   payerName: string | null;
   studentNames: Record<number, string>;
   ready: boolean;
@@ -41,6 +47,37 @@ const IDENTITY_CONTAINER_KEYS = [
   'school',
   'profile',
   'guardian_profile',
+] as const;
+
+// A parent response may also carry related students. Parent identity resolution
+// must never descend into those student records, otherwise the payer can be
+// replaced by the child's bilingual name.
+const PARENT_IDENTITY_CONTAINER_KEYS = [
+  'identity',
+  'person',
+  'guardian',
+  'partner',
+  'profile',
+  'guardian_profile',
+] as const;
+
+const PARENT_SCALAR_KEYS = [
+  ...FRENCH_NAME_KEYS,
+  'display_name',
+  'full_name',
+  'name',
+  'first_name_fr',
+  'first_name_latin',
+  'first_name_lat',
+  'firstNameLatin',
+  'last_name_fr',
+  'last_name_latin',
+  'last_name_lat',
+  'lastNameLatin',
+  'first_name',
+  'firstName',
+  'last_name',
+  'lastName',
 ] as const;
 
 function asRecord(value: unknown): RecordValue {
@@ -124,6 +161,27 @@ function identityRecords(value: unknown): RecordValue[] {
   }
 
   return records;
+}
+
+/**
+ * Build a parent-only identity view. Related student records are intentionally
+ * excluded at every depth before the generic bilingual-name readers run.
+ */
+function parentIdentityView(value: unknown, depth = 0): RecordValue {
+  const source = asRecord(value);
+  if (!hasRecordValues(source)) return {};
+
+  const view: RecordValue = {};
+  for (const key of PARENT_SCALAR_KEYS) {
+    if (key in source) view[key] = source[key];
+  }
+
+  if (depth >= 3) return view;
+  for (const key of PARENT_IDENTITY_CONTAINER_KEYS) {
+    const nested = parentIdentityView(source[key], depth + 1);
+    if (hasRecordValues(nested)) view[key] = nested;
+  }
+  return view;
 }
 
 /**
@@ -220,7 +278,7 @@ function receiptPayerRecords(receipt: FinanceReceipt, rawReceipt: unknown): unkn
 
 function readInitialPayerName(receipt: FinanceReceipt, rawReceipt: unknown): string | null {
   for (const candidate of receiptPayerRecords(receipt, rawReceipt)) {
-    const name = readFrenchStoredName(candidate);
+    const name = readParentFrenchName(candidate);
     if (name) return name;
   }
   return null;
@@ -230,6 +288,20 @@ function readInitialSchoolName(rawReceipt: unknown): string | null {
   const raw = asRecord(rawReceipt);
   const snapshot = asRecord(raw.snapshot);
   return readFrenchStoredName(snapshot.school) ?? readFrenchStoredName(raw.school);
+}
+
+function readSchoolCode(value: unknown): string | null {
+  for (const candidate of identityRecords(value)) {
+    const code = firstString(candidate, ['schoolCode', 'school_code', 'code']);
+    if (code) return code;
+  }
+  return null;
+}
+
+function readInitialSchoolCode(rawReceipt: unknown): string | null {
+  const raw = asRecord(rawReceipt);
+  const snapshot = asRecord(raw.snapshot);
+  return readSchoolCode(snapshot.school) ?? readSchoolCode(raw.school);
 }
 
 /**
@@ -290,9 +362,10 @@ export function readStudentFrenchName(data: unknown): string | null {
 /**
  * Prefer explicit name_fr. If the parent serializer omits it, the exact current
  * parent/person detail name is the authoritative fallback before the old receipt
- * snapshot name.
+ * snapshot name. Related students are removed from the view first.
  */
-export function readParentFrenchName(data: unknown): string | null {
+export function readParentFrenchName(rawData: unknown): string | null {
+  const data = parentIdentityView(rawData);
   return readFrenchStoredName(data) ?? readCurrentEntityName(data);
 }
 
@@ -342,18 +415,41 @@ function matchingGuardianRecord(
   return null;
 }
 
+let schoolFrenchIdentityInFlight: Promise<SchoolFrenchIdentity> | null = null;
+
+function fetchSchoolFrenchIdentity(): Promise<SchoolFrenchIdentity> {
+  if (schoolFrenchIdentityInFlight) return schoolFrenchIdentityInFlight;
+
+  schoolFrenchIdentityInFlight = (async () => {
+    try {
+      const response = await fetch('/api/admin/school-branding', {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      const body = await response.json();
+      if (!response.ok || body?.success !== true) {
+        return { schoolName: null, schoolCode: null };
+      }
+      return {
+        schoolName: readFrenchStoredName(body.data) ?? readFrenchStoredName(body),
+        schoolCode: readSchoolCode(body.data) ?? readSchoolCode(body),
+      };
+    } catch {
+      return { schoolName: null, schoolCode: null };
+    }
+  })().finally(() => {
+    schoolFrenchIdentityInFlight = null;
+  });
+
+  return schoolFrenchIdentityInFlight;
+}
+
 async function fetchSchoolFrenchName(): Promise<string | null> {
-  try {
-    const response = await fetch('/api/admin/school-branding', {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    const body = await response.json();
-    if (!response.ok || body?.success !== true) return null;
-    return readFrenchStoredName(body.data) ?? readFrenchStoredName(body);
-  } catch {
-    return null;
-  }
+  return (await fetchSchoolFrenchIdentity()).schoolName;
+}
+
+async function fetchSchoolCode(): Promise<string | null> {
+  return (await fetchSchoolFrenchIdentity()).schoolCode;
 }
 
 async function fetchStudentFrenchName(studentId: number): Promise<string | null> {
@@ -426,10 +522,17 @@ export function useReceiptFrenchIdentities(
 ): ReceiptLocalizedIdentities {
   const initial = useMemo<ReceiptLocalizedIdentities>(() => {
     if (!receipt) {
-      return { schoolName: null, payerName: null, studentNames: {}, ready: !enabled };
+      return {
+        schoolName: null,
+        schoolCode: null,
+        payerName: null,
+        studentNames: {},
+        ready: !enabled,
+      };
     }
     return {
       schoolName: readInitialSchoolName(rawReceipt),
+      schoolCode: readInitialSchoolCode(rawReceipt),
       payerName: readInitialPayerName(receipt, rawReceipt),
       studentNames: readInitialStudentNames(rawReceipt),
       ready: !enabled,
@@ -449,8 +552,9 @@ export function useReceiptFrenchIdentities(
 
     void (async () => {
       const studentIds = collectReceiptStudentIds(receipt, rawReceipt);
-      const [freshSchoolName, freshPayerName, studentPairs] = await Promise.all([
+      const [freshSchoolName, freshSchoolCode, freshPayerName, studentPairs] = await Promise.all([
         fetchSchoolFrenchName(),
+        fetchSchoolCode(),
         fetchPayerFrenchName(receipt, rawReceipt, studentIds),
         Promise.all(
           studentIds.map(async (studentId) => {
@@ -469,6 +573,7 @@ export function useReceiptFrenchIdentities(
         // The French receipt represents current identity data. Prefer fresh
         // entity/settings reads; historical receipt values are fallback only.
         schoolName: freshSchoolName ?? initial.schoolName,
+        schoolCode: freshSchoolCode ?? initial.schoolCode,
         payerName: freshPayerName ?? initial.payerName,
         studentNames,
         ready: true,
