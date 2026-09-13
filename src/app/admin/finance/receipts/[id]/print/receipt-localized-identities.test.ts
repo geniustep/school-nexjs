@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import {
+  readCurrentEntityName,
+  readFrenchStoredName,
+} from './receipt-french-name-reader';
 
 const printDir = join(
   process.cwd(),
@@ -17,57 +21,58 @@ const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
 const identitySource = readFileSync(join(printDir, 'receipt-localized-identities.ts'), 'utf8');
 
 describe('French HTML receipt identity contract', () => {
-  it('uses the canonical stored Latin school branding name and never translates a name', () => {
-    expect(identitySource).toContain("'schoolNameLat'");
-    expect(identitySource).toContain("'school_name_lat'");
+  it('reads the exact school French name returned by the branding settings contract', () => {
+    expect(readFrenchStoredName({ schoolNameLat: 'École Alwah' })).toBe('École Alwah');
+    expect(readFrenchStoredName({ data: { school: { school_name_lat: 'École Alwah' } } })).toBe(
+      'École Alwah',
+    );
     expect(identitySource).toContain("fetch('/api/admin/school-branding'");
-    expect(identitySource).not.toContain('translate(');
+    expect(identitySource).toContain('endpoints.admin.schoolBranding');
   });
 
-  it('uses the stored student Latin/French field and then the fresh exact entity name', () => {
-    expect(identitySource).toContain("'name_latin'");
-    expect(identitySource).toContain('export function readStudentFrenchName');
-    expect(identitySource).toContain('readCurrentEntityName(root.student)');
-    expect(identitySource).toContain('readCurrentEntityName(root)');
+  it('reads stored student name_latin through real admin detail envelopes', () => {
+    expect(readFrenchStoredName({ student: { name_latin: 'Yassine El Amrani' } })).toBe(
+      'Yassine El Amrani',
+    );
+    expect(
+      readFrenchStoredName({ data: { student: { name_latin: 'Yassine El Amrani' } } }),
+    ).toBe('Yassine El Amrani');
     expect(identitySource).toContain('endpoints.admin.student(studentId)');
     expect(identitySource).toContain('collectReceiptStudentIds');
     expect(pageSource).toContain('identities.studentNames[studentId]');
   });
 
-  it('prefers stored parent name_fr and accepts the fresh parent detail name before receipt fallback', () => {
-    expect(identitySource).toContain("'name_fr'");
-    expect(identitySource).toContain('export function readParentFrenchName');
-    expect(identitySource).toContain('readFrenchStoredName(data) ?? readCurrentEntityName(data)');
-    expect(identitySource).not.toContain('normalizeParentProfile');
-    expect(identitySource).not.toContain('normalizeParentProfile(data)?.name');
-  });
-
-  it('keeps historical receipt snapshots strict while fresh entity reads may use current names', () => {
-    expect(identitySource).toContain('const name = readFrenchStoredName(candidate);');
-    expect(identitySource).toContain('never on the historical receipt snapshot');
-    expect(identitySource).toContain('exact current');
-  });
-
-  it('keeps guardian and billing-partner id namespaces separate', () => {
-    expect(identitySource).toContain('export function payerIdentityRefs');
-    expect(identitySource).toContain('addPartner(receipt.billing_partner_id)');
-    expect(identitySource).not.toContain('addGuardian(receipt.billing_partner_id)');
-    expect(identitySource).toContain('endpoints.admin.studentGuardians(studentId)');
-    expect(identitySource).toContain('fetchParentFrenchNameByGuardianId(guardianId)');
+  it('reads stored parent French/Latin identities from nested parent/person profiles', () => {
+    expect(readFrenchStoredName({ parent: { name_latin: 'Ahmed Benali' } })).toBe('Ahmed Benali');
+    expect(
+      readFrenchStoredName({ data: { parent: { person: { name_fr: 'Ahmed Benali' } } } }),
+    ).toBe('Ahmed Benali');
+    expect(
+      readFrenchStoredName({ guardian_profile: { person: { full_name_latin: 'Ahmed Benali' } } }),
+    ).toBe('Ahmed Benali');
     expect(identitySource).toContain('endpoints.admin.parent(guardianId)');
   });
 
-  it('uses the resolved current payer name and keeps receipt data as final fallback', () => {
-    expect(identitySource).toContain('readParentFrenchName(matched)');
-    expect(identitySource).toContain('readParentFrenchName(response.data)');
-    expect(pageSource).toContain("(lang === 'fr' ? identities.payerName : null)");
-    expect(pageSource).toContain('receipt.actual_payer_name?.trim()');
+  it('accepts string ids from receipt snapshots without mixing guardian and partner namespaces', () => {
+    expect(identitySource).toContain("typeof value === 'string'");
+    expect(identitySource).toContain('addPartner(receipt.billing_partner_id)');
+    expect(identitySource).not.toContain('addGuardian(receipt.billing_partner_id)');
+    expect(identitySource).toContain('endpoints.admin.studentGuardians(studentId)');
   });
 
-  it('keeps Arabic receipt names on the existing receipt data path', () => {
+  it('never translates a stored identity and keeps current entity name as compatibility fallback only', () => {
+    expect(readFrenchStoredName({ name: 'الاسم العربي' })).toBeNull();
+    expect(readCurrentEntityName({ data: { person: { name: 'Ahmed Benali' } } })).toBe(
+      'Ahmed Benali',
+    );
+    expect(identitySource).not.toContain('translate(');
+  });
+
+  it('uses resolved French identities while keeping receipt data as final fallback', () => {
     expect(pageSource).toContain("(lang === 'fr' ? identities.schoolName : null)");
+    expect(pageSource).toContain("(lang === 'fr' ? identities.payerName : null)");
+    expect(pageSource).toContain('receipt.actual_payer_name?.trim()');
     expect(pageSource).toContain("const rows = lang === 'fr'");
-    expect(pageSource).toContain(': baseRows;');
   });
 
   it('waits for French identity hydration before automatic or manual printing', () => {

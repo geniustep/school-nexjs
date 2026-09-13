@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { FinanceReceipt } from '@/types/finance';
+import {
+  readCurrentEntityName,
+  readFrenchStoredName,
+} from './receipt-french-name-reader';
+
+export { readCurrentEntityName, readFrenchStoredName } from './receipt-french-name-reader';
 
 type RecordValue = Record<string, unknown>;
 
@@ -25,102 +31,11 @@ function asRecord(value: unknown): RecordValue {
     : {};
 }
 
-function cleanString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
-}
-
-function firstString(source: RecordValue, keys: string[]): string | null {
-  for (const key of keys) {
-    const value = cleanString(source[key]);
-    if (value) return value;
-  }
-  return null;
-}
-
 function positiveId(value: unknown): number | null {
-  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : null;
-}
-
-function composedLatinName(source: RecordValue): string | null {
-  const first = firstString(source, [
-    'first_name_fr',
-    'first_name_latin',
-    'first_name_lat',
-    'firstNameLatin',
-  ]);
-  const last = firstString(source, [
-    'last_name_fr',
-    'last_name_latin',
-    'last_name_lat',
-    'lastNameLatin',
-  ]);
-  const joined = [first, last].filter(Boolean).join(' ').trim();
-  return joined || null;
-}
-
-function composedCurrentName(source: RecordValue): string | null {
-  const first = firstString(source, ['first_name', 'firstName']);
-  const last = firstString(source, ['last_name', 'lastName']);
-  const joined = [first, last].filter(Boolean).join(' ').trim();
-  return joined || null;
-}
-
-/**
- * Read a stored Latin/French display value only. This never translates names and
- * deliberately never falls back to the generic current display name.
- */
-export function readFrenchStoredName(value: unknown): string | null {
-  const source = asRecord(value);
-  const person = asRecord(source.person);
-  const student = asRecord(source.student);
-  const guardian = asRecord(source.guardian);
-  const partner = asRecord(source.partner);
-
-  const keys = [
-    'schoolNameLat',
-    'school_name_lat',
-    'display_name_fr',
-    'name_fr',
-    'name_latin',
-    'display_name_latin',
-    'display_name_lat',
-    'name_lat',
-    'latin_name',
-  ];
-
-  for (const candidate of [source, person, student, guardian, partner]) {
-    const direct = firstString(candidate, keys);
-    if (direct) return direct;
-    const composed = composedLatinName(candidate);
-    if (composed) return composed;
-  }
-  return null;
-}
-
-/**
- * Exact entity detail endpoints expose the entity's current operational name even
- * when their serializer does not repeat name_latin/name_fr. Odoo's bilingual name
- * write contract makes that operational name the French/Latin name when one is
- * stored. Use it only after the explicit French fields above, and only on fresh
- * entity reads — never on the historical receipt snapshot.
- */
-export function readCurrentEntityName(value: unknown): string | null {
-  const source = asRecord(value);
-  const person = asRecord(source.person);
-  const student = asRecord(source.student);
-  const guardian = asRecord(source.guardian);
-  const partner = asRecord(source.partner);
-
-  for (const candidate of [source, person, student, guardian, partner]) {
-    const direct = firstString(candidate, [
-      'display_name',
-      'full_name',
-      'name',
-      'student_name',
-    ]);
-    if (direct) return direct;
-    const composed = composedCurrentName(candidate);
-    if (composed) return composed;
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) return value;
+  if (typeof value === 'string' && /^\d+$/.test(value.trim())) {
+    const parsed = Number(value);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
   }
   return null;
 }
@@ -150,6 +65,13 @@ export function collectReceiptStudentIds(receipt: FinanceReceipt, rawReceipt?: u
   for (const child of receipt.children ?? receipt.snapshot?.children ?? []) add(child.student_id);
   for (const allocation of receipt.allocations ?? receipt.snapshot?.allocations ?? []) add(allocation.student_id);
   for (const child of collectRawChildren(rawReceipt)) add(recordId(child));
+
+  const raw = asRecord(rawReceipt);
+  const snapshot = asRecord(raw.snapshot);
+  add(raw.student_id);
+  add(asRecord(raw.student).id);
+  add(snapshot.student_id);
+  add(asRecord(snapshot.student).id);
 
   return [...ids];
 }
@@ -197,8 +119,8 @@ function readInitialSchoolName(rawReceipt: unknown): string | null {
 }
 
 /**
- * Keep ID namespaces explicit. `/admin/parents/{id}` accepts a guardian/parent
- * record id; a billing_partner_id/person_id must never be sent to it directly.
+ * Keep guardian ids and billing partner ids in separate namespaces. A partner id
+ * must never be sent directly to /admin/parents/{id}.
  */
 export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown): PayerIdentityRefs {
   const raw = asRecord(rawReceipt);
@@ -224,11 +146,11 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
     const record = asRecord(payer);
     addGuardian(record.guardian_id);
     addGuardian(asRecord(record.guardian).id);
+    addGuardian(asRecord(record.guardian_profile).guardian_id);
 
-    // `payer.id` in finance contracts is a billing partner/ref unless an
-    // explicit guardian_id accompanies it, so treat it as partner namespace.
     addPartner(record.partner_id);
     addPartner(asRecord(record.person).partner_id);
+    addPartner(asRecord(record.partner).id);
     addPartner(record.id);
   }
 
@@ -242,19 +164,12 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
 }
 
 export function readStudentFrenchName(data: unknown): string | null {
-  const root = asRecord(data);
-  return (
-    readFrenchStoredName(root.student) ??
-    readFrenchStoredName(root) ??
-    readCurrentEntityName(root.student) ??
-    readCurrentEntityName(root)
-  );
+  return readFrenchStoredName(data) ?? readCurrentEntityName(data);
 }
 
 /**
- * Prefer explicit name_fr. If the parent serializer omits it, the exact current
- * parent/person detail name is the authoritative fallback before the old receipt
- * snapshot name.
+ * Prefer an explicit stored French/Latin identity. The current exact parent detail
+ * name remains a compatibility fallback when an older serializer omits that field.
  */
 export function readParentFrenchName(data: unknown): string | null {
   return readFrenchStoredName(data) ?? readCurrentEntityName(data);
@@ -265,6 +180,10 @@ function arrayFromPayload(data: unknown): unknown[] {
   const root = asRecord(data);
   for (const key of ['guardians', 'relationships', 'items', 'results', 'data']) {
     if (Array.isArray(root[key])) return root[key] as unknown[];
+    const nested = asRecord(root[key]);
+    for (const nestedKey of ['guardians', 'relationships', 'items', 'results']) {
+      if (Array.isArray(nested[nestedKey])) return nested[nestedKey] as unknown[];
+    }
   }
   return [];
 }
@@ -274,7 +193,8 @@ function guardianIdFromRecord(value: unknown): number | null {
   return (
     positiveId(record.guardian_id) ??
     positiveId(asRecord(record.guardian).id) ??
-    positiveId(asRecord(record.guardian_profile).guardian_id)
+    positiveId(asRecord(record.guardian_profile).guardian_id) ??
+    positiveId(asRecord(record.parent).guardian_id)
   );
 }
 
@@ -284,6 +204,7 @@ function partnerIdFromRecord(value: unknown): number | null {
     positiveId(record.partner_id) ??
     positiveId(asRecord(record.person).partner_id) ??
     positiveId(asRecord(record.guardian).partner_id) ??
+    positiveId(asRecord(record.parent).partner_id) ??
     positiveId(asRecord(record.partner).id)
   );
 }
@@ -307,14 +228,25 @@ function matchingGuardianRecord(
 }
 
 async function fetchSchoolFrenchName(): Promise<string | null> {
+  // Use the exact same BFF contract as /admin/settings/school-branding first.
   try {
     const response = await fetch('/api/admin/school-branding', {
       headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
       cache: 'no-store',
     });
     const body = await response.json();
-    if (!response.ok || body?.success !== true) return null;
-    return readFrenchStoredName(body.data);
+    if (response.ok && body?.success === true) {
+      const name = readFrenchStoredName(body.data);
+      if (name) return name;
+    }
+  } catch {
+    // Fall through to the direct authenticated admin read contract.
+  }
+
+  try {
+    const response = await api.get<unknown>(endpoints.admin.schoolBranding);
+    return response.success ? readFrenchStoredName(response.data) : null;
   } catch {
     return null;
   }
@@ -353,14 +285,11 @@ async function fetchPayerFrenchName(
   const guardianIds = new Set(refs.guardianIds);
   const partnerIds = new Set(refs.partnerIds);
 
-  // Exact guardian ids are safe for the parent detail route.
   for (const guardianId of refs.guardianIds) {
     const name = await fetchParentFrenchNameByGuardianId(guardianId);
     if (name) return name;
   }
 
-  // billing_partner_id is a partner namespace. Resolve it through the same
-  // student's guardian relationship contract before calling /admin/parents/{id}.
   if (!guardianIds.size && !partnerIds.size) return null;
   for (const studentId of studentIds) {
     try {
@@ -377,7 +306,7 @@ async function fetchPayerFrenchName(
       const name = await fetchParentFrenchNameByGuardianId(guardianId);
       if (name) return name;
     } catch {
-      // Keep the receipt's original payer name as the display fallback.
+      // Keep receipt payer data as the final display fallback.
     }
   }
   return null;
