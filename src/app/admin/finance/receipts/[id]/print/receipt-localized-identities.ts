@@ -19,6 +19,11 @@ type SchoolFrenchIdentity = {
   schoolCode: string | null;
 };
 
+type ReceiptIssuerIdentityContract = {
+  issued_by_user_id?: number | null;
+  issued_by_name?: string | null;
+};
+
 export type ReceiptLocalizedIdentities = {
   schoolName: string | null;
   schoolCode: string | null;
@@ -302,8 +307,14 @@ function readInitialPayerName(receipt: FinanceReceipt, rawReceipt: unknown): str
 }
 
 function readInitialIssuerName(receipt: FinanceReceipt, rawReceipt: unknown): string | null {
+  const receiptContract = receipt as FinanceReceipt & ReceiptIssuerIdentityContract;
   const raw = asRecord(rawReceipt);
-  return readStaffFrenchName(raw.issued_by) ?? readStaffFrenchName(receipt.issued_by);
+  return (
+    readStaffFrenchName(raw.issued_by) ??
+    readStaffFrenchName(receipt.issued_by) ??
+    cleanString(receiptContract.issued_by_name) ??
+    cleanString(raw.issued_by_name)
+  );
 }
 
 function readInitialSchoolName(rawReceipt: unknown): string | null {
@@ -368,7 +379,15 @@ export function receiptIssuerUserId(
   receipt: FinanceReceipt,
   rawReceipt: unknown,
 ): number | null {
+  const receiptContract = receipt as FinanceReceipt & ReceiptIssuerIdentityContract;
   const raw = asRecord(rawReceipt);
+
+  const stableUserId =
+    positiveId(receiptContract.issued_by_user_id) ?? positiveId(raw.issued_by_user_id);
+  if (stableUserId) return stableUserId;
+
+  // Compatibility only for historical payloads. The governed current contract is
+  // the top-level issued_by_user_id from school.payment.receipt.issued_by.
   for (const candidate of [receipt.issued_by, raw.issued_by]) {
     const record = asRecord(candidate);
     const id = positiveId(record.user_id) ?? positiveId(record.id);
