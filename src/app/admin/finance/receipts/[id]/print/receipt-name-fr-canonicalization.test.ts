@@ -8,8 +8,18 @@ import {
   receiptIssuerUserId,
 } from './receipt-localized-identities';
 
-const pageSource = readFileSync(join(__dirname, 'page.tsx'), 'utf8');
-const identitySource = readFileSync(join(__dirname, 'receipt-localized-identities.ts'), 'utf8');
+const printDir = join(
+  process.cwd(),
+  'src',
+  'app',
+  'admin',
+  'finance',
+  'receipts',
+  '[id]',
+  'print',
+);
+const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
+const identitySource = readFileSync(join(printDir, 'receipt-localized-identities.ts'), 'utf8');
 
 describe('French receipt canonical name_fr contract', () => {
   it('uses school.parent.name_fr before every alternate parent display field', () => {
