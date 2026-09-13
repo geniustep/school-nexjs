@@ -19,17 +19,45 @@ export type ReceiptLocalizedIdentities = {
   ready: boolean;
 };
 
+const FRENCH_NAME_KEYS = [
+  'schoolNameLat',
+  'school_name_lat',
+  'display_name_fr',
+  'name_fr',
+  'name_latin',
+  'display_name_latin',
+  'display_name_lat',
+  'name_lat',
+  'latin_name',
+] as const;
+
+const IDENTITY_CONTAINER_KEYS = [
+  'identity',
+  'person',
+  'student',
+  'guardian',
+  'partner',
+  'branding',
+  'school',
+  'profile',
+  'guardian_profile',
+] as const;
+
 function asRecord(value: unknown): RecordValue {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as RecordValue)
     : {};
 }
 
+function hasRecordValues(value: RecordValue): boolean {
+  return Object.keys(value).length > 0;
+}
+
 function cleanString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function firstString(source: RecordValue, keys: string[]): string | null {
+function firstString(source: RecordValue, keys: readonly string[]): string | null {
   for (const key of keys) {
     const value = cleanString(source[key]);
     if (value) return value;
@@ -66,30 +94,45 @@ function composedCurrentName(source: RecordValue): string | null {
 }
 
 /**
+ * Entity detail contracts do not all expose bilingual identity fields at the
+ * same depth. For example, student name_latin is under identity, while parent
+ * name_fr may be under person/identity depending on the serializer. Traverse
+ * only the known identity containers, with a hard depth limit, instead of
+ * walking arbitrary payload objects.
+ */
+function identityRecords(value: unknown): RecordValue[] {
+  const root = asRecord(value);
+  if (!hasRecordValues(root)) return [];
+
+  const records: RecordValue[] = [];
+  const queue: Array<{ record: RecordValue; depth: number }> = [{ record: root, depth: 0 }];
+  const seen = new Set<RecordValue>();
+
+  while (queue.length) {
+    const next = queue.shift();
+    if (!next || seen.has(next.record)) continue;
+    seen.add(next.record);
+    records.push(next.record);
+
+    if (next.depth >= 3) continue;
+    for (const key of IDENTITY_CONTAINER_KEYS) {
+      const nested = asRecord(next.record[key]);
+      if (hasRecordValues(nested) && !seen.has(nested)) {
+        queue.push({ record: nested, depth: next.depth + 1 });
+      }
+    }
+  }
+
+  return records;
+}
+
+/**
  * Read a stored Latin/French display value only. This never translates names and
  * deliberately never falls back to the generic current display name.
  */
 export function readFrenchStoredName(value: unknown): string | null {
-  const source = asRecord(value);
-  const person = asRecord(source.person);
-  const student = asRecord(source.student);
-  const guardian = asRecord(source.guardian);
-  const partner = asRecord(source.partner);
-
-  const keys = [
-    'schoolNameLat',
-    'school_name_lat',
-    'display_name_fr',
-    'name_fr',
-    'name_latin',
-    'display_name_latin',
-    'display_name_lat',
-    'name_lat',
-    'latin_name',
-  ];
-
-  for (const candidate of [source, person, student, guardian, partner]) {
-    const direct = firstString(candidate, keys);
+  for (const candidate of identityRecords(value)) {
+    const direct = firstString(candidate, FRENCH_NAME_KEYS);
     if (direct) return direct;
     const composed = composedLatinName(candidate);
     if (composed) return composed;
@@ -99,19 +142,12 @@ export function readFrenchStoredName(value: unknown): string | null {
 
 /**
  * Exact entity detail endpoints expose the entity's current operational name even
- * when their serializer does not repeat name_latin/name_fr. Odoo's bilingual name
- * write contract makes that operational name the French/Latin name when one is
- * stored. Use it only after the explicit French fields above, and only on fresh
- * entity reads — never on the historical receipt snapshot.
+ * when their serializer does not repeat name_latin/name_fr. Use it only after the
+ * explicit French fields above, and only on fresh entity reads — never on the
+ * historical receipt snapshot.
  */
 export function readCurrentEntityName(value: unknown): string | null {
-  const source = asRecord(value);
-  const person = asRecord(source.person);
-  const student = asRecord(source.student);
-  const guardian = asRecord(source.guardian);
-  const partner = asRecord(source.partner);
-
-  for (const candidate of [source, person, student, guardian, partner]) {
+  for (const candidate of identityRecords(value)) {
     const direct = firstString(candidate, [
       'display_name',
       'full_name',
@@ -314,7 +350,7 @@ async function fetchSchoolFrenchName(): Promise<string | null> {
     });
     const body = await response.json();
     if (!response.ok || body?.success !== true) return null;
-    return readFrenchStoredName(body.data);
+    return readFrenchStoredName(body.data) ?? readFrenchStoredName(body);
   } catch {
     return null;
   }
@@ -413,16 +449,13 @@ export function useReceiptFrenchIdentities(
 
     void (async () => {
       const studentIds = collectReceiptStudentIds(receipt, rawReceipt);
-      const [schoolName, payerName, studentPairs] = await Promise.all([
-        initial.schoolName ? Promise.resolve(initial.schoolName) : fetchSchoolFrenchName(),
-        initial.payerName
-          ? Promise.resolve(initial.payerName)
-          : fetchPayerFrenchName(receipt, rawReceipt, studentIds),
+      const [freshSchoolName, freshPayerName, studentPairs] = await Promise.all([
+        fetchSchoolFrenchName(),
+        fetchPayerFrenchName(receipt, rawReceipt, studentIds),
         Promise.all(
           studentIds.map(async (studentId) => {
-            const existing = initial.studentNames[studentId];
-            const name = existing ?? (await fetchStudentFrenchName(studentId));
-            return [studentId, name] as const;
+            const freshName = await fetchStudentFrenchName(studentId);
+            return [studentId, freshName ?? initial.studentNames[studentId] ?? null] as const;
           }),
         ),
       ]);
@@ -433,8 +466,10 @@ export function useReceiptFrenchIdentities(
         if (name) studentNames[studentId] = name;
       }
       setState({
-        schoolName: schoolName ?? initial.schoolName,
-        payerName: payerName ?? initial.payerName,
+        // The French receipt represents current identity data. Prefer fresh
+        // entity/settings reads; historical receipt values are fallback only.
+        schoolName: freshSchoolName ?? initial.schoolName,
+        payerName: freshPayerName ?? initial.payerName,
         studentNames,
         ready: true,
       });
