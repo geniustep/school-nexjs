@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { unwrapStaffDetailResponse } from '@/features/admin/staff/utils/normalize-staff-center';
+import type { StaffDetailEnvelope, StaffMember } from '@/types/academic-setup';
 import type { FinanceReceipt } from '@/types/finance';
 
 type RecordValue = Record<string, unknown>;
@@ -12,12 +14,85 @@ type PayerIdentityRefs = {
   partnerIds: number[];
 };
 
+type SchoolFrenchIdentity = {
+  schoolName: string | null;
+  schoolCode: string | null;
+};
+
+type ReceiptIssuerIdentityContract = {
+  issued_by_user_id?: number | null;
+  issued_by_name?: string | null;
+};
+
 export type ReceiptLocalizedIdentities = {
   schoolName: string | null;
+  schoolCode: string | null;
   payerName: string | null;
+  issuerName: string | null;
   studentNames: Record<number, string>;
   ready: boolean;
 };
+
+const FRENCH_NAME_KEYS = [
+  'schoolNameLat',
+  'school_name_lat',
+  'display_name_fr',
+  'name_fr',
+  'name_latin',
+  'display_name_latin',
+  'display_name_lat',
+  'name_lat',
+  'latin_name',
+] as const;
+
+const IDENTITY_CONTAINER_KEYS = [
+  'identity',
+  'person',
+  'student',
+  'guardian',
+  'partner',
+  'branding',
+  'school',
+  'profile',
+  'guardian_profile',
+] as const;
+
+const PARENT_IDENTITY_CONTAINER_KEYS = [
+  'identity',
+  'person',
+  'guardian',
+  'partner',
+  'profile',
+  'guardian_profile',
+] as const;
+
+const STAFF_IDENTITY_CONTAINER_KEYS = [
+  'item',
+  'user',
+  'staff',
+  'person',
+  'profile',
+  'identity',
+] as const;
+
+const PARENT_SCALAR_KEYS = [
+  ...FRENCH_NAME_KEYS,
+  'display_name',
+  'full_name',
+  'name',
+  'first_name_fr',
+  'first_name_latin',
+  'first_name_lat',
+  'firstNameLatin',
+  'last_name_fr',
+  'last_name_latin',
+  'last_name_lat',
+  'lastNameLatin',
+  'first_name',
+  'firstName',
+  'last_name',
+  'lastName',
+] as const;
 
 function asRecord(value: unknown): RecordValue {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -25,11 +100,15 @@ function asRecord(value: unknown): RecordValue {
     : {};
 }
 
+function hasRecordValues(value: RecordValue): boolean {
+  return Object.keys(value).length > 0;
+}
+
 function cleanString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
-function firstString(source: RecordValue, keys: string[]): string | null {
+function firstString(source: RecordValue, keys: readonly string[]): string | null {
   for (const key of keys) {
     const value = cleanString(source[key]);
     if (value) return value;
@@ -58,33 +137,105 @@ function composedLatinName(source: RecordValue): string | null {
   return joined || null;
 }
 
-/**
- * Read a stored Latin/French display value only. This never translates names and
- * deliberately never falls back to the generic Arabic/current display name.
- */
-export function readFrenchStoredName(value: unknown): string | null {
+function composedCurrentName(source: RecordValue): string | null {
+  const first = firstString(source, ['first_name', 'firstName']);
+  const last = firstString(source, ['last_name', 'lastName']);
+  const joined = [first, last].filter(Boolean).join(' ').trim();
+  return joined || null;
+}
+
+function identityRecords(value: unknown): RecordValue[] {
+  const root = asRecord(value);
+  if (!hasRecordValues(root)) return [];
+
+  const records: RecordValue[] = [];
+  const queue: Array<{ record: RecordValue; depth: number }> = [{ record: root, depth: 0 }];
+  const seen = new Set<RecordValue>();
+
+  while (queue.length) {
+    const next = queue.shift();
+    if (!next || seen.has(next.record)) continue;
+    seen.add(next.record);
+    records.push(next.record);
+
+    if (next.depth >= 3) continue;
+    for (const key of IDENTITY_CONTAINER_KEYS) {
+      const nested = asRecord(next.record[key]);
+      if (hasRecordValues(nested) && !seen.has(nested)) {
+        queue.push({ record: nested, depth: next.depth + 1 });
+      }
+    }
+  }
+
+  return records;
+}
+
+function scopedIdentityRecords(
+  value: unknown,
+  containerKeys: readonly string[],
+): RecordValue[] {
+  const root = asRecord(value);
+  if (!hasRecordValues(root)) return [];
+
+  const records: RecordValue[] = [];
+  const queue: Array<{ record: RecordValue; depth: number }> = [{ record: root, depth: 0 }];
+  const seen = new Set<RecordValue>();
+
+  while (queue.length) {
+    const next = queue.shift();
+    if (!next || seen.has(next.record)) continue;
+    seen.add(next.record);
+    records.push(next.record);
+
+    if (next.depth >= 3) continue;
+    for (const key of containerKeys) {
+      const nested = asRecord(next.record[key]);
+      if (hasRecordValues(nested) && !seen.has(nested)) {
+        queue.push({ record: nested, depth: next.depth + 1 });
+      }
+    }
+  }
+
+  return records;
+}
+
+function parentIdentityView(value: unknown, depth = 0): RecordValue {
   const source = asRecord(value);
-  const person = asRecord(source.person);
-  const student = asRecord(source.student);
-  const guardian = asRecord(source.guardian);
-  const partner = asRecord(source.partner);
+  if (!hasRecordValues(source)) return {};
 
-  const keys = [
-    'schoolNameLat',
-    'school_name_lat',
-    'display_name_fr',
-    'name_fr',
-    'name_latin',
-    'display_name_latin',
-    'display_name_lat',
-    'name_lat',
-    'latin_name',
-  ];
+  const view: RecordValue = {};
+  for (const key of PARENT_SCALAR_KEYS) {
+    if (key in source) view[key] = source[key];
+  }
 
-  for (const candidate of [source, person, student, guardian, partner]) {
-    const direct = firstString(candidate, keys);
+  if (depth >= 3) return view;
+  for (const key of PARENT_IDENTITY_CONTAINER_KEYS) {
+    const nested = parentIdentityView(source[key], depth + 1);
+    if (hasRecordValues(nested)) view[key] = nested;
+  }
+  return view;
+}
+
+export function readFrenchStoredName(value: unknown): string | null {
+  for (const candidate of identityRecords(value)) {
+    const direct = firstString(candidate, FRENCH_NAME_KEYS);
     if (direct) return direct;
     const composed = composedLatinName(candidate);
+    if (composed) return composed;
+  }
+  return null;
+}
+
+export function readCurrentEntityName(value: unknown): string | null {
+  for (const candidate of identityRecords(value)) {
+    const direct = firstString(candidate, [
+      'display_name',
+      'full_name',
+      'name',
+      'student_name',
+    ]);
+    if (direct) return direct;
+    const composed = composedCurrentName(candidate);
     if (composed) return composed;
   }
   return null;
@@ -149,10 +300,21 @@ function receiptPayerRecords(receipt: FinanceReceipt, rawReceipt: unknown): unkn
 
 function readInitialPayerName(receipt: FinanceReceipt, rawReceipt: unknown): string | null {
   for (const candidate of receiptPayerRecords(receipt, rawReceipt)) {
-    const name = readFrenchStoredName(candidate);
+    const name = readParentFrenchName(candidate);
     if (name) return name;
   }
   return null;
+}
+
+function readInitialIssuerName(receipt: FinanceReceipt, rawReceipt: unknown): string | null {
+  const receiptContract = receipt as FinanceReceipt & ReceiptIssuerIdentityContract;
+  const raw = asRecord(rawReceipt);
+  return (
+    readStaffFrenchName(raw.issued_by) ??
+    readStaffFrenchName(receipt.issued_by) ??
+    cleanString(receiptContract.issued_by_name) ??
+    cleanString(raw.issued_by_name)
+  );
 }
 
 function readInitialSchoolName(rawReceipt: unknown): string | null {
@@ -161,10 +323,20 @@ function readInitialSchoolName(rawReceipt: unknown): string | null {
   return readFrenchStoredName(snapshot.school) ?? readFrenchStoredName(raw.school);
 }
 
-/**
- * Keep ID namespaces explicit. `/admin/parents/{id}` accepts a guardian/parent
- * record id; a billing_partner_id/person_id must never be sent to it directly.
- */
+function readSchoolCode(value: unknown): string | null {
+  for (const candidate of identityRecords(value)) {
+    const code = firstString(candidate, ['schoolCode', 'school_code', 'code']);
+    if (code) return code;
+  }
+  return null;
+}
+
+function readInitialSchoolCode(rawReceipt: unknown): string | null {
+  const raw = asRecord(rawReceipt);
+  const snapshot = asRecord(raw.snapshot);
+  return readSchoolCode(snapshot.school) ?? readSchoolCode(raw.school);
+}
+
 export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown): PayerIdentityRefs {
   const raw = asRecord(rawReceipt);
   const snapshot = asRecord(raw.snapshot);
@@ -189,9 +361,6 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
     const record = asRecord(payer);
     addGuardian(record.guardian_id);
     addGuardian(asRecord(record.guardian).id);
-
-    // `payer.id` in finance contracts is a billing partner/ref unless an
-    // explicit guardian_id accompanies it, so treat it as partner namespace.
     addPartner(record.partner_id);
     addPartner(asRecord(record.person).partner_id);
     addPartner(record.id);
@@ -206,14 +375,61 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
   return { guardianIds: [...guardianIds], partnerIds: [...partnerIds] };
 }
 
-function readStudentFrenchName(data: unknown): string | null {
-  const root = asRecord(data);
-  return readFrenchStoredName(root.student) ?? readFrenchStoredName(root);
+export function receiptIssuerUserId(
+  receipt: FinanceReceipt,
+  rawReceipt: unknown,
+): number | null {
+  const receiptContract = receipt as FinanceReceipt & ReceiptIssuerIdentityContract;
+  const raw = asRecord(rawReceipt);
+
+  const stableUserId =
+    positiveId(receiptContract.issued_by_user_id) ?? positiveId(raw.issued_by_user_id);
+  if (stableUserId) return stableUserId;
+
+  // Compatibility only for historical payloads. The governed current contract is
+  // the top-level issued_by_user_id from school.payment.receipt.issued_by.
+  for (const candidate of [receipt.issued_by, raw.issued_by]) {
+    const record = asRecord(candidate);
+    const id = positiveId(record.user_id) ?? positiveId(record.id);
+    if (id) return id;
+  }
+  return null;
 }
 
-/** Strict: generic `name` is not evidence of a stored French name. */
-export function readParentFrenchName(data: unknown): string | null {
-  return readFrenchStoredName(data);
+export function readStudentFrenchName(data: unknown): string | null {
+  const root = asRecord(data);
+  return (
+    readFrenchStoredName(root.student) ??
+    readFrenchStoredName(root) ??
+    readCurrentEntityName(root.student) ??
+    readCurrentEntityName(root)
+  );
+}
+
+export function readParentFrenchName(rawData: unknown): string | null {
+  const data = parentIdentityView(rawData);
+  for (const candidate of identityRecords(data)) {
+    const canonical = firstString(candidate, ['name_fr']);
+    if (canonical) return canonical;
+  }
+  return readFrenchStoredName(data) ?? readCurrentEntityName(data);
+}
+
+export function readStaffFrenchName(rawData: unknown): string | null {
+  const records = scopedIdentityRecords(rawData, STAFF_IDENTITY_CONTAINER_KEYS);
+  for (const candidate of records) {
+    const canonical = firstString(candidate, ['name_fr']);
+    if (canonical) return canonical;
+  }
+  for (const candidate of records) {
+    const stored = readFrenchStoredName(candidate);
+    if (stored) return stored;
+  }
+  for (const candidate of records) {
+    const current = readCurrentEntityName(candidate);
+    if (current) return current;
+  }
+  return null;
 }
 
 function arrayFromPayload(data: unknown): unknown[] {
@@ -262,18 +478,41 @@ function matchingGuardianRecord(
   return null;
 }
 
+let schoolFrenchIdentityInFlight: Promise<SchoolFrenchIdentity> | null = null;
+
+function fetchSchoolFrenchIdentity(): Promise<SchoolFrenchIdentity> {
+  if (schoolFrenchIdentityInFlight) return schoolFrenchIdentityInFlight;
+
+  schoolFrenchIdentityInFlight = (async () => {
+    try {
+      const response = await fetch('/api/admin/school-branding', {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      const body = await response.json();
+      if (!response.ok || body?.success !== true) {
+        return { schoolName: null, schoolCode: null };
+      }
+      return {
+        schoolName: readFrenchStoredName(body.data) ?? readFrenchStoredName(body),
+        schoolCode: readSchoolCode(body.data) ?? readSchoolCode(body),
+      };
+    } catch {
+      return { schoolName: null, schoolCode: null };
+    }
+  })().finally(() => {
+    schoolFrenchIdentityInFlight = null;
+  });
+
+  return schoolFrenchIdentityInFlight;
+}
+
 async function fetchSchoolFrenchName(): Promise<string | null> {
-  try {
-    const response = await fetch('/api/admin/school-branding', {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    const body = await response.json();
-    if (!response.ok || body?.success !== true) return null;
-    return readFrenchStoredName(body.data);
-  } catch {
-    return null;
-  }
+  return (await fetchSchoolFrenchIdentity()).schoolName;
+}
+
+async function fetchSchoolCode(): Promise<string | null> {
+  return (await fetchSchoolFrenchIdentity()).schoolCode;
 }
 
 async function fetchStudentFrenchName(studentId: number): Promise<string | null> {
@@ -300,6 +539,24 @@ async function fetchParentFrenchNameByGuardianId(guardianId: number): Promise<st
   }
 }
 
+async function fetchIssuerFrenchName(
+  receipt: FinanceReceipt,
+  rawReceipt: unknown,
+): Promise<string | null> {
+  const userId = receiptIssuerUserId(receipt, rawReceipt);
+  if (!userId) return null;
+  try {
+    const response = await api.get<StaffDetailEnvelope | StaffMember>(
+      endpoints.admin.staffMember(userId),
+    );
+    if (!response.success || !response.data) return null;
+    const { member } = unwrapStaffDetailResponse(response.data);
+    return cleanString(member.name_fr) ?? readStaffFrenchName(member);
+  } catch {
+    return null;
+  }
+}
+
 async function fetchPayerFrenchName(
   receipt: FinanceReceipt,
   rawReceipt: unknown,
@@ -309,14 +566,11 @@ async function fetchPayerFrenchName(
   const guardianIds = new Set(refs.guardianIds);
   const partnerIds = new Set(refs.partnerIds);
 
-  // Exact guardian ids are safe for the parent detail route.
   for (const guardianId of refs.guardianIds) {
     const name = await fetchParentFrenchNameByGuardianId(guardianId);
     if (name) return name;
   }
 
-  // billing_partner_id is a partner namespace. Resolve it through the same
-  // student's guardian relationship contract before calling /admin/parents/{id}.
   if (!guardianIds.size && !partnerIds.size) return null;
   for (const studentId of studentIds) {
     try {
@@ -325,13 +579,17 @@ async function fetchPayerFrenchName(
       const matched = matchingGuardianRecord(response.data, guardianIds, partnerIds);
       if (!matched) continue;
 
-      const inlineName = readFrenchStoredName(matched);
-      if (inlineName) return inlineName;
-
+      // The relationship payload can carry only a current/full display name.
+      // Once the exact guardian is known, always read the canonical parent
+      // detail first so school.parent.name_fr wins when it is populated.
       const guardianId = guardianIdFromRecord(matched);
-      if (!guardianId) continue;
-      const name = await fetchParentFrenchNameByGuardianId(guardianId);
-      if (name) return name;
+      if (guardianId) {
+        const name = await fetchParentFrenchNameByGuardianId(guardianId);
+        if (name) return name;
+      }
+
+      const inlineName = readParentFrenchName(matched);
+      if (inlineName) return inlineName;
     } catch {
       // Keep the receipt's original payer name as the display fallback.
     }
@@ -346,11 +604,20 @@ export function useReceiptFrenchIdentities(
 ): ReceiptLocalizedIdentities {
   const initial = useMemo<ReceiptLocalizedIdentities>(() => {
     if (!receipt) {
-      return { schoolName: null, payerName: null, studentNames: {}, ready: !enabled };
+      return {
+        schoolName: null,
+        schoolCode: null,
+        payerName: null,
+        issuerName: null,
+        studentNames: {},
+        ready: !enabled,
+      };
     }
     return {
       schoolName: readInitialSchoolName(rawReceipt),
+      schoolCode: readInitialSchoolCode(rawReceipt),
       payerName: readInitialPayerName(receipt, rawReceipt),
+      issuerName: readInitialIssuerName(receipt, rawReceipt),
       studentNames: readInitialStudentNames(rawReceipt),
       ready: !enabled,
     };
@@ -369,19 +636,19 @@ export function useReceiptFrenchIdentities(
 
     void (async () => {
       const studentIds = collectReceiptStudentIds(receipt, rawReceipt);
-      const [schoolName, payerName, studentPairs] = await Promise.all([
-        initial.schoolName ? Promise.resolve(initial.schoolName) : fetchSchoolFrenchName(),
-        initial.payerName
-          ? Promise.resolve(initial.payerName)
-          : fetchPayerFrenchName(receipt, rawReceipt, studentIds),
-        Promise.all(
-          studentIds.map(async (studentId) => {
-            const existing = initial.studentNames[studentId];
-            const name = existing ?? (await fetchStudentFrenchName(studentId));
-            return [studentId, name] as const;
-          }),
-        ),
-      ]);
+      const [freshSchoolName, freshSchoolCode, freshPayerName, freshIssuerName, studentPairs] =
+        await Promise.all([
+          fetchSchoolFrenchName(),
+          fetchSchoolCode(),
+          fetchPayerFrenchName(receipt, rawReceipt, studentIds),
+          fetchIssuerFrenchName(receipt, rawReceipt),
+          Promise.all(
+            studentIds.map(async (studentId) => {
+              const freshName = await fetchStudentFrenchName(studentId);
+              return [studentId, freshName ?? initial.studentNames[studentId] ?? null] as const;
+            }),
+          ),
+        ]);
 
       if (!active) return;
       const studentNames = { ...initial.studentNames };
@@ -389,8 +656,10 @@ export function useReceiptFrenchIdentities(
         if (name) studentNames[studentId] = name;
       }
       setState({
-        schoolName: schoolName ?? initial.schoolName,
-        payerName: payerName ?? initial.payerName,
+        schoolName: freshSchoolName ?? initial.schoolName,
+        schoolCode: freshSchoolCode ?? initial.schoolCode,
+        payerName: freshPayerName ?? initial.payerName,
+        issuerName: freshIssuerName ?? initial.issuerName,
         studentNames,
         ready: true,
       });
