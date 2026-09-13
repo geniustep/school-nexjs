@@ -21,6 +21,7 @@ export type ReceiptLocalizedIdentities = {
   schoolName: string | null;
   schoolCode: string | null;
   payerName: string | null;
+  issuerName: string | null;
   studentNames: Record<number, string>;
   ready: boolean;
 };
@@ -59,6 +60,15 @@ const PARENT_IDENTITY_CONTAINER_KEYS = [
   'partner',
   'profile',
   'guardian_profile',
+] as const;
+
+const STAFF_IDENTITY_CONTAINER_KEYS = [
+  'item',
+  'user',
+  'staff',
+  'person',
+  'profile',
+  'identity',
 ] as const;
 
 const PARENT_SCALAR_KEYS = [
@@ -153,6 +163,35 @@ function identityRecords(value: unknown): RecordValue[] {
 
     if (next.depth >= 3) continue;
     for (const key of IDENTITY_CONTAINER_KEYS) {
+      const nested = asRecord(next.record[key]);
+      if (hasRecordValues(nested) && !seen.has(nested)) {
+        queue.push({ record: nested, depth: next.depth + 1 });
+      }
+    }
+  }
+
+  return records;
+}
+
+function scopedIdentityRecords(
+  value: unknown,
+  containerKeys: readonly string[],
+): RecordValue[] {
+  const root = asRecord(value);
+  if (!hasRecordValues(root)) return [];
+
+  const records: RecordValue[] = [];
+  const queue: Array<{ record: RecordValue; depth: number }> = [{ record: root, depth: 0 }];
+  const seen = new Set<RecordValue>();
+
+  while (queue.length) {
+    const next = queue.shift();
+    if (!next || seen.has(next.record)) continue;
+    seen.add(next.record);
+    records.push(next.record);
+
+    if (next.depth >= 3) continue;
+    for (const key of containerKeys) {
       const nested = asRecord(next.record[key]);
       if (hasRecordValues(nested) && !seen.has(nested)) {
         queue.push({ record: nested, depth: next.depth + 1 });
@@ -284,6 +323,11 @@ function readInitialPayerName(receipt: FinanceReceipt, rawReceipt: unknown): str
   return null;
 }
 
+function readInitialIssuerName(receipt: FinanceReceipt, rawReceipt: unknown): string | null {
+  const raw = asRecord(rawReceipt);
+  return readStaffFrenchName(raw.issued_by) ?? readStaffFrenchName(receipt.issued_by);
+}
+
 function readInitialSchoolName(rawReceipt: unknown): string | null {
   const raw = asRecord(rawReceipt);
   const snapshot = asRecord(raw.snapshot);
@@ -349,6 +393,19 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
   return { guardianIds: [...guardianIds], partnerIds: [...partnerIds] };
 }
 
+export function receiptIssuerUserId(
+  receipt: FinanceReceipt,
+  rawReceipt: unknown,
+): number | null {
+  const raw = asRecord(rawReceipt);
+  for (const candidate of [receipt.issued_by, raw.issued_by]) {
+    const record = asRecord(candidate);
+    const id = positiveId(record.user_id) ?? positiveId(record.id);
+    if (id) return id;
+  }
+  return null;
+}
+
 export function readStudentFrenchName(data: unknown): string | null {
   const root = asRecord(data);
   return (
@@ -360,13 +417,35 @@ export function readStudentFrenchName(data: unknown): string | null {
 }
 
 /**
- * Prefer explicit name_fr. If the parent serializer omits it, the exact current
- * parent/person detail name is the authoritative fallback before the old receipt
- * snapshot name. Related students are removed from the view first.
+ * `school.parent.name_fr` is the canonical French identity. It must win over
+ * display_name_fr/full_name/name and composed Latin values whenever populated.
+ * Related students are removed from the view first.
  */
 export function readParentFrenchName(rawData: unknown): string | null {
   const data = parentIdentityView(rawData);
+  for (const candidate of identityRecords(data)) {
+    const canonical = firstString(candidate, ['name_fr']);
+    if (canonical) return canonical;
+  }
   return readFrenchStoredName(data) ?? readCurrentEntityName(data);
+}
+
+/** `res.users.name_fr` is the canonical French staff/issuer identity. */
+export function readStaffFrenchName(rawData: unknown): string | null {
+  const records = scopedIdentityRecords(rawData, STAFF_IDENTITY_CONTAINER_KEYS);
+  for (const candidate of records) {
+    const canonical = firstString(candidate, ['name_fr']);
+    if (canonical) return canonical;
+  }
+  for (const candidate of records) {
+    const stored = readFrenchStoredName(candidate);
+    if (stored) return stored;
+  }
+  for (const candidate of records) {
+    const current = readCurrentEntityName(candidate);
+    if (current) return current;
+  }
+  return null;
 }
 
 function arrayFromPayload(data: unknown): unknown[] {
@@ -476,6 +555,20 @@ async function fetchParentFrenchNameByGuardianId(guardianId: number): Promise<st
   }
 }
 
+async function fetchIssuerFrenchName(
+  receipt: FinanceReceipt,
+  rawReceipt: unknown,
+): Promise<string | null> {
+  const userId = receiptIssuerUserId(receipt, rawReceipt);
+  if (!userId) return null;
+  try {
+    const response = await api.get<unknown>(endpoints.admin.staffMember(userId));
+    return response.success ? readStaffFrenchName(response.data) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchPayerFrenchName(
   receipt: FinanceReceipt,
   rawReceipt: unknown,
@@ -526,6 +619,7 @@ export function useReceiptFrenchIdentities(
         schoolName: null,
         schoolCode: null,
         payerName: null,
+        issuerName: null,
         studentNames: {},
         ready: !enabled,
       };
@@ -534,6 +628,7 @@ export function useReceiptFrenchIdentities(
       schoolName: readInitialSchoolName(rawReceipt),
       schoolCode: readInitialSchoolCode(rawReceipt),
       payerName: readInitialPayerName(receipt, rawReceipt),
+      issuerName: readInitialIssuerName(receipt, rawReceipt),
       studentNames: readInitialStudentNames(rawReceipt),
       ready: !enabled,
     };
@@ -552,17 +647,19 @@ export function useReceiptFrenchIdentities(
 
     void (async () => {
       const studentIds = collectReceiptStudentIds(receipt, rawReceipt);
-      const [freshSchoolName, freshSchoolCode, freshPayerName, studentPairs] = await Promise.all([
-        fetchSchoolFrenchName(),
-        fetchSchoolCode(),
-        fetchPayerFrenchName(receipt, rawReceipt, studentIds),
-        Promise.all(
-          studentIds.map(async (studentId) => {
-            const freshName = await fetchStudentFrenchName(studentId);
-            return [studentId, freshName ?? initial.studentNames[studentId] ?? null] as const;
-          }),
-        ),
-      ]);
+      const [freshSchoolName, freshSchoolCode, freshPayerName, freshIssuerName, studentPairs] =
+        await Promise.all([
+          fetchSchoolFrenchName(),
+          fetchSchoolCode(),
+          fetchPayerFrenchName(receipt, rawReceipt, studentIds),
+          fetchIssuerFrenchName(receipt, rawReceipt),
+          Promise.all(
+            studentIds.map(async (studentId) => {
+              const freshName = await fetchStudentFrenchName(studentId);
+              return [studentId, freshName ?? initial.studentNames[studentId] ?? null] as const;
+            }),
+          ),
+        ]);
 
       if (!active) return;
       const studentNames = { ...initial.studentNames };
@@ -575,6 +672,7 @@ export function useReceiptFrenchIdentities(
         schoolName: freshSchoolName ?? initial.schoolName,
         schoolCode: freshSchoolCode ?? initial.schoolCode,
         payerName: freshPayerName ?? initial.payerName,
+        issuerName: freshIssuerName ?? initial.issuerName,
         studentNames,
         ready: true,
       });

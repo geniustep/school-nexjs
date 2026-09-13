@@ -609,7 +609,7 @@ function ReceiptCopy({
     (lang === 'fr' ? identities.schoolCode : null) ||
     school?.code?.trim() ||
     null;
-  const issuer = issuedByName(receipt);
+  const issuer = (lang === 'fr' ? identities.issuerName : null) || issuedByName(receipt);
   const method = paymentMethodLabel(receipt.payment_method, lang);
   const remaining = receiptRemaining(receipt);
   const text = UI_TEXT[lang];
