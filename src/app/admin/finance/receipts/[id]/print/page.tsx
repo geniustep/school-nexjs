@@ -467,7 +467,7 @@ function SchoolIdentity({
   schoolCode: string | null;
   lang: ReceiptHtmlPrintLang;
 }) {
-  const [logoFailed, setLogoFailed] = useState(false);
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
   const text = UI_TEXT[lang];
   const initial = schoolName.trim().charAt(0) || (lang === 'fr' ? 'R' : 'ر');
   const logoUrl = schoolCode
@@ -476,12 +476,12 @@ function SchoolIdentity({
 
   return (
     <div className="receipt-school-identity" aria-label={schoolName}>
-      {logoUrl && !logoFailed ? (
+      {logoUrl && failedLogoUrl !== logoUrl ? (
         <img
           src={logoUrl}
           alt={`${text.schoolLogo} ${schoolName}`}
           data-receipt-print-image="school-logo"
-          onError={() => setLogoFailed(true)}
+          onError={() => setFailedLogoUrl(logoUrl)}
         />
       ) : (
         <span className="receipt-school-identity__fallback">{initial}</span>
