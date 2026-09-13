@@ -11,6 +11,11 @@ export interface FinanceReceiptSettings {
   language_options: ReceiptHtmlPrintLang[];
 }
 
+export interface FinanceReceiptSettingsUpdate {
+  default_print_layout?: ReceiptPrintLayout;
+  default_language?: ReceiptHtmlPrintLang;
+}
+
 const RECEIPT_SETTINGS_PATH = '/admin/finance/receipt-settings';
 
 const RECEIPT_PRINT_LAYOUTS: readonly ReceiptPrintLayout[] = [
@@ -55,4 +60,16 @@ export async function fetchFinanceReceiptSettings(
   const response = await api.get<unknown>(RECEIPT_SETTINGS_PATH, undefined, { signal });
   if (!response.success) return null;
   return normalizeFinanceReceiptSettings(response.data);
+}
+
+export async function updateFinanceReceiptSettings(
+  input: FinanceReceiptSettingsUpdate,
+): Promise<FinanceReceiptSettings> {
+  const response = await api.put<unknown>(RECEIPT_SETTINGS_PATH, input);
+  if (!response.success) {
+    throw new Error(response.error?.message || response.error?.code || 'receipt_settings_update_failed');
+  }
+  const settings = normalizeFinanceReceiptSettings(response.data);
+  if (!settings) throw new Error('receipt_settings_invalid_response');
+  return settings;
 }
