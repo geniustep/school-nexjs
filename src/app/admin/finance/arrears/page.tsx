@@ -10,6 +10,7 @@ import {
   ArrearsListPanel,
   type ArrearsListFilters,
 } from '@/features/admin/finance/arrears-list-panel';
+import { ArrearsExportActions } from '@/features/admin/finance/arrears-export-actions';
 import { isArrearsFollowupTab } from '@/features/admin/finance/arrears-filter-contracts';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW, canViewStudentBalance } from '@/lib/permissions/finance';
@@ -109,6 +110,7 @@ export default function AdminFinanceArrearsPage() {
         title={t('admin.finance.arrears.pageTitle')}
         subtitle={t('admin.finance.arrears.pageDesc')}
       />
+      <ArrearsExportActions filters={filters} />
       <ArrearsListPanel
         filters={filters}
         onFiltersChange={onFiltersChange}
