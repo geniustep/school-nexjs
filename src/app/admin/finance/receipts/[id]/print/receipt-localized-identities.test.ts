@@ -93,9 +93,13 @@ describe('French HTML receipt identity contract', () => {
     expect(pageSource).toContain(': baseRows;');
   });
 
-  it('waits for French identity hydration before automatic or manual printing', () => {
-    expect(pageSource).toContain("(lang === 'fr' && !identities.ready)");
-    expect(pageSource).toContain("disabled={lang === 'fr' && !identities.ready}");
+  it('waits for current French identity hydration before preview or printing', () => {
+    expect(pageSource).toContain('const frenchPreviewReady =');
+    expect(pageSource).toContain('identities.ready &&');
+    expect(pageSource).toContain('frenchReadyReceiptId === receipt.id');
+    expect(pageSource).toContain("(lang === 'fr' && !frenchPreviewReady)");
+    expect(pageSource).toContain("disabled={lang === 'fr' && !frenchPreviewReady}");
+    expect(pageSource).toContain('receipt && canPrint && frenchPreviewReady ? (');
     expect(pageSource).toContain('useReceiptFrenchIdentities(receipt, state.data');
   });
 

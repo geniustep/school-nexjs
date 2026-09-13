@@ -20,6 +20,7 @@ import {
   useReceiptFrenchIdentities,
   type ReceiptLocalizedIdentities,
 } from './receipt-localized-identities';
+import { receiptServiceDisplayLabel } from './receipt-service-label';
 import type {
   FinanceReceipt,
   FinanceReceiptAllocation,
@@ -48,6 +49,7 @@ const UI_TEXT = {
     print: 'طباعة الوصل',
     close: 'إغلاق',
     switchLanguage: 'Français',
+    preparing: 'جار إعداد الوصل…',
     unavailable: 'هذا الوصل غير متاح للطباعة.',
     noLines: 'لا توجد تفاصيل توزيع مرفقة بهذا الوصل.',
     receiptNumber: 'رقم الوصل',
@@ -74,6 +76,7 @@ const UI_TEXT = {
     print: 'Imprimer le reçu',
     close: 'Fermer',
     switchLanguage: 'العربية',
+    preparing: 'Préparation du reçu en français…',
     unavailable: "Ce reçu n’est pas disponible à l’impression.",
     noLines: "Aucun détail d’affectation n’est joint à ce reçu.",
     receiptNumber: 'N° du reçu',
@@ -135,29 +138,11 @@ function normalizeIdentity(value: string | undefined): string {
   return (value ?? '').trim().toLocaleLowerCase();
 }
 
-function compactFrenchServiceLabel(value: string): string {
-  const parts = value
-    .split(/\s+[—–]\s+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-  if (parts.length < 2) return value;
-
-  const compact: string[] = [];
-  for (const part of parts) {
-    const previous = compact.at(-1);
-    if (!previous || normalizeIdentity(previous) !== normalizeIdentity(part)) {
-      compact.push(part);
-    }
-  }
-  return compact.join(' — ') || value;
-}
-
 function serviceDisplayLabel(
   row: FinanceReceiptAllocation,
   lang: ReceiptHtmlPrintLang,
 ): string {
-  const raw = (row.description ?? row.label ?? '—').trim() || '—';
-  return lang === 'fr' ? compactFrenchServiceLabel(raw) : raw;
+  return receiptServiceDisplayLabel(row, lang);
 }
 
 function ReceiptIcon({ name }: { name: ReceiptIconName }) {
@@ -752,6 +737,20 @@ export default function AdminFinanceReceiptHtmlPrintPage({
   const printedRef = useRef(false);
   const text = UI_TEXT[lang];
   const direction = lang === 'fr' ? 'ltr' : 'rtl';
+  const [frenchReadyReceiptId, setFrenchReadyReceiptId] = useState<number | null>(null);
+  const frenchPreviewReady =
+    lang !== 'fr' ||
+    (!!receipt && identities.ready && frenchReadyReceiptId === receipt.id);
+  const waitingForFrenchPreview =
+    !!receipt && canPrint && lang === 'fr' && !frenchPreviewReady;
+
+  useEffect(() => {
+    if (lang !== 'fr' || !receipt || !identities.ready) {
+      setFrenchReadyReceiptId(null);
+      return;
+    }
+    setFrenchReadyReceiptId(receipt.id);
+  }, [lang, receipt, identities.ready]);
 
   useEffect(() => {
     if (!receipt) return;
@@ -764,7 +763,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
       !autoPrint ||
       !canPrint ||
       !receipt ||
-      (lang === 'fr' && !identities.ready) ||
+      (lang === 'fr' && !frenchPreviewReady) ||
       printedRef.current
     ) return;
     let cancelled = false;
@@ -781,10 +780,10 @@ export default function AdminFinanceReceiptHtmlPrintPage({
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [autoPrint, canPrint, receipt, lang, identities.ready]);
+  }, [autoPrint, canPrint, receipt, lang, frenchPreviewReady]);
 
   const handlePrint = async () => {
-    if (lang === 'fr' && !identities.ready) return;
+    if (lang === 'fr' && !frenchPreviewReady) return;
     await waitForReceiptImages();
     window.print();
   };
@@ -809,7 +808,7 @@ export default function AdminFinanceReceiptHtmlPrintPage({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={lang === 'fr' && !identities.ready}
+              disabled={lang === 'fr' && !frenchPreviewReady}
               onClick={() => void handlePrint()}
             >
               {text.print}
@@ -820,12 +819,13 @@ export default function AdminFinanceReceiptHtmlPrintPage({
           </div>
         </div>
 
-        {state.loading && !receipt ? <LoadingState label="…" /> : null}
+        {state.loading && !receipt ? <LoadingState label={text.preparing} /> : null}
         {state.error ? <ApiErrorView error={state.error} onRetry={state.reload} /> : null}
         {receipt && !canPrint ? (
           <div className="receipt-html-print-message" role="alert">{text.unavailable}</div>
         ) : null}
-        {receipt && canPrint ? (
+        {waitingForFrenchPreview ? <LoadingState label={text.preparing} /> : null}
+        {receipt && canPrint && frenchPreviewReady ? (
           <DoubleReceiptSheet receipt={receipt} lang={lang} identities={identities} />
         ) : null}
       </main>
