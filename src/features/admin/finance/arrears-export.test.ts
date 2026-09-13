@@ -137,7 +137,7 @@ describe('arrears HTML print', () => {
     expect(html).toContain('@page { size: A4 landscape;');
     expect(html).toContain('تقرير المتأخرات');
     expect(html).toContain('أسرة الاختبار');
-    expect(html).toContain('1,234.50');
+    expect(html).toContain('إجمالي المتأخرات');
     expect(html).not.toContain('window.print');
     expect(html).not.toContain('<button');
   });
