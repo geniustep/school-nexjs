@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
+import { ArrearsExportActions } from '@/features/admin/finance/arrears-export-actions';
 import {
   ArrearsListPanel,
   type ArrearsListFilters,
@@ -109,6 +110,7 @@ export default function AdminFinanceArrearsPage() {
         title={t('admin.finance.arrears.pageTitle')}
         subtitle={t('admin.finance.arrears.pageDesc')}
       />
+      <ArrearsExportActions search={filters.search} tab={filters.tab} />
       <ArrearsListPanel
         filters={filters}
         onFiltersChange={onFiltersChange}
