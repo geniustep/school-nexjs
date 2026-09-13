@@ -135,6 +135,31 @@ function normalizeIdentity(value: string | undefined): string {
   return (value ?? '').trim().toLocaleLowerCase();
 }
 
+function compactFrenchServiceLabel(value: string): string {
+  const parts = value
+    .split(/\s+[—–]\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length < 2) return value;
+
+  const compact: string[] = [];
+  for (const part of parts) {
+    const previous = compact.at(-1);
+    if (!previous || normalizeIdentity(previous) !== normalizeIdentity(part)) {
+      compact.push(part);
+    }
+  }
+  return compact.join(' — ') || value;
+}
+
+function serviceDisplayLabel(
+  row: FinanceReceiptAllocation,
+  lang: ReceiptHtmlPrintLang,
+): string {
+  const raw = (row.description ?? row.label ?? '—').trim() || '—';
+  return lang === 'fr' ? compactFrenchServiceLabel(raw) : raw;
+}
+
 function ReceiptIcon({ name }: { name: ReceiptIconName }) {
   const common = {
     width: 20,
@@ -512,6 +537,7 @@ function ReceiptTable({
       </div>
       {rows.map((row, index) => {
         const rowBalance = rowRemaining(row);
+        const service = serviceDisplayLabel(row, lang);
         return (
           <div
             className="receipt-table__row"
@@ -519,7 +545,7 @@ function ReceiptTable({
             key={`${row.id ?? row.installment_id ?? index}-${index}`}
           >
             <span role="cell"><StudentMeta student={row.studentDisplay} lang={lang} /></span>
-            <span role="cell" dir="auto">{row.description ?? row.label ?? '—'}</span>
+            <span role="cell" dir="auto">{service}</span>
             <strong role="cell" dir="ltr">
               {formatMoney(row.amount, receipt.currency, lang)}
               {rowBalance != null && rowBalance > 0 ? (
@@ -579,7 +605,10 @@ function ReceiptCopy({
     (lang === 'fr' ? identities.schoolName : null) ||
     school?.name ||
     'Raqeem School';
-  const schoolCode = school?.code?.trim() || null;
+  const schoolCode =
+    (lang === 'fr' ? identities.schoolCode : null) ||
+    school?.code?.trim() ||
+    null;
   const issuer = issuedByName(receipt);
   const method = paymentMethodLabel(receipt.payment_method, lang);
   const remaining = receiptRemaining(receipt);
