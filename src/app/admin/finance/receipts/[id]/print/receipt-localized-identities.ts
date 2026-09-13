@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import { unwrapStaffDetailResponse } from '@/features/admin/staff/utils/normalize-staff-center';
+import type { StaffDetailEnvelope, StaffMember } from '@/types/academic-setup';
 import type { FinanceReceipt } from '@/types/finance';
 
 type RecordValue = Record<string, unknown>;
@@ -50,9 +52,6 @@ const IDENTITY_CONTAINER_KEYS = [
   'guardian_profile',
 ] as const;
 
-// A parent response may also carry related students. Parent identity resolution
-// must never descend into those student records, otherwise the payer can be
-// replaced by the child's bilingual name.
 const PARENT_IDENTITY_CONTAINER_KEYS = [
   'identity',
   'person',
@@ -140,13 +139,6 @@ function composedCurrentName(source: RecordValue): string | null {
   return joined || null;
 }
 
-/**
- * Entity detail contracts do not all expose bilingual identity fields at the
- * same depth. For example, student name_latin is under identity, while parent
- * name_fr may be under person/identity depending on the serializer. Traverse
- * only the known identity containers, with a hard depth limit, instead of
- * walking arbitrary payload objects.
- */
 function identityRecords(value: unknown): RecordValue[] {
   const root = asRecord(value);
   if (!hasRecordValues(root)) return [];
@@ -202,10 +194,6 @@ function scopedIdentityRecords(
   return records;
 }
 
-/**
- * Build a parent-only identity view. Related student records are intentionally
- * excluded at every depth before the generic bilingual-name readers run.
- */
 function parentIdentityView(value: unknown, depth = 0): RecordValue {
   const source = asRecord(value);
   if (!hasRecordValues(source)) return {};
@@ -223,10 +211,6 @@ function parentIdentityView(value: unknown, depth = 0): RecordValue {
   return view;
 }
 
-/**
- * Read a stored Latin/French display value only. This never translates names and
- * deliberately never falls back to the generic current display name.
- */
 export function readFrenchStoredName(value: unknown): string | null {
   for (const candidate of identityRecords(value)) {
     const direct = firstString(candidate, FRENCH_NAME_KEYS);
@@ -237,12 +221,6 @@ export function readFrenchStoredName(value: unknown): string | null {
   return null;
 }
 
-/**
- * Exact entity detail endpoints expose the entity's current operational name even
- * when their serializer does not repeat name_latin/name_fr. Use it only after the
- * explicit French fields above, and only on fresh entity reads — never on the
- * historical receipt snapshot.
- */
 export function readCurrentEntityName(value: unknown): string | null {
   for (const candidate of identityRecords(value)) {
     const direct = firstString(candidate, [
@@ -348,10 +326,6 @@ function readInitialSchoolCode(rawReceipt: unknown): string | null {
   return readSchoolCode(snapshot.school) ?? readSchoolCode(raw.school);
 }
 
-/**
- * Keep ID namespaces explicit. `/admin/parents/{id}` accepts a guardian/parent
- * record id; a billing_partner_id/person_id must never be sent to it directly.
- */
 export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown): PayerIdentityRefs {
   const raw = asRecord(rawReceipt);
   const snapshot = asRecord(raw.snapshot);
@@ -376,9 +350,6 @@ export function payerIdentityRefs(receipt: FinanceReceipt, rawReceipt: unknown):
     const record = asRecord(payer);
     addGuardian(record.guardian_id);
     addGuardian(asRecord(record.guardian).id);
-
-    // `payer.id` in finance contracts is a billing partner/ref unless an
-    // explicit guardian_id accompanies it, so treat it as partner namespace.
     addPartner(record.partner_id);
     addPartner(asRecord(record.person).partner_id);
     addPartner(record.id);
@@ -416,11 +387,6 @@ export function readStudentFrenchName(data: unknown): string | null {
   );
 }
 
-/**
- * `school.parent.name_fr` is the canonical French identity. It must win over
- * display_name_fr/full_name/name and composed Latin values whenever populated.
- * Related students are removed from the view first.
- */
 export function readParentFrenchName(rawData: unknown): string | null {
   const data = parentIdentityView(rawData);
   for (const candidate of identityRecords(data)) {
@@ -430,7 +396,6 @@ export function readParentFrenchName(rawData: unknown): string | null {
   return readFrenchStoredName(data) ?? readCurrentEntityName(data);
 }
 
-/** `res.users.name_fr` is the canonical French staff/issuer identity. */
 export function readStaffFrenchName(rawData: unknown): string | null {
   const records = scopedIdentityRecords(rawData, STAFF_IDENTITY_CONTAINER_KEYS);
   for (const candidate of records) {
@@ -562,8 +527,12 @@ async function fetchIssuerFrenchName(
   const userId = receiptIssuerUserId(receipt, rawReceipt);
   if (!userId) return null;
   try {
-    const response = await api.get<unknown>(endpoints.admin.staffMember(userId));
-    return response.success ? readStaffFrenchName(response.data) : null;
+    const response = await api.get<StaffDetailEnvelope | StaffMember>(
+      endpoints.admin.staffMember(userId),
+    );
+    if (!response.success || !response.data) return null;
+    const { member } = unwrapStaffDetailResponse(response.data);
+    return cleanString(member.name_fr) ?? readStaffFrenchName(member);
   } catch {
     return null;
   }
@@ -578,14 +547,11 @@ async function fetchPayerFrenchName(
   const guardianIds = new Set(refs.guardianIds);
   const partnerIds = new Set(refs.partnerIds);
 
-  // Exact guardian ids are safe for the parent detail route.
   for (const guardianId of refs.guardianIds) {
     const name = await fetchParentFrenchNameByGuardianId(guardianId);
     if (name) return name;
   }
 
-  // billing_partner_id is a partner namespace. Resolve it through the same
-  // student's guardian relationship contract before calling /admin/parents/{id}.
   if (!guardianIds.size && !partnerIds.size) return null;
   for (const studentId of studentIds) {
     try {
@@ -594,13 +560,17 @@ async function fetchPayerFrenchName(
       const matched = matchingGuardianRecord(response.data, guardianIds, partnerIds);
       if (!matched) continue;
 
+      // The relationship payload can carry only a current/full display name.
+      // Once the exact guardian is known, always read the canonical parent
+      // detail first so school.parent.name_fr wins when it is populated.
+      const guardianId = guardianIdFromRecord(matched);
+      if (guardianId) {
+        const name = await fetchParentFrenchNameByGuardianId(guardianId);
+        if (name) return name;
+      }
+
       const inlineName = readParentFrenchName(matched);
       if (inlineName) return inlineName;
-
-      const guardianId = guardianIdFromRecord(matched);
-      if (!guardianId) continue;
-      const name = await fetchParentFrenchNameByGuardianId(guardianId);
-      if (name) return name;
     } catch {
       // Keep the receipt's original payer name as the display fallback.
     }
@@ -667,8 +637,6 @@ export function useReceiptFrenchIdentities(
         if (name) studentNames[studentId] = name;
       }
       setState({
-        // The French receipt represents current identity data. Prefer fresh
-        // entity/settings reads; historical receipt values are fallback only.
         schoolName: freshSchoolName ?? initial.schoolName,
         schoolCode: freshSchoolCode ?? initial.schoolCode,
         payerName: freshPayerName ?? initial.payerName,
