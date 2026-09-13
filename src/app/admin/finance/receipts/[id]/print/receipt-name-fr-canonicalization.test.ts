@@ -45,6 +45,11 @@ describe('French receipt canonical name_fr contract', () => {
     ).toBe('abdelaziz montassir');
   });
 
+  it('uses exact parent detail before an inline relationship display fallback', () => {
+    const exactDetailBlock = `const guardianId = guardianIdFromRecord(matched);\n      if (guardianId) {\n        const name = await fetchParentFrenchNameByGuardianId(guardianId);\n        if (name) return name;\n      }\n\n      const inlineName = readParentFrenchName(matched);`;
+    expect(identitySource).toContain(exactDetailBlock);
+  });
+
   it('uses res.users.name_fr before staff display/name fallbacks', () => {
     expect(
       readStaffFrenchName({
@@ -72,9 +77,17 @@ describe('French receipt canonical name_fr contract', () => {
     expect(receiptIssuerUserId(withString, {})).toBeNull();
   });
 
-  it('reads the fresh staff detail contract through endpoints.admin.staffMember(userId)', () => {
-    expect(identitySource).toContain('endpoints.admin.staffMember(userId)');
-    expect(identitySource).toContain('return response.success ? readStaffFrenchName(response.data) : null;');
+  it('normalizes the official staff detail envelope before reading name_fr', () => {
+    expect(identitySource).toContain(
+      "import { unwrapStaffDetailResponse } from '@/features/admin/staff/utils/normalize-staff-center';",
+    );
+    expect(identitySource).toContain(
+      'const response = await api.get<StaffDetailEnvelope | StaffMember>',
+    );
+    expect(identitySource).toContain('const { member } = unwrapStaffDetailResponse(response.data);');
+    expect(identitySource).toContain(
+      'return cleanString(member.name_fr) ?? readStaffFrenchName(member);',
+    );
   });
 
   it('uses the French issuer only in French and preserves the existing Arabic issuer path', () => {
