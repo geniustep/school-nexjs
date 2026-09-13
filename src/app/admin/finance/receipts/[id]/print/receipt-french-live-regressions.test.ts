@@ -15,6 +15,7 @@ const printDir = join(
 
 const pageSource = readFileSync(join(printDir, 'page.tsx'), 'utf8');
 const identitySource = readFileSync(join(printDir, 'receipt-localized-identities.ts'), 'utf8');
+const serviceLabelSource = readFileSync(join(printDir, 'receipt-service-label.ts'), 'utf8');
 
 describe('French receipt live regression guards', () => {
   it('keeps payer identity lookup out of related student records', () => {
@@ -38,8 +39,10 @@ describe('French receipt live regression guards', () => {
   });
 
   it('compacts adjacent duplicate service segments only in French display', () => {
-    expect(pageSource).toContain('function compactFrenchServiceLabel');
-    expect(pageSource).toContain("return lang === 'fr' ? compactFrenchServiceLabel(raw) : raw;");
+    expect(pageSource).toContain("import { receiptServiceDisplayLabel } from './receipt-service-label';");
+    expect(pageSource).toContain('return receiptServiceDisplayLabel(row, lang);');
+    expect(serviceLabelSource).toContain('function compactFrenchLabel');
+    expect(serviceLabelSource).toContain("const displayRaw = lang === 'fr' ? compactFrenchLabel(raw) : raw;");
     expect(pageSource).toContain('const service = serviceDisplayLabel(row, lang);');
     expect(pageSource).toContain('<span role="cell" dir="auto">{service}</span>');
   });
