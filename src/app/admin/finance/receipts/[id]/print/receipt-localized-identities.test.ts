@@ -24,6 +24,17 @@ describe('French HTML receipt identity contract', () => {
     expect(identitySource).not.toContain('translate(');
   });
 
+  it('walks only known nested identity containers so student and parent bilingual fields are reachable', () => {
+    expect(identitySource).toContain('const IDENTITY_CONTAINER_KEYS');
+    expect(identitySource).toContain("'identity'");
+    expect(identitySource).toContain("'person'");
+    expect(identitySource).toContain("'student'");
+    expect(identitySource).toContain("'guardian'");
+    expect(identitySource).toContain("'branding'");
+    expect(identitySource).toContain('if (next.depth >= 3) continue;');
+    expect(identitySource).toContain('for (const candidate of identityRecords(value))');
+  });
+
   it('uses the stored student Latin/French field and then the fresh exact entity name', () => {
     expect(identitySource).toContain("'name_latin'");
     expect(identitySource).toContain('export function readStudentFrenchName');
@@ -40,6 +51,14 @@ describe('French HTML receipt identity contract', () => {
     expect(identitySource).toContain('readFrenchStoredName(data) ?? readCurrentEntityName(data)');
     expect(identitySource).not.toContain('normalizeParentProfile');
     expect(identitySource).not.toContain('normalizeParentProfile(data)?.name');
+  });
+
+  it('refreshes current bilingual names instead of letting historical receipt identity short-circuit them', () => {
+    expect(identitySource).toContain('fetchSchoolFrenchName(),');
+    expect(identitySource).toContain('fetchPayerFrenchName(receipt, rawReceipt, studentIds)');
+    expect(identitySource).toContain('const freshName = await fetchStudentFrenchName(studentId);');
+    expect(identitySource).toContain('schoolName: freshSchoolName ?? initial.schoolName');
+    expect(identitySource).toContain('payerName: freshPayerName ?? initial.payerName');
   });
 
   it('keeps historical receipt snapshots strict while fresh entity reads may use current names', () => {
