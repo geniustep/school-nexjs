@@ -63,8 +63,12 @@ describe('French HTML receipt identity contract', () => {
 
   it('keeps historical receipt snapshots strict while fresh entity reads may use current names', () => {
     expect(identitySource).toContain('const name = readFrenchStoredName(candidate);');
-    expect(identitySource).toContain('never on the historical receipt snapshot');
-    expect(identitySource).toContain('exact current');
+    expect(identitySource).toContain(
+      'return readFrenchStoredName(snapshot.school) ?? readFrenchStoredName(raw.school);',
+    );
+    expect(identitySource).toContain(
+      'return readFrenchStoredName(data) ?? readCurrentEntityName(data);',
+    );
   });
 
   it('keeps guardian and billing-partner id namespaces separate', () => {
