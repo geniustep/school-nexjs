@@ -166,13 +166,13 @@ describe('StudentDepartureDrawer', () => {
     fireEvent.click(screen.getByRole('button', { name: 'admin.student360.departure.preview' }));
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(1));
 
-    const confirmButton = screen.getByRole('button', { name: 'admin.student360.departure.confirm' });
-    await waitFor(() => expect(confirmButton).toBeEnabled());
+    const confirmButton = screen.getByRole('button', { name: 'admin.student360.departure.confirm' }) as HTMLButtonElement;
+    await waitFor(() => expect(confirmButton.disabled).toBe(false));
     fireEvent.click(confirmButton);
     fireEvent.click(await screen.findByRole('button', { name: 'dialog-confirm' }));
 
     await waitFor(() => expect(mocks.confirm).toHaveBeenCalledTimes(1));
     expect(await screen.findByText('admin.student360.departure.previewStale')).toBeTruthy();
-    expect(confirmButton).toBeDisabled();
+    expect(confirmButton.disabled).toBe(true);
   });
 });
