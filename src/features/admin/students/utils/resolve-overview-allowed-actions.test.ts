@@ -3,6 +3,7 @@ import type { StudentCapabilities } from '@/types/student-360';
 import type { StudentOverviewData } from '@/types/student-overview';
 import { normalizeStudentOverviewResponse } from './normalize-student-overview';
 import {
+  resolveOverviewDepartAllowed,
   resolveOverviewEditAccess,
   resolveOverviewEditAllowed,
 } from './resolve-overview-allowed-actions';
@@ -107,6 +108,19 @@ describe('resolveOverviewEditAccess', () => {
     expect(resolveOverviewEditAllowed(overviewWithActions(['view']), fullManageCaps)).toBe(false);
     expect(resolveOverviewEditAllowed(overviewWithActions(), fullManageCaps)).toBe(false);
     expect(resolveOverviewEditAllowed(overviewWithActions(['view', 'edit']), fullManageCaps)).toBe(true);
+  });
+});
+
+describe('resolveOverviewDepartAllowed', () => {
+  it('allows departure only when the backend action list explicitly contains depart', () => {
+    expect(resolveOverviewDepartAllowed(overviewWithActions(['view', 'depart']))).toBe(true);
+    expect(resolveOverviewDepartAllowed(overviewWithActions(['view', 'edit']))).toBe(false);
+  });
+
+  it('fails closed when the backend departure decision is missing', () => {
+    expect(resolveOverviewDepartAllowed(overviewWithActions())).toBe(false);
+    expect(resolveOverviewDepartAllowed(null)).toBe(false);
+    expect(resolveOverviewDepartAllowed(undefined)).toBe(false);
   });
 });
 
