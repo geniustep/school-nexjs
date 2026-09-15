@@ -1,0 +1,477 @@
+.form {
+  display: grid;
+  gap: 18px;
+  padding-block: 2px 10px;
+}
+
+.sectionCard,
+.policySection,
+.impactSection {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--c-border) 82%, var(--c-primary) 18%);
+  border-radius: 16px;
+  background: var(--c-surface);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+.sectionCard::before,
+.policySection::before,
+.impactSection::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  content: '';
+  background: linear-gradient(180deg, var(--c-primary), var(--raqeem-secondary));
+  opacity: 0.86;
+}
+
+.sectionCard {
+  padding: 18px 20px 20px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--c-primary-soft) 28%, transparent), transparent 70px),
+    var(--c-surface);
+}
+
+.sectionHeader,
+.impactHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.sectionHeader {
+  margin-block-end: 16px;
+  padding-block-end: 13px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 76%, transparent);
+}
+
+.sectionHeader h3,
+.impactHeader h3 {
+  color: var(--c-text);
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.sectionHeader p,
+.impactHeader p,
+.sectionHint {
+  margin: 5px 0 0;
+  color: var(--c-text-muted);
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 16px;
+}
+
+.detailsGrid :global(.field) {
+  gap: 7px;
+}
+
+.detailsGrid :global(.label) {
+  color: var(--c-text-body);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.detailsGrid :global(input),
+.detailsGrid :global(select),
+.detailsGrid :global(textarea) {
+  min-block-size: 42px;
+  border-color: color-mix(in srgb, var(--c-border) 86%, var(--c-primary) 14%);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--c-surface) 96%, var(--c-primary-soft) 4%);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.detailsGrid :global(input:hover),
+.detailsGrid :global(select:hover),
+.detailsGrid :global(textarea:hover) {
+  border-color: color-mix(in srgb, var(--c-primary) 34%, var(--c-border));
+}
+
+.detailsGrid :global(input:focus),
+.detailsGrid :global(select:focus),
+.detailsGrid :global(textarea:focus) {
+  border-color: var(--c-primary);
+  background: var(--c-surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary-soft) 84%, transparent);
+  outline: none;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.secondaryField textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.policySection {
+  margin: 0;
+  padding: 17px 20px 20px;
+  min-inline-size: 0;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--c-primary-soft) 76%, transparent), transparent 48%),
+    var(--c-surface);
+}
+
+.policyLegend {
+  padding-inline: 9px;
+  color: var(--c-text);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.sectionHint {
+  margin-block-end: 14px;
+  padding-inline: 2px;
+}
+
+.policyGrid {
+  display: grid;
+  gap: 11px;
+}
+
+.policyCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 13px;
+  min-block-size: 76px;
+  padding: 14px 15px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 88%, var(--c-primary) 12%);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--c-surface) 96%, var(--c-surface-2) 4%);
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.policyCard::after {
+  position: absolute;
+  inset-block: 11px;
+  inset-inline-end: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  content: '';
+  background: var(--c-primary);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.policyCard:hover:not(.policyCardDisabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--c-primary) 40%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary-soft) 25%, var(--c-surface));
+  box-shadow: 0 6px 18px rgba(36, 59, 107, 0.08);
+}
+
+.policyCard:focus-within {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary-soft) 88%, transparent);
+}
+
+.policyCardSelected {
+  border-color: color-mix(in srgb, var(--c-primary) 74%, var(--c-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--c-primary-soft) 84%, var(--c-surface)), var(--c-surface));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c-primary) 9%, transparent),
+    0 7px 20px rgba(36, 59, 107, 0.09);
+}
+
+.policyCardSelected::after {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.policyCardDisabled {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--c-surface-2) 78%, var(--c-surface));
+  cursor: not-allowed;
+  opacity: 0.76;
+}
+
+.policyRadio {
+  inline-size: 18px;
+  block-size: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--c-primary);
+}
+
+.policyCopy {
+  display: grid;
+  gap: 5px;
+  min-inline-size: 0;
+}
+
+.policyTitle {
+  color: var(--c-text);
+  font-size: 13.5px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.policyDescription {
+  max-inline-size: 58ch;
+  color: var(--c-text-muted);
+  font-size: 12.25px;
+  line-height: 1.6;
+}
+
+.policyCardDisabled .policyTitle,
+.policyCardDisabled .policyDescription {
+  color: var(--c-text-muted);
+}
+
+.policyBadge {
+  justify-self: start;
+  margin-block-start: 2px;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--c-amber) 30%, var(--c-border));
+  border-radius: 999px;
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+  font-size: 10.5px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.noAgreement {
+  margin: 13px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 76%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--c-blue-soft) 44%, var(--c-surface));
+  color: var(--c-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.impactSection {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 20px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--c-slate-soft) 68%, transparent), transparent 96px),
+    var(--c-surface);
+}
+
+.impactHeader {
+  align-items: center;
+  padding-block-end: 13px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 82%, transparent);
+}
+
+.impactHeader > span {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.impactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.impactCard,
+.financeCard {
+  border: 1px solid color-mix(in srgb, var(--c-border) 84%, var(--c-primary) 16%);
+  border-radius: 12px;
+}
+
+.impactCard {
+  min-block-size: 104px;
+  padding: 14px;
+  background: var(--c-surface);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+}
+
+.impactCard strong,
+.financeCardHeader strong {
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.impactCard p {
+  margin: 7px 0 0;
+  color: var(--c-text-muted);
+  font-size: 12.25px;
+  line-height: 1.6;
+}
+
+.financeCard {
+  padding: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--c-primary-soft) 34%, var(--c-surface)), var(--c-surface) 54%);
+  box-shadow: 0 4px 14px rgba(36, 59, 107, 0.045);
+}
+
+.financeCardHeader {
+  padding-block-end: 11px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 80%, transparent);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 9px;
+  margin-block-start: 11px;
+}
+
+.metric {
+  display: grid;
+  gap: 3px;
+  min-inline-size: 0;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 74%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--c-surface) 88%, var(--c-primary-soft) 12%);
+}
+
+.metric span {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.metric strong {
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  width: 100%;
+}
+
+.footerActions :global(.btn) {
+  min-block-size: 42px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.footerActions :global(.btn--primary) {
+  box-shadow: 0 5px 14px rgba(36, 59, 107, 0.16);
+}
+
+.footerActions :global(.btn--danger) {
+  box-shadow: 0 5px 14px rgba(220, 38, 38, 0.12);
+}
+
+@media (max-width: 720px) {
+  .form {
+    gap: 14px;
+  }
+
+  .detailsGrid,
+  .impactGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldWide {
+    grid-column: auto;
+  }
+
+  .sectionCard,
+  .policySection,
+  .impactSection {
+    border-radius: 13px;
+  }
+
+  .sectionCard,
+  .impactSection {
+    padding: 15px 16px 17px;
+  }
+
+  .policySection {
+    padding: 14px 16px 17px;
+  }
+
+  .impactHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .impactHeader > span {
+    align-self: flex-start;
+  }
+
+  .impactCard {
+    min-block-size: auto;
+  }
+
+  .footerActions {
+    flex-wrap: wrap;
+  }
+
+  .footerActions :global(.btn) {
+    flex: 1 1 140px;
+  }
+}
+
+@media (max-width: 460px) {
+  .sectionCard,
+  .impactSection {
+    padding: 14px 14px 16px;
+  }
+
+  .policySection {
+    padding: 13px 14px 15px;
+  }
+
+  .sectionHeader {
+    margin-block-end: 13px;
+    padding-block-end: 11px;
+  }
+
+  .policyCard {
+    min-block-size: 0;
+    padding: 13px;
+  }
+
+  .metricGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footerActions :global(.btn) {
+    flex-basis: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .policyCard,
+  .policyCard::after,
+  .detailsGrid :global(input),
+  .detailsGrid :global(select),
+  .detailsGrid :global(textarea) {
+    transition: none;
+  }
+}
