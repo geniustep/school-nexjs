@@ -208,7 +208,7 @@ export function StudentDepartureDrawer({
         setStale(staleResponse);
         setIdempotencyKey(newIdempotencyKey());
       }
-      setFormError(departureErrorMessage(result.error, t));
+      setFormError(staleResponse ? null : departureErrorMessage(result.error, t));
       return;
     }
     toast.success(t('admin.student360.departure.success'));
