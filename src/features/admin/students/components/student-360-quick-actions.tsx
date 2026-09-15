@@ -17,6 +17,7 @@ import { isRelationshipActive } from '../utils/relationship-types';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import {
   resolveOverviewArchiveAllowed,
+  resolveOverviewDepartAllowed,
   resolveOverviewEditAllowed,
   resolveOverviewManageGuardiansAllowed,
 } from '../utils/resolve-overview-allowed-actions';
@@ -25,6 +26,7 @@ import { resolveStudentHeaderFinancePaymentPresentation } from '../utils/resolve
 import type { StudentOverviewData } from '@/types/student-overview';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
 import { canCollectStudentPayments, canViewStudentFinance } from '../utils/resolve-capabilities';
+import { StudentDepartureDrawer } from './student-departure-drawer';
 
 export function Student360QuickActions({
   details,
@@ -34,6 +36,7 @@ export function Student360QuickActions({
   editHref,
   onOpenTab,
   onArchiveSuccess,
+  onDepartureSuccess,
   onEdit,
 }: {
   details: StudentDetailsData;
@@ -43,6 +46,7 @@ export function Student360QuickActions({
   editHref: string;
   onOpenTab: (tab: Student360TabId) => void;
   onArchiveSuccess: () => void;
+  onDepartureSuccess?: () => void;
   /** Kept for callers that still pass an edit handler; edit uses editHref Link. */
   onEdit?: () => void;
   /** Legacy route callback; direct payment entry no longer navigates through the finance tab. */
@@ -52,11 +56,13 @@ export function Student360QuickActions({
   const user = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [paymentEntryOpen, setPaymentEntryOpen] = useState(false);
+  const [departureOpen, setDepartureOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const s = details.student;
   const canManage = resolveOverviewEditAllowed(overview, caps) && !archived;
   const canManageGuardians = resolveOverviewManageGuardiansAllowed(overview, caps);
   const canArchive = resolveOverviewArchiveAllowed(overview, caps, user) && !archived;
+  const canDepart = resolveOverviewDepartAllowed(overview);
   const showFinance = canViewStudentFinance(caps);
   const canCollect = canCollectStudentPayments(caps);
   const financeRefState = useFinanceReferenceData();
@@ -136,9 +142,10 @@ export function Student360QuickActions({
     };
   }, [menuOpen]);
 
-  if (!canManage && !financePayment.visible) return null;
+  if (!canManage && !financePayment.visible && !canDepart) return null;
 
-  const showOverflow = canManage && (overflowActions.length > 0 || canArchive);
+  const showOverflow =
+    (canManage && (overflowActions.length > 0 || canArchive)) || canDepart;
 
   return (
     <>
@@ -181,24 +188,39 @@ export function Student360QuickActions({
             </button>
             {menuOpen ? (
               <div className="student-360-quick-actions__menu" role="menu">
-                {overflowActions.map((action) => (
+                {canManage
+                  ? overflowActions.map((action) => (
+                      <button
+                        key={action.key}
+                        type="button"
+                        role="menuitem"
+                        className="student-360-quick-actions__menu-item"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          if (action.key === 'enrollment') {
+                            onEdit?.();
+                            return;
+                          }
+                          if (action.tab) onOpenTab(action.tab);
+                        }}
+                      >
+                        {overflowLabels[action.key]}
+                      </button>
+                    ))
+                  : null}
+                {canDepart ? (
                   <button
-                    key={action.key}
                     type="button"
                     role="menuitem"
                     className="student-360-quick-actions__menu-item"
                     onClick={() => {
                       setMenuOpen(false);
-                      if (action.key === 'enrollment') {
-                        onEdit?.();
-                        return;
-                      }
-                      if (action.tab) onOpenTab(action.tab);
+                      setDepartureOpen(true);
                     }}
                   >
-                    {overflowLabels[action.key]}
+                    {t('admin.student360.departure.action')}
                   </button>
-                ))}
+                ) : null}
                 {canArchive ? (
                   <div className="student-360-quick-actions__menu-archive" role="none">
                     <ConfirmActionButton
@@ -238,6 +260,15 @@ export function Student360QuickActions({
             familySummaryState.reload();
           }}
           onOverviewUpdate={financialOverviewState.applyPatch}
+        />
+      ) : null}
+
+      {canDepart ? (
+        <StudentDepartureDrawer
+          open={departureOpen}
+          studentId={s.id}
+          onClose={() => setDepartureOpen(false)}
+          onSuccess={() => onDepartureSuccess?.()}
         />
       ) : null}
     </>
