@@ -28,6 +28,13 @@ export function resolveOverviewEditAllowed(
   return overview?.allowed_actions?.includes('edit') === true;
 }
 
+/** Backend-owned lifecycle gate. Never infer departure from role/capability maps. */
+export function resolveOverviewDepartAllowed(
+  overview: StudentOverviewData | null | undefined,
+): boolean {
+  return overview?.allowed_actions?.includes('depart') === true;
+}
+
 export function resolveOverviewArchiveAllowed(
   _overview: StudentOverviewData | null | undefined,
   caps: StudentCapabilities,
