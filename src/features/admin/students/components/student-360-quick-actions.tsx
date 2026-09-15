@@ -221,7 +221,7 @@ export function Student360QuickActions({
                     {t('admin.student360.departure.action')}
                   </button>
                 ) : null}
-                {canArchive ? (
+                {canManage && canArchive ? (
                   <div className="student-360-quick-actions__menu-archive" role="none">
                     <ConfirmActionButton
                       label={t('admin.archive')}
