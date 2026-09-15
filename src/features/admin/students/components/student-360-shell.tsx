@@ -114,7 +114,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   useEffect(() => {
     if (!details) return;
     if (isLegacyFinancialAgreementTab(tabParam) && showFinance) {
-      // Legacy main tab always lands on finance → agreements unless a sub-tab is explicit.
       const sectionParam = searchParams.get('section');
       const financeSubTab = parseStudentFinanceSubTab(
         searchParams.get('financeSubTab') ??
@@ -189,6 +188,10 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 router.push(buildStudent360TabHref(studentId, next), { scroll: false })
               }
               onArchiveSuccess={() => router.push('/admin/students')}
+              onDepartureSuccess={() => {
+                state.reload();
+                overviewState.reload();
+              }}
             />
           }
         />
