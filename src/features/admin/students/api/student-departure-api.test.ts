@@ -33,7 +33,7 @@ describe('student departure API', () => {
     const payload = {
       ...decision,
       preview_fingerprint: 'fingerprint-1',
-      idempotency_key: 'b9a8e58d-0c17-4b50-90e8-2fd01d68aaf9',
+      idempotency_key: 'test-key-1',
     };
     await confirmStudentDeparture(42, payload);
     expect(mocks.post).toHaveBeenCalledWith(
