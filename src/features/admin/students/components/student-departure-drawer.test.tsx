@@ -95,9 +95,9 @@ function previewData(options?: { canConfirm?: boolean; allowed?: string[] }) {
   };
 }
 
-function fillCore() {
+function fillCore(type: 'withdrawn' | 'transferred' = 'withdrawn') {
   fireEvent.change(screen.getByLabelText('admin.student360.departure.type'), {
-    target: { value: 'withdrawn' },
+    target: { value: type },
   });
   fireEvent.change(screen.getByLabelText('admin.student360.departure.lastDay'), {
     target: { value: '2026-09-15' },
@@ -116,9 +116,14 @@ describe('StudentDepartureDrawer', () => {
 
   afterEach(() => cleanup());
 
-  it('starts with no silent financial-policy default and lets backend decide policy availability', async () => {
+  it('shows the clarified financial-policy copy with no silent default and lets backend decide availability', async () => {
     mocks.preview.mockResolvedValue({ success: true, data: previewData() });
     render(<StudentDepartureDrawer open studentId={42} onClose={vi.fn()} onSuccess={vi.fn()} />);
+
+    expect(screen.getByText('admin.student360.departure.financialPolicyHelp')).toBeTruthy();
+    expect(screen.getByText('admin.student360.departure.policy.fullDescription')).toBeTruthy();
+    expect(screen.getByText('admin.student360.departure.policy.prorateDescription')).toBeTruthy();
+    expect(screen.getByText('admin.student360.departure.policy.keepDescription')).toBeTruthy();
 
     const full = screen.getByLabelText('admin.student360.departure.policy.full') as HTMLInputElement;
     const prorate = screen.getByLabelText('admin.student360.departure.policy.prorate') as HTMLInputElement;
@@ -140,6 +145,50 @@ describe('StudentDepartureDrawer', () => {
     await waitFor(() => expect(prorate.disabled).toBe(true));
     expect(full.disabled).toBe(false);
     expect(keep.disabled).toBe(false);
+    expect(screen.getByText('admin.student360.departure.policy.unavailable')).toBeTruthy();
+  });
+
+  it('invalidates a fresh preview when the financial choice changes', async () => {
+    mocks.preview.mockResolvedValue({
+      success: true,
+      data: previewData({
+        canConfirm: true,
+        allowed: [
+          'FULL_CURRENT_PERIOD',
+          'PRORATE_TO_DEPARTURE_DATE',
+          'KEEP_CURRENT_STATE_STOP_NEXT_PERIOD',
+        ],
+      }),
+    });
+
+    render(<StudentDepartureDrawer open studentId={42} onClose={vi.fn()} onSuccess={vi.fn()} />);
+    fillCore();
+
+    const full = screen.getByLabelText('admin.student360.departure.policy.full') as HTMLInputElement;
+    const keep = screen.getByLabelText('admin.student360.departure.policy.keep') as HTMLInputElement;
+    fireEvent.click(full);
+    expect(full.checked).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'admin.student360.departure.preview' }));
+    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(1));
+
+    const confirmButton = screen.getByRole('button', { name: 'admin.student360.departure.confirm' }) as HTMLButtonElement;
+    await waitFor(() => expect(confirmButton.disabled).toBe(false));
+
+    fireEvent.click(keep);
+    expect(keep.checked).toBe(true);
+    expect(full.checked).toBe(false);
+    expect(confirmButton.disabled).toBe(true);
+  });
+
+  it('keeps destination school conditional on a transferred departure', () => {
+    render(<StudentDepartureDrawer open studentId={42} onClose={vi.fn()} onSuccess={vi.fn()} />);
+
+    expect(screen.queryByLabelText('admin.student360.departure.destinationSchool')).toBeNull();
+    fireEvent.change(screen.getByLabelText('admin.student360.departure.type'), {
+      target: { value: 'transferred' },
+    });
+    expect(screen.getByLabelText('admin.student360.departure.destinationSchool')).toBeTruthy();
   });
 
   it('invalidates confirmation when backend reports a stale preview', async () => {
