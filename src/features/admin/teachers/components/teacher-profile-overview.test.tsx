@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import type { ReactNode } from 'react';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Teacher } from '@/types/teacher';
 import { TeacherFamilyContextCard, TeacherProfileOverview } from './teacher-profile-overview';
@@ -105,13 +105,14 @@ describe('TeacherProfileOverview', () => {
   });
 
   it('renders guardian children with a direct student link', () => {
-    render(<TeacherFamilyContextCard teacher={teacherFixture()} />);
+    const { container } = render(<TeacherFamilyContextCard teacher={teacherFixture()} />);
+    const view = within(container);
 
-    expect(screen.getAllByText('Guardian').length).toBeGreaterThan(0);
-    const child = screen.getByRole('link', { name: /Yassine El Idrissi/ });
+    expect(view.getAllByText('Guardian').length).toBeGreaterThan(0);
+    const child = view.getByRole('link', { name: /Yassine El Idrissi/ });
     expect(child.getAttribute('href')).toBe('/admin/students/14755');
-    expect(screen.getByText('6A')).toBeTruthy();
-    expect(screen.getByText('Nibras')).toBeTruthy();
+    expect(view.getByText('6A')).toBeTruthy();
+    expect(view.getByText('Nibras')).toBeTruthy();
   });
 
   it('distinguishes explicit non-guardian from an unavailable guardian contract', () => {
