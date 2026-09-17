@@ -13,16 +13,15 @@ import { EmptyState, ErrorState } from '@/components/states/states';
 import { Badge, Card, DefinitionList, PageHeader, SectionHead } from '@/components/ui/primitives';
 import { TeacherForm } from '@/features/admin/entity-forms';
 import { useTeacherOptions } from '@/features/admin/academic-setup/hooks/use-teacher-options';
-import { resolveGenderLabel } from '@/features/admin/academic-setup/utils/teacher-profile';
 import {
   consumeTeacherCreateResult,
   dismissTeacherCreateResult,
 } from '@/features/admin/academic-setup/utils/teacher-create';
-import { resolveTeacherTypeLabelFromCode } from '@/features/admin/staff/utils/staff-center-present';
 import { TeacherAcademicProfilePanel } from '@/features/admin/teachers/components/teacher-academic-profile-panel';
 import { TeacherAssignmentsPanel } from '@/features/admin/teachers/components/teacher-assignments-panel';
 import { TeacherCreateReadinessBanner } from '@/features/admin/teachers/components/teacher-create-readiness-banner';
 import { TeacherLifecycleDialogs } from '@/features/admin/teachers/components/teacher-lifecycle-dialogs';
+import { TeacherProfileOverview, TeacherFamilyContextCard } from '@/features/admin/teachers/components/teacher-profile-overview';
 import { TeacherStaffAccountSection } from '@/features/admin/teachers/components/teacher-staff-account-section';
 import { fetchTeacherAcademicProfile } from '@/features/admin/teachers/api/teacher-domain-api';
 import { hasAllowedAction } from '@/features/admin/teachers/utils/teacher-domain-allowed-actions';
@@ -267,6 +266,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
           const name = teacherDisplayName(teacher);
           const warningCount = teacherWarningCount(teacher);
           const workload = getTeacherWorkloadSummary(teacher);
+          const editableTeacher = teacher as unknown as Teacher;
 
           return (
             <>
@@ -308,11 +308,14 @@ export function TeacherProfilePage({ id }: { id: string }) {
               />
 
               {editing ? (
-                <TeacherForm
-                  teacher={teacher as unknown as Teacher}
-                  onSaved={() => { setEditing(false); state.reload(); }}
-                  onCancel={() => setEditing(false)}
-                />
+                <div className="teacher-domain-profile__edit-stack">
+                  <TeacherForm
+                    teacher={editableTeacher}
+                    onSaved={() => { setEditing(false); state.reload(); }}
+                    onCancel={() => setEditing(false)}
+                  />
+                  <TeacherFamilyContextCard teacher={editableTeacher} />
+                </div>
               ) : (
                 <>
                   <div className="teacher-domain-profile__tabs" role="tablist" aria-label={t('admin.teacherDomain.detail.tabsLabel')}>
@@ -332,18 +335,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
 
                   {tab === 'overview' ? (
                     <div className="teacher-domain-profile__stack">
-                      <Card>
-                        <SectionHead title={t('admin.teacherDomain.tabs.overview')} />
-                        <DefinitionList items={[
-                          { label: t('admin.fullName'), value: name },
-                          { label: t('admin.code'), value: teacher.code ?? t('common.dash') },
-                          { label: t('admin.academicSetup.teacherForm.gender'), value: resolveGenderLabel(teacher.gender, options, t) },
-                          { label: t('admin.academicSetup.teacherForm.teacherType'), value: resolveTeacherTypeLabelFromCode(teacher.teacher_type, t) },
-                          { label: t('admin.teacherDomain.academic.specialization'), value: teacher.specialization?.trim() || t('common.dash') },
-                          { label: t('admin.teacherDomain.columns.activeAssignments'), value: String(workload?.active_assignment_count ?? teacher.assignment_summary?.operational_count ?? teacher.assignment_summary?.active_count ?? 0) },
-                          { label: t('admin.teacherDomain.columns.eligibleSubjects'), value: String(teacher.academic_profile_summary?.subject_eligibility_count ?? 0) },
-                        ]} />
-                      </Card>
+                      <TeacherProfileOverview teacher={editableTeacher} options={options} />
                       {workload ? (
                         <Card>
                           <SectionHead title={t('admin.teacherDomain.eligibleTeachers.weeklyLoad')} />
@@ -352,6 +344,8 @@ export function TeacherProfilePage({ id }: { id: string }) {
                             { label: t('admin.teacherDomain.eligibleTeachers.weeklyMax'), value: workloadValue(workload.workload_limit, t('common.dash')) },
                             { label: t('admin.teacherDomain.eligibleTeachers.remainingCapacity'), value: workloadValue(workload.remaining_capacity, t('common.dash')) },
                             { label: t('admin.teacherDomain.detail.totalAssignments'), value: workloadValue(workload.assignment_count, t('common.dash')) },
+                            { label: t('admin.teacherDomain.columns.activeAssignments'), value: String(workload.active_assignment_count ?? teacher.assignment_summary?.operational_count ?? teacher.assignment_summary?.active_count ?? 0) },
+                            { label: t('admin.teacherDomain.columns.eligibleSubjects'), value: String(teacher.academic_profile_summary?.subject_eligibility_count ?? 0) },
                           ]} />
                         </Card>
                       ) : null}
@@ -380,7 +374,7 @@ export function TeacherProfilePage({ id }: { id: string }) {
 
                   {tab === 'account' ? (
                     <div className="teacher-domain-profile__stack">
-                      {showAdminPrivate ? <TeacherStaffAccountSection teacher={teacher as unknown as Teacher} /> : null}
+                      {showAdminPrivate ? <TeacherStaffAccountSection teacher={editableTeacher} /> : null}
                       <Card>
                         <SectionHead title={t('admin.teacherDomain.tabs.account')} />
                         <DefinitionList items={[

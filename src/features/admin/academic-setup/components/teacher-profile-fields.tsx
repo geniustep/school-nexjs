@@ -57,6 +57,11 @@ function OptionField({
   );
 }
 
+function withLegacyOption(options: TeacherOption[], value: string): TeacherOption[] {
+  if (!value || options.some((option) => option.value === value)) return options;
+  return [...options, { value, label: value }];
+}
+
 export function TeacherProfileFields({
   state,
   options,
@@ -89,6 +94,7 @@ export function TeacherProfileFields({
   const showSchoolPicker = (options?.schools.length ?? 0) > 1;
   const genderOptionsAvailable = hasTeacherGenderOptions(options);
   const genderOptions = localizeTeacherGenderOptions(options, t);
+  const contractTypeOptions = withLegacyOption(options?.contractTypes ?? [], state.contractType);
   const today = (() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -97,9 +103,35 @@ export function TeacherProfileFields({
   return (
     <>
       <FieldGroup title={t('admin.academicSetup.teacherForm.groups.personal')}>
+        <div className="teacher-setup-form__grid teacher-setup-form__grid--identity">
+          <label className="teacher-setup-field">
+            <span className="teacher-setup-field__label">{t('admin.teacherProfile.fullNameAr')}</span>
+            <input
+              className="input"
+              value={state.nameAr}
+              onChange={(e) => onChange({ nameAr: e.target.value })}
+              disabled={saving}
+              dir="auto"
+              autoFocus
+            />
+            {errors.nameAr ? <span className="teacher-setup-field__error" role="alert">{errors.nameAr}</span> : null}
+          </label>
+          <label className="teacher-setup-field">
+            <span className="teacher-setup-field__label">{t('admin.teacherProfile.fullNameFr')}</span>
+            <input
+              className="input"
+              value={state.nameFr}
+              onChange={(e) => onChange({ nameFr: e.target.value })}
+              disabled={saving}
+              dir="auto"
+            />
+            {errors.nameFr ? <span className="teacher-setup-field__error" role="alert">{errors.nameFr}</span> : null}
+          </label>
+        </div>
+
         <label className="teacher-setup-field">
           <span className="teacher-setup-field__label">
-            {t('admin.fullName')} <span aria-hidden="true">*</span>
+            {t('admin.teacherProfile.operationalName')} <span aria-hidden="true">*</span>
           </span>
           <input
             className="input"
@@ -107,7 +139,7 @@ export function TeacherProfileFields({
             onChange={(e) => onChange({ name: e.target.value })}
             required
             disabled={saving}
-            autoFocus
+            dir="auto"
           />
           {errors.name ? (
             <span className="teacher-setup-field__error" role="alert">
@@ -167,6 +199,7 @@ export function TeacherProfileFields({
               value={state.phone}
               onChange={(e) => onChange({ phone: e.target.value })}
               disabled={saving}
+              dir="ltr"
             />
           </label>
           {showEmailField ? (
@@ -179,6 +212,7 @@ export function TeacherProfileFields({
                 value={state.email}
                 onChange={(e) => onChange({ email: e.target.value })}
                 disabled={saving}
+                dir="ltr"
               />
             </label>
           ) : null}
@@ -194,6 +228,7 @@ export function TeacherProfileFields({
               value={state.code}
               onChange={(e) => onChange({ code: e.target.value })}
               disabled={saving}
+              dir="ltr"
             />
           </label>
           <label className="teacher-setup-field">
@@ -205,6 +240,7 @@ export function TeacherProfileFields({
               onChange={(e) => onChange({ specialization: e.target.value.trimStart() })}
               onBlur={(e) => onChange({ specialization: e.target.value.trim() })}
               disabled={saving}
+              dir="auto"
             />
             {errors.specialization ? (
               <span className="teacher-setup-field__error" role="alert">
@@ -214,25 +250,52 @@ export function TeacherProfileFields({
           </label>
         </div>
 
-        <OptionField
-          label={t('admin.academicSetup.teacherForm.teacherType')}
-          value={state.teacherType}
-          onChange={(teacherType) => onChange({ teacherType })}
-          options={options?.teacherTypes ?? []}
-          disabled={saving || !options}
-          error={errors.teacherType}
-        />
+        <div className="teacher-setup-form__grid">
+          <OptionField
+            label={t('admin.academicSetup.teacherForm.teacherType')}
+            value={state.teacherType}
+            onChange={(teacherType) => onChange({ teacherType })}
+            options={options?.teacherTypes ?? []}
+            disabled={saving || !options}
+            error={errors.teacherType}
+          />
 
-        <OptionField
-          label={t('admin.academicSetup.teacherForm.qualification')}
-          value={state.qualification}
-          onChange={(qualification) => onChange({ qualification })}
-          options={options?.qualifications ?? []}
-          disabled={saving || !options}
-          error={errors.qualification}
-          allowEmpty
-          emptyLabel={t('admin.academicSetup.teacherForm.qualificationEmpty')}
-        />
+          <OptionField
+            label={t('admin.academicSetup.teacherForm.qualification')}
+            value={state.qualification}
+            onChange={(qualification) => onChange({ qualification })}
+            options={options?.qualifications ?? []}
+            disabled={saving || !options}
+            error={errors.qualification}
+            allowEmpty
+            emptyLabel={t('admin.academicSetup.teacherForm.qualificationEmpty')}
+          />
+        </div>
+
+        <div className="teacher-setup-form__grid">
+          <label className="teacher-setup-field">
+            <span className="teacher-setup-field__label">{t('admin.teacherProfile.hireDate')}</span>
+            <input
+              className="input"
+              type="date"
+              value={state.hireDate}
+              onChange={(e) => onChange({ hireDate: e.target.value })}
+              disabled={saving}
+            />
+            {errors.hireDate ? <span className="teacher-setup-field__error" role="alert">{errors.hireDate}</span> : null}
+          </label>
+
+          <OptionField
+            label={t('admin.teacherProfile.contractType')}
+            value={state.contractType}
+            onChange={(contractType) => onChange({ contractType })}
+            options={contractTypeOptions}
+            disabled={saving || !options}
+            error={errors.contractType}
+            allowEmpty
+            emptyLabel={t('admin.teacherProfile.contractTypeEmpty')}
+          />
+        </div>
 
         {showSchoolPicker ? (
           <OptionField
