@@ -55,11 +55,15 @@ export function defaultTeacherProfileFormState(options: TeacherOptions | null): 
   const defaults = options?.defaults;
   return {
     name: '',
+    nameAr: '',
+    nameFr: '',
     code: '',
     phone: '',
     email: '',
     gender: '',
     dateOfBirth: '',
+    hireDate: '',
+    contractType: '',
     specialization: '',
     login: '',
     teacherType:
@@ -83,11 +87,15 @@ export function teacherProfileFormStateFromTeacher(
 ): TeacherProfileFormState {
   return {
     name: teacher.name ?? '',
+    nameAr: teacher.identity?.name_ar ?? '',
+    nameFr: teacher.identity?.name_fr ?? '',
     code: teacher.code ?? '',
     phone: teacher.phone ?? '',
     email: teacher.email ?? '',
     gender: normalizeGenderFormValue(teacher.gender, options),
     dateOfBirth: teacher.date_of_birth ?? '',
+    hireDate: teacher.hire_date ?? '',
+    contractType: teacher.contract_type ?? '',
     specialization: teacher.specialization ?? '',
     login: teacher.login?.trim() || teacher.account?.login?.trim() || teacher.email?.trim() || '',
     teacherType: teacher.teacher_type ?? options?.defaults.teacherType ?? '',
@@ -129,6 +137,11 @@ export function buildTeacherCreatePayload(
     ...identity,
   };
 
+  const nameAr = state.nameAr.trim();
+  if (nameAr) payload.name_ar = nameAr;
+  const nameFr = state.nameFr.trim();
+  if (nameFr) payload.name_fr = nameFr;
+
   const code = state.code.trim();
   if (code) payload.code = code;
 
@@ -143,6 +156,8 @@ export function buildTeacherCreatePayload(
   }
 
   if (state.dateOfBirth.trim()) payload.date_of_birth = state.dateOfBirth.trim();
+  if (state.hireDate.trim()) payload.hire_date = state.hireDate.trim();
+  if (state.contractType.trim()) payload.contract_type = state.contractType.trim();
 
   const specialization = state.specialization.trim();
   if (specialization) payload.specialization = specialization;
@@ -181,6 +196,13 @@ export function buildTeacherUpdatePayload(
 
   if (current.name.trim() !== original.name.trim()) payload.name = current.name.trim();
 
+  if (current.nameAr.trim() !== original.nameAr.trim()) {
+    payload.name_ar = current.nameAr.trim() || null;
+  }
+  if (current.nameFr.trim() !== original.nameFr.trim()) {
+    payload.name_fr = current.nameFr.trim() || null;
+  }
+
   if (current.code.trim() !== original.code.trim()) {
     payload.code = current.code.trim() || '';
   }
@@ -199,6 +221,14 @@ export function buildTeacherUpdatePayload(
 
   if (current.dateOfBirth.trim() !== original.dateOfBirth.trim()) {
     payload.date_of_birth = current.dateOfBirth.trim() ? current.dateOfBirth.trim() : null;
+  }
+
+  if (current.hireDate.trim() !== original.hireDate.trim()) {
+    payload.hire_date = current.hireDate.trim() ? current.hireDate.trim() : null;
+  }
+
+  if (current.contractType !== original.contractType) {
+    payload.contract_type = current.contractType.trim() ? current.contractType.trim() : null;
   }
 
   if (current.specialization !== original.specialization) {
@@ -268,11 +298,17 @@ export function mapTeacherApiFieldError(
   t: (key: string) => string,
 ): TeacherProfileFieldErrors & { global?: string } {
   switch (code) {
+    case 'teacher_identity_partner_unavailable': {
+      const message = t('admin.teacherProfile.identityPartnerUnavailable');
+      return { nameAr: message, nameFr: message, global: message };
+    }
     case 'invalid_gender':
       return { gender: t('admin.academicSetup.teacherForm.errors.invalidGender') };
     case 'invalid_date_of_birth':
     case 'future_date_of_birth':
       return { dateOfBirth: t('admin.academicSetup.teacherForm.errors.invalidDateOfBirth') };
+    case 'invalid_hire_date':
+      return { hireDate: t('admin.teacherProfile.invalidHireDate') };
     case 'invalid_specialization':
       return { specialization: t('admin.academicSetup.teacherForm.errors.invalidSpecialization') };
     case 'invalid_teacher_type':
@@ -325,6 +361,11 @@ export function validateTeacherProfileForm(
     } else if (dob > today) {
       errors.dateOfBirth = t('admin.academicSetup.teacherForm.errors.futureDateOfBirth');
     }
+  }
+
+  const hireDate = state.hireDate.trim();
+  if (hireDate && !/^\d{4}-\d{2}-\d{2}$/.test(hireDate)) {
+    errors.hireDate = t('admin.teacherProfile.invalidHireDate');
   }
 
   const specialization = state.specialization.trim();
