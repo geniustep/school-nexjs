@@ -5,14 +5,21 @@ import {
   normalizeStaffTemplateCreateResult,
   normalizeStaffTemplatePreview,
 } from '@/features/admin/staff/utils/staff-template-utils';
+import {
+  normalizeStaffTemplateScopeType,
+  type StaffTemplateScopeType,
+} from '@/features/admin/staff/utils/staff-template-scope-contract';
 import type {
   StaffTemplateCreatePayload,
   StaffTemplateCreateResult,
   StaffTemplatePreview,
   StaffTemplatePreviewPayload,
+  StaffTemplateScope,
 } from '@/types/staff-templates';
 import type { ListParams } from '@/types/api';
 import type { StaffCreationTemplate } from '@/types/staff-templates';
+
+type PreviewScopeWithType = StaffTemplateScope & { scope_type?: StaffTemplateScopeType };
 
 export async function fetchStaffCreationTemplates(query?: ListParams) {
   const res = await api.get<unknown>(endpoints.admin.staffTemplates, query);
@@ -33,6 +40,23 @@ export async function previewStaffCreationTemplate(
       error: { code: 'invalid_response', message: 'Invalid preview response.', details: {} },
     };
   }
+
+  const rawScope =
+    res.data && typeof res.data === 'object'
+      ? (res.data as { scope?: unknown }).scope
+      : undefined;
+  const scopeType =
+    rawScope && typeof rawScope === 'object'
+      ? normalizeStaffTemplateScopeType((rawScope as { scope_type?: unknown }).scope_type)
+      : null;
+  if (scopeType) {
+    const scopedPreview = preview as StaffTemplatePreview & { scope?: PreviewScopeWithType };
+    scopedPreview.scope = {
+      ...(preview.scope ?? {}),
+      scope_type: scopeType,
+    };
+  }
+
   return { ok: true as const, preview };
 }
 
