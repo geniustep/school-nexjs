@@ -240,6 +240,31 @@ describe('StudentSpotlight', () => {
     expect(mockUseStudentSearchQuery).toHaveBeenCalled();
   });
 
+  it('keeps keyboard focus inside the quick message modal', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    const firstAudience = within(dialog).getByRole('radio', { name: 'أولياء الأمور' });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(firstAudience);
+    });
+
+    const closeButton = within(dialog).getByRole('button', { name: 'إغلاق' });
+    closeButton.focus();
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole('button', { name: 'إلغاء' }),
+    );
+  });
+
   it('previews each student audience choice through the governed endpoint', async () => {
     const user = userEvent.setup();
     mockUseStudentSearchQuery.mockReturnValue({
