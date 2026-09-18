@@ -399,10 +399,7 @@ export function ArrearsListPanel({
         </div>
       </section>
 
-      <ArrearsExportActions
-        search={filters.search}
-        tab={tabValid}
-      />
+      <ArrearsExportActions filters={{ tab: filters.tab, search: filters.search }} />
 
       {pg ? (
         <p className="finance-receivable-list__result-count" dir="ltr">

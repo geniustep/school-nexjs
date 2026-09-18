@@ -2,111 +2,143 @@ import { describe, expect, it } from 'vitest';
 import {
   buildArrearsExportQuery,
   buildArrearsPrintHtml,
-  parseArrearsExportPayload,
+  createArrearsWorkbook,
+  parseArrearsExportResponse,
+  type ArrearsExportContext,
 } from '@/features/admin/finance/arrears-export';
 
-const t = (key: string) => key;
+const rawExport = {
+  items: [
+    {
+      family_id: 41,
+      billing_partner_id: 41,
+      display_name: 'أسرة الاختبار',
+      student_count: 2,
+      total_overdue: 1234.5,
+      total_remaining: 1560.75,
+      oldest_overdue_date: '2026-08-15',
+      followup_status: 'payment_promise',
+      followup_status_label: 'وعد أداء',
+      payment_promise_date: '2026-09-20',
+      payment_promise_amount: 500.25,
+      next_followup_date: '2026-09-18',
+      assigned_user_name: 'الإدارة',
+      currency: { code: 'MAD' },
+    },
+  ],
+  summary: {
+    overdue_families_count: 1,
+    total_overdue_amount: 1234.5,
+    payment_promises_count: 1,
+    today_followups_count: 0,
+  },
+  applied_filters: {
+    search: 'اختبار',
+    tab: 'payment_promises',
+    has_overdue: 1,
+    account_kind: 'family',
+  },
+  export_meta: {
+    scope: 'all_filtered',
+    row_count: 1,
+    max_rows: 5000,
+    truncated: false,
+  },
+};
 
-describe('arrears comprehensive export', () => {
-  it('builds one all-filtered request without page scope', () => {
+const context: ArrearsExportContext = {
+  locale: 'ar',
+  generatedAt: new Date('2026-09-13T20:00:00Z'),
+  schoolName: 'مدرسة الاختبار',
+  search: 'اختبار',
+  tabLabel: 'وعود الأداء',
+};
+
+describe('arrears comprehensive export contract', () => {
+  it('requests one all-filtered export without page or page_size', () => {
     const query = buildArrearsExportQuery({
-      search: 'Famille',
+      search: ' أسرة ',
       tab: 'payment_promises',
       activeSchoolId: 7,
     });
-    expect(query).toMatchObject({
+
+    expect(query).toEqual({
       export: 1,
-      active_school_id: 7,
-      search: 'Famille',
+      search: 'أسرة',
       tab: 'payment_promises',
       quick: 'payment_promises',
       status: 'payment_promises',
+      active_school_id: 7,
     });
     expect(query).not.toHaveProperty('page');
     expect(query).not.toHaveProperty('page_size');
   });
 
-  it('accepts only authoritative all-filtered payloads', () => {
-    const payload = parseArrearsExportPayload({
-      items: [{
-        family_id: 11,
-        family_name: 'Family A',
-        student_count: 2,
-        total_overdue: 1200.5,
-        total_remaining: 2200.5,
-        payment_promise_amount: 300,
-      }],
-      summary: {
-        overdue_families_count: 1,
-        total_overdue_amount: 1200.5,
-        payment_promises_count: 1,
-        today_followups_count: 0,
-      },
-      applied_filters: { tab: 'payment_promises' },
-      export_meta: {
-        scope: 'all_filtered',
-        row_count: 1,
-        max_rows: 5000,
-        truncated: false,
-      },
-    }, 'payment_promises');
+  it('accepts only a complete all-filtered response and keeps backend summary', () => {
+    const parsed = parseArrearsExportResponse(rawExport);
 
-    expect(payload?.exportMeta.scope).toBe('all_filtered');
-    expect(payload?.items).toHaveLength(1);
-    expect(payload?.items[0]?.total_overdue).toBe(1200.5);
-    expect(payload?.summary.total_overdue_amount).toBe(1200.5);
-  });
-
-  it('rejects partial/truncated export payloads', () => {
-    expect(parseArrearsExportPayload({
-      items: [],
-      summary: {},
-      export_meta: {
-        scope: 'all_filtered',
-        row_count: 0,
-        max_rows: 5000,
-        truncated: true,
-      },
-    }, 'all')).toBeNull();
-  });
-
-  it('builds print HTML from backend summary and exported items', () => {
-    const payload = parseArrearsExportPayload({
-      items: [{
-        family_id: 11,
-        family_name: 'Family A',
-        student_count: 2,
-        total_overdue: 1200.5,
-        total_remaining: 2200.5,
-      }],
-      summary: {
-        overdue_families_count: 91,
-        total_overdue_amount: 9999.25,
-        payment_promises_count: 5,
-        today_followups_count: 3,
-      },
-      applied_filters: { search: 'Family' },
-      export_meta: {
-        scope: 'all_filtered',
-        row_count: 1,
-        max_rows: 5000,
-        truncated: false,
-      },
-    }, 'all');
-    expect(payload).not.toBeNull();
-
-    const html = buildArrearsPrintHtml({
-      payload: payload!,
-      t,
-      locale: 'en',
-      dir: 'ltr',
-      schoolName: 'School',
-      generatedAt: new Date('2026-09-18T08:00:00Z'),
+    expect(parsed).not.toBeNull();
+    expect(parsed?.exportMeta).toEqual({
+      scope: 'all_filtered',
+      row_count: 1,
+      max_rows: 5000,
+      truncated: false,
     });
+    expect(parsed?.summary.total_overdue_amount).toBe(1234.5);
+    expect(parsed?.items).toHaveLength(1);
+  });
 
-    expect(html).toContain('9999.25');
-    expect(html).toContain('Family A');
-    expect(html).not.toContain('current page');
-    expect(html).toContain('admin.finance.arrears.export.scope');
+  it('rejects partial or count-mismatched export payloads', () => {
+    expect(
+      parseArrearsExportResponse({
+        ...rawExport,
+        export_meta: { ...rawExport.export_meta, truncated: true },
+      }),
+    ).toBeNull();
+
+    expect(
+      parseArrearsExportResponse({
+        ...rawExport,
+        export_meta: { ...rawExport.export_meta, row_count: 2 },
+      }),
+    ).toBeNull();
+  });
+});
+
+describe('arrears Excel export', () => {
+  it('writes financial values as numeric worksheet cells', () => {
+    const parsed = parseArrearsExportResponse(rawExport);
+    expect(parsed).not.toBeNull();
+    if (!parsed) return;
+
+    const workbook = createArrearsWorkbook(parsed, context);
+    const worksheet = workbook.worksheets[0];
+    const dataRow = worksheet.getRow(11);
+
+    expect(dataRow.getCell(3).value).toBe(1234.5);
+    expect(typeof dataRow.getCell(3).value).toBe('number');
+    expect(dataRow.getCell(4).value).toBe(1560.75);
+    expect(typeof dataRow.getCell(4).value).toBe('number');
+    expect(dataRow.getCell(8).value).toBe(500.25);
+    expect(typeof dataRow.getCell(8).value).toBe('number');
+    expect(dataRow.getCell(3).numFmt).toBe('#,##0.00');
+  });
+});
+
+describe('arrears HTML print', () => {
+  it('builds an RTL A4 report from backend items and summary', () => {
+    const parsed = parseArrearsExportResponse(rawExport);
+    expect(parsed).not.toBeNull();
+    if (!parsed) return;
+
+    const html = buildArrearsPrintHtml(parsed, context);
+
+    expect(html).toContain('<html lang="ar" dir="rtl">');
+    expect(html).toContain('@page { size: A4 landscape;');
+    expect(html).toContain('تقرير المتأخرات');
+    expect(html).toContain('أسرة الاختبار');
+    expect(html).toContain('إجمالي المتأخرات');
+    expect(html).not.toContain('window.print');
+    expect(html).not.toContain('<button');
   });
 });

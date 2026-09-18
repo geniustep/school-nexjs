@@ -10073,24 +10073,7 @@
           "promiseFailed": "No se pudo registrar la promesa de pago.",
           "resolveFailed": "No se pudo resolver el seguimiento."
         },
-        "followupApiUnavailable": "Los datos de seguimiento no están disponibles — se muestran las familias atrasadas desde las cuentas de pagadores.",
-        "export": {
-          "excel": "Exportar a Excel",
-          "print": "Imprimir / PDF",
-          "preparing": "Preparando exportación…",
-          "failed": "No se pudo preparar la exportación. Inténtelo de nuevo.",
-          "forbidden": "No tiene permiso para exportar estos datos.",
-          "limitExceeded": "Hay demasiados resultados para exportarlos de una vez. Reduzca los filtros e inténtelo de nuevo.",
-          "noData": "No hay resultados coincidentes para exportar.",
-          "invalidResponse": "No se pudo validar la respuesta de exportación.",
-          "reportTitle": "Informe de atrasos",
-          "scope": "Todos los resultados que coinciden con los filtros activos",
-          "generatedAt": "Generado el",
-          "rowCount": "Resultados",
-          "school": "Centro",
-          "filters": "Filtros",
-          "popupBlocked": "No se pudo abrir la ventana de impresión. Permita las ventanas emergentes e inténtelo de nuevo."
-        }
+        "followupApiUnavailable": "Los datos de seguimiento no están disponibles — se muestran las familias atrasadas desde las cuentas de pagadores."
       },
       "billingAccounts": {
         "hubTitle": "Cuentas de pagadores",

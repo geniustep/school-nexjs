@@ -10073,24 +10073,7 @@
           "promiseFailed": "Could not log the payment promise.",
           "resolveFailed": "Could not resolve the follow-up."
         },
-        "followupApiUnavailable": "Follow-up data is currently unavailable — overdue families are shown from payer accounts.",
-        "export": {
-          "excel": "Export Excel",
-          "print": "Print / PDF",
-          "preparing": "Preparing export…",
-          "failed": "Could not prepare the export. Please try again.",
-          "forbidden": "You do not have permission to export these data.",
-          "limitExceeded": "Too many results to export at once. Narrow the filters and try again.",
-          "noData": "There are no matching results to export.",
-          "invalidResponse": "The export response could not be validated.",
-          "reportTitle": "Arrears report",
-          "scope": "All results matching the active filters",
-          "generatedAt": "Generated at",
-          "rowCount": "Results",
-          "school": "School",
-          "filters": "Filters",
-          "popupBlocked": "Could not open the print window. Allow pop-ups and try again."
-        }
+        "followupApiUnavailable": "Follow-up data is currently unavailable — overdue families are shown from payer accounts."
       },
       "billingAccounts": {
         "hubTitle": "Payer accounts",

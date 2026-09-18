@@ -232,25 +232,3 @@
     flex: 1 1 100%;
   }
 }
-
-
-/* Arrears comprehensive export — server-authoritative all-filtered scope. */
-.finance-arrears-export-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-block: 12px 8px;
-}
-
-.finance-arrears-export-actions__error {
-  flex-basis: 100%;
-  margin: 0;
-  color: var(--c-danger, #b42318);
-  font-size: 13px;
-}
-
-.finance-arrears-export-actions__scope {
-  color: var(--c-text-muted);
-  font-size: 12px;
-}
