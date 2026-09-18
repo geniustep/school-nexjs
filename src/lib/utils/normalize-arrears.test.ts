@@ -36,6 +36,7 @@ describe('parseArrearsFollowupListResponse', () => {
     const parsed = parseArrearsFollowupListResponse({
       items: [{ family_id: 6667, display_name: 'QA Family' }],
       summary: {
+        overdue_accounts_count: 4,
         overdue_families_count: 3,
         total_overdue_amount: 4200,
         payment_promises_count: 1,
@@ -43,6 +44,7 @@ describe('parseArrearsFollowupListResponse', () => {
       },
     });
     expect(parsed.items).toHaveLength(1);
+    expect(parsed.summary?.overdue_accounts_count).toBe(4);
     expect(parsed.summary?.overdue_families_count).toBe(3);
     expect(parsed.summary?.total_overdue_amount).toBe(4200);
   });

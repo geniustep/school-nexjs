@@ -41,6 +41,12 @@ function readSummary(raw: Record<string, unknown>): ArrearsFollowupSummary {
   const nested = raw.summary && typeof raw.summary === 'object' ? (raw.summary as Record<string, unknown>) : raw;
   const kpis = raw.kpis && typeof raw.kpis === 'object' ? (raw.kpis as Record<string, unknown>) : nested;
   return {
+    overdue_accounts_count:
+      typeof kpis.overdue_accounts_count === 'number'
+        ? kpis.overdue_accounts_count
+        : typeof kpis.overdue_count === 'number'
+          ? kpis.overdue_count
+          : undefined,
     overdue_families_count:
       typeof kpis.overdue_families_count === 'number'
         ? kpis.overdue_families_count

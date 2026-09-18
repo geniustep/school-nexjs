@@ -35,6 +35,7 @@ export type ArrearsFollowupListItem = {
 };
 
 export type ArrearsFollowupSummary = {
+  overdue_accounts_count?: number;
   overdue_families_count?: number;
   total_overdue_amount?: number;
   payment_promises_count?: number;
