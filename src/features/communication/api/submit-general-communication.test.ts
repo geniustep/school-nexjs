@@ -92,6 +92,47 @@ describe('submitGroupGeneralCommunication', () => {
     }
   });
 
+  it('honors an explicit message intent even when the page query says announcement', async () => {
+    vi.stubGlobal('window', { location: { search: '?content_type=announcement' } });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 202,
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { id: 90, state: 'submitted', communication_content_id: 90 },
+          meta: {},
+        }),
+      }),
+    );
+
+    await submitGroupGeneralCommunication({
+      draftId: null,
+      subject: 'Quick message',
+      body: 'Body',
+      recipient_scope: {
+        scope_type: 'student',
+        beneficiary_kind: 'students_and_guardians',
+        scope_id: 15,
+      },
+      contentType: 'message',
+    });
+
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Quick message',
+        body: 'Body',
+        content_type: 'message',
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'students_and_guardians',
+          scope_id: 15,
+        },
+      }),
+    );
+  });
+
   it('creates announcement content when the announcement intent is selected', async () => {
     vi.stubGlobal('window', { location: { search: '?content_type=announcement' } });
     vi.stubGlobal(
