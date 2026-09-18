@@ -330,3 +330,80 @@
     transition: none;
   }
 }
+
+
+.student-spotlight-message-modal__backdrop {
+  z-index: 1120;
+}
+
+.student-spotlight-message-modal {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+
+.student-spotlight-message-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 14px;
+}
+
+.student-spotlight-message-modal__header h3 {
+  margin: 0;
+}
+
+.student-spotlight-message-modal__recipient {
+  display: grid;
+  gap: 4px;
+  margin-block-end: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.student-spotlight-message-modal__recipient span,
+.student-spotlight-message-modal__field > span {
+  color: var(--c-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.student-spotlight-message-modal__form {
+  display: grid;
+  gap: 12px;
+}
+
+.student-spotlight-message-modal__field {
+  display: grid;
+  gap: 6px;
+}
+
+.student-spotlight-message-modal__body {
+  min-height: 132px;
+  resize: vertical;
+}
+
+.student-spotlight-message-modal__status,
+.student-spotlight-message-modal__error {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.student-spotlight-message-modal__status {
+  color: var(--c-text-muted);
+}
+
+.student-spotlight-message-modal__error {
+  color: var(--c-danger, #b91c1c);
+}
+
+.student-spotlight-message-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-block-start: 4px;
+}
