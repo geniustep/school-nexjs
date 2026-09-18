@@ -66,6 +66,7 @@ function sampleHit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, '
     name_ar: 'إسماعيل العمراني',
     name_latin: 'Ismail Al-Mrani',
     matched_on: 'name',
+    parents: [{ id: 9, name: 'ولي التلميذ', phone: '0612345678' }],
     ...partial,
   };
 }
@@ -166,7 +167,13 @@ describe('StudentSpotlight', () => {
     expect(screen.getByText('تلميذ')).toBeTruthy();
     expect(screen.getByText('إسماعيل العمراني')).toBeTruthy();
     expect(screen.getByText('Ismail Al-Mrani')).toBeTruthy();
-    expect(screen.getByText('CM1 · P4A · STU-00124')).toBeTruthy();
+    expect(screen.getByText('المستوى:')).toBeTruthy();
+    expect(screen.getByText('CM1')).toBeTruthy();
+    expect(screen.getByText('القسم:')).toBeTruthy();
+    expect(screen.getByText('P4A')).toBeTruthy();
+    expect(screen.getByText('هاتف ولي الأمر:')).toBeTruthy();
+    expect(screen.getByText('0612345678')).toBeTruthy();
+    expect(screen.queryByText('STU-00124')).toBeNull();
     expect(screen.queryByText('الاسم')).toBeNull();
     expect(container.querySelectorAll('button button').length).toBe(0);
 
@@ -181,6 +188,9 @@ describe('StudentSpotlight', () => {
     expect(mockOnClose).not.toHaveBeenCalled();
 
     const messageDialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    expect(
+      messageDialog.closest('.student-spotlight-message-modal__backdrop')?.parentElement,
+    ).toBe(document.body);
     expect(within(messageDialog).getByText('إسماعيل العمراني — Ismail Al-Mrani')).toBeTruthy();
     await waitFor(() => {
       expect(mockPreviewIndividualCommunication).toHaveBeenCalledWith({

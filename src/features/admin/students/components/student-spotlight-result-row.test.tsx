@@ -13,6 +13,9 @@ vi.mock('@/features/i18n/locale-context', () => ({
     if (key === 'admin.spotlight.actions.openProfile') return 'فتح الملف';
     if (key === 'admin.spotlight.actions.payment') return 'الأداء';
     if (key === 'admin.spotlight.actions.message') return 'رسالة';
+    if (key === 'admin.studentsList.filters.level') return 'المستوى';
+    if (key === 'admin.studentsList.filters.class') return 'القسم';
+    if (key === 'admin.spotlight.matchedOn.guardian_phone') return 'هاتف ولي الأمر';
     return key;
   },
 }));
@@ -31,6 +34,7 @@ function hit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, 'id'>):
     name_ar: 'أحمد مصطفى',
     name_latin: 'Ahmed Mostafa',
     matched_on: 'name',
+    parents: [{ id: 9, name: 'ولي التلميذ', phone: '0612345678' }],
     ...partial,
   };
 }
@@ -64,7 +68,13 @@ describe('StudentSpotlightResultRow', () => {
     expect(screen.getByText('تلميذ')).toBeTruthy();
     expect(screen.getByText('أحمد مصطفى')).toBeTruthy();
     expect(screen.getByText('Ahmed Mostafa')).toBeTruthy();
-    expect(screen.getByText('CM1 · P4A · STU-00124')).toBeTruthy();
+    expect(screen.getByText('المستوى:')).toBeTruthy();
+    expect(screen.getByText('CM1')).toBeTruthy();
+    expect(screen.getByText('القسم:')).toBeTruthy();
+    expect(screen.getByText('P4A')).toBeTruthy();
+    expect(screen.getByText('هاتف ولي الأمر:')).toBeTruthy();
+    expect(screen.getByText('0612345678')).toBeTruthy();
+    expect(screen.queryByText('STU-00124')).toBeNull();
     expect(screen.queryByText('الاسم')).toBeNull();
     expect(screen.queryByText('admin.spotlight.matchedOn.name')).toBeNull();
     expect(container.querySelectorAll('button button').length).toBe(0);
