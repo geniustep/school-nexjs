@@ -23,6 +23,14 @@ export const SECTION_BENEFICIARY_KINDS = [
 
 export type SectionBeneficiaryKind = (typeof SECTION_BENEFICIARY_KINDS)[number];
 
+export const STUDENT_BENEFICIARY_KINDS = [
+  'students',
+  'guardians',
+  'students_and_guardians',
+] as const;
+
+export type StudentBeneficiaryKind = (typeof STUDENT_BENEFICIARY_KINDS)[number];
+
 export type IndividualRecipientType = 'teacher' | 'student' | 'guardian';
 
 export type SchoolRecipientScope = {
@@ -48,6 +56,12 @@ export type CycleRecipientScope = {
   scope_id: number;
 };
 
+export type StudentRecipientScope = {
+  scope_type: 'student';
+  beneficiary_kind: StudentBeneficiaryKind;
+  scope_id: number;
+};
+
 export type IndividualRecipientScope = {
   scope_type: 'individual';
   recipient_type: IndividualRecipientType;
@@ -58,7 +72,8 @@ export type GroupRecipientScope =
   | SchoolRecipientScope
   | ClassRecipientScope
   | LevelRecipientScope
-  | CycleRecipientScope;
+  | CycleRecipientScope
+  | StudentRecipientScope;
 
 export type RecipientScope = GroupRecipientScope | IndividualRecipientScope;
 

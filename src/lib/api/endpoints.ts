@@ -513,6 +513,9 @@ export const endpoints = {
      * Does not create content/snapshot/message; payload is recipient_type + recipient_id only.
      */
     communicationIndividualPreview: '/admin/communication/individual/preview',
+    /** Governed one-student audience messaging: student / guardians / both. */
+    communicationStudentAudience: '/admin/communication/student-audience',
+    communicationStudentAudiencePreview: '/admin/communication/student-audience/preview',
     communicationApprovals: '/admin/communication/approvals',
 
     financeFeeTypes: '/admin/finance/fee-types',
