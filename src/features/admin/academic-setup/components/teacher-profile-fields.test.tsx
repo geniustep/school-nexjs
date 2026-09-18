@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { TeacherOptions } from '@/types/teacher';
 import { defaultTeacherProfileFormState } from '../utils/teacher-profile';
 import { TeacherProfileFields } from './teacher-profile-fields';
@@ -25,6 +25,8 @@ const translations: Record<string, string> = {
 vi.mock('@/features/i18n/locale-context', () => ({
   useT: () => (key: string) => translations[key] ?? key,
 }));
+
+afterEach(cleanup);
 
 const options: TeacherOptions = {
   teacherTypes: [{ value: 'subject_teacher', label: 'Subject teacher' }],
