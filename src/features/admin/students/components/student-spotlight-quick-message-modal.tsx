@@ -48,6 +48,8 @@ export function StudentSpotlightQuickMessageModal({
   const toast = useToast();
   const titleId = useId();
   const audienceLabelId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const firstAudienceRef = useRef<HTMLButtonElement>(null);
   const subjectRef = useRef<HTMLInputElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -71,7 +73,9 @@ export function StudentSpotlightQuickMessageModal({
   useEffect(() => {
     if (!mounted) return;
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusTimer = window.setTimeout(() => firstAudienceRef.current?.focus(), 0);
     return () => {
+      window.clearTimeout(focusTimer);
       openerRef.current?.focus();
     };
   }, [mounted]);
@@ -129,10 +133,38 @@ export function StudentSpotlightQuickMessageModal({
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape' || submitting) return;
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
+      if (event.key === 'Escape') {
+        if (submitting) return;
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), ' +
+            'a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.getAttribute('aria-hidden') !== 'true');
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener('keydown', onKeyDown, { capture: true });
     return () => document.removeEventListener('keydown', onKeyDown, { capture: true });
@@ -189,6 +221,7 @@ export function StudentSpotlightQuickMessageModal({
       }}
     >
       <div
+        ref={dialogRef}
         className="student-spotlight-message-modal"
         role="dialog"
         aria-modal="true"
@@ -231,6 +264,7 @@ export function StudentSpotlightQuickMessageModal({
                 return (
                   <button
                     key={option.kind}
+                    ref={option.kind === 'guardians' ? firstAudienceRef : undefined}
                     type="button"
                     role="radio"
                     aria-checked={selected}
