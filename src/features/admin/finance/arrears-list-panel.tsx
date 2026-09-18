@@ -18,7 +18,7 @@ import {
   arrearsFollowupTabApiParam,
   arrearsFollowupTabLabelKey,
 } from '@/features/admin/finance/arrears-filter-contracts';
-import type { ArrearsFollowupTab } from '@/types/finance-arrears';
+import type { ArrearsFollowupListItem, ArrearsFollowupTab } from '@/types/finance-arrears';
 import {
   ARREARS_PAGE_SIZE,
   arrearsListHasActiveQuery,
@@ -30,16 +30,12 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { parseBillingAccountListResponse } from '@/lib/utils/normalize-billing-account';
 import {
+  arrearsBillingPartnerId,
+  buildArrearsCollectHref,
   buildBillingAccountHref,
-  buildFamilyCollectHref,
-  computeArrearsSummaryFromRows,
-  filterMergedRowsByTab,
-  mergeArrearsRows,
   parseArrearsFollowupListResponse,
 } from '@/lib/utils/normalize-arrears';
-import type { ArrearsMergedRow } from '@/types/finance-arrears';
 import type { ListParams } from '@/types/api';
 import '@/features/admin/finance/receivable-lists.css';
 
@@ -62,8 +58,13 @@ type ArrearsListPanelProps = {
 
 const TAB_BUTTONS = ARREARS_FOLLOWUP_TABS.filter((tab) => tab !== 'all');
 
-function rowLabel(row: ArrearsMergedRow): string {
-  return row.display_name ?? row.family_name ?? row.guardian_name ?? `#${row.family_id}`;
+function rowLabel(row: ArrearsFollowupListItem): string {
+  return (
+    row.display_name ??
+    row.family_name ??
+    row.guardian_name ??
+    `#${arrearsBillingPartnerId(row)}`
+  );
 }
 
 function resolveFollowupBadgeClass(status?: string | null): string {
@@ -120,85 +121,46 @@ export function ArrearsListPanel({
 
   const [drawerFamilyLabel, setDrawerFamilyLabel] = useState<string | undefined>();
 
-  const billingQuery: ListParams = useMemo(
-    () => ({
-      page: filters.page,
-      page_size: ARREARS_PAGE_SIZE,
-      search: filters.search || undefined,
-      has_overdue: 1,
-      account_kind: 'family',
-    }),
-    [filters.page, filters.search],
-  );
-
   const followupQuery: ListParams = useMemo(() => {
     const tabParam = arrearsFollowupTabApiParam(tabValid);
     return {
+      page: filters.page,
+      page_size: ARREARS_PAGE_SIZE,
       search: filters.search || undefined,
       tab: tabParam,
       quick: tabParam,
       status: tabParam,
     };
-  }, [filters.search, tabValid]);
+  }, [filters.page, filters.search, tabValid]);
 
-  const billingState = useAdminResource<unknown>(endpoints.admin.financeBillingAccounts, billingQuery);
-  const followupState = useAdminResource<unknown>(endpoints.admin.financeArrearsFollowups, followupQuery);
-
-  const followupUnavailable =
-    followupState.error?.code === 'not_found' ||
-    (followupState.error?.details?.status != null && Number(followupState.error.details.status) === 404);
-
-  const billingParsed = useMemo(
-    () => parseBillingAccountListResponse(billingState.data, billingState.meta),
-    [billingState.data, billingState.meta],
+  const followupState = useAdminResource<unknown>(
+    endpoints.admin.financeArrearsFollowups,
+    followupQuery,
   );
 
   const followupParsed = useMemo(
-    () =>
-      followupUnavailable
-        ? { items: [], summary: null, appliedTab: tabValid }
-        : parseArrearsFollowupListResponse(followupState.data, tabValid),
-    [followupState.data, tabValid, followupUnavailable],
+    () => parseArrearsFollowupListResponse(followupState.data, tabValid),
+    [followupState.data, tabValid],
   );
 
-  const followupFamilyIds = useMemo(
-    () => new Set(followupParsed.items.map((row) => row.family_id)),
-    [followupParsed.items],
-  );
-
-  const mergedAll = useMemo(
-    () => mergeArrearsRows(billingParsed.items, followupParsed.items),
-    [billingParsed.items, followupParsed.items],
-  );
-
-  const rows = useMemo(
-    () => filterMergedRowsByTab(mergedAll, tabValid, followupFamilyIds),
-    [mergedAll, tabValid, followupFamilyIds],
-  );
-
-  const summary = useMemo(
-    () => computeArrearsSummaryFromRows(mergedAll, followupParsed.summary),
-    [mergedAll, followupParsed.summary],
-  );
-
-  const pg = billingParsed.pagination ?? billingState.meta?.pagination;
+  const rows = followupParsed.items;
+  const summary = followupParsed.summary ?? {};
+  const pg = followupState.meta?.pagination;
   const pageCurrency = rows.find((row) => row.currency)?.currency;
 
-  const loading = billingState.initialLoading;
-  const error = billingState.error;
-  const isRefetching =
-    (billingState.fetching || followupState.fetching) && !billingState.initialLoading;
+  const loading = followupState.initialLoading;
+  const error = followupState.error;
+  const isRefetching = followupState.fetching && !followupState.initialLoading;
   const hasActiveQuery = arrearsListHasActiveQuery(filters);
   const emptyVariant = resolveArrearsListEmptyVariant({ hasActiveQuery });
 
   function reloadAll() {
-    billingState.reload();
     followupState.reload();
   }
 
-  function openDrawer(row: ArrearsMergedRow) {
+  function openDrawer(row: ArrearsFollowupListItem) {
     setDrawerFamilyLabel(rowLabel(row));
-    onOpenFamily(row.family_id);
+    onOpenFamily(arrearsBillingPartnerId(row));
   }
 
   function setTab(next: ArrearsFollowupTab) {
@@ -213,7 +175,7 @@ export function ArrearsListPanel({
     onFiltersChange({ tab: null, search: null, page: 1 });
   }
 
-  const columns: Column<ArrearsMergedRow>[] = useMemo(
+  const columns: Column<ArrearsFollowupListItem>[] = useMemo(
     () => [
       {
         key: 'family',
@@ -325,10 +287,7 @@ export function ArrearsListPanel({
         render: (row) => (
           <div className="finance-arrears-row-actions">
             <Link
-              href={buildFamilyCollectHref(row.family_id, returnTo, {
-                source: 'arrears',
-                suggestedAmount: row.total_overdue,
-              })}
+              href={buildArrearsCollectHref(row, returnTo)}
               className="btn btn--primary btn--sm finance-arrears-row-actions__primary"
               onClick={(e) => e.stopPropagation()}
             >
@@ -336,7 +295,7 @@ export function ArrearsListPanel({
             </Link>
             <div className="finance-arrears-row-actions__secondary">
               <Link
-                href={buildBillingAccountHref(row.family_id, returnTo)}
+                href={buildBillingAccountHref(arrearsBillingPartnerId(row), returnTo)}
                 className="btn btn--ghost btn--sm"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -375,8 +334,8 @@ export function ArrearsListPanel({
       <section className="finance-arrears-kpis finance-receivable-list__context" aria-label={t('admin.finance.arrears.kpiSection')}>
         <div className="finance-billing-kpis">
           <KpiCard
-            label={t('admin.finance.arrears.kpis.overdueFamilies')}
-            value={summary.overdue_families_count}
+            label={t('admin.finance.arrears.kpis.overdueAccounts')}
+            value={summary.overdue_accounts_count ?? summary.overdue_families_count}
             tone="red"
           />
           <KpiCard
@@ -401,12 +360,6 @@ export function ArrearsListPanel({
       {pg ? (
         <p className="finance-receivable-list__result-count" dir="ltr">
           {t('admin.finance.arrears.resultCount', { total: pg.total })}
-        </p>
-      ) : null}
-
-      {followupUnavailable ? (
-        <p className="finance-billing-kind-filter-notice" role="status">
-          {t('admin.finance.arrears.followupApiUnavailable')}
         </p>
       ) : null}
 
@@ -525,14 +478,14 @@ export function ArrearsListPanel({
             <DataTable
               columns={columns}
               rows={rows}
-              rowKey={(row) => String(row.family_id)}
+              rowKey={(row) => String(arrearsBillingPartnerId(row))}
               onRowClick={openDrawer}
               stickyHeader
             />
           </div>
           <div className="finance-arrears-mobile">
             {rows.map((row) => (
-              <article key={row.family_id} className="finance-arrears-card">
+              <article key={arrearsBillingPartnerId(row)} className="finance-arrears-card">
                 <div className="finance-arrears-card__head">
                   <button
                     type="button"
@@ -565,10 +518,7 @@ export function ArrearsListPanel({
                   </div>
                 </dl>
                 <Link
-                  href={buildFamilyCollectHref(row.family_id, returnTo, {
-                    source: 'arrears',
-                    suggestedAmount: row.total_overdue,
-                  })}
+                  href={buildArrearsCollectHref(row, returnTo)}
                   className="btn btn--primary btn--sm finance-arrears-card__collect"
                 >
                   {t('admin.finance.arrears.actions.receivePayment')}

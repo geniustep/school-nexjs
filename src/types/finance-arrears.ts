@@ -17,6 +17,7 @@ export type ArrearsFollowupStatus =
 export type ArrearsFollowupListItem = {
   family_id: number;
   billing_partner_id?: number;
+  account_kind?: 'family' | 'individual' | null;
   family_name?: string;
   guardian_name?: string;
   display_name?: string;
@@ -35,6 +36,7 @@ export type ArrearsFollowupListItem = {
 };
 
 export type ArrearsFollowupSummary = {
+  overdue_accounts_count?: number;
   overdue_families_count?: number;
   total_overdue_amount?: number;
   payment_promises_count?: number;
