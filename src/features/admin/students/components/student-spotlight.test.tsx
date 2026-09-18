@@ -1,8 +1,11 @@
 // @vitest-environment happy-dom
 
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ToastProvider } from '@/components/ui/toast';
+import { previewIndividualCommunication } from '@/features/communication/api/admin-communication-api';
+import { submitIndividualGeneralCommunication } from '@/features/communication/api/submit-general-communication';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { LOCALE_STORAGE_KEY } from '@/lib/i18n/config';
 import type { StudentSearchHit } from '@/types/student-search';
@@ -24,6 +27,14 @@ vi.mock('../hooks/use-student-search-query', () => ({
   useStudentSearchQuery: vi.fn(),
 }));
 
+vi.mock('@/features/communication/api/admin-communication-api', () => ({
+  previewIndividualCommunication: vi.fn(),
+}));
+
+vi.mock('@/features/communication/api/submit-general-communication', () => ({
+  submitIndividualGeneralCommunication: vi.fn(),
+}));
+
 vi.mock('@/features/auth/session-context', () => ({
   useSession: () => ({
     id: 1,
@@ -37,6 +48,8 @@ vi.mock('@/features/auth/session-context', () => ({
 }));
 
 const mockUseStudentSearchQuery = vi.mocked(useStudentSearchQuery);
+const mockPreviewIndividualCommunication = vi.mocked(previewIndividualCommunication);
+const mockSubmitIndividualGeneralCommunication = vi.mocked(submitIndividualGeneralCommunication);
 const mockOnClose = vi.fn();
 
 function sampleHit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, 'id'>): StudentSearchHit {
@@ -60,7 +73,9 @@ function sampleHit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, '
 function renderStudentSpotlight() {
   return render(
     <LocaleProvider>
-      <StudentSpotlight onClose={mockOnClose} focusRequest={1} />
+      <ToastProvider>
+        <StudentSpotlight onClose={mockOnClose} focusRequest={1} />
+      </ToastProvider>
     </LocaleProvider>,
   );
 }
@@ -74,6 +89,28 @@ beforeEach(() => {
     error: false,
     results: [],
     suggestion: null,
+  });
+  mockPreviewIndividualCommunication.mockReset();
+  mockPreviewIndividualCommunication.mockResolvedValue({
+    ok: true,
+    preview: {
+      recipient_type: 'student',
+      recipient_count: 1,
+      deliverable_user_count: 1,
+      can_submit: true,
+    },
+  });
+  mockSubmitIndividualGeneralCommunication.mockReset();
+  mockSubmitIndividualGeneralCommunication.mockResolvedValue({
+    ok: true,
+    draftId: null,
+    outcome: {
+      kind: 'accepted',
+      httpStatus: 200,
+      contentId: null,
+      result: null,
+      data: null,
+    },
   });
 });
 
@@ -140,10 +177,102 @@ describe('StudentSpotlight', () => {
     pushMock.mockReset();
     mockOnClose.mockReset();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
-    expect(pushMock).toHaveBeenCalledWith('/admin/channels/compose?studentId=2081');
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
 
-    // Actions navigate locally — search hook is the only data entry (no recipient/details fetch).
+    const messageDialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    expect(within(messageDialog).getByText('إسماعيل العمراني — Ismail Al-Mrani')).toBeTruthy();
+    await waitFor(() => {
+      expect(mockPreviewIndividualCommunication).toHaveBeenCalledWith({
+        recipient_type: 'student',
+        recipient_id: 2081,
+      });
+    });
+
+    await user.type(within(messageDialog).getByLabelText('الموضوع'), 'متابعة التلميذ');
+    await user.type(within(messageDialog).getByLabelText('نص الرسالة'), 'يرجى التواصل مع الإدارة.');
+    await user.click(within(messageDialog).getByRole('button', { name: 'إرسال' }));
+
+    await waitFor(() => {
+      expect(mockSubmitIndividualGeneralCommunication).toHaveBeenCalledWith({
+        scope: {
+          scope_type: 'individual',
+          recipient_type: 'student',
+          recipient_id: 2081,
+        },
+        subject: 'متابعة التلميذ',
+        body: 'يرجى التواصل مع الإدارة.',
+      });
+    });
+    expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    // The existing Spotlight search hook remains the only student lookup.
     expect(mockUseStudentSearchQuery).toHaveBeenCalled();
+  });
+
+  it('keeps the quick message modal open with its draft when submit fails', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+    mockSubmitIndividualGeneralCommunication.mockResolvedValueOnce({
+      ok: false,
+      draftId: null,
+      error: {
+        code: 'network_error',
+        message: 'تعذر الوصول إلى الخادم.',
+        details: {},
+      },
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    await waitFor(() => {
+      expect(
+        within(dialog).getByText('المستفيد جاهز لاستلام الرسالة.'),
+      ).toBeTruthy();
+    });
+
+    const subject = within(dialog).getByLabelText('الموضوع') as HTMLInputElement;
+    const body = within(dialog).getByLabelText('نص الرسالة') as HTMLTextAreaElement;
+    await user.type(subject, 'موضوع يبقى');
+    await user.type(body, 'نص يبقى عند الخطأ');
+    await user.click(within(dialog).getByRole('button', { name: 'إرسال' }));
+
+    await waitFor(() => {
+      expect(within(dialog).getByRole('alert')).toBeTruthy();
+    });
+    expect(subject.value).toBe('موضوع يبقى');
+    expect(body.value).toBe('نص يبقى عند الخطأ');
+    expect(screen.getByRole('dialog', { name: 'الرسالة' })).toBeTruthy();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it('Escape closes only the quick message modal and keeps Spotlight open', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    expect(await screen.findByRole('dialog', { name: 'الرسالة' })).toBeTruthy();
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
+    expect(mockOnClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('searchbox', { name: 'بحث عن التلاميذ' })).toBeTruthy();
   });
 
   it('opens profile on Enter for the active result when focus is not on an action', async () => {
