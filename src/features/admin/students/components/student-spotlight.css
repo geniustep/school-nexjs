@@ -213,23 +213,41 @@
 .student-spotlight__meta {
   font-size: 0.8125rem;
   color: var(--c-muted, #64748b);
+}
+
+.student-spotlight__meta--details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-width: 0;
+  white-space: normal;
+}
+
+.student-spotlight__meta-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.student-spotlight__meta-label {
+  color: var(--c-text-faint, #94a3b8);
+  font-weight: 650;
 }
 
 .student-spotlight__actions {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  gap: 0;
+  gap: 6px;
   min-width: 0;
   max-width: 100%;
-  margin-block-start: 2px;
-  padding: 1px;
-  border: 1px solid color-mix(in srgb, var(--c-border) 82%, transparent);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--c-surface-2) 72%, transparent);
+  margin-block-start: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   white-space: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
@@ -241,38 +259,48 @@
 }
 
 .student-spotlight__action {
-  position: relative;
-  min-height: 26px;
-  padding: 2px 7px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
+  min-height: 29px;
+  padding: 4px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
   box-shadow: none;
-  color: var(--c-text-muted);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 650;
   line-height: 1.2;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
 }
 
-.student-spotlight__action + .student-spotlight__action::before {
-  content: '';
-  position: absolute;
-  inset-block: 6px;
-  inset-inline-start: 0;
-  width: 1px;
-  background: var(--c-border);
-  pointer-events: none;
+.student-spotlight__action[data-spotlight-action='profile'] {
+  border-color: color-mix(in srgb, var(--c-primary) 24%, var(--c-border));
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+}
+
+.student-spotlight__action[data-spotlight-action='payment'] {
+  border-color: color-mix(in srgb, var(--c-green) 24%, var(--c-border));
+  background: var(--c-green-soft);
+  color: var(--c-green);
+}
+
+.student-spotlight__action[data-spotlight-action='message'] {
+  border-color: color-mix(in srgb, var(--raqeem-secondary) 34%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-secondary) 11%, var(--c-surface));
+  color: #0f766e;
 }
 
 .student-spotlight__action:not(:disabled):hover {
-  background: var(--c-surface);
-  color: var(--c-text);
+  border-color: currentColor;
+  filter: saturate(1.08);
+  transform: translateY(-1px);
 }
 
 .student-spotlight__action:focus-visible {
   outline: 2px solid var(--c-primary);
-  outline-offset: 1px;
-  background: var(--c-surface);
+  outline-offset: 2px;
 }
 
 .student-spotlight-trigger {
@@ -333,13 +361,44 @@
 
 
 .student-spotlight-message-modal__backdrop {
-  z-index: 1120;
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.64);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .student-spotlight-message-modal {
-  width: min(520px, calc(100% - 32px));
-  max-height: calc(100dvh - 32px);
+  position: relative;
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 48px);
   overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--c-primary) 14%, var(--c-border));
+  border-radius: 20px;
+  background: var(--c-surface);
+  box-shadow:
+    0 32px 72px rgba(15, 23, 42, 0.28),
+    0 10px 28px rgba(15, 23, 42, 0.16);
+}
+
+.student-spotlight-message-modal::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(
+    90deg,
+    var(--raqeem-primary),
+    var(--raqeem-secondary)
+  );
+  pointer-events: none;
 }
 
 .student-spotlight-message-modal__header {
@@ -347,63 +406,162 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-block-end: 14px;
+  padding: 20px 22px 15px;
+  border-block-end: 1px solid var(--c-border);
 }
 
 .student-spotlight-message-modal__header h3 {
   margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 750;
+}
+
+.student-spotlight-message-modal__close {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2);
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.student-spotlight-message-modal__close:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--c-primary) 24%, var(--c-border));
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+}
+
+.student-spotlight-message-modal__close:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
 }
 
 .student-spotlight-message-modal__recipient {
-  display: grid;
-  gap: 4px;
-  margin-block-end: 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-sm);
-  background: var(--c-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 16px 22px 0;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--c-primary) 18%, var(--c-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c-primary-soft) 72%, var(--c-surface));
 }
 
 .student-spotlight-message-modal__recipient span,
 .student-spotlight-message-modal__field > span {
   color: var(--c-text-muted);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 650;
+}
+
+.student-spotlight-message-modal__recipient strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--c-text);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .student-spotlight-message-modal__form {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px 22px 20px;
 }
 
 .student-spotlight-message-modal__field {
   display: grid;
-  gap: 6px;
+  gap: 7px;
+}
+
+.student-spotlight-message-modal__field .input {
+  min-height: 42px;
+  border-radius: 10px;
+  background: var(--c-surface);
+}
+
+.student-spotlight-message-modal__field .input:focus {
+  border-color: color-mix(in srgb, var(--c-primary) 55%, var(--c-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary) 10%, transparent);
 }
 
 .student-spotlight-message-modal__body {
-  min-height: 132px;
+  min-height: 150px;
   resize: vertical;
 }
 
 .student-spotlight-message-modal__status,
 .student-spotlight-message-modal__error {
   margin: 0;
+  padding: 9px 11px;
+  border-radius: 10px;
   font-size: 0.8125rem;
   line-height: 1.45;
 }
 
 .student-spotlight-message-modal__status {
-  color: var(--c-text-muted);
+  border: 1px solid color-mix(in srgb, var(--c-info) 20%, var(--c-border));
+  background: var(--c-info-soft);
+  color: color-mix(in srgb, var(--c-info) 80%, var(--c-text));
 }
 
 .student-spotlight-message-modal__error {
-  color: var(--c-danger, #b91c1c);
+  border: 1px solid color-mix(in srgb, var(--c-red) 22%, var(--c-border));
+  background: var(--c-red-soft);
+  color: var(--c-red);
 }
 
 .student-spotlight-message-modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding-block-start: 4px;
+  margin-inline: -22px;
+  margin-block-end: -20px;
+  padding: 14px 22px 16px;
+  border-block-start: 1px solid var(--c-border);
+  background: color-mix(in srgb, var(--c-surface-2) 58%, var(--c-surface));
+}
+
+.student-spotlight-message-modal__submit,
+.student-spotlight-message-modal__cancel {
+  min-height: 38px;
+  min-width: 88px;
+  border-radius: 9px;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .student-spotlight-message-modal__backdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .student-spotlight-message-modal {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    border-radius: 18px;
+  }
+
+  .student-spotlight-message-modal__recipient {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .student-spotlight-message-modal__actions {
+    flex-direction: column;
+  }
+
+  .student-spotlight-message-modal__submit,
+  .student-spotlight-message-modal__cancel {
+    width: 100%;
+  }
 }

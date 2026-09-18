@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '@/components/ui/toast';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
 import { previewIndividualCommunication } from '@/features/communication/api/admin-communication-api';
@@ -34,6 +35,7 @@ export function StudentSpotlightQuickMessageModal({
   const titleId = useId();
   const subjectRef = useRef<HTMLInputElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [deliverability, setDeliverability] = useState<DeliverabilityState>('checking');
@@ -49,13 +51,18 @@ export function StudentSpotlightQuickMessageModal({
   };
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusTimer = window.setTimeout(() => subjectRef.current?.focus(), 0);
     return () => {
       window.clearTimeout(focusTimer);
       openerRef.current?.focus();
     };
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,9 +148,11 @@ export function StudentSpotlightQuickMessageModal({
     onClose();
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-      className="modal-backdrop student-spotlight-message-modal__backdrop"
+      className="student-spotlight-message-modal__backdrop"
       role="presentation"
       onClick={(event) => {
         event.stopPropagation();
@@ -151,7 +160,7 @@ export function StudentSpotlightQuickMessageModal({
       }}
     >
       <div
-        className="card modal-panel student-spotlight-message-modal"
+        className="student-spotlight-message-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -161,7 +170,7 @@ export function StudentSpotlightQuickMessageModal({
           <h3 id={titleId}>{t('communication.general.messageTitle')}</h3>
           <button
             type="button"
-            className="btn btn--ghost btn--sm"
+            className="student-spotlight-message-modal__close"
             aria-label={t('common.close')}
             disabled={submitting}
             onClick={onClose}
@@ -220,7 +229,7 @@ export function StudentSpotlightQuickMessageModal({
           <div className="student-spotlight-message-modal__actions">
             <button
               type="submit"
-              className="btn btn--primary btn--sm"
+              className="btn btn--primary student-spotlight-message-modal__submit"
               disabled={!canSubmit}
               aria-disabled={!canSubmit}
             >
@@ -228,7 +237,7 @@ export function StudentSpotlightQuickMessageModal({
             </button>
             <button
               type="button"
-              className="btn btn--ghost btn--sm"
+              className="btn btn--ghost student-spotlight-message-modal__cancel"
               disabled={submitting}
               onClick={onClose}
             >
@@ -237,6 +246,7 @@ export function StudentSpotlightQuickMessageModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
