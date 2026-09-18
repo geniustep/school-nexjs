@@ -4,8 +4,10 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/ui/toast';
-import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
-import { submitGroupGeneralCommunication } from '@/features/communication/api/submit-general-communication';
+import {
+  previewStudentAudienceCommunication,
+  submitStudentAudienceCommunication,
+} from '@/features/communication/api/admin-communication-api';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { LOCALE_STORAGE_KEY } from '@/lib/i18n/config';
 import type { StudentSearchHit } from '@/types/student-search';
@@ -28,11 +30,8 @@ vi.mock('../hooks/use-student-search-query', () => ({
 }));
 
 vi.mock('@/features/communication/api/admin-communication-api', () => ({
-  previewAdminRecipientScope: vi.fn(),
-}));
-
-vi.mock('@/features/communication/api/submit-general-communication', () => ({
-  submitGroupGeneralCommunication: vi.fn(),
+  previewStudentAudienceCommunication: vi.fn(),
+  submitStudentAudienceCommunication: vi.fn(),
 }));
 
 vi.mock('@/features/auth/session-context', () => ({
@@ -48,8 +47,12 @@ vi.mock('@/features/auth/session-context', () => ({
 }));
 
 const mockUseStudentSearchQuery = vi.mocked(useStudentSearchQuery);
-const mockPreviewAdminRecipientScope = vi.mocked(previewAdminRecipientScope);
-const mockSubmitGroupGeneralCommunication = vi.mocked(submitGroupGeneralCommunication);
+const mockPreviewStudentAudienceCommunication = vi.mocked(
+  previewStudentAudienceCommunication,
+);
+const mockSubmitStudentAudienceCommunication = vi.mocked(
+  submitStudentAudienceCommunication,
+);
 const mockOnClose = vi.fn();
 
 function sampleHit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, 'id'>): StudentSearchHit {
@@ -91,8 +94,8 @@ beforeEach(() => {
     results: [],
     suggestion: null,
   });
-  mockPreviewAdminRecipientScope.mockReset();
-  mockPreviewAdminRecipientScope.mockResolvedValue({
+  mockPreviewStudentAudienceCommunication.mockReset();
+  mockPreviewStudentAudienceCommunication.mockResolvedValue({
     ok: true,
     preview: {
       presentation: 'preview',
@@ -105,17 +108,15 @@ beforeEach(() => {
       },
     },
   });
-  mockSubmitGroupGeneralCommunication.mockReset();
-  mockSubmitGroupGeneralCommunication.mockResolvedValue({
-    ok: true,
-    draftId: null,
-    outcome: {
-      kind: 'accepted',
-      httpStatus: 200,
-      contentId: null,
-      result: null,
-      data: null,
+  mockSubmitStudentAudienceCommunication.mockReset();
+  mockSubmitStudentAudienceCommunication.mockResolvedValue({
+    success: true,
+    data: {
+      id: 90,
+      pending_review: false,
+      published_message_id: 91,
     },
+    meta: {},
   });
 });
 
@@ -201,13 +202,13 @@ describe('StudentSpotlight', () => {
     expect(
       within(messageDialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
     ).toBeTruthy();
-    expect(mockPreviewAdminRecipientScope).not.toHaveBeenCalled();
+    expect(mockPreviewStudentAudienceCommunication).not.toHaveBeenCalled();
 
     await user.click(
       within(messageDialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
     );
     await waitFor(() => {
-      expect(mockPreviewAdminRecipientScope).toHaveBeenCalledWith({
+      expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledWith({
         recipient_scope: {
           scope_type: 'student',
           beneficiary_kind: 'students_and_guardians',
@@ -221,8 +222,7 @@ describe('StudentSpotlight', () => {
     await user.click(within(messageDialog).getByRole('button', { name: 'إرسال' }));
 
     await waitFor(() => {
-      expect(mockSubmitGroupGeneralCommunication).toHaveBeenCalledWith({
-        draftId: null,
+      expect(mockSubmitStudentAudienceCommunication).toHaveBeenCalledWith({
         recipient_scope: {
           scope_type: 'student',
           beneficiary_kind: 'students_and_guardians',
@@ -230,7 +230,6 @@ describe('StudentSpotlight', () => {
         },
         subject: 'متابعة التلميذ',
         body: 'يرجى التواصل مع الإدارة.',
-        contentType: 'message',
       });
     });
     expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
@@ -241,6 +240,37 @@ describe('StudentSpotlight', () => {
     expect(mockUseStudentSearchQuery).toHaveBeenCalled();
   });
 
+  it('previews each student audience choice through the governed endpoint', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+
+    for (const [name, beneficiary_kind] of [
+      ['أولياء الأمور', 'guardians'],
+      ['التلاميذ', 'students'],
+      ['التلاميذ وأولياء الأمور', 'students_and_guardians'],
+    ] as const) {
+      await user.click(within(dialog).getByRole('radio', { name }));
+      await waitFor(() => {
+        expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledWith({
+          recipient_scope: {
+            scope_type: 'student',
+            beneficiary_kind,
+            scope_id: 2081,
+          },
+        });
+      });
+    }
+  });
+
   it('keeps the quick message modal open with its draft when submit fails', async () => {
     const user = userEvent.setup();
     mockUseStudentSearchQuery.mockReturnValue({
@@ -249,14 +279,14 @@ describe('StudentSpotlight', () => {
       results: [sampleHit({ id: 2081 })],
       suggestion: null,
     });
-    mockSubmitGroupGeneralCommunication.mockResolvedValueOnce({
-      ok: false,
-      draftId: null,
+    mockSubmitStudentAudienceCommunication.mockResolvedValueOnce({
+      success: false,
       error: {
         code: 'network_error',
         message: 'تعذر الوصول إلى الخادم.',
         details: {},
       },
+      meta: {},
     });
 
     renderStudentSpotlight();
