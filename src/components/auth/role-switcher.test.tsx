@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { RoleSwitcher } from '@/components/auth/role-switcher';
 
 const switchRole = vi.fn(async () => true);
+const switchContext = vi.fn(async () => true);
 const clearError = vi.fn();
 
 let mockCtx = {
@@ -14,11 +15,15 @@ let mockCtx = {
     { code: 'teacher', label: 'أستاذة' },
     { code: 'parent', label: 'ولي أمر' },
   ],
+  activeContext: null as { school_id: number; role: 'admin' | 'parent' } | null,
+  availableContexts: [] as Array<{ school_id: number; school_name?: string; role: 'admin' | 'parent' }>,
+  contextMode: false,
   showSwitcher: true,
   switching: false,
   error: null as string | null,
   clearError,
   switchRole,
+  switchContext,
 };
 
 vi.mock('@/features/auth/active-role-context', () => ({
@@ -45,6 +50,7 @@ describe('RoleSwitcher', () => {
   beforeEach(() => {
     cleanup();
     switchRole.mockClear();
+    switchContext.mockClear();
     clearError.mockClear();
     mockCtx = {
       activeRole: 'admin',
@@ -53,11 +59,15 @@ describe('RoleSwitcher', () => {
         { code: 'teacher', label: 'أستاذة' },
         { code: 'parent', label: 'ولي أمر' },
       ],
+      activeContext: null,
+      availableContexts: [],
+      contextMode: false,
       showSwitcher: true,
       switching: false,
       error: null,
       clearError,
       switchRole,
+      switchContext,
     };
   });
 
@@ -104,4 +114,22 @@ describe('RoleSwitcher', () => {
     expect(screen.queryByText('الدور النشط')).toBeNull();
     expect(screen.getByRole('combobox', { name: /الدور النشط/ })).toBeTruthy();
   });
+
+  it('renders School + Role contexts and switches parent B atomically', async () => {
+    const user = userEvent.setup();
+    mockCtx.contextMode = true;
+    mockCtx.activeContext = { school_id: 1, role: 'admin' };
+    mockCtx.availableContexts = [
+      { school_id: 1, school_name: 'مؤسسة أ', role: 'admin' },
+      { school_id: 2, school_name: 'مدرسة ب', role: 'parent' },
+    ];
+    render(<RoleSwitcher />);
+    expect(screen.getByRole('option', { name: /مؤسسة أ.*الإدارة/ })).toBeTruthy();
+    expect(screen.getByRole('option', { name: /مدرسة ب.*ولي أمر/ })).toBeTruthy();
+    await user.selectOptions(screen.getByRole('combobox'), '2:parent');
+    expect(switchContext).toHaveBeenCalledTimes(1);
+    expect(switchContext).toHaveBeenCalledWith({ school_id: 2, role: 'parent' });
+    expect(switchRole).not.toHaveBeenCalled();
+  });
+
 });

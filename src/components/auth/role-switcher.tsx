@@ -3,6 +3,7 @@
 import { useActiveRole } from '@/features/auth/active-role-context';
 import { useT } from '@/features/i18n/locale-context';
 import { cn } from '@/lib/utils/cn';
+import { contextKey } from '@/lib/auth/active-context-workspace';
 
 function roleLabel(code: string, serverLabel: string | undefined, t: (k: string) => string): string {
   const key = `roles.${code}`;
@@ -23,8 +24,19 @@ export function RoleSwitcher({
   'data-testid'?: string;
 }) {
   const t = useT();
-  const { activeRole, availableRoles, showSwitcher, switching, error, clearError, switchRole } =
-    useActiveRole();
+  const {
+    activeRole,
+    availableRoles,
+    activeContext,
+    availableContexts,
+    contextMode,
+    showSwitcher,
+    switching,
+    error,
+    clearError,
+    switchRole,
+    switchContext,
+  } = useActiveRole();
 
   if (!showSwitcher) return null;
 
@@ -32,6 +44,7 @@ export function RoleSwitcher({
     (role) => role.code.trim().toLowerCase() === activeRole,
   );
   const activeDisplay = roleLabel(activeRole, activeOption?.label, t);
+  const activeContextValue = activeContext ? contextKey(activeContext) : '';
 
   return (
     <div
@@ -43,7 +56,7 @@ export function RoleSwitcher({
         {!hideLabel && <span className="role-switcher__label">{t('auth.activeRole')}</span>}
         <select
           className="input input--sm role-switcher__select"
-          value={activeRole}
+          value={contextMode ? activeContextValue : activeRole}
           disabled={switching}
           aria-label={`${t('auth.activeRole')}: ${activeDisplay}`}
           aria-busy={switching || undefined}
@@ -51,19 +64,40 @@ export function RoleSwitcher({
           onChange={(e) => {
             clearError();
             const next = e.target.value;
+            if (contextMode) {
+              const selected = availableContexts.find((ctx) => contextKey(ctx) === next);
+              if (selected) {
+                void switchContext({ school_id: selected.school_id, role: selected.role });
+              }
+              return;
+            }
             if (next && next !== activeRole) void switchRole(next);
           }}
         >
-          {availableRoles.map((role) => {
-            const code = role.code.trim().toLowerCase();
-            const isActive = code === activeRole;
-            return (
-              <option key={code} value={code} disabled={isActive && switching}>
-                {roleLabel(code, role.label, t)}
-                {isActive ? ` — ${t('auth.activeRoleMarker')}` : ''}
-              </option>
-            );
-          })}
+          {contextMode
+            ? availableContexts.map((ctx) => {
+                const key = contextKey(ctx);
+                const serverRole = availableRoles.find(
+                  (role) => role.code.trim().toLowerCase() === ctx.role,
+                );
+                const roleDisplay = roleLabel(ctx.role, serverRole?.label, t);
+                const schoolDisplay = ctx.school_name?.trim() || `#${ctx.school_id}`;
+                return (
+                  <option key={key} value={key}>
+                    {schoolDisplay} — {roleDisplay}
+                  </option>
+                );
+              })
+            : availableRoles.map((role) => {
+                const code = role.code.trim().toLowerCase();
+                const isActive = code === activeRole;
+                return (
+                  <option key={code} value={code} disabled={isActive && switching}>
+                    {roleLabel(code, role.label, t)}
+                    {isActive ? ` — ${t('auth.activeRoleMarker')}` : ''}
+                  </option>
+                );
+              })}
         </select>
       </label>
       {switching && (
