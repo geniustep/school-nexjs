@@ -1,27 +1,39 @@
 'use client';
 
 /**
- * Lightweight individual message flow for Student Spotlight.
- * Reuses the governed Communication individual preview + submit contract.
+ * Quick governed message from Student Spotlight.
+ * Odoo resolves the selected student / guardian audience and freezes recipients on submit.
  */
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useToast } from '@/components/ui/toast';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
-import { previewIndividualCommunication } from '@/features/communication/api/admin-communication-api';
-import { submitIndividualGeneralCommunication } from '@/features/communication/api/submit-general-communication';
-import {
-  individualDeliverabilityMessageKey,
-  isIndividualSubmitAllowed,
-} from '@/features/communication/utils/individual-deliverability';
+import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
+import { submitGroupGeneralCommunication } from '@/features/communication/api/submit-general-communication';
+import { buildStudentRecipientScope } from '@/features/communication/utils/recipient-scope';
 import { useT } from '@/features/i18n/locale-context';
-import type { IndividualCommunicationPreview } from '@/types/communication';
-import type { IndividualRecipientScope } from '@/types/recipient-scope';
+import type { CommunicationRecipientSummary } from '@/types/communication';
+import type {
+  StudentBeneficiaryKind,
+  StudentRecipientScope,
+} from '@/types/recipient-scope';
 import type { StudentSearchHit } from '@/types/student-search';
 import { studentSpotlightIdentityTitle } from '../utils/student-spotlight-utils';
 
-type DeliverabilityState = 'checking' | 'ready' | 'blocked' | 'failed';
+type DeliverabilityState = 'idle' | 'checking' | 'ready' | 'blocked' | 'failed';
+
+const AUDIENCE_OPTIONS: Array<{
+  kind: StudentBeneficiaryKind;
+  labelKey: string;
+}> = [
+  { kind: 'guardians', labelKey: 'communication.general.beneficiary.guardians' },
+  { kind: 'students', labelKey: 'communication.general.beneficiary.students' },
+  {
+    kind: 'students_and_guardians',
+    labelKey: 'communication.general.beneficiary.studentsAndGuardians',
+  },
+];
 
 export function StudentSpotlightQuickMessageModal({
   student,
@@ -33,22 +45,23 @@ export function StudentSpotlightQuickMessageModal({
   const t = useT();
   const toast = useToast();
   const titleId = useId();
+  const audienceLabelId = useId();
   const subjectRef = useRef<HTMLInputElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [beneficiaryKind, setBeneficiaryKind] = useState<StudentBeneficiaryKind | null>(null);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [deliverability, setDeliverability] = useState<DeliverabilityState>('checking');
-  const [preview, setPreview] = useState<IndividualCommunicationPreview | null>(null);
+  const [deliverability, setDeliverability] = useState<DeliverabilityState>('idle');
+  const [preview, setPreview] = useState<CommunicationRecipientSummary | null>(null);
+  const [draftId, setDraftId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const recipientName = studentSpotlightIdentityTitle(student) || String(student.id);
-  const scope: IndividualRecipientScope = {
-    scope_type: 'individual',
-    recipient_type: 'student',
-    recipient_id: student.id,
-  };
+  const scope: StudentRecipientScope | null = beneficiaryKind
+    ? buildStudentRecipientScope(beneficiaryKind, student.id)
+    : null;
 
   useEffect(() => {
     setMounted(true);
@@ -57,47 +70,61 @@ export function StudentSpotlightQuickMessageModal({
   useEffect(() => {
     if (!mounted) return;
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusTimer = window.setTimeout(() => subjectRef.current?.focus(), 0);
     return () => {
-      window.clearTimeout(focusTimer);
       openerRef.current?.focus();
     };
   }, [mounted]);
 
   useEffect(() => {
+    if (!beneficiaryKind) {
+      setDeliverability('idle');
+      setPreview(null);
+      setErrorMessage(null);
+      return;
+    }
+
     let cancelled = false;
+    const selectedScope = buildStudentRecipientScope(beneficiaryKind, student.id);
     setDeliverability('checking');
     setPreview(null);
     setErrorMessage(null);
 
-    void previewIndividualCommunication({
-      recipient_type: 'student',
-      recipient_id: student.id,
+    void previewAdminRecipientScope({
+      recipient_scope: selectedScope,
     }).then((result) => {
       if (cancelled) return;
       if (!result.ok) {
         setDeliverability('failed');
         const key = communicationErrorMessageKey(result.error.code);
         setErrorMessage(
-          key ? t(key) : result.error.message || t('communication.general.submitFailed'),
+          key ? t(key) : result.error.message || t('communication.general.previewFailed'),
         );
         return;
       }
 
-      setPreview(result.preview);
-      if (isIndividualSubmitAllowed(result.preview)) {
+      const summary = result.preview.recipient_summary;
+      setPreview(summary);
+      if (summary.can_submit === true) {
         setDeliverability('ready');
         return;
       }
 
       setDeliverability('blocked');
-      setErrorMessage(t(individualDeliverabilityMessageKey(result.preview)));
+      const blockingCode = summary.blocking_reasons?.[0];
+      const key = communicationErrorMessageKey(blockingCode);
+      setErrorMessage(key ? t(key) : t('communication.recipients.cannotSubmit'));
     });
 
     return () => {
       cancelled = true;
     };
-  }, [student.id, t]);
+  }, [beneficiaryKind, student.id, t]);
+
+  useEffect(() => {
+    if (!mounted || deliverability === 'checking' || beneficiaryKind === null) return;
+    const focusTimer = window.setTimeout(() => subjectRef.current?.focus(), 0);
+    return () => window.clearTimeout(focusTimer);
+  }, [mounted, deliverability, beneficiaryKind]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -112,25 +139,29 @@ export function StudentSpotlightQuickMessageModal({
 
   const canSubmit =
     !submitting &&
+    scope !== null &&
     deliverability === 'ready' &&
-    isIndividualSubmitAllowed(preview) &&
+    preview?.can_submit === true &&
     subject.trim().length > 0 &&
     body.trim().length > 0;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || !scope) return;
 
     setSubmitting(true);
     setErrorMessage(null);
-    const result = await submitIndividualGeneralCommunication({
-      scope,
+    const result = await submitGroupGeneralCommunication({
+      draftId,
       subject: subject.trim(),
       body: body.trim(),
+      recipient_scope: scope,
+      contentType: 'message',
     });
 
     if (!result.ok) {
       setSubmitting(false);
+      setDraftId(result.draftId);
       const key = communicationErrorMessageKey(result.error.code);
       const message = key
         ? t(key)
@@ -180,11 +211,43 @@ export function StudentSpotlightQuickMessageModal({
         </div>
 
         <div className="student-spotlight-message-modal__recipient">
-          <span>{t('communication.audience')}</span>
+          <span>{t('admin.spotlight.studentType')}</span>
           <strong dir="auto">{recipientName}</strong>
         </div>
 
         <form className="student-spotlight-message-modal__form" onSubmit={handleSubmit}>
+          <div
+            className="student-spotlight-message-modal__audience"
+            role="radiogroup"
+            aria-labelledby={audienceLabelId}
+          >
+            <span
+              id={audienceLabelId}
+              className="student-spotlight-message-modal__audience-label"
+            >
+              {t('communication.audience')}
+            </span>
+            <div className="student-spotlight-message-modal__audience-options">
+              {AUDIENCE_OPTIONS.map((option) => {
+                const selected = beneficiaryKind === option.kind;
+                return (
+                  <button
+                    key={option.kind}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    className="student-spotlight-message-modal__audience-option"
+                    data-selected={selected ? 'true' : 'false'}
+                    disabled={submitting}
+                    onClick={() => setBeneficiaryKind(option.kind)}
+                  >
+                    {t(option.labelKey)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <label className="student-spotlight-message-modal__field">
             <span>{t('communication.general.subject')}</span>
             <input
@@ -210,14 +273,29 @@ export function StudentSpotlightQuickMessageModal({
             />
           </label>
 
-          {deliverability === 'checking' ? (
+          {beneficiaryKind === null ? (
             <p className="student-spotlight-message-modal__status" aria-live="polite">
-              {t('communication.general.individualDeliverabilityChecking')}
+              {t('communication.general.incompleteSelection')}
             </p>
-          ) : deliverability === 'ready' ? (
+          ) : deliverability === 'checking' ? (
             <p className="student-spotlight-message-modal__status" aria-live="polite">
-              {t('communication.general.individualDeliverabilityReady')}
+              {t('communication.recipients.previewLoading')}
             </p>
+          ) : deliverability === 'ready' && preview ? (
+            <div className="student-spotlight-message-modal__preview" aria-live="polite">
+              <strong>{t('communication.recipients.ready')}</strong>
+              <span>
+                {t('communication.recipients.deliverableUsers')}:{' '}
+                <bdi>{preview.deliverable_user_count ?? '—'}</bdi>
+              </span>
+              <span>
+                {t('communication.recipients.students')}:{' '}
+                <bdi>{preview.student_count ?? '—'}</bdi>
+                {' · '}
+                {t('communication.recipients.guardians')}:{' '}
+                <bdi>{preview.guardian_count ?? '—'}</bdi>
+              </span>
+            </div>
           ) : null}
 
           {errorMessage ? (
