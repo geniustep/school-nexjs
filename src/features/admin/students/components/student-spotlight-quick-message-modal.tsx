@@ -9,8 +9,10 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useToast } from '@/components/ui/toast';
 import { communicationErrorMessageKey } from '@/features/channels/utils/communication-errors';
-import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
-import { submitGroupGeneralCommunication } from '@/features/communication/api/submit-general-communication';
+import {
+  previewStudentAudienceCommunication,
+  submitStudentAudienceCommunication,
+} from '@/features/communication/api/admin-communication-api';
 import { buildStudentRecipientScope } from '@/features/communication/utils/recipient-scope';
 import { useT } from '@/features/i18n/locale-context';
 import type { CommunicationRecipientSummary } from '@/types/communication';
@@ -54,7 +56,6 @@ export function StudentSpotlightQuickMessageModal({
   const [body, setBody] = useState('');
   const [deliverability, setDeliverability] = useState<DeliverabilityState>('idle');
   const [preview, setPreview] = useState<CommunicationRecipientSummary | null>(null);
-  const [draftId, setDraftId] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -89,7 +90,7 @@ export function StudentSpotlightQuickMessageModal({
     setPreview(null);
     setErrorMessage(null);
 
-    void previewAdminRecipientScope({
+    void previewStudentAudienceCommunication({
       recipient_scope: selectedScope,
     }).then((result) => {
       if (cancelled) return;
@@ -151,17 +152,14 @@ export function StudentSpotlightQuickMessageModal({
 
     setSubmitting(true);
     setErrorMessage(null);
-    const result = await submitGroupGeneralCommunication({
-      draftId,
+    const result = await submitStudentAudienceCommunication({
       subject: subject.trim(),
       body: body.trim(),
       recipient_scope: scope,
-      contentType: 'message',
     });
 
-    if (!result.ok) {
+    if (!result.success) {
       setSubmitting(false);
-      setDraftId(result.draftId);
       const key = communicationErrorMessageKey(result.error.code);
       const message = key
         ? t(key)
@@ -172,7 +170,7 @@ export function StudentSpotlightQuickMessageModal({
     }
 
     toast.success(
-      result.outcome.kind === 'pending_review'
+      result.data?.pending_review
         ? t('communication.general.pendingReviewSuccess')
         : t('communication.general.acceptedSuccess'),
     );
