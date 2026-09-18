@@ -4,6 +4,7 @@ import {
   buildGroupRecipientScope,
   buildIndividualRecipientScope,
   buildRecipientScopePayload,
+  buildStudentRecipientScope,
   isBeneficiaryAllowedForScopeLevel,
   recipientComposeFingerprint,
 } from './recipient-scope';
@@ -52,6 +53,24 @@ describe('recipient-scope mapping', () => {
         entityId: 2,
       }),
     ).toEqual({ scope_type: 'cycle', beneficiary_kind: 'guardians', scope_id: 2 });
+  });
+
+  it('maps one-student beneficiary scopes without client recipient ids', () => {
+    expect(buildStudentRecipientScope('students', 15)).toEqual({
+      scope_type: 'student',
+      beneficiary_kind: 'students',
+      scope_id: 15,
+    });
+    expect(buildStudentRecipientScope('guardians', 15)).toEqual({
+      scope_type: 'student',
+      beneficiary_kind: 'guardians',
+      scope_id: 15,
+    });
+    expect(buildStudentRecipientScope('students_and_guardians', 15)).toEqual({
+      scope_type: 'student',
+      beneficiary_kind: 'students_and_guardians',
+      scope_id: 15,
+    });
   });
 
   it('maps individual teacher/student/guardian with domain ids', () => {
