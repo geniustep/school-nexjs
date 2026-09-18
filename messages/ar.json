@@ -10243,7 +10243,8 @@
         "promiseSaved": "تم تسجيل وعد الدفع بنجاح.",
         "resolveSaved": "تم حل المتابعة.",
         "kpis": {
-          "overdueFamilies": "عدد الحسابات المتأخرة",
+          "overdueAccounts": "عدد الحسابات المتأخرة",
+          "overdueFamilies": "عدد الأسر المتأخرة",
           "totalOverdue": "إجمالي المتأخر",
           "paymentPromises": "عدد وعود الدفع",
           "todayFollowups": "متابعات اليوم"
@@ -10257,7 +10258,7 @@
           "resolved": "محلولة"
         },
         "columns": {
-          "family": "الحساب / ولي الأمر",
+          "family": "الحساب / مسؤول الأداء",
           "studentCount": "عدد التلاميذ",
           "totalOverdue": "إجمالي المتأخر",
           "totalRemaining": "إجمالي المتبقي",

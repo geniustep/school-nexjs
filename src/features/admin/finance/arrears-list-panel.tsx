@@ -31,8 +31,9 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import {
+  arrearsBillingPartnerId,
+  buildArrearsCollectHref,
   buildBillingAccountHref,
-  buildFamilyCollectHref,
   parseArrearsFollowupListResponse,
 } from '@/lib/utils/normalize-arrears';
 import type { ListParams } from '@/types/api';
@@ -58,7 +59,12 @@ type ArrearsListPanelProps = {
 const TAB_BUTTONS = ARREARS_FOLLOWUP_TABS.filter((tab) => tab !== 'all');
 
 function rowLabel(row: ArrearsFollowupListItem): string {
-  return row.display_name ?? row.family_name ?? row.guardian_name ?? `#${row.family_id}`;
+  return (
+    row.display_name ??
+    row.family_name ??
+    row.guardian_name ??
+    `#${arrearsBillingPartnerId(row)}`
+  );
 }
 
 function resolveFollowupBadgeClass(status?: string | null): string {
@@ -154,7 +160,7 @@ export function ArrearsListPanel({
 
   function openDrawer(row: ArrearsFollowupListItem) {
     setDrawerFamilyLabel(rowLabel(row));
-    onOpenFamily(row.family_id);
+    onOpenFamily(arrearsBillingPartnerId(row));
   }
 
   function setTab(next: ArrearsFollowupTab) {
@@ -281,10 +287,7 @@ export function ArrearsListPanel({
         render: (row) => (
           <div className="finance-arrears-row-actions">
             <Link
-              href={buildFamilyCollectHref(row.family_id, returnTo, {
-                source: 'arrears',
-                suggestedAmount: row.total_overdue,
-              })}
+              href={buildArrearsCollectHref(row, returnTo)}
               className="btn btn--primary btn--sm finance-arrears-row-actions__primary"
               onClick={(e) => e.stopPropagation()}
             >
@@ -292,7 +295,7 @@ export function ArrearsListPanel({
             </Link>
             <div className="finance-arrears-row-actions__secondary">
               <Link
-                href={buildBillingAccountHref(row.family_id, returnTo)}
+                href={buildBillingAccountHref(arrearsBillingPartnerId(row), returnTo)}
                 className="btn btn--ghost btn--sm"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -331,7 +334,7 @@ export function ArrearsListPanel({
       <section className="finance-arrears-kpis finance-receivable-list__context" aria-label={t('admin.finance.arrears.kpiSection')}>
         <div className="finance-billing-kpis">
           <KpiCard
-            label={t('admin.finance.arrears.kpis.overdueFamilies')}
+            label={t('admin.finance.arrears.kpis.overdueAccounts')}
             value={summary.overdue_accounts_count ?? summary.overdue_families_count}
             tone="red"
           />
@@ -475,14 +478,14 @@ export function ArrearsListPanel({
             <DataTable
               columns={columns}
               rows={rows}
-              rowKey={(row) => String(row.family_id)}
+              rowKey={(row) => String(arrearsBillingPartnerId(row))}
               onRowClick={openDrawer}
               stickyHeader
             />
           </div>
           <div className="finance-arrears-mobile">
             {rows.map((row) => (
-              <article key={row.family_id} className="finance-arrears-card">
+              <article key={arrearsBillingPartnerId(row)} className="finance-arrears-card">
                 <div className="finance-arrears-card__head">
                   <button
                     type="button"
@@ -515,10 +518,7 @@ export function ArrearsListPanel({
                   </div>
                 </dl>
                 <Link
-                  href={buildFamilyCollectHref(row.family_id, returnTo, {
-                    source: 'arrears',
-                    suggestedAmount: row.total_overdue,
-                  })}
+                  href={buildArrearsCollectHref(row, returnTo)}
                   className="btn btn--primary btn--sm finance-arrears-card__collect"
                 >
                   {t('admin.finance.arrears.actions.receivePayment')}

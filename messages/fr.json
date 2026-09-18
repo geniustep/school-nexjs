@@ -10025,7 +10025,8 @@
         "promiseSaved": "Promesse de paiement enregistrée avec succès.",
         "resolveSaved": "Suivi résolu.",
         "kpis": {
-          "overdueFamilies": "Comptes en retard",
+          "overdueAccounts": "Comptes en retard",
+          "overdueFamilies": "Familles en retard",
           "totalOverdue": "Total en retard",
           "paymentPromises": "Promesses de paiement",
           "todayFollowups": "Suivis du jour"

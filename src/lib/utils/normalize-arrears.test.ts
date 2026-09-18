@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  arrearsBillingPartnerId,
+  buildArrearsCollectHref,
   buildFamilyCollectHref,
   computeArrearsSummaryFromRows,
   filterMergedRowsByTab,
@@ -9,9 +11,11 @@ import {
 } from '@/lib/utils/normalize-arrears';
 
 describe('normalizeArrearsFollowupListItem', () => {
-  it('reads family_id and followup fields', () => {
+  it('keeps billing_partner_id as canonical identity and reads account_kind', () => {
     const row = normalizeArrearsFollowupListItem({
       family_id: 6667,
+      billing_partner_id: 6667,
+      account_kind: 'individual',
       display_name: 'QA Family',
       student_count: 2,
       total_overdue: 1500,
@@ -24,6 +28,9 @@ describe('normalizeArrearsFollowupListItem', () => {
       assigned_user_name: 'done',
     });
     expect(row?.family_id).toBe(6667);
+    expect(row?.billing_partner_id).toBe(6667);
+    expect(row?.account_kind).toBe('individual');
+    expect(row && arrearsBillingPartnerId(row)).toBe(6667);
     expect(row?.family_name).toBe('QA Family');
     expect(row?.total_overdue).toBe(1500);
     expect(row?.payment_promise_amount).toBe(500);
@@ -47,6 +54,15 @@ describe('parseArrearsFollowupListResponse', () => {
     expect(parsed.summary?.overdue_accounts_count).toBe(4);
     expect(parsed.summary?.overdue_families_count).toBe(3);
     expect(parsed.summary?.total_overdue_amount).toBe(4200);
+  });
+
+  it('does not reinterpret legacy overdue_count as all overdue accounts', () => {
+    const parsed = parseArrearsFollowupListResponse({
+      items: [],
+      summary: { overdue_count: 3 },
+    });
+    expect(parsed.summary?.overdue_accounts_count).toBeUndefined();
+    expect(parsed.summary?.overdue_families_count).toBe(3);
   });
 });
 
@@ -149,6 +165,40 @@ describe('buildFamilyCollectHref', () => {
       }),
     ).toBe(
       '/admin/finance/billing-accounts/6667?family_collect=1&returnTo=%2Fadmin%2Ffinance%2Farrears&source=arrears&suggested_amount=1500',
+    );
+  });
+});
+
+describe('buildArrearsCollectHref', () => {
+  it('keeps the family collection flow for family accounts', () => {
+    expect(
+      buildArrearsCollectHref(
+        {
+          family_id: 6667,
+          billing_partner_id: 6667,
+          account_kind: 'family',
+          total_overdue: 1500,
+        },
+        '/admin/finance/arrears',
+      ),
+    ).toBe(
+      '/admin/finance/billing-accounts/6667?family_collect=1&returnTo=%2Fadmin%2Ffinance%2Farrears&source=arrears&suggested_amount=1500',
+    );
+  });
+
+  it('uses the existing individual collection flow for individual accounts', () => {
+    expect(
+      buildArrearsCollectHref(
+        {
+          family_id: 7001,
+          billing_partner_id: 7001,
+          account_kind: 'individual',
+          total_overdue: 600,
+        },
+        '/admin/finance/arrears',
+      ),
+    ).toBe(
+      '/admin/finance/collections/new?billing_partner_id=7001&returnTo=%2Fadmin%2Ffinance%2Farrears',
     );
   });
 });

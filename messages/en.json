@@ -10006,7 +10006,8 @@
         "promiseSaved": "Payment promise logged successfully.",
         "resolveSaved": "Follow-up resolved.",
         "kpis": {
-          "overdueFamilies": "Overdue accounts",
+          "overdueAccounts": "Overdue accounts",
+          "overdueFamilies": "Overdue families",
           "totalOverdue": "Total overdue",
           "paymentPromises": "Payment promises",
           "todayFollowups": "Today's follow-ups"

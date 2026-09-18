@@ -17,6 +17,7 @@ export type ArrearsFollowupStatus =
 export type ArrearsFollowupListItem = {
   family_id: number;
   billing_partner_id?: number;
+  account_kind?: 'family' | 'individual' | null;
   family_name?: string;
   guardian_name?: string;
   display_name?: string;
