@@ -2,7 +2,10 @@ import {
   normalizeMoneyValue,
   parseFinanceList,
 } from '@/lib/utils/finance-normalize';
-import { normalizeBillingAccountListItem } from '@/lib/utils/normalize-billing-account';
+import {
+  buildBillingAccountCollectHref,
+  normalizeBillingAccountListItem,
+} from '@/lib/utils/normalize-billing-account';
 import type { BillingAccountListItem } from '@/types/finance-billing-account';
 import type {
   ArrearsFamilyFollowupDetail,
@@ -16,6 +19,11 @@ import type {
 
 function readString(raw: unknown): string | null {
   return typeof raw === 'string' && raw.trim() ? raw.trim() : null;
+}
+
+function readAccountKind(raw: unknown): 'family' | 'individual' | null {
+  const value = readString(raw)?.toLowerCase();
+  return value === 'family' || value === 'individual' ? value : null;
 }
 
 function readFamilyId(row: Record<string, unknown>): number | null {
@@ -41,6 +49,10 @@ function readSummary(raw: Record<string, unknown>): ArrearsFollowupSummary {
   const nested = raw.summary && typeof raw.summary === 'object' ? (raw.summary as Record<string, unknown>) : raw;
   const kpis = raw.kpis && typeof raw.kpis === 'object' ? (raw.kpis as Record<string, unknown>) : nested;
   return {
+    overdue_accounts_count:
+      typeof kpis.overdue_accounts_count === 'number'
+        ? kpis.overdue_accounts_count
+        : undefined,
     overdue_families_count:
       typeof kpis.overdue_families_count === 'number'
         ? kpis.overdue_families_count
@@ -86,6 +98,10 @@ export function normalizeArrearsFollowupListItem(raw: unknown): ArrearsFollowupL
   return {
     family_id,
     billing_partner_id: family_id,
+    account_kind:
+      readAccountKind(row.account_kind) ??
+      readAccountKind(billing?.account_kind) ??
+      null,
     family_name:
       readString(row.family_name) ??
       readString(row.display_name) ??
@@ -257,6 +273,10 @@ export function mergeArrearsRows(
     return {
       family_id: familyId,
       billing_partner_id: familyId,
+      account_kind:
+        followup?.account_kind ??
+        readAccountKind(billing.account_kind) ??
+        null,
       family_name: followup?.family_name ?? displayName,
       guardian_name: followup?.guardian_name ?? displayName,
       display_name: displayName ?? followup?.display_name,
@@ -304,31 +324,16 @@ export function filterMergedRowsByTab(
   });
 }
 
+/**
+ * KPI values are authoritative only when supplied by the backend summary.
+ * The rows argument is intentionally ignored because the visible list is paginated
+ * and must never be aggregated into financial KPIs.
+ */
 export function computeArrearsSummaryFromRows(
-  rows: ArrearsMergedRow[],
+  _rows: ArrearsMergedRow[],
   apiSummary: ArrearsFollowupSummary | null,
 ): ArrearsFollowupSummary {
-  if (apiSummary?.overdue_families_count != null || apiSummary?.total_overdue_amount != null) {
-    return {
-      overdue_families_count: apiSummary.overdue_families_count ?? rows.length,
-      total_overdue_amount:
-        apiSummary.total_overdue_amount ??
-        rows.reduce((sum, row) => sum + (row.total_overdue ?? 0), 0),
-      payment_promises_count:
-        apiSummary.payment_promises_count ??
-        rows.filter((row) => row.payment_promise_date || row.payment_promise_amount).length,
-      today_followups_count:
-        apiSummary.today_followups_count ??
-        rows.filter((row) => row.next_followup_date).length,
-    };
-  }
-  const today = new Date().toISOString().slice(0, 10);
-  return {
-    overdue_families_count: rows.length,
-    total_overdue_amount: rows.reduce((sum, row) => sum + (row.total_overdue ?? 0), 0),
-    payment_promises_count: rows.filter((row) => row.payment_promise_date || row.payment_promise_amount).length,
-    today_followups_count: rows.filter((row) => row.next_followup_date?.slice(0, 10) === today).length,
-  };
+  return apiSummary ? { ...apiSummary } : {};
 }
 
 export function buildFamilyCollectHref(
@@ -347,6 +352,24 @@ export function buildFamilyCollectHref(
     params.set('suggested_amount', String(options.suggestedAmount));
   }
   return `/admin/finance/billing-accounts/${familyId}?${params.toString()}`;
+}
+
+export function arrearsBillingPartnerId(row: ArrearsFollowupListItem): number {
+  return row.billing_partner_id ?? row.family_id;
+}
+
+export function buildArrearsCollectHref(
+  row: ArrearsFollowupListItem,
+  returnTo: string,
+): string {
+  const billingPartnerId = arrearsBillingPartnerId(row);
+  if (row.account_kind === 'individual') {
+    return buildBillingAccountCollectHref(billingPartnerId, returnTo);
+  }
+  return buildFamilyCollectHref(billingPartnerId, returnTo, {
+    source: 'arrears',
+    suggestedAmount: row.total_overdue,
+  });
 }
 
 export function buildBillingAccountHref(familyId: number, returnTo: string): string {

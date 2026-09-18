@@ -19,12 +19,12 @@ import {
   canOpenStudentSpotlightProfile,
   isStudentSpotlightCloseKey,
   moveSpotlightActiveIndex,
-  studentSpotlightMessagePath,
   studentSpotlightNavigatePath,
   studentSpotlightPaymentPath,
 } from '../utils/student-spotlight-utils';
 import type { StudentSearchHit } from '@/types/student-search';
 import { StudentSpotlightResultRow } from './student-spotlight-result-row';
+import { StudentSpotlightQuickMessageModal } from './student-spotlight-quick-message-modal';
 import './student-spotlight.css';
 
 export function StudentSpotlight({
@@ -41,6 +41,7 @@ export function StudentSpotlight({
   const listRef = useRef<HTMLUListElement>(null);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [quickMessageStudent, setQuickMessageStudent] = useState<StudentSearchHit | null>(null);
   const { loading, error, results, suggestion } = useStudentSearchQuery(query);
   const trimmedQuery = query.trim();
   const didYouMeanParts = buildStudentSpotlightDidYouMeanLabel(t);
@@ -54,6 +55,8 @@ export function StudentSpotlight({
   }, [focusRequest]);
 
   useEffect(() => {
+    if (quickMessageStudent) return;
+
     function onKeyDown(event: KeyboardEvent) {
       if (!isStudentSpotlightCloseKey(event.key)) return;
       event.preventDefault();
@@ -61,7 +64,7 @@ export function StudentSpotlight({
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, [onClose, quickMessageStudent]);
 
   useEffect(() => {
     setActiveIndex(results.length > 0 ? 0 : -1);
@@ -89,7 +92,7 @@ export function StudentSpotlight({
   }
 
   function openMessage(student: StudentSearchHit) {
-    navigateAndClose(studentSpotlightMessagePath(student.id));
+    setQuickMessageStudent(student);
   }
 
   function applySuggestion(nextQuery: string) {
@@ -136,11 +139,13 @@ export function StudentSpotlight({
     loading || Boolean(error) || showResults || showEmpty || showSuggestion;
 
   return (
-    <div
-      className="student-spotlight-backdrop"
-      role="presentation"
-      onClick={onClose}
-    >
+    <>
+      <div
+        className="student-spotlight-backdrop"
+        role="presentation"
+        aria-hidden={quickMessageStudent ? true : undefined}
+        onClick={onClose}
+      >
       <div
         className={`student-spotlight${hasExpandedBody ? ' student-spotlight--expanded' : ''}`}
         role="dialog"
@@ -228,7 +233,14 @@ export function StudentSpotlight({
             </ul>
           ) : null}
         </div>
+        </div>
       </div>
-    </div>
+      {quickMessageStudent ? (
+        <StudentSpotlightQuickMessageModal
+          student={quickMessageStudent}
+          onClose={() => setQuickMessageStudent(null)}
+        />
+      ) : null}
+    </>
   );
 }

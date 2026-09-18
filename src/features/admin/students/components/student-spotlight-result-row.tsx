@@ -6,7 +6,7 @@
  *
  * Exact three-line student Spotlight result:
  * 1) [تلميذ] Arabic — Latin
- * 2) Level · Class · Code
+ * 2) Level / Class / guardian phone
  * 3) Profile / Payment / Message actions
  */
 
@@ -14,11 +14,11 @@ import { Avatar } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentSearchHit } from '@/types/student-search';
 import {
-  studentSpotlightAcademicLine,
   studentSpotlightArabicName,
   studentSpotlightIdentityTitle,
   studentSpotlightLatinName,
 } from '../utils/student-spotlight-utils';
+import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 
 export function StudentSpotlightResultRow({
   student,
@@ -47,7 +47,10 @@ export function StudentSpotlightResultRow({
   const arabic = studentSpotlightArabicName(student);
   const latin = studentSpotlightLatinName(student);
   const identityTitle = studentSpotlightIdentityTitle(student);
-  const academicLine = studentSpotlightAcademicLine(student);
+  const levelLabel = studentLevelLabel(student.level);
+  const classLabel = studentClassLabel(student.class);
+  const guardianWithPhone = student.parents?.find((parent) => parent.phone?.trim());
+  const guardianPhone = guardianWithPhone?.phone?.trim() || '—';
   const avatarName = arabic || latin || identityTitle || String(student.id);
   const hasActions = showProfile || showPayment || showMessage;
 
@@ -88,11 +91,29 @@ export function StudentSpotlightResultRow({
               </>
             ) : null}
           </span>
-          {academicLine ? (
-            <span className="student-spotlight__meta">
-              <span dir="ltr">{academicLine}</span>
+          <span className="student-spotlight__meta student-spotlight__meta--details">
+            <span className="student-spotlight__meta-item">
+              <span className="student-spotlight__meta-label">
+                {t('admin.studentsList.filters.level')}:
+              </span>
+              <span dir="auto">{levelLabel}</span>
             </span>
-          ) : null}
+            <span className="student-spotlight__meta-item">
+              <span className="student-spotlight__meta-label">
+                {t('admin.studentsList.filters.class')}:
+              </span>
+              <span dir="auto">{classLabel}</span>
+            </span>
+            <span
+              className="student-spotlight__meta-item"
+              title={guardianWithPhone?.name || undefined}
+            >
+              <span className="student-spotlight__meta-label">
+                {t('admin.spotlight.matchedOn.guardian_phone')}:
+              </span>
+              <bdi dir="ltr">{guardianPhone}</bdi>
+            </span>
+          </span>
         </button>
 
         {hasActions ? (

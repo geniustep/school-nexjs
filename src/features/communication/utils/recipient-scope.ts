@@ -9,10 +9,13 @@ import type {
   SchoolBeneficiaryKind,
   SchoolRecipientScope,
   SectionBeneficiaryKind,
+  StudentBeneficiaryKind,
+  StudentRecipientScope,
 } from '@/types/recipient-scope';
 import {
   SCHOOL_BENEFICIARY_KINDS,
   SECTION_BENEFICIARY_KINDS,
+  STUDENT_BENEFICIARY_KINDS,
 } from '@/types/recipient-scope';
 
 export function schoolBeneficiaryKinds(): readonly SchoolBeneficiaryKind[] {
@@ -21,6 +24,14 @@ export function schoolBeneficiaryKinds(): readonly SchoolBeneficiaryKind[] {
 
 export function sectionBeneficiaryKinds(): readonly SectionBeneficiaryKind[] {
   return SECTION_BENEFICIARY_KINDS;
+}
+
+export function studentBeneficiaryKinds(): readonly StudentBeneficiaryKind[] {
+  return STUDENT_BENEFICIARY_KINDS;
+}
+
+export function isStudentBeneficiaryKind(value: string): value is StudentBeneficiaryKind {
+  return (STUDENT_BENEFICIARY_KINDS as readonly string[]).includes(value);
 }
 
 export function isSchoolBeneficiaryKind(value: string): value is SchoolBeneficiaryKind {
@@ -65,6 +76,13 @@ export function buildCycleRecipientScope(
   scope_id: number,
 ): CycleRecipientScope {
   return { scope_type: 'cycle', beneficiary_kind, scope_id };
+}
+
+export function buildStudentRecipientScope(
+  beneficiary_kind: StudentBeneficiaryKind,
+  scope_id: number,
+): StudentRecipientScope {
+  return { scope_type: 'student', beneficiary_kind, scope_id };
 }
 
 export function buildIndividualRecipientScope(

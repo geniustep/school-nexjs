@@ -6,6 +6,24 @@ export function normalizeReceiptHtmlPrintLang(
   return value === 'fr' ? 'fr' : 'ar';
 }
 
+function isReceiptHtmlPrintLang(value: string | null | undefined): value is ReceiptHtmlPrintLang {
+  return value === 'ar' || value === 'fr';
+}
+
+export function resolveReceiptHtmlPrintLang({
+  explicitLanguage,
+  schoolDefaultLanguage,
+  legacyFallback,
+}: {
+  explicitLanguage?: string | null;
+  schoolDefaultLanguage?: string | null;
+  legacyFallback?: string | null;
+}): ReceiptHtmlPrintLang {
+  if (isReceiptHtmlPrintLang(explicitLanguage)) return explicitLanguage;
+  if (isReceiptHtmlPrintLang(schoolDefaultLanguage)) return schoolDefaultLanguage;
+  return normalizeReceiptHtmlPrintLang(legacyFallback);
+}
+
 export function buildReceiptHtmlPrintPath(
   receiptId: number | string,
   lang: ReceiptHtmlPrintLang,

@@ -3,7 +3,12 @@ import {
   filterPeriodAmendableLineOptions,
   isMonthlyAgreementLine,
   isOneTimeAgreementLine,
+  lineSupportsAdjustLineAmount,
 } from './agreement-amendment-line-eligibility';
+import {
+  isLineSelectableForAmendmentOperation,
+  resolveAvailableAmendmentPaths,
+} from './agreement-amendment-path';
 import { formatAmendmentLineOptionLabel } from './agreement-amendment-line-labels';
 import {
   isBlockedByOneTimeLineNotPeriodAmendable,
@@ -141,6 +146,33 @@ describe('agreement amendment one-time line UX', () => {
     expect(t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPrice')).toBe(
       'السعر الشهري الجديد',
     );
+  });
+
+  it('8) keeps amount-amendable one-time registration selectable through adjust_amount', () => {
+    const agreement = {
+      ...schoolAgreement,
+      lines: [
+        {
+          id: 1003,
+          service_id: 1308,
+          service_name: 'التسجيل',
+          commitment_type: 'one_time',
+          pricing_unit: 'academic_year',
+          net_amount: 2500,
+          unit_price: 2500,
+          period_amendable: false,
+          amount_amendable: true,
+          supported_amendment_operations: ['adjust_line_amount'],
+        },
+      ],
+    } as FinancialAgreement;
+    const registration = resolveAmendmentAgreementLineOptions(agreement)[0]!;
+
+    expect(registration.isOneTime).toBe(true);
+    expect(registration.amountAmendable).toBe(true);
+    expect(lineSupportsAdjustLineAmount(registration)).toBe(true);
+    expect(isLineSelectableForAmendmentOperation(registration, 'modify_line')).toBe(true);
+    expect(resolveAvailableAmendmentPaths(registration, 'modify_line')).toEqual(['adjust_amount']);
   });
 
   it('detects school registration line as one-time via academic_year pricing unit', () => {

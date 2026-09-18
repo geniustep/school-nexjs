@@ -1,0 +1,87 @@
+.teacher-domain-profile__edit-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.teacher-profile-family .section__head {
+  align-items: center;
+}
+
+.teacher-profile-family__children {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-block-start: 14px;
+}
+
+.teacher-profile-family__child {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--c-primary) 3%, var(--c-surface, #fff));
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .14s ease, box-shadow .14s ease, transform .14s ease;
+}
+
+.teacher-profile-family__child:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--c-primary) 34%, var(--c-border));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--c-text) 6%, transparent);
+}
+
+.teacher-profile-family__child:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--c-primary) 24%, transparent);
+  outline-offset: 2px;
+}
+
+.teacher-profile-family__child-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.teacher-profile-family__child-head strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.teacher-profile-family__code {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--c-surface-2, #f4f6f9);
+  color: var(--c-text-muted, var(--c-muted));
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.teacher-profile-family__child-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  color: var(--c-text-muted, var(--c-muted));
+  font-size: 11px;
+}
+
+.teacher-profile-family__empty {
+  margin: 14px 0 0;
+}
+
+.teacher-setup-form__grid--identity .input[dir='auto'] {
+  text-align: start;
+}
+
+@media (max-width: 720px) {
+  .teacher-profile-family__children {
+    grid-template-columns: 1fr;
+  }
+}

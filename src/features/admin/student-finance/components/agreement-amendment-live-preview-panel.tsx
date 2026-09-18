@@ -316,21 +316,25 @@ export function AgreementAmendmentLivePreviewPanel({
             <strong>{displayPrice || '—'}</strong>
           </div>
         ) : null}
-        <div className="student-finance-amendment-live-preview__hero-row">
-          <span className="tiny muted">
-            {form.operationType === 'modify_line' ? copy.selectedMonths : copy.effectiveFrom}
-          </span>
-          <strong dir="auto">
-            {form.operationType === 'modify_line'
-              ? selectedMonthLabels.length || '—'
-              : effectivePeriod
-                ? formatAmendmentPreviewPeriodLabel(effectivePeriod, locale)
-                : '—'}
-          </strong>
-        </div>
+        {form.operationType !== 'modify_line' || form.amendmentPath === 'period_range' ? (
+          <div className="student-finance-amendment-live-preview__hero-row">
+            <span className="tiny muted">
+              {form.operationType === 'modify_line' ? copy.selectedMonths : copy.effectiveFrom}
+            </span>
+            <strong dir="auto">
+              {form.operationType === 'modify_line'
+                ? selectedMonthLabels.length || '—'
+                : effectivePeriod
+                  ? formatAmendmentPreviewPeriodLabel(effectivePeriod, locale)
+                  : '—'}
+            </strong>
+          </div>
+        ) : null}
       </section>
 
-      {form.operationType === 'modify_line' && selectedMonthLabels.length ? (
+      {form.operationType === 'modify_line' &&
+      form.amendmentPath === 'period_range' &&
+      selectedMonthLabels.length ? (
         <div className="student-finance-amendment-live-preview__months">
           {selectedMonthLabels.map((label) => (
             <span key={label} className="student-finance-amendment-live-preview__month">
@@ -361,7 +365,10 @@ export function AgreementAmendmentLivePreviewPanel({
               <AgreementAmendmentPricingContractPreview
                 contract={preview.pricingContract}
                 currency={preview.currency}
-                labelMode={resolveAgreementAmendmentPricingContractLabelMode('modify_line', 'period_range')}
+                labelMode={resolveAgreementAmendmentPricingContractLabelMode(
+                  form.operationType,
+                  form.amendmentPath,
+                )}
               />
             ) : shouldShowAgreementAmendmentLegacyAmounts(preview) ? (
               <dl className="student-finance-amendment-live-preview__money-grid">

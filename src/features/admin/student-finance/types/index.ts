@@ -167,6 +167,7 @@ export interface FinancialAgreementLine {
 export interface AgreementScheduleItem {
   id?: number;
   sequence?: number;
+  agreement_line_id?: number | null;
   period_start?: string | null;
   period_end?: string | null;
   display_from?: string | null;

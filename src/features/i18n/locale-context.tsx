@@ -18,6 +18,7 @@ import {
 } from '@/lib/i18n/config';
 import { translateClassDistributionMessage } from '@/lib/i18n/class-distribution-messages';
 import { translateStudentDepartureMessage } from '@/lib/i18n/student-departure-messages';
+import { translateTeacherProfileMessage } from '@/lib/i18n/teacher-profile-messages';
 import { translate } from '@/lib/i18n/messages';
 
 export type TranslateFn = (
@@ -89,6 +90,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     (key, params) => {
       const resolvedKey = TRANSLATION_KEY_ALIASES[key] ?? key;
       return (
+        translateTeacherProfileMessage(locale, resolvedKey, params) ??
         translateStudentDepartureMessage(locale, resolvedKey, params) ??
         translateClassDistributionMessage(locale, resolvedKey, params) ??
         translate(locale, resolvedKey, params)
