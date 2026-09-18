@@ -21,6 +21,7 @@ const translations: Record<string, string> = {
   'admin.teacherProfile.fullNameFr': 'French full name',
   'admin.teacherProfile.operationalName': 'Operational name',
   'admin.teacherProfile.school': 'School',
+  'admin.teacherProfile.mobile': 'Mobile',
   'admin.teacherProfile.professionalTitle': 'Professional status',
   'admin.teacherProfile.hireDate': 'Hire date',
   'admin.teacherProfile.contractType': 'Contract type',
@@ -57,7 +58,8 @@ function teacherFixture(): Teacher {
     id: 2437,
     name: 'Operational Teacher',
     code: 'T-2437',
-    phone: '0600000000',
+    phone: '0500000000',
+    mobile: '0600000000',
     email: 'teacher@example.test',
     identity: {
       name_ar: 'الأستاذة سمية الإدريسي',
@@ -84,7 +86,7 @@ function teacherFixture(): Teacher {
     contract_type: 'permanent',
     school: { id: 1, name: 'Nibras' },
     school_id: 1,
-    school_ids: [{ id: 1, name: 'Nibras' }],
+    school_ids: [{ id: 1, name: 'Nibras' }, { id: 2, name: 'Alwah' }],
     classes: [],
     subjects: [],
     status: 'active',
@@ -102,6 +104,16 @@ describe('TeacherProfileOverview', () => {
     expect(screen.getByText('الأستاذة سمية الإدريسي')).toBeTruthy();
     expect(screen.getByText('Soumia El Idrissi')).toBeTruthy();
     expect(screen.getByText('Operational Teacher')).toBeTruthy();
+  });
+
+
+  it('renders both phone and mobile and shows all linked schools', () => {
+    const { container } = render(<TeacherProfileOverview teacher={teacherFixture()} options={null} />);
+    const view = within(container);
+
+    expect(view.getByText('0500000000')).toBeTruthy();
+    expect(view.getByText('0600000000')).toBeTruthy();
+    expect(view.getByText('Nibras · Alwah')).toBeTruthy();
   });
 
   it('renders guardian children with a direct student link', () => {

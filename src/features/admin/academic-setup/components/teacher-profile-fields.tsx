@@ -95,6 +95,19 @@ export function TeacherProfileFields({
   const genderOptionsAvailable = hasTeacherGenderOptions(options);
   const genderOptions = localizeTeacherGenderOptions(options, t);
   const contractTypeOptions = withLegacyOption(options?.contractTypes ?? [], state.contractType);
+  const selectedSchoolIds =
+    state.schoolIds.length > 0 ? state.schoolIds : state.schoolId ? [state.schoolId] : [];
+
+  function toggleSchoolId(schoolId: string) {
+    const nextSchoolIds = selectedSchoolIds.includes(schoolId)
+      ? selectedSchoolIds.filter((value) => value !== schoolId)
+      : [...selectedSchoolIds, schoolId];
+    const nextPrimarySchoolId = nextSchoolIds.includes(state.schoolId)
+      ? state.schoolId
+      : nextSchoolIds[0] ?? '';
+    onChange({ schoolIds: nextSchoolIds, schoolId: nextPrimarySchoolId });
+  }
+
   const today = (() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -202,6 +215,16 @@ export function TeacherProfileFields({
               dir="ltr"
             />
           </label>
+          <label className="teacher-setup-field">
+            <span className="teacher-setup-field__label">{t('admin.teacherProfile.mobile')}</span>
+            <input
+              className="input"
+              value={state.mobile}
+              onChange={(e) => onChange({ mobile: e.target.value })}
+              disabled={saving}
+              dir="ltr"
+            />
+          </label>
           {showEmailField ? (
             <label className="teacher-setup-field">
               <span className="teacher-setup-field__label">{t('admin.email')}</span>
@@ -298,17 +321,64 @@ export function TeacherProfileFields({
         </div>
 
         {showSchoolPicker ? (
-          <OptionField
-            label={t('admin.academicSetup.teacherForm.school')}
-            value={state.schoolId}
-            onChange={(schoolId) => onChange({ schoolId })}
-            options={(options?.schools ?? []).map((school) => ({
-              value: String(school.id),
-              label: school.name,
-            }))}
-            disabled={saving || !options}
-            error={errors.schoolId}
-          />
+          creating ? (
+            <OptionField
+              label={t('admin.academicSetup.teacherForm.school')}
+              value={state.schoolId}
+              onChange={(schoolId) => onChange({ schoolId, schoolIds: schoolId ? [schoolId] : [] })}
+              options={(options?.schools ?? []).map((school) => ({
+                value: String(school.id),
+                label: school.name,
+              }))}
+              disabled={saving || !options}
+              error={errors.schoolId}
+            />
+          ) : (
+            <div className="teacher-setup-field">
+              <span className="teacher-setup-field__label">{t('admin.teacherProfile.schools')}</span>
+              <div
+                className="teacher-setup-form__grid"
+                role="group"
+                aria-label={t('admin.teacherProfile.schools')}
+              >
+                {(options?.schools ?? []).map((school) => {
+                  const schoolId = String(school.id);
+                  return (
+                    <label
+                      key={school.id}
+                      className="teacher-setup-field teacher-setup-field--checkbox row"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSchoolIds.includes(schoolId)}
+                        onChange={() => toggleSchoolId(schoolId)}
+                        disabled={saving}
+                      />
+                      <span dir="auto">{school.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.schoolIds ? (
+                <span className="teacher-setup-field__error" role="alert">{errors.schoolIds}</span>
+              ) : null}
+              {selectedSchoolIds.length > 1 ? (
+                <OptionField
+                  label={t('admin.teacherProfile.primarySchool')}
+                  value={state.schoolId}
+                  onChange={(schoolId) => onChange({ schoolId })}
+                  options={(options?.schools ?? [])
+                    .filter((school) => selectedSchoolIds.includes(String(school.id)))
+                    .map((school) => ({ value: String(school.id), label: school.name }))}
+                  disabled={saving || !options}
+                  error={errors.schoolId}
+                />
+              ) : null}
+              <p className="teacher-setup-form__hint muted">
+                {t('admin.teacherProfile.schoolSelectionHint')}
+              </p>
+            </div>
+          )
         ) : null}
 
         {!creating ? (

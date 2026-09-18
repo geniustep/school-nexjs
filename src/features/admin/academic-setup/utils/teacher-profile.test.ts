@@ -189,6 +189,80 @@ describe('teacher profile payloads', () => {
     expect(payload.teacher_type).toBeUndefined();
     expect(payload.prefer_compact_schedule).toBeUndefined();
   });
+  it('hydrates and sends changed phone and mobile fields independently', () => {
+    const teacher = {
+      id: 9,
+      name: 'Teacher Contact',
+      code: 'TC9',
+      phone: '0500000000',
+      mobile: '0600000000',
+      email: null,
+      classes: [],
+      subjects: [],
+      status: 'active',
+      qualification: null,
+      specialization: null,
+      school_id: 3,
+      school_ids: [{ id: 3, name: 'School' }],
+    } as Teacher;
+
+    const original = teacherProfileFormStateFromTeacher(teacher, options);
+    expect(original.phone).toBe('0500000000');
+    expect(original.mobile).toBe('0600000000');
+
+    const current = {
+      ...original,
+      phone: '0511111111',
+      mobile: '0611111111',
+    };
+    expect(buildTeacherUpdatePayload(current, original, {}, options)).toEqual({
+      phone: '0511111111',
+      mobile: '0611111111',
+    });
+  });
+
+  it('hydrates multi-school membership and submits school_ids with the primary school first', () => {
+    const multiOptions: TeacherOptions = {
+      ...options,
+      schools: [
+        { id: 3, name: 'Nibras', code: 'N' },
+        { id: 4, name: 'Alwah', code: 'A' },
+      ],
+    };
+    const teacher = {
+      id: 10,
+      name: 'Multi School',
+      code: 'MS10',
+      phone: null,
+      mobile: null,
+      email: null,
+      classes: [],
+      subjects: [],
+      status: 'active',
+      qualification: null,
+      specialization: null,
+      school_id: 3,
+      school_ids: [
+        { id: 3, name: 'Nibras', code: 'N' },
+        { id: 4, name: 'Alwah', code: 'A' },
+      ],
+    } as Teacher;
+
+    const original = teacherProfileFormStateFromTeacher(teacher, multiOptions);
+    expect(original.schoolId).toBe('3');
+    expect(original.schoolIds).toEqual(['3', '4']);
+
+    const primaryChanged = { ...original, schoolId: '4' };
+    expect(buildTeacherUpdatePayload(primaryChanged, original, {}, multiOptions)).toEqual({
+      school_ids: [4, 3],
+    });
+
+    const membershipChanged = { ...original, schoolId: '4', schoolIds: ['4'] };
+    expect(buildTeacherUpdatePayload(membershipChanged, original, {}, multiOptions)).toEqual({
+      school_ids: [4],
+    });
+  });
+
 });
 
 describe('validateTeacherProfileForm', () => {
@@ -220,6 +294,25 @@ describe('validateTeacherProfileForm', () => {
     const result = validateTeacherProfileForm(state, options, t);
     expect(result.valid).toBe(true);
   });
+  it('requires at least one school when multi-school options are available', () => {
+    const multiOptions: TeacherOptions = {
+      ...options,
+      schools: [
+        { id: 3, name: 'Nibras' },
+        { id: 4, name: 'Alwah' },
+      ],
+    };
+    const state = {
+      ...defaultTeacherProfileFormState(multiOptions),
+      name: 'Teacher',
+      schoolId: '',
+      schoolIds: [],
+    };
+    const result = validateTeacherProfileForm(state, multiOptions, t);
+    expect(result.valid).toBe(false);
+    expect(result.errors.schoolIds).toBe('admin.teacherProfile.schoolsRequired');
+  });
+
 });
 
 describe('gender label localization', () => {

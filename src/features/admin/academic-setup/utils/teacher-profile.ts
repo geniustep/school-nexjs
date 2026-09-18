@@ -59,6 +59,7 @@ export function defaultTeacherProfileFormState(options: TeacherOptions | null): 
     nameFr: '',
     code: '',
     phone: '',
+    mobile: '',
     email: '',
     gender: '',
     dateOfBirth: '',
@@ -78,6 +79,7 @@ export function defaultTeacherProfileFormState(options: TeacherOptions | null): 
     status: defaults?.status ?? options?.statuses.find((s) => s.value === 'active')?.value ?? 'active',
     active: defaults?.active ?? true,
     schoolId: options?.schools.length === 1 ? String(options.schools[0].id) : '',
+    schoolIds: options?.schools.length === 1 ? [String(options.schools[0].id)] : [],
   };
 }
 
@@ -85,12 +87,24 @@ export function teacherProfileFormStateFromTeacher(
   teacher: Teacher,
   options: TeacherOptions | null,
 ): TeacherProfileFormState {
+  const explicitSchoolIds = (teacher.school_ids ?? [])
+    .map((school) => String(school.id))
+    .filter(Boolean);
+  const primarySchoolId = String(
+    teacher.school_id ?? teacher.school?.id ?? explicitSchoolIds[0] ?? options?.schools[0]?.id ?? '',
+  );
+  const schoolIds = [...new Set([
+    ...(primarySchoolId ? [primarySchoolId] : []),
+    ...explicitSchoolIds,
+  ])];
+
   return {
     name: teacher.name ?? '',
     nameAr: teacher.identity?.name_ar ?? '',
     nameFr: teacher.identity?.name_fr ?? '',
     code: teacher.code ?? '',
     phone: teacher.phone ?? '',
+    mobile: teacher.mobile ?? '',
     email: teacher.email ?? '',
     gender: normalizeGenderFormValue(teacher.gender, options),
     dateOfBirth: teacher.date_of_birth ?? '',
@@ -108,7 +122,8 @@ export function teacherProfileFormStateFromTeacher(
     preferCompactSchedule: teacher.prefer_compact_schedule ?? false,
     status: teacher.status ?? options?.defaults.status ?? 'active',
     active: teacher.active ?? teacher.status === 'active',
-    schoolId: String(teacher.school_id ?? teacher.school?.id ?? options?.schools[0]?.id ?? ''),
+    schoolId: primarySchoolId,
+    schoolIds,
   };
 }
 
@@ -148,6 +163,9 @@ export function buildTeacherCreatePayload(
   const phone = state.phone.trim();
   if (phone) payload.phone = phone;
 
+  const mobile = state.mobile.trim();
+  if (mobile) payload.mobile = mobile;
+
   if (hasTeacherGenderOptions(options)) {
     const gender = state.gender.trim();
     if (gender && isOfficialGenderValue(gender, options)) {
@@ -186,6 +204,16 @@ export function buildTeacherCreatePayload(
   return payload;
 }
 
+function orderedSchoolIds(state: TeacherProfileFormState): string[] {
+  const membership = [...new Set(
+    state.schoolIds.map((value) => value.trim()).filter(Boolean),
+  )];
+  const primary = state.schoolId.trim();
+  if (primary && !membership.includes(primary)) membership.unshift(primary);
+  if (!primary) return membership;
+  return [primary, ...membership.filter((value) => value !== primary)];
+}
+
 export function buildTeacherUpdatePayload(
   current: TeacherProfileFormState,
   original: TeacherProfileFormState,
@@ -209,6 +237,10 @@ export function buildTeacherUpdatePayload(
 
   if (current.phone.trim() !== original.phone.trim()) {
     payload.phone = current.phone.trim() || '';
+  }
+
+  if (current.mobile.trim() !== original.mobile.trim()) {
+    payload.mobile = current.mobile.trim() || '';
   }
 
   if (
@@ -266,13 +298,12 @@ export function buildTeacherUpdatePayload(
 
   if (current.active !== original.active) payload.active = current.active;
 
-  if (
-    options &&
-    options.schools.length > 1 &&
-    current.schoolId !== original.schoolId &&
-    current.schoolId
-  ) {
-    payload.school_id = Number(current.schoolId);
+  if (options && options.schools.length > 1) {
+    const currentSchoolIds = orderedSchoolIds(current);
+    const originalSchoolIds = orderedSchoolIds(original);
+    if (currentSchoolIds.join('|') !== originalSchoolIds.join('|')) {
+      payload.school_ids = currentSchoolIds.map(Number);
+    }
   }
 
   return payload;
@@ -324,8 +355,10 @@ export function mapTeacherApiFieldError(
       return {
         maxContinuousMinutes: t('admin.academicSetup.teacherForm.errors.invalidMaxContinuousMinutes'),
       };
-    case 'school_not_allowed':
-      return { schoolId: t('admin.academicSetup.teacherForm.errors.schoolNotAllowed') };
+    case 'school_not_allowed': {
+      const message = t('admin.academicSetup.teacherForm.errors.schoolNotAllowed');
+      return { schoolId: message, schoolIds: message };
+    }
     default:
       return {};
   }
@@ -425,13 +458,14 @@ export function validateTeacherProfileForm(
     errors.status = t('admin.academicSetup.teacherForm.errors.invalidStatus');
   }
 
-  if (
-    options &&
-    options.schools.length > 1 &&
-    state.schoolId &&
-    !options.schools.some((school) => String(school.id) === state.schoolId)
-  ) {
-    errors.schoolId = t('admin.academicSetup.teacherForm.errors.schoolNotAllowed');
+  if (options && options.schools.length > 1) {
+    const selectedSchoolIds = orderedSchoolIds(state);
+    const allowedSchoolIds = new Set(options.schools.map((school) => String(school.id)));
+    if (selectedSchoolIds.length === 0) {
+      errors.schoolIds = t('admin.teacherProfile.schoolsRequired');
+    } else if (selectedSchoolIds.some((schoolId) => !allowedSchoolIds.has(schoolId))) {
+      errors.schoolIds = t('admin.academicSetup.teacherForm.errors.schoolNotAllowed');
+    }
   }
 
   return { valid: Object.keys(errors).length === 0, errors };
