@@ -272,7 +272,7 @@ describe('StudentSpotlight', () => {
 
     expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
     expect(mockOnClose).not.toHaveBeenCalled();
-    expect(screen.getByRole('searchbox', { name: 'بحث عن التلاميذ' })).toBeTruthy();
+    expect(screen.getByRole('searchbox', { name: 'بحث عن تلميذ' })).toBeTruthy();
   });
 
   it('opens profile on Enter for the active result when focus is not on an action', async () => {
