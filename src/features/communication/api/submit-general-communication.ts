@@ -200,9 +200,10 @@ export async function submitGroupGeneralCommunication(input: {
   subject: string;
   body: string;
   recipient_scope: Exclude<RecipientScope, IndividualRecipientScope>;
+  contentType?: GeneralCommunicationContentType;
 }): Promise<GeneralCommunicationSubmitResult> {
   let draftId = input.draftId;
-  const contentType = resolveGeneralCommunicationContentType();
+  const contentType = input.contentType ?? resolveGeneralCommunicationContentType();
   try {
     if (draftId == null) {
       const created = await createAdminCommunicationContent({
