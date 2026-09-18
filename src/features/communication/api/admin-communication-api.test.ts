@@ -14,7 +14,9 @@ import {
   createAdminCommunicationContent,
   previewAdminRecipientScope,
   previewIndividualCommunication,
+  previewStudentAudienceCommunication,
   submitIndividualCommunication,
+  submitStudentAudienceCommunication,
   updateAdminCommunicationContent,
   fetchAdminChannelMessages,
   previewAdminCommunicationContentRecipients,
@@ -138,6 +140,63 @@ describe('admin communication API — Backend 228/229/259 paths', () => {
       expect(result.preview.recipient_summary.deliverable_user_count).toBe(9);
       expect(result.preview.recipient_summary.teacher_count).toBe(2);
     }
+  });
+
+  it('POST student-audience preview with canonical student scope only', async () => {
+    apiMock.post.mockResolvedValue({
+      success: true,
+      data: {
+        recipient_summary: {
+          deliverable_user_count: 2,
+          student_count: 1,
+          guardian_count: 1,
+          can_submit: true,
+        },
+      },
+      meta: {},
+    });
+    const scope = {
+      scope_type: 'student' as const,
+      beneficiary_kind: 'students_and_guardians' as const,
+      scope_id: 44,
+    };
+    const result = await previewStudentAudienceCommunication({
+      recipient_scope: scope,
+    });
+    expect(apiMock.post).toHaveBeenCalledWith(
+      '/admin/communication/student-audience/preview',
+      { recipient_scope: scope },
+    );
+    const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('school_id');
+    expect(body).not.toHaveProperty('recipient_ids');
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.preview.recipient_summary.student_count).toBe(1);
+      expect(result.preview.recipient_summary.guardian_count).toBe(1);
+    }
+  });
+
+  it('POST student-audience submit as one atomic message request', async () => {
+    const scope = {
+      scope_type: 'student' as const,
+      beneficiary_kind: 'guardians' as const,
+      scope_id: 44,
+    };
+    await submitStudentAudienceCommunication({
+      recipient_scope: scope,
+      subject: 'Follow-up',
+      body: 'Please contact the school.',
+    });
+    expect(apiMock.post).toHaveBeenCalledWith('/admin/communication/student-audience', {
+      recipient_scope: scope,
+      subject: 'Follow-up',
+      body: 'Please contact the school.',
+    });
+    const body = apiMock.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('school_id');
+    expect(body).not.toHaveProperty('recipient_ids');
+    expect(body).not.toHaveProperty('user_id');
   });
 
   it('POST admin content create with recipient_scope', async () => {
