@@ -165,6 +165,25 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(dialogSource).toContain('<AgreementAmendmentMonthRail');
   });
 
+  it('keeps one-time amount amendments visible under Modify without monthly controls', () => {
+    expect(dialogSource).toContain('const lineOptions = allLineOptions;');
+    expect(dialogSource).toContain('const hasSelectableLines = useMemo');
+    expect(dialogSource).toContain(
+      'isLineSelectableForAmendmentOperation(line, form.operationType)',
+    );
+    expect(dialogSource).toContain("availablePaths.includes('adjust_amount')");
+    expect(dialogSource).toContain(
+      "form.operationType !== 'modify_line' || form.amendmentPath !== 'period_range'",
+    );
+    expect(dialogSource).toContain("form.amendmentPath === 'period_range'");
+    expect(previewSource).toContain(
+      "form.operationType !== 'modify_line' || form.amendmentPath === 'period_range'",
+    );
+    expect(previewSource).toContain(
+      'resolveAgreementAmendmentPricingContractLabelMode(\n                  form.operationType,\n                  form.amendmentPath,',
+    );
+  });
+
   it('places reason before price and keeps apply gated by the latest authoritative preview', () => {
     expect(dialogSource.indexOf('<AgreementAmendmentReasonSelector')).toBeLessThan(
       dialogSource.indexOf('student-finance-amendment-new-price'),

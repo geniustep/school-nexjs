@@ -24,12 +24,11 @@ import {
   agreementAmendmentReasonMessageKey,
   resolveAgreementAmendmentErrorMessage,
 } from '../utils/agreement-amendment-errors';
-import { isLineSelectableForAmendmentOperation } from '../utils/agreement-amendment-path';
 import {
-  lineSupportsCancelLine,
-  lineSupportsModifyLine,
-  resolveAgreementLineOperationBlockReasonCode,
-} from '../utils/agreement-amendment-line-eligibility';
+  isLineSelectableForAmendmentOperation,
+  resolveAvailableAmendmentPaths,
+} from '../utils/agreement-amendment-path';
+import { resolveAgreementLineOperationBlockReasonCode } from '../utils/agreement-amendment-line-eligibility';
 import {
   buildAgreementAmendmentApplyPayload,
   buildAgreementAmendmentPreviewPayload,
@@ -188,12 +187,15 @@ export function StudentFinanceAgreementAmendmentDialog({
     () => resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement),
     [agreement, agreementDetails],
   );
-  const lineOptions = useMemo(() => {
-    if (form.operationType === 'cancel_line') {
-      return allLineOptions.filter((line) => lineSupportsCancelLine(line));
-    }
-    return allLineOptions.filter((line) => lineSupportsModifyLine(line));
-  }, [allLineOptions, form.operationType]);
+  const lineOptions = allLineOptions;
+  const hasSelectableLines = useMemo(
+    () =>
+      form.operationType === 'add_line' ||
+      lineOptions.some((line) =>
+        isLineSelectableForAmendmentOperation(line, form.operationType),
+      ),
+    [form.operationType, lineOptions],
+  );
   const periodOptions = useMemo(
     () => resolveAmendmentEffectivePeriodOptions({
       fetchedPeriods,
@@ -271,7 +273,7 @@ export function StudentFinanceAgreementAmendmentDialog({
   }, [open, agreementId]);
 
   useEffect(() => {
-    if (form.operationType !== 'modify_line') return;
+    if (form.operationType !== 'modify_line' || form.amendmentPath !== 'period_range') return;
     if (!form.sourceLineId || !modifyPeriodOptions.length) return;
     if (periodSelectionInitializedLineId === form.sourceLineId) return;
     const selectedPeriodIds = modifyPeriodOptions
@@ -285,7 +287,13 @@ export function StudentFinanceAgreementAmendmentDialog({
     setPeriodSelectionInitializedLineId(form.sourceLineId);
     setPreview(null);
     setPreviewReady(false);
-  }, [form.operationType, form.sourceLineId, modifyPeriodOptions, periodSelectionInitializedLineId]);
+  }, [
+    form.operationType,
+    form.amendmentPath,
+    form.sourceLineId,
+    modifyPeriodOptions,
+    periodSelectionInitializedLineId,
+  ]);
 
   function resetAndClose() {
     previewRequestSeqRef.current += 1;
@@ -329,12 +337,21 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   function handleLineSelection(sourceLineId: string) {
     const selected = lineOptions.find((line) => String(line.id) === sourceLineId);
+    const availablePaths = resolveAvailableAmendmentPaths(selected, form.operationType);
+    const amendmentPath =
+      form.operationType === 'cancel_line'
+        ? 'period_range'
+        : availablePaths.includes('period_range')
+          ? 'period_range'
+          : availablePaths.includes('adjust_amount')
+            ? 'adjust_amount'
+            : '';
     setAmbiguousCandidates([]);
     setPeriodSelectionInitializedLineId(null);
     setBlockedPeriodIds([]);
     setForm((prev) => ({
       ...prev,
-      amendmentPath: 'period_range',
+      amendmentPath,
       sourceLineId,
       feeTypeId: selected?.feeTypeId != null ? String(selected.feeTypeId) : '',
       effectivePeriodId: '',
@@ -488,6 +505,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     if (
       allowSparseReconcile &&
       candidateForm.operationType === 'modify_line' &&
+      candidateForm.amendmentPath === 'period_range' &&
       periodImpacts.length
     ) {
       const reconciled = reconcileSparsePeriodSelectionWithPreview({
@@ -572,7 +590,15 @@ export function StudentFinanceAgreementAmendmentDialog({
     previewReady && preview && !preview.canApply && preview.blockingReasons.length
       ? resolveAgreementAmendmentBlockingMessage(preview.blockingReasons[0]!, t)
       : null;
-  const visiblePeriods = form.operationType === 'modify_line' ? modifyPeriodOptions : periodOptions;
+  const periodControlsActive =
+    form.operationType === 'add_line' ||
+    form.operationType === 'cancel_line' ||
+    (form.operationType === 'modify_line' && form.amendmentPath === 'period_range');
+  const visiblePeriods = periodControlsActive
+    ? form.operationType === 'modify_line'
+      ? modifyPeriodOptions
+      : periodOptions
+    : [];
 
   return (
     <>
@@ -636,10 +662,10 @@ export function StudentFinanceAgreementAmendmentDialog({
                 selectedLineId={form.sourceLineId}
                 currency={currency}
                 operationType={form.operationType}
-                disabled={!canEdit || !lineOptions.length}
+                disabled={!canEdit || !hasSelectableLines}
                 onSelect={handleLineSelection}
               />
-              {!lineOptions.length ? (
+              {!hasSelectableLines ? (
                 <p className="tiny muted">
                   {form.operationType === 'cancel_line' ? copy.noRemoveServices : copy.noModifyServices}
                 </p>
@@ -675,7 +701,9 @@ export function StudentFinanceAgreementAmendmentDialog({
             </label>
           ) : null}
 
-          {form.operationType === 'modify_line' && selectedLine ? (
+          {form.operationType === 'modify_line' &&
+          form.amendmentPath === 'period_range' &&
+          selectedLine ? (
             <AgreementAmendmentSparsePeriodGrid
               periods={modifyPeriodOptions}
               selectedPeriodIds={form.selectedPeriodIds}
@@ -705,10 +733,14 @@ export function StudentFinanceAgreementAmendmentDialog({
             </section>
           ) : null}
 
-          {(form.operationType === 'modify_line' ? selectedLine : form.operationType === 'add_line' || selectedLine) && periodsError ? (
+          {periodControlsActive &&
+          (form.operationType === 'modify_line'
+            ? selectedLine
+            : form.operationType === 'add_line' || selectedLine) &&
+          periodsError ? (
             <p className="tiny muted">{periodsError}</p>
           ) : null}
-          {!periodsLoading && !visiblePeriods.length && !periodsError ? (
+          {periodControlsActive && !periodsLoading && !visiblePeriods.length && !periodsError ? (
             <p className="tiny muted">{copy.noPeriods}</p>
           ) : null}
 

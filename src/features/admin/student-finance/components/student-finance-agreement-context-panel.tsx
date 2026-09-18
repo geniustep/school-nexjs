@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import type { StudentDetailsData } from '@/types/student-360';
@@ -16,6 +16,10 @@ import type {
 import { resolveFeePlanPresentation } from '../utils/resolve-fee-plan-presentation';
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { isAgreementAmendmentAllowed } from '../utils/resolve-agreement-amendment-action';
+import {
+  resolveAgreementContextCurrentTotal,
+  resolveAgreementContextLineDisplay,
+} from '../utils/resolve-agreement-context-line-display';
 import { StudentFinanceAgreementAmendmentDialog } from './student-finance-agreement-amendment-dialog';
 import styles from './student-finance-agreement-context-panel.module.css';
 
@@ -53,16 +57,32 @@ function agreementLineLabel(line: FinancialAgreementLine): string | null {
   return null;
 }
 
-function agreementLineQuantity(line: FinancialAgreementLine): number | null {
-  const quantity = line.quantity ?? line.periods_count ?? line.schedule_period_count;
-  return typeof quantity === 'number' && Number.isFinite(quantity) && quantity > 0
-    ? quantity
-    : null;
+function formatAgreementLineDuration(
+  locale: string,
+  months: number | null,
+  isOneTime: boolean,
+): string | null {
+  if (isOneTime) {
+    if (locale === 'fr') return 'Une fois';
+    if (locale === 'es') return 'Una vez';
+    if (locale === 'en') return 'One time';
+    return 'مرة واحدة';
+  }
+  if (months == null || months <= 0) return null;
+  if (locale === 'fr') return months === 1 ? '1 mois' : `${months} mois`;
+  if (locale === 'es') return months === 1 ? '1 mes' : `${months} meses`;
+  if (locale === 'en') return months === 1 ? '1 month' : `${months} months`;
+  if (months === 1) return 'شهر واحد';
+  if (months === 2) return 'شهران';
+  if (months >= 3 && months <= 10) return `${months} أشهر`;
+  return `${months} شهرًا`;
 }
 
-function agreementLineTotal(line: FinancialAgreementLine): number | null {
-  const amount = line.net_amount ?? line.schedule_total ?? line.gross_amount;
-  return typeof amount === 'number' && Number.isFinite(amount) ? amount : null;
+function currentPriceLabel(locale: string): string {
+  if (locale === 'fr') return 'Prix actuel';
+  if (locale === 'es') return 'Precio actual';
+  if (locale === 'en') return 'Current price';
+  return 'السعر الحالي';
 }
 
 export function StudentFinanceAgreementContextPanel({
@@ -86,6 +106,7 @@ export function StudentFinanceAgreementContextPanel({
   onRefresh?: () => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const { formatDate } = useFormat();
   const [amendmentOpen, setAmendmentOpen] = useState(false);
 
@@ -128,6 +149,10 @@ export function StudentFinanceAgreementContextPanel({
   };
 
   const currency = displayAgreement?.currency?.name ?? feePlan.currency ?? undefined;
+  const currentAgreementTotal = resolveAgreementContextCurrentTotal(
+    displayAgreement,
+    feePlan.netAmount,
+  );
 
   return (
     <section
@@ -178,11 +203,11 @@ export function StudentFinanceAgreementContextPanel({
                   <dd dir="auto">{feePlan.feePlanName}</dd>
                 </div>
               ) : null}
-              {feePlan.netAmount != null ? (
+              {currentAgreementTotal != null ? (
                 <div className={styles.fact}>
                   <dt>{t('admin.student360.financeWorkspace.agreementContext.fields.netAmount')}</dt>
                   <dd>
-                    <FinanceMoney amount={feePlan.netAmount} currency={currency} />
+                    <FinanceMoney amount={currentAgreementTotal} currency={currency} />
                   </dd>
                 </div>
               ) : null}
@@ -216,12 +241,15 @@ export function StudentFinanceAgreementContextPanel({
                 <div className={styles.linesList}>
                   {agreementLines.map((line, index) => {
                     const label = agreementLineLabel(line) ?? t('common.dash');
-                    const quantity = agreementLineQuantity(line);
-                    const total = agreementLineTotal(line);
-                    const unitPrice =
-                      typeof line.unit_price === 'number' && Number.isFinite(line.unit_price)
-                        ? line.unit_price
-                        : null;
+                    const lineDisplay = resolveAgreementContextLineDisplay(
+                      line,
+                      displayAgreement?.installments ?? [],
+                    );
+                    const durationLabel = formatAgreementLineDuration(
+                      locale,
+                      lineDisplay.monthCount,
+                      lineDisplay.isOneTime,
+                    );
                     const discount =
                       typeof line.discount_amount === 'number' && line.discount_amount > 0
                         ? line.discount_amount
@@ -244,18 +272,26 @@ export function StudentFinanceAgreementContextPanel({
                         </div>
 
                         <div className={styles.linePricing}>
-                          {unitPrice != null ? (
+                          {lineDisplay.currentPrice != null ? (
                             <span className={styles.lineMetric}>
-                              {t('admin.student360.financialAgreement.columns.unitPrice')}:
+                              {currentPriceLabel(locale)}:
                               <strong>
-                                <FinanceMoney amount={unitPrice} currency={currency} />
+                                <FinanceMoney amount={lineDisplay.currentPrice} currency={currency} />
+                              </strong>
+                            </span>
+                          ) : lineDisplay.priceMin != null && lineDisplay.priceMax != null ? (
+                            <span className={styles.lineMetric}>
+                              {currentPriceLabel(locale)}:
+                              <strong>
+                                <FinanceMoney amount={lineDisplay.priceMin} currency={currency} />
+                                {' — '}
+                                <FinanceMoney amount={lineDisplay.priceMax} currency={currency} />
                               </strong>
                             </span>
                           ) : null}
-                          {quantity != null ? (
+                          {durationLabel ? (
                             <span className={styles.lineMetric}>
-                              {t('admin.student360.financialAgreement.columns.quantity')}:
-                              <strong>{quantity}</strong>
+                              <strong>{durationLabel}</strong>
                             </span>
                           ) : null}
                           {discount != null ? (
@@ -266,11 +302,11 @@ export function StudentFinanceAgreementContextPanel({
                               </strong>
                             </span>
                           ) : null}
-                          {total != null ? (
+                          {lineDisplay.total != null ? (
                             <span className={`${styles.lineMetric} ${styles.lineNet}`}>
                               {t('admin.student360.financialAgreement.columns.net')}:
                               <strong>
-                                <FinanceMoney amount={total} currency={currency} />
+                                <FinanceMoney amount={lineDisplay.total} currency={currency} />
                               </strong>
                             </span>
                           ) : null}

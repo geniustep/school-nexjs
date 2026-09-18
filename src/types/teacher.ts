@@ -64,6 +64,30 @@ export type TeacherOptionsPayload = {
   };
 };
 
+export type TeacherPersonIdentity = {
+  display_name?: string | null;
+  partner_id?: number | null;
+  partner_name?: string | null;
+  name_ar?: string | null;
+  name_fr?: string | null;
+  source?: string | null;
+};
+
+export type TeacherGuardianChild = {
+  id: number;
+  name: string | null;
+  code?: string | null;
+  school?: { id: number; name: string } | null;
+  class?: { id: number; name: string } | null;
+};
+
+export type TeacherGuardianContext = {
+  is_guardian: boolean;
+  guardian_id: number | null;
+  children_count: number;
+  children: TeacherGuardianChild[];
+};
+
 export interface TeacherAssignmentRef {
   id: number;
   class: { id: number; name: string };
@@ -78,9 +102,18 @@ export interface Teacher {
   name: string;
   code: string | null;
   phone: string | null;
+  mobile?: string | null;
   email: string | null;
+  identity?: TeacherPersonIdentity | null;
+  guardian_context?: TeacherGuardianContext | null;
   gender?: string | null;
   date_of_birth?: string | null;
+  hire_date?: string | null;
+  contract_type?: string | null;
+  employment_end_date?: string | null;
+  employment_end_reason?: string | null;
+  archive_date?: string | null;
+  archive_reason?: string | null;
   login?: string | null;
   user_id?: number | null;
   account?: UserAccountInfo | null;
@@ -105,11 +138,16 @@ export interface Teacher {
 
 export type TeacherProfileFormState = {
   name: string;
+  nameAr: string;
+  nameFr: string;
   code: string;
   phone: string;
+  mobile: string;
   email: string;
   gender: string;
   dateOfBirth: string;
+  hireDate: string;
+  contractType: string;
   specialization: string;
   login: string;
   teacherType: string;
@@ -121,13 +159,18 @@ export type TeacherProfileFormState = {
   status: string;
   active: boolean;
   schoolId: string;
+  schoolIds: string[];
 };
 
 export type TeacherProfileFieldErrors = Partial<
   Record<
     | 'name'
+    | 'nameAr'
+    | 'nameFr'
     | 'gender'
     | 'dateOfBirth'
+    | 'hireDate'
+    | 'contractType'
     | 'specialization'
     | 'teacherType'
     | 'qualification'
@@ -136,6 +179,7 @@ export type TeacherProfileFieldErrors = Partial<
     | 'maxContinuousMinutes'
     | 'status'
     | 'schoolId'
+    | 'schoolIds'
     | 'active',
     string
   >
@@ -159,8 +203,13 @@ export type TeacherCreateAssignmentInput = {
 /** Simplified teacher create request — automatic account is backend-owned. */
 export type TeacherCreateRequest = {
   name: string;
+  name_ar?: string | null;
+  name_fr?: string | null;
   phone?: string | null;
+  mobile?: string | null;
   email?: string | null;
+  hire_date?: string | null;
+  contract_type?: string | null;
   school_id?: number | null;
   school_ids?: number[];
   /** Internal default only — not shown on simplified create UI. */

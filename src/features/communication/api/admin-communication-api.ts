@@ -8,9 +8,10 @@ import { normalizeIndividualCommunicationPreview } from '@/features/communicatio
 import type {
   CommunicationContent,
   CommunicationRecipientPreviewResponse,
+  CommunicationRecipientSummary,
   IndividualCommunicationPreview,
 } from '@/types/communication';
-import type { RecipientScope } from '@/types/recipient-scope';
+import type { RecipientScope, StudentRecipientScope } from '@/types/recipient-scope';
 
 export type CreateAdminCommunicationContentInput = {
   subject: string;
@@ -36,6 +37,23 @@ export type IndividualCommunicationSubmitInput = {
 export type IndividualCommunicationPreviewInput = {
   recipient_type: 'teacher' | 'student' | 'guardian';
   recipient_id: number;
+};
+
+export type StudentAudienceCommunicationSubmitInput = {
+  recipient_scope: StudentRecipientScope;
+  subject: string;
+  body: string;
+};
+
+export type StudentAudienceCommunicationSubmitData = {
+  id?: number;
+  pending_review?: boolean;
+  published_message_id?: number | null;
+  recipient_summary?: CommunicationRecipientSummary | null;
+  student_audience?: {
+    recipient_scope?: StudentRecipientScope;
+    channel_id?: number | false | null;
+  } | null;
 };
 
 export function fetchCommunicationContentList(
@@ -200,6 +218,54 @@ export async function previewAdminRecipientScope(input: {
     };
   }
   return { ok: true, preview };
+}
+
+/**
+ * Governed one-student audience preview.
+ * Odoo resolves student / active guardians; the client never sends recipient user ids.
+ */
+export async function previewStudentAudienceCommunication(input: {
+  recipient_scope: StudentRecipientScope;
+}): Promise<
+  | { ok: true; preview: CommunicationRecipientPreviewResponse }
+  | { ok: false; error: ApiErrorBody }
+> {
+  const res = await api.post<unknown>(
+    endpoints.admin.communicationStudentAudiencePreview,
+    { recipient_scope: input.recipient_scope },
+  );
+  if (!res.success) {
+    return { ok: false, error: res.error };
+  }
+  const preview = normalizeRecipientPreviewResponse(res.data);
+  if (!preview) {
+    return {
+      ok: false,
+      error: {
+        code: 'server_error',
+        message: 'Unexpected server response.',
+        details: {},
+      },
+    };
+  }
+  return { ok: true, preview };
+}
+
+/**
+ * Atomic create + submit for a governed one-student audience message.
+ * Backend owns recipient resolution, moderation and the frozen snapshot.
+ */
+export function submitStudentAudienceCommunication(
+  input: StudentAudienceCommunicationSubmitInput,
+): Promise<ApiResponse<StudentAudienceCommunicationSubmitData>> {
+  return api.post<StudentAudienceCommunicationSubmitData>(
+    endpoints.admin.communicationStudentAudience,
+    {
+      recipient_scope: input.recipient_scope,
+      subject: input.subject,
+      body: input.body,
+    },
+  );
 }
 
 /**
