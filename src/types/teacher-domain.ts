@@ -6,6 +6,7 @@
 
 import type { Ref, SchoolRef } from './api';
 import type { UserAccountInfo } from './account';
+import type { TeacherGuardianContext } from './teacher';
 import type { ApiWarning } from './academic-setup';
 
 export const TEACHER_DOMAIN_CONTRACT_VERSION = 'SSC-API-2026.07.001' as const;
@@ -54,6 +55,8 @@ export type TeacherIdentity = {
   display_name?: string | null;
   partner_id?: number | null;
   partner_name?: string | null;
+  name_ar?: string | null;
+  name_fr?: string | null;
   source?: string | null;
 };
 
@@ -114,6 +117,7 @@ export type TeacherSummary = {
   name: string;
   code: string | null;
   phone?: string | null;
+  mobile?: string | null;
   email?: string | null;
   identity?: TeacherIdentity | null;
   account?: TeacherAccountSummary | UserAccountInfo | null;
@@ -140,6 +144,7 @@ export type TeacherDetail = TeacherSummary & {
   gender?: string | null;
   date_of_birth?: string | null;
   user_id?: number | null;
+  guardian_context?: TeacherGuardianContext | null;
   school_ids?: (SchoolRef & { code?: string | null })[];
   hire_date?: string | null;
   contract_type?: string | null;

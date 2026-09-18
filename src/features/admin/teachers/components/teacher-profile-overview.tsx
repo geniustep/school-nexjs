@@ -155,6 +155,10 @@ export function TeacherProfileOverview({
               value: <bdi dir="ltr">{textOrDash(teacher.phone, dash)}</bdi>,
             },
             {
+              label: t('admin.teacherProfile.mobile'),
+              value: <bdi dir="ltr">{textOrDash(teacher.mobile, dash)}</bdi>,
+            },
+            {
               label: t('admin.email'),
               value: <bdi dir="ltr">{textOrDash(teacher.email, dash)}</bdi>,
             },

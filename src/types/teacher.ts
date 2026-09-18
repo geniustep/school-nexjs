@@ -102,6 +102,7 @@ export interface Teacher {
   name: string;
   code: string | null;
   phone: string | null;
+  mobile?: string | null;
   email: string | null;
   identity?: TeacherPersonIdentity | null;
   guardian_context?: TeacherGuardianContext | null;
@@ -141,6 +142,7 @@ export type TeacherProfileFormState = {
   nameFr: string;
   code: string;
   phone: string;
+  mobile: string;
   email: string;
   gender: string;
   dateOfBirth: string;
@@ -157,6 +159,7 @@ export type TeacherProfileFormState = {
   status: string;
   active: boolean;
   schoolId: string;
+  schoolIds: string[];
 };
 
 export type TeacherProfileFieldErrors = Partial<
@@ -176,6 +179,7 @@ export type TeacherProfileFieldErrors = Partial<
     | 'maxContinuousMinutes'
     | 'status'
     | 'schoolId'
+    | 'schoolIds'
     | 'active',
     string
   >
@@ -202,6 +206,7 @@ export type TeacherCreateRequest = {
   name_ar?: string | null;
   name_fr?: string | null;
   phone?: string | null;
+  mobile?: string | null;
   email?: string | null;
   hire_date?: string | null;
   contract_type?: string | null;

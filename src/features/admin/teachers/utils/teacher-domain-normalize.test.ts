@@ -3,6 +3,7 @@ import {
   checkTeacherDomainContract,
   normalizeAcademicProfile,
   normalizeAssignmentDetail,
+  normalizeTeacherDetail,
   normalizeTeacherSummaries,
   stripForbiddenAcademicWriteKeys,
 } from './teacher-domain-normalize';
@@ -41,6 +42,36 @@ describe('teacher-domain-normalize', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].allowed_actions).toEqual({ view: true });
     expect(rows[0].assignment_summary?.active_count).toBe(1);
+  });
+
+
+  it('preserves teacher mobile, bilingual identity, guardian context, and multi-school detail fields', () => {
+    const detail = normalizeTeacherDetail({
+      id: 7,
+      name: 'Teacher',
+      code: 'T7',
+      status: 'active',
+      phone: '0500000000',
+      mobile: '0600000000',
+      identity: { name_ar: 'أستاذ', name_fr: 'Professeur' },
+      guardian_context: {
+        is_guardian: false,
+        guardian_id: null,
+        children_count: 0,
+        children: [],
+      },
+      school_id: 1,
+      school_ids: [
+        { id: 1, name: 'Nibras' },
+        { id: 2, name: 'Alwah' },
+      ],
+    });
+
+    expect(detail?.mobile).toBe('0600000000');
+    expect(detail?.identity?.name_ar).toBe('أستاذ');
+    expect(detail?.identity?.name_fr).toBe('Professeur');
+    expect(detail?.guardian_context?.is_guardian).toBe(false);
+    expect(detail?.school_ids?.map((school) => school.id)).toEqual([1, 2]);
   });
 
   it('keeps academic eligibility separate from assignments', () => {
