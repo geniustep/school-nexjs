@@ -10092,7 +10092,24 @@
           "promiseFailed": "Impossible d’enregistrer la promesse de paiement.",
           "resolveFailed": "Impossible de résoudre le suivi."
         },
-        "followupApiUnavailable": "Les données de suivi sont indisponibles — les familles en retard sont affichées depuis les comptes payeurs."
+        "followupApiUnavailable": "Les données de suivi sont indisponibles — les familles en retard sont affichées depuis les comptes payeurs.",
+        "export": {
+          "excel": "Exporter vers Excel",
+          "print": "Imprimer / PDF",
+          "preparing": "Préparation de l’export…",
+          "failed": "Impossible de préparer l’export. Réessayez.",
+          "forbidden": "Vous n’avez pas l’autorisation d’exporter ces données.",
+          "limitExceeded": "Trop de résultats à exporter en une seule fois. Affinez les filtres puis réessayez.",
+          "noData": "Aucun résultat correspondant à exporter.",
+          "invalidResponse": "Impossible de valider la réponse d’export.",
+          "reportTitle": "Rapport des arriérés",
+          "scope": "Tous les résultats correspondant aux filtres actifs",
+          "generatedAt": "Généré le",
+          "rowCount": "Résultats",
+          "school": "Établissement",
+          "filters": "Filtres",
+          "popupBlocked": "Impossible d’ouvrir la fenêtre d’impression. Autorisez les fenêtres contextuelles puis réessayez."
+        }
       },
       "billingAccounts": {
         "hubTitle": "Comptes payeurs",

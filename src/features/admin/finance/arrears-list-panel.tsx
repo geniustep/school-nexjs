@@ -13,6 +13,7 @@ import { LoadingState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { ArrearsFollowupDrawer } from '@/features/admin/finance/arrears-followup-drawer';
+import { ArrearsExportActions } from '@/features/admin/finance/arrears-export-actions';
 import {
   ARREARS_FOLLOWUP_TABS,
   arrearsFollowupTabApiParam,
@@ -397,6 +398,11 @@ export function ArrearsListPanel({
           />
         </div>
       </section>
+
+      <ArrearsExportActions
+        search={filters.search}
+        tab={tabValid}
+      />
 
       {pg ? (
         <p className="finance-receivable-list__result-count" dir="ltr">

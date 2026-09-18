@@ -2,85 +2,65 @@
 
 import { useState } from 'react';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import {
-  arrearsFollowupTabLabelKey,
-} from '@/features/admin/finance/arrears-filter-contracts';
-import {
-  arrearsExportCopy,
-  buildArrearsExportQuery,
-  buildArrearsPrintHtml,
-  downloadArrearsExcel,
-  parseArrearsExportResponse,
-  type ArrearsExportContext,
-  type ArrearsExportResult,
-} from '@/features/admin/finance/arrears-export';
-import { resolveArrearsFollowupTab } from '@/features/admin/finance/utils/arrears-list-present';
 import { useLocale } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import type { ArrearsFollowupTab } from '@/types/finance-arrears';
+import {
+  buildArrearsExportQuery,
+  downloadArrearsExcel,
+  parseArrearsExportPayload,
+  buildArrearsPrintHtml,
+  writeArrearsPrintWindow,
+  type ArrearsExportPayload,
+} from '@/features/admin/finance/arrears-export';
 
-type ArrearsExportActionsProps = {
-  filters: {
-    tab: string;
-    search: string;
-  };
-};
-
-type ExportAction = 'excel' | 'print';
+type ExportKind = 'excel' | 'print';
 
 function errorMessage(
   code: string,
-  copy: ReturnType<typeof arrearsExportCopy>,
+  t: ReturnType<typeof useLocale>['t'],
 ): string {
-  if (code === 'export_limit_exceeded') return copy.limitExceeded;
-  if (code === 'forbidden' || code === 'permission_denied' || code === 'unauthenticated') {
-    return copy.forbidden;
+  if (code === 'export_limit_exceeded') {
+    return t('admin.finance.arrears.export.limitExceeded');
   }
-  return copy.failed;
+  if (code === 'forbidden' || code === 'permission_denied') {
+    return t('admin.finance.arrears.export.forbidden');
+  }
+  return t('admin.finance.arrears.export.failed');
 }
 
-export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
-  const { locale, t } = useLocale();
+export function ArrearsExportActions({
+  search,
+  tab,
+}: {
+  search: string;
+  tab: ArrearsFollowupTab;
+}) {
+  const { locale, dir, t } = useLocale();
   const { activeSchoolId, schools } = useAdminSession();
-  const copy = arrearsExportCopy(locale);
-  const tab = resolveArrearsFollowupTab(filters.tab);
-  const [busy, setBusy] = useState<ExportAction | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [busy, setBusy] = useState<ExportKind | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const schoolName =
-    activeSchoolId == null
-      ? null
-      : schools.find((school) => school.id === activeSchoolId)?.name ?? null;
+    schools.find((school) => school.id === activeSchoolId)?.name ?? null;
 
-  function exportContext(): ArrearsExportContext {
-    return {
-      locale,
-      generatedAt: new Date(),
-      schoolName,
-      search: filters.search,
-      tabLabel: t(arrearsFollowupTabLabelKey(tab)),
-    };
-  }
-
-  async function loadExport(): Promise<ArrearsExportResult | null> {
-    const query = buildArrearsExportQuery({
-      search: filters.search,
-      tab,
-      activeSchoolId,
-    });
-    const response = await api.get<unknown>(endpoints.admin.financeArrearsFollowups, query);
-    if (!response.success) {
-      setFeedback(errorMessage(response.error.code, copy));
+  async function loadPayload(): Promise<ArrearsExportPayload | null> {
+    const res = await api.get<unknown>(
+      endpoints.admin.financeArrearsFollowups,
+      buildArrearsExportQuery({ search, tab, activeSchoolId }),
+    );
+    if (!res.success) {
+      setError(errorMessage(res.error.code, t));
       return null;
     }
-
-    const parsed = parseArrearsExportResponse(response.data);
+    const parsed = parseArrearsExportPayload(res.data, tab);
     if (!parsed) {
-      setFeedback(copy.malformed);
+      setError(t('admin.finance.arrears.export.invalidResponse'));
       return null;
     }
     if (parsed.items.length === 0) {
-      setFeedback(copy.empty);
+      setError(t('admin.finance.arrears.export.noData'));
       return null;
     }
     return parsed;
@@ -89,13 +69,18 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
   async function handleExcel() {
     if (busy) return;
     setBusy('excel');
-    setFeedback(null);
+    setError(null);
     try {
-      const result = await loadExport();
-      if (!result) return;
-      await downloadArrearsExcel(result, exportContext());
+      const payload = await loadPayload();
+      if (!payload) return;
+      await downloadArrearsExcel({
+        payload,
+        t,
+        schoolName,
+        generatedAt: new Date(),
+      });
     } catch {
-      setFeedback(copy.failed);
+      setError(t('admin.finance.arrears.export.failed'));
     } finally {
       setBusy(null);
     }
@@ -103,68 +88,67 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
 
   async function handlePrint() {
     if (busy) return;
-    const printWindow = window.open('', '_blank', 'width=1280,height=900');
-    if (!printWindow) {
-      setFeedback(copy.popupBlocked);
+    setError(null);
+    const target = window.open('', '_blank');
+    if (!target) {
+      setError(t('admin.finance.arrears.export.popupBlocked'));
       return;
     }
-    printWindow.opener = null;
-    printWindow.document.open();
-    printWindow.document.write(
-      `<!doctype html><html lang="${locale}" dir="${locale === 'ar' ? 'rtl' : 'ltr'}"><body><p>${copy.preparingPrint}</p></body></html>`,
-    );
-    printWindow.document.close();
-
+    target.opener = null;
     setBusy('print');
-    setFeedback(null);
     try {
-      const result = await loadExport();
-      if (!result) {
-        printWindow.close();
+      const payload = await loadPayload();
+      if (!payload) {
+        target.close();
         return;
       }
-      const html = buildArrearsPrintHtml(result, exportContext());
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-      window.setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-      }, 250);
+      const html = buildArrearsPrintHtml({
+        payload,
+        t,
+        locale,
+        dir,
+        schoolName,
+        generatedAt: new Date(),
+      });
+      writeArrearsPrintWindow(target, html);
     } catch {
-      printWindow.close();
-      setFeedback(copy.failed);
+      target.close();
+      setError(t('admin.finance.arrears.export.failed'));
     } finally {
       setBusy(null);
     }
   }
 
   return (
-    <section
-      className="toolbar finance-hub-filters finance-receivable-list__toolbar"
-      aria-label={copy.title}
-    >
+    <div className="finance-arrears-export-actions">
       <button
         type="button"
         className="btn btn--ghost btn--sm"
+        disabled={busy !== null}
         onClick={() => void handleExcel()}
-        disabled={busy != null}
       >
-        {busy === 'excel' ? copy.preparingExcel : copy.excelAction}
+        {busy === 'excel'
+          ? t('admin.finance.arrears.export.preparing')
+          : t('admin.finance.arrears.export.excel')}
       </button>
       <button
         type="button"
         className="btn btn--ghost btn--sm"
+        disabled={busy !== null}
         onClick={() => void handlePrint()}
-        disabled={busy != null}
       >
-        {busy === 'print' ? copy.preparingPrint : copy.printAction}
+        {busy === 'print'
+          ? t('admin.finance.arrears.export.preparing')
+          : t('admin.finance.arrears.export.print')}
       </button>
-      {feedback ? (
-        <p className="finance-receivable-list__fetching" role="status" aria-live="polite">
-          {feedback}
+      <span className="finance-arrears-export-actions__scope">
+        {t('admin.finance.arrears.export.scope')}
+      </span>
+      {error ? (
+        <p className="finance-arrears-export-actions__error" role="alert">
+          {error}
         </p>
       ) : null}
-    </section>
+    </div>
   );
 }
