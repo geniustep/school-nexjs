@@ -195,6 +195,10 @@ export function normalizeAgreementScheduleItem(raw: unknown): AgreementScheduleI
     ...(raw as AgreementScheduleItem),
     id,
     sequence: readFiniteNumber(rec.sequence),
+    agreement_line_id:
+      readFiniteNumber(rec.agreement_line_id) ??
+      (raw as AgreementScheduleItem).agreement_line_id ??
+      null,
     period_start: readString(rec.period_start),
     period_end: readString(rec.period_end),
     display_from: readString(rec.display_from),
