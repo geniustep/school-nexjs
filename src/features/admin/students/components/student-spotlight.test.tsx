@@ -4,8 +4,8 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/ui/toast';
-import { previewIndividualCommunication } from '@/features/communication/api/admin-communication-api';
-import { submitIndividualGeneralCommunication } from '@/features/communication/api/submit-general-communication';
+import { previewAdminRecipientScope } from '@/features/communication/api/admin-communication-api';
+import { submitGroupGeneralCommunication } from '@/features/communication/api/submit-general-communication';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { LOCALE_STORAGE_KEY } from '@/lib/i18n/config';
 import type { StudentSearchHit } from '@/types/student-search';
@@ -28,11 +28,11 @@ vi.mock('../hooks/use-student-search-query', () => ({
 }));
 
 vi.mock('@/features/communication/api/admin-communication-api', () => ({
-  previewIndividualCommunication: vi.fn(),
+  previewAdminRecipientScope: vi.fn(),
 }));
 
 vi.mock('@/features/communication/api/submit-general-communication', () => ({
-  submitIndividualGeneralCommunication: vi.fn(),
+  submitGroupGeneralCommunication: vi.fn(),
 }));
 
 vi.mock('@/features/auth/session-context', () => ({
@@ -48,8 +48,8 @@ vi.mock('@/features/auth/session-context', () => ({
 }));
 
 const mockUseStudentSearchQuery = vi.mocked(useStudentSearchQuery);
-const mockPreviewIndividualCommunication = vi.mocked(previewIndividualCommunication);
-const mockSubmitIndividualGeneralCommunication = vi.mocked(submitIndividualGeneralCommunication);
+const mockPreviewAdminRecipientScope = vi.mocked(previewAdminRecipientScope);
+const mockSubmitGroupGeneralCommunication = vi.mocked(submitGroupGeneralCommunication);
 const mockOnClose = vi.fn();
 
 function sampleHit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, 'id'>): StudentSearchHit {
@@ -91,18 +91,22 @@ beforeEach(() => {
     results: [],
     suggestion: null,
   });
-  mockPreviewIndividualCommunication.mockReset();
-  mockPreviewIndividualCommunication.mockResolvedValue({
+  mockPreviewAdminRecipientScope.mockReset();
+  mockPreviewAdminRecipientScope.mockResolvedValue({
     ok: true,
     preview: {
-      recipient_type: 'student',
-      recipient_count: 1,
-      deliverable_user_count: 1,
-      can_submit: true,
+      presentation: 'preview',
+      recipient_summary: {
+        total_people_count: 2,
+        deliverable_user_count: 2,
+        student_count: 1,
+        guardian_count: 1,
+        can_submit: true,
+      },
     },
   });
-  mockSubmitIndividualGeneralCommunication.mockReset();
-  mockSubmitIndividualGeneralCommunication.mockResolvedValue({
+  mockSubmitGroupGeneralCommunication.mockReset();
+  mockSubmitGroupGeneralCommunication.mockResolvedValue({
     ok: true,
     draftId: null,
     outcome: {
@@ -192,10 +196,23 @@ describe('StudentSpotlight', () => {
       messageDialog.closest('.student-spotlight-message-modal__backdrop')?.parentElement,
     ).toBe(document.body);
     expect(within(messageDialog).getByText('إسماعيل العمراني — Ismail Al-Mrani')).toBeTruthy();
+    expect(within(messageDialog).getByRole('radio', { name: 'أولياء الأمور' })).toBeTruthy();
+    expect(within(messageDialog).getByRole('radio', { name: 'التلاميذ' })).toBeTruthy();
+    expect(
+      within(messageDialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
+    ).toBeTruthy();
+    expect(mockPreviewAdminRecipientScope).not.toHaveBeenCalled();
+
+    await user.click(
+      within(messageDialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
+    );
     await waitFor(() => {
-      expect(mockPreviewIndividualCommunication).toHaveBeenCalledWith({
-        recipient_type: 'student',
-        recipient_id: 2081,
+      expect(mockPreviewAdminRecipientScope).toHaveBeenCalledWith({
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'students_and_guardians',
+          scope_id: 2081,
+        },
       });
     });
 
@@ -204,14 +221,16 @@ describe('StudentSpotlight', () => {
     await user.click(within(messageDialog).getByRole('button', { name: 'إرسال' }));
 
     await waitFor(() => {
-      expect(mockSubmitIndividualGeneralCommunication).toHaveBeenCalledWith({
-        scope: {
-          scope_type: 'individual',
-          recipient_type: 'student',
-          recipient_id: 2081,
+      expect(mockSubmitGroupGeneralCommunication).toHaveBeenCalledWith({
+        draftId: null,
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'students_and_guardians',
+          scope_id: 2081,
         },
         subject: 'متابعة التلميذ',
         body: 'يرجى التواصل مع الإدارة.',
+        contentType: 'message',
       });
     });
     expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
@@ -230,7 +249,7 @@ describe('StudentSpotlight', () => {
       results: [sampleHit({ id: 2081 })],
       suggestion: null,
     });
-    mockSubmitIndividualGeneralCommunication.mockResolvedValueOnce({
+    mockSubmitGroupGeneralCommunication.mockResolvedValueOnce({
       ok: false,
       draftId: null,
       error: {
@@ -243,10 +262,9 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    await user.click(within(dialog).getByRole('radio', { name: 'التلاميذ' }));
     await waitFor(() => {
-      expect(
-        within(dialog).getByText('المستفيد جاهز لاستلام الرسالة.'),
-      ).toBeTruthy();
+      expect(within(dialog).getByText('جاهز للإرسال')).toBeTruthy();
     });
 
     const subject = within(dialog).getByLabelText('الموضوع') as HTMLInputElement;
