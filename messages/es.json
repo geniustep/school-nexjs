@@ -10008,6 +10008,13 @@
         "kpis": {
           "overdueAccounts": "Cuentas atrasadas",
           "overdueFamilies": "Familias atrasadas",
+          "actionableAccounts": "Cuentas que requieren seguimiento",
+          "actionableTotal": "Importe a cobrar ahora",
+          "pendingChequeCoverage": "Cobertura con cheques pendientes",
+          "grossOverdue": "Atraso bruto antes de cheques",
+          "actionableOverdue": "A cobrar ahora",
+          "pendingCheque": "Cheque en proceso",
+          "grossOverdue": "Atraso original",
           "totalOverdue": "Total atrasado",
           "paymentPromises": "Promesas de pago",
           "todayFollowups": "Seguimientos de hoy"
@@ -10018,7 +10025,8 @@
           "paymentPromises": "Promesas de pago",
           "todayFollowup": "Seguimiento de hoy",
           "escalated": "Escalados",
-          "resolved": "Resueltos"
+          "resolved": "Resueltos",
+          "pendingCheque": "Cheques en proceso"
         },
         "columns": {
           "family": "Cuenta / pagador",
