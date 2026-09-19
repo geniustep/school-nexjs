@@ -24,6 +24,7 @@ type ArrearsExportActionsProps = {
     tab: string;
     search: string;
   };
+  supportsActionable: boolean;
 };
 
 type ExportAction = 'excel' | 'print';
@@ -39,7 +40,7 @@ function errorMessage(
   return copy.failed;
 }
 
-export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
+export function ArrearsExportActions({ filters, supportsActionable }: ArrearsExportActionsProps) {
   const { locale, t } = useLocale();
   const { activeSchoolId, schools } = useAdminSession();
   const copy = arrearsExportCopy(locale);
@@ -67,6 +68,7 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
       search: filters.search,
       tab,
       activeSchoolId,
+      supportsActionable,
     });
     const response = await api.get<unknown>(endpoints.admin.financeArrearsFollowups, query);
     if (!response.success) {
