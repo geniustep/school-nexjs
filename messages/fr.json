@@ -10027,6 +10027,13 @@
         "kpis": {
           "overdueAccounts": "Comptes en retard",
           "overdueFamilies": "Familles en retard",
+          "actionableAccounts": "Comptes à relancer",
+          "actionableTotal": "Montant à encaisser maintenant",
+          "pendingChequeCoverage": "Chèques en cours sur impayés",
+          "grossOverdue": "Arriéré brut avant chèques",
+          "actionableOverdue": "À encaisser maintenant",
+          "pendingCheque": "Chèque en cours d’encaissement",
+          "grossOverdue": "Arriéré initial",
           "totalOverdue": "Total en retard",
           "paymentPromises": "Promesses de paiement",
           "todayFollowups": "Suivis du jour"
@@ -10037,7 +10044,8 @@
           "paymentPromises": "Promesses de paiement",
           "todayFollowup": "Suivi du jour",
           "escalated": "Escaladés",
-          "resolved": "Résolus"
+          "resolved": "Résolus",
+          "pendingCheque": "Chèques en cours d’encaissement"
         },
         "columns": {
           "family": "Compte / payeur",
