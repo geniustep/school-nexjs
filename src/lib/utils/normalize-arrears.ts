@@ -9,6 +9,10 @@ import {
 import type { BillingAccountListItem } from '@/types/finance-billing-account';
 import type {
   ArrearsFamilyFollowupDetail,
+  ArrearsGuardianDetail,
+  ArrearsGuardianRelationshipContext,
+  ArrearsOverdueInstallmentDetail,
+  ArrearsStudentDetail,
   ArrearsFollowupLastEntry,
   ArrearsFollowupListItem,
   ArrearsFollowupListResult,
@@ -24,6 +28,92 @@ function readString(raw: unknown): string | null {
 function readAccountKind(raw: unknown): 'family' | 'individual' | null {
   const value = readString(raw)?.toLowerCase();
   return value === 'family' || value === 'individual' ? value : null;
+}
+
+function readNumber(raw: unknown): number | null {
+  return typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+}
+
+function readBoolean(raw: unknown): boolean | undefined {
+  if (raw === true || raw === false) return raw;
+  if (raw === 1) return true;
+  if (raw === 0) return false;
+  return undefined;
+}
+
+function normalizeGuardianRelationshipContext(
+  raw: unknown,
+): ArrearsGuardianRelationshipContext | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const student_id = readNumber(row.student_id);
+  if (student_id == null) return null;
+  return {
+    student_id,
+    relationship_type: readString(row.relationship_type),
+    is_primary_contact: readBoolean(row.is_primary_contact),
+    is_financial_responsible: readBoolean(row.is_financial_responsible),
+    is_legal_guardian: readBoolean(row.is_legal_guardian),
+  };
+}
+
+function normalizeGuardianDetail(raw: unknown): ArrearsGuardianDetail | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const guardian_id = readNumber(row.guardian_id);
+  if (guardian_id == null) return null;
+  return {
+    guardian_id,
+    partner_id: readNumber(row.partner_id),
+    name: readString(row.name) ?? undefined,
+    is_billing_partner: readBoolean(row.is_billing_partner),
+    relationship_contexts: Array.isArray(row.relationship_contexts)
+      ? row.relationship_contexts
+          .map(normalizeGuardianRelationshipContext)
+          .filter((item): item is ArrearsGuardianRelationshipContext => item != null)
+      : [],
+  };
+}
+
+function normalizeStudentDetail(raw: unknown): ArrearsStudentDetail | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const student_id = readNumber(row.student_id);
+  if (student_id == null) return null;
+  return {
+    student_id,
+    student_name: readString(row.student_name) ?? undefined,
+    student_code: readString(row.student_code),
+    class: row.class,
+    level: row.level,
+    gross_overdue_amount: normalizeMoneyValue(row.gross_overdue_amount) ?? undefined,
+    pending_cheque_coverage_amount: normalizeMoneyValue(row.pending_cheque_coverage_amount) ?? undefined,
+    actionable_overdue_amount: normalizeMoneyValue(row.actionable_overdue_amount) ?? undefined,
+  };
+}
+
+function normalizeOverdueInstallmentDetail(raw: unknown): ArrearsOverdueInstallmentDetail | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const installment_id = readNumber(row.installment_id);
+  const student_id = readNumber(row.student_id);
+  if (installment_id == null || student_id == null) return null;
+  return {
+    installment_id,
+    student_id,
+    student_name: readString(row.student_name) ?? undefined,
+    student_code: readString(row.student_code),
+    fee_id: readNumber(row.fee_id),
+    fee_type_id: readNumber(row.fee_type_id),
+    fee_type_name: readString(row.fee_type_name),
+    period_key: readString(row.period_key),
+    period_start: readString(row.period_start),
+    period_end: readString(row.period_end),
+    due_date: readString(row.due_date),
+    gross_overdue_amount: normalizeMoneyValue(row.gross_overdue_amount) ?? undefined,
+    pending_cheque_coverage_amount: normalizeMoneyValue(row.pending_cheque_coverage_amount) ?? undefined,
+    actionable_overdue_amount: normalizeMoneyValue(row.actionable_overdue_amount) ?? undefined,
+  };
 }
 
 function readFamilyId(row: Record<string, unknown>): number | null {
@@ -165,6 +255,17 @@ export function normalizeArrearsFollowupListItem(raw: unknown): ArrearsFollowupL
       readString(row.user_name) ??
       readString(row.assigned_to_name),
     currency: row.currency ?? billing?.currency,
+    guardians: Array.isArray(row.guardians)
+      ? row.guardians.map(normalizeGuardianDetail).filter((item): item is ArrearsGuardianDetail => item != null)
+      : undefined,
+    students: Array.isArray(row.students)
+      ? row.students.map(normalizeStudentDetail).filter((item): item is ArrearsStudentDetail => item != null)
+      : undefined,
+    overdue_installments: Array.isArray(row.overdue_installments)
+      ? row.overdue_installments
+          .map(normalizeOverdueInstallmentDetail)
+          .filter((item): item is ArrearsOverdueInstallmentDetail => item != null)
+      : undefined,
   };
 }
 
@@ -252,6 +353,9 @@ export function normalizeArrearsFamilyFollowupDetail(raw: unknown): ArrearsFamil
     payment_promise_date: listItem?.payment_promise_date ?? null,
     payment_promise_amount: listItem?.payment_promise_amount ?? null,
     next_followup_date: listItem?.next_followup_date ?? null,
+    guardians: listItem?.guardians,
+    students: listItem?.students,
+    overdue_installments: listItem?.overdue_installments,
     last_followup: normalizeLastFollowup(lastRaw),
     open_followup_id:
       typeof row.open_followup_id === 'number'
