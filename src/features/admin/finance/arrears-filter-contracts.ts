@@ -7,6 +7,7 @@ export const ARREARS_FOLLOWUP_TABS = [
   'today_followup',
   'escalated',
   'resolved',
+  'pending_cheque',
 ] as const;
 
 export function isArrearsFollowupTab(value: string | null | undefined): value is ArrearsFollowupTab {
@@ -27,6 +28,8 @@ export function arrearsFollowupTabLabelKey(tab: ArrearsFollowupTab): string {
       return 'admin.finance.arrears.tabs.escalated';
     case 'resolved':
       return 'admin.finance.arrears.tabs.resolved';
+    case 'pending_cheque':
+      return 'admin.finance.arrears.tabs.pendingCheque';
     default:
       return 'admin.finance.arrears.tabs.all';
   }
