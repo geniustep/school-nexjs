@@ -52,6 +52,7 @@ import {
   autoAllocateOldest,
   sumAllocationAmounts,
 } from './collection-allocation-utils';
+import { normalizeSuggestedCollectionAmount } from './billing-account-collection-selection';
 import {
   buildChequeRegistrationPayload,
   resolveChequeCollectionReference,
@@ -227,6 +228,9 @@ function CollectionWorkflowFormReady({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const collectionPath = `${pathname}${searchParams.toString() ? `?${searchParams}` : ''}`;
+  const initialSuggestedAmount = normalizeSuggestedCollectionAmount(
+    searchParams.get('suggested_amount'),
+  );
   const flexiblePrepaymentFlow = useInstallmentAllocations;
   const directDrawerFlow = embedded && flexiblePrepaymentFlow;
   const [step, setStep] = useState<WorkflowStep>('payment');
@@ -235,7 +239,7 @@ function CollectionWorkflowFormReady({
   const [journalId, setJournalId] = useState('');
   const [academicYearId, setAcademicYearId] = useState(initialAcademicYearId ? String(initialAcademicYearId) : '');
   const [billingPartnerId, setBillingPartnerId] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(initialSuggestedAmount);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [reference, setReference] = useState('');
@@ -244,7 +248,7 @@ function CollectionWorkflowFormReady({
   const [manualAllocation, setManualAllocation] = useState(false);
   const idempotencyKeyRef = useRef<string | null>(null);
   const postedCollectionIdRef = useRef<number | null>(null);
-  const amountManuallyEditedRef = useRef(false);
+  const amountManuallyEditedRef = useRef(initialSuggestedAmount !== '');
   const previewRequestIdRef = useRef(0);
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
