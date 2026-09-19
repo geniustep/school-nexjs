@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildBillingAccountCollectHref } from '@/lib/utils/normalize-billing-account';
 import {
+  normalizeSuggestedCollectionAmount,
   readCollectionNewParams,
   resolveBillingCollectionStudentSelection,
   resolveEffectiveSelectedStudentId,
@@ -110,5 +111,20 @@ describe('resolveEffectiveSelectedStudentId', () => {
   it('auto-selects the single student without manual input', () => {
     const selection = resolveBillingCollectionStudentSelection([student(7)]);
     expect(resolveEffectiveSelectedStudentId(selection, null)).toBe(7);
+  });
+});
+
+
+describe('normalizeSuggestedCollectionAmount', () => {
+  it('accepts a positive actionable suggestion from arrears navigation', () => {
+    expect(normalizeSuggestedCollectionAmount('100')).toBe('100');
+    expect(normalizeSuggestedCollectionAmount('100,50')).toBe('100.5');
+  });
+
+  it('rejects missing, invalid, zero, and negative suggestions', () => {
+    expect(normalizeSuggestedCollectionAmount(null)).toBe('');
+    expect(normalizeSuggestedCollectionAmount('abc')).toBe('');
+    expect(normalizeSuggestedCollectionAmount('0')).toBe('');
+    expect(normalizeSuggestedCollectionAmount('-10')).toBe('');
   });
 });
