@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import { appendArrearsFamilyDetailWorksheets } from '@/features/admin/finance/arrears-family-detail-export';
 import { arrearsFollowupTabApiParam } from '@/features/admin/finance/arrears-filter-contracts';
 import { parseArrearsFollowupListResponse } from '@/lib/utils/normalize-arrears';
 import type { Locale } from '@/lib/i18n/config';
@@ -362,10 +363,12 @@ export function buildArrearsExportQuery(input: {
   tab: ArrearsFollowupTab;
   activeSchoolId?: number | null;
   useActionable?: boolean;
+  includeDetails?: boolean;
 }): ListParams {
   const tabParam = arrearsFollowupTabApiParam(input.tab);
   return {
     export: 1,
+    ...(input.includeDetails ? { include_details: 1 } : {}),
     search: input.search?.trim() || undefined,
     tab: tabParam,
     quick: tabParam,
@@ -496,6 +499,7 @@ export function createArrearsWorkbook(
     ]);
     for (const cell of [3, 4, 5, 6, 10]) row.getCell(cell).numFmt = '#,##0.00';
   }
+  appendArrearsFamilyDetailWorksheets(workbook, result, context);
   return workbook;
 }
 

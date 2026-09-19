@@ -13,7 +13,15 @@ import {
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import type { ArrearsFamilyFollowupDetail } from '@/types/finance-arrears';
+import type {
+  ArrearsFamilyFollowupDetail,
+  ArrearsGuardianRelationshipContext,
+} from '@/types/finance-arrears';
+import {
+  arrearsGuardianRelationshipLabelKey,
+  arrearsReferenceLabel,
+  groupArrearsInstallmentsByPeriod,
+} from '@/features/admin/finance/utils/arrears-family-detail-present';
 import './finance-ui.css';
 
 const CONTACT_METHODS = ['phone', 'whatsapp', 'sms', 'email', 'in_person'] as const;
@@ -94,6 +102,27 @@ export function ArrearsFollowupDrawer({
   const actionableAmount = detail?.actionable_overdue_amount ?? detail?.total_overdue;
   const grossAmount = detail?.gross_overdue_amount ?? detail?.total_overdue;
   const pendingCoverage = detail?.pending_cheque_coverage_amount;
+  const studentsById = useMemo(
+    () => new Map((detail?.students ?? []).map((student) => [student.student_id, student])),
+    [detail?.students],
+  );
+  const installmentGroups = useMemo(
+    () => groupArrearsInstallmentsByPeriod(detail?.overdue_installments),
+    [detail?.overdue_installments],
+  );
+
+  function relationshipLabel(value?: string | null): string {
+    const key = arrearsGuardianRelationshipLabelKey(value);
+    return key ? t(key) : value?.replaceAll('_', ' ') || t('common.dash');
+  }
+
+  function guardianFlags(context: ArrearsGuardianRelationshipContext): string {
+    return [
+      context.is_primary_contact ? t('admin.finance.arrears.familyDetails.primaryContact') : null,
+      context.is_financial_responsible ? t('admin.finance.arrears.familyDetails.financialResponsible') : null,
+      context.is_legal_guardian ? t('admin.finance.arrears.familyDetails.legalGuardian') : null,
+    ].filter((value): value is string => !!value).join(' · ');
+  }
 
   async function handleContactSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -243,6 +272,156 @@ export function ArrearsFollowupDrawer({
               </p>
             ) : null}
           </section>
+
+
+          {detail.guardians?.length ? (
+            <section className="finance-arrears-drawer-last card">
+              <h3 className="finance-arrears-section-title">
+                {t('admin.finance.arrears.familyDetails.guardiansTitle')}
+              </h3>
+              <div className="finance-arrears-form">
+                {detail.guardians.map((guardian) => (
+                  <article key={guardian.guardian_id} className="finance-arrears-drawer-last card">
+                    <div>
+                      <strong dir="auto">{guardian.name ?? t('common.dash')}</strong>
+                      {guardian.is_billing_partner ? (
+                        <>
+                          {' '}
+                          <span className="finance-arrears-badge finance-arrears-badge--blue">
+                            {t('admin.finance.arrears.familyDetails.billingGuardian')}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+                    {guardian.relationship_contexts.length ? (
+                      <ul>
+                        {guardian.relationship_contexts.map((context, index) => {
+                          const student = studentsById.get(context.student_id);
+                          const flags = guardianFlags(context);
+                          return (
+                            <li key={`${context.student_id}-${index}`}>
+                              <span dir="auto">
+                                {student?.student_name ?? `#${context.student_id}`}
+                                {' · '}
+                                {relationshipLabel(context.relationship_type)}
+                              </span>
+                              {flags ? <div className="tiny muted">{flags}</div> : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {detail.students?.length ? (
+            <section className="finance-arrears-drawer-last card">
+              <h3 className="finance-arrears-section-title">
+                {t('admin.finance.arrears.familyDetails.studentsTitle')}
+              </h3>
+              <div className="finance-arrears-form">
+                {detail.students.map((student) => (
+                  <article key={student.student_id} className="finance-arrears-drawer-last card">
+                    <strong dir="auto">{student.student_name ?? t('common.dash')}</strong>
+                    <dl className="finance-arrears-last-dl">
+                      <div>
+                        <dt>{t('admin.finance.arrears.familyDetails.studentCode')}</dt>
+                        <dd dir="auto">{student.student_code ?? t('common.dash')}</dd>
+                      </div>
+                      <div>
+                        <dt>{t('admin.finance.arrears.familyDetails.class')}</dt>
+                        <dd dir="auto">{arrearsReferenceLabel(student.class)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t('admin.finance.arrears.familyDetails.level')}</dt>
+                        <dd dir="auto">{arrearsReferenceLabel(student.level)}</dd>
+                      </div>
+                    </dl>
+                    <div className="finance-billing-kpis finance-billing-kpis--compact">
+                      <div className="finance-billing-kpi finance-billing-kpi--red">
+                        <span className="finance-billing-kpi__label">
+                          {t('admin.finance.arrears.columns.actionableOverdue')}
+                        </span>
+                        <strong className="finance-billing-kpi__value">
+                          <FinanceMoney amount={student.actionable_overdue_amount} currency={detail.currency} />
+                        </strong>
+                      </div>
+                      {student.pending_cheque_coverage_amount != null &&
+                      student.pending_cheque_coverage_amount > 0 ? (
+                        <div className="finance-billing-kpi finance-billing-kpi--blue">
+                          <span className="finance-billing-kpi__label">
+                            {t('admin.finance.arrears.columns.pendingChequeCoverage')}
+                          </span>
+                          <strong className="finance-billing-kpi__value">
+                            <FinanceMoney amount={student.pending_cheque_coverage_amount} currency={detail.currency} />
+                          </strong>
+                        </div>
+                      ) : null}
+                      <div className="finance-billing-kpi finance-billing-kpi--slate">
+                        <span className="finance-billing-kpi__label">
+                          {t('admin.finance.arrears.columns.grossOverdue')}
+                        </span>
+                        <strong className="finance-billing-kpi__value">
+                          <FinanceMoney amount={student.gross_overdue_amount} currency={detail.currency} />
+                        </strong>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {installmentGroups.length ? (
+            <section className="finance-arrears-drawer-last card">
+              <h3 className="finance-arrears-section-title">
+                {t('admin.finance.arrears.familyDetails.overdueServicesTitle')}
+              </h3>
+              <div className="finance-arrears-form">
+                {installmentGroups.map((group) => (
+                  <section key={group.key}>
+                    <h4 className="finance-arrears-section-title">
+                      {group.periodStart ? formatDate(group.periodStart) : group.key}
+                      {group.periodEnd ? ` — ${formatDate(group.periodEnd)}` : ''}
+                    </h4>
+                    {group.items.map((installment) => (
+                      <article key={installment.installment_id} className="finance-arrears-drawer-last card">
+                        <strong dir="auto">
+                          {installment.fee_type_name ??
+                            t('admin.finance.arrears.familyDetails.unknownService')}
+                        </strong>
+                        <div className="tiny muted" dir="auto">
+                          {installment.student_name ?? `#${installment.student_id}`}
+                          {installment.student_code ? ` · ${installment.student_code}` : ''}
+                        </div>
+                        <dl className="finance-arrears-last-dl">
+                          <div>
+                            <dt>{t('admin.finance.arrears.familyDetails.dueDate')}</dt>
+                            <dd dir="ltr">{formatDate(installment.due_date) || t('common.dash')}</dd>
+                          </div>
+                          <div>
+                            <dt>{t('admin.finance.arrears.columns.actionableOverdue')}</dt>
+                            <dd><FinanceMoney amount={installment.actionable_overdue_amount} currency={detail.currency} /></dd>
+                          </div>
+                          <div>
+                            <dt>{t('admin.finance.arrears.columns.pendingChequeCoverage')}</dt>
+                            <dd><FinanceMoney amount={installment.pending_cheque_coverage_amount} currency={detail.currency} /></dd>
+                          </div>
+                          <div>
+                            <dt>{t('admin.finance.arrears.columns.grossOverdue')}</dt>
+                            <dd><FinanceMoney amount={installment.gross_overdue_amount} currency={detail.currency} /></dd>
+                          </div>
+                        </dl>
+                      </article>
+                    ))}
+                  </section>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {detail.last_followup ? (
             <section className="finance-arrears-drawer-last card">

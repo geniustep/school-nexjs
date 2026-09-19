@@ -67,10 +67,12 @@ describe('arrears comprehensive export contract', () => {
       search: ' أسرة ',
       tab: 'payment_promises',
       activeSchoolId: 7,
+      includeDetails: true,
     });
 
     expect(query).toEqual({
       export: 1,
+      include_details: 1,
       search: 'أسرة',
       tab: 'payment_promises',
       quick: 'payment_promises',
