@@ -15,6 +15,7 @@ describe('arrears-list-present', () => {
   it('resolves tab/query state', () => {
     expect(resolveArrearsFollowupTab('')).toBe('all');
     expect(resolveArrearsFollowupTab('needs_followup')).toBe('needs_followup');
+    expect(resolveArrearsFollowupTab('pending_cheque')).toBe('pending_cheque');
     expect(resolveArrearsFollowupTab('unknown')).toBe('all');
     expect(arrearsListHasActiveQuery({})).toBe(false);
     expect(arrearsListHasActiveQuery({ tab: 'all' })).toBe(false);
