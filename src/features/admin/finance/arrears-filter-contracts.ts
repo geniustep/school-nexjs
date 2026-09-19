@@ -3,6 +3,7 @@ import type { ArrearsFollowupTab } from '@/types/finance-arrears';
 export const ARREARS_FOLLOWUP_TABS = [
   'all',
   'needs_followup',
+  'pending_cheque',
   'payment_promises',
   'today_followup',
   'escalated',
@@ -19,6 +20,8 @@ export function arrearsFollowupTabLabelKey(tab: ArrearsFollowupTab): string {
       return 'admin.finance.arrears.tabs.all';
     case 'needs_followup':
       return 'admin.finance.arrears.tabs.needsFollowup';
+    case 'pending_cheque':
+      return 'admin.finance.arrears.tabs.pendingCheque';
     case 'payment_promises':
       return 'admin.finance.arrears.tabs.paymentPromises';
     case 'today_followup':

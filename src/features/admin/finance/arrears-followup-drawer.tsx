@@ -91,6 +91,9 @@ export function ArrearsFollowupDrawer({
     () => detail?.display_name ?? detail?.family_name ?? familyLabel ?? t('admin.finance.arrears.drawerTitle'),
     [detail, familyLabel, t],
   );
+  const actionableAmount = detail?.actionable_overdue_amount ?? detail?.total_overdue;
+  const grossAmount = detail?.gross_overdue_amount ?? detail?.total_overdue;
+  const pendingCoverage = detail?.pending_cheque_coverage_amount;
 
   async function handleContactSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -205,11 +208,27 @@ export function ArrearsFollowupDrawer({
                 <strong className="finance-billing-kpi__value">{detail.student_count ?? t('common.dash')}</strong>
               </div>
               <div className="finance-billing-kpi finance-billing-kpi--red">
-                <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.totalOverdue')}</span>
+                <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.actionableOverdue')}</span>
                 <strong className="finance-billing-kpi__value">
-                  <FinanceMoney amount={detail.total_overdue} currency={detail.currency} />
+                  <FinanceMoney amount={actionableAmount} currency={detail.currency} />
                 </strong>
               </div>
+              {pendingCoverage != null && pendingCoverage > 0 ? (
+                <div className="finance-billing-kpi finance-billing-kpi--blue">
+                  <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.pendingChequeCoverage')}</span>
+                  <strong className="finance-billing-kpi__value">
+                    <FinanceMoney amount={pendingCoverage} currency={detail.currency} />
+                  </strong>
+                </div>
+              ) : null}
+              {detail.gross_overdue_amount != null ? (
+                <div className="finance-billing-kpi finance-billing-kpi--slate">
+                  <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.grossOverdue')}</span>
+                  <strong className="finance-billing-kpi__value">
+                    <FinanceMoney amount={grossAmount} currency={detail.currency} />
+                  </strong>
+                </div>
+              ) : null}
               <div className="finance-billing-kpi finance-billing-kpi--amber">
                 <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.totalRemaining')}</span>
                 <strong className="finance-billing-kpi__value">

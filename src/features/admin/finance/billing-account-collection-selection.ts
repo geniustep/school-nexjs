@@ -97,3 +97,14 @@ export function resolveEffectiveSelectedStudentId(
   }
   return selection.autoSelectedStudentId;
 }
+
+
+export function normalizeSuggestedCollectionAmount(
+  raw: string | null | undefined,
+): string {
+  const normalized = raw?.trim().replace(',', '.') ?? '';
+  if (!normalized) return '';
+  const value = Number(normalized);
+  if (!Number.isFinite(value) || value <= 0) return '';
+  return String(value);
+}
