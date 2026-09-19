@@ -53,6 +53,10 @@ type ArrearsExportCopy = {
   kpis: {
     overdueFamilies: string;
     totalOverdue: string;
+    actionableAccounts: string;
+    actionableTotal: string;
+    pendingChequeCoverage: string;
+    grossOverdue: string;
     paymentPromises: string;
     todayFollowups: string;
   };
@@ -60,6 +64,9 @@ type ArrearsExportCopy = {
     family: string;
     studentCount: string;
     totalOverdue: string;
+    actionableOverdue: string;
+    pendingChequeCoverage: string;
+    grossOverdue: string;
     totalRemaining: string;
     oldestOverdue: string;
     followupStatus: string;
@@ -94,6 +101,10 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
     kpis: {
       overdueFamilies: 'الأسر المتأخرة',
       totalOverdue: 'إجمالي المتأخرات',
+      actionableAccounts: 'الحسابات المطلوب متابعتها',
+      actionableTotal: 'المطلوب تحصيله الآن',
+      pendingChequeCoverage: 'شيكات قيد التحصيل على المتأخرات',
+      grossOverdue: 'إجمالي المتأخر قبل الشيكات',
       paymentPromises: 'وعود الأداء',
       todayFollowups: 'متابعات اليوم',
     },
@@ -101,6 +112,9 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       family: 'الأسرة / الحساب',
       studentCount: 'عدد التلاميذ',
       totalOverdue: 'إجمالي المتأخر',
+      actionableOverdue: 'المطلوب الآن',
+      pendingChequeCoverage: 'شيك قيد التحصيل',
+      grossOverdue: 'المتأخر الأصلي',
       totalRemaining: 'إجمالي المتبقي',
       oldestOverdue: 'أقدم استحقاق متأخر',
       followupStatus: 'حالة المتابعة',
@@ -133,6 +147,10 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
     kpis: {
       overdueFamilies: 'Familles en retard',
       totalOverdue: 'Total en retard',
+      actionableAccounts: 'Comptes à relancer',
+      actionableTotal: 'Montant à encaisser maintenant',
+      pendingChequeCoverage: 'Chèques en cours sur les arriérés',
+      grossOverdue: 'Arriéré brut avant chèques',
       paymentPromises: 'Promesses de paiement',
       todayFollowups: 'Relances du jour',
     },
@@ -140,6 +158,9 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       family: 'Famille / compte',
       studentCount: 'Élèves',
       totalOverdue: 'Total en retard',
+      actionableOverdue: 'À encaisser maintenant',
+      pendingChequeCoverage: 'Chèque en cours d’encaissement',
+      grossOverdue: 'Arriéré initial',
       totalRemaining: 'Reste total',
       oldestOverdue: 'Plus ancienne échéance',
       followupStatus: 'Statut de suivi',
@@ -172,6 +193,10 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
     kpis: {
       overdueFamilies: 'Overdue families',
       totalOverdue: 'Total overdue',
+      actionableAccounts: 'Accounts requiring collection',
+      actionableTotal: 'Amount to collect now',
+      pendingChequeCoverage: 'Pending cheques covering arrears',
+      grossOverdue: 'Gross overdue before cheques',
       paymentPromises: 'Payment promises',
       todayFollowups: 'Today follow-ups',
     },
@@ -179,6 +204,9 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       family: 'Family / account',
       studentCount: 'Students',
       totalOverdue: 'Total overdue',
+      actionableOverdue: 'Amount due now',
+      pendingChequeCoverage: 'Cheque pending collection',
+      grossOverdue: 'Original overdue',
       totalRemaining: 'Total remaining',
       oldestOverdue: 'Oldest overdue due date',
       followupStatus: 'Follow-up status',
@@ -211,6 +239,10 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
     kpis: {
       overdueFamilies: 'Familias con atrasos',
       totalOverdue: 'Total vencido',
+      actionableAccounts: 'Cuentas que requieren cobro',
+      actionableTotal: 'Importe a cobrar ahora',
+      pendingChequeCoverage: 'Cheques en cobro sobre atrasos',
+      grossOverdue: 'Atraso bruto antes de cheques',
       paymentPromises: 'Promesas de pago',
       todayFollowups: 'Seguimientos de hoy',
     },
@@ -218,6 +250,9 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       family: 'Familia / cuenta',
       studentCount: 'Alumnos',
       totalOverdue: 'Total vencido',
+      actionableOverdue: 'A cobrar ahora',
+      pendingChequeCoverage: 'Cheque en proceso de cobro',
+      grossOverdue: 'Atraso original',
       totalRemaining: 'Total pendiente',
       oldestOverdue: 'Vencimiento más antiguo',
       followupStatus: 'Estado de seguimiento',
@@ -326,6 +361,7 @@ export function buildArrearsExportQuery(input: {
   search?: string;
   tab: ArrearsFollowupTab;
   activeSchoolId?: number | null;
+  useActionable?: boolean;
 }): ListParams {
   const tabParam = arrearsFollowupTabApiParam(input.tab);
   return {
@@ -334,6 +370,7 @@ export function buildArrearsExportQuery(input: {
     tab: tabParam,
     quick: tabParam,
     status: tabParam,
+    ...(input.useActionable === false ? {} : { overdue_semantics: 'actionable' }),
     active_school_id: input.activeSchoolId ?? undefined,
   };
 }
@@ -382,52 +419,52 @@ export function createArrearsWorkbook(
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Raqeem';
   workbook.created = context.generatedAt;
-
   const worksheet = workbook.addWorksheet(copy.title);
   worksheet.columns = [
-    { width: 28 },
-    { width: 14 },
-    { width: 18 },
-    { width: 18 },
-    { width: 18 },
-    { width: 20 },
-    { width: 18 },
-    { width: 18 },
-    { width: 18 },
-    { width: 20 },
-    { width: 12 },
+    { width: 28 }, { width: 14 }, { width: 18 }, { width: 18 }, { width: 18 },
+    { width: 18 }, { width: 18 }, { width: 20 }, { width: 18 }, { width: 18 },
+    { width: 18 }, { width: 20 }, { width: 12 },
   ];
-
-  worksheet.mergeCells('A1:K1');
+  worksheet.mergeCells('A1:M1');
   worksheet.getCell('A1').value = copy.title;
   worksheet.getCell('A1').font = { bold: true, size: 16 };
-
   worksheet.addRow([copy.school, context.schoolName || '—']);
   worksheet.addRow([copy.generatedOn, formatDateTime(context.generatedAt, context.locale)]);
   worksheet.addRow([copy.filters, filterSummary(context, copy)]);
   worksheet.addRow([copy.resultCount, result.exportMeta.row_count, copy.allFilteredScope]);
   worksheet.addRow([]);
-
   worksheet.addRow([
-    copy.kpis.overdueFamilies,
-    copy.kpis.totalOverdue,
+    copy.kpis.actionableAccounts,
+    copy.kpis.actionableTotal,
+    copy.kpis.pendingChequeCoverage,
+    copy.kpis.grossOverdue,
     copy.kpis.paymentPromises,
     copy.kpis.todayFollowups,
   ]);
   worksheet.addRow([
-    result.summary.overdue_families_count ?? null,
+    result.summary.actionable_overdue_accounts_count ??
+      result.summary.overdue_accounts_count ??
+      result.summary.overdue_families_count ??
+      null,
+    result.summary.total_actionable_overdue_amount ??
+      result.summary.total_overdue_amount ??
+      null,
+    result.summary.total_pending_cheque_coverage_on_overdue ?? null,
     result.summary.total_overdue_amount ?? null,
     result.summary.payment_promises_count ?? null,
     result.summary.today_followups_count ?? null,
   ]);
   worksheet.getRow(7).font = { bold: true };
   worksheet.getCell('B8').numFmt = '#,##0.00';
+  worksheet.getCell('C8').numFmt = '#,##0.00';
+  worksheet.getCell('D8').numFmt = '#,##0.00';
   worksheet.addRow([]);
-
   const headerRow = worksheet.addRow([
     copy.columns.family,
     copy.columns.studentCount,
-    copy.columns.totalOverdue,
+    copy.columns.actionableOverdue,
+    copy.columns.pendingChequeCoverage,
+    copy.columns.grossOverdue,
     copy.columns.totalRemaining,
     copy.columns.oldestOverdue,
     copy.columns.followupStatus,
@@ -439,12 +476,15 @@ export function createArrearsWorkbook(
   ]);
   headerRow.font = { bold: true };
   worksheet.views = [{ state: 'frozen', ySplit: headerRow.number }];
-
   for (const item of result.items) {
+    const actionable = item.actionable_overdue_amount ?? item.total_overdue;
+    const gross = item.gross_overdue_amount ?? item.total_overdue;
     const row = worksheet.addRow([
       rowLabel(item),
       item.student_count ?? null,
-      item.total_overdue ?? null,
+      actionable ?? null,
+      item.pending_cheque_coverage_amount ?? null,
+      gross ?? null,
       item.total_remaining ?? null,
       formatDate(item.oldest_overdue_date, context.locale),
       item.followup_status_label ?? item.followup_status ?? '—',
@@ -454,11 +494,8 @@ export function createArrearsWorkbook(
       item.assigned_user_name ?? '—',
       currencyCode(item.currency) ?? '',
     ]);
-    row.getCell(3).numFmt = '#,##0.00';
-    row.getCell(4).numFmt = '#,##0.00';
-    row.getCell(8).numFmt = '#,##0.00';
+    for (const cell of [3, 4, 5, 6, 10]) row.getCell(cell).numFmt = '#,##0.00';
   }
-
   return workbook;
 }
 
@@ -490,24 +527,25 @@ export function buildArrearsPrintHtml(
   const dir = context.locale === 'ar' ? 'rtl' : 'ltr';
   const currency = result.items.find((item) => currencyCode(item.currency))?.currency;
   const summary = result.summary;
-  const rows = result.items
-    .map(
-      (item) => `
-        <tr>
-          <td dir="auto">${escapeHtml(rowLabel(item))}</td>
-          <td class="num">${escapeHtml(item.student_count ?? '—')}</td>
-          <td class="money">${escapeHtml(formatMoney(item.total_overdue, item.currency, context.locale))}</td>
-          <td class="money">${escapeHtml(formatMoney(item.total_remaining, item.currency, context.locale))}</td>
-          <td class="date">${escapeHtml(formatDate(item.oldest_overdue_date, context.locale))}</td>
-          <td dir="auto">${escapeHtml(item.followup_status_label ?? item.followup_status ?? '—')}</td>
-          <td class="date">${escapeHtml(formatDate(item.payment_promise_date, context.locale))}</td>
-          <td class="money">${escapeHtml(formatMoney(item.payment_promise_amount, item.currency, context.locale))}</td>
-          <td class="date">${escapeHtml(formatDate(item.next_followup_date, context.locale))}</td>
-          <td dir="auto">${escapeHtml(item.assigned_user_name ?? '—')}</td>
-        </tr>`,
-    )
-    .join('');
-
+  const rows = result.items.map((item) => {
+    const actionable = item.actionable_overdue_amount ?? item.total_overdue;
+    const gross = item.gross_overdue_amount ?? item.total_overdue;
+    return `
+      <tr>
+        <td dir="auto">${escapeHtml(rowLabel(item))}</td>
+        <td class="num">${escapeHtml(item.student_count ?? '—')}</td>
+        <td class="money">${escapeHtml(formatMoney(actionable, item.currency, context.locale))}</td>
+        <td class="money">${escapeHtml(formatMoney(item.pending_cheque_coverage_amount, item.currency, context.locale))}</td>
+        <td class="money">${escapeHtml(formatMoney(gross, item.currency, context.locale))}</td>
+        <td class="money">${escapeHtml(formatMoney(item.total_remaining, item.currency, context.locale))}</td>
+        <td class="date">${escapeHtml(formatDate(item.oldest_overdue_date, context.locale))}</td>
+        <td dir="auto">${escapeHtml(item.followup_status_label ?? item.followup_status ?? '—')}</td>
+        <td class="date">${escapeHtml(formatDate(item.payment_promise_date, context.locale))}</td>
+        <td class="money">${escapeHtml(formatMoney(item.payment_promise_amount, item.currency, context.locale))}</td>
+        <td class="date">${escapeHtml(formatDate(item.next_followup_date, context.locale))}</td>
+        <td dir="auto">${escapeHtml(item.assigned_user_name ?? '—')}</td>
+      </tr>`;
+  }).join('');
   return `<!doctype html>
 <html lang="${escapeHtml(context.locale)}" dir="${dir}">
 <head>
@@ -521,14 +559,14 @@ export function buildArrearsPrintHtml(
     h1 { margin: 0 0 8px; font-size: 22px; }
     .meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; margin-bottom: 14px; font-size: 12px; }
     .meta strong { margin-inline-end: 6px; }
-    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0 16px; }
+    .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0 16px; }
     .kpi { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; break-inside: avoid; }
     .kpi span { display: block; font-size: 10px; color: #4b5563; margin-bottom: 4px; }
     .kpi strong { font-size: 15px; }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8px; }
     thead { display: table-header-group; }
     tr { break-inside: avoid; page-break-inside: avoid; }
-    th, td { border: 1px solid #d1d5db; padding: 5px; vertical-align: top; overflow-wrap: anywhere; }
+    th, td { border: 1px solid #d1d5db; padding: 4px; vertical-align: top; overflow-wrap: anywhere; }
     th { background: #f3f4f6; font-weight: 700; }
     .num, .money, .date { direction: ltr; text-align: start; unicode-bidi: isolate; white-space: nowrap; }
     .scope { margin-top: 6px; font-size: 11px; color: #4b5563; }
@@ -546,8 +584,10 @@ export function buildArrearsPrintHtml(
     </div>
     <div class="scope">${escapeHtml(copy.allFilteredScope)}</div>
     <section class="kpis">
-      <div class="kpi"><span>${escapeHtml(copy.kpis.overdueFamilies)}</span><strong>${escapeHtml(summary.overdue_families_count ?? '—')}</strong></div>
-      <div class="kpi"><span>${escapeHtml(copy.kpis.totalOverdue)}</span><strong>${escapeHtml(formatMoney(summary.total_overdue_amount, currency, context.locale))}</strong></div>
+      <div class="kpi"><span>${escapeHtml(copy.kpis.actionableAccounts)}</span><strong>${escapeHtml(summary.actionable_overdue_accounts_count ?? summary.overdue_accounts_count ?? summary.overdue_families_count ?? '—')}</strong></div>
+      <div class="kpi"><span>${escapeHtml(copy.kpis.actionableTotal)}</span><strong>${escapeHtml(formatMoney(summary.total_actionable_overdue_amount ?? summary.total_overdue_amount, currency, context.locale))}</strong></div>
+      <div class="kpi"><span>${escapeHtml(copy.kpis.pendingChequeCoverage)}</span><strong>${escapeHtml(formatMoney(summary.total_pending_cheque_coverage_on_overdue, currency, context.locale))}</strong></div>
+      <div class="kpi"><span>${escapeHtml(copy.kpis.grossOverdue)}</span><strong>${escapeHtml(formatMoney(summary.total_overdue_amount, currency, context.locale))}</strong></div>
       <div class="kpi"><span>${escapeHtml(copy.kpis.paymentPromises)}</span><strong>${escapeHtml(summary.payment_promises_count ?? '—')}</strong></div>
       <div class="kpi"><span>${escapeHtml(copy.kpis.todayFollowups)}</span><strong>${escapeHtml(summary.today_followups_count ?? '—')}</strong></div>
     </section>
@@ -556,7 +596,9 @@ export function buildArrearsPrintHtml(
         <tr>
           <th>${escapeHtml(copy.columns.family)}</th>
           <th>${escapeHtml(copy.columns.studentCount)}</th>
-          <th>${escapeHtml(copy.columns.totalOverdue)}</th>
+          <th>${escapeHtml(copy.columns.actionableOverdue)}</th>
+          <th>${escapeHtml(copy.columns.pendingChequeCoverage)}</th>
+          <th>${escapeHtml(copy.columns.grossOverdue)}</th>
           <th>${escapeHtml(copy.columns.totalRemaining)}</th>
           <th>${escapeHtml(copy.columns.oldestOverdue)}</th>
           <th>${escapeHtml(copy.columns.followupStatus)}</th>

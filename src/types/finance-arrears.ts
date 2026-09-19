@@ -4,7 +4,8 @@ export type ArrearsFollowupTab =
   | 'payment_promises'
   | 'today_followup'
   | 'escalated'
-  | 'resolved';
+  | 'resolved'
+  | 'pending_cheque';
 
 export type ArrearsFollowupStatus =
   | 'open'
@@ -23,6 +24,10 @@ export type ArrearsFollowupListItem = {
   display_name?: string;
   student_count?: number;
   total_overdue?: number;
+  gross_overdue_amount?: number;
+  pending_cheque_coverage_amount?: number;
+  actionable_overdue_amount?: number;
+  pending_cheque_amount?: number;
   total_remaining?: number;
   oldest_overdue_date?: string | null;
   followup_status?: ArrearsFollowupStatus | null;
@@ -39,6 +44,9 @@ export type ArrearsFollowupSummary = {
   overdue_accounts_count?: number;
   overdue_families_count?: number;
   total_overdue_amount?: number;
+  actionable_overdue_accounts_count?: number;
+  total_actionable_overdue_amount?: number;
+  total_pending_cheque_coverage_on_overdue?: number;
   payment_promises_count?: number;
   today_followups_count?: number;
 };
@@ -68,6 +76,9 @@ export type ArrearsFamilyFollowupDetail = {
   display_name?: string;
   student_count?: number;
   total_overdue?: number;
+  gross_overdue_amount?: number;
+  pending_cheque_coverage_amount?: number;
+  actionable_overdue_amount?: number;
   total_remaining?: number;
   currency?: unknown;
   followup_status?: ArrearsFollowupStatus | null;

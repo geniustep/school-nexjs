@@ -68,7 +68,22 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
       tab,
       activeSchoolId,
     });
-    const response = await api.get<unknown>(endpoints.admin.financeArrearsFollowups, query);
+    let response = await api.get<unknown>(endpoints.admin.financeArrearsFollowups, query);
+    if (
+      !response.success &&
+      response.error.code === 'invalid_filter' &&
+      tab !== 'pending_cheque'
+    ) {
+      response = await api.get<unknown>(
+        endpoints.admin.financeArrearsFollowups,
+        buildArrearsExportQuery({
+          search: filters.search,
+          tab,
+          activeSchoolId,
+          useActionable: false,
+        }),
+      );
+    }
     if (!response.success) {
       setFeedback(errorMessage(response.error.code, copy));
       return null;
