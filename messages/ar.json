@@ -10245,6 +10245,13 @@
         "kpis": {
           "overdueAccounts": "عدد الحسابات المتأخرة",
           "overdueFamilies": "عدد الأسر المتأخرة",
+          "actionableAccounts": "الحسابات المطلوب متابعتها",
+          "actionableTotal": "المبلغ المطلوب تحصيله الآن",
+          "pendingChequeCoverage": "شيكات قيد التحصيل على المتأخرات",
+          "grossOverdue": "إجمالي المتأخر قبل الشيكات",
+          "actionableOverdue": "المطلوب الآن",
+          "pendingCheque": "شيك قيد التحصيل",
+          "grossOverdue": "المتأخر الأصلي",
           "totalOverdue": "إجمالي المتأخر",
           "paymentPromises": "عدد وعود الدفع",
           "todayFollowups": "متابعات اليوم"
@@ -10255,7 +10262,8 @@
           "paymentPromises": "وعود بالدفع",
           "todayFollowup": "متابعة اليوم",
           "escalated": "مصعّدة",
-          "resolved": "محلولة"
+          "resolved": "محلولة",
+          "pendingCheque": "شيكات قيد التحصيل"
         },
         "columns": {
           "family": "الحساب / مسؤول الأداء",
