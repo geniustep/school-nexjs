@@ -10008,6 +10008,13 @@
         "kpis": {
           "overdueAccounts": "Overdue accounts",
           "overdueFamilies": "Overdue families",
+          "actionableAccounts": "Accounts requiring follow-up",
+          "actionableTotal": "Amount due now",
+          "pendingChequeCoverage": "Pending cheque coverage",
+          "grossOverdue": "Gross overdue before cheques",
+          "actionableOverdue": "Due now",
+          "pendingCheque": "Pending cheque",
+          "grossOverdue": "Gross overdue",
           "totalOverdue": "Total overdue",
           "paymentPromises": "Payment promises",
           "todayFollowups": "Today's follow-ups"
@@ -10018,7 +10025,8 @@
           "paymentPromises": "Payment promises",
           "todayFollowup": "Today's follow-up",
           "escalated": "Escalated",
-          "resolved": "Resolved"
+          "resolved": "Resolved",
+          "pendingCheque": "Pending cheques"
         },
         "columns": {
           "family": "Billing account / payer",
