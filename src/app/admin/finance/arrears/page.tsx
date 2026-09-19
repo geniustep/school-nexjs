@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
@@ -51,6 +51,7 @@ export default function AdminFinanceArrearsPage() {
   const searchParams = useSearchParams();
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/arrears');
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
+  const [supportsActionableArrears, setSupportsActionableArrears] = useState(false);
 
   const updateUrl = useCallback(
     (
@@ -110,13 +111,14 @@ export default function AdminFinanceArrearsPage() {
         title={t('admin.finance.arrears.pageTitle')}
         subtitle={t('admin.finance.arrears.pageDesc')}
       />
-      <ArrearsExportActions filters={filters} />
+      <ArrearsExportActions filters={filters} supportsActionable={supportsActionableArrears} />
       <ArrearsListPanel
         filters={filters}
         onFiltersChange={onFiltersChange}
         onOpenFamily={onOpenFamily}
         onCloseFamily={onCloseFamily}
         returnTo={returnTo}
+        onCapabilityChange={setSupportsActionableArrears}
       />
     </RequireAdminPermission>
   );
