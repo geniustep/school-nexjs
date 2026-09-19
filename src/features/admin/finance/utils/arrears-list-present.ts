@@ -6,9 +6,46 @@
 import {
   isArrearsFollowupTab,
 } from '@/features/admin/finance/arrears-filter-contracts';
-import type { ArrearsFollowupTab } from '@/types/finance-arrears';
+import type {
+  ArrearsFollowupListItem,
+  ArrearsFollowupListResult,
+  ArrearsFollowupTab,
+} from '@/types/finance-arrears';
 
 export const ARREARS_PAGE_SIZE = 20;
+
+export function arrearsSupportsActionableContract(
+  result: ArrearsFollowupListResult,
+): boolean {
+  const summary = result.summary;
+  if (
+    summary?.actionable_overdue_accounts_count != null ||
+    summary?.total_actionable_overdue_amount != null ||
+    summary?.total_pending_cheque_coverage_on_overdue != null
+  ) {
+    return true;
+  }
+  return result.items.some(
+    (row) =>
+      row.actionable_overdue_amount != null ||
+      row.gross_overdue_amount != null ||
+      row.pending_cheque_coverage_amount != null,
+  );
+}
+
+export function arrearsActionableAmount(row: ArrearsFollowupListItem): number | undefined {
+  return row.actionable_overdue_amount ?? row.total_overdue;
+}
+
+export function arrearsGrossAmount(row: ArrearsFollowupListItem): number | undefined {
+  return row.gross_overdue_amount ?? row.total_overdue;
+}
+
+export function arrearsPendingCoverageAmount(
+  row: ArrearsFollowupListItem,
+): number | undefined {
+  return row.pending_cheque_coverage_amount;
+}
 
 export type ArrearsListEmptyVariant = 'no-data' | 'no-match';
 
