@@ -14,6 +14,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import type { ArrearsFamilyFollowupDetail } from '@/types/finance-arrears';
+import { arrearsActionableAmount, arrearsGrossAmount } from '@/lib/utils/normalize-arrears';
 import './finance-ui.css';
 
 const CONTACT_METHODS = ['phone', 'whatsapp', 'sms', 'email', 'in_person'] as const;
@@ -205,9 +206,23 @@ export function ArrearsFollowupDrawer({
                 <strong className="finance-billing-kpi__value">{detail.student_count ?? t('common.dash')}</strong>
               </div>
               <div className="finance-billing-kpi finance-billing-kpi--red">
-                <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.totalOverdue')}</span>
+                <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.actionableOverdue')}</span>
                 <strong className="finance-billing-kpi__value">
-                  <FinanceMoney amount={detail.total_overdue} currency={detail.currency} />
+                  <FinanceMoney amount={arrearsActionableAmount(detail)} currency={detail.currency} />
+                </strong>
+              </div>
+              {detail.pending_cheque_coverage_amount != null && detail.pending_cheque_coverage_amount > 0 ? (
+                <div className="finance-billing-kpi finance-billing-kpi--blue">
+                  <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.pendingCheque')}</span>
+                  <strong className="finance-billing-kpi__value">
+                    <FinanceMoney amount={detail.pending_cheque_coverage_amount} currency={detail.currency} />
+                  </strong>
+                </div>
+              ) : null}
+              <div className="finance-billing-kpi finance-billing-kpi--slate">
+                <span className="finance-billing-kpi__label">{t('admin.finance.arrears.columns.grossOverdue')}</span>
+                <strong className="finance-billing-kpi__value">
+                  <FinanceMoney amount={arrearsGrossAmount(detail)} currency={detail.currency} />
                 </strong>
               </div>
               <div className="finance-billing-kpi finance-billing-kpi--amber">
