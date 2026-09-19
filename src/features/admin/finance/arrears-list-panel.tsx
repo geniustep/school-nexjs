@@ -6,7 +6,7 @@
  */
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { EmptyState } from '@/components/states/states';
 import { LoadingState } from '@/components/states/states';
@@ -21,11 +21,16 @@ import {
 import type { ArrearsFollowupListItem, ArrearsFollowupTab } from '@/types/finance-arrears';
 import {
   ARREARS_PAGE_SIZE,
+  arrearsActionableAmount,
+  arrearsGrossAmount,
   arrearsListHasActiveQuery,
+  arrearsPendingCoverageAmount,
+  arrearsSupportsActionableContract,
   formatArrearsListDate,
   resolveArrearsFollowupTab,
   resolveArrearsListEmptyVariant,
 } from '@/features/admin/finance/utils/arrears-list-present';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -117,12 +122,18 @@ export function ArrearsListPanel({
 }: ArrearsListPanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
+  const { activeSchoolId } = useAdminSession();
   const tabValid = resolveArrearsFollowupTab(filters.tab);
-
+  const [contractMode, setContractMode] = useState<'probing' | 'actionable' | 'legacy'>('probing');
   const [drawerFamilyLabel, setDrawerFamilyLabel] = useState<string | undefined>();
 
-  const followupQuery: ListParams = useMemo(() => {
-    const tabParam = arrearsFollowupTabApiParam(tabValid);
+  useEffect(() => {
+    setContractMode('probing');
+  }, [activeSchoolId]);
+
+  const probeTab = tabValid === 'pending_cheque' ? 'all' : tabValid;
+  const legacyQuery: ListParams = useMemo(() => {
+    const tabParam = arrearsFollowupTabApiParam(probeTab);
     return {
       page: filters.page,
       page_size: ARREARS_PAGE_SIZE,
@@ -131,27 +142,79 @@ export function ArrearsListPanel({
       quick: tabParam,
       status: tabParam,
     };
-  }, [filters.page, filters.search, tabValid]);
+  }, [filters.page, filters.search, probeTab]);
 
-  const followupState = useAdminResource<unknown>(
-    endpoints.admin.financeArrearsFollowups,
-    followupQuery,
+  const legacyState = useAdminResource<unknown>(
+    contractMode === 'actionable' ? null : endpoints.admin.financeArrearsFollowups,
+    legacyQuery,
+  );
+  const legacyParsed = useMemo(
+    () => parseArrearsFollowupListResponse(legacyState.data, probeTab),
+    [legacyState.data, probeTab],
   );
 
+  useEffect(() => {
+    if (
+      contractMode !== 'probing' ||
+      legacyState.initialLoading ||
+      legacyState.error ||
+      legacyState.data == null
+    ) {
+      return;
+    }
+    setContractMode(
+      arrearsSupportsActionableContract(legacyParsed) ? 'actionable' : 'legacy',
+    );
+  }, [
+    contractMode,
+    legacyParsed,
+    legacyState.data,
+    legacyState.error,
+    legacyState.initialLoading,
+  ]);
+
+  const actionableQuery: ListParams = useMemo(() => {
+    const tabParam = arrearsFollowupTabApiParam(tabValid);
+    return {
+      page: filters.page,
+      page_size: ARREARS_PAGE_SIZE,
+      search: filters.search || undefined,
+      tab: tabParam,
+      quick: tabParam,
+      status: tabParam,
+      overdue_semantics: 'actionable',
+    };
+  }, [filters.page, filters.search, tabValid]);
+
+  const actionableState = useAdminResource<unknown>(
+    contractMode === 'actionable' ? endpoints.admin.financeArrearsFollowups : null,
+    actionableQuery,
+  );
+
+  const followupState = contractMode === 'actionable' ? actionableState : legacyState;
+  const effectiveTab = contractMode === 'actionable' ? tabValid : probeTab;
   const followupParsed = useMemo(
-    () => parseArrearsFollowupListResponse(followupState.data, tabValid),
-    [followupState.data, tabValid],
+    () => parseArrearsFollowupListResponse(followupState.data, effectiveTab),
+    [followupState.data, effectiveTab],
   );
 
   const rows = followupParsed.items;
   const summary = followupParsed.summary ?? {};
   const pg = followupState.meta?.pagination;
   const pageCurrency = rows.find((row) => row.currency)?.currency;
+  const supportsActionable = contractMode === 'actionable';
+  const visibleTabButtons = TAB_BUTTONS.filter(
+    (tab) => tab !== 'pending_cheque' || supportsActionable,
+  );
 
-  const loading = followupState.initialLoading;
+  const loading =
+    (contractMode === 'probing' && !legacyState.error) || followupState.initialLoading;
   const error = followupState.error;
   const isRefetching = followupState.fetching && !followupState.initialLoading;
-  const hasActiveQuery = arrearsListHasActiveQuery(filters);
+  const hasActiveQuery = arrearsListHasActiveQuery({
+    tab: effectiveTab,
+    search: filters.search,
+  });
   const emptyVariant = resolveArrearsListEmptyVariant({ hasActiveQuery });
 
   function reloadAll() {
@@ -204,16 +267,31 @@ export function ArrearsListPanel({
         ),
       },
       {
-        key: 'total_overdue',
-        header: t('admin.finance.arrears.columns.totalOverdue'),
+        key: 'actionable_overdue',
+        header: t('admin.finance.arrears.columns.actionableOverdue'),
         className: 'finance-table-money finance-table-money--danger',
-        render: (row) => (
-          <FinanceMoney
-            amount={row.total_overdue}
-            currency={row.currency}
-            className="finance-table-money__value"
-          />
-        ),
+        render: (row) => {
+          const actionable = arrearsActionableAmount(row);
+          const pending = arrearsPendingCoverageAmount(row);
+          const gross = arrearsGrossAmount(row);
+          return (
+            <div>
+              <FinanceMoney amount={actionable} currency={row.currency} className="finance-table-money__value" />
+              {pending != null && pending > 0 ? (
+                <div className="tiny muted">
+                  {t('admin.finance.arrears.columns.pendingChequeCoverage')}:{' '}
+                  <FinanceMoney amount={pending} currency={row.currency} />
+                </div>
+              ) : null}
+              {row.gross_overdue_amount != null && gross != null && gross !== actionable ? (
+                <div className="tiny muted">
+                  {t('admin.finance.arrears.columns.grossOverdue')}:{' '}
+                  <FinanceMoney amount={gross} currency={row.currency} />
+                </div>
+              ) : null}
+            </div>
+          );
+        },
       },
       {
         key: 'total_remaining',
@@ -334,26 +412,42 @@ export function ArrearsListPanel({
       <section className="finance-arrears-kpis finance-receivable-list__context" aria-label={t('admin.finance.arrears.kpiSection')}>
         <div className="finance-billing-kpis">
           <KpiCard
-            label={t('admin.finance.arrears.kpis.overdueAccounts')}
-            value={summary.overdue_accounts_count ?? summary.overdue_families_count}
+            label={t(
+              supportsActionable
+                ? 'admin.finance.arrears.kpis.actionableAccounts'
+                : 'admin.finance.arrears.kpis.overdueAccounts',
+            )}
+            value={summary.actionable_overdue_accounts_count ?? summary.overdue_accounts_count ?? summary.overdue_families_count}
             tone="red"
           />
           <KpiCard
-            label={t('admin.finance.arrears.kpis.totalOverdue')}
-            amount={summary.total_overdue_amount ?? null}
+            label={t(
+              supportsActionable
+                ? 'admin.finance.arrears.kpis.actionableTotal'
+                : 'admin.finance.arrears.kpis.totalOverdue',
+            )}
+            amount={summary.total_actionable_overdue_amount ?? summary.total_overdue_amount ?? null}
             currency={pageCurrency}
             tone="amber"
           />
-          <KpiCard
-            label={t('admin.finance.arrears.kpis.paymentPromises')}
-            value={summary.payment_promises_count}
-            tone="blue"
-          />
-          <KpiCard
-            label={t('admin.finance.arrears.kpis.todayFollowups')}
-            value={summary.today_followups_count}
-            tone="slate"
-          />
+          {supportsActionable ? (
+            <>
+              <KpiCard
+                label={t('admin.finance.arrears.kpis.pendingChequeCoverage')}
+                amount={summary.total_pending_cheque_coverage_on_overdue ?? 0}
+                currency={pageCurrency}
+                tone="blue"
+              />
+              <KpiCard
+                label={t('admin.finance.arrears.kpis.grossOverdue')}
+                amount={summary.total_overdue_amount ?? null}
+                currency={pageCurrency}
+                tone="slate"
+              />
+            </>
+          ) : null}
+          <KpiCard label={t('admin.finance.arrears.kpis.paymentPromises')} value={summary.payment_promises_count} tone="blue" />
+          <KpiCard label={t('admin.finance.arrears.kpis.todayFollowups')} value={summary.today_followups_count} tone="slate" />
         </div>
       </section>
 
@@ -366,27 +460,27 @@ export function ArrearsListPanel({
       <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact finance-arrears-tabs finance-receivable-list__tabs">
         <button
           type="button"
-          className={`btn btn--ghost btn--sm${tabValid === 'all' ? ' is-active' : ''}`}
+          className={`btn btn--ghost btn--sm${effectiveTab === 'all' ? ' is-active' : ''}`}
           onClick={() => setTab('all')}
         >
           {t(arrearsFollowupTabLabelKey('all'))}
         </button>
-        {TAB_BUTTONS.map((tab) => (
+        {visibleTabButtons.map((tab) => (
           <button
             key={tab}
             type="button"
-            className={`btn btn--ghost btn--sm${tabValid === tab ? ' is-active' : ''}`}
-            onClick={() => setTab(tabValid === tab ? 'all' : tab)}
+            className={`btn btn--ghost btn--sm${effectiveTab === tab ? ' is-active' : ''}`}
+            onClick={() => setTab(effectiveTab === tab ? 'all' : tab)}
           >
             {t(arrearsFollowupTabLabelKey(tab))}
           </button>
         ))}
       </div>
 
-      {tabValid !== 'all' ? (
+      {effectiveTab !== 'all' ? (
         <div className="finance-receivable-list__chips">
           <span className="finance-receivable-list__chip">
-            {t(arrearsFollowupTabLabelKey(tabValid))}
+            {t(arrearsFollowupTabLabelKey(effectiveTab))}
             <button
               type="button"
               className="finance-receivable-list__chip-clear"
