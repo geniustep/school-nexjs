@@ -62,11 +62,12 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
     };
   }
 
-  async function loadExport(): Promise<ArrearsExportResult | null> {
+  async function loadExport(includeDetails: boolean): Promise<ArrearsExportResult | null> {
     const query = buildArrearsExportQuery({
       search: filters.search,
       tab,
       activeSchoolId,
+      includeDetails,
     });
     let response = await api.get<unknown>(endpoints.admin.financeArrearsFollowups, query);
     if (
@@ -106,7 +107,7 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
     setBusy('excel');
     setFeedback(null);
     try {
-      const result = await loadExport();
+      const result = await loadExport(true);
       if (!result) return;
       await downloadArrearsExcel(result, exportContext());
     } catch {
@@ -133,7 +134,7 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
     setBusy('print');
     setFeedback(null);
     try {
-      const result = await loadExport();
+      const result = await loadExport(false);
       if (!result) {
         printWindow.close();
         return;
