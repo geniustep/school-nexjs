@@ -18,7 +18,10 @@ describe('normalizeArrearsFollowupListItem', () => {
       account_kind: 'individual',
       display_name: 'QA Family',
       student_count: 2,
-      total_overdue: 1500,
+      total_overdue: 1600,
+      gross_overdue_amount: 1600,
+      pending_cheque_coverage_amount: 1500,
+      actionable_overdue_amount: 100,
       total_remaining: 1500,
       followup_status: 'needs_followup',
       followup_status_label: 'تحتاج متابعة',
@@ -32,7 +35,10 @@ describe('normalizeArrearsFollowupListItem', () => {
     expect(row?.account_kind).toBe('individual');
     expect(row && arrearsBillingPartnerId(row)).toBe(6667);
     expect(row?.family_name).toBe('QA Family');
-    expect(row?.total_overdue).toBe(1500);
+    expect(row?.total_overdue).toBe(1600);
+    expect(row?.gross_overdue_amount).toBe(1600);
+    expect(row?.pending_cheque_coverage_amount).toBe(1500);
+    expect(row?.actionable_overdue_amount).toBe(100);
     expect(row?.payment_promise_amount).toBe(500);
     expect(row?.followup_status_label).toBe('تحتاج متابعة');
   });
@@ -46,6 +52,9 @@ describe('parseArrearsFollowupListResponse', () => {
         overdue_accounts_count: 4,
         overdue_families_count: 3,
         total_overdue_amount: 4200,
+        actionable_overdue_accounts_count: 4,
+        total_actionable_overdue_amount: 3700,
+        total_pending_cheque_coverage_on_overdue: 500,
         payment_promises_count: 1,
         today_followups_count: 2,
       },
@@ -54,6 +63,8 @@ describe('parseArrearsFollowupListResponse', () => {
     expect(parsed.summary?.overdue_accounts_count).toBe(4);
     expect(parsed.summary?.overdue_families_count).toBe(3);
     expect(parsed.summary?.total_overdue_amount).toBe(4200);
+    expect(parsed.summary?.total_actionable_overdue_amount).toBe(3700);
+    expect(parsed.summary?.total_pending_cheque_coverage_on_overdue).toBe(500);
   });
 
   it('does not reinterpret legacy overdue_count as all overdue accounts', () => {
@@ -184,6 +195,20 @@ describe('buildArrearsCollectHref', () => {
     ).toBe(
       '/admin/finance/billing-accounts/6667?family_collect=1&returnTo=%2Fadmin%2Ffinance%2Farrears&source=arrears&suggested_amount=1500',
     );
+  });
+
+  it('uses actionable amount as family collection suggestion when available', () => {
+    const href = buildArrearsCollectHref(
+      {
+        family_id: 6667,
+        billing_partner_id: 6667,
+        account_kind: 'family',
+        total_overdue: 1600,
+        actionable_overdue_amount: 100,
+      },
+      '/admin/finance/arrears',
+    );
+    expect(href).toContain('suggested_amount=100');
   });
 
   it('uses the existing individual collection flow for individual accounts', () => {
