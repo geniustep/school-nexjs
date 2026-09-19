@@ -14,7 +14,10 @@ const rawExport = {
       billing_partner_id: 41,
       display_name: 'أسرة الاختبار',
       student_count: 2,
-      total_overdue: 1234.5,
+      total_overdue: 1600,
+      gross_overdue_amount: 1600,
+      pending_cheque_coverage_amount: 1500,
+      actionable_overdue_amount: 100,
       total_remaining: 1560.75,
       oldest_overdue_date: '2026-08-15',
       followup_status: 'payment_promise',
@@ -28,7 +31,11 @@ const rawExport = {
   ],
   summary: {
     overdue_families_count: 1,
-    total_overdue_amount: 1234.5,
+    overdue_accounts_count: 1,
+    actionable_overdue_accounts_count: 1,
+    total_overdue_amount: 1600,
+    total_actionable_overdue_amount: 100,
+    total_pending_cheque_coverage_on_overdue: 1500,
     payment_promises_count: 1,
     today_followups_count: 0,
   },
@@ -60,6 +67,7 @@ describe('arrears comprehensive export contract', () => {
       search: ' أسرة ',
       tab: 'payment_promises',
       activeSchoolId: 7,
+      supportsActionable: true,
     });
 
     expect(query).toEqual({
@@ -69,6 +77,7 @@ describe('arrears comprehensive export contract', () => {
       quick: 'payment_promises',
       status: 'payment_promises',
       active_school_id: 7,
+      overdue_semantics: 'actionable',
     });
     expect(query).not.toHaveProperty('page');
     expect(query).not.toHaveProperty('page_size');
@@ -84,7 +93,8 @@ describe('arrears comprehensive export contract', () => {
       max_rows: 5000,
       truncated: false,
     });
-    expect(parsed?.summary.total_overdue_amount).toBe(1234.5);
+    expect(parsed?.summary.total_overdue_amount).toBe(1600);
+    expect(parsed?.summary.total_actionable_overdue_amount).toBe(100);
     expect(parsed?.items).toHaveLength(1);
   });
 
@@ -115,12 +125,11 @@ describe('arrears Excel export', () => {
     const worksheet = workbook.worksheets[0];
     const dataRow = worksheet.getRow(11);
 
-    expect(dataRow.getCell(3).value).toBe(1234.5);
+    expect(dataRow.getCell(3).value).toBe(100);
+    expect(dataRow.getCell(4).value).toBe(1500);
+    expect(dataRow.getCell(5).value).toBe(1600);
+    expect(dataRow.getCell(6).value).toBe(1560.75);
     expect(typeof dataRow.getCell(3).value).toBe('number');
-    expect(dataRow.getCell(4).value).toBe(1560.75);
-    expect(typeof dataRow.getCell(4).value).toBe('number');
-    expect(dataRow.getCell(8).value).toBe(500.25);
-    expect(typeof dataRow.getCell(8).value).toBe('number');
     expect(dataRow.getCell(3).numFmt).toBe('#,##0.00');
   });
 });
@@ -137,7 +146,9 @@ describe('arrears HTML print', () => {
     expect(html).toContain('@page { size: A4 landscape;');
     expect(html).toContain('تقرير المتأخرات');
     expect(html).toContain('أسرة الاختبار');
-    expect(html).toContain('إجمالي المتأخرات');
+    expect(html).toContain('المطلوب تحصيله الآن');
+    expect(html).toContain('شيك قيد التحصيل');
+    expect(html).toContain('المتأخر الأصلي');
     expect(html).not.toContain('window.print');
     expect(html).not.toContain('<button');
   });
