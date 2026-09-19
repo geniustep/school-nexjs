@@ -65,6 +65,14 @@ function readSummary(raw: Record<string, unknown>): ArrearsFollowupSummary {
       normalizeMoneyValue(kpis.total_overdue_amount) ??
       normalizeMoneyValue(kpis.total_overdue) ??
       undefined,
+    actionable_overdue_accounts_count:
+      typeof kpis.actionable_overdue_accounts_count === 'number'
+        ? kpis.actionable_overdue_accounts_count
+        : undefined,
+    total_actionable_overdue_amount:
+      normalizeMoneyValue(kpis.total_actionable_overdue_amount) ?? undefined,
+    total_pending_cheque_coverage_on_overdue:
+      normalizeMoneyValue(kpis.total_pending_cheque_coverage_on_overdue) ?? undefined,
     payment_promises_count:
       typeof kpis.payment_promises_count === 'number'
         ? kpis.payment_promises_count
@@ -119,6 +127,11 @@ export function normalizeArrearsFollowupListItem(raw: unknown): ArrearsFollowupL
         : billing?.student_count,
     total_overdue:
       normalizeMoneyValue(row.total_overdue) ?? billing?.total_overdue ?? undefined,
+    gross_overdue_amount: normalizeMoneyValue(row.gross_overdue_amount) ?? undefined,
+    pending_cheque_coverage_amount:
+      normalizeMoneyValue(row.pending_cheque_coverage_amount) ?? undefined,
+    actionable_overdue_amount: normalizeMoneyValue(row.actionable_overdue_amount) ?? undefined,
+    pending_cheque_amount: normalizeMoneyValue(row.pending_cheque_amount) ?? undefined,
     total_remaining:
       normalizeMoneyValue(row.total_remaining) ?? billing?.total_remaining ?? undefined,
     oldest_overdue_date:
@@ -226,6 +239,9 @@ export function normalizeArrearsFamilyFollowupDetail(raw: unknown): ArrearsFamil
     display_name: listItem?.display_name,
     student_count: listItem?.student_count,
     total_overdue: listItem?.total_overdue,
+    gross_overdue_amount: listItem?.gross_overdue_amount,
+    pending_cheque_coverage_amount: listItem?.pending_cheque_coverage_amount,
+    actionable_overdue_amount: listItem?.actionable_overdue_amount,
     total_remaining: listItem?.total_remaining,
     currency: listItem?.currency,
     followup_status: listItem?.followup_status ?? null,
@@ -358,6 +374,31 @@ export function arrearsBillingPartnerId(row: ArrearsFollowupListItem): number {
   return row.billing_partner_id ?? row.family_id;
 }
 
+export function arrearsActionableAmount(row: ArrearsFollowupListItem): number | undefined {
+  return row.actionable_overdue_amount ?? row.total_overdue;
+}
+
+export function arrearsGrossAmount(row: ArrearsFollowupListItem): number | undefined {
+  return row.gross_overdue_amount ?? row.total_overdue;
+}
+
+export function arrearsSupportsActionableContract(
+  summary: ArrearsFollowupSummary | null | undefined,
+  rows: ArrearsFollowupListItem[] = [],
+): boolean {
+  return (
+    summary?.actionable_overdue_accounts_count != null ||
+    summary?.total_actionable_overdue_amount != null ||
+    summary?.total_pending_cheque_coverage_on_overdue != null ||
+    rows.some(
+      (row) =>
+        row.actionable_overdue_amount != null ||
+        row.gross_overdue_amount != null ||
+        row.pending_cheque_coverage_amount != null,
+    )
+  );
+}
+
 export function buildArrearsCollectHref(
   row: ArrearsFollowupListItem,
   returnTo: string,
@@ -368,7 +409,7 @@ export function buildArrearsCollectHref(
   }
   return buildFamilyCollectHref(billingPartnerId, returnTo, {
     source: 'arrears',
-    suggestedAmount: row.total_overdue,
+    suggestedAmount: arrearsActionableAmount(row),
   });
 }
 
