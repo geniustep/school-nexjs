@@ -38,6 +38,9 @@ export type ArrearsFollowupListItem = {
   assigned_user_id?: number | null;
   assigned_user_name?: string | null;
   currency?: unknown;
+  guardians?: ArrearsGuardianDetail[];
+  students?: ArrearsStudentDetail[];
+  overdue_installments?: ArrearsOverdueInstallmentDetail[];
 };
 
 export type ArrearsFollowupSummary = {
@@ -69,6 +72,50 @@ export type ArrearsFollowupLastEntry = {
   user_name?: string | null;
 };
 
+export type ArrearsGuardianRelationshipContext = {
+  student_id: number;
+  relationship_type?: string | null;
+  is_primary_contact?: boolean;
+  is_financial_responsible?: boolean;
+  is_legal_guardian?: boolean;
+};
+
+export type ArrearsGuardianDetail = {
+  guardian_id: number;
+  partner_id?: number | null;
+  name?: string;
+  is_billing_partner?: boolean;
+  relationship_contexts: ArrearsGuardianRelationshipContext[];
+};
+
+export type ArrearsStudentDetail = {
+  student_id: number;
+  student_name?: string;
+  student_code?: string | null;
+  class?: unknown;
+  level?: unknown;
+  gross_overdue_amount?: number;
+  pending_cheque_coverage_amount?: number;
+  actionable_overdue_amount?: number;
+};
+
+export type ArrearsOverdueInstallmentDetail = {
+  installment_id: number;
+  student_id: number;
+  student_name?: string;
+  student_code?: string | null;
+  fee_id?: number | null;
+  fee_type_id?: number | null;
+  fee_type_name?: string | null;
+  period_key?: string | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  due_date?: string | null;
+  gross_overdue_amount?: number;
+  pending_cheque_coverage_amount?: number;
+  actionable_overdue_amount?: number;
+};
+
 export type ArrearsFamilyFollowupDetail = {
   family_id: number;
   family_name?: string;
@@ -89,6 +136,9 @@ export type ArrearsFamilyFollowupDetail = {
   last_followup?: ArrearsFollowupLastEntry | null;
   open_followup_id?: number | null;
   can_resolve?: boolean;
+  guardians?: ArrearsGuardianDetail[];
+  students?: ArrearsStudentDetail[];
+  overdue_installments?: ArrearsOverdueInstallmentDetail[];
 };
 
 export type ArrearsFollowupContactPayload = {
