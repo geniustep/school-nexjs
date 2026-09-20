@@ -8,8 +8,13 @@ import {
 const t = (key: string) => key;
 
 describe('generateSecurePassword', () => {
-  it('generates password with minimum length', () => {
-    expect(generateSecurePassword().length).toBeGreaterThanOrEqual(12);
+  it('generates passwords that satisfy the backend minimum policy', () => {
+    for (let i = 0; i < 20; i += 1) {
+      const password = generateSecurePassword();
+      expect(password.length).toBeGreaterThanOrEqual(12);
+      expect(password).toMatch(/[A-Za-z]/);
+      expect(password).toMatch(/\d/);
+    }
   });
 });
 
@@ -32,6 +37,26 @@ describe('validateAccountPasswordForm', () => {
     );
     expect(result.valid).toBe(false);
     expect(result.errors.login).toBe('admin.account.errors.loginRequired');
+  });
+
+  it('rejects an invalid email on the email field', () => {
+    const result = validateAccountPasswordForm(
+      { email: 'not-an-email', login: '', password: 'Secret123', confirmPassword: 'Secret123' },
+      t,
+    );
+    expect(result.valid).toBe(false);
+    expect(result.errors.email).toBe('admin.account.errors.invalidEmail');
+  });
+
+  it('rejects weak passwords before any API submit', () => {
+    for (const password of ['azerty', 'abcdefgh', '12345678']) {
+      const result = validateAccountPasswordForm(
+        { email: 'a@b.c', login: '', password, confirmPassword: password },
+        t,
+      );
+      expect(result.valid).toBe(false);
+      expect(result.errors.password).toBe('admin.account.errors.passwordTooWeak');
+    }
   });
 
   it('requires matching passwords', () => {
