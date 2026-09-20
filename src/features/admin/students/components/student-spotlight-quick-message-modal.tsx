@@ -2,7 +2,7 @@
 
 /**
  * Quick governed message from Student Spotlight.
- * Odoo resolves the selected student / guardian audience and freezes recipients on submit.
+ * Odoo resolves student / guardian deliverability and freezes recipients on submit.
  */
 
 import { useEffect, useId, useRef, useState } from 'react';
@@ -16,11 +16,33 @@ import {
 import { buildStudentRecipientScope } from '@/features/communication/utils/recipient-scope';
 import { useT } from '@/features/i18n/locale-context';
 import type { CommunicationRecipientSummary } from '@/types/communication';
-import type { StudentRecipientScope } from '@/types/recipient-scope';
+import type {
+  StudentBeneficiaryKind,
+  StudentRecipientScope,
+} from '@/types/recipient-scope';
 import type { StudentSearchHit } from '@/types/student-search';
 import { studentSpotlightIdentityTitle } from '../utils/student-spotlight-utils';
 
-type DeliverabilityState = 'idle' | 'checking' | 'ready' | 'blocked' | 'failed';
+type AudienceDiscoveryState = 'checking' | 'ready' | 'empty' | 'failed';
+
+const AUDIENCE_OPTIONS: Array<{
+  kind: StudentBeneficiaryKind;
+  labelKey: string;
+}> = [
+  { kind: 'guardians', labelKey: 'communication.general.beneficiary.guardians' },
+  { kind: 'students', labelKey: 'communication.general.beneficiary.students' },
+  {
+    kind: 'students_and_guardians',
+    labelKey: 'communication.general.beneficiary.studentsAndGuardians',
+  },
+];
+
+function isDeliverable(summary: CommunicationRecipientSummary | null | undefined): boolean {
+  return (
+    (summary?.deliverable_user_count ?? 0) > 0 &&
+    summary?.can_submit === true
+  );
+}
 
 export function StudentSpotlightQuickMessageModal({
   student,
@@ -32,19 +54,28 @@ export function StudentSpotlightQuickMessageModal({
   const t = useT();
   const toast = useToast();
   const titleId = useId();
+  const audienceLabelId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const firstAudienceRef = useRef<HTMLButtonElement>(null);
   const subjectRef = useRef<HTMLInputElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [deliverability, setDeliverability] = useState<DeliverabilityState>('idle');
-  const [preview, setPreview] = useState<CommunicationRecipientSummary | null>(null);
+  const [discoveryState, setDiscoveryState] = useState<AudienceDiscoveryState>('checking');
+  const [availableKinds, setAvailableKinds] = useState<StudentBeneficiaryKind[]>([]);
+  const [selectedKind, setSelectedKind] = useState<StudentBeneficiaryKind | null>(null);
+  const [previews, setPreviews] = useState<
+    Partial<Record<StudentBeneficiaryKind, CommunicationRecipientSummary>>
+  >({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const recipientName = studentSpotlightIdentityTitle(student) || String(student.id);
-  const scope: StudentRecipientScope = buildStudentRecipientScope('guardians', student.id);
+  const selectedPreview = selectedKind ? previews[selectedKind] ?? null : null;
+  const scope: StudentRecipientScope | null = selectedKind
+    ? buildStudentRecipientScope(selectedKind, student.id)
+    : null;
 
   useEffect(() => {
     setMounted(true);
@@ -60,35 +91,76 @@ export function StudentSpotlightQuickMessageModal({
 
   useEffect(() => {
     let cancelled = false;
-    const selectedScope = buildStudentRecipientScope('guardians', student.id);
-    setDeliverability('checking');
-    setPreview(null);
+
+    setDiscoveryState('checking');
+    setAvailableKinds([]);
+    setSelectedKind(null);
+    setPreviews({});
     setErrorMessage(null);
 
-    void previewStudentAudienceCommunication({
-      recipient_scope: selectedScope,
-    }).then((result) => {
+    const preview = (kind: StudentBeneficiaryKind) =>
+      previewStudentAudienceCommunication({
+        recipient_scope: buildStudentRecipientScope(kind, student.id),
+      });
+
+    void Promise.all([
+      preview('guardians'),
+      preview('students'),
+      preview('students_and_guardians'),
+    ]).then(([guardiansResult, studentsResult, combinedResult]) => {
       if (cancelled) return;
-      if (!result.ok) {
-        setDeliverability('failed');
-        const key = communicationErrorMessageKey(result.error.code);
+
+      const baseFailure = !guardiansResult.ok
+        ? guardiansResult
+        : !studentsResult.ok
+          ? studentsResult
+          : null;
+      if (baseFailure && !baseFailure.ok) {
+        setDiscoveryState('failed');
+        const key = communicationErrorMessageKey(baseFailure.error.code);
         setErrorMessage(
-          key ? t(key) : result.error.message || t('communication.general.previewFailed'),
+          key ? t(key) : baseFailure.error.message || t('communication.general.previewFailed'),
         );
         return;
       }
 
-      const summary = result.preview.recipient_summary;
-      setPreview(summary);
-      if (summary.can_submit === true) {
-        setDeliverability('ready');
-        return;
+      if (!guardiansResult.ok || !studentsResult.ok) return;
+
+      const guardianSummary = guardiansResult.preview.recipient_summary;
+      const studentSummary = studentsResult.preview.recipient_summary;
+      const combinedSummary = combinedResult.ok
+        ? combinedResult.preview.recipient_summary
+        : undefined;
+
+      const nextPreviews: Partial<
+        Record<StudentBeneficiaryKind, CommunicationRecipientSummary>
+      > = {
+        guardians: guardianSummary,
+        students: studentSummary,
+      };
+      if (combinedSummary) {
+        nextPreviews.students_and_guardians = combinedSummary;
       }
 
-      setDeliverability('blocked');
-      const blockingCode = summary.blocking_reasons?.[0];
-      const key = communicationErrorMessageKey(blockingCode);
-      setErrorMessage(key ? t(key) : t('communication.recipients.cannotSubmit'));
+      const guardianReady = isDeliverable(guardianSummary);
+      const studentReady = isDeliverable(studentSummary);
+      const nextKinds: StudentBeneficiaryKind[] = [];
+
+      if (guardianReady) nextKinds.push('guardians');
+      if (studentReady) nextKinds.push('students');
+      if (
+        guardianReady &&
+        studentReady &&
+        combinedResult.ok &&
+        isDeliverable(combinedSummary)
+      ) {
+        nextKinds.push('students_and_guardians');
+      }
+
+      setPreviews(nextPreviews);
+      setAvailableKinds(nextKinds);
+      setSelectedKind(nextKinds.length === 1 ? nextKinds[0] : null);
+      setDiscoveryState(nextKinds.length > 0 ? 'ready' : 'empty');
     });
 
     return () => {
@@ -97,10 +169,20 @@ export function StudentSpotlightQuickMessageModal({
   }, [student.id, t]);
 
   useEffect(() => {
-    if (!mounted || deliverability === 'idle' || deliverability === 'checking') return;
-    const focusTimer = window.setTimeout(() => subjectRef.current?.focus(), 0);
+    if (!mounted || discoveryState !== 'ready') return;
+
+    const focusTimer = window.setTimeout(() => {
+      if (availableKinds.length > 1 && !selectedKind) {
+        firstAudienceRef.current?.focus();
+        return;
+      }
+      if (selectedKind) {
+        subjectRef.current?.focus();
+      }
+    }, 0);
+
     return () => window.clearTimeout(focusTimer);
-  }, [mounted, deliverability]);
+  }, [availableKinds.length, discoveryState, mounted, selectedKind]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -143,14 +225,15 @@ export function StudentSpotlightQuickMessageModal({
 
   const canSubmit =
     !submitting &&
-    deliverability === 'ready' &&
-    preview?.can_submit === true &&
+    discoveryState === 'ready' &&
+    scope !== null &&
+    isDeliverable(selectedPreview) &&
     subject.trim().length > 0 &&
     body.trim().length > 0;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || !scope) return;
 
     setSubmitting(true);
     setErrorMessage(null);
@@ -217,71 +300,147 @@ export function StudentSpotlightQuickMessageModal({
         </div>
 
         <form className="student-spotlight-message-modal__form" onSubmit={handleSubmit}>
-          <div className="student-spotlight-message-modal__audience">
-            <span className="student-spotlight-message-modal__audience-label">
-              {t('communication.audience')}
-            </span>
-            <strong>{t('communication.general.beneficiary.guardians')}</strong>
-          </div>
-
-          <label className="student-spotlight-message-modal__field">
-            <span>{t('communication.general.subject')}</span>
-            <input
-              ref={subjectRef}
-              className="input"
-              value={subject}
-              required
-              aria-required="true"
-              disabled={submitting}
-              onChange={(event) => setSubject(event.target.value)}
-            />
-          </label>
-
-          <label className="student-spotlight-message-modal__field">
-            <span>{t('communication.body')}</span>
-            <textarea
-              className="input student-spotlight-message-modal__body"
-              value={body}
-              required
-              aria-required="true"
-              disabled={submitting}
-              onChange={(event) => setBody(event.target.value)}
-            />
-          </label>
-
-          {deliverability === 'checking' ? (
+          {discoveryState === 'checking' ? (
             <p className="student-spotlight-message-modal__status" aria-live="polite">
               {t('communication.recipients.previewLoading')}
             </p>
-          ) : deliverability === 'ready' && preview ? (
-            <div className="student-spotlight-message-modal__preview" aria-live="polite">
-              <strong>{t('communication.recipients.ready')}</strong>
-              <span>
-                {t('communication.recipients.deliverableUsers')}:{' '}
-                <bdi>{preview.deliverable_user_count ?? '—'}</bdi>
-              </span>
-              <span>
-                {t('communication.recipients.guardians')}:{' '}
-                <bdi>{preview.guardian_count ?? '—'}</bdi>
-              </span>
-            </div>
           ) : null}
 
-          {errorMessage ? (
+          {discoveryState === 'failed' && errorMessage ? (
             <p className="student-spotlight-message-modal__error" role="alert">
               {errorMessage}
             </p>
           ) : null}
 
+          {discoveryState === 'empty' ? (
+            <p className="student-spotlight-message-modal__status" aria-live="polite">
+              {t('communication.recipients.empty')}
+            </p>
+          ) : null}
+
+          {discoveryState === 'ready' ? (
+            <>
+              <div
+                className="student-spotlight-message-modal__audience"
+                aria-labelledby={audienceLabelId}
+              >
+                <span
+                  id={audienceLabelId}
+                  className="student-spotlight-message-modal__audience-label"
+                >
+                  {t('communication.audience')}
+                </span>
+
+                {availableKinds.length === 1 ? (
+                  <strong>
+                    {t(
+                      AUDIENCE_OPTIONS.find((option) => option.kind === availableKinds[0])
+                        ?.labelKey ?? 'communication.general.beneficiary.unknown',
+                    )}
+                  </strong>
+                ) : (
+                  <div
+                    className="student-spotlight-message-modal__audience-options"
+                    role="radiogroup"
+                    aria-labelledby={audienceLabelId}
+                  >
+                    {AUDIENCE_OPTIONS.filter((option) =>
+                      availableKinds.includes(option.kind),
+                    ).map((option, index) => {
+                      const selected = selectedKind === option.kind;
+                      return (
+                        <button
+                          key={option.kind}
+                          ref={index === 0 ? firstAudienceRef : undefined}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          className="student-spotlight-message-modal__audience-option"
+                          data-selected={selected ? 'true' : 'false'}
+                          disabled={submitting}
+                          onClick={() => {
+                            setSelectedKind(option.kind);
+                            setErrorMessage(null);
+                          }}
+                        >
+                          {t(option.labelKey)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <label className="student-spotlight-message-modal__field">
+                <span>{t('communication.general.subject')}</span>
+                <input
+                  ref={subjectRef}
+                  className="input"
+                  value={subject}
+                  required
+                  aria-required="true"
+                  disabled={submitting}
+                  onChange={(event) => setSubject(event.target.value)}
+                />
+              </label>
+
+              <label className="student-spotlight-message-modal__field">
+                <span>{t('communication.body')}</span>
+                <textarea
+                  className="input student-spotlight-message-modal__body"
+                  value={body}
+                  required
+                  aria-required="true"
+                  disabled={submitting}
+                  onChange={(event) => setBody(event.target.value)}
+                />
+              </label>
+
+              {selectedKind === null ? (
+                <p className="student-spotlight-message-modal__status" aria-live="polite">
+                  {t('communication.general.incompleteSelection')}
+                </p>
+              ) : selectedPreview ? (
+                <div className="student-spotlight-message-modal__preview" aria-live="polite">
+                  <strong>{t('communication.recipients.ready')}</strong>
+                  <span>
+                    {t('communication.recipients.deliverableUsers')}:{' '}
+                    <bdi>{selectedPreview.deliverable_user_count ?? '—'}</bdi>
+                  </span>
+                  {(selectedPreview.student_count ?? 0) > 0 ? (
+                    <span>
+                      {t('communication.recipients.students')}:{' '}
+                      <bdi>{selectedPreview.student_count}</bdi>
+                    </span>
+                  ) : null}
+                  {(selectedPreview.guardian_count ?? 0) > 0 ? (
+                    <span>
+                      {t('communication.recipients.guardians')}:{' '}
+                      <bdi>{selectedPreview.guardian_count}</bdi>
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {errorMessage ? (
+                <p className="student-spotlight-message-modal__error" role="alert">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </>
+          ) : null}
+
           <div className="student-spotlight-message-modal__actions">
-            <button
-              type="submit"
-              className="btn btn--primary student-spotlight-message-modal__submit"
-              disabled={!canSubmit}
-              aria-disabled={!canSubmit}
-            >
-              {submitting ? t('common.submitting') : t('common.submit')}
-            </button>
+            {discoveryState === 'ready' ? (
+              <button
+                type="submit"
+                className="btn btn--primary student-spotlight-message-modal__submit"
+                disabled={!canSubmit}
+                aria-disabled={!canSubmit}
+              >
+                {submitting ? t('common.submitting') : t('common.submit')}
+              </button>
+            ) : null}
             <button
               type="button"
               className="btn btn--ghost student-spotlight-message-modal__cancel"
