@@ -161,6 +161,10 @@ export function StudentSpotlightQuickMessageModal({
       setAvailableKinds(nextKinds);
       setSelectedKind(nextKinds.length === 1 ? nextKinds[0] : null);
       setDiscoveryState(nextKinds.length > 0 ? 'ready' : 'empty');
+    }).catch(() => {
+      if (cancelled) return;
+      setDiscoveryState('failed');
+      setErrorMessage(t('communication.general.previewFailed'));
     });
 
     return () => {
