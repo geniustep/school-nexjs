@@ -1,6 +1,7 @@
 export type PasswordStrength = 'empty' | 'weak' | 'fair' | 'good' | 'strong';
 
 export interface AccountPasswordFieldErrors {
+  email?: string;
   login?: string;
   password?: string;
   confirmPassword?: string;
@@ -8,6 +9,13 @@ export interface AccountPasswordFieldErrors {
 
 const PASSWORD_CHARS =
   'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*?';
+const PASSWORD_LETTERS = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+const PASSWORD_NUMBERS = '23456789';
+
+const ACCOUNT_PASSWORD_MIN_LENGTH = 8;
+const ACCOUNT_EMAIL_RE = /^[^@]+@[^@]+\.[^@]+$/;
+const ACCOUNT_PASSWORD_HAS_LETTER = /[A-Za-z]/;
+const ACCOUNT_PASSWORD_HAS_NUMBER = /\d/;
 
 export function generateSecurePassword(length = 14): string {
   const size = Math.max(12, Math.min(length, 24));
@@ -20,6 +28,12 @@ export function generateSecurePassword(length = 14): string {
   let out = '';
   for (let i = 0; i < size; i += 1) {
     out += PASSWORD_CHARS[bytes[i] % PASSWORD_CHARS.length];
+  }
+  if (!ACCOUNT_PASSWORD_HAS_LETTER.test(out)) {
+    out = PASSWORD_LETTERS[bytes[0] % PASSWORD_LETTERS.length] + out.slice(1);
+  }
+  if (!ACCOUNT_PASSWORD_HAS_NUMBER.test(out)) {
+    out = out.slice(0, 1) + PASSWORD_NUMBERS[bytes[1] % PASSWORD_NUMBERS.length] + out.slice(2);
   }
   return out;
 }
@@ -57,8 +71,17 @@ export function validateAccountPasswordForm(
   if (!email && !login) {
     errors.login = t('admin.account.errors.loginRequired');
   }
+  if (email && !ACCOUNT_EMAIL_RE.test(email)) {
+    errors.email = t('admin.account.errors.invalidEmail');
+  }
   if (!password) {
     errors.password = t('admin.account.errors.passwordRequired');
+  } else if (
+    password.length < ACCOUNT_PASSWORD_MIN_LENGTH ||
+    !ACCOUNT_PASSWORD_HAS_LETTER.test(password) ||
+    !ACCOUNT_PASSWORD_HAS_NUMBER.test(password)
+  ) {
+    errors.password = t('admin.account.errors.passwordTooWeak');
   }
   if (!confirmPassword) {
     errors.confirmPassword = t('admin.account.errors.confirmPasswordRequired');

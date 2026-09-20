@@ -1769,7 +1769,7 @@
       "accountCreatedSuccess": "Cuenta creada correctamente.",
       "loginOrEmailHelp": "Introduzca correo y/o nombre de usuario. Al menos uno es obligatorio.",
       "mustChangePasswordOnLogin": "Exigir cambio de contraseña en el primer acceso",
-      "passwordRequirements": "La contraseña es obligatoria. Si el servidor la rechaza, siga el mensaje de error.",
+      "passwordRequirements": "Use al menos 8 caracteres, con al menos una letra latina y un número.",
       "passwordStrength": {
         "weak": "Débil",
         "fair": "Aceptable",

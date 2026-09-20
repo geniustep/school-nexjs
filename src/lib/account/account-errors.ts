@@ -1,5 +1,6 @@
 import type { ApiErrorBody } from '@/types/api';
 import type { AccountWarning } from '@/types/account';
+import type { AccountPasswordFieldErrors } from '@/lib/account/account-password-utils';
 
 export const ACCOUNT_ERROR_KEYS: Record<string, string> = {
   duplicate_login: 'admin.account.errors.duplicateLogin',
@@ -11,6 +12,10 @@ export const ACCOUNT_ERROR_KEYS: Record<string, string> = {
   invalid_password: 'admin.account.errors.invalidPassword',
   password_required: 'admin.account.errors.passwordRequired',
   password_too_weak: 'admin.account.errors.passwordTooWeak',
+  weak_password: 'admin.account.errors.passwordTooWeak',
+  password_policy_violation: 'admin.account.errors.passwordTooWeak',
+  password_confirmation_mismatch: 'admin.account.errors.passwordMismatch',
+  password_mismatch: 'admin.account.errors.passwordMismatch',
   account_already_exists: 'admin.account.errors.accountAlreadyExists',
   forbidden: 'admin.pageForbidden',
   permission_denied: 'admin.pageForbidden',
@@ -39,6 +44,34 @@ export function mapAccountApiError(
     return message;
   }
   return t('errors.serverError');
+}
+
+export function mapAccountApiFieldErrors(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+): AccountPasswordFieldErrors {
+  const code = String(error.code ?? '');
+  const message = mapAccountApiError(error, t);
+
+  if (code === 'invalid_email' || code === 'email_required_for_invite') {
+    return { email: message };
+  }
+  if (code === 'duplicate_login' || code === 'invalid_login' || code === 'login_required') {
+    return { login: message };
+  }
+  if (
+    code === 'password_required' ||
+    code === 'invalid_password' ||
+    code === 'password_too_weak' ||
+    code === 'weak_password' ||
+    code === 'password_policy_violation'
+  ) {
+    return { password: message };
+  }
+  if (code === 'password_confirmation_mismatch' || code === 'password_mismatch') {
+    return { confirmPassword: message };
+  }
+  return {};
 }
 
 export function mapAccountWarning(

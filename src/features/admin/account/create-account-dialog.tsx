@@ -5,7 +5,7 @@ import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-dr
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
-import { mapAccountApiError } from '@/lib/account/account-errors';
+import { mapAccountApiError, mapAccountApiFieldErrors } from '@/lib/account/account-errors';
 import { applyAccountMutationToasts, resolveAccountMutationFeedback } from '@/lib/account/account-mutation-feedback';
 import { buildActivateAccountPayload } from '@/lib/account/account-utils';
 import { validateAccountPasswordForm, type AccountPasswordFieldErrors } from '@/lib/account/account-password-utils';
@@ -79,6 +79,13 @@ export function CreateAccountDialog({
     resetForm();
   }, [open, defaultEmail]);
 
+  function clearFieldError(field: keyof AccountPasswordFieldErrors) {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      return { ...current, [field]: undefined };
+    });
+  }
+
   function finishAndClose(result: AccountMutationResponse) {
     onSuccess(result);
     resetForm();
@@ -115,6 +122,11 @@ export function CreateAccountDialog({
     setSaving(false);
 
     if (!res.success) {
+      const apiFieldErrors = mapAccountApiFieldErrors(res.error, t);
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setFieldErrors(apiFieldErrors);
+        return;
+      }
       toast.error(mapAccountApiError(res.error, t));
       return;
     }
@@ -182,9 +194,18 @@ export function CreateAccountDialog({
                 type="text"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearFieldError('email');
+                }}
+                aria-invalid={fieldErrors.email ? true : undefined}
                 dir="ltr"
               />
+              {fieldErrors.email ? (
+                <span className="tiny account-password-fields__error" role="alert">
+                  {fieldErrors.email}
+                </span>
+              ) : null}
             </label>
             <label className="col" style={{ gap: 4 }} htmlFor={loginId}>
               <span className="tiny muted">{t('admin.account.loginName')}</span>
@@ -194,7 +215,10 @@ export function CreateAccountDialog({
                 type="text"
                 autoComplete="username"
                 value={login}
-                onChange={(e) => setLogin(e.target.value)}
+                onChange={(e) => {
+                  setLogin(e.target.value);
+                  clearFieldError('login');
+                }}
                 aria-invalid={fieldErrors.login ? true : undefined}
                 dir="ltr"
               />
@@ -214,8 +238,17 @@ export function CreateAccountDialog({
               confirmPassword={confirmPassword}
               showPassword={showPassword}
               errors={fieldErrors}
-              onPasswordChange={setPassword}
-              onConfirmPasswordChange={setConfirmPassword}
+              onPasswordChange={(value) => {
+                setPassword(value);
+                clearFieldError('password');
+                if (fieldErrors.confirmPassword && value === confirmPassword) {
+                  clearFieldError('confirmPassword');
+                }
+              }}
+              onConfirmPasswordChange={(value) => {
+                setConfirmPassword(value);
+                clearFieldError('confirmPassword');
+              }}
               onShowPasswordChange={setShowPassword}
             />
           </fieldset>
