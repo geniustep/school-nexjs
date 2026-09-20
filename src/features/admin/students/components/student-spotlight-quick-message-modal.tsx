@@ -16,26 +16,11 @@ import {
 import { buildStudentRecipientScope } from '@/features/communication/utils/recipient-scope';
 import { useT } from '@/features/i18n/locale-context';
 import type { CommunicationRecipientSummary } from '@/types/communication';
-import type {
-  StudentBeneficiaryKind,
-  StudentRecipientScope,
-} from '@/types/recipient-scope';
+import type { StudentRecipientScope } from '@/types/recipient-scope';
 import type { StudentSearchHit } from '@/types/student-search';
 import { studentSpotlightIdentityTitle } from '../utils/student-spotlight-utils';
 
 type DeliverabilityState = 'idle' | 'checking' | 'ready' | 'blocked' | 'failed';
-
-const AUDIENCE_OPTIONS: Array<{
-  kind: StudentBeneficiaryKind;
-  labelKey: string;
-}> = [
-  { kind: 'guardians', labelKey: 'communication.general.beneficiary.guardians' },
-  { kind: 'students', labelKey: 'communication.general.beneficiary.students' },
-  {
-    kind: 'students_and_guardians',
-    labelKey: 'communication.general.beneficiary.studentsAndGuardians',
-  },
-];
 
 export function StudentSpotlightQuickMessageModal({
   student,
@@ -47,13 +32,10 @@ export function StudentSpotlightQuickMessageModal({
   const t = useT();
   const toast = useToast();
   const titleId = useId();
-  const audienceLabelId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const firstAudienceRef = useRef<HTMLButtonElement>(null);
   const subjectRef = useRef<HTMLInputElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [beneficiaryKind, setBeneficiaryKind] = useState<StudentBeneficiaryKind | null>(null);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [deliverability, setDeliverability] = useState<DeliverabilityState>('idle');
@@ -62,9 +44,7 @@ export function StudentSpotlightQuickMessageModal({
   const [submitting, setSubmitting] = useState(false);
 
   const recipientName = studentSpotlightIdentityTitle(student) || String(student.id);
-  const scope: StudentRecipientScope | null = beneficiaryKind
-    ? buildStudentRecipientScope(beneficiaryKind, student.id)
-    : null;
+  const scope: StudentRecipientScope = buildStudentRecipientScope('guardians', student.id);
 
   useEffect(() => {
     setMounted(true);
@@ -73,23 +53,14 @@ export function StudentSpotlightQuickMessageModal({
   useEffect(() => {
     if (!mounted) return;
     openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusTimer = window.setTimeout(() => firstAudienceRef.current?.focus(), 0);
     return () => {
-      window.clearTimeout(focusTimer);
       openerRef.current?.focus();
     };
   }, [mounted]);
 
   useEffect(() => {
-    if (!beneficiaryKind) {
-      setDeliverability('idle');
-      setPreview(null);
-      setErrorMessage(null);
-      return;
-    }
-
     let cancelled = false;
-    const selectedScope = buildStudentRecipientScope(beneficiaryKind, student.id);
+    const selectedScope = buildStudentRecipientScope('guardians', student.id);
     setDeliverability('checking');
     setPreview(null);
     setErrorMessage(null);
@@ -123,13 +94,13 @@ export function StudentSpotlightQuickMessageModal({
     return () => {
       cancelled = true;
     };
-  }, [beneficiaryKind, student.id, t]);
+  }, [student.id, t]);
 
   useEffect(() => {
-    if (!mounted || deliverability === 'checking' || beneficiaryKind === null) return;
+    if (!mounted || deliverability === 'idle' || deliverability === 'checking') return;
     const focusTimer = window.setTimeout(() => subjectRef.current?.focus(), 0);
     return () => window.clearTimeout(focusTimer);
-  }, [mounted, deliverability, beneficiaryKind]);
+  }, [mounted, deliverability]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -172,7 +143,6 @@ export function StudentSpotlightQuickMessageModal({
 
   const canSubmit =
     !submitting &&
-    scope !== null &&
     deliverability === 'ready' &&
     preview?.can_submit === true &&
     subject.trim().length > 0 &&
@@ -180,7 +150,7 @@ export function StudentSpotlightQuickMessageModal({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!canSubmit || !scope) return;
+    if (!canSubmit) return;
 
     setSubmitting(true);
     setErrorMessage(null);
@@ -247,37 +217,11 @@ export function StudentSpotlightQuickMessageModal({
         </div>
 
         <form className="student-spotlight-message-modal__form" onSubmit={handleSubmit}>
-          <div
-            className="student-spotlight-message-modal__audience"
-            role="radiogroup"
-            aria-labelledby={audienceLabelId}
-          >
-            <span
-              id={audienceLabelId}
-              className="student-spotlight-message-modal__audience-label"
-            >
+          <div className="student-spotlight-message-modal__audience">
+            <span className="student-spotlight-message-modal__audience-label">
               {t('communication.audience')}
             </span>
-            <div className="student-spotlight-message-modal__audience-options">
-              {AUDIENCE_OPTIONS.map((option) => {
-                const selected = beneficiaryKind === option.kind;
-                return (
-                  <button
-                    key={option.kind}
-                    ref={option.kind === 'guardians' ? firstAudienceRef : undefined}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    className="student-spotlight-message-modal__audience-option"
-                    data-selected={selected ? 'true' : 'false'}
-                    disabled={submitting}
-                    onClick={() => setBeneficiaryKind(option.kind)}
-                  >
-                    {t(option.labelKey)}
-                  </button>
-                );
-              })}
-            </div>
+            <strong>{t('communication.general.beneficiary.guardians')}</strong>
           </div>
 
           <label className="student-spotlight-message-modal__field">
@@ -305,11 +249,7 @@ export function StudentSpotlightQuickMessageModal({
             />
           </label>
 
-          {beneficiaryKind === null ? (
-            <p className="student-spotlight-message-modal__status" aria-live="polite">
-              {t('communication.general.incompleteSelection')}
-            </p>
-          ) : deliverability === 'checking' ? (
+          {deliverability === 'checking' ? (
             <p className="student-spotlight-message-modal__status" aria-live="polite">
               {t('communication.recipients.previewLoading')}
             </p>
@@ -321,9 +261,6 @@ export function StudentSpotlightQuickMessageModal({
                 <bdi>{preview.deliverable_user_count ?? '—'}</bdi>
               </span>
               <span>
-                {t('communication.recipients.students')}:{' '}
-                <bdi>{preview.student_count ?? '—'}</bdi>
-                {' · '}
                 {t('communication.recipients.guardians')}:{' '}
                 <bdi>{preview.guardian_count ?? '—'}</bdi>
               </span>
