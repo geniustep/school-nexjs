@@ -45,7 +45,35 @@ export function mapAccountApiError(
   }
   return t('errors.serverError');
 }
-\nexport function mapAccountApiFieldErrors(\n  error: ApiErrorBody,\n  t: (key: string) => string,\n): AccountPasswordFieldErrors {\n  const code = String(error.code ?? '');\n  const message = mapAccountApiError(error, t);\n\n  if (code === 'invalid_email' || code === 'email_required_for_invite') {\n    return { email: message };\n  }\n  if (code === 'duplicate_login' || code === 'invalid_login' || code === 'login_required') {\n    return { login: message };\n  }\n  if (\n    code === 'password_required' ||\n    code === 'invalid_password' ||\n    code === 'password_too_weak' ||\n    code === 'weak_password' ||\n    code === 'password_policy_violation'\n  ) {\n    return { password: message };\n  }\n  if (code === 'password_confirmation_mismatch' || code === 'password_mismatch') {\n    return { confirmPassword: message };\n  }\n  return {};\n}\n
+
+export function mapAccountApiFieldErrors(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+): AccountPasswordFieldErrors {
+  const code = String(error.code ?? '');
+  const message = mapAccountApiError(error, t);
+
+  if (code === 'invalid_email' || code === 'email_required_for_invite') {
+    return { email: message };
+  }
+  if (code === 'duplicate_login' || code === 'invalid_login' || code === 'login_required') {
+    return { login: message };
+  }
+  if (
+    code === 'password_required' ||
+    code === 'invalid_password' ||
+    code === 'password_too_weak' ||
+    code === 'weak_password' ||
+    code === 'password_policy_violation'
+  ) {
+    return { password: message };
+  }
+  if (code === 'password_confirmation_mismatch' || code === 'password_mismatch') {
+    return { confirmPassword: message };
+  }
+  return {};
+}
+
 export function mapAccountWarning(
   warning: AccountWarning,
   t: (key: string) => string,
