@@ -88,7 +88,7 @@ describe('buildActivateAccountPayload', () => {
     ).toEqual({
       email: 'student@school.ma',
       password: 'SecurePass123!',
-      password_confirmation: 'SecurePass123!',
+      password_confirm: 'SecurePass123!',
       send_invite: false,
       must_change_password: true,
     });
@@ -106,7 +106,7 @@ describe('buildActivateAccountPayload', () => {
     ).toEqual({
       login: 'abdel',
       password: 'SecurePass123!',
-      password_confirmation: 'SecurePass123!',
+      password_confirm: 'SecurePass123!',
       send_invite: false,
     });
   });
