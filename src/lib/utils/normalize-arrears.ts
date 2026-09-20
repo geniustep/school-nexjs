@@ -66,6 +66,7 @@ function normalizeGuardianDetail(raw: unknown): ArrearsGuardianDetail | null {
     guardian_id,
     partner_id: readNumber(row.partner_id),
     name: readString(row.name) ?? undefined,
+    phone: readString(row.phone),
     is_billing_partner: readBoolean(row.is_billing_partner),
     relationship_contexts: Array.isArray(row.relationship_contexts)
       ? row.relationship_contexts
@@ -338,6 +339,8 @@ export function normalizeArrearsFamilyFollowupDetail(raw: unknown): ArrearsFamil
 
   return {
     family_id,
+    billing_partner_id: listItem?.billing_partner_id,
+    account_kind: listItem?.account_kind,
     family_name: listItem?.family_name,
     guardian_name: listItem?.guardian_name,
     display_name: listItem?.display_name,

@@ -1,0 +1,524 @@
+/* Raqeem Finance — Arrears workspace redesign */
+
+.finance-arrears-redesign {
+  display: grid;
+  gap: 16px;
+}
+
+.finance-arrears-redesign__summary {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.35fr) minmax(320px, 1fr);
+  gap: 14px;
+}
+
+.finance-arrears-redesign__hero,
+.finance-arrears-redesign__mini-metric,
+.finance-arrears-redesign__controls,
+.finance-arrears-redesign-drawer__hero,
+.finance-arrears-redesign-drawer__family-block,
+.finance-arrears-redesign-drawer__section,
+.finance-arrears-redesign-drawer__last-followup,
+.finance-arrears-redesign-drawer__followup-panel {
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+  border-radius: 14px;
+}
+
+.finance-arrears-redesign__hero {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-red-soft, #fef2f2) 82%, #fff), #fff 68%);
+}
+
+.finance-arrears-redesign__hero > span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.finance-arrears-redesign__hero > strong {
+  font-size: clamp(1.65rem, 2.6vw, 2.25rem);
+  line-height: 1;
+  color: var(--c-red, #b42318);
+}
+
+.finance-arrears-redesign__hero > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.finance-arrears-redesign__mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.finance-arrears-redesign__mini-metric {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.finance-arrears-redesign__mini-metric span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.finance-arrears-redesign__mini-metric strong {
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.finance-arrears-redesign__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+}
+
+.finance-arrears-redesign__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finance-arrears-redesign__tabs .btn.is-active,
+.finance-arrears-redesign-drawer__mode-switch .btn.is-active,
+.finance-arrears-redesign-drawer__footer-actions .btn.is-active {
+  background: var(--c-primary-soft, #eff6ff);
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 55%, var(--c-border, #e2e8f0));
+  color: var(--c-primary, #2563eb);
+  font-weight: 700;
+}
+
+.finance-arrears-redesign__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.finance-arrears-redesign__search-field {
+  position: relative;
+  min-width: min(320px, 60vw);
+}
+
+.finance-arrears-redesign__search-field .input {
+  width: 100%;
+  padding-inline-end: 36px;
+}
+
+.finance-arrears-redesign__identity {
+  display: grid;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+.finance-arrears-redesign__identity strong {
+  color: var(--c-text, #0f172a);
+  font-size: 0.92rem;
+}
+
+.finance-arrears-redesign__identity span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.74rem;
+}
+
+.finance-arrears-redesign__money-cell,
+.finance-arrears-redesign__followup-cell,
+.finance-arrears-redesign__promise-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.finance-arrears-redesign__money-primary {
+  color: var(--c-red, #b42318);
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.finance-arrears-redesign__money-cell > span,
+.finance-arrears-redesign__followup-cell > span:not(.finance-arrears-badge),
+.finance-arrears-redesign__promise-cell > span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.72rem;
+}
+
+.finance-arrears-redesign__row-actions {
+  display: grid;
+  gap: 5px;
+  min-width: 112px;
+}
+
+.finance-arrears-redesign__mobile-card {
+  gap: 14px;
+}
+
+.finance-arrears-redesign__mobile-due {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--c-red-soft, #fef2f2);
+}
+
+.finance-arrears-redesign__mobile-due span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.finance-arrears-redesign__mobile-due strong {
+  color: var(--c-red, #b42318);
+  font-size: 1.35rem;
+}
+
+.finance-arrears-redesign__mobile-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.finance-arrears-redesign__mobile-meta > div {
+  min-width: 0;
+}
+
+.finance-arrears-redesign__mobile-meta dt {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.72rem;
+}
+
+.finance-arrears-redesign__mobile-meta dd {
+  margin: 3px 0 0;
+  font-weight: 700;
+}
+
+/* Drawer */
+.finance-arrears-redesign-drawer .academic-setup-drawer__body {
+  background: #f8fafc;
+  padding: 16px;
+}
+
+.finance-arrears-redesign-drawer__content {
+  display: grid;
+  gap: 14px;
+}
+
+.finance-arrears-redesign-drawer__hero {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.15fr) minmax(300px, 1fr);
+  overflow: hidden;
+}
+
+.finance-arrears-redesign-drawer__hero-main {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 8px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--c-red-soft, #fef2f2), #fff 78%);
+}
+
+.finance-arrears-redesign-drawer__hero-main > span,
+.finance-arrears-redesign-drawer__hero-meta span,
+.finance-arrears-redesign-drawer__billing-guardian span,
+.finance-arrears-redesign-drawer__guardian-card span,
+.finance-arrears-redesign-drawer__student-row [role='cell'] > span,
+.finance-arrears-redesign-drawer__service-row > div > span,
+.finance-arrears-redesign-drawer__last-followup span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.74rem;
+}
+
+.finance-arrears-redesign-drawer__hero-main > strong {
+  color: var(--c-red, #b42318);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  line-height: 1;
+}
+
+.finance-arrears-redesign-drawer__hero-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-inline-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-arrears-redesign-drawer__hero-meta > div {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.finance-arrears-redesign-drawer__hero-meta > div + div {
+  border-inline-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-arrears-redesign-drawer__hero-meta strong {
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.finance-arrears-redesign-drawer__family-block,
+.finance-arrears-redesign-drawer__section,
+.finance-arrears-redesign-drawer__followup-panel {
+  padding: 16px;
+}
+
+.finance-arrears-redesign-drawer__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.finance-arrears-redesign-drawer__section-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.finance-arrears-redesign-drawer__billing-guardian {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--c-primary-soft, #eff6ff) 72%, #fff);
+}
+
+.finance-arrears-redesign-drawer__billing-guardian > div {
+  display: grid;
+  gap: 3px;
+}
+
+.finance-arrears-redesign-drawer__guardian-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.finance-arrears-redesign-drawer__guardian-card {
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.finance-arrears-redesign-drawer__guardian-card a {
+  width: fit-content;
+  color: var(--c-primary, #2563eb);
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.finance-arrears-redesign-drawer__student-table,
+.finance-arrears-redesign-drawer__service-table {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 11px;
+}
+
+.finance-arrears-redesign-drawer__student-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(3, minmax(115px, 0.7fr));
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: #fff;
+}
+
+.finance-arrears-redesign-drawer__student-row + .finance-arrears-redesign-drawer__student-row,
+.finance-arrears-redesign-drawer__service-row + .finance-arrears-redesign-drawer__service-row {
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-arrears-redesign-drawer__student-identity,
+.finance-arrears-redesign-drawer__student-row [role='cell']:not(.finance-arrears-redesign-drawer__student-identity),
+.finance-arrears-redesign-drawer__service-row > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.finance-arrears-redesign-drawer__periods {
+  display: grid;
+  gap: 8px;
+}
+
+.finance-arrears-redesign-drawer__period {
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 11px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.finance-arrears-redesign-drawer__period > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.finance-arrears-redesign-drawer__period > summary::-webkit-details-marker {
+  display: none;
+}
+
+.finance-arrears-redesign-drawer__period > summary span {
+  display: inline-flex;
+  min-width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--c-border-soft, #f1f5f9);
+  font-size: 0.76rem;
+}
+
+.finance-arrears-redesign-drawer__service-table {
+  border: 0;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 0;
+}
+
+.finance-arrears-redesign-drawer__service-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.35fr) minmax(105px, 0.65fr) repeat(3, minmax(105px, 0.65fr));
+  gap: 10px;
+  padding: 11px 12px;
+}
+
+.finance-arrears-redesign-drawer__last-followup {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.5fr) 1fr;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.finance-arrears-redesign-drawer__last-followup > div {
+  display: grid;
+  gap: 4px;
+}
+
+.finance-arrears-redesign-drawer__last-followup p {
+  margin: 0;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-arrears-redesign-drawer__mode-switch,
+.finance-arrears-redesign-drawer__footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finance-arrears-redesign-drawer__followup-form {
+  display: grid;
+  gap: 12px;
+}
+
+.finance-arrears-redesign-drawer__field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.finance-arrears-redesign-drawer__resolve {
+  margin-inline-start: auto;
+}
+
+@media (max-width: 980px) {
+  .finance-arrears-redesign__summary {
+    grid-template-columns: 1fr;
+  }
+  .finance-arrears-redesign-drawer__hero {
+    grid-template-columns: 1fr;
+  }
+  .finance-arrears-redesign-drawer__hero-meta {
+    border-inline-start: 0;
+    border-top: 1px solid var(--c-border, #e2e8f0);
+  }
+  .finance-arrears-redesign-drawer__student-row,
+  .finance-arrears-redesign-drawer__service-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .finance-arrears-redesign-drawer__student-identity,
+  .finance-arrears-redesign-drawer__service-row > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .finance-arrears-redesign__mini-grid {
+    grid-template-columns: 1fr;
+  }
+  .finance-arrears-redesign__controls,
+  .finance-arrears-redesign__search {
+    align-items: stretch;
+  }
+  .finance-arrears-redesign__search,
+  .finance-arrears-redesign__search-field {
+    width: 100%;
+    min-width: 0;
+  }
+  .finance-arrears-redesign__search {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+  }
+  .finance-arrears-redesign-drawer .academic-setup-drawer__body {
+    padding: 10px;
+  }
+  .finance-arrears-redesign-drawer__hero-meta,
+  .finance-arrears-redesign-drawer__field-grid,
+  .finance-arrears-redesign-drawer__last-followup,
+  .finance-arrears-redesign-drawer__student-row,
+  .finance-arrears-redesign-drawer__service-row {
+    grid-template-columns: 1fr;
+  }
+  .finance-arrears-redesign-drawer__hero-meta > div + div {
+    border-inline-start: 0;
+    border-top: 1px solid var(--c-border, #e2e8f0);
+  }
+  .finance-arrears-redesign-drawer__student-identity,
+  .finance-arrears-redesign-drawer__service-row > div:first-child {
+    grid-column: auto;
+  }
+  .finance-arrears-redesign-drawer__footer-actions {
+    width: 100%;
+  }
+  .finance-arrears-redesign-drawer__footer-actions .btn {
+    flex: 1 1 auto;
+  }
+  .finance-arrears-redesign-drawer__resolve {
+    margin-inline-start: 0;
+  }
+}
+
+.page-header .finance-receivable-list__toolbar {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  min-height: 0;
+}

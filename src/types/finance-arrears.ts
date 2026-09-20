@@ -84,6 +84,7 @@ export type ArrearsGuardianDetail = {
   guardian_id: number;
   partner_id?: number | null;
   name?: string;
+  phone?: string | null;
   is_billing_partner?: boolean;
   relationship_contexts: ArrearsGuardianRelationshipContext[];
 };
@@ -118,6 +119,8 @@ export type ArrearsOverdueInstallmentDetail = {
 
 export type ArrearsFamilyFollowupDetail = {
   family_id: number;
+  billing_partner_id?: number;
+  account_kind?: 'family' | 'individual' | null;
   family_name?: string;
   guardian_name?: string;
   display_name?: string;
