@@ -1769,7 +1769,7 @@
       "accountCreatedSuccess": "Account created successfully.",
       "loginOrEmailHelp": "Enter an email and/or login name. At least one is required.",
       "mustChangePasswordOnLogin": "Require password change on first sign-in",
-      "passwordRequirements": "Password is required. If the server rejects it, follow the error message shown.",
+      "passwordRequirements": "Use at least 8 characters, including at least one Latin letter and one number.",
       "passwordStrength": {
         "weak": "Weak",
         "fair": "Fair",
