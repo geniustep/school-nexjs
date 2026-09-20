@@ -102,14 +102,13 @@ describe('studentSpotlightNavigatePath', () => {
 });
 
 describe('studentSpotlight action paths', () => {
-  it('builds payment and message routes with studentId only', () => {
+  it('builds payment and modern communication message routes', () => {
     expect(studentSpotlightPaymentPath(2081)).toBe(
       '/admin/finance/collections/new?studentId=2081',
     );
-    expect(studentSpotlightMessagePath(2081)).toBe(
-      '/admin/channels/compose?studentId=2081',
+    expect(studentSpotlightMessagePath()).toBe(
+      '/admin/communication/compose?content_type=message',
     );
-    expect(studentSpotlightMessagePath(2081)).not.toMatch(/phone|email|name/i);
   });
 });
 
