@@ -222,7 +222,7 @@ describe('StudentSpotlight', () => {
     await waitFor(() => {
       expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledTimes(3);
     });
-    const guardianAudience = within(messageDialog).getByRole('radio', {
+    const guardianAudience = await within(messageDialog).findByRole('radio', {
       name: 'أولياء الأمور',
     });
     expect(
@@ -268,7 +268,9 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
-    const firstAudience = within(dialog).getByRole('radio', { name: 'أولياء الأمور' });
+    const firstAudience = await within(dialog).findByRole('radio', {
+      name: 'أولياء الأمور',
+    });
     await waitFor(() => {
       expect(document.activeElement).toBe(firstAudience);
     });
@@ -302,15 +304,19 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
-    const audience = dialog.querySelector('.student-spotlight-message-modal__audience');
-    expect(audience).toBeTruthy();
-
     await waitFor(() => {
-      expect(within(audience as HTMLElement).getByText('التلاميذ')).toBeTruthy();
+      expect(
+        dialog.querySelector('.student-spotlight-message-modal__audience'),
+      ).toBeTruthy();
     });
-    expect(within(audience as HTMLElement).queryByText('أولياء الأمور')).toBeNull();
+    const audience = dialog.querySelector(
+      '.student-spotlight-message-modal__audience',
+    ) as HTMLElement;
+
+    expect(within(audience).getByText('التلاميذ')).toBeTruthy();
+    expect(within(audience).queryByText('أولياء الأمور')).toBeNull();
     expect(
-      within(audience as HTMLElement).queryByText('التلاميذ وأولياء الأمور'),
+      within(audience).queryByText('التلاميذ وأولياء الأمور'),
     ).toBeNull();
     expect(within(dialog).queryByRole('radio')).toBeNull();
 
@@ -352,15 +358,19 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
-    const audience = dialog.querySelector('.student-spotlight-message-modal__audience');
-    expect(audience).toBeTruthy();
-
     await waitFor(() => {
-      expect(within(audience as HTMLElement).getByText('أولياء الأمور')).toBeTruthy();
+      expect(
+        dialog.querySelector('.student-spotlight-message-modal__audience'),
+      ).toBeTruthy();
     });
-    expect(within(audience as HTMLElement).queryByText('التلاميذ')).toBeNull();
+    const audience = dialog.querySelector(
+      '.student-spotlight-message-modal__audience',
+    ) as HTMLElement;
+
+    expect(within(audience).getByText('أولياء الأمور')).toBeTruthy();
+    expect(within(audience).queryByText('التلاميذ')).toBeNull();
     expect(
-      within(audience as HTMLElement).queryByText('التلاميذ وأولياء الأمور'),
+      within(audience).queryByText('التلاميذ وأولياء الأمور'),
     ).toBeNull();
     expect(within(dialog).queryByRole('radio')).toBeNull();
   });
@@ -442,6 +452,10 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    const guardianAudience = await within(dialog).findByRole('radio', {
+      name: 'أولياء الأمور',
+    });
+    await user.click(guardianAudience);
     await waitFor(() => {
       expect(within(dialog).getByText('جاهز للإرسال')).toBeTruthy();
     });
