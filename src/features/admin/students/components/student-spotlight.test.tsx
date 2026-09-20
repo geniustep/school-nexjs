@@ -1,9 +1,13 @@
 // @vitest-environment happy-dom
 
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/components/ui/toast';
+import {
+  previewStudentAudienceCommunication,
+  submitStudentAudienceCommunication,
+} from '@/features/communication/api/admin-communication-api';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { LOCALE_STORAGE_KEY } from '@/lib/i18n/config';
 import type { StudentSearchHit } from '@/types/student-search';
@@ -25,6 +29,11 @@ vi.mock('../hooks/use-student-search-query', () => ({
   useStudentSearchQuery: vi.fn(),
 }));
 
+vi.mock('@/features/communication/api/admin-communication-api', () => ({
+  previewStudentAudienceCommunication: vi.fn(),
+  submitStudentAudienceCommunication: vi.fn(),
+}));
+
 vi.mock('@/features/auth/session-context', () => ({
   useSession: () => ({
     id: 1,
@@ -38,6 +47,12 @@ vi.mock('@/features/auth/session-context', () => ({
 }));
 
 const mockUseStudentSearchQuery = vi.mocked(useStudentSearchQuery);
+const mockPreviewStudentAudienceCommunication = vi.mocked(
+  previewStudentAudienceCommunication,
+);
+const mockSubmitStudentAudienceCommunication = vi.mocked(
+  submitStudentAudienceCommunication,
+);
 const mockOnClose = vi.fn();
 
 function sampleHit(partial: Partial<StudentSearchHit> & Pick<StudentSearchHit, 'id'>): StudentSearchHit {
@@ -78,6 +93,30 @@ beforeEach(() => {
     error: false,
     results: [],
     suggestion: null,
+  });
+  mockPreviewStudentAudienceCommunication.mockReset();
+  mockPreviewStudentAudienceCommunication.mockResolvedValue({
+    ok: true,
+    preview: {
+      presentation: 'preview',
+      recipient_summary: {
+        total_people_count: 2,
+        deliverable_user_count: 2,
+        student_count: 1,
+        guardian_count: 1,
+        can_submit: true,
+      },
+    },
+  });
+  mockSubmitStudentAudienceCommunication.mockReset();
+  mockSubmitStudentAudienceCommunication.mockResolvedValue({
+    success: true,
+    data: {
+      id: 90,
+      pending_review: false,
+      published_message_id: 91,
+    },
+    meta: {},
   });
 });
 
@@ -150,13 +189,158 @@ describe('StudentSpotlight', () => {
     pushMock.mockReset();
     mockOnClose.mockReset();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
-    expect(pushMock).toHaveBeenCalledWith(
-      '/admin/communication/compose?content_type=message',
-    );
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    const messageDialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    expect(
+      messageDialog.closest('.student-spotlight-message-modal__backdrop')?.parentElement,
+    ).toBe(document.body);
+    expect(within(messageDialog).getByText('إسماعيل العمراني — Ismail Al-Mrani')).toBeTruthy();
+    expect(within(messageDialog).getByText('أولياء الأمور')).toBeTruthy();
+    expect(within(messageDialog).queryByRole('radio')).toBeNull();
+    await waitFor(() => {
+      expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledWith({
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'guardians',
+          scope_id: 2081,
+        },
+      });
+    });
+
+    await user.type(within(messageDialog).getByLabelText('الموضوع'), 'متابعة التلميذ');
+    await user.type(within(messageDialog).getByLabelText('نص الرسالة'), 'يرجى التواصل مع الإدارة.');
+    await user.click(within(messageDialog).getByRole('button', { name: 'إرسال' }));
+
+    await waitFor(() => {
+      expect(mockSubmitStudentAudienceCommunication).toHaveBeenCalledWith({
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'guardians',
+          scope_id: 2081,
+        },
+        subject: 'متابعة التلميذ',
+        body: 'يرجى التواصل مع الإدارة.',
+      });
+    });
+    expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
 
     // The existing Spotlight search hook remains the only student lookup.
     expect(mockUseStudentSearchQuery).toHaveBeenCalled();
+  });
+
+  it('keeps keyboard focus inside the quick message modal', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    const subject = within(dialog).getByLabelText('الموضوع');
+    await waitFor(() => {
+      expect(document.activeElement).toBe(subject);
+    });
+
+    const closeButton = within(dialog).getByRole('button', { name: 'إغلاق' });
+    closeButton.focus();
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole('button', { name: 'إلغاء' }),
+    );
+  });
+
+  it('previews only the governed guardian audience automatically', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+
+    expect(within(dialog).queryByRole('radio')).toBeNull();
+    await waitFor(() => {
+      expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledTimes(1);
+      expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledWith({
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'guardians',
+          scope_id: 2081,
+        },
+      });
+    });
+  });
+  it('keeps the quick message modal open with its draft when submit fails', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+    mockSubmitStudentAudienceCommunication.mockResolvedValueOnce({
+      success: false,
+      error: {
+        code: 'network_error',
+        message: 'تعذر الوصول إلى الخادم.',
+        details: {},
+      },
+      meta: {},
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    await waitFor(() => {
+      expect(within(dialog).getByText('جاهز للإرسال')).toBeTruthy();
+    });
+
+    const subject = within(dialog).getByLabelText('الموضوع') as HTMLInputElement;
+    const body = within(dialog).getByLabelText('نص الرسالة') as HTMLTextAreaElement;
+    await user.type(subject, 'موضوع يبقى');
+    await user.type(body, 'نص يبقى عند الخطأ');
+    await user.click(within(dialog).getByRole('button', { name: 'إرسال' }));
+
+    await waitFor(() => {
+      expect(within(dialog).getByRole('alert')).toBeTruthy();
+    });
+    expect(subject.value).toBe('موضوع يبقى');
+    expect(body.value).toBe('نص يبقى عند الخطأ');
+    expect(screen.getByRole('dialog', { name: 'الرسالة' })).toBeTruthy();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it('Escape closes only the quick message modal and keeps Spotlight open', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    expect(await screen.findByRole('dialog', { name: 'الرسالة' })).toBeTruthy();
+
+    await user.keyboard('{Escape}');
+
+    expect(screen.queryByRole('dialog', { name: 'الرسالة' })).toBeNull();
+    expect(mockOnClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('searchbox', { name: 'بحث عن تلميذ' })).toBeTruthy();
   });
 
   it('opens profile on Enter for the active result when focus is not on an action', async () => {
