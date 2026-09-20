@@ -10016,6 +10016,7 @@
         "resultCount": "{total} comptes",
         "drawerTitle": "Suivi du compte",
         "drawerSubtitle": "Enregistrer un contact ou une promesse de paiement",
+        "unsavedChangesConfirm": "Des informations de suivi ne sont pas enregistrées. Fermer sans enregistrer ?",
         "familyDetails": {
           "guardiansTitle": "Responsables de l’élève",
           "studentsTitle": "Élèves de la famille",

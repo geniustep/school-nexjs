@@ -9997,6 +9997,7 @@
         "resultCount": "{total} cuentas",
         "drawerTitle": "Seguimiento de cuenta",
         "drawerSubtitle": "Registrar un contacto o una promesa de pago",
+        "unsavedChangesConfirm": "Hay información de seguimiento sin guardar. ¿Cerrar sin guardarla?",
         "familyDetails": {
           "guardiansTitle": "Tutores",
           "studentsTitle": "Alumnos de la familia",

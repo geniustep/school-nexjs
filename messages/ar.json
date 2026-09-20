@@ -10234,6 +10234,7 @@
         "resultCount": "{total} حساب",
         "drawerTitle": "متابعة الحساب",
         "drawerSubtitle": "تسجيل اتصال أو وعد دفع",
+        "unsavedChangesConfirm": "لديك معلومات متابعة غير محفوظة. هل تريد إغلاق النافذة دون حفظها؟",
         "familyDetails": {
           "guardiansTitle": "أولياء الأمر",
           "studentsTitle": "الأبناء",

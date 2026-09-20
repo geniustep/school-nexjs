@@ -70,11 +70,8 @@ export default function AdminFinanceArrearsPage() {
       }
       const qs = params.toString();
       const href = qs ? `/admin/finance/arrears?${qs}` : '/admin/finance/arrears';
-      if (mode === 'push') {
-        router.push(href);
-      } else {
-        router.replace(href);
-      }
+      if (mode === 'push') router.push(href);
+      else router.replace(href);
     },
     [router, searchParams],
   );
@@ -87,15 +84,14 @@ export default function AdminFinanceArrearsPage() {
   );
 
   const onOpenFamily = useCallback(
-    (familyId: number) => {
-      updateUrl({ family: familyId }, 'push');
-    },
+    (familyId: number) => updateUrl({ family: familyId }, 'push'),
     [updateUrl],
   );
 
-  const onCloseFamily = useCallback(() => {
-    updateUrl({ family: null }, 'replace');
-  }, [updateUrl]);
+  const onCloseFamily = useCallback(
+    () => updateUrl({ family: null }, 'replace'),
+    [updateUrl],
+  );
 
   if (!canViewStudentBalance(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -109,8 +105,8 @@ export default function AdminFinanceArrearsPage() {
       <PageHeader
         title={t('admin.finance.arrears.pageTitle')}
         subtitle={t('admin.finance.arrears.pageDesc')}
+        actions={<ArrearsExportActions filters={filters} />}
       />
-      <ArrearsExportActions filters={filters} />
       <ArrearsListPanel
         filters={filters}
         onFiltersChange={onFiltersChange}
