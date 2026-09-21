@@ -18,6 +18,17 @@ import { ParentLinkStudentDialog } from './parent-link-student-dialog';
 import type { Parent, ParentChild } from '@/types/parent';
 import type { GuardianRelationship } from '@/types/student-360';
 
+function contactPriorityLabel(
+  priority: number | null | undefined,
+  t: (key: string) => string,
+): string | null {
+  if (priority == null) return null;
+  if (priority === 1) return t('admin.parentProfile.contactPriorityFirst');
+  if (priority === 2) return t('admin.parentProfile.contactPrioritySecond');
+  if (priority === 3) return t('admin.parentProfile.contactPriorityThird');
+  return String(priority);
+}
+
 function childClassLabel(child: ParentChild, dash: string): string {
   const classRef = child.class as { display_name?: string; name?: string } | null;
   const levelRef = child.level as { display_name?: string; name?: string; display_alias?: string } | null;
@@ -167,6 +178,9 @@ export function ParentRelationshipsSection({
               canManageRelationships &&
               canDetachGuardianRelationship(rel?.allowed_actions, true) &&
               rel?.state !== 'ended';
+            const priorityLabel = contactPriorityLabel(rel?.contact_priority, t);
+            const relationshipNotes = rel?.notes?.trim() || null;
+            const hasOperationalDetails = Boolean(priorityLabel || rel?.date_start || relationshipNotes);
 
             return (
               <li key={`${child.id}-${rel?.relationship_id ?? 'legacy'}`} className="parent-relationships__row">
@@ -187,6 +201,31 @@ export function ParentRelationshipsSection({
                     <Badge tone={active ? 'green' : 'slate'}>{statusLabel(t, rel.state ?? 'active')}</Badge>
                   ) : null}
                   {guardianRel ? <GuardianRelationshipBadges rel={guardianRel} compactSummary /> : null}
+                  {hasOperationalDetails ? (
+                    <details className="parent-relationships__operational-details">
+                      <summary>{t('admin.parentProfile.additionalOptions')}</summary>
+                      <dl>
+                        {priorityLabel ? (
+                          <div>
+                            <dt>{t('admin.student360.contactPriority')}</dt>
+                            <dd>{priorityLabel}</dd>
+                          </div>
+                        ) : null}
+                        {rel?.date_start ? (
+                          <div>
+                            <dt>{t('admin.student360.dateStart')}</dt>
+                            <dd dir="ltr">{rel.date_start}</dd>
+                          </div>
+                        ) : null}
+                        {relationshipNotes ? (
+                          <div>
+                            <dt>{t('admin.student360.notes')}</dt>
+                            <dd dir="auto">{relationshipNotes}</dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </details>
+                  ) : null}
                 </div>
 
                 <div className="parent-relationships__actions">
