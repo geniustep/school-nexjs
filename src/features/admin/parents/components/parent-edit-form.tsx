@@ -147,6 +147,22 @@ export function ParentEditForm({
                 dir="auto"
               />
             </Field>
+            <Field label={t('admin.student360.nameAr')}>
+              <input
+                className="input"
+                value={values.name_ar}
+                onChange={(e) => patch({ name_ar: e.target.value })}
+                dir="auto"
+              />
+            </Field>
+            <Field label={t('admin.staffCenter.activationIdentity.nameFr')}>
+              <input
+                className="input"
+                value={values.name_fr}
+                onChange={(e) => patch({ name_fr: e.target.value })}
+                dir="auto"
+              />
+            </Field>
             <Field label={t('admin.phone')}>
               <input
                 className="input"
@@ -180,12 +196,28 @@ export function ParentEditForm({
                 dir="auto"
               />
             </Field>
+            <Field label={t('admin.parentProfile.addressLine2')}>
+              <input
+                className="input"
+                value={values.street2}
+                onChange={(e) => patch({ street2: e.target.value })}
+                dir="auto"
+              />
+            </Field>
             <Field label={t('admin.student360.city')}>
               <input
                 className="input"
                 value={values.city}
                 onChange={(e) => patch({ city: e.target.value })}
                 dir="auto"
+              />
+            </Field>
+            <Field label={t('admin.student360.zip')}>
+              <input
+                className="input"
+                value={values.zip}
+                onChange={(e) => patch({ zip: e.target.value })}
+                dir="ltr"
               />
             </Field>
           </div>

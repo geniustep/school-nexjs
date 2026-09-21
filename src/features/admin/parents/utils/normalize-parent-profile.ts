@@ -1,4 +1,10 @@
-import type { Parent, ParentChild, ParentAccountInfo, ParentGuardianProfile } from '@/types/parent';
+import type {
+  Parent,
+  ParentChild,
+  ParentAccountInfo,
+  ParentAccountActivationLinkStatus,
+  ParentGuardianProfile,
+} from '@/types/parent';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
 import { normalizeAllowedActionsFromRaw, normalizeRemovalImpactFromRaw } from '@/features/admin/students/utils/guardian-removal-shared';
 import { normalizeDeleteImpactFromRaw } from '@/features/admin/students/utils/guardian-delete-impact';
@@ -30,10 +36,11 @@ function readEmail(raw: Record<string, unknown>): string | null {
 }
 
 function readAddress(raw: Record<string, unknown>): string | null {
-  const street = typeof raw.street === 'string' ? raw.street.trim() : '';
-  const city = typeof raw.city === 'string' ? raw.city.trim() : '';
-  if (street && city) return `${street}, ${city}`;
-  return street || city || (typeof raw.address === 'string' ? raw.address : null);
+  const parts = [raw.street, raw.street2, raw.city, raw.zip]
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter(Boolean);
+  if (parts.length) return parts.join(', ');
+  return typeof raw.address === 'string' && raw.address.trim() ? raw.address.trim() : null;
 }
 
 function normalizeChildRelationship(raw: unknown): ParentChild['relationship'] | null {
@@ -213,6 +220,37 @@ function readBlockerCodes(value: unknown): string[] | undefined {
   return codes.length ? codes : undefined;
 }
 
+function normalizeAccountActivationLink(raw: unknown): ParentAccountActivationLinkStatus | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  return {
+    can_send_activation_link:
+      typeof record.can_send_activation_link === 'boolean'
+        ? record.can_send_activation_link
+        : undefined,
+    blocking_reason:
+      typeof record.blocking_reason === 'string'
+        ? record.blocking_reason
+        : record.blocking_reason === null
+          ? null
+          : undefined,
+    sent_before: typeof record.sent_before === 'boolean' ? record.sent_before : undefined,
+    last_sent_at:
+      typeof record.last_sent_at === 'string'
+        ? record.last_sent_at
+        : record.last_sent_at === null
+          ? null
+          : undefined,
+    has_logged_in: typeof record.has_logged_in === 'boolean' ? record.has_logged_in : undefined,
+    last_login_at:
+      typeof record.last_login_at === 'string'
+        ? record.last_login_at
+        : record.last_login_at === null
+          ? null
+          : undefined,
+  };
+}
+
 function normalizeGuardianProfile(raw: unknown): ParentGuardianProfile | null {
   const record = asRecord(raw);
   if (!record) return null;
@@ -237,6 +275,7 @@ export function normalizeParentProfile(data: unknown): Parent | null {
 
   const person = asRecord(raw.person);
   const accountInfo = normalizeAccount(raw.account);
+  const activationLinkStatus = normalizeAccountActivationLink(raw.account_activation_link);
   const guardianProfile = normalizeGuardianProfile(raw.guardian_profile);
 
   const name =
@@ -296,6 +335,10 @@ export function normalizeParentProfile(data: unknown): Parent | null {
     id: raw.id,
     code: guardianCode,
     name,
+    name_ar:
+      (person ? readNullableString(person.name_ar) : null) ?? readNullableString(raw.name_ar),
+    name_fr:
+      (person ? readNullableString(person.name_fr) : null) ?? readNullableString(raw.name_fr),
     display_name: person?.display_name && typeof person.display_name === 'string' ? person.display_name : name,
     phone:
       (person && typeof person.phone === 'string' ? person.phone : null) ??
@@ -308,9 +351,17 @@ export function normalizeParentProfile(data: unknown): Parent | null {
       ((person && typeof person.street === 'string' ? person.street.trim() : null) ??
         (typeof raw.street === 'string' ? raw.street.trim() : null)) ||
       undefined,
+    street2:
+      ((person && typeof person.street2 === 'string' ? person.street2.trim() : null) ??
+        (typeof raw.street2 === 'string' ? raw.street2.trim() : null)) ||
+      undefined,
     city:
       ((person && typeof person.city === 'string' ? person.city.trim() : null) ??
         (typeof raw.city === 'string' ? raw.city.trim() : null)) ||
+      undefined,
+    zip:
+      ((person && typeof person.zip === 'string' ? person.zip.trim() : null) ??
+        (typeof raw.zip === 'string' ? raw.zip.trim() : null)) ||
       undefined,
     address: (person ? readAddress(person) : null) ?? readAddress(raw),
     identity_document_type: identity.identity_document_type ?? rootIdentity.identity_document_type,
@@ -328,6 +379,7 @@ export function normalizeParentProfile(data: unknown): Parent | null {
     has_user_account: hasUserAccount,
     needs_new_account: needsNewAccount,
     account: accountInfo,
+    account_activation_link: activationLinkStatus,
     guardian_profile: guardianProfile,
     relation: typeof raw.relation === 'string' ? raw.relation : null,
     existing_roles: existingRoles,

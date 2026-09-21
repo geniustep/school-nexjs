@@ -7,6 +7,7 @@ import { CreateAccountDialog } from '@/features/admin/account/create-account-dia
 import { Avatar, Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { ParentEditForm } from './parent-edit-form';
 import { ParentRelationshipsSection } from './parent-relationships-section';
+import { ParentAccountActivationLinkAction } from './parent-account-activation-link-action';
 import { GuardianRestoreDialog } from '@/features/admin/students/components/guardian-restore-dialog';
 import { GuardianDeleteDialog } from '@/features/admin/students/components/guardian-delete-dialog';
 import { useT } from '@/features/i18n/locale-context';
@@ -14,10 +15,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useRouter } from 'next/navigation';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasPermission } from '@/lib/permissions/permissions';
-import {
-  canUpdateGuardiansLimited,
-  canManageGuardianRelationships,
-} from '@/lib/permissions/academic-capabilities';
+import { canUpdateGuardiansLimited } from '@/lib/permissions/academic-capabilities';
 import { statusLabel } from '@/lib/utils/labels';
 import { formatMoroccanPhoneDisplay } from '@/features/admin/students/utils/normalize-moroccan-phone';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
@@ -150,6 +148,7 @@ export function ParentProfileView({
   const canRestore = canRestoreGuardianProfile(parent.allowed_actions);
   const canDelete = canDeleteGuardianProfile(parent.allowed_actions, user);
   const canManageAccount = !!user && hasPermission(user, 'manage_parents');
+  const canSendActivationLink = !!user && hasPermission(user, 'send_messages');
   const canEditProfile = !!user && canUpdateGuardiansLimited(user);
 
   const deleteBlockerLines = useMemo(() => {
@@ -229,11 +228,19 @@ export function ParentProfileView({
     });
     items.push({
       label: t('admin.student360.address'),
-      value: parent.street?.trim() || t('common.dash'),
+      value: parent.street?.trim() ? <span dir="auto">{parent.street.trim()}</span> : t('common.dash'),
+    });
+    items.push({
+      label: t('admin.parentProfile.addressLine2'),
+      value: parent.street2?.trim() ? <span dir="auto">{parent.street2.trim()}</span> : t('common.dash'),
     });
     items.push({
       label: t('admin.student360.city'),
-      value: parent.city?.trim() || t('common.dash'),
+      value: parent.city?.trim() ? <span dir="auto">{parent.city.trim()}</span> : t('common.dash'),
+    });
+    items.push({
+      label: t('admin.student360.zip'),
+      value: parent.zip?.trim() ? <span dir="ltr">{parent.zip.trim()}</span> : t('common.dash'),
     });
     items.push({
       label: t('admin.preferredLanguage'),
@@ -246,6 +253,20 @@ export function ParentProfileView({
 
     return items;
   }, [parent, t, emailPresentation]);
+
+  const bilingualNameItems = useMemo(
+    () => [
+      {
+        label: t('admin.student360.nameAr'),
+        value: parent.name_ar?.trim() ? <span dir="auto">{parent.name_ar.trim()}</span> : t('common.dash'),
+      },
+      {
+        label: t('admin.staffCenter.activationIdentity.nameFr'),
+        value: parent.name_fr?.trim() ? <span dir="auto">{parent.name_fr.trim()}</span> : t('common.dash'),
+      },
+    ],
+    [parent.name_ar, parent.name_fr, t],
+  );
 
   const identityItems = useMemo(() => {
     if (!hasIdentityDocument(parent)) return [];
@@ -382,6 +403,11 @@ export function ParentProfileView({
 
       <div className="parent-profile__layout">
         <Card>
+          <SectionHead title={t('admin.parentProfile.personalInformation')} />
+          <DefinitionList items={bilingualNameItems} />
+        </Card>
+
+        <Card>
           <SectionHead title={t('admin.contact')} />
           <DefinitionList items={contactItems} />
         </Card>
@@ -407,6 +433,13 @@ export function ParentProfileView({
             />
             {hasAccount && roleLine ? (
               <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
+            ) : null}
+            {!archived && canSendActivationLink ? (
+              <ParentAccountActivationLinkAction
+                parentId={parent.id}
+                status={parent.account_activation_link}
+                onSent={onReload}
+              />
             ) : null}
             {hasAccount && canManageAccount && !archived ? (
               <button
