@@ -16,6 +16,16 @@ export type ParentActivationLinkErrorKind =
   | 'network'
   | 'generic';
 
+export type ParentActivationLinkBlockingCopyKey =
+  | 'blockedNoActiveRelationship'
+  | 'blockedNotEligible'
+  | 'blockedCommunicationNotAllowed'
+  | 'blockedNoUserAccount'
+  | 'blockedInactiveUserAccount'
+  | 'blockedIdentityUnavailable'
+  | 'blockedWhatsAppUnavailable'
+  | 'blockedGeneric';
+
 export function canSendParentActivationLink(
   status: ParentAccountActivationLinkStatus | null | undefined,
 ): boolean {
@@ -32,6 +42,34 @@ export function parentActivationLinkIsResend(
   status: ParentAccountActivationLinkStatus | null | undefined,
 ): boolean {
   return status?.sent_before === true;
+}
+
+export function parentActivationLinkBlockingCopyKey(
+  reason: string | null | undefined,
+): ParentActivationLinkBlockingCopyKey {
+  switch (reason) {
+    case 'no_active_relationship':
+      return 'blockedNoActiveRelationship';
+    case 'account_not_allowed':
+    case 'account_blocked':
+    case 'not_legal_guardian':
+    case 'legal_status_unknown':
+      return 'blockedNotEligible';
+    case 'communication_not_allowed':
+      return 'blockedCommunicationNotAllowed';
+    case 'no_user_account':
+      return 'blockedNoUserAccount';
+    case 'inactive_user_account':
+      return 'blockedInactiveUserAccount';
+    case 'identity_unavailable':
+      return 'blockedIdentityUnavailable';
+    case 'integration_disabled':
+    case 'entitlement_disabled':
+    case 'activation_unavailable':
+      return 'blockedWhatsAppUnavailable';
+    default:
+      return 'blockedGeneric';
+  }
 }
 
 export function buildParentActivationLinkPayload(input: {
