@@ -127,6 +127,74 @@ describe('normalizeParentProfile relationships', () => {
     expect(parent?.login).toBeNull();
     expect(parent?.account?.login).toBeNull();
   });
+
+
+  it('preserves bilingual names, full address, and backend activation-link status', () => {
+    const parent = normalizeParentProfile({
+      id: 305,
+      name: 'Operational Parent',
+      person: {
+        display_name: 'Operational Parent',
+        name_ar: 'ولي الأمر',
+        name_fr: 'Responsable',
+        street: 'Rue 1',
+        street2: 'Appartement 2',
+        city: 'Tanger',
+        zip: '90000',
+      },
+      account_activation_link: {
+        can_send_activation_link: false,
+        blocking_reason: 'account_blocked',
+        sent_before: true,
+        last_sent_at: '2026-09-21 12:00:00',
+        has_logged_in: true,
+        last_login_at: '2026-09-20 14:30:00',
+      },
+    });
+
+    expect(parent).toMatchObject({
+      name_ar: 'ولي الأمر',
+      name_fr: 'Responsable',
+      street: 'Rue 1',
+      street2: 'Appartement 2',
+      city: 'Tanger',
+      zip: '90000',
+      address: 'Rue 1, Appartement 2, Tanger, 90000',
+      account_activation_link: {
+        can_send_activation_link: false,
+        blocking_reason: 'account_blocked',
+        sent_before: true,
+        has_logged_in: true,
+      },
+    });
+  });
+
+  it('preserves operational relationship priority, start date, and notes', () => {
+    const parent = normalizeParentProfile({
+      id: 306,
+      name: 'Parent',
+      relationships: [
+        {
+          relationship_id: 91,
+          student_id: 727,
+          student_name: 'Student',
+          relationship_type: 'mother',
+          state: 'active',
+          active: true,
+          contact_priority: 2,
+          date_start: '2026-09-01',
+          notes: 'Contact after 16:00',
+        },
+      ],
+    });
+
+    expect(parent?.relationships?.[0]?.relationship).toMatchObject({
+      relationship_id: 91,
+      contact_priority: 2,
+      date_start: '2026-09-01',
+      notes: 'Contact after 16:00',
+    });
+  });
 });
 
 describe('isActiveGuardianRelationship', () => {
