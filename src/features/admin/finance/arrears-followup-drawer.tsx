@@ -18,6 +18,7 @@ import type {
   ArrearsGuardianDetail,
 } from '@/types/finance-arrears';
 import {
+  arrearsGuardianPhones,
   arrearsGuardianRelationshipLabelKey,
   arrearsReferenceLabel,
   groupArrearsInstallmentsByPeriod,
@@ -39,6 +40,19 @@ type ArrearsFollowupDrawerProps = {
   onClose: () => void;
   onSaved: () => void;
 };
+
+function GuardianPhoneLinks({ guardian }: { guardian: ArrearsGuardianDetail }) {
+  const phones = arrearsGuardianPhones(guardian);
+  if (!phones.length) return <span dir="ltr">—</span>;
+
+  return (
+    <span className="finance-arrears-redesign-drawer__guardian-phones" dir="ltr">
+      {phones.map((phone) => (
+        <a key={phone} href={`tel:${phone}`}>{phone}</a>
+      ))}
+    </span>
+  );
+}
 
 export function ArrearsFollowupDrawer({
   open,
@@ -320,6 +334,7 @@ export function ArrearsFollowupDrawer({
                   <strong dir="auto">{billingGuardian.name ?? t('common.dash')}</strong>
                 </div>
                 <span>{guardianRelationship(billingGuardian)}</span>
+                <GuardianPhoneLinks guardian={billingGuardian} />
               </div>
             ) : null}
             {otherGuardians.length ? (
@@ -328,7 +343,7 @@ export function ArrearsFollowupDrawer({
                   <article key={guardian.guardian_id} className="finance-arrears-redesign-drawer__guardian-card">
                     <strong dir="auto">{guardian.name ?? t('common.dash')}</strong>
                     <span>{guardianRelationship(guardian)}</span>
-                    {guardian.phone ? <a href={`tel:${guardian.phone}`} dir="ltr">{guardian.phone}</a> : <span dir="ltr">—</span>}
+                    <GuardianPhoneLinks guardian={guardian} />
                   </article>
                 ))}
               </div>
