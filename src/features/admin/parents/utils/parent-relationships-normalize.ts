@@ -101,12 +101,28 @@ export function normalizeRelationshipLifecycle(raw: unknown): ParentChildRelatio
     relationship_id: typeof record.relationship_id === 'number' ? record.relationship_id : undefined,
     relationship_type:
       typeof record.relationship_type === 'string' ? record.relationship_type : undefined,
+    legal_status:
+      record.legal_status === 'unknown' || record.legal_status === 'yes' || record.legal_status === 'no'
+        ? record.legal_status
+        : undefined,
+    account_access_policy:
+      record.account_access_policy === 'inherit_legal' ||
+      record.account_access_policy === 'allowed' ||
+      record.account_access_policy === 'blocked'
+        ? record.account_access_policy
+        : undefined,
+    account_access_eligible:
+      typeof record.account_access_eligible === 'boolean' ? record.account_access_eligible : undefined,
     is_primary_contact: record.is_primary_contact === true,
     is_legal_guardian: record.is_legal_guardian === true,
     is_financial_responsible: record.is_financial_responsible === true,
     is_emergency_contact: record.is_emergency_contact === true,
     receives_notifications: record.receives_notifications === true,
     is_authorized_pickup: record.is_authorized_pickup === true,
+    contact_priority:
+      typeof record.contact_priority === 'number' ? record.contact_priority : null,
+    date_start: typeof record.date_start === 'string' ? record.date_start : null,
+    notes: typeof record.notes === 'string' ? record.notes : null,
     state: typeof record.state === 'string' ? record.state : lifecycle,
     active: explicitActive !== undefined ? explicitActive : active,
     allowed_actions: undefined,
