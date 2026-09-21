@@ -129,11 +129,11 @@ describe('ParentAccountActivationLinkAction', () => {
   });
 
   it('blocks duplicate clicks while one request is in flight', async () => {
-    let resolveRequest: ((value: unknown) => void) | null = null;
+    const deferred: { resolve?: (value: unknown) => void } = {};
     mocks.post.mockImplementation(
       () =>
         new Promise((resolve) => {
-          resolveRequest = resolve;
+          deferred.resolve = resolve;
         }),
     );
 
@@ -154,7 +154,7 @@ describe('ParentAccountActivationLinkAction', () => {
     fireEvent.click(button);
     expect(mocks.post).toHaveBeenCalledTimes(1);
 
-    resolveRequest?.({ success: true, data: { status: 'queued' }, meta: {} });
+    deferred.resolve?.({ success: true, data: { status: 'queued' }, meta: {} });
     await waitFor(() => expect(screen.getByText('The activation link was sent by WhatsApp.')).toBeTruthy());
   });
 
