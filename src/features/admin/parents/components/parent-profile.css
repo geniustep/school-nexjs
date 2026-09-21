@@ -150,10 +150,13 @@
   margin: 0;
 }
 
-.parent-profile__activation-link-history {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
+.parent-profile__activation-link-status {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--border, #dbe3ee) 80%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-muted, #f8fafc) 60%, var(--surface, #fff));
 }
 
 .parent-profile__account-body .guardian-account-onboarding {
