@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  arrearsGuardianPhones,
   arrearsGuardianRelationshipLabelKey,
   arrearsReferenceLabel,
   groupArrearsInstallmentsByPeriod,
@@ -29,5 +30,27 @@ describe('arrears family detail presentation', () => {
       'admin.finance.arrears.familyDetails.relationshipTypes.mother',
     );
     expect(arrearsGuardianRelationshipLabelKey('custom')).toBeNull();
+  });
+
+  it('normalizes all billing guardian phones with legacy fallback and de-duplication', () => {
+    expect(
+      arrearsGuardianPhones({
+        phones: ['0612000000', '0522000000', '0612000000', ' '],
+        phone: '0677000000',
+      }),
+    ).toEqual(['0612000000', '0522000000', '0677000000']);
+
+    expect(
+      arrearsGuardianPhones({
+        phone: '0612000000',
+      }),
+    ).toEqual(['0612000000']);
+
+    expect(
+      arrearsGuardianPhones({
+        phones: ['0612000000'],
+        phone: '0612000000',
+      }),
+    ).toEqual(['0612000000']);
   });
 });

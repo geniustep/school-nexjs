@@ -1,4 +1,4 @@
-import type { ArrearsOverdueInstallmentDetail } from '@/types/finance-arrears';
+import type { ArrearsGuardianDetail, ArrearsOverdueInstallmentDetail } from '@/types/finance-arrears';
 
 const RELATIONSHIP_TYPES = new Set([
   'father',
@@ -29,6 +29,21 @@ export function arrearsGuardianRelationshipLabelKey(
 ): string | null {
   if (!value || !RELATIONSHIP_TYPES.has(value)) return null;
   return `admin.finance.arrears.familyDetails.relationshipTypes.${value}`;
+}
+
+export function arrearsGuardianPhones(
+  guardian: Pick<ArrearsGuardianDetail, 'phone' | 'phones'>,
+): string[] {
+  const seen = new Set<string>();
+  const phones: string[] = [];
+  for (const candidate of [...(guardian.phones ?? []), guardian.phone]) {
+    if (typeof candidate !== 'string') continue;
+    const phone = candidate.trim();
+    if (!phone || seen.has(phone)) continue;
+    seen.add(phone);
+    phones.push(phone);
+  }
+  return phones;
 }
 
 export type ArrearsInstallmentPeriodGroup = {
