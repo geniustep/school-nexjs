@@ -3,15 +3,20 @@ import type { ArrearsFollowupTab } from '@/types/finance-arrears';
 export const ARREARS_FOLLOWUP_TABS = [
   'all',
   'needs_followup',
-  'pending_cheque',
-  'payment_promises',
   'today_followup',
+  'overdue_followup',
+  'payment_promises',
+  'pending_cheque',
   'escalated',
-  'resolved',
 ] as const;
 
+const ACCEPTED_ARREARS_TABS: readonly ArrearsFollowupTab[] = [
+  ...ARREARS_FOLLOWUP_TABS,
+  'resolved',
+];
+
 export function isArrearsFollowupTab(value: string | null | undefined): value is ArrearsFollowupTab {
-  return !!value && (ARREARS_FOLLOWUP_TABS as readonly string[]).includes(value);
+  return !!value && (ACCEPTED_ARREARS_TABS as readonly string[]).includes(value);
 }
 
 export function arrearsFollowupTabLabelKey(tab: ArrearsFollowupTab): string {
@@ -20,12 +25,14 @@ export function arrearsFollowupTabLabelKey(tab: ArrearsFollowupTab): string {
       return 'admin.finance.arrears.tabs.all';
     case 'needs_followup':
       return 'admin.finance.arrears.tabs.needsFollowup';
-    case 'pending_cheque':
-      return 'admin.finance.arrears.tabs.pendingCheque';
-    case 'payment_promises':
-      return 'admin.finance.arrears.tabs.paymentPromises';
     case 'today_followup':
       return 'admin.finance.arrears.tabs.todayFollowup';
+    case 'overdue_followup':
+      return 'admin.finance.arrears.tabs.overdueFollowup';
+    case 'payment_promises':
+      return 'admin.finance.arrears.tabs.paymentPromises';
+    case 'pending_cheque':
+      return 'admin.finance.arrears.tabs.pendingCheque';
     case 'escalated':
       return 'admin.finance.arrears.tabs.escalated';
     case 'resolved':

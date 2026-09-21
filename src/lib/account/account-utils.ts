@@ -56,7 +56,7 @@ export function buildActivateAccountPayload(input: {
   email?: string;
   login?: string;
   password?: string;
-  password_confirmation?: string;
+  password_confirm?: string;
   send_invite: boolean;
   must_change_password?: boolean;
 } {
@@ -68,7 +68,7 @@ export function buildActivateAccountPayload(input: {
     email?: string;
     login?: string;
     password?: string;
-    password_confirmation?: string;
+    password_confirm?: string;
     send_invite: boolean;
     must_change_password?: boolean;
   } = {
@@ -78,7 +78,7 @@ export function buildActivateAccountPayload(input: {
   if (login) payload.login = login;
   if (password) {
     payload.password = password;
-    if (passwordConfirmation) payload.password_confirmation = passwordConfirmation;
+    if (passwordConfirmation) payload.password_confirm = passwordConfirmation;
   }
   if (input.mustChangePassword) payload.must_change_password = true;
   return payload;

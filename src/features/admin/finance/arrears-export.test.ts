@@ -67,16 +67,54 @@ describe('arrears comprehensive export contract', () => {
       search: ' أسرة ',
       tab: 'payment_promises',
       activeSchoolId: 7,
+      includeDetails: true,
+      includeContacts: true,
+      filters: {
+        tab: 'payment_promises',
+        search: ' أسرة ',
+        academicYearId: '9',
+        levelId: '4',
+        classId: '',
+        workflowStatus: 'needs_followup',
+        contactResult: '',
+        assignedUserId: '',
+        followupDue: 'overdue',
+        pendingCheque: '',
+        paymentPromise: '',
+        contacted: 'no',
+        actionableMin: '500',
+        actionableMax: '',
+        oldestAge: '',
+        dueMonth: '2026-09',
+        feeTypeId: '3',
+      },
     });
 
     expect(query).toEqual({
       export: 1,
+      include_details: 1,
+      include_contacts: 1,
       search: 'أسرة',
       tab: 'payment_promises',
       quick: 'payment_promises',
       status: 'payment_promises',
       overdue_semantics: 'actionable',
       active_school_id: 7,
+      academic_year_id: '9',
+      level_id: '4',
+      class_id: undefined,
+      workflow_status: 'needs_followup',
+      contact_result: undefined,
+      assigned_user_id: undefined,
+      followup_due: 'overdue',
+      pending_cheque: undefined,
+      payment_promise: undefined,
+      contacted: 'no',
+      actionable_min: '500',
+      actionable_max: undefined,
+      oldest_age: undefined,
+      due_month: '2026-09',
+      fee_type_id: '3',
     });
     expect(query).not.toHaveProperty('page');
     expect(query).not.toHaveProperty('page_size');
@@ -125,24 +163,64 @@ describe('arrears comprehensive export contract', () => {
 });
 
 describe('arrears Excel export', () => {
-  it('writes financial values as numeric worksheet cells', () => {
-    const parsed = parseArrearsExportResponse(rawExport);
+  it('creates one compact six-column worksheet with numeric family total', () => {
+    const detailedRaw = {
+      ...rawExport,
+      items: [{
+        ...rawExport.items[0],
+        guardians: [{
+          guardian_id: 7,
+          name: 'محمد',
+          is_billing_partner: true,
+          phone: '0611111111',
+          phones: ['0611111111', '0522111111'],
+          relationship_contexts: [],
+        }],
+        students: [{
+          student_id: 11,
+          student_name: 'سلمى',
+          level: { display_label: 'السادس ابتدائي' },
+          actionable_overdue_amount: 100,
+        }],
+        overdue_installments: [{
+          installment_id: 91,
+          student_id: 11,
+          student_name: 'سلمى',
+          fee_type_name: 'التمدرس',
+          period_start: '2026-09-01',
+          due_date: '2026-09-05',
+          actionable_overdue_amount: 100,
+        }],
+      }],
+    };
+    const parsed = parseArrearsExportResponse(detailedRaw);
     expect(parsed).not.toBeNull();
     if (!parsed) return;
 
     const workbook = createArrearsWorkbook(parsed, context);
+    expect(workbook.worksheets).toHaveLength(1);
     const worksheet = workbook.worksheets[0];
-    const dataRow = worksheet.getRow(11);
+    const header = worksheet.getRow(5);
+    expect(header.values).toEqual([
+      undefined,
+      'ولي الحساب',
+      'الهواتف',
+      'التلاميذ والمستويات',
+      'غير المؤدى حسب الشهر',
+      'متأخر التلاميذ',
+      'الإجمالي',
+    ]);
 
-    expect(dataRow.getCell(3).value).toBe(100);
-    expect(dataRow.getCell(4).value).toBe(1500);
-    expect(dataRow.getCell(5).value).toBe(1600);
-    expect(dataRow.getCell(6).value).toBe(1560.75);
-    expect(dataRow.getCell(10).value).toBe(500.25);
-    for (const cell of [3, 4, 5, 6, 10]) {
-      expect(typeof dataRow.getCell(cell).value).toBe('number');
-      expect(dataRow.getCell(cell).numFmt).toBe('#,##0.00');
-    }
+    const dataRow = worksheet.getRow(6);
+    expect(dataRow.getCell(1).value).toBe('محمد');
+    expect(String(dataRow.getCell(2).value)).toContain('0611111111');
+    expect(String(dataRow.getCell(2).value)).toContain('0522111111');
+    expect(String(dataRow.getCell(3).value)).toContain('السادس ابتدائي');
+    expect(String(dataRow.getCell(4).value)).toContain('التمدرس');
+    expect(String(dataRow.getCell(4).value)).toContain('100');
+    expect(String(dataRow.getCell(5).value)).toContain('سلمى');
+    expect(dataRow.getCell(6).value).toBe(100);
+    expect(dataRow.getCell(6).numFmt).toBe('#,##0.00');
   });
 });
 

@@ -8,7 +8,6 @@ import { RequireAdminPermission } from '@/components/admin/require-admin-permiss
 import { PageHeader } from '@/components/ui/primitives';
 import {
   ArrearsListPanel,
-  type ArrearsListFilters,
 } from '@/features/admin/finance/arrears-list-panel';
 import { ArrearsExportActions } from '@/features/admin/finance/arrears-export-actions';
 import { isArrearsFollowupTab } from '@/features/admin/finance/arrears-filter-contracts';
@@ -17,6 +16,7 @@ import { FINANCE_VIEW, canViewStudentBalance } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
 import { useSession } from '@/features/auth/session-context';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
+import type { ArrearsListFilters } from '@/types/finance-arrears';
 
 function readPositiveInteger(value: string | null): number | null {
   if (!value || !/^\d+$/.test(value)) return null;
@@ -32,6 +32,21 @@ function readFilters(searchParams: URLSearchParams): ArrearsListFilters {
     search: searchParams.get('search') ?? '',
     page: pageRaw && /^\d+$/.test(pageRaw) ? Number(pageRaw) : 1,
     family: readPositiveInteger(searchParams.get('family')),
+    academicYearId: searchParams.get('academic_year_id') ?? '',
+    levelId: searchParams.get('level_id') ?? '',
+    classId: searchParams.get('class_id') ?? '',
+    workflowStatus: searchParams.get('workflow_status') ?? '',
+    contactResult: searchParams.get('contact_result') ?? '',
+    assignedUserId: searchParams.get('assigned_user_id') ?? '',
+    followupDue: searchParams.get('followup_due') ?? '',
+    pendingCheque: searchParams.get('pending_cheque') ?? '',
+    paymentPromise: searchParams.get('payment_promise') ?? '',
+    contacted: searchParams.get('contacted') ?? '',
+    actionableMin: searchParams.get('actionable_min') ?? '',
+    actionableMax: searchParams.get('actionable_max') ?? '',
+    oldestAge: searchParams.get('oldest_age') ?? '',
+    dueMonth: searchParams.get('due_month') ?? '',
+    feeTypeId: searchParams.get('fee_type_id') ?? '',
   };
 }
 
@@ -40,6 +55,21 @@ const URL_KEYS: Record<keyof ArrearsListFilters, string> = {
   search: 'search',
   page: 'page',
   family: 'family',
+  academicYearId: 'academic_year_id',
+  levelId: 'level_id',
+  classId: 'class_id',
+  workflowStatus: 'workflow_status',
+  contactResult: 'contact_result',
+  assignedUserId: 'assigned_user_id',
+  followupDue: 'followup_due',
+  pendingCheque: 'pending_cheque',
+  paymentPromise: 'payment_promise',
+  contacted: 'contacted',
+  actionableMin: 'actionable_min',
+  actionableMax: 'actionable_max',
+  oldestAge: 'oldest_age',
+  dueMonth: 'due_month',
+  feeTypeId: 'fee_type_id',
 };
 
 type NavigationMode = 'push' | 'replace';
@@ -70,11 +100,8 @@ export default function AdminFinanceArrearsPage() {
       }
       const qs = params.toString();
       const href = qs ? `/admin/finance/arrears?${qs}` : '/admin/finance/arrears';
-      if (mode === 'push') {
-        router.push(href);
-      } else {
-        router.replace(href);
-      }
+      if (mode === 'push') router.push(href);
+      else router.replace(href);
     },
     [router, searchParams],
   );
@@ -87,15 +114,14 @@ export default function AdminFinanceArrearsPage() {
   );
 
   const onOpenFamily = useCallback(
-    (familyId: number) => {
-      updateUrl({ family: familyId }, 'push');
-    },
+    (familyId: number) => updateUrl({ family: familyId }, 'push'),
     [updateUrl],
   );
 
-  const onCloseFamily = useCallback(() => {
-    updateUrl({ family: null }, 'replace');
-  }, [updateUrl]);
+  const onCloseFamily = useCallback(
+    () => updateUrl({ family: null }, 'replace'),
+    [updateUrl],
+  );
 
   if (!canViewStudentBalance(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -109,8 +135,8 @@ export default function AdminFinanceArrearsPage() {
       <PageHeader
         title={t('admin.finance.arrears.pageTitle')}
         subtitle={t('admin.finance.arrears.pageDesc')}
+        actions={<ArrearsExportActions filters={filters} />}
       />
-      <ArrearsExportActions filters={filters} />
       <ArrearsListPanel
         filters={filters}
         onFiltersChange={onFiltersChange}

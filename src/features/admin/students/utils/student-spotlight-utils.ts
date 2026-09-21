@@ -1,4 +1,3 @@
-import { channelComposeHref } from '@/features/channels/utils/parse-channel-compose-student-id';
 import { canOpenStudentCommunication } from '@/features/channels/utils/can-open-student-communication';
 import { canCollectPayments } from '@/lib/permissions/finance';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -46,8 +45,8 @@ export function studentSpotlightPaymentPath(studentId: number): string {
   return `/admin/finance/collections/new?studentId=${studentId}`;
 }
 
-export function studentSpotlightMessagePath(studentId: number): string {
-  return channelComposeHref(studentId);
+export function studentSpotlightMessagePath(): string {
+  return '/admin/communication/compose?content_type=message';
 }
 
 export function canOpenStudentSpotlightProfile(user: CurrentUser | null): boolean {

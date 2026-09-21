@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapAccountApiError, mapAccountWarning } from '@/lib/account/account-errors';
+import { mapAccountApiError, mapAccountApiFieldErrors, mapAccountWarning } from '@/lib/account/account-errors';
 import {
   buildAccountIdentityPayload,
   buildActivateAccountPayload,
@@ -88,7 +88,7 @@ describe('buildActivateAccountPayload', () => {
     ).toEqual({
       email: 'student@school.ma',
       password: 'SecurePass123!',
-      password_confirmation: 'SecurePass123!',
+      password_confirm: 'SecurePass123!',
       send_invite: false,
       must_change_password: true,
     });
@@ -106,7 +106,7 @@ describe('buildActivateAccountPayload', () => {
     ).toEqual({
       login: 'abdel',
       password: 'SecurePass123!',
-      password_confirmation: 'SecurePass123!',
+      password_confirm: 'SecurePass123!',
       send_invite: false,
     });
   });
@@ -170,6 +170,33 @@ describe('account errors and warnings', () => {
     expect(mapAccountApiError({ code: 'duplicate_login', message: '', details: {} }, t)).toBe(
       '__admin.account.errors.duplicateLogin__',
     );
+  });
+
+  it('maps API validation failures to the exact drawer field', () => {
+    expect(
+      mapAccountApiFieldErrors(
+        { code: 'invalid_email', message: '', details: {} },
+        t,
+      ),
+    ).toEqual({ email: '__admin.account.errors.invalidEmail__' });
+    expect(
+      mapAccountApiFieldErrors(
+        { code: 'duplicate_login', message: '', details: {} },
+        t,
+      ),
+    ).toEqual({ login: '__admin.account.errors.duplicateLogin__' });
+    expect(
+      mapAccountApiFieldErrors(
+        { code: 'password_policy_violation', message: '', details: {} },
+        t,
+      ),
+    ).toEqual({ password: '__admin.account.errors.passwordTooWeak__' });
+    expect(
+      mapAccountApiFieldErrors(
+        { code: 'password_confirmation_mismatch', message: '', details: {} },
+        t,
+      ),
+    ).toEqual({ confirmPassword: '__admin.account.errors.passwordMismatch__' });
   });
 
   it('maps custom_login_preserved warning', () => {

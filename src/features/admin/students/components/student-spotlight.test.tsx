@@ -84,6 +84,32 @@ function renderStudentSpotlight() {
   );
 }
 
+function audiencePreview({
+  deliverableUsers,
+  students,
+  guardians,
+}: {
+  deliverableUsers: number;
+  students: number;
+  guardians: number;
+}) {
+  return {
+    ok: true as const,
+    preview: {
+      presentation: 'preview' as const,
+      recipient_summary: {
+        total_people_count: students + guardians,
+        deliverable_user_count: deliverableUsers,
+        student_count: students,
+        guardian_count: guardians,
+        can_submit: deliverableUsers > 0,
+        blocking_reasons:
+          deliverableUsers > 0 ? [] : ['communication_recipient_audience_empty'],
+      },
+    },
+  };
+}
+
 beforeEach(() => {
   localStorage.setItem(LOCALE_STORAGE_KEY, 'ar');
   mockOnClose.mockReset();
@@ -95,18 +121,14 @@ beforeEach(() => {
     suggestion: null,
   });
   mockPreviewStudentAudienceCommunication.mockReset();
-  mockPreviewStudentAudienceCommunication.mockResolvedValue({
-    ok: true,
-    preview: {
-      presentation: 'preview',
-      recipient_summary: {
-        total_people_count: 2,
-        deliverable_user_count: 2,
-        student_count: 1,
-        guardian_count: 1,
-        can_submit: true,
-      },
-    },
+  mockPreviewStudentAudienceCommunication.mockImplementation(async ({ recipient_scope }) => {
+    if (recipient_scope.beneficiary_kind === 'guardians') {
+      return audiencePreview({ deliverableUsers: 1, students: 0, guardians: 1 });
+    }
+    if (recipient_scope.beneficiary_kind === 'students') {
+      return audiencePreview({ deliverableUsers: 1, students: 1, guardians: 0 });
+    }
+    return audiencePreview({ deliverableUsers: 2, students: 1, guardians: 1 });
   });
   mockSubmitStudentAudienceCommunication.mockReset();
   mockSubmitStudentAudienceCommunication.mockResolvedValue({
@@ -197,26 +219,20 @@ describe('StudentSpotlight', () => {
       messageDialog.closest('.student-spotlight-message-modal__backdrop')?.parentElement,
     ).toBe(document.body);
     expect(within(messageDialog).getByText('إسماعيل العمراني — Ismail Al-Mrani')).toBeTruthy();
-    expect(within(messageDialog).getByRole('radio', { name: 'أولياء الأمور' })).toBeTruthy();
-    expect(within(messageDialog).getByRole('radio', { name: 'التلاميذ' })).toBeTruthy();
+    await waitFor(() => {
+      expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledTimes(3);
+    });
+    const guardianAudience = await within(messageDialog).findByRole('radio', {
+      name: 'أولياء الأمور',
+    });
+    expect(
+      within(messageDialog).getByRole('radio', { name: 'التلاميذ' }),
+    ).toBeTruthy();
     expect(
       within(messageDialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
     ).toBeTruthy();
-    expect(mockPreviewStudentAudienceCommunication).not.toHaveBeenCalled();
 
-    await user.click(
-      within(messageDialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
-    );
-    await waitFor(() => {
-      expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledWith({
-        recipient_scope: {
-          scope_type: 'student',
-          beneficiary_kind: 'students_and_guardians',
-          scope_id: 2081,
-        },
-      });
-    });
-
+    await user.click(guardianAudience);
     await user.type(within(messageDialog).getByLabelText('الموضوع'), 'متابعة التلميذ');
     await user.type(within(messageDialog).getByLabelText('نص الرسالة'), 'يرجى التواصل مع الإدارة.');
     await user.click(within(messageDialog).getByRole('button', { name: 'إرسال' }));
@@ -225,7 +241,7 @@ describe('StudentSpotlight', () => {
       expect(mockSubmitStudentAudienceCommunication).toHaveBeenCalledWith({
         recipient_scope: {
           scope_type: 'student',
-          beneficiary_kind: 'students_and_guardians',
+          beneficiary_kind: 'guardians',
           scope_id: 2081,
         },
         subject: 'متابعة التلميذ',
@@ -252,7 +268,9 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
-    const firstAudience = within(dialog).getByRole('radio', { name: 'أولياء الأمور' });
+    const firstAudience = await within(dialog).findByRole('radio', {
+      name: 'أولياء الأمور',
+    });
     await waitFor(() => {
       expect(document.activeElement).toBe(firstAudience);
     });
@@ -265,7 +283,99 @@ describe('StudentSpotlight', () => {
     );
   });
 
-  it('previews each student audience choice through the governed endpoint', async () => {
+  it('shows only the student audience when only the student has a deliverable account', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+    mockPreviewStudentAudienceCommunication.mockImplementation(async ({ recipient_scope }) => {
+      if (recipient_scope.beneficiary_kind === 'students') {
+        return audiencePreview({ deliverableUsers: 1, students: 1, guardians: 0 });
+      }
+      if (recipient_scope.beneficiary_kind === 'guardians') {
+        return audiencePreview({ deliverableUsers: 0, students: 0, guardians: 1 });
+      }
+      return audiencePreview({ deliverableUsers: 1, students: 1, guardians: 1 });
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    await waitFor(() => {
+      expect(
+        dialog.querySelector('.student-spotlight-message-modal__audience'),
+      ).toBeTruthy();
+    });
+    const audience = dialog.querySelector(
+      '.student-spotlight-message-modal__audience',
+    ) as HTMLElement;
+
+    expect(within(audience).getByText('التلاميذ')).toBeTruthy();
+    expect(within(audience).queryByText('أولياء الأمور')).toBeNull();
+    expect(
+      within(audience).queryByText('التلاميذ وأولياء الأمور'),
+    ).toBeNull();
+    expect(within(dialog).queryByRole('radio')).toBeNull();
+
+    await user.type(within(dialog).getByLabelText('الموضوع'), 'إشعار للتلميذ');
+    await user.type(within(dialog).getByLabelText('نص الرسالة'), 'رسالة للتلميذ فقط.');
+    await user.click(within(dialog).getByRole('button', { name: 'إرسال' }));
+
+    await waitFor(() => {
+      expect(mockSubmitStudentAudienceCommunication).toHaveBeenCalledWith({
+        recipient_scope: {
+          scope_type: 'student',
+          beneficiary_kind: 'students',
+          scope_id: 2081,
+        },
+        subject: 'إشعار للتلميذ',
+        body: 'رسالة للتلميذ فقط.',
+      });
+    });
+  });
+
+  it('shows only the guardian audience when only a guardian has a deliverable account', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+    mockPreviewStudentAudienceCommunication.mockImplementation(async ({ recipient_scope }) => {
+      if (recipient_scope.beneficiary_kind === 'guardians') {
+        return audiencePreview({ deliverableUsers: 1, students: 0, guardians: 1 });
+      }
+      if (recipient_scope.beneficiary_kind === 'students') {
+        return audiencePreview({ deliverableUsers: 0, students: 1, guardians: 0 });
+      }
+      return audiencePreview({ deliverableUsers: 1, students: 1, guardians: 1 });
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+    await waitFor(() => {
+      expect(
+        dialog.querySelector('.student-spotlight-message-modal__audience'),
+      ).toBeTruthy();
+    });
+    const audience = dialog.querySelector(
+      '.student-spotlight-message-modal__audience',
+    ) as HTMLElement;
+
+    expect(within(audience).getByText('أولياء الأمور')).toBeTruthy();
+    expect(within(audience).queryByText('التلاميذ')).toBeNull();
+    expect(
+      within(audience).queryByText('التلاميذ وأولياء الأمور'),
+    ).toBeNull();
+    expect(within(dialog).queryByRole('radio')).toBeNull();
+  });
+
+  it('shows all three choices only when both student and guardian audiences are deliverable', async () => {
     const user = userEvent.setup();
     mockUseStudentSearchQuery.mockReturnValue({
       loading: false,
@@ -278,24 +388,49 @@ describe('StudentSpotlight', () => {
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
 
-    for (const [name, beneficiary_kind] of [
-      ['أولياء الأمور', 'guardians'],
-      ['التلاميذ', 'students'],
-      ['التلاميذ وأولياء الأمور', 'students_and_guardians'],
-    ] as const) {
-      await user.click(within(dialog).getByRole('radio', { name }));
-      await waitFor(() => {
-        expect(mockPreviewStudentAudienceCommunication).toHaveBeenCalledWith({
-          recipient_scope: {
-            scope_type: 'student',
-            beneficiary_kind,
-            scope_id: 2081,
-          },
-        });
-      });
-    }
+    await waitFor(() => {
+      expect(
+        within(dialog).getByRole('radio', { name: 'أولياء الأمور' }),
+      ).toBeTruthy();
+    });
+    expect(within(dialog).getByRole('radio', { name: 'التلاميذ' })).toBeTruthy();
+    expect(
+      within(dialog).getByRole('radio', { name: 'التلاميذ وأولياء الأمور' }),
+    ).toBeTruthy();
   });
 
+  it('shows no message fields when neither student nor guardians have deliverable accounts', async () => {
+    const user = userEvent.setup();
+    mockUseStudentSearchQuery.mockReturnValue({
+      loading: false,
+      error: false,
+      results: [sampleHit({ id: 2081 })],
+      suggestion: null,
+    });
+    mockPreviewStudentAudienceCommunication.mockImplementation(async ({ recipient_scope }) => {
+      if (recipient_scope.beneficiary_kind === 'guardians') {
+        return audiencePreview({ deliverableUsers: 0, students: 0, guardians: 1 });
+      }
+      if (recipient_scope.beneficiary_kind === 'students') {
+        return audiencePreview({ deliverableUsers: 0, students: 1, guardians: 0 });
+      }
+      return audiencePreview({ deliverableUsers: 0, students: 1, guardians: 1 });
+    });
+
+    renderStudentSpotlight();
+    await user.click(screen.getByRole('button', { name: 'رسالة' }));
+    const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
+
+    await waitFor(() => {
+      expect(
+        within(dialog).getByText('لا يوجد مستفيدون قابلون للتوصل في هذا الاختيار حاليًا'),
+      ).toBeTruthy();
+    });
+    expect(within(dialog).queryByRole('radio')).toBeNull();
+    expect(within(dialog).queryByLabelText('الموضوع')).toBeNull();
+    expect(within(dialog).queryByLabelText('نص الرسالة')).toBeNull();
+    expect(within(dialog).queryByRole('button', { name: 'إرسال' })).toBeNull();
+  });
   it('keeps the quick message modal open with its draft when submit fails', async () => {
     const user = userEvent.setup();
     mockUseStudentSearchQuery.mockReturnValue({
@@ -317,7 +452,10 @@ describe('StudentSpotlight', () => {
     renderStudentSpotlight();
     await user.click(screen.getByRole('button', { name: 'رسالة' }));
     const dialog = await screen.findByRole('dialog', { name: 'الرسالة' });
-    await user.click(within(dialog).getByRole('radio', { name: 'التلاميذ' }));
+    const guardianAudience = await within(dialog).findByRole('radio', {
+      name: 'أولياء الأمور',
+    });
+    await user.click(guardianAudience);
     await waitFor(() => {
       expect(within(dialog).getByText('جاهز للإرسال')).toBeTruthy();
     });
