@@ -41,7 +41,7 @@ export function parentActivationLinkRequiresConfirmation(
 export function parentActivationLinkIsResend(
   status: ParentAccountActivationLinkStatus | null | undefined,
 ): boolean {
-  return status?.sent_before === true;
+  return status?.sent_before === true || status?.has_logged_in === true;
 }
 
 export function parentActivationLinkBlockingCopyKey(
