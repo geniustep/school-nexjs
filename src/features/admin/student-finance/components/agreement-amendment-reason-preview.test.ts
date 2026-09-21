@@ -149,6 +149,7 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
   it('submits auto-preview through the React submit handler without native validity or disabled-button gates', () => {
     expect(sparseGridSource).toContain('notifyPreviewAfterStateUpdate');
     expect(autoPreviewSource).toContain("dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))");
+    expect(autoPreviewSource).toContain(".student-finance-amendment-month-rail__chip");
     expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__toggle");
     expect(autoPreviewSource).toContain(".student-finance-amendment-sparse-period__override");
     expect(autoPreviewSource).not.toContain('form.checkValidity()');

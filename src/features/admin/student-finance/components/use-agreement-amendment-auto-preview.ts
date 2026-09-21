@@ -49,6 +49,7 @@ export function useAgreementAmendmentAutoPreview<T extends HTMLElement>() {
       if (
         target.closest('.student-finance-amendment-line-picker__card') ||
         target.closest('.student-finance-amendment-ambiguous__list') ||
+        target.closest('.student-finance-amendment-month-rail__chip') ||
         target.closest('.student-finance-amendment-sparse-period__toggle') ||
         target.closest('.student-finance-amendment-sparse-period__override')
       ) {
