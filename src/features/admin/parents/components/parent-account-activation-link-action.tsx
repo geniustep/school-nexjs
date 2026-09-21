@@ -127,7 +127,7 @@ function blockerText(
   const reason = status?.blocking_reason;
   if (!reason) return copy.unavailable;
   const reasons = copy.reasons as Record<string, string>;
-  return reasons[reason] ?? reason;
+  return reasons[reason] ?? copy.unavailable;
 }
 
 export function ParentAccountActivationLinkAction({
@@ -146,6 +146,8 @@ export function ParentAccountActivationLinkAction({
   const attemptKeyRef = useRef<string | null>(null);
   const allowed = canSendParentActivationLink(status);
   const blockedMessage = blockerText(locale, status);
+  const hasHistoryContract =
+    typeof status?.sent_before === 'boolean' || typeof status?.has_logged_in === 'boolean';
   const disabled = state === 'sending' || !allowed;
 
   async function send() {
@@ -189,7 +191,7 @@ export function ParentAccountActivationLinkAction({
         </p>
       ) : null}
 
-      {status ? (
+      {hasHistoryContract ? (
         <div className="parent-profile__activation-link-history tiny muted">
           <span>
             {status.sent_before === true ? copy.sentBefore : copy.neverSent}
