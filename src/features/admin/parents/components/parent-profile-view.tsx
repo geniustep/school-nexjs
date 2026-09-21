@@ -151,6 +151,7 @@ export function ParentProfileView({
   const canRestore = canRestoreGuardianProfile(parent.allowed_actions);
   const canDelete = canDeleteGuardianProfile(parent.allowed_actions, user);
   const canManageAccount = !!user && hasPermission(user, 'manage_parents');
+  const canSendActivationLink = !!user && hasPermission(user, 'send_messages');
   const canEditProfile = !!user && canUpdateGuardiansLimited(user);
 
   const deleteBlockerLines = useMemo(() => {
@@ -436,7 +437,7 @@ export function ParentProfileView({
             {hasAccount && roleLine ? (
               <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
             ) : null}
-            {!archived && canManageAccount ? (
+            {!archived && canSendActivationLink ? (
               <ParentAccountActivationLinkAction
                 parentId={parent.id}
                 status={parent.account_activation_link}
