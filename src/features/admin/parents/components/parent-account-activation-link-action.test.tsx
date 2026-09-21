@@ -111,6 +111,27 @@ describe('ParentAccountActivationLinkAction', () => {
     await waitFor(() => expect(onSent).toHaveBeenCalledTimes(1));
   });
 
+  it('keeps the action visible but disabled when send permission is unavailable', () => {
+    render(
+      <ParentAccountActivationLinkAction
+        parentId={42}
+        hasSendPermission={false}
+        status={{
+          can_send_activation_link: true,
+          blocking_reason: null,
+          sent_before: false,
+          has_logged_in: false,
+        }}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: 'Send activation link by WhatsApp' });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('Permission denied.')).toBeTruthy();
+    fireEvent.click(button);
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+
   it('fails closed for an unknown blocker and never exposes its raw code', () => {
     render(
       <ParentAccountActivationLinkAction

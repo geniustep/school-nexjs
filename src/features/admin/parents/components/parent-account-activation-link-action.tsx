@@ -40,10 +40,12 @@ function errorMessageKey(kind: ReturnType<typeof parentActivationLinkErrorKind>)
 export function ParentAccountActivationLinkAction({
   parentId,
   status,
+  hasSendPermission = true,
   onSent,
 }: {
   parentId: number;
   status: ParentAccountActivationLinkStatus | null | undefined;
+  hasSendPermission?: boolean;
   onSent?: () => void;
 }) {
   const { locale, t } = useLocale();
@@ -54,7 +56,8 @@ export function ParentAccountActivationLinkAction({
   const attemptKeyRef = useRef<string | null>(null);
   const sendingRef = useRef(false);
 
-  const allowed = canSendParentActivationLink(status);
+  const allowedByStatus = canSendParentActivationLink(status);
+  const allowed = hasSendPermission && allowedByStatus;
   const isResend = parentActivationLinkIsResend(status);
   const needsConfirmation = parentActivationLinkRequiresConfirmation(status);
   const disabled = state === 'sending' || !allowed;
@@ -62,13 +65,15 @@ export function ParentAccountActivationLinkAction({
   const hasLoginHistory = typeof status?.has_logged_in === 'boolean';
   const lastSent = formatParentActivationDateTime(status?.last_sent_at, locale);
   const lastLogin = formatParentActivationDateTime(status?.last_login_at, locale);
-  const blockingMessage = allowed
-    ? null
-    : t(
-        `admin.parentProfile.activationLink.${parentActivationLinkBlockingCopyKey(
-          status?.blocking_reason,
-        )}`,
-      );
+  const blockingMessage = !hasSendPermission
+    ? t('admin.parentProfile.activationLink.permissionError')
+    : allowedByStatus
+      ? null
+      : t(
+          `admin.parentProfile.activationLink.${parentActivationLinkBlockingCopyKey(
+            status?.blocking_reason,
+          )}`,
+        );
 
   async function performSend() {
     if (!allowed || sendingRef.current) return;
