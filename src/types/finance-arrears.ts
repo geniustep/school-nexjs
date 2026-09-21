@@ -217,7 +217,7 @@ export type ArrearsFollowupListResult = {
   items: ArrearsFollowupListItem[];
   summary: ArrearsFollowupSummary | null;
   appliedTab: ArrearsFollowupTab | null;
-  filterOptions: ArrearsFilterOptions | null;
+  filterOptions?: ArrearsFilterOptions | null;
 };
 
 export type ArrearsMergedRow = ArrearsFollowupListItem & {
