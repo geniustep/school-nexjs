@@ -139,6 +139,23 @@
   gap: 12px;
 }
 
+.parent-profile__activation-link-action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.parent-profile__activation-link-action p {
+  margin: 0;
+}
+
+.parent-profile__activation-link-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
 .parent-profile__account-body .guardian-account-onboarding {
   margin-top: 0;
   padding: 12px 14px;
@@ -358,6 +375,40 @@
 .parent-relationships__relation-type {
   margin: 0;
   font-weight: 600;
+}
+
+.parent-relationships__operational-details {
+  margin-top: 2px;
+  max-width: 42rem;
+}
+
+.parent-relationships__operational-details summary {
+  width: fit-content;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+}
+
+.parent-relationships__operational-details dl {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.parent-relationships__operational-details dl > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.4fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.parent-relationships__operational-details dt {
+  color: var(--text-muted, #64748b);
+  font-size: 0.75rem;
+}
+
+.parent-relationships__operational-details dd {
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 .parent-relationships__list {
@@ -682,6 +733,19 @@
   .parent-edit-form__actions .btn,
   .parent-profile__hero-actions .btn {
     width: 100%;
+  }
+
+  .parent-profile__activation-link-action {
+    align-items: stretch;
+  }
+
+  .parent-profile__activation-link-action .btn {
+    width: 100%;
+  }
+
+  .parent-relationships__operational-details dl > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 
   .parent-relationships__menu-panel,
