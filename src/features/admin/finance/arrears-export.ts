@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
-import { appendArrearsFamilyDetailWorksheets } from '@/features/admin/finance/arrears-family-detail-export';
 import { arrearsFollowupTabApiParam } from '@/features/admin/finance/arrears-filter-contracts';
+import { arrearsReferenceLabel } from '@/features/admin/finance/utils/arrears-family-detail-present';
 import { parseArrearsFollowupListResponse } from '@/lib/utils/normalize-arrears';
 import type { Locale } from '@/lib/i18n/config';
 import type { ListParams } from '@/types/api';
@@ -8,6 +8,8 @@ import type {
   ArrearsFollowupListItem,
   ArrearsFollowupSummary,
   ArrearsFollowupTab,
+  ArrearsListFilters,
+  ArrearsOverdueInstallmentDetail,
 } from '@/types/finance-arrears';
 
 export type ArrearsExportMeta = {
@@ -61,6 +63,14 @@ type ArrearsExportCopy = {
     paymentPromises: string;
     todayFollowups: string;
   };
+  compactColumns: {
+    guardian: string;
+    phones: string;
+    students: string;
+    services: string;
+    studentOverdue: string;
+    total: string;
+  };
   columns: {
     family: string;
     studentCount: string;
@@ -109,6 +119,14 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       paymentPromises: 'وعود الأداء',
       todayFollowups: 'متابعات اليوم',
     },
+    compactColumns: {
+      guardian: 'ولي الحساب',
+      phones: 'الهواتف',
+      students: 'التلاميذ والمستويات',
+      services: 'غير المؤدى حسب الشهر',
+      studentOverdue: 'متأخر التلاميذ',
+      total: 'الإجمالي',
+    },
     columns: {
       family: 'الأسرة / الحساب',
       studentCount: 'عدد التلاميذ',
@@ -154,6 +172,14 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       grossOverdue: 'Arriéré brut avant chèques',
       paymentPromises: 'Promesses de paiement',
       todayFollowups: 'Relances du jour',
+    },
+    compactColumns: {
+      guardian: 'Responsable du compte',
+      phones: 'Téléphones',
+      students: 'Élèves et niveaux',
+      services: 'Impayés par mois',
+      studentOverdue: 'Arriéré par élève',
+      total: 'Total',
     },
     columns: {
       family: 'Famille / compte',
@@ -201,6 +227,14 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       paymentPromises: 'Payment promises',
       todayFollowups: 'Today follow-ups',
     },
+    compactColumns: {
+      guardian: 'Billing guardian',
+      phones: 'Phones',
+      students: 'Students and levels',
+      services: 'Unpaid services by month',
+      studentOverdue: 'Student arrears',
+      total: 'Total',
+    },
     columns: {
       family: 'Family / account',
       studentCount: 'Students',
@@ -246,6 +280,14 @@ const COPY: Record<Locale, ArrearsExportCopy> = {
       grossOverdue: 'Atraso bruto antes de cheques',
       paymentPromises: 'Promesas de pago',
       todayFollowups: 'Seguimientos de hoy',
+    },
+    compactColumns: {
+      guardian: 'Tutor de la cuenta',
+      phones: 'Teléfonos',
+      students: 'Alumnos y niveles',
+      services: 'Impagados por mes',
+      studentOverdue: 'Atraso por alumno',
+      total: 'Total',
     },
     columns: {
       family: 'Familia / cuenta',
@@ -364,17 +406,39 @@ export function buildArrearsExportQuery(input: {
   activeSchoolId?: number | null;
   useActionable?: boolean;
   includeDetails?: boolean;
+  includeContacts?: boolean;
+  filters?: Partial<ArrearsListFilters>;
 }): ListParams {
-  const tabParam = arrearsFollowupTabApiParam(input.tab);
+  const source = input.filters;
+  const tab = source?.tab
+    ? (source.tab as ArrearsFollowupTab)
+    : input.tab;
+  const tabParam = arrearsFollowupTabApiParam(tab);
   return {
     export: 1,
     ...(input.includeDetails ? { include_details: 1 } : {}),
-    search: input.search?.trim() || undefined,
+    ...(input.includeContacts ? { include_contacts: 1 } : {}),
+    search: (source?.search ?? input.search)?.trim() || undefined,
     tab: tabParam,
     quick: tabParam,
     status: tabParam,
     ...(input.useActionable === false ? {} : { overdue_semantics: 'actionable' }),
     active_school_id: input.activeSchoolId ?? undefined,
+    academic_year_id: source?.academicYearId || undefined,
+    level_id: source?.levelId || undefined,
+    class_id: source?.classId || undefined,
+    workflow_status: source?.workflowStatus || undefined,
+    contact_result: source?.contactResult || undefined,
+    assigned_user_id: source?.assignedUserId || undefined,
+    followup_due: source?.followupDue || undefined,
+    pending_cheque: source?.pendingCheque || undefined,
+    payment_promise: source?.paymentPromise || undefined,
+    contacted: source?.contacted || undefined,
+    actionable_min: source?.actionableMin || undefined,
+    actionable_max: source?.actionableMax || undefined,
+    oldest_age: source?.oldestAge || undefined,
+    due_month: source?.dueMonth || undefined,
+    fee_type_id: source?.feeTypeId || undefined,
   };
 }
 
@@ -414,6 +478,101 @@ export function parseArrearsExportResponse(raw: unknown): ArrearsExportResult | 
   };
 }
 
+function guardianPhoneLines(item: ArrearsFollowupListItem): string {
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const guardian of item.guardians ?? []) {
+    const numbers = (guardian.phones?.length ? guardian.phones : [guardian.phone])
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      .map((value) => value.trim())
+      .filter((value) => {
+        const key = `${guardian.guardian_id}:${value}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    if (!numbers.length) continue;
+    lines.push(`${guardian.name ?? '—'}: ${numbers.join(' / ')}`);
+  }
+  return lines.join('\n') || '—';
+}
+
+function billingGuardianName(item: ArrearsFollowupListItem): string {
+  return (
+    item.guardians?.find((guardian) => guardian.is_billing_partner)?.name ??
+    rowLabel(item)
+  );
+}
+
+function studentLevelLines(item: ArrearsFollowupListItem): string {
+  return (item.students ?? [])
+    .map((student) => `${student.student_name ?? `#${student.student_id}`} — ${arrearsReferenceLabel(student.level)}`)
+    .join('\n') || '—';
+}
+
+function studentOverdueLines(item: ArrearsFollowupListItem, locale: Locale): string {
+  return (item.students ?? [])
+    .map((student) =>
+      `${student.student_name ?? `#${student.student_id}`}: ${formatMoney(
+        student.actionable_overdue_amount ?? 0,
+        item.currency,
+        locale,
+      )}`,
+    )
+    .join('\n') || '—';
+}
+
+function installmentMonthKey(item: ArrearsOverdueInstallmentDetail): string {
+  return String(item.period_start ?? item.due_date ?? item.period_key ?? '').slice(0, 7);
+}
+
+function monthLabel(monthKey: string, locale: Locale): string {
+  if (!/^\d{4}-\d{2}$/.test(monthKey)) return monthKey || '—';
+  const date = new Date(`${monthKey}-01T12:00:00`);
+  if (Number.isNaN(date.getTime())) return monthKey;
+  return new Intl.DateTimeFormat(LOCALE_TAG[locale], {
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
+function unpaidServicesLines(item: ArrearsFollowupListItem, locale: Locale): string {
+  const months = new Map<string, Map<string, string[]>>();
+  for (const installment of item.overdue_installments ?? []) {
+    const month = installmentMonthKey(installment);
+    const student = installment.student_name ?? `#${installment.student_id}`;
+    const byStudent = months.get(month) ?? new Map<string, string[]>();
+    const services = byStudent.get(student) ?? [];
+    services.push(
+      `${installment.fee_type_name ?? '—'} ${formatMoney(
+        installment.actionable_overdue_amount ?? 0,
+        item.currency,
+        locale,
+      )}`,
+    );
+    byStudent.set(student, services);
+    months.set(month, byStudent);
+  }
+
+  const lines: string[] = [];
+  for (const [month, byStudent] of months) {
+    lines.push(monthLabel(month, locale));
+    for (const [student, services] of byStudent) {
+      const prefix = (item.students?.length ?? 0) > 1 ? `${student}: ` : '';
+      lines.push(`${prefix}${services.join(' + ')}`);
+    }
+  }
+  return lines.join('\n') || '—';
+}
+
+function compactRowHeight(values: string[]): number {
+  const lines = Math.max(
+    1,
+    ...values.map((value) => String(value).split('\n').length),
+  );
+  return Math.min(90, Math.max(24, 16 + lines * 13));
+}
+
 export function createArrearsWorkbook(
   result: ArrearsExportResult,
   context: ArrearsExportContext,
@@ -422,84 +581,77 @@ export function createArrearsWorkbook(
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Raqeem';
   workbook.created = context.generatedAt;
+
   const worksheet = workbook.addWorksheet(copy.title);
   worksheet.columns = [
-    { width: 28 }, { width: 14 }, { width: 18 }, { width: 18 }, { width: 18 },
-    { width: 18 }, { width: 18 }, { width: 20 }, { width: 18 }, { width: 18 },
-    { width: 18 }, { width: 20 }, { width: 12 },
+    { width: 25 },
+    { width: 31 },
+    { width: 30 },
+    { width: 48 },
+    { width: 30 },
+    { width: 18 },
   ];
-  worksheet.mergeCells('A1:M1');
+
+  worksheet.mergeCells('A1:F1');
   worksheet.getCell('A1').value = copy.title;
   worksheet.getCell('A1').font = { bold: true, size: 16 };
-  worksheet.addRow([copy.school, context.schoolName || '—']);
-  worksheet.addRow([copy.generatedOn, formatDateTime(context.generatedAt, context.locale)]);
-  worksheet.addRow([copy.filters, filterSummary(context, copy)]);
-  worksheet.addRow([copy.resultCount, result.exportMeta.row_count, copy.allFilteredScope]);
-  worksheet.addRow([]);
-  worksheet.addRow([
-    copy.kpis.actionableAccounts,
-    copy.kpis.actionableTotal,
-    copy.kpis.pendingChequeCoverage,
-    copy.kpis.grossOverdue,
-    copy.kpis.paymentPromises,
-    copy.kpis.todayFollowups,
-  ]);
-  worksheet.addRow([
-    result.summary.actionable_overdue_accounts_count ??
-      result.summary.overdue_accounts_count ??
-      result.summary.overdue_families_count ??
-      null,
-    result.summary.total_actionable_overdue_amount ??
-      result.summary.total_overdue_amount ??
-      null,
-    result.summary.total_pending_cheque_coverage_on_overdue ?? null,
-    result.summary.total_overdue_amount ?? null,
-    result.summary.payment_promises_count ?? null,
-    result.summary.today_followups_count ?? null,
-  ]);
-  worksheet.getRow(7).font = { bold: true };
-  worksheet.getCell('B8').numFmt = '#,##0.00';
-  worksheet.getCell('C8').numFmt = '#,##0.00';
-  worksheet.getCell('D8').numFmt = '#,##0.00';
+  worksheet.getCell('A1').alignment = {
+    horizontal: context.locale === 'ar' ? 'right' : 'left',
+  };
+
+  worksheet.mergeCells('A2:C2');
+  worksheet.getCell('A2').value = `${copy.school}: ${context.schoolName || '—'}`;
+  worksheet.mergeCells('D2:F2');
+  worksheet.getCell('D2').value = `${copy.generatedOn}: ${formatDateTime(context.generatedAt, context.locale)}`;
+
+  worksheet.mergeCells('A3:F3');
+  worksheet.getCell('A3').value = filterSummary(context, copy);
+  worksheet.getCell('A3').font = { italic: true };
+
   worksheet.addRow([]);
   const headerRow = worksheet.addRow([
-    copy.columns.family,
-    copy.columns.studentCount,
-    copy.columns.actionableOverdue,
-    copy.columns.pendingChequeCoverage,
-    copy.columns.grossOverdue,
-    copy.columns.totalRemaining,
-    copy.columns.oldestOverdue,
-    copy.columns.followupStatus,
-    copy.columns.promiseDate,
-    copy.columns.promiseAmount,
-    copy.columns.nextFollowup,
-    copy.columns.assignedUser,
-    copy.columns.currency,
+    copy.compactColumns.guardian,
+    copy.compactColumns.phones,
+    copy.compactColumns.students,
+    copy.compactColumns.services,
+    copy.compactColumns.studentOverdue,
+    copy.compactColumns.total,
   ]);
   headerRow.font = { bold: true };
-  worksheet.views = [{ state: 'frozen', ySplit: headerRow.number }];
+  headerRow.height = 28;
+  headerRow.alignment = { vertical: 'middle', wrapText: true };
+
+  worksheet.views = [{
+    state: 'frozen',
+    ySplit: headerRow.number,
+    rightToLeft: context.locale === 'ar',
+  }];
+  worksheet.autoFilter = `A${headerRow.number}:F${headerRow.number}`;
+
   for (const item of result.items) {
-    const actionable = item.actionable_overdue_amount ?? item.total_overdue;
-    const gross = item.gross_overdue_amount ?? item.total_overdue;
-    const row = worksheet.addRow([
-      rowLabel(item),
-      item.student_count ?? null,
-      actionable ?? null,
-      item.pending_cheque_coverage_amount ?? null,
-      gross ?? null,
-      item.total_remaining ?? null,
-      formatDate(item.oldest_overdue_date, context.locale),
-      item.followup_status_label ?? item.followup_status ?? '—',
-      formatDate(item.payment_promise_date, context.locale),
-      item.payment_promise_amount ?? null,
-      formatDate(item.next_followup_date, context.locale),
-      item.assigned_user_name ?? '—',
-      currencyCode(item.currency) ?? '',
-    ]);
-    for (const cell of [3, 4, 5, 6, 10]) row.getCell(cell).numFmt = '#,##0.00';
+    const values = [
+      billingGuardianName(item),
+      guardianPhoneLines(item),
+      studentLevelLines(item),
+      unpaidServicesLines(item, context.locale),
+      studentOverdueLines(item, context.locale),
+    ];
+    const total = item.actionable_overdue_amount ?? item.total_overdue ?? 0;
+    const row = worksheet.addRow([...values, total]);
+    row.height = compactRowHeight(values);
+    for (let cell = 1; cell <= 5; cell += 1) {
+      row.getCell(cell).alignment = {
+        vertical: 'top',
+        wrapText: true,
+        horizontal: context.locale === 'ar' ? 'right' : 'left',
+      };
+    }
+    row.getCell(2).numFmt = '@';
+    row.getCell(6).numFmt = '#,##0.00';
+    row.getCell(6).font = { bold: true };
+    row.getCell(6).alignment = { vertical: 'top' };
   }
-  appendArrearsFamilyDetailWorksheets(workbook, result, context);
+
   return workbook;
 }
 
