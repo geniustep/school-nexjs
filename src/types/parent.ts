@@ -29,6 +29,15 @@ export interface ParentAccountInfo {
   status?: string | null;
 }
 
+export interface ParentAccountActivationLinkStatus {
+  can_send_activation_link?: boolean;
+  blocking_reason?: string | null;
+  sent_before?: boolean;
+  last_sent_at?: string | null;
+  has_logged_in?: boolean;
+  last_login_at?: string | null;
+}
+
 export interface ParentAllowedActions {
   account_assign_password?: boolean;
 }
@@ -59,6 +68,9 @@ export interface ParentChildRelationship {
   is_emergency_contact?: boolean;
   receives_notifications?: boolean;
   is_authorized_pickup?: boolean;
+  contact_priority?: number | null;
+  date_start?: string | null;
+  notes?: string | null;
   state?: string;
   active?: boolean;
   allowed_actions?: GuardianAllowedActions;
@@ -79,13 +91,17 @@ export interface Parent extends IdentityDocumentReadFields {
   id: number;
   code?: string | null;
   name: string;
+  name_ar?: string | null;
+  name_fr?: string | null;
   school?: SchoolRef | null;
   display_name?: string | null;
   phone: string | null;
   mobile?: string | null;
   email: string | null;
   street?: string | null;
+  street2?: string | null;
   city?: string | null;
+  zip?: string | null;
   address?: string | null;
   login?: string | null;
   user_id?: number | null;
@@ -93,6 +109,7 @@ export interface Parent extends IdentityDocumentReadFields {
   has_user_account?: boolean;
   needs_new_account?: boolean;
   account?: ParentAccountInfo | null;
+  account_activation_link?: ParentAccountActivationLinkStatus | null;
   guardian_profile?: ParentGuardianProfile | null;
   /** Legacy global relation — never shown as persona label when unified person data exists. */
   relation: ParentRelation | null;
