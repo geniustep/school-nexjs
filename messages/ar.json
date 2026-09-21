@@ -5096,6 +5096,7 @@
     },
     "parentProfile": {
       "personalInformation": "المعلومات الشخصية",
+      "addressLine2": "السطر الثاني من العنوان",
       "preferences": "التفضيلات",
       "accountAndRoles": "الحساب والأدوار",
       "childrenAndRelationships": "الأبناء والعلاقات",
