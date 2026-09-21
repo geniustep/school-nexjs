@@ -53,7 +53,7 @@
 
 .finance-arrears-redesign__mini-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
   gap: 10px;
 }
 
@@ -521,4 +521,88 @@
   border: 0;
   background: transparent;
   min-height: 0;
+}
+
+/* Arrears work-queue filters — primary context stays visible, advanced filters collapse. */
+.finance-arrears-filters {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+}
+
+.finance-arrears-filters__primary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+
+.finance-arrears-filters__field {
+  display: grid;
+  gap: 5px;
+  min-width: 170px;
+  flex: 1 1 180px;
+}
+
+.finance-arrears-filters__field > span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.finance-arrears-filters__more {
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  padding-top: 8px;
+}
+
+.finance-arrears-filters__more > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  color: var(--c-primary, #2563eb);
+  font-size: 0.8rem;
+  font-weight: 700;
+  list-style: none;
+}
+
+.finance-arrears-filters__more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.finance-arrears-filters__more > summary span {
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--c-primary-soft, #eff6ff);
+  text-align: center;
+}
+
+.finance-arrears-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.finance-arrears-filters .btn.is-active {
+  background: var(--c-primary-soft, #eff6ff);
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 55%, var(--c-border, #e2e8f0));
+  color: var(--c-primary, #2563eb);
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .finance-arrears-filters__primary,
+  .finance-arrears-filters__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .finance-arrears-filters__field {
+    min-width: 0;
+  }
 }

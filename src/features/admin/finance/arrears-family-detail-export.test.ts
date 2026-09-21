@@ -19,7 +19,8 @@ const raw = {
     total_overdue: 1600, gross_overdue_amount: 1600,
     pending_cheque_coverage_amount: 1500, actionable_overdue_amount: 100,
     currency: { code: 'MAD' },
-    guardians: [{ guardian_id: 7, partner_id: 41, name: 'Parent A', is_billing_partner: true,
+    guardians: [{ guardian_id: 7, partner_id: 41, name: 'Parent A', phone: '+212600000001',
+      phones: ['+212600000001', '+212522000001'], is_billing_partner: true,
       relationship_contexts: [{ student_id: 11, relationship_type: 'father',
         is_primary_contact: true, is_financial_responsible: true, is_legal_guardian: true }] }],
     students: [{ student_id: 11, student_name: 'Student One', student_code: 'S001',
@@ -38,25 +39,34 @@ const raw = {
 
 describe('arrears detailed family export', () => {
   it('requests detailed backend payload only when requested', () => {
-    expect(buildArrearsExportQuery({ tab: 'all', includeDetails: true })).toMatchObject({
-      export: 1, include_details: 1, overdue_semantics: 'actionable',
+    expect(buildArrearsExportQuery({
+      tab: 'all',
+      includeDetails: true,
+      includeContacts: true,
+    })).toMatchObject({
+      export: 1,
+      include_details: 1,
+      include_contacts: 1,
+      overdue_semantics: 'actionable',
     });
     expect(buildArrearsExportQuery({ tab: 'all', includeDetails: false })).not.toHaveProperty('include_details');
   });
 
-  it('creates guardians, students and overdue services worksheets', () => {
+  it('creates one compact family worksheet with phones, level, service price and totals', () => {
     const parsed = parseArrearsExportResponse(raw);
     expect(parsed).not.toBeNull();
     if (!parsed) return;
     const workbook = createArrearsWorkbook(parsed, context);
-    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
-      'Arrears report', 'Guardians', 'Students', 'Overdue services',
-    ]);
-    expect(workbook.getWorksheet('Guardians')?.getRow(2).getCell(2).value).toBe('Parent A');
-    expect(workbook.getWorksheet('Students')?.getRow(2).getCell(6).value).toBe(100);
-    expect(workbook.getWorksheet('Overdue services')?.getRow(2).getCell(4).value).toBe('Transport');
-    expect(workbook.getWorksheet('Overdue services')?.getRow(2).getCell(9).value).toBe(100);
-    expect(workbook.getWorksheet('Overdue services')?.getRow(2).getCell(10).value).toBe(1500);
-    expect(workbook.getWorksheet('Overdue services')?.getRow(2).getCell(11).value).toBe(1600);
+    expect(workbook.worksheets).toHaveLength(1);
+    const sheet = workbook.worksheets[0];
+    const row = sheet.getRow(6);
+    expect(row.getCell(1).value).toBe('Parent A');
+    expect(String(row.getCell(2).value)).toContain('+212600000001');
+    expect(String(row.getCell(2).value)).toContain('+212522000001');
+    expect(String(row.getCell(3).value)).toContain('Primary 1');
+    expect(String(row.getCell(4).value)).toContain('Transport');
+    expect(String(row.getCell(4).value)).toContain('100');
+    expect(String(row.getCell(5).value)).toContain('Student One');
+    expect(row.getCell(6).value).toBe(100);
   });
 });

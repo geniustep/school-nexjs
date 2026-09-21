@@ -18,12 +18,10 @@ import { resolveArrearsFollowupTab } from '@/features/admin/finance/utils/arrear
 import { useLocale } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
+import type { ArrearsListFilters } from '@/types/finance-arrears';
 
 type ArrearsExportActionsProps = {
-  filters: {
-    tab: string;
-    search: string;
-  };
+  filters: ArrearsListFilters;
 };
 
 type ExportAction = 'excel' | 'print';
@@ -62,12 +60,17 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
     };
   }
 
-  async function loadExport(includeDetails: boolean): Promise<ArrearsExportResult | null> {
+  async function loadExport(
+    includeDetails: boolean,
+    includeContacts = false,
+  ): Promise<ArrearsExportResult | null> {
     const query = buildArrearsExportQuery({
       search: filters.search,
       tab,
       activeSchoolId,
       includeDetails,
+      includeContacts,
+      filters,
     });
     let response = await api.get<unknown>(endpoints.admin.financeArrearsFollowups, query);
     if (
@@ -82,6 +85,7 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
           tab,
           activeSchoolId,
           useActionable: false,
+          filters,
         }),
       );
     }
@@ -107,7 +111,7 @@ export function ArrearsExportActions({ filters }: ArrearsExportActionsProps) {
     setBusy('excel');
     setFeedback(null);
     try {
-      const result = await loadExport(true);
+      const result = await loadExport(true, true);
       if (!result) return;
       await downloadArrearsExcel(result, exportContext());
     } catch {

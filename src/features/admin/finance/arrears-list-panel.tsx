@@ -11,12 +11,17 @@ import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/stat
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { ArrearsFollowupDrawer } from '@/features/admin/finance/arrears-followup-drawer';
+import { ArrearsAdvancedFilters } from '@/features/admin/finance/arrears-advanced-filters';
 import {
   ARREARS_FOLLOWUP_TABS,
   arrearsFollowupTabApiParam,
   arrearsFollowupTabLabelKey,
 } from '@/features/admin/finance/arrears-filter-contracts';
-import type { ArrearsFollowupListItem, ArrearsFollowupTab } from '@/types/finance-arrears';
+import type {
+  ArrearsFollowupListItem,
+  ArrearsFollowupTab,
+  ArrearsListFilters,
+} from '@/types/finance-arrears';
 import {
   ARREARS_PAGE_SIZE,
   arrearsActionableAmount,
@@ -43,13 +48,6 @@ import type { ListParams } from '@/types/api';
 import '@/features/admin/finance/receivable-lists.css';
 import './arrears-redesign.css';
 
-export type ArrearsListFilters = {
-  tab: string;
-  search: string;
-  page: number;
-  family: number | null;
-};
-
 type ArrearsListPanelProps = {
   filters: ArrearsListFilters;
   onFiltersChange: (
@@ -61,6 +59,33 @@ type ArrearsListPanelProps = {
 };
 
 const TAB_BUTTONS = ARREARS_FOLLOWUP_TABS.filter((tab) => tab !== 'all');
+
+const ADVANCED_FILTER_KEYS: Array<keyof ArrearsListFilters> = [
+  'academicYearId', 'levelId', 'classId', 'workflowStatus', 'contactResult',
+  'assignedUserId', 'followupDue', 'pendingCheque', 'paymentPromise',
+  'contacted', 'actionableMin', 'actionableMax', 'oldestAge', 'dueMonth',
+  'feeTypeId',
+];
+
+function arrearsAdvancedQuery(filters: ArrearsListFilters): ListParams {
+  return {
+    academic_year_id: filters.academicYearId || undefined,
+    level_id: filters.levelId || undefined,
+    class_id: filters.classId || undefined,
+    workflow_status: filters.workflowStatus || undefined,
+    contact_result: filters.contactResult || undefined,
+    assigned_user_id: filters.assignedUserId || undefined,
+    followup_due: filters.followupDue || undefined,
+    pending_cheque: filters.pendingCheque || undefined,
+    payment_promise: filters.paymentPromise || undefined,
+    contacted: filters.contacted || undefined,
+    actionable_min: filters.actionableMin || undefined,
+    actionable_max: filters.actionableMax || undefined,
+    oldest_age: filters.oldestAge || undefined,
+    due_month: filters.dueMonth || undefined,
+    fee_type_id: filters.feeTypeId || undefined,
+  };
+}
 
 function rowLabel(row: ArrearsFollowupListItem): string {
   return row.guardian_name ?? row.display_name ?? row.family_name ?? `#${arrearsBillingPartnerId(row)}`;
@@ -107,11 +132,18 @@ export function ArrearsListPanel({
   const { activeSchoolId } = useAdminSession();
   const tabValid = resolveArrearsFollowupTab(filters.tab);
   const [contractMode, setContractMode] = useState<'probing' | 'actionable' | 'legacy'>('probing');
+  const [filterV2, setFilterV2] = useState(false);
   const [drawerFamilyLabel, setDrawerFamilyLabel] = useState<string | undefined>();
 
-  useEffect(() => setContractMode('probing'), [activeSchoolId]);
+  useEffect(() => {
+    setContractMode('probing');
+    setFilterV2(false);
+  }, [activeSchoolId]);
 
-  const probeTab = tabValid === 'pending_cheque' ? 'all' : tabValid;
+  const probeTab =
+    tabValid === 'pending_cheque' || tabValid === 'overdue_followup'
+      ? 'all'
+      : tabValid;
   const legacyQuery: ListParams = useMemo(() => {
     const tabParam = arrearsFollowupTabApiParam(probeTab);
     return {
@@ -139,7 +171,9 @@ export function ArrearsListPanel({
   }, [contractMode, legacyParsed, legacyState.data, legacyState.error, legacyState.initialLoading]);
 
   const actionableQuery: ListParams = useMemo(() => {
-    const tabParam = arrearsFollowupTabApiParam(tabValid);
+    const safeTab =
+      tabValid === 'overdue_followup' && !filterV2 ? 'all' : tabValid;
+    const tabParam = arrearsFollowupTabApiParam(safeTab);
     return {
       page: filters.page,
       page_size: ARREARS_PAGE_SIZE,
@@ -148,8 +182,9 @@ export function ArrearsListPanel({
       quick: tabParam,
       status: tabParam,
       overdue_semantics: 'actionable',
+      ...(filterV2 ? arrearsAdvancedQuery(filters) : {}),
     };
-  }, [filters.page, filters.search, tabValid]);
+  }, [filterV2, filters, tabValid]);
 
   const actionableState = useAdminResource<unknown>(
     contractMode === 'actionable' ? endpoints.admin.financeArrearsFollowups : null,
@@ -157,22 +192,38 @@ export function ArrearsListPanel({
   );
 
   const followupState = contractMode === 'actionable' ? actionableState : legacyState;
-  const effectiveTab = contractMode === 'actionable' ? tabValid : probeTab;
+  const effectiveTab =
+    contractMode === 'actionable' && (tabValid !== 'overdue_followup' || filterV2)
+      ? tabValid
+      : probeTab;
   const followupParsed = useMemo(
     () => parseArrearsFollowupListResponse(followupState.data, effectiveTab),
     [followupState.data, effectiveTab],
   );
+
+  useEffect(() => {
+    if (followupParsed.filterOptions?.contract === 'arrears_filters_v2') {
+      setFilterV2(true);
+    }
+  }, [followupParsed.filterOptions]);
 
   const rows = followupParsed.items;
   const summary = followupParsed.summary ?? {};
   const pg = followupState.meta?.pagination;
   const pageCurrency = rows.find((row) => row.currency)?.currency;
   const supportsActionable = contractMode === 'actionable';
-  const visibleTabButtons = TAB_BUTTONS.filter((tab) => tab !== 'pending_cheque' || supportsActionable);
+  const visibleTabButtons = TAB_BUTTONS.filter(
+    (tab) =>
+      (tab !== 'pending_cheque' || supportsActionable) &&
+      (tab !== 'overdue_followup' || filterV2),
+  );
   const loading = (contractMode === 'probing' && !legacyState.error) || followupState.initialLoading;
   const error = followupState.error;
   const isRefetching = followupState.fetching && !followupState.initialLoading;
-  const hasActiveQuery = arrearsListHasActiveQuery({ tab: effectiveTab, search: filters.search });
+  const hasAdvancedQuery = ADVANCED_FILTER_KEYS.some((key) => Boolean(filters[key]));
+  const hasActiveQuery =
+    arrearsListHasActiveQuery({ tab: effectiveTab, search: filters.search }) ||
+    hasAdvancedQuery;
   const emptyVariant = resolveArrearsListEmptyVariant({ hasActiveQuery });
 
   function reloadAll() {
@@ -193,7 +244,26 @@ export function ArrearsListPanel({
   }
 
   function resetQuery() {
-    onFiltersChange({ tab: null, search: null, page: 1 });
+    onFiltersChange({
+      tab: null,
+      search: null,
+      academicYearId: null,
+      levelId: null,
+      classId: null,
+      workflowStatus: null,
+      contactResult: null,
+      assignedUserId: null,
+      followupDue: null,
+      pendingCheque: null,
+      paymentPromise: null,
+      contacted: null,
+      actionableMin: null,
+      actionableMax: null,
+      oldestAge: null,
+      dueMonth: null,
+      feeTypeId: null,
+      page: 1,
+    });
   }
 
   const columns: Column<ArrearsFollowupListItem>[] = useMemo(
@@ -339,6 +409,9 @@ export function ArrearsListPanel({
           ) : null}
           <SummaryMetric label={t('admin.finance.arrears.kpis.paymentPromises')} value={summary.payment_promises_count} />
           <SummaryMetric label={t('admin.finance.arrears.kpis.todayFollowups')} value={summary.today_followups_count} />
+          {filterV2 ? (
+            <SummaryMetric label={t('admin.finance.arrears.kpis.overdueFollowups')} value={summary.overdue_followups_count} />
+          ) : null}
         </div>
       </section>
 
@@ -377,6 +450,14 @@ export function ArrearsListPanel({
           {hasActiveQuery ? <button type="button" className="btn btn--ghost btn--sm" onClick={resetQuery}>{t('common.clear')}</button> : null}
         </form>
       </section>
+
+      {filterV2 && followupParsed.filterOptions ? (
+        <ArrearsAdvancedFilters
+          filters={filters}
+          options={followupParsed.filterOptions}
+          onChange={onFiltersChange}
+        />
+      ) : null}
 
       {pg ? <p className="finance-receivable-list__result-count" dir="ltr">{t('admin.finance.arrears.resultCount', { total: pg.total })}</p> : null}
       {isRefetching ? <p className="finance-receivable-list__fetching" aria-live="polite">{t('admin.finance.arrears.refetching')}</p> : null}
