@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => {
   const labels: Record<string, string> = {
@@ -65,6 +65,10 @@ describe('ParentAccountActivationLinkAction', () => {
   beforeEach(() => {
     mocks.post.mockReset();
     mocks.refresh.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('shows resend history and requires confirmation before sending for a used account', async () => {
