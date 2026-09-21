@@ -4958,6 +4958,7 @@
     },
     "parentProfile": {
       "personalInformation": "Información personal",
+      "addressLine2": "Línea 2 de la dirección",
       "preferences": "Preferencias",
       "accountAndRoles": "Cuenta y roles",
       "childrenAndRelationships": "Hijos y relaciones",
