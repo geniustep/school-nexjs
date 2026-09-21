@@ -15,10 +15,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useRouter } from 'next/navigation';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasPermission } from '@/lib/permissions/permissions';
-import {
-  canUpdateGuardiansLimited,
-  canManageGuardianRelationships,
-} from '@/lib/permissions/academic-capabilities';
+import { canUpdateGuardiansLimited } from '@/lib/permissions/academic-capabilities';
 import { statusLabel } from '@/lib/utils/labels';
 import { formatMoroccanPhoneDisplay } from '@/features/admin/students/utils/normalize-moroccan-phone';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
