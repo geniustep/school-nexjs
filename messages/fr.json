@@ -4958,6 +4958,7 @@
     },
     "parentProfile": {
       "personalInformation": "Informations personnelles",
+      "addressLine2": "Complément d’adresse",
       "preferences": "Préférences",
       "accountAndRoles": "Compte et rôles",
       "childrenAndRelationships": "Enfants et relations",
