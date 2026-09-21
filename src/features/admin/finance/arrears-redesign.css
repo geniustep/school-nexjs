@@ -292,6 +292,7 @@
 
 .finance-arrears-redesign-drawer__billing-guardian {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -322,6 +323,20 @@
 }
 
 .finance-arrears-redesign-drawer__guardian-card a {
+  width: fit-content;
+  color: var(--c-primary, #2563eb);
+  font-size: 0.84rem;
+  text-decoration: none;
+}
+
+.finance-arrears-redesign-drawer__guardian-phones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+}
+
+.finance-arrears-redesign-drawer__guardian-phones a {
   width: fit-content;
   color: var(--c-primary, #2563eb);
   font-size: 0.84rem;
