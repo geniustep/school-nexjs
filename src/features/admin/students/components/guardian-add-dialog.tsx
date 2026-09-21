@@ -26,6 +26,7 @@ import { GuardianRelationshipImpactAlert } from './guardian-relationship-impact-
 import { PersonSchoolIdentitySection } from './person-school-identity-section';
 import { GuardianContactRequiredSection } from './guardian-contact-required-section';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
+import { guardianDuplicateSearchQuery } from '../utils/guardian-duplicate-search-query';
 import { buildGuardianQuickCreatePayload } from '../utils/guardian-quick-create-payload';
 import {
   emptyIdentityDocumentFormValues,
@@ -51,7 +52,9 @@ import {
 import { normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
 import {
   formatMoroccanPhoneDisplay,
+  moroccanPhoneSearchQuery,
 } from '../utils/normalize-moroccan-phone';
+import { searchGuardianCandidatesForStudent } from '../utils/guardian-candidate-search';
 import { isPersonSearchResult } from '../utils/normalize-person-search';
 import {
   formatRoleLabels,
@@ -239,9 +242,32 @@ export function GuardianAddDialog({
     if (!res.success) {
       const mapped = mapGuardianApiError(res.error, t);
       setFieldError(mapped.message);
-      if (mapped.duplicateField || mapped.matches?.length) {
-        setIdentityConflictField(mapped.duplicateField ?? 'national_id');
-        setIdentityConflictMatches(mapped.matches ?? []);
+
+      let conflictMatches = mapped.matches ?? [];
+      if (mapped.duplicateField && conflictMatches.length === 0) {
+        const query = guardianDuplicateSearchQuery(
+          mapped.duplicateField,
+          {
+            firstName: newPersonDraft.firstName,
+            lastName: newPersonDraft.lastName,
+            phone: newPersonDraft.phone,
+            email: newPersonDraft.email,
+            identityDocumentNumber:
+              newPersonDraft.identityDocument?.number ?? '',
+          },
+          moroccanPhoneSearchQuery,
+        );
+        if (query) {
+          const outcome = await searchGuardianCandidatesForStudent(studentId, {
+            query,
+          });
+          if (outcome.ok) conflictMatches = outcome.results.slice(0, 3);
+        }
+      }
+
+      if (mapped.duplicateField || conflictMatches.length > 0) {
+        setIdentityConflictField(mapped.duplicateField ?? 'unknown');
+        setIdentityConflictMatches(conflictMatches);
       } else {
         setIdentityConflictField(null);
         setIdentityConflictMatches([]);
