@@ -137,7 +137,7 @@ export function ParentAccountActivationLinkAction({
         {status?.sent_before === true && lastSent ? (
           <p className="tiny muted">
             {t('admin.parentProfile.activationLink.lastSent')}{' '}
-            <span dir="ltr">{lastSent}</span>
+            <span dir="auto">{lastSent}</span>
           </p>
         ) : null}
         {hasLoginHistory ? (
@@ -150,7 +150,7 @@ export function ParentAccountActivationLinkAction({
         {status?.has_logged_in === true && lastLogin ? (
           <p className="tiny muted">
             {t('admin.parentProfile.activationLink.lastLogin')}{' '}
-            <span dir="ltr">{lastLogin}</span>
+            <span dir="auto">{lastLogin}</span>
           </p>
         ) : null}
       </div>
