@@ -9,6 +9,8 @@ import {
 import type { BillingAccountListItem } from '@/types/finance-billing-account';
 import type {
   ArrearsFamilyFollowupDetail,
+  ArrearsFilterOption,
+  ArrearsFilterOptions,
   ArrearsGuardianDetail,
   ArrearsGuardianRelationshipContext,
   ArrearsOverdueInstallmentDetail,
@@ -67,6 +69,9 @@ function normalizeGuardianDetail(raw: unknown): ArrearsGuardianDetail | null {
     partner_id: readNumber(row.partner_id),
     name: readString(row.name) ?? undefined,
     phone: readString(row.phone),
+    phones: Array.isArray(row.phones)
+      ? row.phones.map(readString).filter((value): value is string => value != null)
+      : undefined,
     is_billing_partner: readBoolean(row.is_billing_partner),
     relationship_contexts: Array.isArray(row.relationship_contexts)
       ? row.relationship_contexts
@@ -114,6 +119,38 @@ function normalizeOverdueInstallmentDetail(raw: unknown): ArrearsOverdueInstallm
     gross_overdue_amount: normalizeMoneyValue(row.gross_overdue_amount) ?? undefined,
     pending_cheque_coverage_amount: normalizeMoneyValue(row.pending_cheque_coverage_amount) ?? undefined,
     actionable_overdue_amount: normalizeMoneyValue(row.actionable_overdue_amount) ?? undefined,
+  };
+}
+
+function normalizeArrearsFilterOption(raw: unknown): ArrearsFilterOption | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const id = readNumber(row.id);
+  const name = readString(row.name) ?? readString(row.display_name);
+  if (id == null || !name) return null;
+  return {
+    id,
+    name,
+    level_id: readNumber(row.level_id),
+  };
+}
+
+function normalizeArrearsFilterOptions(raw: unknown): ArrearsFilterOptions | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const contract = readString(row.contract);
+  if (!contract) return null;
+  const list = (value: unknown) =>
+    Array.isArray(value)
+      ? value.map(normalizeArrearsFilterOption).filter((item): item is ArrearsFilterOption => item != null)
+      : [];
+  return {
+    contract,
+    academic_years: list(row.academic_years),
+    levels: list(row.levels),
+    classes: list(row.classes),
+    fee_types: list(row.fee_types),
+    assigned_users: list(row.assigned_users),
   };
 }
 
@@ -176,6 +213,10 @@ function readSummary(raw: Record<string, unknown>): ArrearsFollowupSummary {
         : typeof kpis.followups_today_count === 'number'
           ? kpis.followups_today_count
           : undefined,
+    overdue_followups_count:
+      typeof kpis.overdue_followups_count === 'number'
+        ? kpis.overdue_followups_count
+        : undefined,
   };
 }
 
@@ -281,7 +322,12 @@ export function parseArrearsFollowupListResponse(
   tab?: ArrearsFollowupTab | null,
 ): ArrearsFollowupListResult {
   if (!data || typeof data !== 'object') {
-    return { items: normalizeArrearsFollowupList(data), summary: null, appliedTab: tab ?? null };
+    return {
+      items: normalizeArrearsFollowupList(data),
+      summary: null,
+      appliedTab: tab ?? null,
+      filterOptions: null,
+    };
   }
   const row = data as Record<string, unknown>;
   const items = normalizeArrearsFollowupList(row.items ?? row.families ?? row.results ?? row);
@@ -296,6 +342,7 @@ export function parseArrearsFollowupListResponse(
     items,
     summary: readSummary(row),
     appliedTab,
+    filterOptions: normalizeArrearsFilterOptions(row.filter_options),
   };
 }
 

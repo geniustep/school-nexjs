@@ -3,6 +3,7 @@ export type ArrearsFollowupTab =
   | 'needs_followup'
   | 'payment_promises'
   | 'today_followup'
+  | 'overdue_followup'
   | 'escalated'
   | 'resolved'
   | 'pending_cheque';
@@ -52,6 +53,44 @@ export type ArrearsFollowupSummary = {
   total_pending_cheque_coverage_on_overdue?: number;
   payment_promises_count?: number;
   today_followups_count?: number;
+  overdue_followups_count?: number;
+};
+
+export type ArrearsFilterOption = {
+  id: number;
+  name: string;
+  level_id?: number | null;
+};
+
+export type ArrearsFilterOptions = {
+  contract: 'arrears_filters_v2' | string;
+  academic_years: ArrearsFilterOption[];
+  levels: ArrearsFilterOption[];
+  classes: ArrearsFilterOption[];
+  fee_types: ArrearsFilterOption[];
+  assigned_users: ArrearsFilterOption[];
+};
+
+export type ArrearsListFilters = {
+  tab: string;
+  search: string;
+  page: number;
+  family: number | null;
+  academicYearId: string;
+  levelId: string;
+  classId: string;
+  workflowStatus: string;
+  contactResult: string;
+  assignedUserId: string;
+  followupDue: string;
+  pendingCheque: string;
+  paymentPromise: string;
+  contacted: string;
+  actionableMin: string;
+  actionableMax: string;
+  oldestAge: string;
+  dueMonth: string;
+  feeTypeId: string;
 };
 
 export type ArrearsFollowupLastEntry = {
@@ -85,6 +124,7 @@ export type ArrearsGuardianDetail = {
   partner_id?: number | null;
   name?: string;
   phone?: string | null;
+  phones?: string[];
   is_billing_partner?: boolean;
   relationship_contexts: ArrearsGuardianRelationshipContext[];
 };
@@ -177,6 +217,7 @@ export type ArrearsFollowupListResult = {
   items: ArrearsFollowupListItem[];
   summary: ArrearsFollowupSummary | null;
   appliedTab: ArrearsFollowupTab | null;
+  filterOptions: ArrearsFilterOptions | null;
 };
 
 export type ArrearsMergedRow = ArrearsFollowupListItem & {
