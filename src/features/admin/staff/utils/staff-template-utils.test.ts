@@ -51,6 +51,7 @@ import {
   templateAllowsCreate,
   isValidStaffContactEmail,
   staffTemplatePersonRequiresEmail,
+  staffTemplateScopeSatisfiesPreview,
   validateStaffTemplateAssignments,
   validateStaffTemplatePersonForm,
 } from './staff-template-utils';
@@ -191,6 +192,103 @@ describe('staff-template-utils', () => {
     expect(accountantPreview.template_code).toBe('accountant_collections');
     expect(payloadContainsForbiddenClientFields(teacherPreview)).toBe(false);
     expect(payloadContainsForbiddenClientFields(accountantPreview)).toBe(false);
+  });
+
+  it('normalizes and sends level scope for general supervisor', () => {
+    const preview = normalizeStaffTemplatePreview({
+      allowed_to_create: true,
+      scope: { school_id: 3, scope_type: 'levels' },
+    });
+    expect(preview?.scope).toMatchObject({ school_id: 3, scope_type: 'levels' });
+
+    const scope = { scope_type: 'levels' as const, level_ids: [176, 77, 176] };
+    const previewPayload = buildStaffTemplatePreviewPayload(
+      'general_supervisor_basic',
+      3,
+      {},
+      [],
+      scope,
+    );
+    expect(previewPayload.scope).toEqual({
+      school_id: 3,
+      scope_type: 'levels',
+      level_ids: [176, 77],
+    });
+
+    const template = normalizeStaffCreationTemplate({
+      code: 'general_supervisor_basic',
+      name: 'General supervisor',
+      requires_user_account: true,
+    })!;
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'general_supervisor_basic',
+      selectedBundleCodes: [],
+      person: { name: 'QA Supervisor', phone: '', email: 'supervisor@example.com' },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: 'Secret123!',
+      confirmPassword: 'Secret123!',
+      scope,
+      assignments: {},
+    };
+    const createPayload = buildStaffTemplateCreatePayload(form, 3, template);
+    expect(createPayload.scope).toEqual({
+      school_id: 3,
+      scope_type: 'levels',
+      level_ids: [176, 77],
+    });
+    expect(createPayload.account?.password_confirm).toBe('Secret123!');
+  });
+
+  it('blocks a level-scoped create until at least one level is selected', () => {
+    const template: StaffCreationTemplate = {
+      code: 'general_supervisor_basic',
+      name: 'General supervisor',
+    };
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: true,
+      scope: { school_id: 3, scope_type: 'levels' },
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'general_supervisor_basic',
+      selectedBundleCodes: [],
+      person: { name: 'QA Supervisor', phone: '', email: '' },
+      createAccount: false,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: {},
+    };
+    const passwordPolicy = { min_length: 8, requires_letter: true, requires_number: true };
+
+    expect(staffTemplateScopeSatisfiesPreview(preview, form.scope)).toBe(false);
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview,
+        form,
+        passwordPolicy,
+      }),
+    ).toBe('admin.staffCenter.errors.scopeRequired');
+
+    const readyForm: StaffSmartCreateFormState = {
+      ...form,
+      scope: { scope_type: 'levels', level_ids: [176] },
+    };
+    expect(staffTemplateScopeSatisfiesPreview(preview, readyForm.scope)).toBe(true);
+    expect(
+      canSubmitStaffTemplateCreate({
+        template,
+        preview,
+        form: readyForm,
+        passwordPolicy,
+        t,
+      }),
+    ).toBe(true);
   });
 
   it('builds create payload with selected_bundle_codes', () => {
