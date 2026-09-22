@@ -172,12 +172,22 @@ export function mapGuardianApiError(
       const matchesResolved = (candidates?.length ? candidates : fromCandidate).map((m) =>
         normalizeDuplicateMatch(m),
       );
+      const matchBasis =
+        typeof details?.match_basis === 'string' ? details.match_basis.trim() : '';
+      const staffIdentityMatch = matchBasis === 'unique_staff_name_in_school';
       return {
-        message: t('admin.identityDocument.duplicateExists'),
-        duplicateField: 'national_id',
+        message: staffIdentityMatch
+          ? t('admin.student360.guardianDuplicate')
+          : t('admin.identityDocument.duplicateExists'),
+        duplicateField: staffIdentityMatch ? 'unknown' : 'national_id',
         matches: matchesResolved.length ? matchesResolved : undefined,
       };
     }
+    case 'guardian_identity_ambiguous':
+      return {
+        message: t('admin.student360.guardianDuplicate'),
+        duplicateField: 'unknown',
+      };
     case 'duplicate_person': {
       const duplicateField = inferDuplicateField(details, error.message);
       const messageKey =
