@@ -393,6 +393,9 @@ export function normalizeStaffTemplatePreview(raw: unknown): StaffTemplatePrevie
   const scope =
     scopeRaw && typeof scopeRaw === 'object'
       ? {
+          scope_type: normalizeStaffTemplateScopeType(
+            (scopeRaw as Record<string, unknown>).scope_type,
+          ),
           school_id:
             typeof (scopeRaw as StaffTemplateScope).school_id === 'number'
               ? (scopeRaw as StaffTemplateScope).school_id
@@ -479,12 +482,34 @@ export function defaultStaffSmartCreateFormState(): StaffSmartCreateFormState {
     useDifferentLogin: false,
     password: '',
     confirmPassword: '',
+    scope: {},
     assignments: { subject_id: null, subject_ids: [], class_ids: [], academic_year_id: null },
   };
 }
 
-export function buildStaffTemplateScope(schoolId: number | null): StaffTemplateScope {
-  return schoolId != null ? { school_id: schoolId } : {};
+export function normalizeStaffTemplateScopeType(
+  value: unknown,
+): StaffTemplateScope['scope_type'] {
+  return value === 'school' || value === 'levels' || value === 'classes'
+    ? value
+    : undefined;
+}
+
+export function buildStaffTemplateScope(
+  schoolId: number | null,
+  scope: StaffTemplateScope = {},
+): StaffTemplateScope {
+  const payload: StaffTemplateScope = schoolId != null ? { school_id: schoolId } : {};
+  const scopeType = normalizeStaffTemplateScopeType(scope.scope_type);
+  if (scopeType) payload.scope_type = scopeType;
+
+  const levelIds = normalizeStaffTemplateClassIds(scope.level_ids);
+  if (levelIds.length) payload.level_ids = levelIds;
+
+  const classIds = normalizeStaffTemplateClassIds(scope.class_ids);
+  if (classIds.length) payload.class_ids = classIds;
+
+  return payload;
 }
 
 export function buildStaffTemplateAssignmentsInput(
@@ -681,10 +706,11 @@ export function buildStaffTemplatePreviewPayload(
   schoolId: number | null,
   assignments: StaffTemplateAssignments,
   selectedBundleCodes: string[] = [],
+  scope: StaffTemplateScope = {},
 ): StaffTemplatePreviewPayload {
   const payload: StaffTemplatePreviewPayload = {
     template_code: templateCode,
-    scope: buildStaffTemplateScope(schoolId),
+    scope: buildStaffTemplateScope(schoolId, scope),
     assignments: buildStaffTemplateAssignmentsInput(assignments),
   };
   if (selectedBundleCodes.length) {
@@ -719,7 +745,7 @@ export function buildStaffTemplateCreatePayload(
   const payload: StaffTemplateCreatePayload = {
     template_code: form.templateCode,
     person,
-    scope: buildStaffTemplateScope(schoolId),
+    scope: buildStaffTemplateScope(schoolId, form.scope ?? {}),
     assignments: buildStaffTemplateAssignmentsInput(form.assignments),
   };
 
@@ -1067,6 +1093,15 @@ export function collectStaffSmartCreateFormIssues(input: {
   return issues;
 }
 
+export function staffTemplateScopeSatisfiesPreview(
+  preview: StaffTemplatePreview | null | undefined,
+  scope: StaffTemplateScope | null | undefined,
+): boolean {
+  const scopeType = preview?.scope?.scope_type ?? scope?.scope_type;
+  if (scopeType !== 'levels') return true;
+  return normalizeStaffTemplateClassIds(scope?.level_ids).length > 0;
+}
+
 export function resolveStaffTemplateCreateBlockMessageKey(input: {
   template: StaffCreationTemplate | null;
   preview: StaffTemplatePreview | null;
@@ -1084,6 +1119,9 @@ export function resolveStaffTemplateCreateBlockMessageKey(input: {
   if (previewError) return `${prefix}.createBlockedPreviewError`;
   if (!preview) return `${prefix}.createBlockedPreviewPending`;
   if (!preview.allowed_to_create) return `${prefix}.createBlockedNotAllowed`;
+  if (!staffTemplateScopeSatisfiesPreview(preview, form.scope)) {
+    return 'admin.staffCenter.errors.scopeRequired';
+  }
 
   const personValidation = validateStaffTemplatePersonForm(form.person, (key) => key, {
     requireEmail: staffTemplatePersonRequiresEmail(template, form),

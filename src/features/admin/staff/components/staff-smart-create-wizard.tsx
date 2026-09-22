@@ -60,6 +60,7 @@ import {
   validateStaffTemplatePersonForm,
   mapStaffTemplateCreateError,
   staffTemplatePasswordsMismatch,
+  staffTemplateScopeSatisfiesPreview,
   type StaffTemplatePersonFieldErrors,
 } from '@/features/admin/staff/utils/staff-template-utils';
 import { StaffCreateSuccessPanel } from '@/features/admin/staff/components/staff-create-success-panel';
@@ -138,6 +139,7 @@ function StaffSmartCreateWizardContent() {
   );
 
   const selectedBundleKey = form.selectedBundleCodes.join('|');
+  const scopeLevelKey = (form.scope?.level_ids ?? []).join('|');
 
   const displayTemplates = useMemo(
     () =>
@@ -186,6 +188,9 @@ function StaffSmartCreateWizardContent() {
     () => buildStaffAssignmentLevelOptions(levelsState.data ?? []),
     [levelsState.data],
   );
+  const effectiveScopeType = preview?.scope?.scope_type ?? form.scope?.scope_type;
+  const selectedScopeLevelIds = form.scope?.level_ids ?? [];
+  const needsLevelScope = effectiveScopeType === 'levels';
   const subjects = useMemo(
     () => buildStaffAssignmentSubjectOptions(subjectsState.data ?? [], allLevels),
     [subjectsState.data, allLevels],
@@ -264,6 +269,7 @@ function StaffSmartCreateWizardContent() {
         activeSchoolId,
         normalizeStaffTemplateAssignments(form.assignments),
         form.selectedBundleCodes,
+        form.scope ?? {},
       ),
     );
   }, [
@@ -273,9 +279,11 @@ function StaffSmartCreateWizardContent() {
     assignmentSubjectKey,
     form.assignments.academic_year_id,
     form.assignments.subject_id,
+    form.scope?.scope_type,
     form.selectedBundleCodes,
     form.templateCode,
     loadPreview,
+    scopeLevelKey,
     selectedBundleKey,
     selectedTemplate,
   ]);
@@ -378,7 +386,12 @@ function StaffSmartCreateWizardContent() {
     );
     setAssignmentsError(assignmentsValidation.error ?? null);
 
-    const valid = personValidation.valid && passwordValid && assignmentsValidation.valid;
+    const scopeValid = staffTemplateScopeSatisfiesPreview(preview, form.scope);
+    const valid =
+      personValidation.valid &&
+      passwordValid &&
+      assignmentsValidation.valid &&
+      scopeValid;
     if (!valid) {
       setDetailsAttempted(true);
       const blockKey = resolveStaffTemplateCreateBlockMessageKey({
@@ -1066,6 +1079,61 @@ function StaffSmartCreateWizardContent() {
                     />
                   ) : null}
 
+                  {needsLevelScope ? (
+                    <section className="staff-smart-create__section-card staff-smart-create__form-section">
+                      <div className="staff-smart-create__section-heading">
+                        <h3 className="staff-smart-create__section-title">
+                          {t('admin.staffCenter.scopesTitle')}
+                        </h3>
+                        <p className="staff-smart-create__section-desc">
+                          {t('admin.staffCenter.errors.scopeRequired')}
+                        </p>
+                      </div>
+                      <div className="staff-smart-create__field staff-smart-create__field--wide">
+                        <span className="staff-smart-create__field-label">
+                          {t('admin.staffCenter.levels')}
+                        </span>
+                        {levelsState.loading ? (
+                          <p className="tiny muted">{t('common.loading')}</p>
+                        ) : (
+                          <ul className="staff-smart-create__class-options" role="group">
+                            {allLevels.map((level) => {
+                              const checked = selectedScopeLevelIds.includes(level.id);
+                              return (
+                                <li key={level.id}>
+                                  <label className="staff-smart-create__class-option">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      disabled={saving || previewLoading}
+                                      onChange={() =>
+                                        setForm((current) => {
+                                          const currentIds = current.scope?.level_ids ?? [];
+                                          const nextIds = currentIds.includes(level.id)
+                                            ? currentIds.filter((id) => id !== level.id)
+                                            : [...currentIds, level.id];
+                                          return {
+                                            ...current,
+                                            scope: {
+                                              ...current.scope,
+                                              scope_type: 'levels',
+                                              level_ids: nextIds,
+                                            },
+                                          };
+                                        })
+                                      }
+                                    />
+                                    <span>{level.name}</span>
+                                  </label>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    </section>
+                  ) : null}
+
                   <StaffTemplateAssignmentsFields
                     required={requiredAssignments}
                     assignments={form.assignments}
@@ -1283,6 +1351,26 @@ function StaffSmartCreateWizardContent() {
                       ) : null}
                     </dl>
                   </div>
+                  {needsLevelScope ? (
+                    <div className="staff-smart-create__review-block staff-smart-create__review-block--wide">
+                      <h4 className="staff-smart-create__review-block-title">
+                        {t('admin.staffCenter.scopesTitle')}
+                      </h4>
+                      <dl className="staff-smart-create__review-dl">
+                        <div>
+                          <dt>{t('admin.staffCenter.levels')}</dt>
+                          <dd>
+                            {selectedScopeLevelIds
+                              .map(
+                                (id) =>
+                                  allLevels.find((item) => item.id === id)?.name ?? String(id),
+                              )
+                              .join('، ') || t('common.dash')}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  ) : null}
                   {needsAssignments ? (
                     <div className="staff-smart-create__review-block staff-smart-create__review-block--wide">
                       <h4 className="staff-smart-create__review-block-title">

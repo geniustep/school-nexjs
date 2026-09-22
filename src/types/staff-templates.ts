@@ -46,6 +46,7 @@ export interface StaffCreationTemplate {
 
 export interface StaffTemplateScope {
   school_id?: number;
+  scope_type?: 'school' | 'levels' | 'classes';
   level_ids?: number[];
   class_ids?: number[];
 }
@@ -140,5 +141,6 @@ export interface StaffSmartCreateFormState {
   useDifferentLogin: boolean;
   password: string;
   confirmPassword: string;
+  scope?: StaffTemplateScope;
   assignments: StaffTemplateAssignments;
 }
