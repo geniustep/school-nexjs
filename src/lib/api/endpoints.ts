@@ -120,6 +120,12 @@ export const endpoints = {
     parentsExport: '/admin/parents/export',
     parentActivationCampaignPrepare: '/admin/parent-activation-campaigns/prepare',
     parentActivationCampaign: (id: number | string) => `/admin/parent-activation-campaigns/${id}`,
+    parentActivationCampaignRecipientSelection: (
+      campaignId: number | string,
+      recipientId: number | string,
+    ) => `/admin/parent-activation-campaigns/${campaignId}/recipients/${recipientId}/selection`,
+    parentActivationCampaignBulkSelection: (campaignId: number | string) =>
+      `/admin/parent-activation-campaigns/${campaignId}/selection/bulk`,
 
     teachers: '/admin/teachers',
     teachersOptions: '/admin/teachers/options',
