@@ -31,6 +31,42 @@ describe('mapGuardianApiError', () => {
     expect(result.message).toBe('admin.student360.guardianDuplicateEmail');
   });
 
+  it('maps unique staff identity conflict to generic existing-person recovery', () => {
+    const result = mapGuardianApiError(
+      {
+        code: 'guardian_identity_candidate_exists',
+        message: 'A matching person already exists.',
+        details: {
+          match_basis: 'unique_staff_name_in_school',
+          candidate_partner_id: 49,
+          candidate_display_name: 'Existing Staff',
+          can_reuse: true,
+        },
+      },
+      t,
+    );
+    expect(result.duplicateField).toBe('unknown');
+    expect(result.message).toBe('admin.student360.guardianDuplicate');
+    expect(result.matches).toBeUndefined();
+  });
+
+  it('maps ambiguous staff identity conflict to search-existing recovery', () => {
+    const result = mapGuardianApiError(
+      {
+        code: 'guardian_identity_ambiguous',
+        message: 'Multiple existing staff identities match.',
+        details: {
+          match_basis: 'staff_name_in_school',
+          candidate_count: 2,
+          recovery_action: 'search_existing_person',
+        },
+      },
+      t,
+    );
+    expect(result.duplicateField).toBe('unknown');
+    expect(result.message).toBe('admin.student360.guardianDuplicate');
+  });
+
   it('maps primary_guardian_conflict', () => {
     const result = mapGuardianApiError({ code: 'primary_guardian_conflict', message: '' }, t);
     expect(result.field).toBe('is_primary_contact');

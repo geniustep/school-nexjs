@@ -13,6 +13,7 @@ import {
   type IdentityDocumentFormValues,
 } from '@/features/admin/parents/utils/identity-document';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
+import { guardianDuplicateSearchQuery } from '../utils/guardian-duplicate-search-query';
 import { buildGuardianQuickCreatePayload } from '../utils/guardian-quick-create-payload';
 import { normalizeGuardianList, normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
 import {
@@ -150,11 +151,17 @@ export function GuardianQuickCreateForm({
     formValues: GuardianCreateFormValues,
   ): Promise<GuardianDuplicateMatch[]> {
     if (mapped.matches?.length) return mapped.matches;
-    const q = formValues.phone.trim()
-      ? moroccanPhoneSearchQuery(formValues.phone)
-      : formValues.email.trim()
-        ? formValues.email.trim().toLowerCase()
-        : formValues.identityDocument.number.trim();
+    const q = guardianDuplicateSearchQuery(
+      mapped.duplicateField,
+      {
+        firstName: formValues.firstName,
+        lastName: formValues.lastName,
+        phone: formValues.phone,
+        email: formValues.email,
+        identityDocumentNumber: formValues.identityDocument.number,
+      },
+      moroccanPhoneSearchQuery,
+    );
     if (!q) return [];
     const res = await api.get(endpoints.admin.guardiansSearch, { q, page: 1, page_size: 5 });
     if (res.success) return normalizeGuardianList(res.data);
