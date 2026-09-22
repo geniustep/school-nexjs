@@ -11,9 +11,7 @@ import {
 } from './parent-activation-dispatch';
 import type { ParentActivationCampaignDispatch } from '@/types/parent-activation-campaign';
 
-function dispatchFixture(
-  statuses: string[],
-): ParentActivationCampaignDispatch {
+function dispatchFixture(statuses: string[]): ParentActivationCampaignDispatch {
   return {
     campaign_id: 8,
     state: 'prepared',
@@ -22,6 +20,7 @@ function dispatchFixture(
       queued: statuses.filter((status) => status === 'queued').length,
       already_processed: statuses.filter((status) => status === 'already_processed').length,
       excluded: statuses.filter((status) => status === 'excluded').length,
+      not_selected: statuses.filter((status) => status === 'not_selected').length,
       failed: statuses.filter((status) => status === 'failed').length,
     },
     results: statuses.map((status, index) => ({
@@ -37,9 +36,7 @@ function dispatchFixture(
 
 describe('parent activation campaign dispatch UX contract', () => {
   it('targets the governed campaign dispatch child endpoint', () => {
-    expect(`${endpoints.admin.parentActivationCampaign(42)}/dispatch`).toBe(
-      '/admin/parent-activation-campaigns/42/dispatch',
-    );
+    expect(`${endpoints.admin.parentActivationCampaign(42)}/dispatch`).toBe('/admin/parent-activation-campaigns/42/dispatch');
   });
 
   it('builds an exact empty dispatch body with no recipient override', () => {
@@ -55,26 +52,14 @@ describe('parent activation campaign dispatch UX contract', () => {
     expect(canStartParentActivationDispatch(3, false)).toBe(true);
   });
 
-  it('summarizes queued, already processed, excluded and failed results independently', () => {
-    const summary = summarizeParentActivationDispatch(
-      dispatchFixture(['queued', 'already_processed', 'excluded', 'failed', 'queued']),
-    );
-    expect(summary).toEqual({
-      total: 5,
-      queued: 2,
-      alreadyProcessed: 1,
-      excluded: 1,
-      failed: 1,
-      unknown: 0,
-    });
+  it('summarizes selection-aware dispatch results independently', () => {
+    const summary = summarizeParentActivationDispatch(dispatchFixture(['queued', 'already_processed', 'excluded', 'not_selected', 'failed', 'queued']));
+    expect(summary).toEqual({ total: 6, queued: 2, alreadyProcessed: 1, excluded: 1, notSelected: 1, failed: 1, unknown: 0 });
   });
 
-  it('keeps partial success visible instead of collapsing it into total failure', () => {
-    const summary = summarizeParentActivationDispatch(
-      dispatchFixture(['queued', 'failed', 'already_processed']),
-    );
-    expect(summary.queued + summary.alreadyProcessed).toBe(2);
-    expect(summary.failed).toBe(1);
+  it('maps not_selected as a safe non-error status', () => {
+    const meta = getParentActivationDispatchStatusMeta('ar', 'not_selected');
+    expect(meta).toEqual({ label: 'مستبعد من هذه الدفعة', tone: 'slate' });
   });
 
   it('uses a safe fallback for a future unknown status', () => {
@@ -92,20 +77,13 @@ describe('parent activation campaign dispatch UX contract', () => {
   });
 
   it('maps known messaging failure classes without showing raw codes', () => {
-    expect(getParentActivationDispatchFailureLabel('ar', 'entitlement_disabled')).toBe(
-      'خدمة الإرسال غير مفعلة لهذه المؤسسة.',
-    );
-    expect(getParentActivationDispatchFailureLabel('ar', 'messaging_rejected')).toBe(
-      'تعذر الوصول إلى خدمة الرسائل أو قبول طلب الإرسال.',
-    );
+    expect(getParentActivationDispatchFailureLabel('ar', 'entitlement_disabled')).toBe('خدمة الإرسال غير مفعلة لهذه المؤسسة.');
+    expect(getParentActivationDispatchFailureLabel('ar', 'messaging_rejected')).toBe('تعذر الوصول إلى خدمة الرسائل أو قبول طلب الإرسال.');
   });
 
   it('detects forbidden sensitive fields if a future response shape accidentally adds them', () => {
     const safeRow = dispatchFixture(['queued']).results[0];
     expect(parentActivationDispatchResultHasSensitiveFields(safeRow)).toBe(false);
-    expect(parentActivationDispatchResultHasSensitiveFields({
-      ...safeRow,
-      token: 'must-not-render',
-    } as typeof safeRow)).toBe(true);
+    expect(parentActivationDispatchResultHasSensitiveFields({ ...safeRow, token: 'must-not-render' } as typeof safeRow)).toBe(true);
   });
 });

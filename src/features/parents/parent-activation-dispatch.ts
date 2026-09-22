@@ -38,6 +38,7 @@ type DispatchCopyBase = {
   queued: string;
   alreadyProcessed: string;
   notSent: string;
+  notSelected: string;
   failed: string;
   unknownStatus: string;
   resultDetails: string;
@@ -88,6 +89,7 @@ const COPY: Record<Locale, DispatchCopyBase> = {
     queued: 'أضيفت للإرسال',
     alreadyProcessed: 'سبق تنفيذها',
     notSent: 'لم تُرسل',
+    notSelected: 'مستبعد من هذه الدفعة',
     failed: 'متعذرة',
     unknownStatus: 'حالة غير معروفة',
     resultDetails: 'تفاصيل المستلمين',
@@ -129,6 +131,7 @@ const COPY: Record<Locale, DispatchCopyBase> = {
     queued: 'Queued',
     alreadyProcessed: 'Already processed',
     notSent: 'Not sent',
+    notSelected: 'Excluded from this batch',
     failed: 'Failed',
     unknownStatus: 'Unknown state',
     resultDetails: 'Recipient details',
@@ -170,6 +173,7 @@ const COPY: Record<Locale, DispatchCopyBase> = {
     queued: 'Mis en file',
     alreadyProcessed: 'Déjà traité',
     notSent: 'Non envoyé',
+    notSelected: 'Exclu de ce lot',
     failed: 'Échec',
     unknownStatus: 'État inconnu',
     resultDetails: 'Détails des destinataires',
@@ -211,6 +215,7 @@ const COPY: Record<Locale, DispatchCopyBase> = {
     queued: 'En cola',
     alreadyProcessed: 'Ya procesado',
     notSent: 'No enviado',
+    notSelected: 'Excluido de este lote',
     failed: 'Fallido',
     unknownStatus: 'Estado desconocido',
     resultDetails: 'Detalles de destinatarios',
@@ -252,6 +257,7 @@ export function summarizeParentActivationDispatch(result: ParentActivationCampai
     queued: 0,
     alreadyProcessed: 0,
     excluded: 0,
+    notSelected: 0,
     failed: 0,
     unknown: 0,
   };
@@ -260,6 +266,7 @@ export function summarizeParentActivationDispatch(result: ParentActivationCampai
     if (row.status === 'queued') summary.queued += 1;
     else if (row.status === 'already_processed') summary.alreadyProcessed += 1;
     else if (row.status === 'excluded') summary.excluded += 1;
+    else if (row.status === 'not_selected') summary.notSelected += 1;
     else if (row.status === 'failed') summary.failed += 1;
     else summary.unknown += 1;
   }
@@ -275,6 +282,7 @@ export function getParentActivationDispatchStatusMeta(
   if (status === 'queued') return { label: copy.queued, tone: 'green' };
   if (status === 'already_processed') return { label: copy.alreadyProcessed, tone: 'blue' };
   if (status === 'excluded') return { label: copy.notSent, tone: 'amber' };
+  if (status === 'not_selected') return { label: copy.notSelected, tone: 'slate' };
   if (status === 'failed') return { label: copy.failed, tone: 'red' };
   return { label: copy.unknownStatus, tone: 'slate' };
 }
