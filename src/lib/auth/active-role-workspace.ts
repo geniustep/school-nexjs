@@ -19,15 +19,21 @@ export function normalizeRoleCode(value: string | null | undefined): string | nu
   return trimmed || null;
 }
 
-/** True when Odoo exposed more than one switchable role. */
+/** True when Odoo exposed more than one switchable role.
+ *
+ * Prefer available_roles for labels, but keep the legacy/current `roles`
+ * contract as a safe visibility fallback. This mirrors listAvailableRoles()
+ * and prevents a valid multi-role session from being rendered as single-role
+ * when available_roles is temporarily absent from an older/stale BFF payload.
+ */
 export function isMultiRoleUser(
-  user: Pick<CurrentUser, 'available_roles'> | null | undefined,
+  user: Pick<CurrentUser, 'available_roles' | 'roles' | 'role'> | null | undefined,
 ): boolean {
-  return Array.isArray(user?.available_roles) && user.available_roles.length > 1;
+  return listAvailableRoles(user).length > 1;
 }
 
 export function shouldShowRoleSwitcher(
-  user: Pick<CurrentUser, 'available_roles'> | null | undefined,
+  user: Pick<CurrentUser, 'available_roles' | 'roles' | 'role'> | null | undefined,
 ): boolean {
   return isMultiRoleUser(user);
 }
