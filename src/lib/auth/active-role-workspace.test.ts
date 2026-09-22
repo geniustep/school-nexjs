@@ -48,6 +48,19 @@ describe('active-role workspace policy', () => {
     ).toBe(true);
   });
 
+  it('shows role switcher from roles when available_roles is absent', () => {
+    const multi = user({
+      id: 284,
+      role: 'teacher',
+      active_role: 'teacher',
+      roles: ['teacher', 'parent'],
+    });
+
+    expect(isMultiRoleUser(multi)).toBe(true);
+    expect(shouldShowRoleSwitcher(multi)).toBe(true);
+    expect(userOwnsRole(multi, 'parent')).toBe(true);
+  });
+
   it('uses confirmed active_role over admin_kind / teacher_id', () => {
     const schoolManagerAsTeacher = user({
       id: 2,
