@@ -121,7 +121,10 @@ export function StudentAcademicPlacementCard({
     setConfirmOpen(false);
 
     if (!result.success) {
-      const key = academicPlacementErrorMessageKey(result.error.code);
+      const key = academicPlacementErrorMessageKey(
+        result.error.code,
+        result.error.details,
+      );
       setErrorKey(key);
       toast.error(t(key));
       return;
