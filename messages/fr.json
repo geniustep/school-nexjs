@@ -6930,6 +6930,40 @@
           "health": "Santé",
           "guardians": "Responsables",
           "documents": "Documents et photo"
+        },
+        "academicPlacement": {
+          "title": "Parcours scolaire",
+          "description": "Modifiez le cycle et le niveau de l'inscription opérationnelle actuelle. Le cycle sert uniquement à filtrer les niveaux.",
+          "cycle": "Cycle",
+          "selectCycle": "Choisir le cycle",
+          "level": "Niveau",
+          "selectLevel": "Choisir le niveau",
+          "currentClass": "Classe actuelle",
+          "unassigned": "Non affecté à une classe",
+          "update": "Mettre à jour le niveau",
+          "success": "Niveau scolaire mis à jour",
+          "classWarningTitle": "L'affectation actuelle sera retirée",
+          "classWarning": "Le niveau choisi ne correspond pas à la classe actuelle. Après confirmation, l'élève sera retiré de cette classe et restera en attente d'une nouvelle affectation.",
+          "confirmTitle": "Confirmer le changement de niveau",
+          "confirmBody": "Le niveau sera modifié et l'élève sera retiré de sa classe actuelle car elle n'est pas compatible avec le nouveau niveau. Continuer ?",
+          "confirmAction": "Confirmer le changement",
+          "readOnlyTitle": "Parcours scolaire en lecture seule",
+          "readOnlyHint": "La modification du niveau nécessite l'autorisation de gérer les données d'inscription.",
+          "cycles": {
+            "preschool": "Préscolaire",
+            "primary": "Primaire",
+            "middle_school": "Collège",
+            "high_school": "Lycée"
+          },
+          "errors": {
+            "financeReviewRequired": "Le niveau ne peut pas être modifié actuellement car la situation financière de l'élève doit être revue. Aucun changement n'a été effectué.",
+            "permissionDenied": "Vous n'avez pas l'autorisation nécessaire pour modifier le niveau scolaire.",
+            "noActiveEnrollment": "Aucune inscription académique active ne peut être modifiée.",
+            "levelInvalid": "Le niveau sélectionné n'est pas disponible dans le périmètre académique actuel.",
+            "validation": "Choisissez un cycle et un niveau valides avant d'enregistrer.",
+            "classUnassignFailed": "Impossible de retirer l'élève de la classe actuelle en toute sécurité. Le changement n'a pas été appliqué.",
+            "generic": "Impossible de mettre à jour le niveau. Réessayez."
+          }
         }
       },
       "readiness": {

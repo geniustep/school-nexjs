@@ -6928,6 +6928,40 @@
           "health": "Salud",
           "guardians": "Tutores",
           "documents": "Documentos y foto"
+        },
+        "academicPlacement": {
+          "title": "Trayectoria académica",
+          "description": "Cambie el ciclo y el nivel de la matrícula operativa actual. El ciclo solo filtra los niveles disponibles.",
+          "cycle": "Ciclo",
+          "selectCycle": "Seleccionar ciclo",
+          "level": "Nivel",
+          "selectLevel": "Seleccionar nivel",
+          "currentClass": "Clase actual",
+          "unassigned": "Sin clase asignada",
+          "update": "Actualizar nivel",
+          "success": "Nivel académico actualizado",
+          "classWarningTitle": "Se eliminará la asignación de clase actual",
+          "classWarning": "El nivel seleccionado no coincide con la clase actual. Tras confirmar, el alumno será retirado de la clase y quedará pendiente de reasignación.",
+          "confirmTitle": "Confirmar cambio de nivel",
+          "confirmBody": "Se cambiará el nivel y el alumno será retirado de la clase actual porque no es compatible con el nuevo nivel. ¿Continuar?",
+          "confirmAction": "Confirmar cambio",
+          "readOnlyTitle": "Trayectoria académica de solo lectura",
+          "readOnlyHint": "Cambiar el nivel requiere permiso para gestionar los datos de matrícula.",
+          "cycles": {
+            "preschool": "Preescolar",
+            "primary": "Primaria",
+            "middle_school": "Secundaria básica",
+            "high_school": "Secundaria superior"
+          },
+          "errors": {
+            "financeReviewRequired": "No se puede cambiar el nivel porque la situación financiera del alumno requiere revisión. No se realizó ningún cambio.",
+            "permissionDenied": "No tiene permiso para cambiar el nivel académico.",
+            "noActiveEnrollment": "No hay una matrícula académica activa cuyo nivel pueda modificarse.",
+            "levelInvalid": "El nivel seleccionado no está disponible en el ámbito académico actual.",
+            "validation": "Seleccione un ciclo y un nivel válidos antes de guardar.",
+            "classUnassignFailed": "No se pudo retirar al alumno de la clase actual de forma segura. El cambio no se aplicó.",
+            "generic": "No se pudo actualizar el nivel. Inténtelo de nuevo."
+          }
         }
       },
       "readiness": {
