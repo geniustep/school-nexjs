@@ -35,6 +35,7 @@ import {
   resolveStaffSmartCreateSaveStrategy,
   staffMemberToTemplateCreateResult,
   staffTemplatePersonRequiresEmail,
+  staffSmartCreateReusesExistingAccount,
   normalizeStaffTemplateAssignments,
   buildStaffAssignmentClassOptions,
   buildStaffAssignmentLevelOptions,
@@ -65,6 +66,7 @@ import {
 } from '@/features/admin/staff/utils/staff-template-utils';
 import { StaffCreateSuccessPanel } from '@/features/admin/staff/components/staff-create-success-panel';
 import { StaffSmartCreateDetailsHero } from '@/features/admin/staff/components/staff-smart-create-details-hero';
+import { StaffExistingPersonPicker } from '@/features/admin/staff/components/staff-existing-person-picker';
 import { StaffSmartCreateValidationChecklist } from '@/features/admin/staff/components/staff-smart-create-validation-checklist';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -83,6 +85,7 @@ import type {
   StaffCreationTemplate,
   StaffSmartCreateWizardStep,
   StaffTemplateCreateResult,
+  StaffPersonCandidate,
 } from '@/types/staff-templates';
 import '@/features/admin/staff/staff-center.css';
 
@@ -134,6 +137,8 @@ function StaffSmartCreateWizardContent() {
   const [detailsAttempted, setDetailsAttempted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [createResult, setCreateResult] = useState<StaffTemplateCreateResult | null>(null);
+  const [selectedExistingPerson, setSelectedExistingPerson] =
+    useState<StaffPersonCandidate | null>(null);
   const [assignmentPicker, setAssignmentPicker] = useState<StaffAssignmentPickerState>(
     defaultStaffAssignmentPickerState(),
   );
@@ -162,6 +167,7 @@ function StaffSmartCreateWizardContent() {
   );
 
   const passwordPolicy = normalizeStaffPasswordPolicy(staffOptionsState.options?.password_policy);
+  const reusesExistingAccount = staffSmartCreateReusesExistingAccount(form);
   const bundleLabelOptions = useMemo(
     () => ({ locale, metadata: preview?.bundle_metadata }),
     [locale, preview?.bundle_metadata],
@@ -320,6 +326,7 @@ function StaffSmartCreateWizardContent() {
       selectedBundleCodes: initialBundles,
       createAccount: template.requires_user_account ? true : current.createAccount,
     }));
+    setSelectedExistingPerson(null);
     setPersonErrors({});
     setPasswordErrors({});
     setPasswordFormError(null);
@@ -338,14 +345,79 @@ function StaffSmartCreateWizardContent() {
     );
   }
 
+  function handlePersonSourceChange(source: 'new' | 'existing') {
+    setSelectedExistingPerson(null);
+    setPersonErrors({});
+    setPasswordErrors({});
+    setPasswordFormError(null);
+    setDetailsFormError(null);
+    setForm((current) => ({
+      ...current,
+      personSource: source,
+      existingPartnerId: null,
+      existingPersonHasUserAccount: false,
+      person: {
+        name: '',
+        name_ar: '',
+        name_fr: '',
+        account_activation_language: '',
+        phone: '',
+        email: '',
+      },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+    }));
+  }
+
+  function handleExistingPersonSelect(candidate: StaffPersonCandidate) {
+    if (!candidate.can_link_as_staff) return;
+    setSelectedExistingPerson(candidate);
+    setPersonErrors({});
+    setPasswordErrors({});
+    setPasswordFormError(null);
+    setDetailsFormError(null);
+    setForm((current) => ({
+      ...current,
+      personSource: 'existing',
+      existingPartnerId: candidate.partner_id,
+      existingPersonHasUserAccount: candidate.has_user_account,
+      person: {
+        partner_id: candidate.partner_id,
+        name: candidate.name,
+        name_ar: candidate.name_ar ?? '',
+        name_fr: candidate.name_fr ?? '',
+        account_activation_language: '',
+        phone: candidate.phone ?? '',
+        email: candidate.email ?? '',
+      },
+      createAccount: true,
+      assignPasswordNow: candidate.has_user_account ? false : true,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+    }));
+  }
+
   function validateDetailsStep(): boolean {
     const requireEmail = staffTemplatePersonRequiresEmail(selectedTemplate, form);
     const personValidation = validateStaffTemplatePersonForm(form.person, t, { requireEmail });
     setPersonErrors(personValidation.errors);
 
     let passwordValid = true;
+    const existingPersonValid =
+      form.personSource !== 'existing' || Boolean(form.existingPartnerId);
     const requiresAccount = selectedTemplate?.requires_user_account || form.createAccount;
-    if (requiresAccount && form.createAccount && form.assignPasswordNow) {
+    if (
+      requiresAccount &&
+      form.createAccount &&
+      form.assignPasswordNow &&
+      !reusesExistingAccount
+    ) {
       const result = validateStaffPasswordForm(
         {
           password: form.password,
@@ -371,7 +443,7 @@ function StaffSmartCreateWizardContent() {
       form.login,
       form.useDifferentLogin,
     );
-    if (requiresAccount && form.createAccount && !login) {
+    if (requiresAccount && form.createAccount && !reusesExistingAccount && !login) {
       setPersonErrors((current) => ({
         ...current,
         login: t('admin.staffCenter.smartCreate.errors.loginRequired'),
@@ -388,6 +460,7 @@ function StaffSmartCreateWizardContent() {
 
     const scopeValid = staffTemplateScopeSatisfiesPreview(preview, form.scope);
     const valid =
+      existingPersonValid &&
       personValidation.valid &&
       passwordValid &&
       assignmentsValidation.valid &&
@@ -575,6 +648,7 @@ function StaffSmartCreateWizardContent() {
 
   function handleCreateAnother() {
     setCreateResult(null);
+    setSelectedExistingPerson(null);
     setForm(defaultStaffSmartCreateFormState());
     setStep('template');
     resetPreview();
@@ -810,6 +884,31 @@ function StaffSmartCreateWizardContent() {
                         </p>
                       </div>
                     </div>
+
+                    <div className="staff-person-source" role="group" aria-label={t('admin.staffCenter.smartCreate.personSourceTitle')}>
+                      <button
+                        type="button"
+                        className={`staff-person-source__option${form.personSource === 'new' ? ' is-selected' : ''}`}
+                        aria-pressed={form.personSource === 'new'}
+                        disabled={saving}
+                        onClick={() => handlePersonSourceChange('new')}
+                      >
+                        <strong>{t('admin.staffCenter.smartCreate.personSourceNew')}</strong>
+                        <span>{t('admin.staffCenter.smartCreate.personSourceNewHint')}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`staff-person-source__option${form.personSource === 'existing' ? ' is-selected' : ''}`}
+                        aria-pressed={form.personSource === 'existing'}
+                        disabled={saving}
+                        onClick={() => handlePersonSourceChange('existing')}
+                      >
+                        <strong>{t('admin.staffCenter.smartCreate.personSourceExisting')}</strong>
+                        <span>{t('admin.staffCenter.smartCreate.personSourceExistingHint')}</span>
+                      </button>
+                    </div>
+
+                    {form.personSource === 'new' ? (
                     <div className="staff-smart-create__field-grid">
                       <label
                         className={`staff-smart-create__field staff-smart-create__field--wide${personErrors.name ? ' staff-smart-create__field--invalid' : ''}`}
@@ -954,9 +1053,37 @@ function StaffSmartCreateWizardContent() {
                         ) : null}
                       </label>
                     </div>
+                    ) : (
+                      <StaffExistingPersonPicker
+                        activeSchoolId={activeSchoolId}
+                        selected={selectedExistingPerson}
+                        disabled={saving}
+                        onSelect={handleExistingPersonSelect}
+                      />
+                    )}
                   </section>
 
-                  {selectedTemplate.requires_user_account || form.createAccount ? (
+                  {reusesExistingAccount ? (
+                    <section
+                      id="staff-create-account"
+                      className="staff-smart-create__section-card staff-smart-create__form-section"
+                    >
+                      <div className="staff-smart-create__form-section-header">
+                        <span className="staff-smart-create__form-section-index">2</span>
+                        <div className="staff-smart-create__section-heading">
+                          <h3 className="staff-smart-create__section-title">
+                            {t('admin.staffCenter.smartCreate.accountSection')}
+                          </h3>
+                        </div>
+                      </div>
+                      <InfoBanner
+                        tone="blue"
+                        icon="✓"
+                        title={t('admin.staffCenter.smartCreate.existingAccountReuseTitle')}
+                        description={t('admin.staffCenter.smartCreate.existingAccountReuseNotice')}
+                      />
+                    </section>
+                  ) : selectedTemplate.requires_user_account || form.createAccount ? (
                     <>
                       <section
                         id="staff-create-account"
@@ -1285,6 +1412,14 @@ function StaffSmartCreateWizardContent() {
                     </h4>
                     <dl className="staff-smart-create__review-dl">
                       <div>
+                        <dt>{t('admin.staffCenter.smartCreate.personSourceTitle')}</dt>
+                        <dd>
+                          {form.personSource === 'existing'
+                            ? t('admin.staffCenter.smartCreate.personSourceExisting')
+                            : t('admin.staffCenter.smartCreate.personSourceNew')}
+                        </dd>
+                      </div>
+                      <div>
                         <dt>{t('admin.fullName')}</dt>
                         <dd>{form.person.name || t('common.dash')}</dd>
                       </div>
@@ -1328,12 +1463,14 @@ function StaffSmartCreateWizardContent() {
                       <div>
                         <dt>{t('admin.staffCenter.smartCreate.createAccount')}</dt>
                         <dd>
-                          {form.createAccount
-                            ? t('admin.staffCenter.smartCreate.reviewYes')
-                            : t('admin.staffCenter.smartCreate.reviewNo')}
+                          {reusesExistingAccount
+                            ? t('admin.staffCenter.smartCreate.reviewExistingAccount')
+                            : form.createAccount
+                              ? t('admin.staffCenter.smartCreate.reviewYes')
+                              : t('admin.staffCenter.smartCreate.reviewNo')}
                         </dd>
                       </div>
-                      {form.createAccount ? (
+                      {form.createAccount && !reusesExistingAccount ? (
                         <>
                           <div>
                             <dt>{t('admin.account.loginName')}</dt>

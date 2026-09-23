@@ -51,6 +51,7 @@ import {
   templateAllowsCreate,
   isValidStaffContactEmail,
   staffTemplatePersonRequiresEmail,
+  staffSmartCreateReusesExistingAccount,
   staffTemplateScopeSatisfiesPreview,
   validateStaffTemplateAssignments,
   validateStaffTemplatePersonForm,
@@ -330,6 +331,127 @@ describe('staff-template-utils', () => {
       password: 'Secret123',
       password_confirm: 'Secret123',
     });
+  });
+
+  it('reuses an existing person account without replacing credentials', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+      client_catalog: true,
+      admin_kind: 'pedagogical_director',
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'pedagogical_director',
+      personSource: 'existing',
+      existingPartnerId: 77,
+      existingPersonHasUserAccount: true,
+      selectedBundleCodes: [],
+      person: {
+        partner_id: 77,
+        name: 'Existing Guardian',
+        phone: '0600000077',
+        email: 'guardian@example.com',
+      },
+      createAccount: true,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: {},
+    };
+
+    expect(staffSmartCreateReusesExistingAccount(form)).toBe(true);
+    expect(staffTemplatePersonRequiresEmail(template, form)).toBe(false);
+
+    const templatePayload = buildStaffTemplateCreatePayload(form, 3, template);
+    expect(templatePayload.person.partner_id).toBe(77);
+    expect(templatePayload.account).toBeUndefined();
+
+    const memberPayload = buildClientCatalogStaffMemberPayload(form, template);
+    expect(memberPayload.partner_id).toBe(77);
+    expect(memberPayload.account).toBeUndefined();
+
+    expect(
+      canSubmitStaffTemplateCreate({
+        template,
+        preview: { allowed_to_create: true },
+        form,
+        passwordPolicy: { min_length: 8, requires_letter: true, requires_number: true },
+        t,
+      }),
+    ).toBe(true);
+  });
+
+  it('still requires credentials when an existing person has no account', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'pedagogical_director',
+      personSource: 'existing',
+      existingPartnerId: 88,
+      existingPersonHasUserAccount: false,
+      selectedBundleCodes: [],
+      person: {
+        partner_id: 88,
+        name: 'Existing Person',
+        phone: '',
+        email: 'person@example.com',
+      },
+      createAccount: true,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: {},
+    };
+
+    expect(staffSmartCreateReusesExistingAccount(form)).toBe(false);
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: true },
+        form,
+        passwordPolicy: { min_length: 8, requires_letter: true, requires_number: true },
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.passwordRequiredBeforeCreate');
+  });
+
+  it('requires selecting a person when existing-person mode is active', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'pedagogical_director',
+      personSource: 'existing',
+      existingPartnerId: null,
+      existingPersonHasUserAccount: false,
+      selectedBundleCodes: [],
+      person: { name: '', phone: '', email: '' },
+      createAccount: true,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: {},
+    };
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: true },
+        form,
+        passwordPolicy: { min_length: 8, requires_letter: true, requires_number: true },
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.existingPersonRequired');
   });
 
   it('omits account block when assignPasswordNow is false', () => {

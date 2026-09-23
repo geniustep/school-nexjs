@@ -3062,7 +3062,8 @@
           "accountPassword": "Mot de passe",
           "assignments": "Affectations requises",
           "previewReady": "Aperçu des permissions prêt",
-          "previewAllowed": "Création autorisée selon l'aperçu"
+          "previewAllowed": "Création autorisée selon l'aperçu",
+          "existingPerson": "Sélection d’une personne existante"
         },
         "createAccount": "Créer le compte",
         "emailPlaceholder": "nom@ecole.ma",
@@ -3228,14 +3229,41 @@
           "createBlockedPreviewPending": "L'aperçu des permissions n'est pas encore prêt.",
           "createBlockedNotAllowed": "La création n'est pas autorisée avec les données actuelles. Consultez l'aperçu et les champs manquants.",
           "passwordRequiredBeforeCreate": "Veuillez définir un mot de passe pour le compte avant la création.",
-          "passwordMismatchReview": "Impossible de créer le compte : le mot de passe et sa confirmation ne correspondent pas. Veuillez vérifier les données du compte."
+          "passwordMismatchReview": "Impossible de créer le compte : le mot de passe et sa confirmation ne correspondent pas. Veuillez vérifier les données du compte.",
+          "existingPersonRequired": "Sélectionnez une personne existante pour continuer.",
+          "personAlreadyStaff": "Cette personne fait déjà partie du personnel de l’établissement actuel.",
+          "existingPersonUnavailable": "Cette personne n’est plus disponible pour être ajoutée.",
+          "personMultipleAccounts": "Cette personne est liée à plusieurs comptes ; son identité doit être corrigée avant de l’ajouter au personnel."
         },
         "warnings": {
           "blockedCreation": "Les informations requises sont incomplètes ; la création n'est pas encore autorisée.",
           "teacherProfileWillBeCreated": "Un profil enseignant sera créé pour ce membre."
         },
         "teacherEntryHintTitle": "Pour ajouter un enseignant de matière, utilisez la liste des enseignants",
-        "teacherEntryHintDesc": "La création intelligente du personnel est destinée aux rôles administratifs et aux permissions avancées, pas au flux court d’ajout d’enseignant."
+        "teacherEntryHintDesc": "La création intelligente du personnel est destinée aux rôles administratifs et aux permissions avancées, pas au flux court d’ajout d’enseignant.",
+        "personSourceTitle": "Source de l’identité",
+        "personSourceNew": "Nouvelle personne",
+        "personSourceNewHint": "Créer une nouvelle identité et l’ajouter au personnel.",
+        "personSourceExisting": "Personne existante",
+        "personSourceExistingHint": "Réutiliser une personne existante sans dupliquer son identité ni son compte.",
+        "existingPersonSearchLabel": "Rechercher une personne existante",
+        "existingPersonSearchPlaceholder": "Rechercher par nom, téléphone ou e-mail…",
+        "existingPersonSearchHint": "Vous pouvez sélectionner un parent, un enseignant ou une personne déjà enregistrée.",
+        "existingPersonSearchIdle": "Commencez à saisir un nom, un téléphone ou une adresse e-mail.",
+        "existingPersonSearchMin": "Saisissez au moins deux caractères.",
+        "existingPersonNoResults": "Aucune personne correspondante trouvée.",
+        "existingPersonSearchError": "Impossible de rechercher les personnes existantes. Réessayez.",
+        "existingPersonRoles": "Rôles actuels",
+        "existingPersonHasAccount": "Cette personne possède déjà un compte.",
+        "existingPersonNeedsAccount": "Cette personne ne possède pas encore de compte.",
+        "existingPersonAlreadyStaff": "Déjà membre du personnel",
+        "existingPersonSelected": "Sélectionné",
+        "existingPersonUse": "Utiliser cette personne",
+        "existingPersonSelectedTitle": "Personne sélectionnée",
+        "existingAccountReuseTitle": "Le compte existant sera réutilisé",
+        "existingAccountReuseNotice": "Aucun nouveau compte ne sera créé et le mot de passe actuel ne sera pas modifié. Seuls le rôle de personnel et ses permissions seront ajoutés.",
+        "existingIdentityReuseNotice": "L’identité existante sera réutilisée et un compte de personnel lui sera associé sans créer de doublon.",
+        "reviewExistingAccount": "Réutiliser le compte existant"
       }
     },
     "classesListDesc": "Gérer les classes",

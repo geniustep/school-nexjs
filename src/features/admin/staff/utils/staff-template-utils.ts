@@ -45,6 +45,15 @@ export function mapStaffTemplateCreateError(
   if (code === 'invalid_email') {
     return t('admin.staffCenter.smartCreate.errors.invalidEmail');
   }
+  if (code === 'person_already_staff') {
+    return t('admin.staffCenter.smartCreate.errors.personAlreadyStaff');
+  }
+  if (code === 'partner_not_found') {
+    return t('admin.staffCenter.smartCreate.errors.existingPersonUnavailable');
+  }
+  if (code === 'person_multiple_accounts') {
+    return t('admin.staffCenter.smartCreate.errors.personMultipleAccounts');
+  }
   return mapAcademicSetupApiError(error, t, 'staff');
 }
 
@@ -467,6 +476,9 @@ export function templateAllowsCreate(template: StaffCreationTemplate | null | un
 export function defaultStaffSmartCreateFormState(): StaffSmartCreateFormState {
   return {
     templateCode: '',
+    personSource: 'new',
+    existingPartnerId: null,
+    existingPersonHasUserAccount: false,
     selectedBundleCodes: [],
     person: {
       name: '',
@@ -734,6 +746,9 @@ export function buildStaffTemplateCreatePayload(
   template: StaffCreationTemplate,
 ): StaffTemplateCreatePayload {
   const person: StaffTemplatePersonInput = {
+    ...(form.personSource === 'existing' && form.existingPartnerId
+      ? { partner_id: form.existingPartnerId }
+      : {}),
     name: form.person.name.trim(),
     name_ar: (form.person.name_ar ?? '').trim(),
     name_fr: (form.person.name_fr ?? '').trim(),
@@ -754,7 +769,12 @@ export function buildStaffTemplateCreatePayload(
   }
 
   const requiresAccount = template.requires_user_account || form.createAccount;
-  if (requiresAccount && form.createAccount && form.assignPasswordNow) {
+  if (
+    requiresAccount &&
+    form.createAccount &&
+    form.assignPasswordNow &&
+    !staffSmartCreateReusesExistingAccount(form)
+  ) {
     const login = resolveStaffTemplateAccountLogin(person, form.login, form.useDifferentLogin);
     if (login && form.password.trim() && form.confirmPassword.trim()) {
       payload.account = {
@@ -787,6 +807,9 @@ export function buildClientCatalogStaffMemberPayload(
   }
 
   const person: StaffTemplatePersonInput = {
+    ...(form.personSource === 'existing' && form.existingPartnerId
+      ? { partner_id: form.existingPartnerId }
+      : {}),
     name: form.person.name.trim(),
     name_ar: (form.person.name_ar ?? '').trim(),
     name_fr: (form.person.name_fr ?? '').trim(),
@@ -803,6 +826,7 @@ export function buildClientCatalogStaffMemberPayload(
   });
 
   const payload: Record<string, unknown> = {
+    ...(person.partner_id ? { partner_id: person.partner_id } : {}),
     name: person.name,
     name_ar: person.name_ar || undefined,
     name_fr: person.name_fr || undefined,
@@ -818,7 +842,12 @@ export function buildClientCatalogStaffMemberPayload(
   }
 
   const requiresAccount = template.requires_user_account || form.createAccount;
-  if (requiresAccount && form.createAccount && form.assignPasswordNow) {
+  if (
+    requiresAccount &&
+    form.createAccount &&
+    form.assignPasswordNow &&
+    !staffSmartCreateReusesExistingAccount(form)
+  ) {
     const login = resolveStaffTemplateAccountLogin(person, form.login, form.useDifferentLogin);
     if (login && form.password.trim() && form.confirmPassword.trim()) {
       payload.account = {
@@ -924,10 +953,21 @@ export function isValidStaffContactEmail(value: string): boolean {
   return STAFF_CONTACT_EMAIL_PATTERN.test(trimmed);
 }
 
+export function staffSmartCreateReusesExistingAccount(
+  form: StaffSmartCreateFormState,
+): boolean {
+  return (
+    form.personSource === 'existing' &&
+    Boolean(form.existingPartnerId) &&
+    form.existingPersonHasUserAccount === true
+  );
+}
+
 export function staffTemplatePersonRequiresEmail(
   template: StaffCreationTemplate | null | undefined,
   form: StaffSmartCreateFormState,
 ): boolean {
+  if (staffSmartCreateReusesExistingAccount(form)) return false;
   const requiresAccount = Boolean(template?.requires_user_account || form.createAccount);
   return requiresAccount && form.createAccount && !form.useDifferentLogin;
 }
@@ -1017,6 +1057,15 @@ export function collectStaffSmartCreateFormIssues(input: {
 
   const issues: StaffSmartCreateFormIssue[] = [];
 
+  if (form.personSource === 'existing') {
+    issues.push({
+      id: 'identity_existing_person',
+      labelKey: 'admin.staffCenter.smartCreate.validation.existingPerson',
+      section: 'identity',
+      ok: Boolean(form.existingPartnerId),
+    });
+  }
+
   issues.push({
     id: 'identity_name',
     labelKey: 'admin.staffCenter.smartCreate.validation.identityName',
@@ -1036,7 +1085,8 @@ export function collectStaffSmartCreateFormIssues(input: {
   });
 
   const requiresAccount = template.requires_user_account || form.createAccount;
-  if (requiresAccount && form.createAccount) {
+  const reusesExistingAccount = staffSmartCreateReusesExistingAccount(form);
+  if (requiresAccount && form.createAccount && !reusesExistingAccount) {
     const login = resolveStaffTemplateAccountLogin(form.person, form.login, form.useDifferentLogin);
     issues.push({
       id: 'account_login',
@@ -1122,6 +1172,9 @@ export function resolveStaffTemplateCreateBlockMessageKey(input: {
   if (!staffTemplateScopeSatisfiesPreview(preview, form.scope)) {
     return 'admin.staffCenter.errors.scopeRequired';
   }
+  if (form.personSource === 'existing' && !form.existingPartnerId) {
+    return `${prefix}.existingPersonRequired`;
+  }
 
   const personValidation = validateStaffTemplatePersonForm(form.person, (key) => key, {
     requireEmail: staffTemplatePersonRequiresEmail(template, form),
@@ -1158,7 +1211,8 @@ export function resolveStaffTemplateCreateBlockMessageKey(input: {
   }
 
   const requiresAccount = template.requires_user_account;
-  if (requiresAccount || form.createAccount) {
+  const reusesExistingAccount = staffSmartCreateReusesExistingAccount(form);
+  if ((requiresAccount || form.createAccount) && !reusesExistingAccount) {
     if (!form.createAccount && requiresAccount) return `${prefix}.formInvalid`;
     const login = resolveStaffTemplateAccountLogin(form.person, form.login, form.useDifferentLogin);
     if (!login) return `${prefix}.loginRequired`;
