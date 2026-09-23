@@ -87,6 +87,7 @@ export interface StaffTemplatePreview {
 }
 
 export interface StaffTemplatePersonInput {
+  partner_id?: number;
   name: string;
   name_ar?: string;
   name_fr?: string;
@@ -131,8 +132,31 @@ export interface StaffTemplateCreateResult {
 
 export type StaffSmartCreateWizardStep = 'template' | 'details' | 'review';
 
+export type StaffSmartCreatePersonSource = 'new' | 'existing';
+
+export interface StaffPersonCandidate {
+  partner_id: number;
+  person_id?: number;
+  user_id?: number | null;
+  teacher_id?: number | null;
+  staff_id?: number | null;
+  name: string;
+  name_ar?: string | null;
+  name_fr?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  existing_roles: string[];
+  role_labels: string[];
+  has_user_account: boolean;
+  already_staff_in_school: boolean;
+  can_link_as_staff: boolean;
+}
+
 export interface StaffSmartCreateFormState {
   templateCode: string;
+  personSource: StaffSmartCreatePersonSource;
+  existingPartnerId: number | null;
+  existingPersonHasUserAccount: boolean;
   selectedBundleCodes: string[];
   person: StaffTemplatePersonInput;
   createAccount: boolean;
