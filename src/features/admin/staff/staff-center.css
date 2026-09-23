@@ -1280,3 +1280,114 @@
     width: 100%;
   }
 }
+
+
+/* Existing Person adoption — /admin/staff/create */
+.staff-person-source {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.staff-person-source__option {
+  display: flex;
+  min-height: 82px;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.staff-person-source__option:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+}
+
+.staff-person-source__option.is-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.staff-person-source__option span {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.staff-existing-person {
+  display: grid;
+  gap: 14px;
+}
+
+.staff-existing-person__results {
+  min-height: 36px;
+}
+
+.staff-existing-person__list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.staff-existing-person__item {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.staff-existing-person__item.is-selected {
+  border-color: var(--primary);
+}
+
+.staff-existing-person__identity {
+  min-width: 0;
+}
+
+.staff-existing-person__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+}
+
+.staff-existing-person__selected {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+}
+
+.staff-existing-person__selected p {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .staff-person-source {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-existing-person__item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
