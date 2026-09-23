@@ -73,9 +73,22 @@ export function canManageStudentAcademicPlacement(
   );
 }
 
-export function academicPlacementErrorMessageKey(code: string | null | undefined): string {
+function financeReviewReasons(details: unknown): string[] {
+  if (!details || typeof details !== 'object' || Array.isArray(details)) return [];
+  const raw = (details as Record<string, unknown>).finance_review_reasons;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((reason): reason is string => typeof reason === 'string');
+}
+
+export function academicPlacementErrorMessageKey(
+  code: string | null | undefined,
+  details?: unknown,
+): string {
   switch (code) {
     case 'finance_review_required':
+      if (financeReviewReasons(details).includes('target_level_not_covered_by_fee_plan')) {
+        return 'admin.student360.editPage.academicPlacement.errors.targetLevelNotCoveredByFeePlan';
+      }
       return 'admin.student360.editPage.academicPlacement.errors.financeReviewRequired';
     case 'registration_data_permission_required':
     case 'permission_denied':
