@@ -3246,7 +3246,27 @@
           "teacherProfileWillBeCreated": "Se creará un perfil de profesor para este miembro."
         },
         "teacherEntryHintTitle": "Para añadir un profesor de materia, use la lista de profesores",
-        "teacherEntryHintDesc": "La creación inteligente de personal es para roles administrativos y permisos avanzados, no para el flujo corto de alta de profesor."
+        "teacherEntryHintDesc": "La creación inteligente de personal es para roles administrativos y permisos avanzados, no para el flujo corto de alta de profesor.",
+        "personMode": {
+          "new": "Persona nueva",
+          "existing": "Elegir persona existente",
+          "searchLabel": "Buscar persona existente",
+          "searchPlaceholder": "Nombre, teléfono o correo",
+          "noResults": "No se encontró ninguna persona coincidente.",
+          "alreadyStaff": "Esta persona ya forma parte del personal",
+          "inactiveAccount": "La cuenta existe pero está inactiva",
+          "existingPerson": "Persona existente",
+          "selectedTitle": "Se reutilizará la identidad existente",
+          "reuseAccount": "Se conservarán la cuenta y la contraseña actuales sin crear duplicados.",
+          "createAccountForExisting": "La nueva cuenta de personal se vinculará a la identidad existente.",
+          "accountPreservedTitle": "Cuenta existente conservada",
+          "accountPreservedDesc": "No se cambiarán el usuario ni la contraseña. Solo se añadirán el rol y los permisos necesarios.",
+          "roles": {
+            "guardian": "Tutor",
+            "teacher": "Profesor",
+            "staff": "Personal"
+          }
+        }
       }
     },
     "classesListDesc": "Gestionar clases",
