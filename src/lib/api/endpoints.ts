@@ -120,8 +120,13 @@ export const endpoints = {
     guardianDeleteImpact: (id: number | string) => `/admin/guardians/${id}/delete-impact`,
     parentsImport: '/admin/parents/import',
     parentsExport: '/admin/parents/export',
+    parentActivationCampaigns: '/admin/parent-activation-campaigns',
     parentActivationCampaignPrepare: '/admin/parent-activation-campaigns/prepare',
     parentActivationCampaign: (id: number | string) => `/admin/parent-activation-campaigns/${id}`,
+    parentActivationCampaignAnalytics: (id: number | string) =>
+      `/admin/parent-activation-campaigns/${id}/analytics`,
+    parentActivationCampaignRecipients: (id: number | string) =>
+      `/admin/parent-activation-campaigns/${id}/recipients`,
     parentActivationCampaignRecipientSelection: (
       campaignId: number | string,
       recipientId: number | string,
