@@ -3062,7 +3062,8 @@
           "accountPassword": "Contraseña",
           "assignments": "Asignaciones requeridas",
           "previewReady": "Vista previa de permisos lista",
-          "previewAllowed": "Creación permitida según la vista previa"
+          "previewAllowed": "Creación permitida según la vista previa",
+          "existingPerson": "Persona existente seleccionada"
         },
         "createAccount": "Crear cuenta",
         "emailPlaceholder": "nombre@colegio.ma",
@@ -3228,14 +3229,41 @@
           "createBlockedPreviewPending": "La vista previa de permisos aún no está lista.",
           "createBlockedNotAllowed": "La creación no está permitida con los datos actuales. Revise la vista previa y los campos faltantes.",
           "passwordRequiredBeforeCreate": "Establezca una contraseña para la cuenta antes de crear.",
-          "passwordMismatchReview": "No se pudo crear la cuenta porque la contraseña y la confirmación no coinciden. Revise los datos de la cuenta."
+          "passwordMismatchReview": "No se pudo crear la cuenta porque la contraseña y la confirmación no coinciden. Revise los datos de la cuenta.",
+          "existingPersonRequired": "Seleccione una persona existente para continuar.",
+          "personAlreadyStaff": "Esta persona ya forma parte del personal del centro actual.",
+          "existingPersonUnavailable": "Esta persona ya no está disponible para añadirla.",
+          "personMultipleAccounts": "Esta persona está vinculada a varias cuentas; debe corregirse la identidad antes de añadirla al personal."
         },
         "warnings": {
           "blockedCreation": "Faltan datos obligatorios; la creación aún no está permitida.",
           "teacherProfileWillBeCreated": "Se creará un perfil de profesor para este miembro."
         },
         "teacherEntryHintTitle": "Para añadir un profesor de materia, use la lista de profesores",
-        "teacherEntryHintDesc": "La creación inteligente de personal es para roles administrativos y permisos avanzados, no para el flujo corto de alta de profesor."
+        "teacherEntryHintDesc": "La creación inteligente de personal es para roles administrativos y permisos avanzados, no para el flujo corto de alta de profesor.",
+        "personSourceTitle": "Origen de la persona",
+        "personSourceNew": "Persona nueva",
+        "personSourceNewHint": "Crear una identidad nueva y añadirla al personal.",
+        "personSourceExisting": "Persona existente",
+        "personSourceExistingHint": "Reutilizar una persona existente sin duplicar su identidad ni su cuenta.",
+        "existingPersonSearchLabel": "Buscar persona existente",
+        "existingPersonSearchPlaceholder": "Buscar por nombre, teléfono o correo…",
+        "existingPersonSearchHint": "Puede seleccionar un padre, profesor u otra persona ya registrada.",
+        "existingPersonSearchIdle": "Empiece a escribir un nombre, teléfono o correo electrónico.",
+        "existingPersonSearchMin": "Introduzca al menos dos caracteres.",
+        "existingPersonNoResults": "No se encontró ninguna persona coincidente.",
+        "existingPersonSearchError": "No se pudieron buscar personas existentes. Inténtelo de nuevo.",
+        "existingPersonRoles": "Roles actuales",
+        "existingPersonHasAccount": "Esta persona ya tiene una cuenta de acceso.",
+        "existingPersonNeedsAccount": "Esta persona aún no tiene una cuenta de acceso.",
+        "existingPersonAlreadyStaff": "Ya es personal",
+        "existingPersonSelected": "Seleccionado",
+        "existingPersonUse": "Usar esta persona",
+        "existingPersonSelectedTitle": "Persona seleccionada",
+        "existingAccountReuseTitle": "Se reutilizará la cuenta existente",
+        "existingAccountReuseNotice": "No se creará una cuenta nueva ni se cambiará la contraseña actual. Solo se añadirán el rol de personal y los permisos seleccionados.",
+        "existingIdentityReuseNotice": "Se reutilizará la identidad existente y se vinculará una cuenta de personal sin crear una persona duplicada.",
+        "reviewExistingAccount": "Reutilizar cuenta existente"
       }
     },
     "classesListDesc": "Gestionar clases",
