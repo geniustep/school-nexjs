@@ -67,6 +67,11 @@ describe('student academic placement utilities', () => {
 
   it('maps finance and permission blockers to dedicated UX messages', () => {
     expect(academicPlacementErrorMessageKey('finance_review_required')).toContain('financeReviewRequired');
+    expect(
+      academicPlacementErrorMessageKey('finance_review_required', {
+        finance_review_reasons: ['target_level_not_covered_by_fee_plan'],
+      }),
+    ).toContain('targetLevelNotCoveredByFeePlan');
     expect(academicPlacementErrorMessageKey('registration_data_permission_required')).toContain('permissionDenied');
   });
 });
