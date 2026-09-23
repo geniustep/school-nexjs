@@ -6928,6 +6928,40 @@
             "fileTypeNotAllowed": "This file type is not allowed.",
             "photoFileTypeNotAllowed": "Only image files are allowed (JPG, PNG, WEBP)."
           }
+        },
+        "academicPlacement": {
+          "title": "Academic placement",
+          "description": "Change the cycle and level for the current operational enrollment. The cycle only filters the available levels.",
+          "cycle": "Cycle",
+          "selectCycle": "Select cycle",
+          "level": "Level",
+          "selectLevel": "Select level",
+          "currentClass": "Current class",
+          "unassigned": "Not assigned to a class",
+          "update": "Update level",
+          "success": "Academic level updated",
+          "classWarningTitle": "Current class assignment will be removed",
+          "classWarning": "The selected level does not match the current class. After confirmation, the student will be removed from the class and wait for reassignment.",
+          "confirmTitle": "Confirm level change",
+          "confirmBody": "The level will change and the student will be removed from the current class because it is incompatible with the new level. Continue?",
+          "confirmAction": "Confirm change",
+          "readOnlyTitle": "Academic placement is read-only",
+          "readOnlyHint": "Changing the level requires permission to manage registration data.",
+          "cycles": {
+            "preschool": "Preschool",
+            "primary": "Primary",
+            "middle_school": "Middle school",
+            "high_school": "High school"
+          },
+          "errors": {
+            "financeReviewRequired": "The level cannot be changed because the student's financial situation requires review. No change was made.",
+            "permissionDenied": "You do not have permission to change the academic level.",
+            "noActiveEnrollment": "There is no active academic enrollment whose level can be changed.",
+            "levelInvalid": "The selected level is not available in the current academic scope.",
+            "validation": "Select a valid cycle and level before saving.",
+            "classUnassignFailed": "The student could not be safely removed from the current class. The change was not applied.",
+            "generic": "The level could not be updated. Please try again."
+          }
         }
       },
       "readiness": {
