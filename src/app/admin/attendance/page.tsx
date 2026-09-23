@@ -212,6 +212,19 @@ function AdminAttendanceInner() {
         showReset={showReset}
       />
 
+      {canCorrect ? (
+        <AdminAttendanceCorrectionPanel
+          open={showCorrect}
+          selectedDate={date}
+          initialRecord={selectedRecord}
+          onSuccess={() => {
+            setShowCorrect(false);
+            setSelectedRecord(null);
+            state.reload();
+          }}
+        />
+      ) : null}
+
       {state.fetching && !state.initialLoading ? <AdminAttendanceRefetchHint /> : null}
 
       <ResourceView state={state} loadingLabel={t('admin.attendanceList.loading')}>
@@ -229,19 +242,6 @@ function AdminAttendanceInner() {
               >
                 {records.length > 0 ? (
                   <AdminAttendanceTodaySummary records={records} listTotal={pg?.total} />
-                ) : null}
-
-                {canCorrect ? (
-                  <AdminAttendanceCorrectionPanel
-                    open={showCorrect}
-                    selectedDate={date}
-                    initialRecord={selectedRecord}
-                    onSuccess={() => {
-                      setShowCorrect(false);
-                      setSelectedRecord(null);
-                      state.reload();
-                    }}
-                  />
                 ) : null}
 
                 {listEmptyVariant === 'no-match' ? (

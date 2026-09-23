@@ -601,7 +601,14 @@
       "noCurrentClass": "El alumno no tiene una clase actual",
       "noCurrentClassDesc": "No se puede registrar la asistencia hasta asignar al alumno a una clase.",
       "conflictTitle": "La asistencia ha cambiado",
-      "conflictDesc": "Otro usuario actualizó esta asistencia. Revise el estado actual antes de volver a corregir."
+      "conflictDesc": "Otro usuario actualizó esta asistencia. Revise el estado actual antes de volver a corregir.",
+      "stepSearch": "Buscar al alumno",
+      "searchHelp": "Escriba al menos dos letras del nombre del alumno.",
+      "selectedStudent": "Alumno seleccionado",
+      "stepStatus": "Elegir el estado",
+      "statusHelp": "Revise el estado actual y elija el estado que desea aplicar.",
+      "stepSave": "Revisar y guardar",
+      "saveHelp": "Compruebe el estado y la nota antes de guardar."
     }
   },
   "auth": {
@@ -2529,7 +2536,11 @@
       "correctionMode": "Modo corrección",
       "correctionHint": "Corregir un registro pasado dentro de su alcance.",
       "todayTitle": "Asistencia de hoy",
-      "todaySubtitle": "Seguimiento y registro de la asistencia y las ausencias de hoy."
+      "todaySubtitle": "Seguimiento y registro de la asistencia y las ausencias de hoy.",
+      "quickAction": "Registrar o corregir",
+      "closeQuickAction": "Cerrar acción",
+      "operationTitle": "Registrar o corregir asistencia",
+      "operationHint": "Busque primero al alumno, revise el estado actual y luego registre o corrija en un solo flujo."
     },
     "attendanceList": {
       "title": "Asistencia",

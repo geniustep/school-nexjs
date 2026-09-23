@@ -23,11 +23,11 @@ import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 
 const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
-const STATUS_BTN: Record<AttendanceStatus, string> = {
-  present: 'btn--status-green',
-  absent: 'btn--status-red',
-  late: 'btn--status-amber',
-  left_early: 'btn--status-blue',
+const STATUS_ICON: Record<AttendanceStatus, string> = {
+  present: '✓',
+  absent: '✕',
+  late: '⏱',
+  left_early: '↩',
 };
 
 type AttendanceTarget = {
@@ -205,7 +205,7 @@ export function AttendanceCorrectPanel({
     (!target || query.trim() !== target.name);
 
   return (
-    <Card className="attendance-quick-ops">
+    <div className="attendance-quick-ops">
       <div className="attendance-quick-ops__stack">
         {conflict ? (
           <InfoBanner
@@ -216,146 +216,193 @@ export function AttendanceCorrectPanel({
           />
         ) : null}
 
-        <label className="attendance-quick-ops__search">
-          <span className="admin-att-field__label">{t('attendance.correctPanel.studentSearchLabel')}</span>
-          <input
-            className="input"
-            value={query}
-            onChange={(event) => changeQuery(event.target.value)}
-            placeholder={t('attendance.correctPanel.studentSearchPlaceholder')}
-            autoComplete="off"
-          />
-        </label>
-
-        {search.loading ? (
-          <p className="tiny muted">{t('attendance.correctPanel.searchingStudents')}</p>
-        ) : null}
-        {search.error ? (
-          <p className="form-error">{t('attendance.correctPanel.studentSearchFailed')}</p>
-        ) : null}
-
-        {showSearchResults ? (
-          <div className="attendance-student-search-results" role="listbox">
-            {search.results.map((student) => (
-              <button
-                key={student.id}
-                type="button"
-                className="attendance-student-search-result"
-                onClick={() => chooseStudent(student)}
-              >
-                <strong dir="auto">{getStudentDisplayName(student)}</strong>
-                <span className="tiny muted" dir="auto">
-                  {[student.class?.name, student.level?.name].filter(Boolean).join(' · ') || t('common.dash')}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        {target ? (
-          <div className="attendance-selected-student">
+        <section className="attendance-quick-step attendance-quick-step--search">
+          <div className="attendance-quick-step__head">
+            <span className="attendance-quick-step__number" aria-hidden="true">1</span>
             <div>
-              <strong dir="auto">{target.name}</strong>
-              <p className="tiny muted" dir="auto">
-                {[target.className, target.levelName].filter(Boolean).join(' · ') || t('common.dash')}
-              </p>
+              <h3 className="attendance-quick-step__title">{t('attendance.correctPanel.stepSearch')}</h3>
+              <p className="attendance-quick-step__hint">{t('attendance.correctPanel.searchHelp')}</p>
             </div>
-            <span className="mono tiny" dir="ltr">{date}</span>
           </div>
-        ) : null}
 
-        {target && target.classId == null ? (
-          <InfoBanner
-            tone="amber"
-            title={t('attendance.correctPanel.noCurrentClass')}
-            description={t('attendance.correctPanel.noCurrentClassDesc')}
-          />
-        ) : null}
+          <label className="attendance-quick-ops__search">
+            <div className="attendance-search-box">
+              <span className="attendance-search-box__icon" aria-hidden="true">⌕</span>
+              <input
+                className="input attendance-search-box__input"
+                value={query}
+                onChange={(event) => changeQuery(event.target.value)}
+                placeholder={t('attendance.correctPanel.studentSearchPlaceholder')}
+                aria-label={t('attendance.correctPanel.studentSearchLabel')}
+                autoComplete="off"
+              />
+            </div>
+          </label>
 
-        {target && lookup.loading ? (
-          <p className="tiny muted">{t('attendance.correctPanel.loadingAttendance')}</p>
-        ) : null}
+          {search.loading ? (
+            <p className="tiny muted">{t('attendance.correctPanel.searchingStudents')}</p>
+          ) : null}
+          {search.error ? (
+            <p className="form-error">{t('attendance.correctPanel.studentSearchFailed')}</p>
+          ) : null}
 
-        {lookup.error ? (
-          <p className="form-error">{lookup.error.message || t('attendance.correctPanel.lookupFailed')}</p>
-        ) : null}
+          {showSearchResults ? (
+            <div className="attendance-student-search-results" role="listbox">
+              {search.results.map((student) => (
+                <button
+                  key={student.id}
+                  type="button"
+                  className="attendance-student-search-result"
+                  onClick={() => chooseStudent(student)}
+                >
+                  <span className="attendance-student-search-result__avatar" aria-hidden="true">👤</span>
+                  <span className="attendance-student-search-result__body">
+                    <strong dir="auto">{getStudentDisplayName(student)}</strong>
+                    <span className="tiny muted" dir="auto">
+                      {[student.class?.name, student.level?.name].filter(Boolean).join(' · ') || t('common.dash')}
+                    </span>
+                  </span>
+                  <span className="attendance-student-search-result__arrow" aria-hidden="true">›</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {target ? (
+            <div className="attendance-selected-student">
+              <span className="attendance-selected-student__avatar" aria-hidden="true">👤</span>
+              <div className="attendance-selected-student__body">
+                <span className="attendance-selected-student__eyebrow">
+                  {t('attendance.correctPanel.selectedStudent')}
+                </span>
+                <strong dir="auto">{target.name}</strong>
+                <p className="tiny muted" dir="auto">
+                  {[target.className, target.levelName].filter(Boolean).join(' · ') || t('common.dash')}
+                </p>
+              </div>
+              <span className="attendance-selected-student__date mono tiny" dir="ltr">{date}</span>
+            </div>
+          ) : null}
+
+          {target && target.classId == null ? (
+            <InfoBanner
+              tone="amber"
+              title={t('attendance.correctPanel.noCurrentClass')}
+              description={t('attendance.correctPanel.noCurrentClassDesc')}
+            />
+          ) : null}
+
+          {target && lookup.loading ? (
+            <p className="tiny muted">{t('attendance.correctPanel.loadingAttendance')}</p>
+          ) : null}
+
+          {lookup.error ? (
+            <p className="form-error">{lookup.error.message || t('attendance.correctPanel.lookupFailed')}</p>
+          ) : null}
+        </section>
 
         {lookupResolved && target?.classId ? (
           <>
-            {record ? (
-              <div className="attendance-current-record">
-                <div className="attendance-current-record__head">
-                  <span className="tiny muted">{t('attendance.correctPanel.currentStatus')}</span>
-                  <AttendanceBadge status={record.status} />
-                </div>
-                <div className="attendance-current-record__meta">
-                  <span>
-                    {t('attendance.correctPanel.lastModified')}: {' '}
-                    <strong dir="auto">{record.last_modified_by?.name ?? record.recorded_by?.name ?? t('common.dash')}</strong>
-                  </span>
-                  <span dir="ltr">{formatDateTime(record.last_modified_at ?? record.recorded_date)}</span>
+            <section className="attendance-quick-step">
+              <div className="attendance-quick-step__head">
+                <span className="attendance-quick-step__number" aria-hidden="true">2</span>
+                <div>
+                  <h3 className="attendance-quick-step__title">{t('attendance.correctPanel.stepStatus')}</h3>
+                  <p className="attendance-quick-step__hint">{t('attendance.correctPanel.statusHelp')}</p>
                 </div>
               </div>
-            ) : (
-              <InfoBanner
-                tone="amber"
-                title={t('attendance.notRecorded')}
-                description={t('attendance.correctPanel.notRecordedDesc')}
-              />
-            )}
 
-            {record && !mayCorrectExisting ? (
-              <InfoBanner
-                tone="amber"
-                title={t('attendance.correctPanel.permissionDesc')}
-              />
-            ) : (
-              <>
-                <div className="attendance-quick-ops__status">
-                  <span className="admin-att-field__label">{t('attendance.statusColumn')}</span>
-                  <div className="wrap-gap">
+              {record ? (
+                <div className="attendance-current-record">
+                  <div className="attendance-current-record__head">
+                    <span className="tiny muted">{t('attendance.correctPanel.currentStatus')}</span>
+                    <AttendanceBadge status={record.status} />
+                  </div>
+                  <div className="attendance-current-record__meta">
+                    <span>
+                      {t('attendance.correctPanel.lastModified')}: {' '}
+                      <strong dir="auto">{record.last_modified_by?.name ?? record.recorded_by?.name ?? t('common.dash')}</strong>
+                    </span>
+                    <span dir="ltr">{formatDateTime(record.last_modified_at ?? record.recorded_date)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="attendance-not-recorded">
+                  <span className="attendance-not-recorded__icon" aria-hidden="true">○</span>
+                  <div>
+                    <strong>{t('attendance.notRecorded')}</strong>
+                    <p>{t('attendance.correctPanel.notRecordedDesc')}</p>
+                  </div>
+                </div>
+              )}
+
+              {record && !mayCorrectExisting ? (
+                <InfoBanner
+                  tone="amber"
+                  title={t('attendance.correctPanel.permissionDesc')}
+                />
+              ) : (
+                <>
+                  <div className="attendance-status-grid" role="group" aria-label={t('attendance.statusColumn')}>
                     {STATUSES.map((item) => (
                       <button
                         key={item}
                         type="button"
                         className={cn(
-                          'btn btn--sm',
-                          STATUS_BTN[item],
-                          status === item && 'btn--status-active',
+                          'attendance-status-choice',
+                          `attendance-status-choice--${item}`,
+                          status === item && 'attendance-status-choice--active',
                         )}
+                        aria-pressed={status === item}
                         onClick={() => setStatus(item)}
                       >
-                        {attendanceStatusLabel(t, item)}
+                        <span className="attendance-status-choice__icon" aria-hidden="true">
+                          {STATUS_ICON[item]}
+                        </span>
+                        <span>{attendanceStatusLabel(t, item)}</span>
                       </button>
                     ))}
                   </div>
+
+                  <div className="attendance-quick-ops__fields">
+                    <label className="attendance-quick-ops__field">
+                      <span className="admin-att-field__label">{t('attendance.correctPanel.noteLabel')}</span>
+                      <input
+                        className="input"
+                        value={note}
+                        onChange={(event) => setNote(event.target.value)}
+                        placeholder={t('attendance.correctPanel.notePlaceholder')}
+                      />
+                    </label>
+
+                    {record ? (
+                      <label className="attendance-quick-ops__field">
+                        <span className="admin-att-field__label">{t('attendance.correctPanel.correctionReason')}</span>
+                        <input
+                          className="input"
+                          value={correctionReason}
+                          onChange={(event) => setCorrectionReason(event.target.value)}
+                          placeholder={t('attendance.correctPanel.correctionReasonPlaceholder')}
+                        />
+                      </label>
+                    ) : null}
+                  </div>
+                </>
+              )}
+            </section>
+
+            {!record || mayCorrectExisting ? (
+              <section className="attendance-quick-step attendance-quick-step--save">
+                <div className="attendance-quick-step__head">
+                  <span className="attendance-quick-step__number" aria-hidden="true">3</span>
+                  <div>
+                    <h3 className="attendance-quick-step__title">{t('attendance.correctPanel.stepSave')}</h3>
+                    <p className="attendance-quick-step__hint">{t('attendance.correctPanel.saveHelp')}</p>
+                  </div>
                 </div>
-
-                <label className="attendance-quick-ops__field">
-                  <span className="admin-att-field__label">{t('attendance.correctPanel.noteLabel')}</span>
-                  <input
-                    className="input"
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    placeholder={t('attendance.correctPanel.notePlaceholder')}
-                  />
-                </label>
-
-                {record ? (
-                  <label className="attendance-quick-ops__field">
-                    <span className="admin-att-field__label">{t('attendance.correctPanel.correctionReason')}</span>
-                    <input
-                      className="input"
-                      value={correctionReason}
-                      onChange={(event) => setCorrectionReason(event.target.value)}
-                      placeholder={t('attendance.correctPanel.correctionReasonPlaceholder')}
-                    />
-                  </label>
-                ) : null}
-
                 <div className="attendance-quick-ops__actions">
                   <button
-                    className="btn btn--primary"
+                    className="btn btn--primary attendance-quick-ops__submit"
                     type="button"
                     onClick={submit}
                     disabled={!canSubmit}
@@ -368,11 +415,11 @@ export function AttendanceCorrectPanel({
                   </button>
                   <span className="tiny muted">{t('attendance.correctPanel.scopeHint')}</span>
                 </div>
-              </>
-            )}
+              </section>
+            ) : null}
           </>
         ) : null}
       </div>
-    </Card>
+    </div>
   );
 }

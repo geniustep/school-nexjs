@@ -601,7 +601,14 @@
       "noCurrentClass": "Aucune classe actuelle pour cet élève",
       "noCurrentClassDesc": "La présence ne peut pas être enregistrée avant l’affectation à une classe.",
       "conflictTitle": "La présence a changé",
-      "conflictDesc": "Un autre utilisateur a mis à jour cette présence. Vérifiez l’état actuel avant de corriger à nouveau."
+      "conflictDesc": "Un autre utilisateur a mis à jour cette présence. Vérifiez l’état actuel avant de corriger à nouveau.",
+      "stepSearch": "Rechercher l’élève",
+      "searchHelp": "Saisissez au moins deux lettres du nom de l’élève.",
+      "selectedStudent": "Élève sélectionné",
+      "stepStatus": "Choisir l’état",
+      "statusHelp": "Vérifiez l’état actuel puis choisissez l’état à appliquer.",
+      "stepSave": "Vérifier et enregistrer",
+      "saveHelp": "Vérifiez l’état et la note avant d’enregistrer."
     }
   },
   "auth": {
@@ -2529,7 +2536,11 @@
       "correctionMode": "Mode correction",
       "correctionHint": "Corriger une présence passée dans votre périmètre.",
       "todayTitle": "Présences du jour",
-      "todaySubtitle": "Suivre et enregistrer les présences et absences de la journée."
+      "todaySubtitle": "Suivre et enregistrer les présences et absences de la journée.",
+      "quickAction": "Enregistrer ou corriger",
+      "closeQuickAction": "Fermer l’action",
+      "operationTitle": "Enregistrer ou corriger la présence",
+      "operationHint": "Recherchez d’abord l’élève, vérifiez son état actuel, puis enregistrez ou corrigez en un seul parcours."
     },
     "attendanceList": {
       "title": "Présences",

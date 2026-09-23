@@ -88,7 +88,7 @@ export function AdminAttendanceOpsHeader({
               className={cn('btn btn--sm', showCorrect ? 'btn--primary' : 'btn--ghost')}
               onClick={onToggleCorrect}
             >
-              {showCorrect ? t('admin.attendanceList.closeCorrect') : t('admin.attendanceList.correctRecord')}
+              {showCorrect ? t('admin.attendanceOps.closeQuickAction') : t('admin.attendanceOps.quickAction')}
             </button>
           )}
           <button
@@ -284,10 +284,14 @@ export function AdminAttendanceCorrectionPanel({
   if (!open) return null;
 
   return (
-    <section className="admin-att-correction" aria-label={t('admin.attendanceOps.correctionMode')}>
-      <div className="admin-att-correction__banner">
-        <span className="admin-att-correction__badge">{t('admin.attendanceOps.correctionMode')}</span>
-        <p className="admin-att-correction__hint">{t('admin.attendanceOps.correctionHint')}</p>
+    <section className="admin-att-operation" aria-label={t('admin.attendanceOps.operationTitle')}>
+      <div className="admin-att-operation__head">
+        <div className="admin-att-operation__icon" aria-hidden="true">✓</div>
+        <div className="admin-att-operation__copy">
+          <span className="admin-att-operation__eyebrow">{t('admin.attendanceOps.quickAction')}</span>
+          <h2 className="admin-att-operation__title">{t('admin.attendanceOps.operationTitle')}</h2>
+          <p className="admin-att-operation__hint">{t('admin.attendanceOps.operationHint')}</p>
+        </div>
       </div>
       <AttendanceCorrectPanel
         onSuccess={onSuccess}

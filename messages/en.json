@@ -601,7 +601,14 @@
       "noCurrentClass": "No current class for this pupil",
       "noCurrentClassDesc": "Attendance cannot be recorded until the pupil is assigned to a class.",
       "conflictTitle": "Attendance changed",
-      "conflictDesc": "Another user updated this attendance record. Review the current status before correcting again."
+      "conflictDesc": "Another user updated this attendance record. Review the current status before correcting again.",
+      "stepSearch": "Find the pupil",
+      "searchHelp": "Type at least two letters from the pupil's name.",
+      "selectedStudent": "Selected pupil",
+      "stepStatus": "Choose the status",
+      "statusHelp": "Review the current status, then choose the status to apply.",
+      "stepSave": "Review and save",
+      "saveHelp": "Check the status and note before saving."
     }
   },
   "auth": {
@@ -2529,7 +2536,11 @@
       "correctionMode": "Correction mode",
       "correctionHint": "Correct a past attendance record within your scope.",
       "todayTitle": "Today's attendance",
-      "todaySubtitle": "Track and record today's attendance and absence statuses."
+      "todaySubtitle": "Track and record today's attendance and absence statuses.",
+      "quickAction": "Record or correct",
+      "closeQuickAction": "Close action",
+      "operationTitle": "Record or correct attendance",
+      "operationHint": "Find the pupil first, review the current status, then record or correct it in one flow."
     },
     "attendanceList": {
       "title": "Attendance",
