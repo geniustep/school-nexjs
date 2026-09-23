@@ -3169,7 +3169,8 @@
           "accountPassword": "كلمة المرور",
           "assignments": "التكليفات المطلوبة",
           "previewReady": "معاينة الصلاحيات جاهزة",
-          "previewAllowed": "الإنشاء مسموح حسب المعاينة"
+          "previewAllowed": "الإنشاء مسموح حسب المعاينة",
+          "existingPerson": "اختيار شخص موجود"
         },
         "createAccount": "إنشاء الحساب",
         "emailPlaceholder": "name@school.ma",
@@ -3335,14 +3336,41 @@
           "createBlockedPreviewPending": "معاينة الصلاحيات غير جاهزة بعد.",
           "createBlockedNotAllowed": "الإنشاء غير مسموح بالبيانات الحالية. راجع المعاينة والحقول الناقصة.",
           "passwordRequiredBeforeCreate": "يرجى تعيين كلمة مرور لحساب الموظف قبل الإنشاء.",
-          "passwordMismatchReview": "تعذر إنشاء الحساب لأن كلمة المرور وتأكيدها غير متطابقين. يرجى مراجعة بيانات الحساب."
+          "passwordMismatchReview": "تعذر إنشاء الحساب لأن كلمة المرور وتأكيدها غير متطابقين. يرجى مراجعة بيانات الحساب.",
+          "existingPersonRequired": "اختر شخصًا موجودًا للمتابعة.",
+          "personAlreadyStaff": "هذا الشخص موظف بالفعل في المدرسة الحالية.",
+          "existingPersonUnavailable": "تعذر استخدام هذا الشخص لأنه لم يعد متاحًا.",
+          "personMultipleAccounts": "هذا الشخص مرتبط بأكثر من حساب؛ يلزم تصحيح الهوية قبل إضافته كموظف."
         },
         "warnings": {
           "blockedCreation": "المعلومات المطلوبة غير مكتملة، لذلك الإنشاء غير مسموح بعد.",
           "teacherProfileWillBeCreated": "سيتم إنشاء ملف أستاذ لهذا العضو."
         },
         "teacherEntryHintTitle": "لإضافة أستاذ مادة استخدم قائمة الأساتذة",
-        "teacherEntryHintDesc": "إنشاء إطار ذكي مخصص للأدوار الإدارية والصلاحيات المتقدمة، وليس للرحلة القصيرة لإضافة أستاذ."
+        "teacherEntryHintDesc": "إنشاء إطار ذكي مخصص للأدوار الإدارية والصلاحيات المتقدمة، وليس للرحلة القصيرة لإضافة أستاذ.",
+        "personSourceTitle": "مصدر بيانات الشخص",
+        "personSourceNew": "شخص جديد",
+        "personSourceNewHint": "إنشاء هوية جديدة وإعدادها كإطار.",
+        "personSourceExisting": "شخص موجود",
+        "personSourceExistingHint": "استخدام شخص موجود دون تكرار هويته أو حسابه.",
+        "existingPersonSearchLabel": "البحث عن شخص موجود",
+        "existingPersonSearchPlaceholder": "ابحث بالاسم أو الهاتف أو البريد الإلكتروني…",
+        "existingPersonSearchHint": "يمكن اختيار ولي أمر أو أستاذ أو شخص مسجل مسبقًا في النظام.",
+        "existingPersonSearchIdle": "ابدأ بكتابة اسم الشخص أو هاتفه أو بريده الإلكتروني.",
+        "existingPersonSearchMin": "اكتب حرفين على الأقل للبحث.",
+        "existingPersonNoResults": "لم يتم العثور على شخص مطابق.",
+        "existingPersonSearchError": "تعذر البحث عن الأشخاص الموجودين. حاول مرة أخرى.",
+        "existingPersonRoles": "الأدوار الحالية",
+        "existingPersonHasAccount": "لديه حساب دخول موجود.",
+        "existingPersonNeedsAccount": "لا يملك حساب دخول بعد.",
+        "existingPersonAlreadyStaff": "موظف بالفعل",
+        "existingPersonSelected": "محدد",
+        "existingPersonUse": "استخدام هذا الشخص",
+        "existingPersonSelectedTitle": "الشخص المحدد",
+        "existingAccountReuseTitle": "سيتم استخدام الحساب الحالي",
+        "existingAccountReuseNotice": "لن يُنشأ حساب جديد ولن تتغير كلمة المرور الحالية. ستُضاف فقط صفة الموظف وصلاحيات الدور المختار.",
+        "existingIdentityReuseNotice": "سيتم استخدام الهوية الحالية وإنشاء حساب موظف مرتبط بها دون إنشاء شخص مكرر.",
+        "reviewExistingAccount": "استخدام الحساب الحالي"
       }
     },
     "classesListDesc": "إدارة الأقسام",
