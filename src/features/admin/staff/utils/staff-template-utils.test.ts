@@ -403,12 +403,13 @@ describe('staff-template-utils', () => {
   });
 
   it('sends person_id to direct staff create payload without duplicate account data', () => {
-    const template = normalizeStaffCreationTemplate({
+    const template: StaffCreationTemplate = {
       code: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
       name: 'Pedagogical director',
+      client_catalog: true,
       admin_kind: 'pedagogical_director',
       requires_user_account: true,
-    })!;
+    };
     const form: StaffSmartCreateFormState = {
       templateCode: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
       selectedBundleCodes: [],
