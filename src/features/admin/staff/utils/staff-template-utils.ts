@@ -959,7 +959,7 @@ export function staffSmartCreateReusesExistingAccount(
   return (
     form.personSource === 'existing' &&
     Boolean(form.existingPartnerId) &&
-    form.existingPersonHasUserAccount
+    form.existingPersonHasUserAccount === true
   );
 }
 
