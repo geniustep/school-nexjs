@@ -177,15 +177,12 @@ export function HistoricalActivationCampaigns() {
       {listLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
 
       {listError ? (
-        <InfoBanner
-          title={copy.loadError}
-          tone="amber"
-          actions={(
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setRefreshKey((value) => value + 1)}>
-              {copy.retry}
-            </button>
-          )}
-        />
+        <div className={styles.errorBlock}>
+          <InfoBanner title={copy.loadError} tone="amber" />
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setRefreshKey((value) => value + 1)}>
+            {copy.retry}
+          </button>
+        </div>
       ) : null}
 
       {!listLoading && !listError && campaignList?.items.length === 0 ? (
