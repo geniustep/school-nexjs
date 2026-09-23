@@ -45,6 +45,15 @@ export function mapStaffTemplateCreateError(
   if (code === 'invalid_email') {
     return t('admin.staffCenter.smartCreate.errors.invalidEmail');
   }
+  if (code === 'person_already_staff') {
+    return t('admin.staffCenter.smartCreate.errors.personAlreadyStaff');
+  }
+  if (code === 'partner_not_found') {
+    return t('admin.staffCenter.smartCreate.errors.existingPersonUnavailable');
+  }
+  if (code === 'person_multiple_accounts') {
+    return t('admin.staffCenter.smartCreate.errors.personMultipleAccounts');
+  }
   return mapAcademicSetupApiError(error, t, 'staff');
 }
 
