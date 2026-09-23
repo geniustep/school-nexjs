@@ -1161,8 +1161,11 @@ export function resolveStaffTemplateCreateBlockMessageKey(input: {
     return `${prefix}.formInvalid`;
   }
 
+  const reusesExistingAccount = Boolean(
+    form.person.person_id && form.person.has_account,
+  );
   const requiresAccount = template.requires_user_account;
-  if (requiresAccount || form.createAccount) {
+  if ((requiresAccount || form.createAccount) && !reusesExistingAccount) {
     if (!form.createAccount && requiresAccount) return `${prefix}.formInvalid`;
     const login = resolveStaffTemplateAccountLogin(form.person, form.login, form.useDifferentLogin);
     if (!login) return `${prefix}.loginRequired`;
