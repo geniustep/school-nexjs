@@ -129,7 +129,7 @@ export function StaffExistingPersonPicker({
                   </div>
                   <button
                     type="button"
-                    className={`btn btn--sm ${active ? 'btn--secondary' : 'btn--primary'}`}
+                    className={`btn btn--sm ${active ? 'btn--ghost' : 'btn--primary'}`}
                     disabled={disabled || !candidate.can_link_as_staff}
                     onClick={() => onSelect(candidate)}
                   >
