@@ -154,9 +154,9 @@ export interface StaffPersonCandidate {
 
 export interface StaffSmartCreateFormState {
   templateCode: string;
-  personSource: StaffSmartCreatePersonSource;
-  existingPartnerId: number | null;
-  existingPersonHasUserAccount: boolean;
+  personSource?: StaffSmartCreatePersonSource;
+  existingPartnerId?: number | null;
+  existingPersonHasUserAccount?: boolean;
   selectedBundleCodes: string[];
   person: StaffTemplatePersonInput;
   createAccount: boolean;
