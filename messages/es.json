@@ -6991,7 +6991,8 @@
             "levelInvalid": "El nivel seleccionado no está disponible en el ámbito académico actual.",
             "validation": "Seleccione un ciclo y un nivel válidos antes de guardar.",
             "classUnassignFailed": "No se pudo retirar al alumno de la clase actual de forma segura. El cambio no se aplicó.",
-            "generic": "No se pudo actualizar el nivel. Inténtelo de nuevo."
+            "generic": "No se pudo actualizar el nivel. Inténtelo de nuevo.",
+            "targetLevelNotCoveredByFeePlan": "El plan financiero actual no cubre el nivel académico seleccionado. Revise el acuerdo financiero del alumno antes de cambiar el nivel. No se realizó ningún cambio."
           }
         }
       },
