@@ -3062,7 +3062,8 @@
           "accountPassword": "Password",
           "assignments": "Required assignments",
           "previewReady": "Permission preview ready",
-          "previewAllowed": "Creation allowed per preview"
+          "previewAllowed": "Creation allowed per preview",
+          "existingPerson": "Existing person selected"
         },
         "createAccount": "Create login account",
         "emailPlaceholder": "name@school.ma",
@@ -3228,14 +3229,41 @@
           "createBlockedPreviewPending": "Permission preview is not ready yet.",
           "createBlockedNotAllowed": "Creation is not allowed with the current data. Review the preview and missing fields.",
           "passwordRequiredBeforeCreate": "Please set a staff account password before creating.",
-          "passwordMismatchReview": "Could not create the account because the password and confirmation do not match. Please review the account details."
+          "passwordMismatchReview": "Could not create the account because the password and confirmation do not match. Please review the account details.",
+          "existingPersonRequired": "Select an existing person to continue.",
+          "personAlreadyStaff": "This person is already staff in the current school.",
+          "existingPersonUnavailable": "This person is no longer available to be added.",
+          "personMultipleAccounts": "This person is linked to multiple accounts; the identity must be corrected before adding them as staff."
         },
         "warnings": {
           "blockedCreation": "Required information is incomplete, so creation is not allowed yet.",
           "teacherProfileWillBeCreated": "A teacher profile will be created for this member."
         },
         "teacherEntryHintTitle": "To add a subject teacher, use the Teachers list",
-        "teacherEntryHintDesc": "Smart staff creation is for administrative roles and advanced permissions, not the short add-teacher flow."
+        "teacherEntryHintDesc": "Smart staff creation is for administrative roles and advanced permissions, not the short add-teacher flow.",
+        "personSourceTitle": "Person source",
+        "personSourceNew": "New person",
+        "personSourceNewHint": "Create a new identity and add it as staff.",
+        "personSourceExisting": "Existing person",
+        "personSourceExistingHint": "Reuse an existing person without duplicating their identity or account.",
+        "existingPersonSearchLabel": "Search existing person",
+        "existingPersonSearchPlaceholder": "Search by name, phone, or email…",
+        "existingPersonSearchHint": "You can select a parent, teacher, or another person already registered.",
+        "existingPersonSearchIdle": "Start typing a name, phone number, or email address.",
+        "existingPersonSearchMin": "Enter at least two characters.",
+        "existingPersonNoResults": "No matching person found.",
+        "existingPersonSearchError": "Could not search existing people. Try again.",
+        "existingPersonRoles": "Current roles",
+        "existingPersonHasAccount": "This person already has a login account.",
+        "existingPersonNeedsAccount": "This person does not have a login account yet.",
+        "existingPersonAlreadyStaff": "Already staff",
+        "existingPersonSelected": "Selected",
+        "existingPersonUse": "Use this person",
+        "existingPersonSelectedTitle": "Selected person",
+        "existingAccountReuseTitle": "The existing account will be reused",
+        "existingAccountReuseNotice": "No new account will be created and the current password will not change. Only the staff role and selected permissions will be added.",
+        "existingIdentityReuseNotice": "The existing identity will be reused and a staff account will be linked to it without creating a duplicate person.",
+        "reviewExistingAccount": "Reuse existing account"
       }
     },
     "classesListDesc": "Manage classes",
