@@ -1280,3 +1280,64 @@
     width: 100%;
   }
 }
+
+
+/* Existing-person adoption inside staff smart create */
+.staff-existing-person {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.staff-existing-person__mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.staff-existing-person__search {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.staff-existing-person__results {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 22rem;
+  overflow: auto;
+}
+
+.staff-existing-person__result {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.staff-existing-person__result:hover:not(:disabled),
+.staff-existing-person__result.is-selected {
+  border-color: var(--primary);
+}
+
+.staff-existing-person__result:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.staff-existing-person__result-main {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.staff-existing-person__result-meta {
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
