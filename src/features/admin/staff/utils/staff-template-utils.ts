@@ -734,6 +734,7 @@ export function buildStaffTemplateCreatePayload(
   template: StaffCreationTemplate,
 ): StaffTemplateCreatePayload {
   const person: StaffTemplatePersonInput = {
+    person_id: form.person.person_id ?? null,
     name: form.person.name.trim(),
     name_ar: (form.person.name_ar ?? '').trim(),
     name_fr: (form.person.name_fr ?? '').trim(),
@@ -787,6 +788,7 @@ export function buildClientCatalogStaffMemberPayload(
   }
 
   const person: StaffTemplatePersonInput = {
+    person_id: form.person.person_id ?? null,
     name: form.person.name.trim(),
     name_ar: (form.person.name_ar ?? '').trim(),
     name_fr: (form.person.name_fr ?? '').trim(),
@@ -803,6 +805,7 @@ export function buildClientCatalogStaffMemberPayload(
   });
 
   const payload: Record<string, unknown> = {
+    person_id: person.person_id || undefined,
     name: person.name,
     name_ar: person.name_ar || undefined,
     name_fr: person.name_fr || undefined,
@@ -928,6 +931,7 @@ export function staffTemplatePersonRequiresEmail(
   template: StaffCreationTemplate | null | undefined,
   form: StaffSmartCreateFormState,
 ): boolean {
+  if (form.person.person_id && form.person.has_account) return false;
   const requiresAccount = Boolean(template?.requires_user_account || form.createAccount);
   return requiresAccount && form.createAccount && !form.useDifferentLogin;
 }
