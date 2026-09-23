@@ -155,7 +155,13 @@ describe('StudentAcademicPlacementCard', () => {
   it('shows the finance blocker without optimistic success state', async () => {
     mocks.correct.mockResolvedValue({
       success: false,
-      error: { code: 'finance_review_required', message: 'blocked' },
+      error: {
+        code: 'finance_review_required',
+        message: 'blocked',
+        details: {
+          finance_review_reasons: ['target_level_not_covered_by_fee_plan'],
+        },
+      },
       meta: {},
     });
 
@@ -177,7 +183,9 @@ describe('StudentAcademicPlacementCard', () => {
 
     await waitFor(() => expect(mocks.correct).toHaveBeenCalledWith(42, { level_id: 2 }));
     expect(
-      screen.getByText('admin.student360.editPage.academicPlacement.errors.financeReviewRequired'),
+      screen.getByText(
+        'admin.student360.editPage.academicPlacement.errors.targetLevelNotCoveredByFeePlan',
+      ),
     ).toBeTruthy();
     expect(mocks.success).not.toHaveBeenCalled();
   });
