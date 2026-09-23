@@ -3246,7 +3246,27 @@
           "teacherProfileWillBeCreated": "Un profil enseignant sera créé pour ce membre."
         },
         "teacherEntryHintTitle": "Pour ajouter un enseignant de matière, utilisez la liste des enseignants",
-        "teacherEntryHintDesc": "La création intelligente du personnel est destinée aux rôles administratifs et aux permissions avancées, pas au flux court d’ajout d’enseignant."
+        "teacherEntryHintDesc": "La création intelligente du personnel est destinée aux rôles administratifs et aux permissions avancées, pas au flux court d’ajout d’enseignant.",
+        "personMode": {
+          "new": "Nouvelle personne",
+          "existing": "Choisir une personne existante",
+          "searchLabel": "Rechercher une personne existante",
+          "searchPlaceholder": "Nom, téléphone ou e-mail",
+          "noResults": "Aucune personne correspondante.",
+          "alreadyStaff": "Cette personne fait déjà partie du personnel",
+          "inactiveAccount": "Le compte existe mais il est inactif",
+          "existingPerson": "Personne existante",
+          "selectedTitle": "L'identité existante sera réutilisée",
+          "reuseAccount": "Le compte et le mot de passe actuels seront conservés sans créer de doublon.",
+          "createAccountForExisting": "Le nouveau compte du personnel sera lié à l'identité existante.",
+          "accountPreservedTitle": "Compte existant conservé",
+          "accountPreservedDesc": "L'identifiant et le mot de passe ne seront pas modifiés. Seuls le rôle et les droits du personnel seront ajoutés.",
+          "roles": {
+            "guardian": "Parent",
+            "teacher": "Enseignant",
+            "staff": "Personnel"
+          }
+        }
       }
     },
     "classesListDesc": "Gérer les classes",
