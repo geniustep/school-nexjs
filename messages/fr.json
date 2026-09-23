@@ -6993,7 +6993,8 @@
             "levelInvalid": "Le niveau sélectionné n'est pas disponible dans le périmètre académique actuel.",
             "validation": "Choisissez un cycle et un niveau valides avant d'enregistrer.",
             "classUnassignFailed": "Impossible de retirer l'élève de la classe actuelle en toute sécurité. Le changement n'a pas été appliqué.",
-            "generic": "Impossible de mettre à jour le niveau. Réessayez."
+            "generic": "Impossible de mettre à jour le niveau. Réessayez.",
+            "targetLevelNotCoveredByFeePlan": "Le plan financier actuel ne couvre pas le niveau scolaire sélectionné. Vérifiez l’accord financier de l’élève avant de changer de niveau. Aucun changement n’a été effectué."
           }
         }
       },
