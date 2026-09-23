@@ -577,13 +577,31 @@
       "loadingStudents": "Chargement des élèves…",
       "noStudentsInClass": "Aucun élève dans cette classe",
       "selectStudent": "Sélectionnez un élève…",
-      "notePlaceholder": "Motif de correction (optionnel)",
+      "notePlaceholder": "Note facultative",
       "saveCorrection": "Enregistrer la correction",
       "scopeHint": "Les corrections s'appliquent uniquement dans votre périmètre administratif.",
       "permissionDesc": "Vous n'avez pas la permission de corriger la présence dans ce périmètre. Contactez l'administrateur principal.",
       "validationError": "Cette correction n'est pas valide. Vérifiez que l'élève appartient à la classe sélectionnée.",
       "saveFailed": "Impossible d'enregistrer la correction.",
-      "success": "Présence corrigée pour {name} le {date}."
+      "success": "Présence corrigée pour {name} le {date}.",
+      "studentSearchLabel": "Rechercher un élève",
+      "studentSearchPlaceholder": "Saisissez le nom de l’élève…",
+      "searchingStudents": "Recherche des élèves…",
+      "studentSearchFailed": "Impossible de rechercher les élèves.",
+      "loadingAttendance": "Vérification de la présence…",
+      "lookupFailed": "Impossible de charger l’état de présence.",
+      "notRecordedDesc": "Aucun état de présence n’a été enregistré pour cet élève à cette date.",
+      "registerStatus": "Enregistrer l’état",
+      "registerSuccess": "Présence enregistrée pour {name} le {date}.",
+      "currentStatus": "État actuel",
+      "lastModified": "Dernière modification",
+      "noteLabel": "Note",
+      "correctionReason": "Motif de correction",
+      "correctionReasonPlaceholder": "Motif de correction (facultatif)",
+      "noCurrentClass": "Aucune classe actuelle pour cet élève",
+      "noCurrentClassDesc": "La présence ne peut pas être enregistrée avant l’affectation à une classe.",
+      "conflictTitle": "La présence a changé",
+      "conflictDesc": "Un autre utilisateur a mis à jour cette présence. Vérifiez l’état actuel avant de corriger à nouveau."
     }
   },
   "auth": {
@@ -2509,7 +2527,9 @@
       "emptyFiltered": "Aucun résultat pour ces filtres",
       "emptyFilteredDesc": "Changez la date, la classe ou le statut — ou réinitialisez à aujourd'hui.",
       "correctionMode": "Mode correction",
-      "correctionHint": "Corriger une présence passée dans votre périmètre."
+      "correctionHint": "Corriger une présence passée dans votre périmètre.",
+      "todayTitle": "Présences du jour",
+      "todaySubtitle": "Suivre et enregistrer les présences et absences de la journée."
     },
     "attendanceList": {
       "title": "Présences",
@@ -2524,7 +2544,8 @@
       "closeCorrect": "Fermer la correction",
       "correctPanelTitle": "Corriger une présence passée",
       "summaryLabel": "Résumé des fiches affichées",
-      "summaryPageScope": "Les totaux ci-dessus concernent la page actuelle uniquement."
+      "summaryPageScope": "Les totaux ci-dessus concernent la page actuelle uniquement.",
+      "lastModified": "Dernière modification"
     },
     "channelsListDesc": "Conversations et annonces dans votre périmètre",
     "cmd": {

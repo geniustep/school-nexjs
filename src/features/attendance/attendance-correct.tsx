@@ -1,27 +1,25 @@
 'use client';
 
-// Admin-only past-date attendance correction panel.
-// Consumes POST /admin/attendance/correct. Visibility is gated to admins who
-// can see student data AND hold manage_attendance — but the API remains the
-// real authority (server enforces scope + permission). Classes and students
-// come from the already-scoped admin endpoints, so the selectable set respects
-// the admin's scope automatically.
-
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { useToast } from '@/components/ui/toast';
-import { Card } from '@/components/ui/primitives';
+import { Card, InfoBanner } from '@/components/ui/primitives';
+import { AttendanceBadge } from '@/components/badges/attendance-badge';
 import { PermissionDeniedState } from '@/components/states/states';
+import { useStudentSearchQuery } from '@/features/admin/students/hooks/use-student-search-query';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { attendanceStatusLabel } from '@/lib/utils/labels';
-import { isoDate } from '@/lib/utils/format';
+import { formatDateTime, isoDate } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { cn } from '@/lib/utils/cn';
-import type { SchoolClass } from '@/types/class';
-import type { Student } from '@/types/student';
-import type { AttendanceStatus, AttendanceCorrectRequest } from '@/types/attendance';
+import {
+  buildAdminAttendanceMutationRequest,
+  isAttendanceConcurrencyError,
+} from './attendance-concurrency';
+import type { StudentSearchHit } from '@/types/student-search';
+import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 
 const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
@@ -32,52 +30,146 @@ const STATUS_BTN: Record<AttendanceStatus, string> = {
   left_early: 'btn--status-blue',
 };
 
-export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }) {
+type AttendanceTarget = {
+  id: number;
+  name: string;
+  classId: number | null;
+  className: string | null;
+  levelName: string | null;
+};
+
+function targetFromStudent(student: StudentSearchHit): AttendanceTarget {
+  return {
+    id: student.id,
+    name: getStudentDisplayName(student),
+    classId: student.class?.id ?? null,
+    className: student.class?.name ?? null,
+    levelName: student.level?.name ?? null,
+  };
+}
+
+function targetFromRecord(record: AttendanceRecord): AttendanceTarget {
+  return {
+    id: record.student.id,
+    name: getStudentDisplayName(record.student),
+    classId: record.class?.id ?? null,
+    className: record.class?.name ?? null,
+    levelName: null,
+  };
+}
+
+export function AttendanceCorrectPanel({
+  onSuccess,
+  selectedDate,
+  initialRecord,
+}: {
+  onSuccess?: () => void;
+  selectedDate?: string;
+  initialRecord?: AttendanceRecord | null;
+}) {
   const t = useT();
   const toast = useToast();
-  const today = isoDate();
+  const date = selectedDate || isoDate();
 
-  const [date, setDate] = useState('');
-  const [classId, setClassId] = useState('');
-  const [studentId, setStudentId] = useState('');
+  const [query, setQuery] = useState('');
+  const [target, setTarget] = useState<AttendanceTarget | null>(null);
   const [status, setStatus] = useState<AttendanceStatus>('present');
   const [note, setNote] = useState('');
+  const [correctionReason, setCorrectionReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [denied, setDenied] = useState(false);
+  const [conflict, setConflict] = useState(false);
 
-  const classesState = useResource<SchoolClass[]>(endpoints.admin.classes);
-  const classes = classesState.data ?? [];
-
-  const studentsState = useResource<Student[]>(
-    classId ? endpoints.admin.students : null,
-    classId ? { class_id: classId, page_size: 200 } : undefined,
+  const search = useStudentSearchQuery(query);
+  const lookup = useResource<AttendanceRecord[]>(
+    target ? endpoints.admin.attendance : null,
+    target
+      ? {
+          student_id: target.id,
+          date,
+          page: 1,
+          page_size: 2,
+        }
+      : undefined,
+    { keepPreviousData: false },
   );
-  const students = studentsState.data ?? [];
+
+  const record = lookup.data?.[0] ?? null;
+  const lookupResolved = target != null && lookup.data !== null && !lookup.loading;
+  const mayCorrectExisting = record?.allowed_actions?.can_correct !== false;
 
   useEffect(() => {
-    setStudentId('');
-  }, [classId]);
+    if (!initialRecord) return;
+    const nextTarget = targetFromRecord(initialRecord);
+    setTarget(nextTarget);
+    setQuery(nextTarget.name);
+    setConflict(false);
+  }, [initialRecord]);
+
+  useEffect(() => {
+    if (!lookupResolved) return;
+    if (record) {
+      setStatus(record.status);
+      setNote(record.notes ?? record.note ?? '');
+    } else {
+      setStatus('present');
+      setNote('');
+    }
+    setCorrectionReason('');
+  }, [lookupResolved, record?.id, record?.expected_write_date, target?.id, date]);
 
   const canSubmit = useMemo(
-    () => Boolean(date && classId && studentId && status) && !submitting,
-    [date, classId, studentId, status, submitting],
+    () =>
+      Boolean(
+        target &&
+          target.classId &&
+          lookupResolved &&
+          (!record || mayCorrectExisting) &&
+          status,
+      ) && !submitting,
+    [target, lookupResolved, record, mayCorrectExisting, status, submitting],
   );
 
+  function chooseStudent(student: StudentSearchHit) {
+    const nextTarget = targetFromStudent(student);
+    setTarget(nextTarget);
+    setQuery(nextTarget.name);
+    setConflict(false);
+    setDenied(false);
+  }
+
+  function changeQuery(value: string) {
+    setQuery(value);
+    if (target && value.trim() !== target.name) {
+      setTarget(null);
+      setConflict(false);
+    }
+  }
+
   async function submit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !target?.classId) return;
     setSubmitting(true);
-    const payload: AttendanceCorrectRequest = {
+    setConflict(false);
+
+    const payload = buildAdminAttendanceMutationRequest({
       date,
-      class_id: Number(classId),
-      student_id: Number(studentId),
+      classId: target.classId,
+      studentId: target.id,
       status,
-      note: note.trim() || undefined,
-    };
-    const res = await api.post(endpoints.admin.attendanceCorrect, payload);
+      note,
+      correctionReason,
+      record,
+    });
+    const res = await api.post<AttendanceRecord>(endpoints.admin.attendanceCorrect, payload);
     setSubmitting(false);
 
     if (!res.success) {
-      if (res.error.code === 'permission_denied') {
+      if (isAttendanceConcurrencyError(res.error)) {
+        setConflict(true);
+        lookup.reload();
+        return;
+      }
+      if (res.error.code === 'permission_denied' || res.error.code === 'forbidden') {
         setDenied(true);
         return;
       }
@@ -89,12 +181,13 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
       return;
     }
 
-    const studentName =
-      getStudentDisplayName(students.find((s) => String(s.id) === studentId)) || '—';
     toast.success(
-      t('attendance.correctPanel.success', { name: studentName, date }),
+      record
+        ? t('attendance.correctPanel.success', { name: target.name, date })
+        : t('attendance.correctPanel.registerSuccess', { name: target.name, date }),
     );
-    setNote('');
+    setCorrectionReason('');
+    lookup.reload();
     onSuccess?.();
   }
 
@@ -106,100 +199,179 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
     );
   }
 
+  const showSearchResults =
+    query.trim().length >= 2 &&
+    search.results.length > 0 &&
+    (!target || query.trim() !== target.name);
+
   return (
-    <Card>
-      <div className="col" style={{ gap: 14 }}>
-        <div className="grid grid--form">
-          <label className="col tiny" style={{ gap: 4 }}>
-            <span className="muted">{t('common.date')}</span>
-            <input
-              className="input"
-              type="date"
-              value={date}
-              max={today}
-              onChange={(e) => setDate(e.target.value)}
-              title={t('attendance.correctPanel.dateHelp')}
-            />
-          </label>
+    <Card className="attendance-quick-ops">
+      <div className="attendance-quick-ops__stack">
+        {conflict ? (
+          <InfoBanner
+            tone="amber"
+            icon="↻"
+            title={t('attendance.correctPanel.conflictTitle')}
+            description={t('attendance.correctPanel.conflictDesc')}
+          />
+        ) : null}
 
-          <label className="col tiny" style={{ gap: 4 }}>
-            <span className="muted">{t('common.class')}</span>
-            <select
-              className="select"
-              value={classId}
-              onChange={(e) => setClassId(e.target.value)}
-            >
-              <option value="">{t('attendance.correctPanel.selectClass')}</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="col tiny" style={{ gap: 4 }}>
-            <span className="muted">{t('attendance.student')}</span>
-            <select
-              className="select"
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              disabled={!classId || studentsState.loading}
-            >
-              <option value="">
-                {!classId
-                  ? t('attendance.correctPanel.selectClassFirst')
-                  : studentsState.loading
-                    ? t('attendance.correctPanel.loadingStudents')
-                    : students.length === 0
-                      ? t('attendance.correctPanel.noStudentsInClass')
-                      : t('attendance.correctPanel.selectStudent')}
-              </option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {getStudentDisplayName(s)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="col tiny" style={{ gap: 6 }}>
-          <span className="muted">{t('common.status')}</span>
-          <div className="wrap-gap">
-            {STATUSES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={cn(
-                  'btn btn--sm',
-                  STATUS_BTN[s],
-                  status === s && 'btn--status-active',
-                )}
-                onClick={() => setStatus(s)}
-              >
-                {attendanceStatusLabel(t, s)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <label className="col tiny" style={{ gap: 4 }}>
-          <span className="muted">{t('common.note')}</span>
+        <label className="attendance-quick-ops__search">
+          <span className="admin-att-field__label">{t('attendance.correctPanel.studentSearchLabel')}</span>
           <input
             className="input"
-            placeholder={t('attendance.correctPanel.notePlaceholder')}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
+            value={query}
+            onChange={(event) => changeQuery(event.target.value)}
+            placeholder={t('attendance.correctPanel.studentSearchPlaceholder')}
+            autoComplete="off"
           />
         </label>
 
-        <div className="row" style={{ gap: 10, alignItems: 'center' }}>
-          <button className="btn btn--primary" onClick={submit} disabled={!canSubmit}>
-            {submitting ? t('common.saving') : t('attendance.correctPanel.saveCorrection')}
-          </button>
-          <span className="tiny muted">{t('attendance.correctPanel.scopeHint')}</span>
-        </div>
+        {search.loading ? (
+          <p className="tiny muted">{t('attendance.correctPanel.searchingStudents')}</p>
+        ) : null}
+        {search.error ? (
+          <p className="form-error">{t('attendance.correctPanel.studentSearchFailed')}</p>
+        ) : null}
+
+        {showSearchResults ? (
+          <div className="attendance-student-search-results" role="listbox">
+            {search.results.map((student) => (
+              <button
+                key={student.id}
+                type="button"
+                className="attendance-student-search-result"
+                onClick={() => chooseStudent(student)}
+              >
+                <strong dir="auto">{getStudentDisplayName(student)}</strong>
+                <span className="tiny muted" dir="auto">
+                  {[student.class?.name, student.level?.name].filter(Boolean).join(' · ') || t('common.dash')}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {target ? (
+          <div className="attendance-selected-student">
+            <div>
+              <strong dir="auto">{target.name}</strong>
+              <p className="tiny muted" dir="auto">
+                {[target.className, target.levelName].filter(Boolean).join(' · ') || t('common.dash')}
+              </p>
+            </div>
+            <span className="mono tiny" dir="ltr">{date}</span>
+          </div>
+        ) : null}
+
+        {target && target.classId == null ? (
+          <InfoBanner
+            tone="amber"
+            title={t('attendance.correctPanel.noCurrentClass')}
+            description={t('attendance.correctPanel.noCurrentClassDesc')}
+          />
+        ) : null}
+
+        {target && lookup.loading ? (
+          <p className="tiny muted">{t('attendance.correctPanel.loadingAttendance')}</p>
+        ) : null}
+
+        {lookup.error ? (
+          <p className="form-error">{lookup.error.message || t('attendance.correctPanel.lookupFailed')}</p>
+        ) : null}
+
+        {lookupResolved && target?.classId ? (
+          <>
+            {record ? (
+              <div className="attendance-current-record">
+                <div className="attendance-current-record__head">
+                  <span className="tiny muted">{t('attendance.correctPanel.currentStatus')}</span>
+                  <AttendanceBadge status={record.status} />
+                </div>
+                <div className="attendance-current-record__meta">
+                  <span>
+                    {t('attendance.correctPanel.lastModified')}: {' '}
+                    <strong dir="auto">{record.last_modified_by?.name ?? record.recorded_by?.name ?? t('common.dash')}</strong>
+                  </span>
+                  <span dir="ltr">{formatDateTime(record.last_modified_at ?? record.recorded_date)}</span>
+                </div>
+              </div>
+            ) : (
+              <InfoBanner
+                tone="amber"
+                title={t('attendance.notRecorded')}
+                description={t('attendance.correctPanel.notRecordedDesc')}
+              />
+            )}
+
+            {record && !mayCorrectExisting ? (
+              <InfoBanner
+                tone="amber"
+                title={t('attendance.correctPanel.permissionDesc')}
+              />
+            ) : (
+              <>
+                <div className="attendance-quick-ops__status">
+                  <span className="admin-att-field__label">{t('attendance.statusColumn')}</span>
+                  <div className="wrap-gap">
+                    {STATUSES.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        className={cn(
+                          'btn btn--sm',
+                          STATUS_BTN[item],
+                          status === item && 'btn--status-active',
+                        )}
+                        onClick={() => setStatus(item)}
+                      >
+                        {attendanceStatusLabel(t, item)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="attendance-quick-ops__field">
+                  <span className="admin-att-field__label">{t('attendance.correctPanel.noteLabel')}</span>
+                  <input
+                    className="input"
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    placeholder={t('attendance.correctPanel.notePlaceholder')}
+                  />
+                </label>
+
+                {record ? (
+                  <label className="attendance-quick-ops__field">
+                    <span className="admin-att-field__label">{t('attendance.correctPanel.correctionReason')}</span>
+                    <input
+                      className="input"
+                      value={correctionReason}
+                      onChange={(event) => setCorrectionReason(event.target.value)}
+                      placeholder={t('attendance.correctPanel.correctionReasonPlaceholder')}
+                    />
+                  </label>
+                ) : null}
+
+                <div className="attendance-quick-ops__actions">
+                  <button
+                    className="btn btn--primary"
+                    type="button"
+                    onClick={submit}
+                    disabled={!canSubmit}
+                  >
+                    {submitting
+                      ? t('common.saving')
+                      : record
+                        ? t('attendance.correctPanel.saveCorrection')
+                        : t('attendance.correctPanel.registerStatus')}
+                  </button>
+                  <span className="tiny muted">{t('attendance.correctPanel.scopeHint')}</span>
+                </div>
+              </>
+            )}
+          </>
+        ) : null}
       </div>
     </Card>
   );

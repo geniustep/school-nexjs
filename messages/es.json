@@ -577,13 +577,31 @@
       "loadingStudents": "Cargando alumnos…",
       "noStudentsInClass": "No hay alumnos en esta clase",
       "selectStudent": "Selecciona un alumno…",
-      "notePlaceholder": "Motivo de la corrección (opcional)",
+      "notePlaceholder": "Nota opcional",
       "saveCorrection": "Guardar corrección",
       "scopeHint": "Las correcciones solo se aplican dentro de tu ámbito administrativo.",
       "permissionDesc": "No tienes permiso para corregir la asistencia en este ámbito. Contacta con el administrador principal.",
       "validationError": "Esa corrección no es válida. Comprueba que el alumno pertenece a la clase seleccionada.",
       "saveFailed": "No se pudo guardar la corrección.",
-      "success": "Asistencia corregida para {name} el {date}."
+      "success": "Asistencia corregida para {name} el {date}.",
+      "studentSearchLabel": "Buscar alumno",
+      "studentSearchPlaceholder": "Escribe el nombre del alumno…",
+      "searchingStudents": "Buscando alumnos…",
+      "studentSearchFailed": "No se pudo buscar alumnos.",
+      "loadingAttendance": "Comprobando el estado de asistencia…",
+      "lookupFailed": "No se pudo cargar el estado de asistencia.",
+      "notRecordedDesc": "No se ha registrado un estado de asistencia para este alumno en esta fecha.",
+      "registerStatus": "Registrar estado",
+      "registerSuccess": "Asistencia registrada para {name} el {date}.",
+      "currentStatus": "Estado actual",
+      "lastModified": "Última modificación",
+      "noteLabel": "Nota",
+      "correctionReason": "Motivo de corrección",
+      "correctionReasonPlaceholder": "Motivo de corrección (opcional)",
+      "noCurrentClass": "El alumno no tiene una clase actual",
+      "noCurrentClassDesc": "No se puede registrar la asistencia hasta asignar al alumno a una clase.",
+      "conflictTitle": "La asistencia ha cambiado",
+      "conflictDesc": "Otro usuario actualizó esta asistencia. Revise el estado actual antes de volver a corregir."
     }
   },
   "auth": {
@@ -2509,7 +2527,9 @@
       "emptyFiltered": "Sin resultados para estos filtros",
       "emptyFilteredDesc": "Pruebe otra fecha, clase o estado — o restablezca a hoy.",
       "correctionMode": "Modo corrección",
-      "correctionHint": "Corregir un registro pasado dentro de su alcance."
+      "correctionHint": "Corregir un registro pasado dentro de su alcance.",
+      "todayTitle": "Asistencia de hoy",
+      "todaySubtitle": "Seguimiento y registro de la asistencia y las ausencias de hoy."
     },
     "attendanceList": {
       "title": "Asistencia",
@@ -2524,7 +2544,8 @@
       "closeCorrect": "Cerrar corrección",
       "correctPanelTitle": "Corregir asistencia anterior",
       "summaryLabel": "Resumen de registros mostrados",
-      "summaryPageScope": "Los totales son solo de la página actual."
+      "summaryPageScope": "Los totales son solo de la página actual.",
+      "lastModified": "Última modificación"
     },
     "channelsListDesc": "Conversaciones y anuncios dentro de su acceso",
     "cmd": {

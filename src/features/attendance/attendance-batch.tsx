@@ -3,9 +3,6 @@
 // Teacher batch attendance entry. Loads today's roster for an assigned class,
 // lets the teacher set a status per student, and submits via the documented
 // batch endpoint. Handles partial success (saved/failed/errors).
-//
-// Only assigned classes are reachable — the API returns permission_denied
-// otherwise, surfaced through ApiErrorView.
 
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -18,6 +15,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import { isoDate } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { cn } from '@/lib/utils/cn';
+import { buildTeacherAttendanceBatchItem } from './attendance-concurrency';
 import type {
   AttendanceToday,
   AttendanceStatus,
@@ -26,7 +24,6 @@ import type {
 
 const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
-// Maps each attendance status to a semantic button color class.
 const STATUS_BTN: Record<AttendanceStatus, string> = {
   present: 'btn--status-green',
   absent: 'btn--status-red',
@@ -39,6 +36,8 @@ interface RosterRow {
   full_name: string;
   status: AttendanceStatus;
   note: string;
+  expected_write_date?: string;
+  expected_missing: boolean;
 }
 
 function buildRoster(today: AttendanceToday): RosterRow[] {
@@ -52,7 +51,9 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
       student_id: r.student.id,
       full_name: getStudentDisplayName(r.student),
       status: r.status,
-      note: r.note ?? '',
+      note: r.notes ?? r.note ?? '',
+      expected_write_date: r.expected_write_date ?? undefined,
+      expected_missing: false,
     });
   }
   // API returns `id` (not `student_id`) in the not_recorded array.
@@ -65,13 +66,12 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
       full_name: getStudentDisplayName(n),
       status: n.status ?? 'present',
       note: '',
+      expected_missing: true,
     });
   }
   return rows.sort((a, b) => a.full_name.localeCompare(b.full_name));
 }
 
-// Detects the backend's teacher_today_only policy rejection (422). The policy
-// hint may arrive in error.details.policy or be implied by the message.
 function isTeacherTodayOnly(error: { code: string; message?: string; details?: Record<string, unknown> }): boolean {
   if (error.code !== 'validation_error') return false;
   if (error.details?.policy === 'teacher_today_only') return true;
@@ -129,11 +129,15 @@ export function AttendanceBatch({ classId }: { classId: number }) {
       endpoints.teacher.attendanceBatch(classId),
       {
         date,
-        items: roster.map((r) => ({
-          student_id: r.student_id,
-          status: r.status,
-          note: r.note || undefined,
-        })),
+        items: roster.map((r) =>
+          buildTeacherAttendanceBatchItem({
+            studentId: r.student_id,
+            status: r.status,
+            note: r.note,
+            expectedWriteDate: r.expected_write_date,
+            expectedMissing: r.expected_missing,
+          }),
+        ),
       },
     );
     setSubmitting(false);
@@ -166,7 +170,6 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     <ResourceView state={state} loadingLabel={t('attendance.loadingRoster')}>
       {() => (
         <>
-          {/* Toolbar: date picker (today only) + mark-all quick actions */}
           <div className="attendance-toolbar">
             <label className="attendance-toolbar__field">
               <span className="muted">{t('attendance.dateLabel')}</span>
@@ -199,7 +202,6 @@ export function AttendanceBatch({ classId }: { classId: number }) {
             </Card>
           ) : (
             <>
-              {/* Status counts summary chips */}
               <div className="attendance-chips">
                 {STATUSES.map((s) => (
                   <span key={s} className={cn('attendance-chip', `attendance-chip--${s}`)}>
@@ -208,7 +210,6 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 ))}
               </div>
 
-              {/* Roster table */}
               <div className="table-wrap card" style={{ padding: 0 }}>
                 <table className="data">
                   <thead>
@@ -265,14 +266,9 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 </table>
               </div>
 
-              {/* Save bar — sticky when unsaved */}
               <div className={cn('save-bar save-bar--sticky', touched && 'save-bar--dirty')}>
                 <span className="save-bar__status">
-                  {touched ? (
-                    <>{t('attendance.unsavedChanges')}</>
-                  ) : (
-                    <>{t('attendance.allSaved')}</>
-                  )}
+                  {touched ? t('attendance.unsavedChanges') : t('attendance.allSaved')}
                 </span>
                 <button
                   className="btn btn--primary"

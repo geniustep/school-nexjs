@@ -577,13 +577,31 @@
       "loadingStudents": "جاري تحميل التلاميذ…",
       "noStudentsInClass": "لا يوجد تلاميذ في هذا القسم",
       "selectStudent": "اختر تلميذًا…",
-      "notePlaceholder": "سبب التصحيح (اختياري)",
+      "notePlaceholder": "ملاحظة اختيارية",
       "saveCorrection": "حفظ التصحيح",
       "scopeHint": "التصحيحات تُطبَّق ضمن نطاقك الإداري فقط.",
       "permissionDesc": "لا تملك صلاحية تصحيح الحضور في هذا النطاق. تواصل مع مدير مدرستك.",
       "validationError": "هذا التصحيح غير صالح. تأكد أن التلميذ ينتمي إلى القسم المحدد.",
       "saveFailed": "تعذّر حفظ التصحيح.",
-      "success": "تم تصحيح حضور {name} بتاريخ {date}."
+      "success": "تم تصحيح حضور {name} بتاريخ {date}.",
+      "studentSearchLabel": "بحث سريع عن التلميذ",
+      "studentSearchPlaceholder": "اكتب اسم التلميذ…",
+      "searchingStudents": "جاري البحث عن التلاميذ…",
+      "studentSearchFailed": "تعذّر البحث عن التلميذ.",
+      "loadingAttendance": "جاري التحقق من حالة الحضور…",
+      "lookupFailed": "تعذّر تحميل حالة الحضور.",
+      "notRecordedDesc": "لم تُسجَّل حالة حضور لهذا التلميذ في هذا التاريخ.",
+      "registerStatus": "تسجيل الحالة",
+      "registerSuccess": "تم تسجيل حالة حضور {name} بتاريخ {date}.",
+      "currentStatus": "الحالة الحالية",
+      "lastModified": "آخر تعديل",
+      "noteLabel": "ملاحظة",
+      "correctionReason": "سبب التصحيح",
+      "correctionReasonPlaceholder": "سبب التصحيح (اختياري)",
+      "noCurrentClass": "لا يوجد قسم حالي للتلميذ",
+      "noCurrentClassDesc": "لا يمكن تسجيل الحضور قبل إسناد التلميذ إلى قسم.",
+      "conflictTitle": "تغيّرت حالة الحضور",
+      "conflictDesc": "تم تحديث حالة الحضور بواسطة مستخدم آخر. راجع الحالة الحالية قبل إعادة التصحيح."
     }
   },
   "auth": {
@@ -2612,7 +2630,9 @@
       "emptyFiltered": "لا توجد نتائج لعوامل التصفية هذه",
       "emptyFilteredDesc": "جرّب تغيير التاريخ أو القسم أو الحالة، أو أعد التعيين لعرض اليوم.",
       "correctionMode": "وضع التصحيح",
-      "correctionHint": "تصحيح سجل حضور لتاريخ سابق — يُحفظ ضمن نطاق صلاحياتك."
+      "correctionHint": "تصحيح سجل حضور لتاريخ سابق — يُحفظ ضمن نطاق صلاحياتك.",
+      "todayTitle": "غياب اليوم",
+      "todaySubtitle": "متابعة وتسجيل حالات الحضور والغياب لليوم الدراسي."
     },
     "attendanceList": {
       "title": "الحضور والغياب",
@@ -2627,7 +2647,8 @@
       "closeCorrect": "إغلاق التصحيح",
       "correctPanelTitle": "تصحيح سجل حضور سابق",
       "summaryLabel": "ملخص السجلات المعروضة",
-      "summaryPageScope": "الأرقام أعلاه من الصفحة الحالية فقط — قد يوجد المزيد في الصفحات الأخرى."
+      "summaryPageScope": "الأرقام أعلاه من الصفحة الحالية فقط — قد يوجد المزيد في الصفحات الأخرى.",
+      "lastModified": "آخر تعديل"
     },
     "channelsListDesc": "قنوات التواصل المدرسي ضمن نطاق صلاحياتك",
     "cmd": {

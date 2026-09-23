@@ -577,13 +577,31 @@
       "loadingStudents": "Loading pupils…",
       "noStudentsInClass": "No pupils in this class",
       "selectStudent": "Select a pupil…",
-      "notePlaceholder": "Reason for correction (optional)",
+      "notePlaceholder": "Optional note",
       "saveCorrection": "Save correction",
       "scopeHint": "Corrections apply only within your administrative scope.",
       "permissionDesc": "You do not have permission to correct attendance for this scope. Contact your school's main administrator.",
       "validationError": "That correction is not valid. Check the pupil belongs to the selected class.",
       "saveFailed": "Could not save the correction.",
-      "success": "Attendance corrected for {name} on {date}."
+      "success": "Attendance corrected for {name} on {date}.",
+      "studentSearchLabel": "Find a pupil",
+      "studentSearchPlaceholder": "Type a pupil name…",
+      "searchingStudents": "Searching pupils…",
+      "studentSearchFailed": "Could not search pupils.",
+      "loadingAttendance": "Checking attendance status…",
+      "lookupFailed": "Could not load attendance status.",
+      "notRecordedDesc": "No attendance status has been recorded for this pupil on this date.",
+      "registerStatus": "Record status",
+      "registerSuccess": "Attendance recorded for {name} on {date}.",
+      "currentStatus": "Current status",
+      "lastModified": "Last modified",
+      "noteLabel": "Note",
+      "correctionReason": "Correction reason",
+      "correctionReasonPlaceholder": "Correction reason (optional)",
+      "noCurrentClass": "No current class for this pupil",
+      "noCurrentClassDesc": "Attendance cannot be recorded until the pupil is assigned to a class.",
+      "conflictTitle": "Attendance changed",
+      "conflictDesc": "Another user updated this attendance record. Review the current status before correcting again."
     }
   },
   "auth": {
@@ -2509,7 +2527,9 @@
       "emptyFiltered": "No results for these filters",
       "emptyFilteredDesc": "Try another date, class, or status — or reset to today.",
       "correctionMode": "Correction mode",
-      "correctionHint": "Correct a past attendance record within your scope."
+      "correctionHint": "Correct a past attendance record within your scope.",
+      "todayTitle": "Today's attendance",
+      "todaySubtitle": "Track and record today's attendance and absence statuses."
     },
     "attendanceList": {
       "title": "Attendance",
@@ -2524,7 +2544,8 @@
       "closeCorrect": "Close correction",
       "correctPanelTitle": "Correct a past attendance record",
       "summaryLabel": "Summary of displayed records",
-      "summaryPageScope": "Counts above are for the current page only — more may exist on other pages."
+      "summaryPageScope": "Counts above are for the current page only — more may exist on other pages.",
+      "lastModified": "Last modified"
     },
     "channelsListDesc": "Conversations and announcements within your access",
     "cmd": {
