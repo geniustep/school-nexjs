@@ -30,12 +30,19 @@ export interface GuardianAccountInfo {
   password_was_set?: boolean;
 }
 
+export interface AcademicLevelCycle {
+  code: string;
+  name?: string | null;
+}
+
 export interface AcademicLevelOption {
   id: number;
   name: string;
   code?: string | null;
   display_alias?: string | null;
   display_name?: string | null;
+  category?: string | null;
+  cycle?: AcademicLevelCycle | null;
 }
 
 export interface AcademicClassOption {
@@ -429,6 +436,11 @@ export interface StudentCreatePayload {
 }
 
 export type StudentUpdatePayload = Partial<StudentCreatePayload>;
+
+export interface StudentAcademicPlacementCorrectPayload {
+  level_id: number;
+  reason?: string;
+}
 
 export interface StudentCapabilities {
   can_manage: boolean;
