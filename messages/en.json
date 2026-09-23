@@ -6991,7 +6991,8 @@
             "levelInvalid": "The selected level is not available in the current academic scope.",
             "validation": "Select a valid cycle and level before saving.",
             "classUnassignFailed": "The student could not be safely removed from the current class. The change was not applied.",
-            "generic": "The level could not be updated. Please try again."
+            "generic": "The level could not be updated. Please try again.",
+            "targetLevelNotCoveredByFeePlan": "The current financial plan does not cover the selected academic level. Review the student's financial agreement before changing the level. No change was made."
           }
         }
       },
