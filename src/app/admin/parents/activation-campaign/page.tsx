@@ -36,6 +36,7 @@ import type {
   ParentActivationCampaignRecipient,
   ParentActivationMessagingCounts,
 } from '@/types/parent-activation-campaign';
+import { HistoricalActivationCampaigns } from './historical-activation-campaigns';
 import styles from './activation-campaign.module.css';
 
 const EMPTY_MESSAGING_COUNTS: ParentActivationMessagingCounts = {
@@ -243,6 +244,8 @@ export default function ParentActivationCampaignPage() {
           </Link>
         }
       />
+
+      <HistoricalActivationCampaigns />
 
       <InfoBanner
         title={dispatchCopy.previewSafetyTitle}
