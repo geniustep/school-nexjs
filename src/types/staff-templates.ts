@@ -90,10 +90,10 @@ export interface StaffPersonCandidate {
   person_id: number;
   user_id?: number | null;
   name: string;
-  name_ar?: string | null;
-  name_fr?: string | null;
-  email?: string | null;
-  phone?: string | null;
+  name_ar?: string | null | false;
+  name_fr?: string | null | false;
+  email?: string | null | false;
+  phone?: string | null | false;
   roles?: string[];
   has_account: boolean;
   account_active: boolean;
