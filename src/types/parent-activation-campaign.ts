@@ -91,6 +91,135 @@ export interface ParentActivationCampaign {
   recipients: ParentActivationCampaignRecipient[];
 }
 
+export interface ParentActivationAudienceSummary {
+  total: number;
+  eligible: number;
+  selected: number;
+  excluded: number;
+  eligible_not_selected: number;
+}
+
+export type ParentActivationHistoricalMessageStatus =
+  | 'not_sent'
+  | 'queued'
+  | 'processing'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'failed'
+  | 'unavailable';
+
+export interface ParentActivationHistoricalMessageSummary {
+  scope: 'selected_for_dispatch';
+  denominator: number;
+  not_sent: number;
+  queued: number;
+  processing: number;
+  sent: number;
+  delivered: number;
+  read: number;
+  failed: number;
+  unavailable: number;
+}
+
+export type ParentActivationHistoricalActivationStatus =
+  | 'activated_via_campaign_link'
+  | 'pending_valid_link'
+  | 'expired'
+  | 'revoked'
+  | 'not_issued'
+  | 'unknown';
+
+export interface ParentActivationHistoricalActivationSummary {
+  activated_via_campaign_link: number;
+  pending_valid_link: number;
+  expired: number;
+  revoked: number;
+  not_issued: number;
+  unknown: number;
+}
+
+export interface ParentActivationHistoricalMetadata {
+  messaging_status_available: boolean;
+  messaging_status_deferred: boolean;
+  status_as_of: string | null;
+  activation_as_of: string | null;
+}
+
+export interface ParentActivationHistoricalFunnel {
+  semantics: string;
+  audience_total: number;
+  eligible: number;
+  selected: number;
+  dispatch_enqueued: number;
+  activated_via_campaign_link: number;
+  message_current_state: {
+    sent: number;
+    delivered: number;
+    read: number;
+  } | null;
+  sent: number | null;
+  delivered: number | null;
+  read: number | null;
+}
+
+export interface ParentActivationHistoricalCampaignHeader {
+  id: number;
+  name: string;
+  state: 'draft' | 'prepared' | string;
+  create_date: string | null;
+  prepared_at: string | null;
+}
+
+export interface ParentActivationHistoricalCampaignListItem extends ParentActivationHistoricalCampaignHeader {
+  audience_summary: ParentActivationAudienceSummary;
+  message_summary: ParentActivationHistoricalMessageSummary | null;
+  activation_summary: ParentActivationHistoricalActivationSummary;
+  funnel: ParentActivationHistoricalFunnel;
+  metadata: ParentActivationHistoricalMetadata;
+}
+
+export interface ParentActivationHistoricalCampaignList {
+  items: ParentActivationHistoricalCampaignListItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface ParentActivationHistoricalAnalytics {
+  campaign: ParentActivationHistoricalCampaignHeader;
+  audience_summary: ParentActivationAudienceSummary;
+  message_summary: ParentActivationHistoricalMessageSummary;
+  activation_summary: ParentActivationHistoricalActivationSummary;
+  funnel: ParentActivationHistoricalFunnel;
+  metadata: ParentActivationHistoricalMetadata;
+}
+
+export interface ParentActivationHistoricalRecipient {
+  recipient_id: number;
+  parent_id: number;
+  parent_name: string;
+  eligible_for_send: boolean;
+  selected_for_send: boolean;
+  exclusion_reason: ParentActivationExclusionReason | string | null;
+  message_status: ParentActivationHistoricalMessageStatus | null;
+  activation_status: ParentActivationHistoricalActivationStatus | null;
+}
+
+export interface ParentActivationHistoricalRecipientPage {
+  items: ParentActivationHistoricalRecipient[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  metadata: ParentActivationHistoricalMetadata;
+}
+
 export interface ParentActivationBulkSelectionRejected {
   recipient_id: number;
   reason_code: string;
