@@ -66,6 +66,7 @@ import {
 import { StaffCreateSuccessPanel } from '@/features/admin/staff/components/staff-create-success-panel';
 import { StaffSmartCreateDetailsHero } from '@/features/admin/staff/components/staff-smart-create-details-hero';
 import { StaffSmartCreateValidationChecklist } from '@/features/admin/staff/components/staff-smart-create-validation-checklist';
+import { StaffExistingPersonPicker } from '@/features/admin/staff/components/staff-existing-person-picker';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
@@ -81,6 +82,7 @@ import type { Level, SchoolClass, Subject } from '@/types/class';
 import type {
   StaffAssignmentPickerState,
   StaffCreationTemplate,
+  StaffPersonCandidate,
   StaffSmartCreateWizardStep,
   StaffTemplateCreateResult,
 } from '@/types/staff-templates';
@@ -155,6 +157,56 @@ function StaffSmartCreateWizardContent() {
     () => displayTemplates.find((item) => item.code === form.templateCode) ?? null,
     [displayTemplates, form.templateCode],
   );
+
+  function handleExistingPersonSelect(person: StaffPersonCandidate) {
+    setForm((current) => ({
+      ...current,
+      person: {
+        person_id: person.person_id,
+        has_account: person.has_account,
+        name: person.name,
+        name_ar: person.name_ar ?? '',
+        name_fr: person.name_fr ?? '',
+        account_activation_language: '',
+        phone: person.phone ?? '',
+        email: person.email ?? '',
+      },
+      createAccount: !person.has_account,
+      assignPasswordNow: !person.has_account,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+    }));
+    setPersonErrors({});
+    setPasswordErrors({});
+    setPasswordFormError(null);
+    setDetailsFormError(null);
+  }
+
+  function handleUseNewPerson() {
+    setForm((current) => ({
+      ...current,
+      person: {
+        name: '',
+        name_ar: '',
+        name_fr: '',
+        account_activation_language: '',
+        phone: '',
+        email: '',
+      },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+    }));
+    setPersonErrors({});
+    setPasswordErrors({});
+    setPasswordFormError(null);
+    setDetailsFormError(null);
+  }
 
   const bundleEditorTemplate = useMemo(
     () => resolveStaffTemplateForBundleEditor(selectedTemplate, preview),
@@ -810,6 +862,24 @@ function StaffSmartCreateWizardContent() {
                         </p>
                       </div>
                     </div>
+                    <StaffExistingPersonPicker
+                      activeSchoolId={activeSchoolId}
+                      selectedPersonId={form.person.person_id}
+                      onSelect={handleExistingPersonSelect}
+                      onUseNewPerson={handleUseNewPerson}
+                    />
+                    {form.person.person_id ? (
+                      <InfoBanner
+                        tone="blue"
+                        icon="✓"
+                        title={t('admin.staffCenter.smartCreate.personMode.selectedTitle')}
+                        description={
+                          form.person.has_account
+                            ? t('admin.staffCenter.smartCreate.personMode.reuseAccount')
+                            : t('admin.staffCenter.smartCreate.personMode.createAccountForExisting')
+                        }
+                      />
+                    ) : null}
                     <div className="staff-smart-create__field-grid">
                       <label
                         className={`staff-smart-create__field staff-smart-create__field--wide${personErrors.name ? ' staff-smart-create__field--invalid' : ''}`}
@@ -956,7 +1026,14 @@ function StaffSmartCreateWizardContent() {
                     </div>
                   </section>
 
-                  {selectedTemplate.requires_user_account || form.createAccount ? (
+                  {form.person.person_id && form.person.has_account ? (
+                    <InfoBanner
+                      tone="blue"
+                      icon="✓"
+                      title={t('admin.staffCenter.smartCreate.personMode.accountPreservedTitle')}
+                      description={t('admin.staffCenter.smartCreate.personMode.accountPreservedDesc')}
+                    />
+                  ) : selectedTemplate.requires_user_account || form.createAccount ? (
                     <>
                       <section
                         id="staff-create-account"

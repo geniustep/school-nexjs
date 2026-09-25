@@ -3214,7 +3214,27 @@
           "teacherProfileWillBeCreated": "A teacher profile will be created for this member."
         },
         "teacherEntryHintTitle": "To add a subject teacher, use the Teachers list",
-        "teacherEntryHintDesc": "Smart staff creation is for administrative roles and advanced permissions, not the short add-teacher flow."
+        "teacherEntryHintDesc": "Smart staff creation is for administrative roles and advanced permissions, not the short add-teacher flow.",
+        "personMode": {
+          "new": "New person",
+          "existing": "Choose existing person",
+          "searchLabel": "Search existing people",
+          "searchPlaceholder": "Name, phone, or email",
+          "noResults": "No matching person found.",
+          "alreadyStaff": "This person is already staff",
+          "inactiveAccount": "The account exists but is inactive",
+          "existingPerson": "Existing person",
+          "selectedTitle": "Existing identity will be reused",
+          "reuseAccount": "The current account and password will be preserved; no duplicate account will be created.",
+          "createAccountForExisting": "A staff account will be linked to the existing person identity.",
+          "accountPreservedTitle": "Existing account preserved",
+          "accountPreservedDesc": "The login and password will not be changed. Only the staff role and required permissions will be added.",
+          "roles": {
+            "guardian": "Guardian",
+            "teacher": "Teacher",
+            "staff": "Staff"
+          }
+        }
       }
     },
     "classesListDesc": "Manage classes",
