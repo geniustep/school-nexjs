@@ -1,0 +1,332 @@
+.historyCard {
+  display: grid;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.heading,
+.selectedHeader,
+.sectionHeading,
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heading {
+  align-items: flex-start;
+}
+
+.heading h2,
+.selectedHeader h3,
+.sectionHeading h3 {
+  margin: 0;
+}
+
+.heading p,
+.selectedHeader p,
+.sectionHeading p {
+  margin-block: 5px 0;
+}
+
+.errorBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loading,
+.empty,
+.subtleLine,
+.freshness {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: .84rem;
+}
+
+.empty {
+  padding: 18px;
+  border: 1px dashed var(--c-border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.campaignStrip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(245px, 310px);
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+}
+
+.campaignButton {
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  text-align: start;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.campaignButton:hover {
+  border-color: color-mix(in srgb, var(--c-primary) 45%, var(--c-border));
+}
+
+.campaignButton:focus-visible,
+.statusMetric:focus-visible,
+.recipientRow:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.campaignButtonActive {
+  border-color: color-mix(in srgb, var(--c-primary) 55%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 6%, var(--c-surface));
+}
+
+.campaignButtonTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.campaignButtonTop strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.campaignMeta {
+  color: var(--c-text-muted);
+  font-size: .76rem;
+}
+
+.campaignCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  color: var(--c-text-muted);
+  font-size: .76rem;
+}
+
+.campaignCounts strong {
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination {
+  justify-content: flex-end;
+  color: var(--c-text-muted);
+  font-size: .8rem;
+}
+
+.selectedHeader {
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+
+.analytics {
+  display: grid;
+  gap: 14px;
+}
+
+.analyticsSection,
+.drilldown {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface-2);
+}
+
+.statGrid,
+.metricGrid,
+.activationGrid {
+  display: grid;
+  gap: 9px;
+}
+
+.statGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metricGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.activationGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.statusMetric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  min-height: 46px;
+  padding: 10px 11px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.statusMetric:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--c-primary) 42%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-surface));
+}
+
+.statusMetric:disabled {
+  cursor: default;
+  opacity: .7;
+}
+
+.statusMetric span {
+  color: var(--c-text-muted);
+  font-size: .78rem;
+}
+
+.statusMetric strong {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.statusMetric[data-status='failed'] strong,
+.statusMetric[data-status='expired'] strong,
+.statusMetric[data-status='revoked'] strong {
+  color: var(--c-red);
+}
+
+.statusMetric[data-status='read'] strong,
+.statusMetric[data-status='delivered'] strong,
+.statusMetric[data-status='activated_via_campaign_link'] strong {
+  color: var(--c-green);
+}
+
+.statusMetric[data-status='unavailable'] strong,
+.statusMetric[data-status='unknown'] strong {
+  color: var(--c-amber);
+}
+
+.flowGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.flowStep {
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  min-height: 78px;
+  padding: 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  text-align: center;
+}
+
+.flowStep strong {
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.flowStep span {
+  color: var(--c-text-muted);
+  font-size: .76rem;
+}
+
+.flowArrow {
+  color: var(--c-text-muted);
+  font-weight: 800;
+}
+
+.recipientList {
+  display: grid;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.recipientRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--c-border);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.recipientRow:last-child {
+  border-bottom: 0;
+}
+
+.recipientRow:hover {
+  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-surface));
+}
+
+.recipientRow span {
+  color: var(--c-text-muted);
+  font-size: .78rem;
+  text-align: end;
+}
+
+@media (max-width: 1050px) {
+  .statGrid,
+  .metricGrid,
+  .activationGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .flowGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .flowArrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+}
+
+@media (max-width: 680px) {
+  .heading,
+  .selectedHeader,
+  .sectionHeading,
+  .recipientRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .statGrid,
+  .metricGrid,
+  .activationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaignStrip {
+    grid-auto-columns: minmax(82vw, 1fr);
+  }
+
+  .recipientRow span {
+    text-align: start;
+  }
+}
