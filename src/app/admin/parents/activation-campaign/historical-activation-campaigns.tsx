@@ -2,14 +2,16 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Badge, Card, InfoBanner, StatCard } from '@/components/ui/primitives';
+import { Badge, Card, InfoBanner } from '@/components/ui/primitives';
 import { useLocale } from '@/features/i18n/locale-context';
 import {
   formatHistoricalDate,
   getHistoricalActivationStatusLabel,
   getHistoricalMessageStatusLabel,
+  getHistoricalMilestoneLabel,
   getParentActivationHistoricalCopy,
   historicalMessageSummaryIsBalanced,
+  historicalMilestoneRate,
 } from '@/features/parents/parent-activation-historical-analytics';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
@@ -19,11 +21,13 @@ import type {
   ParentActivationHistoricalAnalytics,
   ParentActivationHistoricalCampaignList,
   ParentActivationHistoricalMessageStatus,
+  ParentActivationHistoricalMilestone,
+  ParentActivationHistoricalRecipient,
   ParentActivationHistoricalRecipientPage,
 } from '@/types/parent-activation-campaign';
 import styles from './historical-activation-campaigns.module.css';
 
-const MESSAGE_STATUSES: ParentActivationHistoricalMessageStatus[] = [
+const CURRENT_MESSAGE_STATUSES: ParentActivationHistoricalMessageStatus[] = [
   'not_sent',
   'queued',
   'processing',
@@ -43,14 +47,16 @@ const ACTIVATION_STATUSES: ParentActivationHistoricalActivationStatus[] = [
   'unknown',
 ];
 
-type Drilldown =
-  | { kind: 'message'; status: ParentActivationHistoricalMessageStatus; label: string }
-  | { kind: 'activation'; status: ParentActivationHistoricalActivationStatus; label: string };
+type RecipientView =
+  | { kind: 'milestone'; value: 'sent' | 'delivered' | 'read' | 'opened_activation_link' }
+  | { kind: 'message'; value: 'failed' | 'not_sent' };
+
+const DEFAULT_VIEW: RecipientView = { kind: 'milestone', value: 'sent' };
 
 export function HistoricalActivationCampaigns() {
   const { locale } = useLocale();
   const copy = getParentActivationHistoricalCopy(locale);
-  const [page, setPage] = useState(1);
+  const [campaignPage, setCampaignPage] = useState(1);
   const [campaignList, setCampaignList] = useState<ParentActivationHistoricalCampaignList | null>(null);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(false);
@@ -58,7 +64,8 @@ export function HistoricalActivationCampaigns() {
   const [analytics, setAnalytics] = useState<ParentActivationHistoricalAnalytics | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(false);
-  const [drilldown, setDrilldown] = useState<Drilldown | null>(null);
+  const [recipientView, setRecipientView] = useState<RecipientView>(DEFAULT_VIEW);
+  const [recipientPageNumber, setRecipientPageNumber] = useState(1);
   const [recipientPage, setRecipientPage] = useState<ParentActivationHistoricalRecipientPage | null>(null);
   const [recipientLoading, setRecipientLoading] = useState(false);
   const [recipientError, setRecipientError] = useState(false);
@@ -69,9 +76,10 @@ export function HistoricalActivationCampaigns() {
     let active = true;
     setListLoading(true);
     setListError(false);
+
     api.get<ParentActivationHistoricalCampaignList>(
       endpoints.admin.parentActivationCampaigns,
-      { page, limit: 8, sort: 'id_desc' },
+      { page: campaignPage, limit: 10, sort: 'id_desc' },
       { signal: controller.signal },
     ).then((response) => {
       if (!active) return;
@@ -82,31 +90,33 @@ export function HistoricalActivationCampaigns() {
         return;
       }
       setCampaignList(response.data);
-      setSelectedCampaignId(response.data.items[0]?.id ?? null);
+      setSelectedCampaignId((current) => {
+        if (current && response.data.items.some((item) => item.id === current)) return current;
+        return response.data.items[0]?.id ?? null;
+      });
     }).catch(() => {
       if (active) setListError(true);
     }).finally(() => {
       if (active) setListLoading(false);
     });
+
     return () => {
       active = false;
       controller.abort();
     };
-  }, [page, refreshKey]);
+  }, [campaignPage, refreshKey]);
 
   useEffect(() => {
     if (!selectedCampaignId) {
       setAnalytics(null);
-      setDrilldown(null);
-      setRecipientPage(null);
       return;
     }
+
     const controller = new AbortController();
     let active = true;
     setAnalyticsLoading(true);
     setAnalyticsError(false);
-    setDrilldown(null);
-    setRecipientPage(null);
+
     api.get<ParentActivationHistoricalAnalytics>(
       endpoints.admin.parentActivationCampaignAnalytics(selectedCampaignId),
       undefined,
@@ -124,43 +134,81 @@ export function HistoricalActivationCampaigns() {
     }).finally(() => {
       if (active) setAnalyticsLoading(false);
     });
+
     return () => {
       active = false;
       controller.abort();
     };
   }, [selectedCampaignId, refreshKey]);
 
-  async function openDrilldown(next: Drilldown) {
-    if (!selectedCampaignId) return;
-    setDrilldown(next);
-    setRecipientLoading(true);
-    setRecipientError(false);
-    setRecipientPage(null);
-    const query = next.kind === 'message'
-      ? { page: 1, limit: 50, message_status: next.status }
-      : { page: 1, limit: 50, activation_status: next.status };
-    const response = await api.get<ParentActivationHistoricalRecipientPage>(
-      endpoints.admin.parentActivationCampaignRecipients(selectedCampaignId),
-      query,
-    );
-    if (!response.success) {
-      setRecipientError(true);
-      setRecipientLoading(false);
+  useEffect(() => {
+    if (!selectedCampaignId || !analytics) {
+      setRecipientPage(null);
       return;
     }
-    setRecipientPage(response.data);
-    setRecipientLoading(false);
-  }
+
+    const controller = new AbortController();
+    let active = true;
+    setRecipientLoading(true);
+    setRecipientError(false);
+
+    const query = recipientView.kind === 'milestone'
+      ? {
+          page: recipientPageNumber,
+          limit: 25,
+          milestone: recipientView.value,
+        }
+      : {
+          page: recipientPageNumber,
+          limit: 25,
+          message_status: recipientView.value,
+        };
+
+    api.get<ParentActivationHistoricalRecipientPage>(
+      endpoints.admin.parentActivationCampaignRecipients(selectedCampaignId),
+      query,
+      { signal: controller.signal },
+    ).then((response) => {
+      if (!active) return;
+      if (!response.success) {
+        setRecipientError(true);
+        setRecipientPage(null);
+        return;
+      }
+      setRecipientPage(response.data);
+    }).catch(() => {
+      if (active) setRecipientError(true);
+    }).finally(() => {
+      if (active) setRecipientLoading(false);
+    });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [selectedCampaignId, analytics, recipientView, recipientPageNumber, refreshKey]);
 
   const selectedListItem = useMemo(
     () => campaignList?.items.find((item) => item.id === selectedCampaignId) ?? null,
     [campaignList, selectedCampaignId],
   );
 
+  function chooseCampaign(id: number) {
+    setSelectedCampaignId(id);
+    setRecipientView(DEFAULT_VIEW);
+    setRecipientPageNumber(1);
+  }
+
+  function chooseView(view: RecipientView) {
+    setRecipientView(view);
+    setRecipientPageNumber(1);
+  }
+
   return (
     <Card className={styles.historyCard}>
-      <div className={styles.heading}>
+      <header className={styles.heading}>
         <div>
+          <p className={styles.eyebrow}>{copy.campaignOverview}</p>
           <h2>{copy.title}</h2>
           <p className="muted">{copy.description}</p>
         </div>
@@ -172,14 +220,16 @@ export function HistoricalActivationCampaigns() {
         >
           {copy.refresh}
         </button>
-      </div>
-
-      {listLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
+      </header>
 
       {listError ? (
         <div className={styles.errorBlock}>
           <InfoBanner title={copy.loadError} tone="amber" />
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setRefreshKey((value) => value + 1)}>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => setRefreshKey((value) => value + 1)}
+          >
             {copy.retry}
           </button>
         </div>
@@ -189,19 +239,27 @@ export function HistoricalActivationCampaigns() {
         <p className={styles.empty}>{copy.empty}</p>
       ) : null}
 
-      {campaignList?.items.length ? (
-        <>
-          <div className={styles.campaignStrip} role="list" aria-label={copy.title}>
-            {campaignList.items.map((item) => {
+      <div className={styles.workspace}>
+        <aside className={styles.campaignRail} aria-label={copy.selectCampaign}>
+          <div className={styles.railHeading}>
+            <div>
+              <strong>{copy.selectCampaign}</strong>
+              <span>{campaignList?.pagination.total ?? 0}</span>
+            </div>
+          </div>
+
+          {listLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
+
+          <div className={styles.campaignList}>
+            {campaignList?.items.map((item) => {
               const active = item.id === selectedCampaignId;
               return (
                 <button
                   key={item.id}
                   type="button"
-                  role="listitem"
                   className={[styles.campaignButton, active ? styles.campaignButtonActive : ''].filter(Boolean).join(' ')}
                   aria-pressed={active}
-                  onClick={() => setSelectedCampaignId(item.id)}
+                  onClick={() => chooseCampaign(item.id)}
                 >
                   <span className={styles.campaignButtonTop}>
                     <strong dir="auto">{item.name}</strong>
@@ -210,255 +268,416 @@ export function HistoricalActivationCampaigns() {
                     </Badge>
                   </span>
                   <span className={styles.campaignMeta}>
-                    {copy.preparedAt}: {formatHistoricalDate(item.prepared_at ?? item.create_date, locale)}
+                    {formatHistoricalDate(item.prepared_at ?? item.create_date, locale)}
                   </span>
-                  <span className={styles.campaignCounts}>
-                    <span>{copy.totalAudience}: <strong>{item.audience_summary.total}</strong></span>
-                    <span>{copy.selected}: <strong>{item.audience_summary.selected}</strong></span>
-                    <span>{copy.usedCampaignLink}: <strong>{item.activation_summary.activated_via_campaign_link}</strong></span>
+                  <span className={styles.campaignMiniStats}>
+                    <span>{copy.selected}: <b>{item.audience_summary.selected}</b></span>
+                    <span>{copy.usedCampaignLink}: <b>{item.activation_summary.activated_via_campaign_link}</b></span>
                   </span>
                 </button>
               );
             })}
           </div>
 
-          {campaignList.pagination.pages > 1 ? (
-            <div className={styles.pagination}>
+          {campaignList && campaignList.pagination.pages > 1 ? (
+            <div className={styles.railPagination}>
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
-                disabled={page <= 1 || listLoading}
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
+                disabled={campaignPage <= 1 || listLoading}
+                onClick={() => setCampaignPage((value) => Math.max(1, value - 1))}
               >
                 {copy.previous}
               </button>
-              <span>{page} / {campaignList.pagination.pages}</span>
+              <span>{campaignPage} / {campaignList.pagination.pages}</span>
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
-                disabled={page >= campaignList.pagination.pages || listLoading}
-                onClick={() => setPage((value) => value + 1)}
+                disabled={campaignPage >= campaignList.pagination.pages || listLoading}
+                onClick={() => setCampaignPage((value) => value + 1)}
               >
                 {copy.next}
               </button>
             </div>
           ) : null}
-        </>
-      ) : null}
+        </aside>
 
-      {selectedListItem ? (
-        <div className={styles.selectedHeader}>
-          <div>
-            <h3 dir="auto">{selectedListItem.name}</h3>
-            <p className="muted">
-              {copy.createdAt}: {formatHistoricalDate(selectedListItem.create_date, locale)}
-            </p>
-          </div>
-          <Badge tone="blue">#{selectedListItem.id}</Badge>
-        </div>
-      ) : null}
-
-      {analyticsLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
-      {analyticsError ? <InfoBanner title={copy.analyticsError} tone="amber" /> : null}
-
-      {analytics ? (
-        <div className={styles.analytics}>
-          <section className={styles.analyticsSection} aria-label={copy.audience}>
-            <div className={styles.sectionHeading}>
-              <h3>{copy.audience}</h3>
-            </div>
-            <div className={styles.statGrid}>
-              <StatCard label={copy.totalAudience} value={analytics.audience_summary.total} tone="slate" />
-              <StatCard label={copy.eligible} value={analytics.audience_summary.eligible} tone="green" />
-              <StatCard label={copy.selected} value={analytics.audience_summary.selected} tone="blue" />
-              <StatCard label={copy.excluded} value={analytics.audience_summary.excluded} tone="amber" />
-            </div>
-            {analytics.audience_summary.eligible_not_selected > 0 ? (
-              <p className={styles.subtleLine}>
-                {copy.eligibleNotSelected}: <strong>{analytics.audience_summary.eligible_not_selected}</strong>
-              </p>
-            ) : null}
-          </section>
-
-          <section className={styles.analyticsSection} aria-label={copy.messageStatus}>
-            <div className={styles.sectionHeading}>
+        <main className={styles.detailPane}>
+          {selectedListItem ? (
+            <div className={styles.selectedHeader}>
               <div>
-                <h3>{copy.messageStatus}</h3>
-                <p className="muted">{copy.messageScope}</p>
-              </div>
-              <Badge tone="slate">{analytics.message_summary.denominator}</Badge>
-            </div>
-            {!analytics.metadata.messaging_status_available ? (
-              <InfoBanner title={copy.messageUnavailable} tone="amber" />
-            ) : null}
-            {!historicalMessageSummaryIsBalanced(analytics.message_summary) ? (
-              <InfoBanner title={copy.messageUnavailable} tone="amber" />
-            ) : null}
-            <div className={styles.metricGrid}>
-              {MESSAGE_STATUSES.map((status) => (
-                <StatusMetric
-                  key={status}
-                  label={getHistoricalMessageStatusLabel(locale, status)}
-                  value={analytics.message_summary[status]}
-                  status={status}
-                  onClick={() => openDrilldown({
-                    kind: 'message',
-                    status,
-                    label: getHistoricalMessageStatusLabel(locale, status),
-                  })}
-                />
-              ))}
-            </div>
-            <FreshnessLine
-              label={copy.statusAsOf}
-              value={analytics.metadata.status_as_of}
-              locale={locale}
-            />
-          </section>
-
-          <section className={styles.analyticsSection} aria-label={copy.activationStatus}>
-            <div className={styles.sectionHeading}>
-              <div>
-                <h3>{copy.activationStatus}</h3>
-                <p className="muted">{copy.activationScope}</p>
-              </div>
-            </div>
-            <div className={styles.activationGrid}>
-              {ACTIVATION_STATUSES.map((status) => (
-                <StatusMetric
-                  key={status}
-                  label={getHistoricalActivationStatusLabel(locale, status)}
-                  value={analytics.activation_summary[status]}
-                  status={status}
-                  onClick={() => openDrilldown({
-                    kind: 'activation',
-                    status,
-                    label: getHistoricalActivationStatusLabel(locale, status),
-                  })}
-                />
-              ))}
-            </div>
-            <FreshnessLine
-              label={copy.activationAsOf}
-              value={analytics.metadata.activation_as_of}
-              locale={locale}
-            />
-          </section>
-
-          <section className={styles.analyticsSection} aria-label={copy.funnel}>
-            <div className={styles.sectionHeading}>
-              <h3>{copy.funnel}</h3>
-            </div>
-            <div className={styles.flowGrid}>
-              <FlowStep label={copy.totalAudience} value={analytics.funnel.audience_total} />
-              <FlowArrow />
-              <FlowStep label={copy.eligible} value={analytics.funnel.eligible} />
-              <FlowArrow />
-              <FlowStep label={copy.selected} value={analytics.funnel.selected} />
-              <FlowArrow />
-              <FlowStep label={copy.dispatchEnqueued} value={analytics.funnel.dispatch_enqueued} />
-              <FlowArrow />
-              <FlowStep label={copy.usedCampaignLink} value={analytics.funnel.activated_via_campaign_link} />
-            </div>
-          </section>
-
-          {drilldown ? (
-            <section className={styles.drilldown} aria-live="polite">
-              <div className={styles.sectionHeading}>
-                <div>
-                  <h3>{drilldown.label}</h3>
-                  <p className="muted">{copy.recipients}</p>
+                <div className={styles.selectedTitleLine}>
+                  <h3 dir="auto">{selectedListItem.name}</h3>
+                  <Badge tone="blue">#{selectedListItem.id}</Badge>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  onClick={() => {
-                    setDrilldown(null);
-                    setRecipientPage(null);
-                    setRecipientError(false);
-                  }}
-                >
-                  {copy.hideDetails}
-                </button>
+                <p className="muted">
+                  {copy.preparedAt}: {formatHistoricalDate(selectedListItem.prepared_at ?? selectedListItem.create_date, locale)}
+                </p>
               </div>
-              {recipientLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
-              {recipientError ? <InfoBanner title={copy.analyticsError} tone="amber" /> : null}
-              {recipientPage && recipientPage.items.length === 0 ? (
-                <p className={styles.empty}>{copy.noRecipients}</p>
-              ) : null}
-              {recipientPage?.items.length ? (
-                <>
-                  <div className={styles.recipientList}>
-                    {recipientPage.items.map((recipient) => (
-                      <Link
-                        key={recipient.recipient_id}
-                        href={'/admin/parents/' + recipient.parent_id}
-                        className={styles.recipientRow}
+              <div className={styles.audiencePills}>
+                <span>{copy.totalAudience}<strong>{selectedListItem.audience_summary.total}</strong></span>
+                <span>{copy.selected}<strong>{selectedListItem.audience_summary.selected}</strong></span>
+                <span>{copy.excluded}<strong>{selectedListItem.audience_summary.excluded}</strong></span>
+              </div>
+            </div>
+          ) : null}
+
+          {analyticsLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
+          {analyticsError ? <InfoBanner title={copy.analyticsError} tone="amber" /> : null}
+
+          {analytics ? (
+            <>
+              <section className={styles.performanceSection} aria-label={copy.campaignPerformance}>
+                <div className={styles.sectionHeading}>
+                  <div>
+                    <p className={styles.eyebrow}>{copy.campaignPerformance}</p>
+                    <h3>{copy.messageStatus}</h3>
+                    <p className="muted">{copy.cumulativeHint}</p>
+                  </div>
+                  <div className={styles.denominator}>
+                    <span>{copy.selectedAudience}</span>
+                    <strong>{analytics.milestone_summary.denominator}</strong>
+                  </div>
+                </div>
+
+                {analytics.milestone_summary.status_unavailable > 0 ? (
+                  <InfoBanner title={copy.milestoneUnavailable} tone="amber" />
+                ) : null}
+
+                <div className={styles.milestoneGrid}>
+                  <MilestoneCard
+                    label={copy.sentTo}
+                    value={analytics.milestone_summary.sent}
+                    rate={historicalMilestoneRate(analytics.milestone_summary, 'sent')}
+                    rateLabel={copy.rateOfSelected}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'sent'}
+                    status="sent"
+                    onClick={() => chooseView({ kind: 'milestone', value: 'sent' })}
+                  />
+                  <MilestoneCard
+                    label={copy.deliveredTo}
+                    value={analytics.milestone_summary.delivered}
+                    rate={historicalMilestoneRate(analytics.milestone_summary, 'delivered')}
+                    rateLabel={copy.rateOfSelected}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'delivered'}
+                    status="delivered"
+                    onClick={() => chooseView({ kind: 'milestone', value: 'delivered' })}
+                  />
+                  <MilestoneCard
+                    label={copy.readBy}
+                    value={analytics.milestone_summary.read}
+                    rate={historicalMilestoneRate(analytics.milestone_summary, 'read')}
+                    rateLabel={copy.rateOfSelected}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'read'}
+                    status="read"
+                    onClick={() => chooseView({ kind: 'milestone', value: 'read' })}
+                  />
+                  <MilestoneCard
+                    label={copy.openedLink}
+                    value={analytics.milestone_summary.opened_activation_link}
+                    rate={historicalMilestoneRate(analytics.milestone_summary, 'opened_activation_link')}
+                    rateLabel={copy.rateOfSelected}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'opened_activation_link'}
+                    status="opened_activation_link"
+                    onClick={() => chooseView({ kind: 'milestone', value: 'opened_activation_link' })}
+                  />
+                </div>
+
+                <div className={styles.journey} aria-label={copy.funnel}>
+                  {(['sent', 'delivered', 'read', 'opened_activation_link'] as const).map((milestone, index) => (
+                    <div className={styles.journeyItem} key={milestone}>
+                      {index > 0 ? <span className={styles.journeyLine} aria-hidden="true" /> : null}
+                      <span className={styles.journeyDot} />
+                      <strong>{analytics.milestone_summary[milestone]}</strong>
+                      <span>{getHistoricalMilestoneLabel(locale, milestone)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <FreshnessLine label={copy.statusAsOf} value={analytics.metadata.status_as_of} locale={locale} />
+              </section>
+
+              <section className={styles.recipientSection}>
+                <div className={styles.sectionHeading}>
+                  <div>
+                    <p className={styles.eyebrow}>{copy.recipientResults}</p>
+                    <h3>{getRecipientViewLabel(locale, recipientView)}</h3>
+                  </div>
+                  <Badge tone="slate">{recipientPage?.pagination.total ?? 0}</Badge>
+                </div>
+
+                <div className={styles.tabs} role="tablist" aria-label={copy.recipientResults}>
+                  <RecipientTab
+                    label={copy.sentTo}
+                    count={analytics.milestone_summary.sent}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'sent'}
+                    onClick={() => chooseView({ kind: 'milestone', value: 'sent' })}
+                  />
+                  <RecipientTab
+                    label={copy.deliveredTo}
+                    count={analytics.milestone_summary.delivered}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'delivered'}
+                    onClick={() => chooseView({ kind: 'milestone', value: 'delivered' })}
+                  />
+                  <RecipientTab
+                    label={copy.readBy}
+                    count={analytics.milestone_summary.read}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'read'}
+                    onClick={() => chooseView({ kind: 'milestone', value: 'read' })}
+                  />
+                  <RecipientTab
+                    label={copy.openedLink}
+                    count={analytics.milestone_summary.opened_activation_link}
+                    active={recipientView.kind === 'milestone' && recipientView.value === 'opened_activation_link'}
+                    onClick={() => chooseView({ kind: 'milestone', value: 'opened_activation_link' })}
+                  />
+                  <RecipientTab
+                    label={copy.failedNow}
+                    count={analytics.message_summary.failed}
+                    active={recipientView.kind === 'message' && recipientView.value === 'failed'}
+                    onClick={() => chooseView({ kind: 'message', value: 'failed' })}
+                  />
+                  <RecipientTab
+                    label={copy.notSentYet}
+                    count={analytics.message_summary.not_sent}
+                    active={recipientView.kind === 'message' && recipientView.value === 'not_sent'}
+                    onClick={() => chooseView({ kind: 'message', value: 'not_sent' })}
+                  />
+                </div>
+
+                {recipientLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
+                {recipientError ? <InfoBanner title={copy.analyticsError} tone="amber" /> : null}
+                {recipientPage && recipientPage.items.length === 0 ? (
+                  <p className={styles.empty}>{copy.noRecipients}</p>
+                ) : null}
+
+                {recipientPage?.items.length ? (
+                  <div className={styles.tableWrap}>
+                    <table className={styles.recipientTable}>
+                      <thead>
+                        <tr>
+                          <th>{copy.recipients}</th>
+                          <th>{copy.currentMessageState}</th>
+                          <th>{copy.milestoneReachedAt}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recipientPage.items.map((recipient) => (
+                          <RecipientRow
+                            key={recipient.recipient_id}
+                            recipient={recipient}
+                            view={recipientView}
+                            locale={locale}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : null}
+
+                {recipientPage && recipientPage.pagination.pages > 1 ? (
+                  <div className={styles.tablePagination}>
+                    <span>
+                      {copy.showing}: {recipientPage.items.length} {copy.of} {recipientPage.pagination.total}
+                    </span>
+                    <div>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        disabled={recipientPageNumber <= 1 || recipientLoading}
+                        onClick={() => setRecipientPageNumber((value) => Math.max(1, value - 1))}
                       >
-                        <strong dir="auto">{recipient.parent_name}</strong>
-                        <span>
-                          {drilldown.kind === 'message' && recipient.message_status
-                            ? getHistoricalMessageStatusLabel(locale, recipient.message_status)
-                            : drilldown.kind === 'activation' && recipient.activation_status
-                              ? getHistoricalActivationStatusLabel(locale, recipient.activation_status)
-                              : '—'}
-                        </span>
-                      </Link>
+                        {copy.previous}
+                      </button>
+                      <span>{recipientPageNumber} / {recipientPage.pagination.pages}</span>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        disabled={recipientPageNumber >= recipientPage.pagination.pages || recipientLoading}
+                        onClick={() => setRecipientPageNumber((value) => value + 1)}
+                      >
+                        {copy.next}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              <details className={styles.diagnostics}>
+                <summary>{copy.technicalStates}</summary>
+                {!analytics.metadata.messaging_status_available ? (
+                  <InfoBanner title={copy.messageUnavailable} tone="amber" />
+                ) : null}
+                {!historicalMessageSummaryIsBalanced(analytics.message_summary) ? (
+                  <InfoBanner title={copy.messageUnavailable} tone="amber" />
+                ) : null}
+
+                <div className={styles.diagnosticGroup}>
+                  <h4>{copy.messageStatus}</h4>
+                  <div className={styles.diagnosticGrid}>
+                    {CURRENT_MESSAGE_STATUSES.map((status) => (
+                      <DiagnosticMetric
+                        key={status}
+                        label={getHistoricalMessageStatusLabel(locale, status)}
+                        value={analytics.message_summary[status]}
+                      />
                     ))}
                   </div>
-                  <p className={styles.subtleLine}>
-                    {copy.showing}: {recipientPage.items.length} {copy.of} {recipientPage.pagination.total}
-                  </p>
-                </>
-              ) : null}
-            </section>
+                </div>
+
+                <div className={styles.diagnosticGroup}>
+                  <h4>{copy.activationStatus}</h4>
+                  <div className={styles.diagnosticGrid}>
+                    {ACTIVATION_STATUSES.map((status) => (
+                      <DiagnosticMetric
+                        key={status}
+                        label={getHistoricalActivationStatusLabel(locale, status)}
+                        value={analytics.activation_summary[status]}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </details>
+            </>
           ) : null}
-        </div>
-      ) : null}
+        </main>
+      </div>
     </Card>
   );
 }
 
-function StatusMetric({
+function MilestoneCard({
   label,
   value,
+  rate,
+  rateLabel,
+  active,
   status,
   onClick,
 }: {
   label: string;
   value: number;
+  rate: number;
+  rateLabel: string;
+  active: boolean;
   status: string;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
-      className={styles.statusMetric}
+      className={[styles.milestoneCard, active ? styles.milestoneCardActive : ''].filter(Boolean).join(' ')}
       data-status={status}
       onClick={onClick}
-      disabled={value <= 0}
-      title={value > 0 ? label : undefined}
+      aria-pressed={active}
     >
-      <span>{label}</span>
+      <span className={styles.milestoneLabel}>{label}</span>
       <strong>{value}</strong>
+      <span className={styles.milestoneRate}>{rate}% {rateLabel}</span>
     </button>
   );
 }
 
-function FlowStep({ label, value }: { label: string; value: number }) {
+function RecipientTab({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
-    <div className={styles.flowStep}>
-      <strong>{value}</strong>
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      className={[styles.tab, active ? styles.tabActive : ''].filter(Boolean).join(' ')}
+      onClick={onClick}
+    >
       <span>{label}</span>
+      <b>{count}</b>
+    </button>
+  );
+}
+
+function RecipientRow({
+  recipient,
+  view,
+  locale,
+}: {
+  recipient: ParentActivationHistoricalRecipient;
+  view: RecipientView;
+  locale: Locale;
+}) {
+  const statusLabel = recipient.message_status
+    ? getHistoricalMessageStatusLabel(locale, recipient.message_status)
+    : '—';
+
+  return (
+    <tr>
+      <td>
+        <Link href={'/admin/parents/' + recipient.parent_id} className={styles.parentLink}>
+          <strong dir="auto">{recipient.parent_name}</strong>
+          <span>#{recipient.parent_id}</span>
+        </Link>
+      </td>
+      <td>
+        <span className={styles.currentStatus} data-status={recipient.message_status ?? 'unknown'}>
+          {statusLabel}
+        </span>
+      </td>
+      <td>
+        {formatHistoricalDate(getRecipientViewTimestamp(recipient, view), locale)}
+      </td>
+    </tr>
+  );
+}
+
+function DiagnosticMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className={styles.diagnosticMetric}>
+      <span>{label}</span>
+      <strong>{value}</strong>
     </div>
   );
 }
 
-function FlowArrow() {
-  return <span className={styles.flowArrow} aria-hidden="true">→</span>;
+function getRecipientViewLabel(locale: Locale, view: RecipientView): string {
+  if (view.kind === 'milestone') return getHistoricalMilestoneLabel(locale, view.value);
+  return getHistoricalMessageStatusLabel(locale, view.value);
 }
 
-function FreshnessLine({ label, value, locale }: { label: string; value: string | null; locale: Locale }) {
+function getRecipientViewTimestamp(
+  recipient: ParentActivationHistoricalRecipient,
+  view: RecipientView,
+): string | null {
+  if (view.kind !== 'milestone' || !recipient.milestone_timestamps) return null;
+  switch (view.value) {
+    case 'sent':
+      return recipient.milestone_timestamps.sent_at;
+    case 'delivered':
+      return recipient.milestone_timestamps.delivered_at;
+    case 'read':
+      return recipient.milestone_timestamps.read_at;
+    case 'opened_activation_link':
+      return recipient.milestone_timestamps.opened_activation_link_at;
+    default:
+      return null;
+  }
+}
+
+function FreshnessLine({
+  label,
+  value,
+  locale,
+}: {
+  label: string;
+  value: string | null;
+  locale: Locale;
+}) {
   if (!value) return null;
   return <p className={styles.freshness}>{label}: {formatHistoricalDate(value, locale)}</p>;
 }

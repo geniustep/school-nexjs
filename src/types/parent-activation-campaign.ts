@@ -122,6 +122,40 @@ export interface ParentActivationHistoricalMessageSummary {
   unavailable: number;
 }
 
+export type ParentActivationHistoricalMilestone =
+  | 'dispatched'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'opened_activation_link';
+
+export interface ParentActivationHistoricalMilestoneSummary {
+  scope: 'selected_for_dispatch';
+  denominator: number;
+  dispatched: number;
+  sent: number;
+  delivered: number;
+  read: number;
+  opened_activation_link: number;
+  status_unavailable: number;
+}
+
+export interface ParentActivationHistoricalRecipientMilestones {
+  dispatched: boolean;
+  sent: boolean;
+  delivered: boolean;
+  read: boolean;
+  opened_activation_link: boolean;
+}
+
+export interface ParentActivationHistoricalRecipientMilestoneTimestamps {
+  dispatched_at: string | null;
+  sent_at: string | null;
+  delivered_at: string | null;
+  read_at: string | null;
+  opened_activation_link_at: string | null;
+}
+
 export type ParentActivationHistoricalActivationStatus =
   | 'activated_via_campaign_link'
   | 'pending_valid_link'
@@ -174,6 +208,7 @@ export interface ParentActivationHistoricalCampaignHeader {
 export interface ParentActivationHistoricalCampaignListItem extends ParentActivationHistoricalCampaignHeader {
   audience_summary: ParentActivationAudienceSummary;
   message_summary: ParentActivationHistoricalMessageSummary | null;
+  milestone_summary: ParentActivationHistoricalMilestoneSummary | null;
   activation_summary: ParentActivationHistoricalActivationSummary;
   funnel: ParentActivationHistoricalFunnel;
   metadata: ParentActivationHistoricalMetadata;
@@ -193,6 +228,7 @@ export interface ParentActivationHistoricalAnalytics {
   campaign: ParentActivationHistoricalCampaignHeader;
   audience_summary: ParentActivationAudienceSummary;
   message_summary: ParentActivationHistoricalMessageSummary;
+  milestone_summary: ParentActivationHistoricalMilestoneSummary;
   activation_summary: ParentActivationHistoricalActivationSummary;
   funnel: ParentActivationHistoricalFunnel;
   metadata: ParentActivationHistoricalMetadata;
@@ -207,6 +243,8 @@ export interface ParentActivationHistoricalRecipient {
   exclusion_reason: ParentActivationExclusionReason | string | null;
   message_status: ParentActivationHistoricalMessageStatus | null;
   activation_status: ParentActivationHistoricalActivationStatus | null;
+  milestones: ParentActivationHistoricalRecipientMilestones | null;
+  milestone_timestamps: ParentActivationHistoricalRecipientMilestoneTimestamps | null;
 }
 
 export interface ParentActivationHistoricalRecipientPage {

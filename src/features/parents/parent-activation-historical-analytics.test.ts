@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { ParentActivationHistoricalMessageSummary } from '@/types/parent-activation-campaign';
+import type {
+  ParentActivationHistoricalMessageSummary,
+  ParentActivationHistoricalMilestoneSummary,
+} from '@/types/parent-activation-campaign';
 import {
   getHistoricalActivationStatusLabel,
   getHistoricalMessageStatusLabel,
+  getHistoricalMilestoneLabel,
   historicalMessageSummaryIsBalanced,
   historicalMessageSummaryTotal,
+  historicalMilestoneRate,
 } from './parent-activation-historical-analytics';
 
 const summary = (overrides: Partial<ParentActivationHistoricalMessageSummary> = {}): ParentActivationHistoricalMessageSummary => ({
@@ -18,6 +23,18 @@ const summary = (overrides: Partial<ParentActivationHistoricalMessageSummary> = 
   read: 1,
   failed: 1,
   unavailable: 1,
+  ...overrides,
+});
+
+const milestones = (overrides: Partial<ParentActivationHistoricalMilestoneSummary> = {}): ParentActivationHistoricalMilestoneSummary => ({
+  scope: 'selected_for_dispatch',
+  denominator: 100,
+  dispatched: 96,
+  sent: 90,
+  delivered: 82,
+  read: 64,
+  opened_activation_link: 41,
+  status_unavailable: 2,
   ...overrides,
 });
 
@@ -36,5 +53,20 @@ describe('parent activation historical analytics presentation', () => {
   it('uses campaign-link attribution wording instead of generic activation wording', () => {
     expect(getHistoricalActivationStatusLabel('ar', 'activated_via_campaign_link')).toBe('استُخدم رابط الحملة');
     expect(getHistoricalActivationStatusLabel('fr', 'pending_valid_link')).toBe('Lien valide non utilisé');
+  });
+
+  it('uses clear cumulative milestone labels in Arabic', () => {
+    expect(getHistoricalMilestoneLabel('ar', 'sent')).toBe('أُرسلت لهم');
+    expect(getHistoricalMilestoneLabel('ar', 'delivered')).toBe('تم التسليم إليهم');
+    expect(getHistoricalMilestoneLabel('ar', 'read')).toBe('قرأوا الرسالة');
+    expect(getHistoricalMilestoneLabel('ar', 'opened_activation_link')).toBe('فتحوا رابط التفعيل');
+  });
+
+  it('computes display rates only from the backend milestone denominator', () => {
+    expect(historicalMilestoneRate(milestones(), 'sent')).toBe(90);
+    expect(historicalMilestoneRate(milestones(), 'delivered')).toBe(82);
+    expect(historicalMilestoneRate(milestones(), 'read')).toBe(64);
+    expect(historicalMilestoneRate(milestones(), 'opened_activation_link')).toBe(41);
+    expect(historicalMilestoneRate(milestones({ denominator: 0 }), 'read')).toBe(0);
   });
 });
