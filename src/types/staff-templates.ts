@@ -86,7 +86,23 @@ export interface StaffTemplatePreview {
   bundle_selection?: StaffTemplateBundleSelection;
 }
 
+export interface StaffPersonCandidate {
+  person_id: number;
+  user_id?: number | null;
+  name: string;
+  name_ar?: string | null;
+  name_fr?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  roles?: string[];
+  has_account: boolean;
+  account_active: boolean;
+  already_staff: boolean;
+}
+
 export interface StaffTemplatePersonInput {
+  person_id?: number | null;
+  has_account?: boolean;
   name: string;
   name_ar?: string;
   name_fr?: string;
