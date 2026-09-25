@@ -355,6 +355,85 @@ describe('staff-template-utils', () => {
     expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
   });
 
+
+  it('reuses an existing account without requiring a new password', () => {
+    const template = normalizeStaffCreationTemplate({
+      code: 'subject_teacher',
+      name: 'Subject teacher',
+      requires_user_account: true,
+    })!;
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'subject_teacher',
+      selectedBundleCodes: ['teaching'],
+      person: {
+        person_id: 321,
+        has_account: true,
+        name: 'Existing Guardian Teacher',
+        phone: '0600000000',
+        email: 'existing@example.com',
+      },
+      createAccount: false,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: { subject_id: 12, class_ids: [5], academic_year_id: 2 },
+    };
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: true,
+      scope: { school_id: 3, scope_type: 'school' },
+    };
+    const passwordPolicy = { min_length: 8, requires_letter: true, requires_number: true };
+
+    expect(staffTemplatePersonRequiresEmail(template, form)).toBe(false);
+    expect(
+      canSubmitStaffTemplateCreate({
+        template,
+        preview,
+        form,
+        passwordPolicy,
+        t,
+      }),
+    ).toBe(true);
+
+    const payload = buildStaffTemplateCreatePayload(form, 3, template);
+    expect(payload.person.person_id).toBe(321);
+    expect(payload.account).toBeUndefined();
+  });
+
+  it('sends person_id to direct staff create payload without duplicate account data', () => {
+    const template: StaffCreationTemplate = {
+      code: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
+      name: 'Pedagogical director',
+      client_catalog: true,
+      admin_kind: 'pedagogical_director',
+      requires_user_account: true,
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
+      selectedBundleCodes: [],
+      person: {
+        person_id: 654,
+        has_account: true,
+        name: 'Existing Person',
+        phone: '0611111111',
+        email: 'existing.person@example.com',
+      },
+      createAccount: false,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: {},
+    };
+
+    const payload = buildClientCatalogStaffMemberPayload(form, template);
+    expect(payload.person_id).toBe(654);
+    expect(payload.account).toBeUndefined();
+  });
+
   it('normalizes teacher create result with creation metadata', () => {
     const result = normalizeStaffTemplateCreateResult({
       user_id: 4706,
