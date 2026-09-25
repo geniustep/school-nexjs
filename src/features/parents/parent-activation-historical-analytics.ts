@@ -3,6 +3,8 @@ import type {
   ParentActivationHistoricalActivationStatus,
   ParentActivationHistoricalMessageStatus,
   ParentActivationHistoricalMessageSummary,
+  ParentActivationHistoricalMilestone,
+  ParentActivationHistoricalMilestoneSummary,
 } from '@/types/parent-activation-campaign';
 
 const COPY = {
@@ -43,6 +45,23 @@ const COPY = {
     of: 'من',
     previous: 'السابق',
     next: 'التالي',
+    selectCampaign: 'اختر حملة',
+    campaignOverview: 'ملخص الحملة',
+    campaignPerformance: 'مسار وصول الرسالة',
+    cumulativeHint: 'هذه المراحل تراكمية: من قرأ الرسالة يُحتسب أيضًا ضمن من تم التسليم إليهم ومن أُرسلت لهم.',
+    sentTo: 'أُرسلت لهم',
+    deliveredTo: 'تم التسليم إليهم',
+    readBy: 'قرأوا الرسالة',
+    openedLink: 'فتحوا رابط التفعيل',
+    recipientResults: 'أولياء الأمور في هذه المرحلة',
+    currentMessageState: 'الحالة الحالية',
+    milestoneReachedAt: 'وقت الوصول للمرحلة',
+    selectedAudience: 'المختارون في الحملة',
+    rateOfSelected: 'من المختارين',
+    failedNow: 'فشل الإرسال حاليًا',
+    notSentYet: 'لم يُرسل بعد',
+    technicalStates: 'الحالات الحالية والتشخيص',
+    milestoneUnavailable: 'بعض حالات Messaging غير متاحة حاليًا؛ لا نعتبرها تلقائيًا غير مُرسلة.',
   },
   en: {
     title: 'Previous campaigns',
@@ -81,6 +100,23 @@ const COPY = {
     of: 'of',
     previous: 'Previous',
     next: 'Next',
+    selectCampaign: 'Select campaign',
+    campaignOverview: 'Campaign overview',
+    campaignPerformance: 'Message journey',
+    cumulativeHint: 'These stages are cumulative: a read message is also counted as delivered and sent.',
+    sentTo: 'Sent to',
+    deliveredTo: 'Delivered to',
+    readBy: 'Read by',
+    openedLink: 'Opened activation link',
+    recipientResults: 'Guardians in this stage',
+    currentMessageState: 'Current status',
+    milestoneReachedAt: 'Reached at',
+    selectedAudience: 'Selected audience',
+    rateOfSelected: 'of selected',
+    failedNow: 'Currently failed',
+    notSentYet: 'Not sent yet',
+    technicalStates: 'Current states and diagnostics',
+    milestoneUnavailable: 'Some Messaging statuses are currently unavailable; they are not treated as not sent.',
   },
   fr: {
     title: 'Campagnes précédentes',
@@ -119,6 +155,23 @@ const COPY = {
     of: 'sur',
     previous: 'Précédent',
     next: 'Suivant',
+    selectCampaign: 'Choisir une campagne',
+    campaignOverview: 'Résumé de la campagne',
+    campaignPerformance: 'Parcours du message',
+    cumulativeHint: 'Ces étapes sont cumulatives : un message lu est aussi compté comme livré et envoyé.',
+    sentTo: 'Messages envoyés',
+    deliveredTo: 'Messages livrés',
+    readBy: 'Messages lus',
+    openedLink: 'Lien d’activation ouvert',
+    recipientResults: 'Responsables dans cette étape',
+    currentMessageState: 'État actuel',
+    milestoneReachedAt: 'Étape atteinte le',
+    selectedAudience: 'Audience sélectionnée',
+    rateOfSelected: 'des sélectionnés',
+    failedNow: 'Échec actuel',
+    notSentYet: 'Pas encore envoyé',
+    technicalStates: 'États actuels et diagnostic',
+    milestoneUnavailable: 'Certains états Messaging sont indisponibles ; ils ne sont pas considérés comme non envoyés.',
   },
   es: {
     title: 'Campañas anteriores',
@@ -157,6 +210,23 @@ const COPY = {
     of: 'de',
     previous: 'Anterior',
     next: 'Siguiente',
+    selectCampaign: 'Elegir campaña',
+    campaignOverview: 'Resumen de campaña',
+    campaignPerformance: 'Recorrido del mensaje',
+    cumulativeHint: 'Estas etapas son acumulativas: un mensaje leído también cuenta como entregado y enviado.',
+    sentTo: 'Enviados',
+    deliveredTo: 'Entregados',
+    readBy: 'Leídos',
+    openedLink: 'Enlace de activación abierto',
+    recipientResults: 'Tutores en esta etapa',
+    currentMessageState: 'Estado actual',
+    milestoneReachedAt: 'Etapa alcanzada el',
+    selectedAudience: 'Audiencia seleccionada',
+    rateOfSelected: 'de los seleccionados',
+    failedNow: 'Fallidos actualmente',
+    notSentYet: 'Aún no enviado',
+    technicalStates: 'Estados actuales y diagnóstico',
+    milestoneUnavailable: 'Algunos estados de Messaging no están disponibles; no se consideran no enviados.',
   },
 } as const;
 
@@ -180,6 +250,37 @@ const MESSAGE_LABELS = {
     not_sent: 'Aún no enviado', queued: 'En cola', processing: 'Enviando',
     sent: 'Enviado', delivered: 'Entregado', read: 'Leído',
     failed: 'Fallido', unavailable: 'Estado del mensaje no disponible',
+  },
+} as const;
+
+const MILESTONE_LABELS = {
+  ar: {
+    dispatched: 'بدأ الإرسال',
+    sent: 'أُرسلت لهم',
+    delivered: 'تم التسليم إليهم',
+    read: 'قرأوا الرسالة',
+    opened_activation_link: 'فتحوا رابط التفعيل',
+  },
+  en: {
+    dispatched: 'Dispatch started',
+    sent: 'Sent to',
+    delivered: 'Delivered to',
+    read: 'Read by',
+    opened_activation_link: 'Opened activation link',
+  },
+  fr: {
+    dispatched: 'Envoi démarré',
+    sent: 'Messages envoyés',
+    delivered: 'Messages livrés',
+    read: 'Messages lus',
+    opened_activation_link: 'Lien d’activation ouvert',
+  },
+  es: {
+    dispatched: 'Envío iniciado',
+    sent: 'Enviados',
+    delivered: 'Entregados',
+    read: 'Leídos',
+    opened_activation_link: 'Enlace de activación abierto',
   },
 } as const;
 
@@ -228,6 +329,18 @@ export function getHistoricalMessageStatusLabel(locale: Locale, status: ParentAc
 
 export function getHistoricalActivationStatusLabel(locale: Locale, status: ParentActivationHistoricalActivationStatus) {
   return ACTIVATION_LABELS[locale][status];
+}
+
+export function getHistoricalMilestoneLabel(locale: Locale, milestone: ParentActivationHistoricalMilestone) {
+  return MILESTONE_LABELS[locale][milestone];
+}
+
+export function historicalMilestoneRate(
+  summary: ParentActivationHistoricalMilestoneSummary,
+  milestone: Exclude<ParentActivationHistoricalMilestone, 'dispatched'>,
+): number {
+  if (summary.denominator <= 0) return 0;
+  return Math.round((summary[milestone] / summary.denominator) * 100);
 }
 
 export function historicalMessageSummaryTotal(summary: ParentActivationHistoricalMessageSummary): number {
