@@ -3,10 +3,10 @@
 import { InfoBanner } from '@/components/ui/primitives';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { useT } from '@/features/i18n/locale-context';
+import { useT, type TranslateFn } from '@/features/i18n/locale-context';
 import type { NormalizedAcademicPlacementFinancePreview } from '@/types/student-finance-change-plan';
 
-function serviceLabel(code: string, t: (key: string, params?: Record<string, unknown>) => string): string {
+function serviceLabel(code: string, t: TranslateFn): string {
   const normalized = code.trim().toUpperCase();
   const key = `admin.student360.editPage.academicPlacement.financeTransition.services.${normalized}`;
   const translated = t(key);
