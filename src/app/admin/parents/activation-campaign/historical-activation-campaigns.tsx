@@ -239,48 +239,18 @@ export function HistoricalActivationCampaigns() {
         <p className={styles.empty}>{copy.empty}</p>
       ) : null}
 
-      <div className={styles.workspace}>
-        <aside className={styles.campaignRail} aria-label={copy.selectCampaign}>
-          <div className={styles.railHeading}>
-            <div>
+      <section className={styles.campaignPicker} aria-label={copy.selectCampaign}>
+        <div className={styles.pickerHeader}>
+          <div>
+            <p className={styles.eyebrow}>{copy.selectCampaign}</p>
+            <div className={styles.pickerTitleLine}>
               <strong>{copy.selectCampaign}</strong>
               <span>{campaignList?.pagination.total ?? 0}</span>
             </div>
           </div>
 
-          {listLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
-
-          <div className={styles.campaignList}>
-            {campaignList?.items.map((item) => {
-              const active = item.id === selectedCampaignId;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={[styles.campaignButton, active ? styles.campaignButtonActive : ''].filter(Boolean).join(' ')}
-                  aria-pressed={active}
-                  onClick={() => chooseCampaign(item.id)}
-                >
-                  <span className={styles.campaignButtonTop}>
-                    <strong dir="auto">{item.name}</strong>
-                    <Badge tone={item.state === 'prepared' ? 'green' : 'slate'}>
-                      {item.state === 'prepared' ? copy.prepared : item.state}
-                    </Badge>
-                  </span>
-                  <span className={styles.campaignMeta}>
-                    {formatHistoricalDate(item.prepared_at ?? item.create_date, locale)}
-                  </span>
-                  <span className={styles.campaignMiniStats}>
-                    <span>{copy.selected}: <b>{item.audience_summary.selected}</b></span>
-                    <span>{copy.usedCampaignLink}: <b>{item.activation_summary.activated_via_campaign_link}</b></span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
           {campaignList && campaignList.pagination.pages > 1 ? (
-            <div className={styles.railPagination}>
+            <div className={styles.pickerPagination}>
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
@@ -300,28 +270,48 @@ export function HistoricalActivationCampaigns() {
               </button>
             </div>
           ) : null}
-        </aside>
+        </div>
 
-        <main className={styles.detailPane}>
-          {selectedListItem ? (
-            <div className={styles.selectedHeader}>
-              <div>
-                <div className={styles.selectedTitleLine}>
-                  <h3 dir="auto">{selectedListItem.name}</h3>
-                  <Badge tone="blue">#{selectedListItem.id}</Badge>
-                </div>
-                <p className="muted">
-                  {copy.preparedAt}: {formatHistoricalDate(selectedListItem.prepared_at ?? selectedListItem.create_date, locale)}
-                </p>
+        {listLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
+
+        {!listLoading && campaignList?.items.length ? (
+          <select
+            className={styles.campaignSelect}
+            value={selectedCampaignId ?? ''}
+            onChange={(event) => chooseCampaign(Number(event.target.value))}
+            aria-label={copy.selectCampaign}
+          >
+            {campaignList.items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name} — #{item.id}
+              </option>
+            ))}
+          </select>
+        ) : null}
+
+        {selectedListItem ? (
+          <div className={styles.campaignSummaryBar}>
+            <div className={styles.campaignSummaryMain}>
+              <div className={styles.campaignSummaryTitle}>
+                <strong dir="auto">{selectedListItem.name}</strong>
+                <Badge tone={selectedListItem.state === 'prepared' ? 'green' : 'slate'}>
+                  {selectedListItem.state === 'prepared' ? copy.prepared : selectedListItem.state}
+                </Badge>
               </div>
-              <div className={styles.audiencePills}>
-                <span>{copy.totalAudience}<strong>{selectedListItem.audience_summary.total}</strong></span>
-                <span>{copy.selected}<strong>{selectedListItem.audience_summary.selected}</strong></span>
-                <span>{copy.excluded}<strong>{selectedListItem.audience_summary.excluded}</strong></span>
-              </div>
+              <span>{formatHistoricalDate(selectedListItem.prepared_at ?? selectedListItem.create_date, locale)}</span>
             </div>
-          ) : null}
 
+            <div className={styles.campaignSummaryStats}>
+              <span>{copy.totalAudience}<strong>{selectedListItem.audience_summary.total}</strong></span>
+              <span>{copy.selected}<strong>{selectedListItem.audience_summary.selected}</strong></span>
+              <span>{copy.excluded}<strong>{selectedListItem.audience_summary.excluded}</strong></span>
+              <span>{copy.usedCampaignLink}<strong>{selectedListItem.activation_summary.activated_via_campaign_link}</strong></span>
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      <main className={styles.detailPane}>
           {analyticsLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
           {analyticsError ? <InfoBanner title={copy.analyticsError} tone="amber" /> : null}
 
@@ -540,8 +530,7 @@ export function HistoricalActivationCampaigns() {
               </details>
             </>
           ) : null}
-        </main>
-      </div>
+      </main>
     </Card>
   );
 }
