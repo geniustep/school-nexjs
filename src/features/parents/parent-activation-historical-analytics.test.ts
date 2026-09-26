@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type {
+  ParentActivationHistoricalCampaignListItem,
   ParentActivationHistoricalMessageSummary,
   ParentActivationHistoricalMilestoneSummary,
 } from '@/types/parent-activation-campaign';
 import {
   getHistoricalActivationStatusLabel,
+  getHistoricalCampaignArchiveStatus,
   getHistoricalMessageStatusLabel,
   getHistoricalMilestoneLabel,
   getParentActivationHistoricalCopy,
@@ -39,6 +41,52 @@ const milestones = (overrides: Partial<ParentActivationHistoricalMilestoneSummar
   ...overrides,
 });
 
+const campaignItem = (
+  overrides: Partial<ParentActivationHistoricalCampaignListItem> = {},
+): ParentActivationHistoricalCampaignListItem => ({
+  id: 1,
+  name: 'Campaign',
+  state: 'prepared',
+  create_date: null,
+  prepared_at: null,
+  audience_summary: {
+    total: 10,
+    eligible: 8,
+    selected: 7,
+    excluded: 2,
+    eligible_not_selected: 1,
+  },
+  message_summary: null,
+  milestone_summary: null,
+  activation_summary: {
+    activated_via_campaign_link: 0,
+    pending_valid_link: 0,
+    expired: 0,
+    revoked: 0,
+    not_issued: 10,
+    unknown: 0,
+  },
+  funnel: {
+    semantics: 'test',
+    audience_total: 10,
+    eligible: 8,
+    selected: 7,
+    dispatch_enqueued: 0,
+    activated_via_campaign_link: 0,
+    message_current_state: null,
+    sent: null,
+    delivered: null,
+    read: null,
+  },
+  metadata: {
+    messaging_status_available: false,
+    messaging_status_deferred: true,
+    status_as_of: null,
+    activation_as_of: null,
+  },
+  ...overrides,
+});
+
 describe('parent activation historical analytics presentation', () => {
   it('keeps the exclusive latest-state summary balanced against its backend denominator', () => {
     expect(historicalMessageSummaryTotal(summary())).toBe(8);
@@ -67,6 +115,22 @@ describe('parent activation historical analytics presentation', () => {
     const copy = getParentActivationHistoricalCopy('ar');
     expect(copy.savedCampaign).toBe('محفوظة');
     expect(copy.sentCampaign).toBe('تم الإرسال');
+  });
+
+  it('shows only explicit saved or sent campaign archive states', () => {
+    expect(getHistoricalCampaignArchiveStatus(campaignItem({ archive_status: 'saved' }))).toBe('saved');
+    expect(getHistoricalCampaignArchiveStatus(campaignItem({ archive_status: 'sent' }))).toBe('sent');
+    expect(getHistoricalCampaignArchiveStatus(campaignItem({ archive_status: 'preview' }))).toBeNull();
+  });
+
+  it('keeps only proven sent campaigns visible on older runtimes', () => {
+    expect(getHistoricalCampaignArchiveStatus(campaignItem())).toBeNull();
+    expect(getHistoricalCampaignArchiveStatus(campaignItem({
+      funnel: {
+        ...campaignItem().funnel,
+        dispatch_enqueued: 1,
+      },
+    }))).toBe('sent');
   });
 
   it('computes display rates only from the backend milestone denominator', () => {
