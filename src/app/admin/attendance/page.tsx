@@ -36,7 +36,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { formatDate } from '@/lib/utils/format';
+import { formatDate, formatDateTime } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { AttendanceRecord } from '@/types/attendance';
 import type { SchoolClass } from '@/types/class';
@@ -56,6 +56,7 @@ function AdminAttendanceInner() {
   const initialClassId = classIdParam && /^\d+$/.test(classIdParam) ? classIdParam : '';
 
   const [showCorrect, setShowCorrect] = useState(correctParam === '1');
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
   const [page, setPage] = useState(1);
   const [date, setDate] = useState(initialDate);
   const [status, setStatus] = useState('');
@@ -82,6 +83,7 @@ function AdminAttendanceInner() {
 
   const hasActiveFilters = hasActiveAttendanceFilters(date, status, classId);
   const showReset = !isDefaultFilters(date, status, classId);
+  const isToday = date === todayIso();
 
   function resetFilters() {
     setDate(todayIso());
@@ -135,13 +137,45 @@ function AdminAttendanceInner() {
         ),
       },
       {
+        key: 'last_modified',
+        header: t('admin.attendanceList.lastModified'),
+        render: (a) => (
+          <div className="admin-att-table__modified">
+            <span dir="auto">{a.last_modified_by?.name ?? a.recorded_by?.name ?? t('common.dash')}</span>
+            <span className="mono tiny" dir="ltr">
+              {formatDateTime(a.last_modified_at ?? a.recorded_date)}
+            </span>
+          </div>
+        ),
+      },
+      {
         key: 'note',
         header: t('attendance.note'),
-        render: (a) => (
-          <span className="admin-att-table__note" dir="auto" title={a.note?.trim() || undefined}>
-            {a.note?.trim() ? a.note : t('common.dash')}
-          </span>
-        ),
+        render: (a) => {
+          const note = a.notes?.trim() || a.note?.trim() || '';
+          return (
+            <span className="admin-att-table__note" dir="auto" title={note || undefined}>
+              {note || t('common.dash')}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'actions',
+        header: '',
+        render: (a) =>
+          a.allowed_actions?.can_correct === true ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => {
+                setSelectedRecord(a);
+                setShowCorrect(true);
+              }}
+            >
+              {t('admin.attendanceList.correctRecord')}
+            </button>
+          ) : null,
       },
     ],
     [t],
@@ -155,9 +189,15 @@ function AdminAttendanceInner() {
         classLabel={classLabel}
         canCorrect={canCorrect}
         showCorrect={showCorrect}
-        onToggleCorrect={() => setShowCorrect((v) => !v)}
+        onToggleCorrect={() => {
+          setShowCorrect((value) => {
+            if (value) setSelectedRecord(null);
+            return !value;
+          });
+        }}
         onRefresh={() => state.reload()}
         refreshing={state.fetching}
+        isToday={isToday}
       />
 
       <AdminAttendanceFiltersCard
@@ -171,6 +211,19 @@ function AdminAttendanceInner() {
         onReset={resetFilters}
         showReset={showReset}
       />
+
+      {canCorrect ? (
+        <AdminAttendanceCorrectionPanel
+          open={showCorrect}
+          selectedDate={date}
+          initialRecord={selectedRecord}
+          onSuccess={() => {
+            setShowCorrect(false);
+            setSelectedRecord(null);
+            state.reload();
+          }}
+        />
+      ) : null}
 
       {state.fetching && !state.initialLoading ? <AdminAttendanceRefetchHint /> : null}
 
@@ -189,16 +242,6 @@ function AdminAttendanceInner() {
               >
                 {records.length > 0 ? (
                   <AdminAttendanceTodaySummary records={records} listTotal={pg?.total} />
-                ) : null}
-
-                {canCorrect ? (
-                  <AdminAttendanceCorrectionPanel
-                    open={showCorrect}
-                    onSuccess={() => {
-                      setShowCorrect(false);
-                      state.reload();
-                    }}
-                  />
                 ) : null}
 
                 {listEmptyVariant === 'no-match' ? (

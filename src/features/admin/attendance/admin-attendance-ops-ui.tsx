@@ -5,7 +5,7 @@
  * @design-status adopted
  */
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
@@ -44,6 +44,7 @@ export function AdminAttendanceOpsHeader({
   onToggleCorrect,
   onRefresh,
   refreshing,
+  isToday,
 }: {
   schoolName?: string;
   dateLabel: string;
@@ -53,6 +54,7 @@ export function AdminAttendanceOpsHeader({
   onToggleCorrect: () => void;
   onRefresh: () => void;
   refreshing?: boolean;
+  isToday: boolean;
 }) {
   const t = useT();
 
@@ -62,8 +64,12 @@ export function AdminAttendanceOpsHeader({
       <div className="admin-att-hero__content">
         <div className="admin-att-hero__intro">
           <span className="admin-att-hero__eyebrow">{schoolName ?? t('admin.cmd.defaultSchool')}</span>
-          <h1 className="admin-att-hero__title">{t('admin.attendanceList.title')}</h1>
-          <p className="admin-att-hero__subtitle">{t('admin.attendanceOps.pageSubtitle')}</p>
+          <h1 className="admin-att-hero__title">
+            {isToday ? t('admin.attendanceOps.todayTitle') : t('admin.attendanceList.title')}
+          </h1>
+          <p className="admin-att-hero__subtitle">
+            {isToday ? t('admin.attendanceOps.todaySubtitle') : t('admin.attendanceOps.pageSubtitle')}
+          </p>
           <div className="admin-att-hero__pills">
             <span className="admin-att-pill">
               <span aria-hidden="true">📅</span>
@@ -82,7 +88,7 @@ export function AdminAttendanceOpsHeader({
               className={cn('btn btn--sm', showCorrect ? 'btn--primary' : 'btn--ghost')}
               onClick={onToggleCorrect}
             >
-              {showCorrect ? t('admin.attendanceList.closeCorrect') : t('admin.attendanceList.correctRecord')}
+              {showCorrect ? t('admin.attendanceOps.closeQuickAction') : t('admin.attendanceOps.quickAction')}
             </button>
           )}
           <button
@@ -110,7 +116,7 @@ export function AdminAttendanceTodaySummary({
   listTotal?: number;
 }) {
   const t = useT();
-  const { counts, total, presentPct } = summarizeRecords(records);
+  const { counts, total } = summarizeRecords(records);
   const pageScoped = listTotal != null && listTotal > records.length;
 
   if (total === 0) {
@@ -127,24 +133,8 @@ export function AdminAttendanceTodaySummary({
   return (
     <section className="admin-att-stats" aria-label={t('admin.attendanceOps.todaySummary')}>
       <div className="admin-att-stats__head">
-        <h2 className="admin-att-stats__title">{t('admin.attendanceOps.todaySummary')}</h2>
+        <h2 className="admin-att-stats__title">{t('admin.attendanceList.summaryLabel')}</h2>
       </div>
-
-      {presentPct != null && (
-        <div className="admin-att-stats__ring-wrap">
-          <div
-            className="admin-att-stats__ring"
-            style={{ '--pct': presentPct } as CSSProperties}
-            role="img"
-            aria-label={t('admin.attendanceOps.presentRate', { pct: presentPct })}
-          >
-            <div className="admin-att-stats__ring-inner">
-              <span className="admin-att-stats__ring-value">{presentPct}%</span>
-              <span className="admin-att-stats__ring-label">{t('attendance.present')}</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="admin-att-stats__cards">
         {ATT_STATUSES.map((s) => (
@@ -282,20 +272,32 @@ export function AdminAttendanceFiltersCard({
 export function AdminAttendanceCorrectionPanel({
   open,
   onSuccess,
+  selectedDate,
+  initialRecord,
 }: {
   open: boolean;
   onSuccess: () => void;
+  selectedDate: string;
+  initialRecord?: AttendanceRecord | null;
 }) {
   const t = useT();
   if (!open) return null;
 
   return (
-    <section className="admin-att-correction" aria-label={t('admin.attendanceOps.correctionMode')}>
-      <div className="admin-att-correction__banner">
-        <span className="admin-att-correction__badge">{t('admin.attendanceOps.correctionMode')}</span>
-        <p className="admin-att-correction__hint">{t('admin.attendanceOps.correctionHint')}</p>
+    <section className="admin-att-operation" aria-label={t('admin.attendanceOps.operationTitle')}>
+      <div className="admin-att-operation__head">
+        <div className="admin-att-operation__icon" aria-hidden="true">✓</div>
+        <div className="admin-att-operation__copy">
+          <span className="admin-att-operation__eyebrow">{t('admin.attendanceOps.quickAction')}</span>
+          <h2 className="admin-att-operation__title">{t('admin.attendanceOps.operationTitle')}</h2>
+          <p className="admin-att-operation__hint">{t('admin.attendanceOps.operationHint')}</p>
+        </div>
       </div>
-      <AttendanceCorrectPanel onSuccess={onSuccess} />
+      <AttendanceCorrectPanel
+        onSuccess={onSuccess}
+        selectedDate={selectedDate}
+        initialRecord={initialRecord}
+      />
     </section>
   );
 }

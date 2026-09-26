@@ -41,6 +41,8 @@ export const endpoints = {
       `/admin/students/${id}/post-registration-setup`,
     studentOverview: (id: number | string) => `/admin/students/${id}/overview`,
     studentUpdate: (id: number | string) => `/admin/students/${id}/update`,
+    studentAcademicPlacementCorrect: (id: number | string) =>
+      `/admin/students/${id}/academic-placement/correct`,
     studentAccount: (id: number | string) => `/admin/students/${id}/account`,
     studentArchive: (id: number | string) => `/admin/students/${id}/archive`,
     studentEnrollment: (id: number | string) => `/admin/students/${id}/enrollment`,

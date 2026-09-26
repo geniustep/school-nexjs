@@ -1,17 +1,18 @@
 .historyCard {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   overflow: hidden;
 }
 
 .heading,
 .selectedHeader,
 .sectionHeading,
-.pagination {
+.tablePagination,
+.pickerPagination {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
 }
 
 .heading {
@@ -20,7 +21,8 @@
 
 .heading h2,
 .selectedHeader h3,
-.sectionHeading h3 {
+.sectionHeading h3,
+.diagnosticGroup h4 {
   margin: 0;
 }
 
@@ -28,6 +30,15 @@
 .selectedHeader p,
 .sectionHeading p {
   margin-block: 5px 0;
+}
+
+.eyebrow {
+  margin: 0 0 5px;
+  color: var(--c-primary);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
 .errorBlock {
@@ -38,7 +49,6 @@
 
 .loading,
 .empty,
-.subtleLine,
 .freshness {
   margin: 0;
   color: var(--c-text-muted);
@@ -46,139 +56,221 @@
 }
 
 .empty {
-  padding: 18px;
+  padding: 24px;
   border: 1px dashed var(--c-border);
-  border-radius: 12px;
+  border-radius: 14px;
   text-align: center;
 }
 
-.campaignStrip {
+.campaignPicker {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(245px, 310px);
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  overscroll-behavior-inline: contain;
-  scroll-snap-type: inline proximity;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+  background: var(--c-surface-2);
+  min-width: 0;
 }
 
-.campaignButton {
-  display: grid;
+.pickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pickerTitleLine {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  min-height: 118px;
-  padding: 12px;
+}
+
+.pickerTitleLine > span {
+  min-width: 30px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  font-size: .74rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.pickerPagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--c-text-muted);
+  font-size: .75rem;
+}
+
+.campaignSelect {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 12px;
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--c-surface);
   color: var(--c-text);
-  text-align: start;
+  font: inherit;
   cursor: pointer;
-  scroll-snap-align: start;
 }
 
-.campaignButton:hover {
-  border-color: color-mix(in srgb, var(--c-primary) 45%, var(--c-border));
-}
-
-.campaignButton:focus-visible,
-.statusMetric:focus-visible,
-.recipientRow:focus-visible {
+.campaignSelect:focus-visible {
   outline: 2px solid var(--c-primary);
   outline-offset: 2px;
 }
 
-.campaignButtonActive {
-  border-color: color-mix(in srgb, var(--c-primary) 55%, var(--c-border));
-  background: color-mix(in srgb, var(--c-primary) 6%, var(--c-surface));
-}
-
-.campaignButtonTop {
+.campaignSummaryBar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 14px;
+  min-width: 0;
+  padding-top: 2px;
 }
 
-.campaignButtonTop strong {
+.campaignSummaryMain {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.campaignSummaryMain > span {
+  color: var(--c-text-muted);
+  font-size: .75rem;
+}
+
+.campaignSummaryTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.campaignSummaryTitle strong {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.campaignMeta {
-  color: var(--c-text-muted);
-  font-size: .76rem;
-}
-
-.campaignCounts {
+.campaignSummaryStats {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
-  color: var(--c-text-muted);
-  font-size: .76rem;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.campaignCounts strong {
+.campaignSummaryStats span {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  font-size: .72rem;
+}
+
+.campaignSummaryStats strong {
   color: var(--c-text);
+  font-size: .9rem;
   font-variant-numeric: tabular-nums;
 }
 
-.pagination {
-  justify-content: flex-end;
-  color: var(--c-text-muted);
-  font-size: .8rem;
+.detailPane {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
 }
 
 .selectedHeader {
-  padding-top: 14px;
-  border-top: 1px solid var(--c-border);
+  padding: 2px 2px 14px;
+  border-bottom: 1px solid var(--c-border);
+  align-items: flex-start;
 }
 
-.analytics {
+.selectedTitleLine {
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.audiencePills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.audiencePills span {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 7px 9px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2);
+  color: var(--c-text-muted);
+  font-size: .72rem;
+}
+
+.audiencePills strong {
+  color: var(--c-text);
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.performanceSection,
+.recipientSection {
   display: grid;
   gap: 14px;
-}
-
-.analyticsSection,
-.drilldown {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--c-surface-2);
 }
 
-.statGrid,
-.metricGrid,
-.activationGrid {
+.sectionHeading {
+  align-items: flex-start;
+}
+
+.denominator {
   display: grid;
-  gap: 9px;
-}
-
-.statGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.metricGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.activationGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.statusMetric {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 9px;
-  min-height: 46px;
-  padding: 10px 11px;
-  border: 1px solid var(--c-border);
+  justify-items: end;
+  gap: 2px;
+  min-width: 110px;
+  padding: 8px 10px;
   border-radius: 10px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+}
+
+.denominator span {
+  color: var(--c-text-muted);
+  font-size: .7rem;
+}
+
+.denominator strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.milestoneGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.milestoneCard {
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  padding: 13px;
+  border: 1px solid var(--c-border);
+  border-radius: 13px;
   background: var(--c-surface);
   color: var(--c-text);
   font: inherit;
@@ -186,147 +278,337 @@
   cursor: pointer;
 }
 
-.statusMetric:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--c-primary) 42%, var(--c-border));
-  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-surface));
+.milestoneCard:hover {
+  border-color: color-mix(in srgb, var(--c-primary) 40%, var(--c-border));
+  transform: translateY(-1px);
 }
 
-.statusMetric:disabled {
-  cursor: default;
-  opacity: .7;
+.milestoneCardActive {
+  border-color: color-mix(in srgb, var(--c-primary) 62%, var(--c-border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-primary) 10%, transparent);
 }
 
-.statusMetric span {
+.milestoneCard strong {
+  font-size: 1.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.milestoneLabel {
   color: var(--c-text-muted);
   font-size: .78rem;
+  font-weight: 700;
 }
 
-.statusMetric strong {
+.milestoneRate {
+  color: var(--c-text-muted);
+  font-size: .7rem;
+}
+
+.milestoneCard[data-status='sent'] strong {
+  color: var(--c-primary);
+}
+
+.milestoneCard[data-status='delivered'] strong,
+.milestoneCard[data-status='read'] strong,
+.milestoneCard[data-status='opened_activation_link'] strong {
+  color: var(--c-green);
+}
+
+.journey {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 10px 6px 2px;
+}
+
+.journeyItem {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+
+.journeyLine {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--c-border);
+  z-index: 0;
+}
+
+.journeyDot {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--c-surface-2);
+  border-radius: 50%;
+  background: var(--c-primary);
+  box-shadow: 0 0 0 1px var(--c-border);
+}
+
+.journeyItem strong {
+  margin-top: 4px;
   font-size: 1rem;
   font-variant-numeric: tabular-nums;
 }
 
-.statusMetric[data-status='failed'] strong,
-.statusMetric[data-status='expired'] strong,
-.statusMetric[data-status='revoked'] strong {
-  color: var(--c-red);
+.journeyItem > span:last-child {
+  max-width: 130px;
+  color: var(--c-text-muted);
+  font-size: .7rem;
 }
 
-.statusMetric[data-status='read'] strong,
-.statusMetric[data-status='delivered'] strong,
-.statusMetric[data-status='activated_via_campaign_link'] strong {
-  color: var(--c-green);
+.freshness {
+  justify-self: end;
+  font-size: .72rem;
 }
 
-.statusMetric[data-status='unavailable'] strong,
-.statusMetric[data-status='unknown'] strong {
-  color: var(--c-amber);
+.tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
-.flowGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+.tab {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-
-.flowStep {
-  display: grid;
-  place-items: center;
-  gap: 3px;
-  min-height: 78px;
-  padding: 10px;
+  gap: 7px;
+  flex: 0 0 auto;
+  padding: 8px 10px;
   border: 1px solid var(--c-border);
-  border-radius: 12px;
+  border-radius: 999px;
   background: var(--c-surface);
-  text-align: center;
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: .75rem;
+  cursor: pointer;
 }
 
-.flowStep strong {
-  font-size: 1.3rem;
+.tab b {
+  min-width: 23px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  font-size: .72rem;
   font-variant-numeric: tabular-nums;
 }
 
-.flowStep span {
-  color: var(--c-text-muted);
-  font-size: .76rem;
+.tabActive {
+  border-color: color-mix(in srgb, var(--c-primary) 58%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 8%, var(--c-surface));
+  color: var(--c-text);
 }
 
-.flowArrow {
-  color: var(--c-text-muted);
-  font-weight: 800;
-}
-
-.recipientList {
-  display: grid;
+.tableWrap {
+  overflow-x: auto;
   border: 1px solid var(--c-border);
-  border-radius: 10px;
-  overflow: hidden;
+  border-radius: 12px;
+  background: var(--c-surface);
 }
 
-.recipientRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  min-height: 48px;
-  padding: 9px 12px;
+.recipientTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+.recipientTable th,
+.recipientTable td {
+  padding: 11px 12px;
   border-bottom: 1px solid var(--c-border);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.recipientTable th {
+  color: var(--c-text-muted);
+  font-size: .72rem;
+  font-weight: 700;
+  background: var(--c-surface-2);
+}
+
+.recipientTable td {
+  font-size: .8rem;
+}
+
+.recipientTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.recipientTable tbody tr:hover td {
+  background: color-mix(in srgb, var(--c-primary) 3%, var(--c-surface));
+}
+
+.parentLink {
+  display: inline-grid;
+  gap: 2px;
   color: var(--c-text);
   text-decoration: none;
 }
 
-.recipientRow:last-child {
-  border-bottom: 0;
+.parentLink:hover strong {
+  text-decoration: underline;
 }
 
-.recipientRow:hover {
-  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-surface));
+.parentLink span {
+  color: var(--c-text-muted);
+  font-size: .68rem;
 }
 
-.recipientRow span {
+.currentStatus {
+  display: inline-flex;
+  padding: 4px 7px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  color: var(--c-text-muted);
+  font-size: .7rem;
+}
+
+.currentStatus[data-status='failed'] {
+  color: var(--c-red);
+}
+
+.currentStatus[data-status='read'],
+.currentStatus[data-status='delivered'] {
+  color: var(--c-green);
+}
+
+.currentStatus[data-status='unavailable'] {
+  color: var(--c-amber);
+}
+
+.tablePagination {
+  color: var(--c-text-muted);
+  font-size: .75rem;
+}
+
+.tablePagination > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diagnostics {
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface);
+  overflow: hidden;
+}
+
+.diagnostics summary {
+  padding: 12px 14px;
+  cursor: pointer;
   color: var(--c-text-muted);
   font-size: .78rem;
-  text-align: end;
+  font-weight: 700;
 }
 
-@media (max-width: 1050px) {
-  .statGrid,
-  .metricGrid,
-  .activationGrid {
+.diagnostics[open] summary {
+  border-bottom: 1px solid var(--c-border);
+}
+
+.diagnosticGroup {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.diagnosticGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.diagnosticMetric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 9px;
+  border: 1px solid var(--c-border);
+  border-radius: 9px;
+  background: var(--c-surface-2);
+}
+
+.diagnosticMetric span {
+  color: var(--c-text-muted);
+  font-size: .7rem;
+}
+
+.diagnosticMetric strong {
+  font-size: .82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .milestoneGrid,
+  .diagnosticGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .flowGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .flowArrow {
-    transform: rotate(90deg);
-    justify-self: center;
-  }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 720px) {
   .heading,
   .selectedHeader,
   .sectionHeading,
-  .recipientRow {
+  .tablePagination {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .statGrid,
-  .metricGrid,
-  .activationGrid {
+  .milestoneGrid,
+  .diagnosticGrid {
     grid-template-columns: 1fr;
   }
 
-  .campaignStrip {
-    grid-auto-columns: minmax(82vw, 1fr);
+  .pickerHeader,
+  .campaignSummaryBar {
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .recipientRow span {
+  .pickerPagination,
+  .campaignSummaryStats {
+    justify-content: flex-start;
+  }
+
+  .audiencePills {
+    justify-content: flex-start;
+  }
+
+  .journey {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .journeyItem {
+    grid-template-columns: auto auto 1fr;
+    justify-items: start;
+    align-items: center;
     text-align: start;
+  }
+
+  .journeyLine {
+    display: none;
+  }
+
+  .journeyItem strong {
+    margin-top: 0;
+  }
+
+  .journeyItem > span:last-child {
+    max-width: none;
+  }
+
+  .freshness {
+    justify-self: start;
   }
 }

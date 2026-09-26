@@ -393,6 +393,9 @@ export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   if (/^\/admin\/finance\/services(?:\/|$)/.test(pathname)) return false;
   // Student guardian link/create/update/end/remove — school stays on query only.
   if (/^\/admin\/students\/[^/]+\/guardians(?:\/|$)/.test(pathname)) return false;
+  // Academic placement correction has a strict JSON allowlist: level_id (+ optional reason).
+  // Keep trusted school context on query/session; never synthesize active_school_id in body.
+  if (/^\/admin\/students\/[^/]+\/academic-placement\/correct$/.test(pathname)) return false;
   // Odoo 236 subject enablement update — strict body allowlist (no active_school_id).
   // School scope remains on the query string + session.
   if (/^\/admin\/subjects\/enablement\/update$/.test(pathname)) return false;
