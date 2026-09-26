@@ -29,13 +29,17 @@ import type {
 } from './admin-attendance-operations-contract';
 import {
   buildAttendanceClassBatchItems,
+  buildAttendanceLevelOptions,
   buildAttendanceRosterDraft,
   classOperationAction,
+  classesForAttendanceLevel,
   filterAttendanceOperationClasses,
   hasAttendanceBatchConcurrencyFailure,
   isAttendanceRosterRowDirty,
   markUnrecordedPresent,
   type AttendanceClassFilter,
+  type AttendanceClassIdFilter,
+  type AttendanceLevelFilter,
   type AttendanceRosterDraftRow,
 } from './admin-attendance-operations-utils';
 import './admin-attendance.css';
@@ -437,19 +441,53 @@ export function AdminAttendanceOperationsCenter() {
   const [date, setDate] = useState(today);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<AttendanceClassFilter>('all');
+  const [levelFilter, setLevelFilter] = useState<AttendanceLevelFilter>('all');
+  const [classFilter, setClassFilter] = useState<AttendanceClassIdFilter>('all');
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   const state = useAdminResource<AttendanceOperationsOverview>(overviewPath(), { date }, { keepPreviousData: true });
   const overview = state.data;
+  const levelOptions = useMemo(
+    () => buildAttendanceLevelOptions(overview?.classes ?? []),
+    [overview?.classes],
+  );
+  const classOptions = useMemo(
+    () => classesForAttendanceLevel(overview?.classes ?? [], levelFilter),
+    [overview?.classes, levelFilter],
+  );
   const classes = useMemo(
-    () => filterAttendanceOperationClasses(overview?.classes ?? [], search, statusFilter),
-    [overview?.classes, search, statusFilter],
+    () => filterAttendanceOperationClasses(
+      overview?.classes ?? [],
+      search,
+      statusFilter,
+      levelFilter,
+      classFilter,
+    ),
+    [overview?.classes, search, statusFilter, levelFilter, classFilter],
   );
 
   useEffect(() => {
     if (selectedClassId == null || !overview) return;
     if (!overview.classes.some((row) => row.id === selectedClassId)) setSelectedClassId(null);
   }, [overview, selectedClassId]);
+
+  useEffect(() => {
+    if (classFilter === 'all') return;
+    if (!classOptions.some((row) => row.id === classFilter)) setClassFilter('all');
+  }, [classFilter, classOptions]);
+
+  function chooseLevel(level: AttendanceLevelFilter) {
+    setLevelFilter(level);
+    setClassFilter('all');
+    setSearch('');
+    setSelectedClassId(null);
+  }
+
+  function chooseClass(value: string) {
+    const next: AttendanceClassIdFilter = value === 'all' ? 'all' : Number(value);
+    setClassFilter(next);
+    setSelectedClassId(null);
+  }
 
   return (
     <div className="admin-workspace attendance-center-page">
@@ -522,21 +560,88 @@ export function AdminAttendanceOperationsCenter() {
                 </div>
               </div>
 
-              <div className="attendance-center-filters">
-                <input className="input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('admin.attendanceCenter.searchPlaceholder')} />
-                <div className="attendance-center-filter-chips" role="group" aria-label={t('admin.attendanceOps.filtersTitle')}>
-                  {CLASS_FILTERS.map((filter) => (
+              <div className="attendance-center-filter-stack">
+                <section className="attendance-center-filter-stage">
+                  <div className="attendance-center-filter-stage__head">
+                    <div>
+                      <strong>{t('admin.attendanceCenter.levelsFilterTitle')}</strong>
+                      <span>{t('admin.attendanceCenter.levelsFilterHint')}</span>
+                    </div>
+                  </div>
+                  <div className="attendance-center-level-grid" role="group" aria-label={t('admin.attendanceCenter.levelsFilterTitle')}>
                     <button
-                      key={filter}
                       type="button"
-                      className={cn('attendance-center-filter-chip', statusFilter === filter && 'attendance-center-filter-chip--active')}
-                      aria-pressed={statusFilter === filter}
-                      onClick={() => setStatusFilter(filter)}
+                      className={cn('attendance-center-level-chip', levelFilter === 'all' && 'attendance-center-level-chip--active')}
+                      aria-pressed={levelFilter === 'all'}
+                      onClick={() => chooseLevel('all')}
                     >
-                      {filter === 'all' ? t('admin.attendanceCenter.filterAll') : t(operationStatusKey(filter))}
+                      <span>{t('admin.attendanceCenter.allLevels')}</span>
+                      <small>{t('admin.attendanceCenter.levelClassCount', { count: data.classes.length })}</small>
                     </button>
-                  ))}
-                </div>
+                    {levelOptions.map((level) => (
+                      <button
+                        key={level.id}
+                        type="button"
+                        className={cn('attendance-center-level-chip', levelFilter === level.id && 'attendance-center-level-chip--active')}
+                        aria-pressed={levelFilter === level.id}
+                        onClick={() => chooseLevel(level.id)}
+                      >
+                        <span dir="auto">{level.name}</span>
+                        <small>{t('admin.attendanceCenter.levelClassCount', { count: level.classCount })}</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="attendance-center-filter-stage">
+                  <div className="attendance-center-filter-stage__head">
+                    <div>
+                      <strong>{t('admin.attendanceCenter.classFilterTitle')}</strong>
+                      <span>{t('admin.attendanceCenter.classFilterHint')}</span>
+                    </div>
+                  </div>
+                  <div className="attendance-center-class-filter-row">
+                    <select
+                      className="input"
+                      value={String(classFilter)}
+                      onChange={(event) => chooseClass(event.target.value)}
+                      aria-label={t('admin.attendanceCenter.classFilterTitle')}
+                    >
+                      <option value="all">{t('admin.attendanceCenter.allClasses')}</option>
+                      {classOptions.map((row) => (
+                        <option key={row.id} value={row.id}>{row.name}</option>
+                      ))}
+                    </select>
+                    <input
+                      className="input"
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder={t('admin.attendanceCenter.searchWithinClasses')}
+                    />
+                  </div>
+                </section>
+
+                <section className="attendance-center-filter-stage">
+                  <div className="attendance-center-filter-stage__head">
+                    <div>
+                      <strong>{t('admin.attendanceCenter.statusFilterTitle')}</strong>
+                    </div>
+                    <span>{t('admin.attendanceCenter.visibleClassesCount', { visible: classes.length, total: classOptions.length })}</span>
+                  </div>
+                  <div className="attendance-center-filter-chips" role="group" aria-label={t('admin.attendanceOps.filtersTitle')}>
+                    {CLASS_FILTERS.map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        className={cn('attendance-center-filter-chip', statusFilter === filter && 'attendance-center-filter-chip--active')}
+                        aria-pressed={statusFilter === filter}
+                        onClick={() => setStatusFilter(filter)}
+                      >
+                        {filter === 'all' ? t('admin.attendanceCenter.filterAll') : t(operationStatusKey(filter))}
+                      </button>
+                    ))}
+                  </div>
+                </section>
               </div>
 
               {data.classes.length === 0 ? (

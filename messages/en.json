@@ -2603,7 +2603,17 @@
         "continue": "Continue recording",
         "review": "Review attendance",
         "view": "View attendance"
-      }
+      },
+      "levelsFilterTitle": "Levels",
+      "levelsFilterHint": "Start with a level to narrow the classes shown.",
+      "allLevels": "All levels",
+      "levelClassCount": "{count} classes",
+      "classFilterTitle": "Classes",
+      "classFilterHint": "Choose one class or show all classes in the selected level.",
+      "allClasses": "All classes",
+      "searchWithinClasses": "Search within visible classes…",
+      "statusFilterTitle": "Recording status",
+      "visibleClassesCount": "Showing {visible} of {total} classes"
     },
     "attendanceList": {
       "title": "Attendance",
