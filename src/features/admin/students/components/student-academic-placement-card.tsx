@@ -154,6 +154,10 @@ export function StudentAcademicPlacementCard({
   ) {
     setFinancePreviewLoading(true);
     setFinanceErrorKey(null);
+    if (options.staleRefresh) {
+      setFinancePreview(null);
+      setFinanceReviewOpen(false);
+    }
     const academicYearId = enrollmentAcademicYearId(displayEnrollment);
     const payload = {
       mode: 'carry_forward_plan_change' as const,
