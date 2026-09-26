@@ -719,6 +719,10 @@ export function buildStaffTemplatePreviewPayload(
   return payload;
 }
 
+export function normalizeStaffPersonCandidateText(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
 export function resolveStaffTemplateAccountLogin(
   person: StaffTemplatePersonInput,
   login: string,
