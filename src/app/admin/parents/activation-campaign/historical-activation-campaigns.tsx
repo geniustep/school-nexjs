@@ -90,9 +90,10 @@ export function HistoricalActivationCampaigns() {
         return;
       }
       setCampaignList(response.data);
+      const archivedItems = response.data.items.filter((item) => item.state === 'prepared');
       setSelectedCampaignId((current) => {
-        if (current && response.data.items.some((item) => item.id === current)) return current;
-        return response.data.items[0]?.id ?? null;
+        if (current && archivedItems.some((item) => item.id === current)) return current;
+        return archivedItems[0]?.id ?? null;
       });
     }).catch(() => {
       if (active) setListError(true);
@@ -188,9 +189,14 @@ export function HistoricalActivationCampaigns() {
     };
   }, [selectedCampaignId, analytics, recipientView, recipientPageNumber, refreshKey]);
 
+  const archivedCampaigns = useMemo(
+    () => campaignList?.items.filter((item) => item.state === 'prepared') ?? [],
+    [campaignList],
+  );
+
   const selectedListItem = useMemo(
-    () => campaignList?.items.find((item) => item.id === selectedCampaignId) ?? null,
-    [campaignList, selectedCampaignId],
+    () => archivedCampaigns.find((item) => item.id === selectedCampaignId) ?? null,
+    [archivedCampaigns, selectedCampaignId],
   );
 
   function chooseCampaign(id: number) {
@@ -235,7 +241,7 @@ export function HistoricalActivationCampaigns() {
         </div>
       ) : null}
 
-      {!listLoading && !listError && campaignList?.items.length === 0 ? (
+      {!listLoading && !listError && archivedCampaigns.length === 0 ? (
         <p className={styles.empty}>{copy.empty}</p>
       ) : null}
 
@@ -245,7 +251,7 @@ export function HistoricalActivationCampaigns() {
             <p className={styles.eyebrow}>{copy.selectCampaign}</p>
             <div className={styles.pickerTitleLine}>
               <strong>{copy.selectCampaign}</strong>
-              <span>{campaignList?.pagination.total ?? 0}</span>
+              <span>{archivedCampaigns.length}</span>
             </div>
           </div>
 
@@ -274,18 +280,21 @@ export function HistoricalActivationCampaigns() {
 
         {listLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
 
-        {!listLoading && campaignList?.items.length ? (
+        {!listLoading && archivedCampaigns.length ? (
           <select
             className={styles.campaignSelect}
             value={selectedCampaignId ?? ''}
             onChange={(event) => chooseCampaign(Number(event.target.value))}
             aria-label={copy.selectCampaign}
           >
-            {campaignList.items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name} — #{item.id}
-              </option>
-            ))}
+            {archivedCampaigns.map((item) => {
+              const sent = item.funnel.dispatch_enqueued > 0;
+              return (
+                <option key={item.id} value={item.id}>
+                  {item.name} — #{item.id} — {sent ? copy.sentCampaign : copy.savedCampaign}
+                </option>
+              );
+            })}
           </select>
         ) : null}
 
@@ -294,8 +303,8 @@ export function HistoricalActivationCampaigns() {
             <div className={styles.campaignSummaryMain}>
               <div className={styles.campaignSummaryTitle}>
                 <strong dir="auto">{selectedListItem.name}</strong>
-                <Badge tone={selectedListItem.state === 'prepared' ? 'green' : 'slate'}>
-                  {selectedListItem.state === 'prepared' ? copy.prepared : selectedListItem.state}
+                <Badge tone={selectedListItem.funnel.dispatch_enqueued > 0 ? 'green' : 'blue'}>
+                  {selectedListItem.funnel.dispatch_enqueued > 0 ? copy.sentCampaign : copy.savedCampaign}
                 </Badge>
               </div>
               <span>{formatHistoricalDate(selectedListItem.prepared_at ?? selectedListItem.create_date, locale)}</span>
