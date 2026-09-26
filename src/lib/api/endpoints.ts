@@ -123,6 +123,8 @@ export const endpoints = {
     parentActivationCampaigns: '/admin/parent-activation-campaigns',
     parentActivationCampaignPrepare: '/admin/parent-activation-campaigns/prepare',
     parentActivationCampaign: (id: number | string) => `/admin/parent-activation-campaigns/${id}`,
+    parentActivationCampaignSave: (id: number | string) =>
+      `/admin/parent-activation-campaigns/${id}/save`,
     parentActivationCampaignAnalytics: (id: number | string) =>
       `/admin/parent-activation-campaigns/${id}/analytics`,
     parentActivationCampaignRecipients: (id: number | string) =>
