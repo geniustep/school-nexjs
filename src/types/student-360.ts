@@ -440,6 +440,8 @@ export type StudentUpdatePayload = Partial<StudentCreatePayload>;
 export interface StudentAcademicPlacementCorrectPayload {
   level_id: number;
   reason?: string;
+  confirm_finance_transition?: boolean;
+  preview_token?: string;
 }
 
 export interface StudentCapabilities {
