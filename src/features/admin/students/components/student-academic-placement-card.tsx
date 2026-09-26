@@ -434,7 +434,7 @@ export function StudentAcademicPlacementCard({
         targetLevelLabel={studentLevelLabel(targetLevel)}
         willUnassign={willUnassign}
         canConfirm={canManageFinanceTransition}
-        applying={financeApplyLoading}
+        applying={financeApplyLoading || financePreviewLoading}
         staleRefreshed={financeStaleRefreshed}
         errorKey={financeErrorKey}
         onConfirm={applyFinanceTransition}
