@@ -2706,7 +2706,17 @@
         "continue": "متابعة التسجيل",
         "review": "مراجعة الحضور",
         "view": "عرض الحضور"
-      }
+      },
+      "levelsFilterTitle": "المستويات",
+      "levelsFilterHint": "ابدأ باختيار المستوى لتقليص الأقسام المعروضة.",
+      "allLevels": "كل المستويات",
+      "levelClassCount": "{count} قسم",
+      "classFilterTitle": "الأقسام",
+      "classFilterHint": "اختر قسمًا محددًا أو اعرض كل أقسام المستوى.",
+      "allClasses": "كل الأقسام",
+      "searchWithinClasses": "ابحث داخل الأقسام الظاهرة…",
+      "statusFilterTitle": "حالة التسجيل",
+      "visibleClassesCount": "إظهار {visible} من {total} قسمًا"
     },
     "attendanceList": {
       "title": "الحضور والغياب",
