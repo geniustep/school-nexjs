@@ -178,7 +178,7 @@ describe('StudentAcademicPlacementCard', () => {
         levels={levels}
         optionsLoading={false}
         canManage
-        canManageFinanceTransition
+        canManageFinanceTransition={false}
       />,
     );
 
