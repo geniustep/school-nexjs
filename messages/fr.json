@@ -2603,7 +2603,17 @@
         "continue": "Continuer la saisie",
         "review": "Vérifier les présences",
         "view": "Voir les présences"
-      }
+      },
+      "levelsFilterTitle": "Niveaux",
+      "levelsFilterHint": "Commencez par choisir un niveau pour réduire les classes affichées.",
+      "allLevels": "Tous les niveaux",
+      "levelClassCount": "{count} classes",
+      "classFilterTitle": "Classes",
+      "classFilterHint": "Choisissez une classe précise ou affichez toutes les classes du niveau.",
+      "allClasses": "Toutes les classes",
+      "searchWithinClasses": "Rechercher dans les classes affichées…",
+      "statusFilterTitle": "État de saisie",
+      "visibleClassesCount": "{visible} classes affichées sur {total}"
     },
     "attendanceList": {
       "title": "Présences",
