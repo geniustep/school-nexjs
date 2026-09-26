@@ -85,6 +85,10 @@ export function academicPlacementErrorMessageKey(
   details?: unknown,
 ): string {
   switch (code) {
+    case 'TARGET_FEE_PLAN_MISSING_PRODUCT_DECISION_REQUIRED':
+      return 'admin.student360.editPage.academicPlacement.financeTransition.errors.targetPlanNotFound';
+    case 'target_fee_plan_ambiguous':
+      return 'admin.student360.editPage.academicPlacement.financeTransition.errors.targetPlanAmbiguous';
     case 'finance_review_required':
       if (financeReviewReasons(details).includes('target_level_not_covered_by_fee_plan')) {
         return 'admin.student360.editPage.academicPlacement.errors.targetLevelNotCoveredByFeePlan';
