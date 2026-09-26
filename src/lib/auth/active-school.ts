@@ -9,6 +9,7 @@ import {
   resolveSchoolIds,
   schoolRefForId,
 } from '@/lib/auth/normalize-user';
+import { resolveEffectiveRole } from '@/lib/auth/active-role-workspace';
 import type { CurrentUser } from '@/types/user';
 
 const ACTIVE_SCHOOL_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -43,10 +44,13 @@ export async function setActiveSchoolCookieValue(schoolId: number | null): Promi
 
 /** Align cookie with resolved active school when bindings change (stale cookie / /me drift). */
 export async function syncActiveSchoolCookie(user: CurrentUser): Promise<number | null> {
-  if (user.role !== 'admin') return null;
   const normalized = normalizeMeUser(user);
+  if (resolveEffectiveRole(normalized) !== 'admin') return null;
   const cookieId = await getActiveSchoolCookie();
-  const activeId = resolveActiveSchoolId(normalized, cookieId);
+  const contextId = normalized.active_context?.role === 'admin'
+    ? normalized.active_context.school_id
+    : null;
+  const activeId = contextId ?? resolveActiveSchoolId(normalized, cookieId);
   if (cookieId !== activeId) {
     await setActiveSchoolCookieValue(activeId);
   }
@@ -55,10 +59,13 @@ export async function syncActiveSchoolCookie(user: CurrentUser): Promise<number 
 
 /** Resolve active school for layouts/guards (read-only; does not mutate cookies). */
 export async function applyActiveSchoolToUser(user: CurrentUser): Promise<CurrentUser> {
-  if (user.role !== 'admin') return user;
   const normalized = normalizeMeUser(user);
+  if (resolveEffectiveRole(normalized) !== 'admin') return normalized;
   const cookieId = await getActiveSchoolCookie();
-  const activeId = resolveActiveSchoolId(normalized, cookieId);
+  const contextId = normalized.active_context?.role === 'admin'
+    ? normalized.active_context.school_id
+    : null;
+  const activeId = contextId ?? resolveActiveSchoolId(normalized, cookieId);
   const catalog = resolveSchoolCatalog(normalized);
   return {
     ...normalized,
