@@ -75,7 +75,7 @@ export default function ParentActivationCampaignPreparePage() {
   const [dispatchError, setDispatchError] = useState<string | null>(null);
   const [dispatchResult, setDispatchResult] = useState<ParentActivationCampaignDispatch | null>(null);
   const [savingCampaign, setSavingCampaign] = useState(false);
-  const [campaignSaved, setCampaignSaved] = useState(false);
+  const [campaignArchiveStatus, setCampaignArchiveStatus] = useState<'preview' | 'saved' | 'sent'>('preview');
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const filteredRecipients = useMemo(
@@ -118,7 +118,7 @@ export default function ParentActivationCampaignPreparePage() {
     setDispatchError(null);
     setDispatchResult(null);
     setSaveError(null);
-    setCampaignSaved(false);
+    setCampaignArchiveStatus('preview');
     setConfirmOpen(false);
     setMarkedRecipientIds(new Set());
 
@@ -139,7 +139,7 @@ export default function ParentActivationCampaignPreparePage() {
   }
 
   async function saveCampaignForArchive() {
-    if (!campaign || campaignSaved || busy) return;
+    if (!campaign || campaignArchiveStatus !== 'preview' || busy) return;
 
     setSavingCampaign(true);
     setSaveError(null);
@@ -154,7 +154,13 @@ export default function ParentActivationCampaignPreparePage() {
       return;
     }
 
-    setCampaignSaved(response.data.archive_status === 'saved' || response.data.archive_status === 'sent');
+    setCampaignArchiveStatus(
+      response.data.archive_status === 'sent'
+        ? 'sent'
+        : response.data.archive_status === 'saved'
+          ? 'saved'
+          : 'preview',
+    );
     setSavingCampaign(false);
   }
 
@@ -257,7 +263,7 @@ export default function ParentActivationCampaignPreparePage() {
 
     setDispatchResult(response.data);
     if ((response.data.counts.queued ?? 0) + (response.data.counts.already_processed ?? 0) > 0) {
-      setCampaignSaved(true);
+      setCampaignArchiveStatus('sent');
     }
     await refreshCampaign(campaign.id);
     setDispatching(false);
@@ -343,10 +349,14 @@ export default function ParentActivationCampaignPreparePage() {
               <p className="muted">{campaign.name}</p>
             </div>
             <div className={styles.reviewActions}>
-              <Badge tone={campaignSaved ? 'green' : 'blue'}>
-                {campaignSaved ? archiveCopy.savedCampaign : archiveCopy.previewCampaign}
+              <Badge tone={campaignArchiveStatus === 'sent' ? 'green' : campaignArchiveStatus === 'saved' ? 'green' : 'blue'}>
+                {campaignArchiveStatus === 'sent'
+                  ? archiveCopy.sentCampaign
+                  : campaignArchiveStatus === 'saved'
+                    ? archiveCopy.savedCampaign
+                    : archiveCopy.previewCampaign}
               </Badge>
-              {!campaignSaved ? (
+              {campaignArchiveStatus === 'preview' ? (
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm"
@@ -359,7 +369,7 @@ export default function ParentActivationCampaignPreparePage() {
             </div>
           </div>
 
-          {campaignSaved ? (
+          {campaignArchiveStatus === 'saved' ? (
             <p className={styles.archiveNotice} role="status">{archiveCopy.campaignSavedNotice}</p>
           ) : null}
           {saveError ? <p className="form-error" role="alert">{saveError}</p> : null}
