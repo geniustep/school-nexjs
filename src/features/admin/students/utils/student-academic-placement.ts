@@ -73,16 +73,6 @@ export function canManageStudentAcademicPlacement(
   );
 }
 
-export function canManageStudentAcademicPlacementFinanceTransition(
-  user: CurrentUser | null | undefined,
-): boolean {
-  return (
-    hasUserCapability(user, 'finance.change_student_plan') &&
-    hasUserCapability(user, 'finance.create_agreements') &&
-    hasUserCapability(user, 'finance.activate_agreements')
-  );
-}
-
 function financeReviewReasons(details: unknown): string[] {
   if (!details || typeof details !== 'object' || Array.isArray(details)) return [];
   const raw = (details as Record<string, unknown>).finance_review_reasons;
@@ -95,6 +85,10 @@ export function academicPlacementErrorMessageKey(
   details?: unknown,
 ): string {
   switch (code) {
+    case 'TARGET_FEE_PLAN_MISSING_PRODUCT_DECISION_REQUIRED':
+      return 'admin.student360.editPage.academicPlacement.financeTransition.errors.targetPlanNotFound';
+    case 'target_fee_plan_ambiguous':
+      return 'admin.student360.editPage.academicPlacement.financeTransition.errors.targetPlanAmbiguous';
     case 'finance_review_required':
       if (financeReviewReasons(details).includes('target_level_not_covered_by_fee_plan')) {
         return 'admin.student360.editPage.academicPlacement.errors.targetLevelNotCoveredByFeePlan';

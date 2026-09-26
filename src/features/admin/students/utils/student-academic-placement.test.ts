@@ -73,5 +73,9 @@ describe('student academic placement utilities', () => {
       }),
     ).toContain('targetLevelNotCoveredByFeePlan');
     expect(academicPlacementErrorMessageKey('registration_data_permission_required')).toContain('permissionDenied');
+    expect(
+      academicPlacementErrorMessageKey('TARGET_FEE_PLAN_MISSING_PRODUCT_DECISION_REQUIRED'),
+    ).toContain('targetPlanNotFound');
+    expect(academicPlacementErrorMessageKey('target_fee_plan_ambiguous')).toContain('targetPlanAmbiguous');
   });
 });

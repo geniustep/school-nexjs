@@ -7,7 +7,6 @@ import type { StudentEnrollment, StudentLevelOption } from '@/types/student-360'
 
 const mocks = vi.hoisted(() => ({
   correct: vi.fn(),
-  preview: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
 }));
@@ -41,7 +40,6 @@ vi.mock('@/components/ui/confirmation-dialog', () => ({
 
 vi.mock('../api/student-academic-placement-api', () => ({
   correctStudentAcademicPlacement: mocks.correct,
-  previewStudentAcademicPlacementFinanceTransition: mocks.preview,
 }));
 
 import { StudentAcademicPlacementCard } from './student-academic-placement-card';
@@ -72,7 +70,6 @@ function successData(level: StudentLevelOption, cls: StudentEnrollment['class'])
 describe('StudentAcademicPlacementCard', () => {
   beforeEach(() => {
     mocks.correct.mockReset();
-    mocks.preview.mockReset();
     mocks.success.mockReset();
     mocks.error.mockReset();
   });
@@ -87,7 +84,6 @@ describe('StudentAcademicPlacementCard', () => {
         levels={levels}
         optionsLoading={false}
         canManage
-        canManageFinanceTransition
       />,
     );
 
@@ -106,7 +102,6 @@ describe('StudentAcademicPlacementCard', () => {
         levels={levels}
         optionsLoading={false}
         canManage
-        canManageFinanceTransition
       />,
     );
 
@@ -134,7 +129,6 @@ describe('StudentAcademicPlacementCard', () => {
         levels={levels}
         optionsLoading={false}
         canManage
-        canManageFinanceTransition
         onUpdated={updated}
       />,
     );
@@ -158,7 +152,7 @@ describe('StudentAcademicPlacementCard', () => {
     expect(screen.getByText('admin.student360.editPage.academicPlacement.unassigned')).toBeTruthy();
   });
 
-  it('requires finance permissions before starting carry-forward preview', async () => {
+  it('shows the finance blocker without optimistic success state', async () => {
     mocks.correct.mockResolvedValue({
       success: false,
       error: {
@@ -178,7 +172,6 @@ describe('StudentAcademicPlacementCard', () => {
         levels={levels}
         optionsLoading={false}
         canManage
-        canManageFinanceTransition={false}
       />,
     );
 
@@ -191,10 +184,9 @@ describe('StudentAcademicPlacementCard', () => {
     await waitFor(() => expect(mocks.correct).toHaveBeenCalledWith(42, { level_id: 2 }));
     expect(
       screen.getByText(
-        'admin.student360.editPage.academicPlacement.financeTransition.errors.permissionDenied',
+        'admin.student360.editPage.academicPlacement.errors.targetLevelNotCoveredByFeePlan',
       ),
     ).toBeTruthy();
-    expect(mocks.preview).not.toHaveBeenCalled();
     expect(mocks.success).not.toHaveBeenCalled();
   });
 });
