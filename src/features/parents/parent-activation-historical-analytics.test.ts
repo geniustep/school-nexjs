@@ -7,6 +7,7 @@ import {
   getHistoricalActivationStatusLabel,
   getHistoricalMessageStatusLabel,
   getHistoricalMilestoneLabel,
+  getParentActivationHistoricalCopy,
   historicalMessageSummaryIsBalanced,
   historicalMessageSummaryTotal,
   historicalMilestoneRate,
@@ -60,6 +61,12 @@ describe('parent activation historical analytics presentation', () => {
     expect(getHistoricalMilestoneLabel('ar', 'delivered')).toBe('تم التسليم إليهم');
     expect(getHistoricalMilestoneLabel('ar', 'read')).toBe('قرأوا الرسالة');
     expect(getHistoricalMilestoneLabel('ar', 'opened_activation_link')).toBe('فتحوا رابط التفعيل');
+  });
+
+  it('labels archived campaigns as saved or sent in Arabic', () => {
+    const copy = getParentActivationHistoricalCopy('ar');
+    expect(copy.savedCampaign).toBe('محفوظة');
+    expect(copy.sentCampaign).toBe('تم الإرسال');
   });
 
   it('computes display rates only from the backend milestone denominator', () => {
