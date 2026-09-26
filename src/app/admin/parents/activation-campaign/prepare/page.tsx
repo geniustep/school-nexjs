@@ -9,6 +9,7 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useLocale } from '@/features/i18n/locale-context';
 import { getParentActivationExclusionLabel } from '@/features/parents/parent-activation-exclusion-reason';
+import { getParentActivationHistoricalCopy } from '@/features/parents/parent-activation-historical-analytics';
 import {
   buildParentActivationDispatchBody,
   getParentActivationDispatchCopy,
@@ -33,6 +34,7 @@ import type {
   ParentActivationBulkSelectionResult,
   ParentActivationCampaign,
   ParentActivationCampaignDispatch,
+  ParentActivationHistoricalCampaignListItem,
   ParentActivationCampaignRecipient,
   ParentActivationMessagingCounts,
 } from '@/types/parent-activation-campaign';
@@ -56,6 +58,7 @@ export default function ParentActivationCampaignPreparePage() {
   const dispatchCopy = getParentActivationDispatchCopy(locale);
   const statusCopy = getParentActivationOperationsCopy(locale);
   const ui = getParentActivationOperationsUiCopy(locale);
+  const archiveCopy = getParentActivationHistoricalCopy(locale);
   const [name, setName] = useState('');
   const [campaign, setCampaign] = useState<ParentActivationCampaign | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -71,6 +74,9 @@ export default function ParentActivationCampaignPreparePage() {
   const [dispatching, setDispatching] = useState(false);
   const [dispatchError, setDispatchError] = useState<string | null>(null);
   const [dispatchResult, setDispatchResult] = useState<ParentActivationCampaignDispatch | null>(null);
+  const [savingCampaign, setSavingCampaign] = useState(false);
+  const [campaignSaved, setCampaignSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const filteredRecipients = useMemo(
     () => campaign ? filterParentActivationRecipients(campaign.recipients, filters, campaign.messaging_status_available !== false) : [],
@@ -86,7 +92,7 @@ export default function ParentActivationCampaignPreparePage() {
   );
   const messagingCounts = campaign?.messaging_counts ?? EMPTY_MESSAGING_COUNTS;
   const selectedForDispatch = campaign?.selection_counts.selected_for_dispatch ?? 0;
-  const busy = submitting || dispatching || bulkPending || rowPendingId !== null;
+  const busy = submitting || savingCampaign || dispatching || bulkPending || rowPendingId !== null;
   const canDispatch = campaign
     ? canDispatchSelected(selectedForDispatch, submitting || bulkPending || rowPendingId !== null, dispatching)
     : false;
@@ -111,6 +117,8 @@ export default function ParentActivationCampaignPreparePage() {
     setBulkNotice(null);
     setDispatchError(null);
     setDispatchResult(null);
+    setSaveError(null);
+    setCampaignSaved(false);
     setConfirmOpen(false);
     setMarkedRecipientIds(new Set());
 
@@ -128,6 +136,26 @@ export default function ParentActivationCampaignPreparePage() {
     const enriched = await refreshCampaign(response.data.id);
     if (!enriched) setCampaign(response.data);
     setSubmitting(false);
+  }
+
+  async function saveCampaignForArchive() {
+    if (!campaign || campaignSaved || busy) return;
+
+    setSavingCampaign(true);
+    setSaveError(null);
+    const response = await api.post<ParentActivationHistoricalCampaignListItem>(
+      endpoints.admin.parentActivationCampaignSave(campaign.id),
+      {},
+    );
+
+    if (!response.success) {
+      setSaveError(archiveCopy.saveCampaignFailed);
+      setSavingCampaign(false);
+      return;
+    }
+
+    setCampaignSaved(response.data.archive_status === 'saved' || response.data.archive_status === 'sent');
+    setSavingCampaign(false);
   }
 
   async function updateRecipientSelection(
@@ -228,6 +256,9 @@ export default function ParentActivationCampaignPreparePage() {
     }
 
     setDispatchResult(response.data);
+    if ((response.data.counts.queued ?? 0) + (response.data.counts.already_processed ?? 0) > 0) {
+      setCampaignSaved(true);
+    }
     await refreshCampaign(campaign.id);
     setDispatching(false);
   }
@@ -311,8 +342,27 @@ export default function ParentActivationCampaignPreparePage() {
               <h2>{ui.operationsTitle}</h2>
               <p className="muted">{campaign.name}</p>
             </div>
-            <Badge tone="blue">{t('admin.parentActivation.prepared')}</Badge>
+            <div className={styles.reviewActions}>
+              <Badge tone={campaignSaved ? 'green' : 'blue'}>
+                {campaignSaved ? archiveCopy.savedCampaign : archiveCopy.previewCampaign}
+              </Badge>
+              {!campaignSaved ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  disabled={busy}
+                  onClick={saveCampaignForArchive}
+                >
+                  {savingCampaign ? archiveCopy.savingCampaign : archiveCopy.saveCampaign}
+                </button>
+              ) : null}
+            </div>
           </div>
+
+          {campaignSaved ? (
+            <p className={styles.archiveNotice} role="status">{archiveCopy.campaignSavedNotice}</p>
+          ) : null}
+          {saveError ? <p className="form-error" role="alert">{saveError}</p> : null}
 
           <section aria-label={ui.eligibility} className={styles.summarySection}>
             <div className={styles.summaryTitle}>{ui.eligibility}</div>
