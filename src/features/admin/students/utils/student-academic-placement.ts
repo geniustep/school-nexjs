@@ -73,16 +73,6 @@ export function canManageStudentAcademicPlacement(
   );
 }
 
-export function canManageStudentAcademicPlacementFinanceTransition(
-  user: CurrentUser | null | undefined,
-): boolean {
-  return (
-    hasUserCapability(user, 'finance.change_student_plan') &&
-    hasUserCapability(user, 'finance.create_agreements') &&
-    hasUserCapability(user, 'finance.activate_agreements')
-  );
-}
-
 function financeReviewReasons(details: unknown): string[] {
   if (!details || typeof details !== 'object' || Array.isArray(details)) return [];
   const raw = (details as Record<string, unknown>).finance_review_reasons;
