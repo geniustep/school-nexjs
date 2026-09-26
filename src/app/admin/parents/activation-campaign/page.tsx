@@ -72,6 +72,7 @@ export default function ParentActivationCampaignPage() {
   const [dispatching, setDispatching] = useState(false);
   const [dispatchError, setDispatchError] = useState<string | null>(null);
   const [dispatchResult, setDispatchResult] = useState<ParentActivationCampaignDispatch | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const filteredRecipients = useMemo(
     () => campaign ? filterParentActivationRecipients(campaign.recipients, filters, campaign.messaging_status_available !== false) : [],
@@ -239,46 +240,61 @@ export default function ParentActivationCampaignPage() {
         title={t('admin.parentActivation.title')}
         subtitle={t('admin.parentActivation.subtitle')}
         actions={
-          <Link href="/admin/parents" className="btn btn--ghost btn--sm">
-            {t('admin.parentActivation.backToParents')}
-          </Link>
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={previewOpen ? 'btn btn--primary btn--sm' : 'btn btn--ghost btn--sm'}
+              aria-expanded={previewOpen}
+              aria-controls="parent-activation-preview"
+              onClick={() => setPreviewOpen((value) => !value)}
+            >
+              {t('admin.parentActivation.stepOneTitle')}
+            </button>
+            <Link href="/admin/parents" className="btn btn--ghost btn--sm">
+              {t('admin.parentActivation.backToParents')}
+            </Link>
+          </div>
         }
       />
 
+      {previewOpen ? (
+        <section id="parent-activation-preview" className={styles.previewPanel}>
+          <InfoBanner
+            title={dispatchCopy.previewSafetyTitle}
+            description={dispatchCopy.previewSafetyDescription}
+            tone="amber"
+          />
+
+          <Card className={styles.previewCard}>
+            <div className={styles.cardHeadingRow}>
+              <div>
+                <h2>{t('admin.parentActivation.stepOneTitle')}</h2>
+                <p className="muted">{t('admin.parentActivation.stepOneDescription')}</p>
+              </div>
+              {campaign?.prepared_at ? (
+                <span className={styles.preparedAt}>{ui.preparedAt}: {formatDateTime(campaign.prepared_at, locale)}</span>
+              ) : null}
+            </div>
+            <form onSubmit={prepare} className={styles.previewForm}>
+              <label className="field">
+                <span className="field__label">{t('admin.parentActivation.nameLabel')}</span>
+                <input
+                  value={name}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
+                  maxLength={160}
+                  disabled={busy}
+                />
+              </label>
+              <button type="submit" className="btn btn--primary" disabled={busy}>
+                {submitting ? t('admin.parentActivation.preparing') : ui.refreshList}
+              </button>
+            </form>
+            {error ? <p className="form-error" role="alert">{error}</p> : null}
+          </Card>
+        </section>
+      ) : null}
+
       <HistoricalActivationCampaigns />
-
-      <InfoBanner
-        title={dispatchCopy.previewSafetyTitle}
-        description={dispatchCopy.previewSafetyDescription}
-        tone="amber"
-      />
-
-      <Card className={styles.previewCard}>
-        <div className={styles.cardHeadingRow}>
-          <div>
-            <h2>{t('admin.parentActivation.stepOneTitle')}</h2>
-            <p className="muted">{t('admin.parentActivation.stepOneDescription')}</p>
-          </div>
-          {campaign?.prepared_at ? (
-            <span className={styles.preparedAt}>{ui.preparedAt}: {formatDateTime(campaign.prepared_at, locale)}</span>
-          ) : null}
-        </div>
-        <form onSubmit={prepare} className={styles.previewForm}>
-          <label className="field">
-            <span className="field__label">{t('admin.parentActivation.nameLabel')}</span>
-            <input
-              value={name}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => setName(event.target.value)}
-              maxLength={160}
-              disabled={busy}
-            />
-          </label>
-          <button type="submit" className="btn btn--primary" disabled={busy}>
-            {submitting ? t('admin.parentActivation.preparing') : ui.refreshList}
-          </button>
-        </form>
-        {error ? <p className="form-error" role="alert">{error}</p> : null}
-      </Card>
 
       {campaign ? (
         <section className={styles.reviewSection} aria-live="polite">

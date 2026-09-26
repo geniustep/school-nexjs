@@ -1,4 +1,6 @@
 .campaignFlow { display: grid; gap: 18px; }
+.headerActions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.previewPanel { display: grid; gap: 12px; }
 .previewCard, .reviewSection, .recipientCard, .dispatchCard, .resultCard, .summarySection { display: grid; gap: 14px; }
 .previewForm { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
 .reviewHeading, .cardHeadingRow, .dispatchHeader, .filterHeader, .resultToolbar, .bulkToolbar, .bulkMarking, .bulkActions, .dispatchAction {
@@ -68,6 +70,8 @@
 @media (max-width: 720px) {
   .previewForm, .statGrid, .statGridFour, .messagingGrid, .finalSummaryGrid, .confirmSummary { grid-template-columns: 1fr; }
   .previewForm button, .primaryAction { width: 100%; }
+  .headerActions { width: 100%; justify-content: flex-start; }
+  .headerActions > * { flex: 1 1 auto; }
   .reviewHeading, .dispatchHeader, .dispatchAction, .cardHeadingRow, .filterHeader, .bulkToolbar { align-items: stretch; flex-direction: column; }
   .filterGrid { grid-template-columns: 1fr; }
   .preparedAt { white-space: normal; }
