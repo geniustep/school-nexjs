@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { AttendanceClassDetails, AttendanceOverviewClass } from './admin-attendance-operations-contract';
 import {
   buildAttendanceClassBatchItems,
+  buildAttendanceLevelOptions,
   buildAttendanceRosterDraft,
   classOperationAction,
+  classesForAttendanceLevel,
   filterAttendanceOperationClasses,
   hasAttendanceBatchConcurrencyFailure,
   markUnrecordedPresent,
@@ -147,13 +149,29 @@ describe('attendance operations center utilities', () => {
     ).toBe('view');
   });
 
-  it('filters classes only for presentation without recomputing their backend state', () => {
+  it('builds level-first options from backend class references', () => {
     const rows = [
-      classRow({ id: 1, name: '6AP-1', operation_status: 'completed' }),
-      classRow({ id: 2, name: '5AP-2', operation_status: 'not_started' }),
+      classRow({ id: 1, name: '6AP-1', level: { id: 6, name: '6AP' } }),
+      classRow({ id: 2, name: '6AP-2', level: { id: 6, name: '6AP' } }),
+      classRow({ id: 3, name: '5AP-1', level: { id: 5, name: '5AP' } }),
     ];
-    expect(filterAttendanceOperationClasses(rows, '5AP', 'all').map((row) => row.id)).toEqual([2]);
-    expect(filterAttendanceOperationClasses(rows, '', 'completed').map((row) => row.id)).toEqual([1]);
+    expect(buildAttendanceLevelOptions(rows)).toEqual([
+      { id: 5, name: '5AP', classCount: 1 },
+      { id: 6, name: '6AP', classCount: 2 },
+    ]);
+    expect(classesForAttendanceLevel(rows, 6).map((row) => row.id)).toEqual([1, 2]);
+  });
+
+  it('filters hierarchically by level then class, then presentation status/search', () => {
+    const rows = [
+      classRow({ id: 1, name: '6AP-1', level: { id: 6, name: '6AP' }, operation_status: 'completed' }),
+      classRow({ id: 2, name: '6AP-2', level: { id: 6, name: '6AP' }, operation_status: 'not_started' }),
+      classRow({ id: 3, name: '5AP-1', level: { id: 5, name: '5AP' }, operation_status: 'not_started' }),
+    ];
+    expect(filterAttendanceOperationClasses(rows, '', 'all', 6, 'all').map((row) => row.id)).toEqual([1, 2]);
+    expect(filterAttendanceOperationClasses(rows, '', 'all', 6, 2).map((row) => row.id)).toEqual([2]);
+    expect(filterAttendanceOperationClasses(rows, '', 'not_started', 6, 'all').map((row) => row.id)).toEqual([2]);
+    expect(filterAttendanceOperationClasses(rows, '5AP', 'all', 'all', 'all').map((row) => row.id)).toEqual([3]);
   });
 
   it('recognizes batch concurrency conflicts without treating other failures as conflicts', () => {

@@ -8,6 +8,43 @@ import type {
 } from './admin-attendance-operations-contract';
 
 export type AttendanceClassFilter = 'all' | AttendanceOperationStatus;
+export type AttendanceLevelFilter = 'all' | number;
+export type AttendanceClassIdFilter = 'all' | number;
+
+export interface AttendanceLevelOption {
+  id: number;
+  name: string;
+  classCount: number;
+}
+
+export function buildAttendanceLevelOptions(
+  classes: AttendanceOverviewClass[],
+): AttendanceLevelOption[] {
+  const levels = new Map<number, AttendanceLevelOption>();
+  for (const row of classes) {
+    if (!row.level) continue;
+    const current = levels.get(row.level.id);
+    if (current) {
+      current.classCount += 1;
+    } else {
+      levels.set(row.level.id, {
+        id: row.level.id,
+        name: row.level.name,
+        classCount: 1,
+      });
+    }
+  }
+  return [...levels.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function classesForAttendanceLevel(
+  classes: AttendanceOverviewClass[],
+  level: AttendanceLevelFilter,
+): AttendanceOverviewClass[] {
+  return classes
+    .filter((row) => level === 'all' || row.level?.id === level)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
 
 export interface AttendanceRosterDraftRow {
   studentId: number;
@@ -105,9 +142,13 @@ export function filterAttendanceOperationClasses(
   classes: AttendanceOverviewClass[],
   search: string,
   status: AttendanceClassFilter,
+  level: AttendanceLevelFilter = 'all',
+  classId: AttendanceClassIdFilter = 'all',
 ): AttendanceOverviewClass[] {
   const needle = search.trim().toLocaleLowerCase();
   return classes.filter((row) => {
+    if (level !== 'all' && row.level?.id !== level) return false;
+    if (classId !== 'all' && row.id !== classId) return false;
     if (status !== 'all' && row.operation_status !== status) return false;
     if (!needle) return true;
     const haystack = `${row.name} ${row.level?.name ?? ''}`.toLocaleLowerCase();

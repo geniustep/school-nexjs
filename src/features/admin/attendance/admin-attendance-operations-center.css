@@ -151,12 +151,87 @@
   font-size: 0.76rem;
 }
 
-.attendance-center-filters {
+.attendance-center-filter-stack {
   display: grid;
-  grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
   gap: 12px;
-  align-items: center;
   margin: 18px 0;
+}
+
+.attendance-center-filter-stage {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 14px;
+  background: var(--surface-subtle, #f8fafc);
+}
+
+.attendance-center-filter-stage__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.attendance-center-filter-stage__head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.attendance-center-filter-stage__head strong {
+  font-size: 0.88rem;
+}
+
+.attendance-center-filter-stage__head span {
+  color: var(--muted, #64748b);
+  font-size: 0.76rem;
+}
+
+.attendance-center-level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 8px;
+}
+
+.attendance-center-level-chip {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 11px 12px;
+  text-align: start;
+  border: 1px solid var(--border, #dbe3ec);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.attendance-center-level-chip:hover {
+  border-color: var(--primary, #2563eb);
+}
+
+.attendance-center-level-chip--active {
+  border-color: var(--primary, #2563eb);
+  background: color-mix(in srgb, var(--primary, #2563eb) 8%, white);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, #2563eb) 18%, transparent);
+}
+
+.attendance-center-level-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 750;
+}
+
+.attendance-center-level-chip small {
+  color: var(--muted, #64748b);
+}
+
+.attendance-center-class-filter-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.65fr) minmax(220px, 1fr);
+  gap: 10px;
 }
 
 .attendance-center-filter-chips {
@@ -484,8 +559,8 @@
 
   .attendance-center-summary,
   .attendance-center-class-grid,
-  .attendance-center-filters,
-  .attendance-center-attention-row {
+  .attendance-center-attention-row,
+  .attendance-center-class-filter-row {
     grid-template-columns: 1fr;
   }
 
@@ -501,6 +576,11 @@
 
   .attendance-center-roster-row__note {
     grid-column: auto;
+  }
+
+  .attendance-center-filter-stage__head {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .attendance-center-status-button {

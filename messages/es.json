@@ -2603,7 +2603,17 @@
         "continue": "Continuar registro",
         "review": "Revisar asistencia",
         "view": "Ver asistencia"
-      }
+      },
+      "levelsFilterTitle": "Niveles",
+      "levelsFilterHint": "Empieza por un nivel para reducir las clases mostradas.",
+      "allLevels": "Todos los niveles",
+      "levelClassCount": "{count} clases",
+      "classFilterTitle": "Clases",
+      "classFilterHint": "Elige una clase concreta o muestra todas las clases del nivel.",
+      "allClasses": "Todas las clases",
+      "searchWithinClasses": "Buscar entre las clases visibles…",
+      "statusFilterTitle": "Estado de registro",
+      "visibleClassesCount": "Mostrando {visible} de {total} clases"
     },
     "attendanceList": {
       "title": "Asistencia",
