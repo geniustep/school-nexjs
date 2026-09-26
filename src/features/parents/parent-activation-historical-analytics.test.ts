@@ -114,7 +114,7 @@ describe('parent activation historical analytics presentation', () => {
   it('labels archived campaigns as saved or sent in Arabic', () => {
     const copy = getParentActivationHistoricalCopy('ar');
     expect(copy.savedCampaign).toBe('محفوظة');
-    expect(copy.sentCampaign).toBe('تم الإرسال');
+    expect(copy.sentCampaign).toBe('مرسلة');
   });
 
   it('shows only explicit saved or sent campaign archive states', () => {
