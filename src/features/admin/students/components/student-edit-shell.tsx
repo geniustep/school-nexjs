@@ -59,7 +59,10 @@ import { StudentAcademicPlacementCard } from './student-academic-placement-card'
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 import type { SiblingLine } from '@/types/sibling-line';
 import type { StudentEnrollment } from '@/types/student-360';
-import { canManageStudentAcademicPlacement } from '../utils/student-academic-placement';
+import {
+  canManageStudentAcademicPlacement,
+  canManageStudentAcademicPlacementFinanceTransition,
+} from '../utils/student-academic-placement';
 import '../student-360.css';
 
 function refName(value: { name?: string } | string | null | undefined): string {
@@ -201,6 +204,8 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
   const canManageHealth = caps ? canManageStudentHealth(caps) : false;
   const canManageDocuments = caps ? canManageStudentDocuments(caps) : false;
   const canManageAcademicPlacement = canManageStudentAcademicPlacement(user);
+  const canManageAcademicPlacementFinanceTransition =
+    canManageStudentAcademicPlacementFinanceTransition(user);
 
   const availableTabs = useMemo(() => {
     return STUDENT_EDIT_TABS.filter((tab) => {
@@ -451,6 +456,7 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
                 levels={options?.levels ?? []}
                 optionsLoading={optionsState.loading}
                 canManage={canManageAcademicPlacement}
+                canManageFinanceTransition={canManageAcademicPlacementFinanceTransition}
                 onUpdated={() => detailsState.reload()}
               />
               <StudentEnrollmentEditFields

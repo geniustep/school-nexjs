@@ -10,7 +10,11 @@ import type {
   StudentEnrollment,
   StudentLevelOption,
 } from '@/types/student-360';
-import { correctStudentAcademicPlacement } from '../api/student-academic-placement-api';
+import type { NormalizedAcademicPlacementFinancePreview } from '@/types/student-finance-change-plan';
+import {
+  correctStudentAcademicPlacement,
+  previewStudentAcademicPlacementFinanceTransition,
+} from '../api/student-academic-placement-api';
 import { normalizeStudentDetailsResponse } from '../utils/normalize-student-details';
 import {
   academicPlacementCycleCode,
@@ -20,12 +24,24 @@ import {
   filterAcademicPlacementLevels,
   levelBelongsToAcademicPlacementCycle,
 } from '../utils/student-academic-placement';
+import {
+  academicPlacementFinanceTransitionErrorMessageKey,
+  normalizeAcademicPlacementFinancePreview,
+  shouldOfferAcademicPlacementCarryForward,
+} from '../utils/student-academic-placement-finance-preview';
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
+import { StudentAcademicPlacementFinanceTransitionDialog } from './student-academic-placement-finance-transition-dialog';
 
 function cycleLabel(code: string, t: (key: string) => string): string {
   const key = `admin.student360.editPage.academicPlacement.cycles.${code}`;
   const translated = t(key);
   return translated === key ? code : translated;
+}
+
+function enrollmentAcademicYearId(enrollment: StudentEnrollment | null): number | null {
+  const year = enrollment?.academic_year;
+  if (!year || typeof year === 'string') return null;
+  return typeof year.id === 'number' && Number.isFinite(year.id) ? year.id : null;
 }
 
 export function StudentAcademicPlacementCard({
@@ -34,6 +50,7 @@ export function StudentAcademicPlacementCard({
   levels,
   optionsLoading,
   canManage,
+  canManageFinanceTransition,
   onUpdated,
 }: {
   studentId: number | string;
@@ -41,6 +58,7 @@ export function StudentAcademicPlacementCard({
   levels: StudentLevelOption[];
   optionsLoading: boolean;
   canManage: boolean;
+  canManageFinanceTransition: boolean;
   onUpdated?: (data: StudentDetailsData) => void;
 }) {
   const t = useT();
@@ -54,6 +72,13 @@ export function StudentAcademicPlacementCard({
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [financePreviewLoading, setFinancePreviewLoading] = useState(false);
+  const [financeApplyLoading, setFinanceApplyLoading] = useState(false);
+  const [financePreview, setFinancePreview] =
+    useState<NormalizedAcademicPlacementFinancePreview | null>(null);
+  const [financeReviewOpen, setFinanceReviewOpen] = useState(false);
+  const [financeStaleRefreshed, setFinanceStaleRefreshed] = useState(false);
+  const [financeErrorKey, setFinanceErrorKey] = useState<string | null>(null);
 
   useEffect(() => {
     setFinalEnrollment(null);
@@ -61,6 +86,10 @@ export function StudentAcademicPlacementCard({
     setLevelId(enrollment?.level?.id != null ? String(enrollment.level.id) : '');
     setErrorKey(null);
     setConfirmOpen(false);
+    setFinancePreview(null);
+    setFinanceReviewOpen(false);
+    setFinanceStaleRefreshed(false);
+    setFinanceErrorKey(null);
   }, [enrollment?.id, enrollment?.level?.id, enrollment?.level?.cycle?.code]);
 
   const cycles = useMemo(() => {
@@ -86,6 +115,168 @@ export function StudentAcademicPlacementCard({
     displayEnrollment?.level?.id != null ? String(displayEnrollment.level.id) : '';
   const changed = Boolean(levelId) && levelId !== currentLevelId;
   const willUnassign = academicPlacementWillUnassign(displayEnrollment, levelId);
+  const busy = saving || financePreviewLoading || financeApplyLoading;
+  const targetLevel = levels.find((level) => String(level.id) === levelId) ?? null;
+
+  function clearFinanceReview() {
+    setFinancePreview(null);
+    setFinanceReviewOpen(false);
+    setFinanceStaleRefreshed(false);
+    setFinanceErrorKey(null);
+  }
+
+  function applySuccessfulStudent(raw: unknown) {
+    const normalized = normalizeStudentDetailsResponse(raw);
+    if (!normalized?.current_enrollment) {
+      const key = 'admin.student360.editPage.academicPlacement.errors.generic';
+      setErrorKey(key);
+      toast.error(t(key));
+      return false;
+    }
+
+    setFinalEnrollment(normalized.current_enrollment);
+    setCycleCode(academicPlacementCycleCode(normalized.current_enrollment.level));
+    setLevelId(
+      normalized.current_enrollment.level?.id != null
+        ? String(normalized.current_enrollment.level.id)
+        : '',
+    );
+    setConfirmOpen(false);
+    clearFinanceReview();
+    toast.success(t('admin.student360.editPage.academicPlacement.success'));
+    onUpdated?.(normalized);
+    return true;
+  }
+
+  async function requestFinancePreview(
+    targetLevelId: number,
+    options: { staleRefresh?: boolean } = {},
+  ) {
+    setFinancePreviewLoading(true);
+    setFinanceErrorKey(null);
+    if (options.staleRefresh) {
+      setFinancePreview(null);
+      setFinanceReviewOpen(false);
+    }
+    const academicYearId = enrollmentAcademicYearId(displayEnrollment);
+    const payload = {
+      mode: 'carry_forward_plan_change' as const,
+      level_id: targetLevelId,
+      ...(academicYearId != null ? { academic_year_id: academicYearId } : {}),
+    };
+    const result = await previewStudentAcademicPlacementFinanceTransition(studentId, payload);
+    setFinancePreviewLoading(false);
+
+    if (!result.success) {
+      const key = academicPlacementFinanceTransitionErrorMessageKey(result.error.code);
+      setFinanceErrorKey(key);
+      setErrorKey(key);
+      toast.error(t(key));
+      return false;
+    }
+
+    const normalized = normalizeAcademicPlacementFinancePreview(result.data);
+    if (!normalized.previewToken) {
+      const key = 'admin.student360.editPage.academicPlacement.financeTransition.errors.generic';
+      setFinanceErrorKey(key);
+      setErrorKey(key);
+      toast.error(t(key));
+      return false;
+    }
+
+    setErrorKey(null);
+    setFinancePreview(normalized);
+    setFinanceStaleRefreshed(Boolean(options.staleRefresh));
+    setFinanceReviewOpen(true);
+    return true;
+  }
+
+  async function applyPlacement() {
+    const targetLevelId = Number(levelId);
+    if (!Number.isFinite(targetLevelId) || targetLevelId <= 0) {
+      setErrorKey('admin.student360.editPage.academicPlacement.errors.validation');
+      return;
+    }
+    if (!changed || busy) return;
+
+    setSaving(true);
+    setErrorKey(null);
+    const result = await correctStudentAcademicPlacement(studentId, {
+      level_id: targetLevelId,
+    });
+    setSaving(false);
+    setConfirmOpen(false);
+
+    if (!result.success) {
+      if (shouldOfferAcademicPlacementCarryForward(result.error.code, result.error.details)) {
+        if (!canManageFinanceTransition) {
+          const key =
+            'admin.student360.editPage.academicPlacement.financeTransition.errors.permissionDenied';
+          setErrorKey(key);
+          toast.error(t(key));
+          return;
+        }
+        await requestFinancePreview(targetLevelId);
+        return;
+      }
+
+      const key = academicPlacementErrorMessageKey(result.error.code, result.error.details);
+      setErrorKey(key);
+      toast.error(t(key));
+      return;
+    }
+
+    applySuccessfulStudent(result.data);
+  }
+
+  async function applyFinanceTransition() {
+    const targetLevelId = Number(levelId);
+    const token = financePreview?.previewToken;
+    if (
+      !Number.isFinite(targetLevelId) ||
+      targetLevelId <= 0 ||
+      !token ||
+      financeApplyLoading ||
+      !canManageFinanceTransition
+    ) {
+      return;
+    }
+
+    setFinanceApplyLoading(true);
+    setFinanceErrorKey(null);
+    const result = await correctStudentAcademicPlacement(studentId, {
+      level_id: targetLevelId,
+      confirm_finance_transition: true,
+      preview_token: token,
+    });
+    setFinanceApplyLoading(false);
+
+    if (!result.success) {
+      if (result.error.code === 'finance_transition_preview_stale') {
+        const key =
+          'admin.student360.editPage.academicPlacement.financeTransition.errors.stale';
+        setFinanceErrorKey(key);
+        toast.error(t(key));
+        await requestFinancePreview(targetLevelId, { staleRefresh: true });
+        return;
+      }
+      const key = academicPlacementFinanceTransitionErrorMessageKey(result.error.code);
+      setFinanceErrorKey(key);
+      toast.error(t(key));
+      return;
+    }
+
+    applySuccessfulStudent(result.data);
+  }
+
+  function requestSave() {
+    if (!changed || busy || !canManage) return;
+    if (willUnassign) {
+      setConfirmOpen(true);
+      return;
+    }
+    void applyPlacement();
+  }
 
   if (!displayEnrollment) {
     return (
@@ -102,60 +293,6 @@ export function StudentAcademicPlacementCard({
         />
       </div>
     );
-  }
-
-  async function applyPlacement() {
-    const targetLevelId = Number(levelId);
-    if (!Number.isFinite(targetLevelId) || targetLevelId <= 0) {
-      setErrorKey('admin.student360.editPage.academicPlacement.errors.validation');
-      return;
-    }
-    if (!changed || saving) return;
-
-    setSaving(true);
-    setErrorKey(null);
-    const result = await correctStudentAcademicPlacement(studentId, {
-      level_id: targetLevelId,
-    });
-    setSaving(false);
-    setConfirmOpen(false);
-
-    if (!result.success) {
-      const key = academicPlacementErrorMessageKey(
-        result.error.code,
-        result.error.details,
-      );
-      setErrorKey(key);
-      toast.error(t(key));
-      return;
-    }
-
-    const normalized = normalizeStudentDetailsResponse(result.data);
-    if (!normalized?.current_enrollment) {
-      const key = 'admin.student360.editPage.academicPlacement.errors.generic';
-      setErrorKey(key);
-      toast.error(t(key));
-      return;
-    }
-
-    setFinalEnrollment(normalized.current_enrollment);
-    setCycleCode(academicPlacementCycleCode(normalized.current_enrollment.level));
-    setLevelId(
-      normalized.current_enrollment.level?.id != null
-        ? String(normalized.current_enrollment.level.id)
-        : '',
-    );
-    toast.success(t('admin.student360.editPage.academicPlacement.success'));
-    onUpdated?.(normalized);
-  }
-
-  function requestSave() {
-    if (!changed || saving || !canManage) return;
-    if (willUnassign) {
-      setConfirmOpen(true);
-      return;
-    }
-    void applyPlacement();
   }
 
   return (
@@ -182,11 +319,12 @@ export function StudentAcademicPlacementCard({
               className="input"
               aria-label={t('admin.student360.editPage.academicPlacement.cycle')}
               value={cycleCode}
-              disabled={optionsLoading || saving || !canManage}
+              disabled={optionsLoading || busy || !canManage}
               onChange={(event) => {
                 const nextCycle = event.target.value;
                 setCycleCode(nextCycle);
                 setErrorKey(null);
+                clearFinanceReview();
                 if (!levelBelongsToAcademicPlacementCycle(levelId, nextCycle, levels)) {
                   setLevelId('');
                 }
@@ -213,10 +351,11 @@ export function StudentAcademicPlacementCard({
               className="input"
               aria-label={t('admin.student360.editPage.academicPlacement.level')}
               value={levelId}
-              disabled={optionsLoading || saving || !canManage || !cycleCode}
+              disabled={optionsLoading || busy || !canManage || !cycleCode}
               onChange={(event) => {
                 setLevelId(event.target.value);
                 setErrorKey(null);
+                clearFinanceReview();
               }}
             >
               <option value="">
@@ -258,6 +397,13 @@ export function StudentAcademicPlacementCard({
         />
       ) : null}
 
+      {financePreviewLoading ? (
+        <InfoBanner
+          title={t('admin.student360.editPage.academicPlacement.financeTransition.previewingTitle')}
+          description={t('admin.student360.editPage.academicPlacement.financeTransition.previewingDescription')}
+        />
+      ) : null}
+
       {errorKey ? <p className="form-error" role="alert">{t(errorKey)}</p> : null}
 
       {canManage ? (
@@ -265,10 +411,10 @@ export function StudentAcademicPlacementCard({
           <button
             type="button"
             className="btn btn--primary btn--sm"
-            disabled={saving || optionsLoading || !changed || !levelId}
+            disabled={busy || optionsLoading || !changed || !levelId}
             onClick={requestSave}
           >
-            {saving
+            {busy
               ? t('common.saving')
               : t('admin.student360.editPage.academicPlacement.update')}
           </button>
@@ -283,6 +429,20 @@ export function StudentAcademicPlacementCard({
         loading={saving}
         onConfirm={applyPlacement}
         onClose={() => setConfirmOpen(false)}
+      />
+
+      <StudentAcademicPlacementFinanceTransitionDialog
+        open={financeReviewOpen}
+        preview={financePreview}
+        currentLevelLabel={studentLevelLabel(displayEnrollment.level)}
+        targetLevelLabel={studentLevelLabel(targetLevel)}
+        willUnassign={willUnassign}
+        canConfirm={canManageFinanceTransition}
+        applying={financeApplyLoading || financePreviewLoading}
+        staleRefreshed={financeStaleRefreshed}
+        errorKey={financeErrorKey}
+        onConfirm={applyFinanceTransition}
+        onClose={clearFinanceReview}
       />
     </div>
   );
