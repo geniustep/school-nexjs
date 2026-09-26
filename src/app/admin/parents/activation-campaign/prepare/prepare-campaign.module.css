@@ -289,6 +289,25 @@
   background: var(--c-surface);
 }
 
+.reviewActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.archiveNotice {
+  margin: -4px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--c-green) 28%, var(--c-border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--c-green) 6%, var(--c-surface));
+  color: var(--c-green);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
 .summarySection {
   padding: 16px;
   border: 1px solid var(--c-border);
@@ -458,6 +477,11 @@
 
   .prepareAction {
     width: 100%;
+  }
+
+  .reviewActions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .filterGrid,
