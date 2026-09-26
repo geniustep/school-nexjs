@@ -302,7 +302,9 @@ export function HistoricalActivationCampaigns() {
             </div>
 
             <div className={styles.campaignSummaryStats}>
+              <span>{copy.totalAudience}<strong>{selectedListItem.audience_summary.total}</strong></span>
               <span>{copy.selected}<strong>{selectedListItem.audience_summary.selected}</strong></span>
+              <span>{copy.excluded}<strong>{selectedListItem.audience_summary.excluded}</strong></span>
               <span>{copy.usedCampaignLink}<strong>{selectedListItem.activation_summary.activated_via_campaign_link}</strong></span>
             </div>
           </div>
@@ -310,25 +312,6 @@ export function HistoricalActivationCampaigns() {
       </section>
 
       <main className={styles.detailPane}>
-          {selectedListItem ? (
-            <div className={styles.selectedHeader}>
-              <div>
-                <div className={styles.selectedTitleLine}>
-                  <h3 dir="auto">{selectedListItem.name}</h3>
-                  <Badge tone="blue">#{selectedListItem.id}</Badge>
-                </div>
-                <p className="muted">
-                  {copy.preparedAt}: {formatHistoricalDate(selectedListItem.prepared_at ?? selectedListItem.create_date, locale)}
-                </p>
-              </div>
-              <div className={styles.audiencePills}>
-                <span>{copy.totalAudience}<strong>{selectedListItem.audience_summary.total}</strong></span>
-                <span>{copy.selected}<strong>{selectedListItem.audience_summary.selected}</strong></span>
-                <span>{copy.excluded}<strong>{selectedListItem.audience_summary.excluded}</strong></span>
-              </div>
-            </div>
-          ) : null}
-
           {analyticsLoading ? <p className={styles.loading}>{copy.loading}</p> : null}
           {analyticsError ? <InfoBanner title={copy.analyticsError} tone="amber" /> : null}
 
