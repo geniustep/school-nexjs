@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   copyDayEvents,
   createBellEventDraft,
+  hydrateBellScheduleDraft,
   removeBellEventDraft,
   toBellSchedulePutInput,
   validateBellScheduleDraft,
@@ -83,6 +84,51 @@ describe('bell schedule draft', () => {
     draft.events[0].audio_asset_uid = '';
     const result = validateBellScheduleDraft(draft);
     expect(result.rows['db-1']).toBe('audio_required');
+  });
+
+  it('keeps inactive historical Odoo events out of the operational editor', () => {
+    const hydrated = hydrateBellScheduleDraft(
+      {
+        school: { id: 3, name: 'School', timezone: 'Africa/Casablanca' },
+        schedule: {
+          id: 4,
+          name: 'Main',
+          code: 'bell_default',
+          active: true,
+          events: [
+            {
+              id: 1,
+              event_uid: 'bev_active',
+              weekday: '0',
+              local_time: '08:00',
+              label: 'Start',
+              active: true,
+              priority: 50,
+              late_tolerance_seconds: 30,
+              audio_asset: { asset_uid: 'aud_1', name: 'Bell', version: '1' },
+            },
+            {
+              id: 2,
+              event_uid: 'bev_old',
+              weekday: '0',
+              local_time: '09:00',
+              label: 'Old',
+              active: false,
+              priority: 50,
+              late_tolerance_seconds: 30,
+              audio_asset: { asset_uid: 'aud_1', name: 'Bell', version: '1' },
+            },
+          ],
+        },
+        active_version: null,
+      },
+      'Default',
+      '2026-09-28',
+      '2026-12-31',
+    );
+
+    expect(hydrated.events).toHaveLength(1);
+    expect(hydrated.events[0].id).toBe(1);
   });
 
   it('maps only the Odoo PUT contract fields', () => {
