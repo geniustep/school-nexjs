@@ -1,3 +1,4 @@
+import type { CycleOption, LevelContextOption } from '@/types/academic-context';
 import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type {
@@ -8,18 +9,30 @@ import type {
 } from './admin-attendance-operations-contract';
 
 export type AttendanceClassFilter = 'all' | AttendanceOperationStatus;
+export type AttendanceCycleFilter = 'all' | number;
 export type AttendanceLevelFilter = 'all' | number;
 export type AttendanceClassIdFilter = 'all' | number;
 
-export interface AttendanceLevelOption {
+export interface AttendanceCycleOption {
   id: number;
   name: string;
   classCount: number;
 }
 
+export interface AttendanceLevelOption {
+  id: number;
+  name: string;
+  classCount: number;
+  cycleId: number | null;
+}
+
 export function buildAttendanceLevelOptions(
   classes: AttendanceOverviewClass[],
+  academicLevels: LevelContextOption[] = [],
 ): AttendanceLevelOption[] {
+  const cycleByLevel = new Map(
+    academicLevels.map((level) => [level.id, level.cycle?.id ?? null] as const),
+  );
   const levels = new Map<number, AttendanceLevelOption>();
   for (const row of classes) {
     if (!row.level) continue;
@@ -31,10 +44,60 @@ export function buildAttendanceLevelOptions(
         id: row.level.id,
         name: row.level.name,
         classCount: 1,
+        cycleId: cycleByLevel.get(row.level.id) ?? null,
       });
     }
   }
   return [...levels.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function buildAttendanceCycleOptions(
+  levels: AttendanceLevelOption[],
+  academicCycles: CycleOption[],
+): AttendanceCycleOption[] {
+  const classCountByCycle = new Map<number, number>();
+  for (const level of levels) {
+    if (level.cycleId == null) continue;
+    classCountByCycle.set(
+      level.cycleId,
+      (classCountByCycle.get(level.cycleId) ?? 0) + level.classCount,
+    );
+  }
+
+  return academicCycles
+    .flatMap((cycle) => {
+      const classCount = classCountByCycle.get(cycle.id) ?? 0;
+      return classCount > 0
+        ? [{ id: cycle.id, name: cycle.name, classCount }]
+        : [];
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function levelsForAttendanceCycle(
+  levels: AttendanceLevelOption[],
+  cycle: AttendanceCycleFilter,
+): AttendanceLevelOption[] {
+  if (cycle === 'all') return levels;
+  return levels.filter((level) => level.cycleId === cycle);
+}
+
+export function classesForAttendanceCycle(
+  classes: AttendanceOverviewClass[],
+  cycle: AttendanceCycleFilter,
+  levels: AttendanceLevelOption[],
+): AttendanceOverviewClass[] {
+  if (cycle === 'all') {
+    return [...classes].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  const allowedLevelIds = new Set(
+    levels
+      .filter((level) => level.cycleId === cycle)
+      .map((level) => level.id),
+  );
+  return classes
+    .filter((row) => row.level != null && allowedLevelIds.has(row.level.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function classesForAttendanceLevel(
