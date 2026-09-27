@@ -608,8 +608,27 @@
       "stepStatus": "Choose the status",
       "statusHelp": "Review the current status, then choose the status to apply.",
       "stepSave": "Review and save",
-      "saveHelp": "Check the status and note before saving."
-    }
+      "saveHelp": "Check the status and note before saving.",
+      "classContext": "Selected class",
+      "selectedClassFallback": "Current class",
+      "classContextHint": "Search is limited to students in this class."
+    },
+    "sheetContinueTitle": "Continue attendance",
+    "sheetContinueDesc": "You started attendance for this class. Complete the remaining students.",
+    "sheetLockedByOtherTitle": "Attendance already recorded for this class",
+    "sheetLockedByOtherDesc": "Another teacher has already started attendance for this class.",
+    "sheetOwner": "Recorded by: {name}",
+    "sheetCompletedTitle": "Class attendance recorded",
+    "sheetCompletedDesc": "Attendance for this class is complete and is now read-only.",
+    "sheetBlockedTitle": "Attendance recording unavailable",
+    "sheetBlockedCalendar": "Attendance recording is closed by the school calendar for today.",
+    "sheetBlockedLegacy": "Existing attendance has no trusted sheet owner. Please contact administration.",
+    "sheetBlockedDesc": "The current attendance contract does not allow recording on this sheet.",
+    "sheetLockedByOtherToast": "Another teacher owns this attendance sheet. The latest state was reloaded.",
+    "sheetCompletedToast": "Class attendance is complete. The latest state was reloaded.",
+    "sheetLockedToast": "The attendance sheet is locked. The latest state was reloaded.",
+    "unrecordedNeutralHint": "Not recorded does not mean present or absent.",
+    "noChanges": "No changes to save"
   },
   "auth": {
     "brand": "Raqeem",
@@ -2613,7 +2632,10 @@
       "allClasses": "All classes",
       "searchWithinClasses": "Search within visible classes…",
       "statusFilterTitle": "Recording status",
-      "visibleClassesCount": "Showing {visible} of {total} classes"
+      "visibleClassesCount": "Showing {visible} of {total} classes",
+      "correctAttendance": "Correct attendance",
+      "attendanceRegistered": "Attendance recorded",
+      "viewAttendance": "View attendance"
     },
     "attendanceList": {
       "title": "Attendance",
