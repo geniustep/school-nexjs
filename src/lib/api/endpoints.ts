@@ -26,6 +26,9 @@ export const endpoints = {
     dashboard: '/admin/dashboard',
     executiveDashboard: '/admin/dashboard/executive',
     schoolBranding: '/admin/school-branding',
+    edgeBellSchedule: '/admin/edge/bell-schedule',
+    edgeAudioAssets: '/admin/edge/audio-assets',
+    edgeDevices: '/admin/edge/devices',
     adminRequests: '/admin/admin-requests',
     adminRequest: (id: number | string) => `/admin/admin-requests/${id}`,
     adminRequestAction: (id: number | string, action: string) =>
