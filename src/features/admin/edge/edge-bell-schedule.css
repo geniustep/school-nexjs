@@ -234,3 +234,255 @@
     justify-self: stretch;
   }
 }
+
+
+.edge-workspace-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  background: var(--c-surface-2);
+}
+
+.edge-workspace-tabs button {
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--c-text-muted);
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edge-workspace-tabs button.is-active {
+  background: var(--c-surface);
+  color: var(--raqeem-primary);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+}
+
+.edge-audio-library {
+  display: grid;
+  gap: 18px;
+}
+
+.edge-audio-toolbar,
+.edge-audio-section-head,
+.edge-audio-card-head,
+.edge-audio-inline-error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.edge-audio-toolbar h2,
+.edge-audio-section-head h3 {
+  margin: 0;
+  color: var(--c-text);
+}
+
+.edge-audio-toolbar h2 {
+  font-size: 18px;
+}
+
+.edge-audio-section-head h3 {
+  font-size: 15px;
+}
+
+.edge-audio-toolbar p,
+.edge-audio-section-head p {
+  margin: 4px 0 0;
+  color: var(--c-text-muted);
+  font-size: 13px;
+}
+
+.edge-audio-upload-card {
+  display: grid;
+  gap: 14px;
+}
+
+.edge-audio-upload-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.7fr) minmax(220px, 1fr);
+  gap: 12px;
+}
+
+.edge-audio-file-picker {
+  display: grid;
+  gap: 6px;
+  align-content: end;
+  min-width: 0;
+}
+
+.edge-audio-file-picker > span {
+  font-size: 12px;
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
+.edge-audio-file-picker input {
+  width: 100%;
+  min-height: 38px;
+  padding: 6px;
+  border: 1px dashed var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.edge-audio-file-picker strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.edge-audio-upload-actions,
+.edge-audio-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.edge-audio-categories {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-block-end: 2px;
+}
+
+.edge-audio-categories button {
+  flex: 0 0 auto;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  padding: 7px 11px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.edge-audio-categories button.is-active {
+  border-color: var(--raqeem-primary);
+  color: var(--raqeem-primary);
+  background: var(--c-surface-2);
+}
+
+.edge-audio-section {
+  display: grid;
+  gap: 12px;
+}
+
+.edge-audio-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.edge-audio-card {
+  display: grid;
+  align-content: start;
+  gap: 11px;
+  min-width: 0;
+}
+
+.edge-audio-card-head > div {
+  min-width: 0;
+}
+
+.edge-audio-card-head strong {
+  display: block;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edge-audio-category,
+.edge-audio-source {
+  display: block;
+  margin-block-start: 3px;
+  color: var(--c-text-muted);
+  font-size: 11px;
+}
+
+.edge-audio-description {
+  margin: 0;
+  min-height: 34px;
+  color: var(--c-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.edge-audio-player {
+  width: 100%;
+  height: 34px;
+}
+
+.edge-audio-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  color: var(--c-text-muted);
+  font-size: 11px;
+}
+
+.edge-audio-replace {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.edge-audio-replace input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.edge-audio-inline-error {
+  align-items: center;
+  color: var(--c-danger);
+  font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .edge-audio-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .edge-audio-upload-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .edge-audio-file-picker {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .edge-workspace-tabs {
+    width: 100%;
+  }
+
+  .edge-workspace-tabs button {
+    flex: 1 1 0;
+  }
+
+  .edge-audio-toolbar,
+  .edge-audio-section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edge-audio-upload-grid,
+  .edge-audio-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
