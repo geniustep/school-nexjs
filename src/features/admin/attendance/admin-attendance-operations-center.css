@@ -603,3 +603,34 @@
     width: 100%;
   }
 }
+
+
+.attendance-center-class-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.attendance-center-registered-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.attendance-center-workspace-anchor {
+  margin: 18px 0;
+  scroll-margin-top: 20px;
+  outline: none;
+}
+
+.attendance-center-workspace-anchor:focus-visible .attendance-center-class-workspace {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #2563eb) 18%, transparent);
+}
