@@ -50,23 +50,55 @@ export interface EdgeBellScheduleData {
   active_version: EdgeActiveScheduleVersion | null;
 }
 
+export type EdgeAudioCategory =
+  | 'entry'
+  | 'class_start'
+  | 'break'
+  | 'return'
+  | 'exit'
+  | 'general';
+
 export interface EdgeAudioAssetVersion {
   version: string;
   filename: string;
   content_type: string;
   size_bytes: number;
+  duration_ms: number;
   sha256: string;
 }
 
 export interface EdgeAudioAsset {
   asset_uid: string;
   name: string;
+  category: EdgeAudioCategory;
+  source: 'school' | 'raqeem_library';
+  library_source_uid: string | null;
   active: boolean;
   current_version: EdgeAudioAssetVersion | null;
 }
 
 export interface EdgeAudioAssetsData {
   assets: EdgeAudioAsset[];
+}
+
+export interface EdgeAudioLibraryAsset {
+  library_uid: string;
+  name_ar: string;
+  name_fr: string;
+  description_ar: string;
+  description_fr: string;
+  category: EdgeAudioCategory;
+  active: boolean;
+  current_version: EdgeAudioAssetVersion | null;
+}
+
+export interface EdgeAudioLibraryData {
+  assets: EdgeAudioLibraryAsset[];
+}
+
+export interface EdgeAudioAssetMutationData {
+  asset: EdgeAudioAsset;
+  adopted?: boolean;
 }
 
 export interface EdgeDevice {

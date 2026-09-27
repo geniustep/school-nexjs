@@ -104,6 +104,34 @@ export async function serverPut<T>(path: string, body?: unknown): Promise<ApiRes
   return result.body;
 }
 
+/** Low-level server PATCH returning the full envelope. */
+export async function serverPatch<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+  const sid = await sessionId();
+  const activeRole = await resolveServerActiveRole();
+  let mergedBody = body;
+  if (path.startsWith('/admin/') && body && typeof body === 'object' && !Array.isArray(body)) {
+    const user = await getCurrentUser();
+    const activeSchool = user?.active_school_id;
+    if (activeSchool) {
+      mergedBody = { ...body, active_school_id: activeSchool };
+    }
+  }
+  const result = await odooApiFetch<T>(path, {
+    method: 'PATCH',
+    sessionId: sid,
+    body: mergedBody,
+    activeRole,
+  });
+  if (result.kind === 'file') {
+    return {
+      success: false,
+      error: { code: 'server_error', message: 'Unexpected file response.', details: {} },
+      meta: {},
+    };
+  }
+  return result.body;
+}
+
 /** Low-level server POST returning the full envelope. */
 export async function serverPost<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
   const sid = await sessionId();

@@ -28,6 +28,16 @@ export const endpoints = {
     schoolBranding: '/admin/school-branding',
     edgeBellSchedule: '/admin/edge/bell-schedule',
     edgeAudioAssets: '/admin/edge/audio-assets',
+    edgeAudioAsset: (assetUid: string) => `/admin/edge/audio-assets/${encodeURIComponent(assetUid)}`,
+    edgeAudioAssetVersions: (assetUid: string) =>
+      `/admin/edge/audio-assets/${encodeURIComponent(assetUid)}/versions`,
+    edgeAudioAssetContent: (assetUid: string) =>
+      `/admin/edge/audio-assets/${encodeURIComponent(assetUid)}/content`,
+    edgeAudioLibrary: '/admin/edge/audio-library',
+    edgeAudioLibraryAdopt: (libraryUid: string) =>
+      `/admin/edge/audio-library/${encodeURIComponent(libraryUid)}/adopt`,
+    edgeAudioLibraryContent: (libraryUid: string) =>
+      `/admin/edge/audio-library/${encodeURIComponent(libraryUid)}/content`,
     edgeDevices: '/admin/edge/devices',
     adminRequests: '/admin/admin-requests',
     adminRequest: (id: number | string) => `/admin/admin-requests/${id}`,
