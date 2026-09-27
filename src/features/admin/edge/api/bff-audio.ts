@@ -16,7 +16,12 @@ async function transportContext() {
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
   const activeRole = (await getActiveRoleCookie()) ?? undefined;
-  return { ok: true as const, sessionId, activeRole };
+  return {
+    ok: true as const,
+    sessionId,
+    activeRole,
+    activeSchoolId: permission.user.active_school_id,
+  };
 }
 
 export async function forwardEdgeAudioMultipart(
@@ -49,6 +54,7 @@ export async function forwardEdgeAudioMultipart(
     sessionId: context.sessionId,
     activeRole: context.activeRole,
     formData,
+    query: { active_school_id: context.activeSchoolId ?? undefined },
   });
 
   if (result.kind === 'file') {
@@ -82,6 +88,7 @@ export async function forwardEdgeAudioBinary(
     method: 'GET',
     sessionId: context.sessionId,
     activeRole: context.activeRole,
+    query: { active_school_id: context.activeSchoolId ?? undefined },
   });
 
   if (result.kind === 'json') {
