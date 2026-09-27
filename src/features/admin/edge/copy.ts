@@ -1,6 +1,8 @@
 const AR = {
   title: 'الجرس المدرسي',
-  subtitle: 'اضبط أوقات الجرس والصوت الذي سيعمل تلقائيًا في المدرسة.',
+  subtitle: 'اضبط أوقات الجرس والأصوات التي ستعمل تلقائيًا في المدرسة.',
+  scheduleTab: 'جدول الجرس',
+  audioLibraryTab: 'مكتبة الأصوات',
   defaultScheduleName: 'الجدول الرئيسي',
   deviceTitle: 'جهاز Raqeem Edge',
   noDeviceTitle: 'لم يتم ربط جهاز Raqeem Edge بهذه المدرسة بعد.',
@@ -34,7 +36,7 @@ const AR = {
   remove: 'حذف',
   noEvents: 'لا توجد مواقيت في هذا اليوم.',
   noAudioTitle: 'لا توجد ملفات صوتية متاحة بعد.',
-  noAudioDesc: 'أضف أصلًا صوتيًا من إدارة Raqeem Edge قبل نشر جدول جديد.',
+  noAudioDesc: 'افتح مكتبة الأصوات واختر من أصوات رقيم أو ارفع ملف WAV للمؤسسة.',
   save: 'حفظ وتفعيل',
   saving: 'جارٍ الحفظ والتفعيل…',
   saved: 'تم حفظ جدول الجرس ونشره بنجاح. سيقوم جهاز Raqeem Edge بجلب النسخة الجديدة عند المزامنة التالية.',
@@ -59,7 +61,9 @@ const AR = {
 
 const FR = {
   title: 'Sonnerie scolaire',
-  subtitle: "Configurez les horaires et le son qui sera exécuté automatiquement dans l’établissement.",
+  subtitle: "Configurez les horaires et les sons qui seront exécutés automatiquement dans l’établissement.",
+  scheduleTab: 'Horaire des sonneries',
+  audioLibraryTab: 'Bibliothèque sonore',
   defaultScheduleName: 'Horaire principal',
   deviceTitle: 'Appareil Raqeem Edge',
   noDeviceTitle: "Aucun appareil Raqeem Edge n’est encore lié à cet établissement.",
@@ -93,7 +97,7 @@ const FR = {
   remove: 'Supprimer',
   noEvents: 'Aucun horaire pour ce jour.',
   noAudioTitle: 'Aucun fichier audio disponible.',
-  noAudioDesc: 'Ajoutez une ressource audio depuis la gestion Raqeem Edge avant de publier un nouvel horaire.',
+  noAudioDesc: 'Ouvrez la bibliothèque sonore pour choisir un son Raqeem ou ajouter un fichier WAV.',
   save: 'Enregistrer et activer',
   saving: 'Enregistrement et activation…',
   saved: 'L’horaire de sonnerie a été enregistré et publié. Raqeem Edge récupérera la nouvelle version lors de la prochaine synchronisation.',
