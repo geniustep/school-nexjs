@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { Badge, Card, InfoBanner, PageHeader, SectionHead } from '@/components/ui/primitives';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
+import { AudioLibraryPanel } from '@/features/admin/edge/components/audio-library-panel';
 import { useToast } from '@/components/ui/toast';
 import { useLocale } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
@@ -61,6 +62,7 @@ export function BellScheduleSettingsPage() {
   const toast = useToast();
 
   const [pageState, setPageState] = useState<EdgePageLoadState>({ status: 'loading' });
+  const [workspace, setWorkspace] = useState<'schedule' | 'audio'>('schedule');
   const [scheduleData, setScheduleData] = useState<EdgeBellScheduleData | null>(null);
   const [assets, setAssets] = useState<EdgeAudioAsset[]>([]);
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
@@ -221,6 +223,31 @@ export function BellScheduleSettingsPage() {
     <div className="admin-workspace edge-bell-page">
       <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
+      <div className="edge-workspace-tabs" role="tablist" aria-label={copy.title}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={workspace === 'schedule'}
+          className={workspace === 'schedule' ? 'is-active' : ''}
+          onClick={() => setWorkspace('schedule')}
+        >
+          🔔 {copy.scheduleTab}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={workspace === 'audio'}
+          className={workspace === 'audio' ? 'is-active' : ''}
+          onClick={() => setWorkspace('audio')}
+        >
+          🎵 {copy.audioLibraryTab}
+        </button>
+      </div>
+
+      {workspace === 'audio' ? (
+        <AudioLibraryPanel assets={assets} onChanged={load} />
+      ) : (
+        <>
       <div className="edge-status-grid">
         <Card className="edge-status-card">
           <SectionHead title={copy.deviceTitle} />
@@ -506,6 +533,8 @@ export function BellScheduleSettingsPage() {
           {saving ? copy.saving : copy.save}
         </button>
       </Card>
+        </>
+      )}
     </div>
   );
 }
