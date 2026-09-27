@@ -83,6 +83,8 @@ export interface AttendanceBatchResult {
 // NOTE: The API returns `id` (not `student_id`) in the not_recorded array.
 export interface AttendanceTodayStudent extends StudentNameFields {
   id: number;
+  /** Compatibility only; Odoo 381 not_recorded entries do not set a status. */
+  status?: AttendanceStatus;
 }
 
 export type AttendanceTeacherSheetState = 'not_started' | 'in_progress' | 'completed';

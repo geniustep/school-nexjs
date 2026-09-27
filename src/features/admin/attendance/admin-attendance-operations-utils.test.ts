@@ -5,6 +5,8 @@ import {
   buildAttendanceLevelOptions,
   buildAttendanceRosterDraft,
   classOperationAction,
+  classShowsCorrectionAction,
+  classShowsRegisteredState,
   classesForAttendanceLevel,
   filterAttendanceOperationClasses,
   hasAttendanceBatchConcurrencyFailure,
