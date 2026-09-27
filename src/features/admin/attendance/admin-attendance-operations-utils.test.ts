@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
+import type { CycleOption, LevelContextOption } from '@/types/academic-context';
 import type { AttendanceClassDetails, AttendanceOverviewClass } from './admin-attendance-operations-contract';
 import {
   buildAttendanceClassBatchItems,
+  buildAttendanceCycleOptions,
   buildAttendanceLevelOptions,
   buildAttendanceRosterDraft,
   classOperationAction,
   classShowsCorrectionAction,
   classShowsRegisteredState,
+  classesForAttendanceCycle,
   classesForAttendanceLevel,
   filterAttendanceOperationClasses,
   hasAttendanceBatchConcurrencyFailure,
+  levelsForAttendanceCycle,
   markUnrecordedPresent,
 } from './admin-attendance-operations-utils';
 
@@ -162,29 +166,61 @@ describe('attendance operations center utilities', () => {
     expect(classShowsCorrectionAction(viewOnly)).toBe(false);
   });
 
-  it('builds level-first options from backend class references', () => {
+  it('builds cycle-first hierarchy from the canonical academic context relation', () => {
     const rows = [
       classRow({ id: 1, name: '6AP-1', level: { id: 6, name: '6AP' } }),
       classRow({ id: 2, name: '6AP-2', level: { id: 6, name: '6AP' } }),
       classRow({ id: 3, name: '5AP-1', level: { id: 5, name: '5AP' } }),
+      classRow({ id: 4, name: 'TC-1', level: { id: 10, name: 'TC' } }),
     ];
-    expect(buildAttendanceLevelOptions(rows)).toEqual([
-      { id: 5, name: '5AP', classCount: 1 },
-      { id: 6, name: '6AP', classCount: 2 },
+    const academicLevels: LevelContextOption[] = [
+      { id: 5, name: '5AP', cycle: { id: 1, name: 'Primaire' } },
+      { id: 6, name: '6AP', cycle: { id: 1, name: 'Primaire' } },
+      { id: 10, name: 'TC', cycle: { id: 2, name: 'Collège' } },
+    ];
+    const academicCycles: CycleOption[] = [
+      { id: 1, name: 'Primaire' },
+      { id: 2, name: 'Collège' },
+      { id: 3, name: 'Lycée' },
+    ];
+
+    const levels = buildAttendanceLevelOptions(rows, academicLevels);
+    expect(levels).toEqual([
+      { id: 5, name: '5AP', classCount: 1, cycleId: 1 },
+      { id: 6, name: '6AP', classCount: 2, cycleId: 1 },
+      { id: 10, name: 'TC', classCount: 1, cycleId: 2 },
     ]);
-    expect(classesForAttendanceLevel(rows, 6).map((row) => row.id)).toEqual([1, 2]);
+    expect(buildAttendanceCycleOptions(levels, academicCycles)).toEqual([
+      { id: 2, name: 'Collège', classCount: 1 },
+      { id: 1, name: 'Primaire', classCount: 3 },
+    ]);
+    expect(levelsForAttendanceCycle(levels, 1).map((level) => level.id)).toEqual([5, 6]);
+    expect(levelsForAttendanceCycle(levels, 'all').map((level) => level.id)).toEqual([5, 6, 10]);
+    expect(classesForAttendanceCycle(rows, 1, levels).map((row) => row.id)).toEqual([3, 1, 2]);
+    expect(classesForAttendanceLevel(classesForAttendanceCycle(rows, 1, levels), 6).map((row) => row.id))
+      .toEqual([1, 2]);
   });
 
-  it('filters hierarchically by level then class, then presentation status/search', () => {
+  it('filters hierarchically by cycle then level/class, then presentation status/search', () => {
     const rows = [
       classRow({ id: 1, name: '6AP-1', level: { id: 6, name: '6AP' }, operation_status: 'completed' }),
       classRow({ id: 2, name: '6AP-2', level: { id: 6, name: '6AP' }, operation_status: 'not_started' }),
       classRow({ id: 3, name: '5AP-1', level: { id: 5, name: '5AP' }, operation_status: 'not_started' }),
+      classRow({ id: 4, name: 'TC-1', level: { id: 10, name: 'TC' }, operation_status: 'not_started' }),
     ];
-    expect(filterAttendanceOperationClasses(rows, '', 'all', 6, 'all').map((row) => row.id)).toEqual([1, 2]);
-    expect(filterAttendanceOperationClasses(rows, '', 'all', 6, 2).map((row) => row.id)).toEqual([2]);
-    expect(filterAttendanceOperationClasses(rows, '', 'not_started', 6, 'all').map((row) => row.id)).toEqual([2]);
-    expect(filterAttendanceOperationClasses(rows, '5AP', 'all', 'all', 'all').map((row) => row.id)).toEqual([3]);
+    const levels = buildAttendanceLevelOptions(rows, [
+      { id: 5, name: '5AP', cycle: { id: 1, name: 'Primaire' } },
+      { id: 6, name: '6AP', cycle: { id: 1, name: 'Primaire' } },
+      { id: 10, name: 'TC', cycle: { id: 2, name: 'Collège' } },
+    ]);
+    const primaryRows = classesForAttendanceCycle(rows, 1, levels);
+
+    expect(primaryRows.map((row) => row.id)).toEqual([3, 1, 2]);
+    expect(filterAttendanceOperationClasses(primaryRows, '', 'all', 6, 'all').map((row) => row.id)).toEqual([1, 2]);
+    expect(filterAttendanceOperationClasses(primaryRows, '', 'all', 6, 2).map((row) => row.id)).toEqual([2]);
+    expect(filterAttendanceOperationClasses(primaryRows, '', 'not_started', 6, 'all').map((row) => row.id)).toEqual([2]);
+    expect(filterAttendanceOperationClasses(primaryRows, '5AP', 'all', 'all', 'all').map((row) => row.id)).toEqual([3]);
+    expect(classesForAttendanceCycle(rows, 'all', levels).map((row) => row.id)).toEqual([3, 1, 2, 4]);
   });
 
   it('recognizes batch concurrency conflicts without treating other failures as conflicts', () => {
