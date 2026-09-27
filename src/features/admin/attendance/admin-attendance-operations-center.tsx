@@ -19,6 +19,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { cn } from '@/lib/utils/cn';
 import { formatDateTime } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import type { AcademicContextOptionsResponse } from '@/types/academic-context';
 import type { AttendanceStatus } from '@/types/attendance';
 import type {
   AttendanceClassBatchResult,
@@ -29,18 +30,22 @@ import type {
 } from './admin-attendance-operations-contract';
 import {
   buildAttendanceClassBatchItems,
+  buildAttendanceCycleOptions,
   buildAttendanceLevelOptions,
   buildAttendanceRosterDraft,
   classOperationAction,
   classShowsCorrectionAction,
   classShowsRegisteredState,
+  classesForAttendanceCycle,
   classesForAttendanceLevel,
   filterAttendanceOperationClasses,
   hasAttendanceBatchConcurrencyFailure,
   isAttendanceRosterRowDirty,
+  levelsForAttendanceCycle,
   markUnrecordedPresent,
   type AttendanceClassFilter,
   type AttendanceClassIdFilter,
+  type AttendanceCycleFilter,
   type AttendanceLevelFilter,
   type AttendanceRosterDraftRow,
 } from './admin-attendance-operations-utils';
@@ -490,6 +495,7 @@ export function AdminAttendanceOperationsCenter() {
   const [date, setDate] = useState(today);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<AttendanceClassFilter>('all');
+  const [cycleFilter, setCycleFilter] = useState<AttendanceCycleFilter>('all');
   const [levelFilter, setLevelFilter] = useState<AttendanceLevelFilter>('all');
   const [classFilter, setClassFilter] = useState<AttendanceClassIdFilter>('all');
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
@@ -497,24 +503,51 @@ export function AdminAttendanceOperationsCenter() {
   const workspaceRef = useRef<HTMLDivElement | null>(null);
 
   const state = useAdminResource<AttendanceOperationsOverview>(overviewPath(), { date }, { keepPreviousData: true });
+  const academicContextState = useAdminResource<AcademicContextOptionsResponse>(
+    endpoints.admin.academicContextOptions,
+    undefined,
+    { keepPreviousData: true },
+  );
   const overview = state.data;
   const levelOptions = useMemo(
-    () => buildAttendanceLevelOptions(overview?.classes ?? []),
-    [overview?.classes],
+    () => buildAttendanceLevelOptions(
+      overview?.classes ?? [],
+      academicContextState.data?.levels ?? [],
+    ),
+    [overview?.classes, academicContextState.data?.levels],
+  );
+  const cycleOptions = useMemo(
+    () => buildAttendanceCycleOptions(
+      levelOptions,
+      academicContextState.data?.cycles ?? [],
+    ),
+    [levelOptions, academicContextState.data?.cycles],
+  );
+  const visibleLevelOptions = useMemo(
+    () => levelsForAttendanceCycle(levelOptions, cycleFilter),
+    [levelOptions, cycleFilter],
+  );
+  const cycleClasses = useMemo(
+    () => classesForAttendanceCycle(
+      overview?.classes ?? [],
+      cycleFilter,
+      levelOptions,
+    ),
+    [overview?.classes, cycleFilter, levelOptions],
   );
   const classOptions = useMemo(
-    () => classesForAttendanceLevel(overview?.classes ?? [], levelFilter),
-    [overview?.classes, levelFilter],
+    () => classesForAttendanceLevel(cycleClasses, levelFilter),
+    [cycleClasses, levelFilter],
   );
   const classes = useMemo(
     () => filterAttendanceOperationClasses(
-      overview?.classes ?? [],
+      cycleClasses,
       search,
       statusFilter,
       levelFilter,
       classFilter,
     ),
-    [overview?.classes, search, statusFilter, levelFilter, classFilter],
+    [cycleClasses, search, statusFilter, levelFilter, classFilter],
   );
 
   useEffect(() => {
@@ -532,9 +565,33 @@ export function AdminAttendanceOperationsCenter() {
   }, [selectedClassId, workspaceMode]);
 
   useEffect(() => {
+    if (cycleFilter === 'all') return;
+    if (!cycleOptions.some((row) => row.id === cycleFilter)) {
+      setCycleFilter('all');
+      setLevelFilter('all');
+      setClassFilter('all');
+    }
+  }, [cycleFilter, cycleOptions]);
+
+  useEffect(() => {
+    if (levelFilter === 'all') return;
+    if (!visibleLevelOptions.some((row) => row.id === levelFilter)) {
+      setLevelFilter('all');
+      setClassFilter('all');
+    }
+  }, [levelFilter, visibleLevelOptions]);
+
+  useEffect(() => {
     if (classFilter === 'all') return;
     if (!classOptions.some((row) => row.id === classFilter)) setClassFilter('all');
   }, [classFilter, classOptions]);
+
+  function chooseCycle(cycle: AttendanceCycleFilter) {
+    setCycleFilter(cycle);
+    setLevelFilter('all');
+    setClassFilter('all');
+    setSelectedClassId(null);
+  }
 
   function chooseLevel(level: AttendanceLevelFilter) {
     setLevelFilter(level);
@@ -634,6 +691,38 @@ export function AdminAttendanceOperationsCenter() {
                 <section className="attendance-center-filter-stage">
                   <div className="attendance-center-filter-stage__head">
                     <div>
+                      <strong>{t('academicContext.fields.cycle')}</strong>
+                      <span>{t('academicContext.hints.chooseCycleFirst')}</span>
+                    </div>
+                  </div>
+                  <div className="attendance-center-level-grid" role="group" aria-label={t('academicContext.fields.cycle')}>
+                    <button
+                      type="button"
+                      className={cn('attendance-center-level-chip', cycleFilter === 'all' && 'attendance-center-level-chip--active')}
+                      aria-pressed={cycleFilter === 'all'}
+                      onClick={() => chooseCycle('all')}
+                    >
+                      <span>{t('admin.attendanceCenter.filterAll')}</span>
+                      <small>{t('admin.attendanceCenter.levelClassCount', { count: data.classes.length })}</small>
+                    </button>
+                    {cycleOptions.map((cycle) => (
+                      <button
+                        key={cycle.id}
+                        type="button"
+                        className={cn('attendance-center-level-chip', cycleFilter === cycle.id && 'attendance-center-level-chip--active')}
+                        aria-pressed={cycleFilter === cycle.id}
+                        onClick={() => chooseCycle(cycle.id)}
+                      >
+                        <span dir="auto">{cycle.name}</span>
+                        <small>{t('admin.attendanceCenter.levelClassCount', { count: cycle.classCount })}</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="attendance-center-filter-stage">
+                  <div className="attendance-center-filter-stage__head">
+                    <div>
                       <strong>{t('admin.attendanceCenter.levelsFilterTitle')}</strong>
                       <span>{t('admin.attendanceCenter.levelsFilterHint')}</span>
                     </div>
@@ -646,9 +735,9 @@ export function AdminAttendanceOperationsCenter() {
                       onClick={() => chooseLevel('all')}
                     >
                       <span>{t('admin.attendanceCenter.allLevels')}</span>
-                      <small>{t('admin.attendanceCenter.levelClassCount', { count: data.classes.length })}</small>
+                      <small>{t('admin.attendanceCenter.levelClassCount', { count: cycleClasses.length })}</small>
                     </button>
-                    {levelOptions.map((level) => (
+                    {visibleLevelOptions.map((level) => (
                       <button
                         key={level.id}
                         type="button"
