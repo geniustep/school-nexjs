@@ -5,7 +5,7 @@
  * @design-status adopted
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
 import { ResourceView } from '@/components/states/resource';
 import { useToast } from '@/components/ui/toast';
@@ -19,6 +19,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { cn } from '@/lib/utils/cn';
 import { formatDateTime } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import type { AcademicContextOptionsResponse } from '@/types/academic-context';
 import type { AttendanceStatus } from '@/types/attendance';
 import type {
   AttendanceClassBatchResult,
@@ -29,16 +30,22 @@ import type {
 } from './admin-attendance-operations-contract';
 import {
   buildAttendanceClassBatchItems,
+  buildAttendanceCycleOptions,
   buildAttendanceLevelOptions,
   buildAttendanceRosterDraft,
   classOperationAction,
+  classShowsCorrectionAction,
+  classShowsRegisteredState,
+  classesForAttendanceCycle,
   classesForAttendanceLevel,
   filterAttendanceOperationClasses,
   hasAttendanceBatchConcurrencyFailure,
   isAttendanceRosterRowDirty,
+  levelsForAttendanceCycle,
   markUnrecordedPresent,
   type AttendanceClassFilter,
   type AttendanceClassIdFilter,
+  type AttendanceCycleFilter,
   type AttendanceLevelFilter,
   type AttendanceRosterDraftRow,
 } from './admin-attendance-operations-utils';
@@ -54,6 +61,8 @@ const CLASS_FILTERS: AttendanceClassFilter[] = [
   'closed',
   'empty',
 ];
+
+type ClassWorkspaceMode = 'record' | 'view' | 'correct';
 
 function overviewPath(): string {
   return `${endpoints.admin.attendance}/overview`;
@@ -109,7 +118,7 @@ function ClassCard({
   onOpen,
 }: {
   row: AttendanceOverviewClass;
-  onOpen: (classId: number) => void;
+  onOpen: (classId: number, mode: ClassWorkspaceMode) => void;
 }) {
   const t = useT();
   const lastActor = row.last_modified_by?.name ?? row.last_recorded_by?.name ?? null;
@@ -157,14 +166,45 @@ function ClassCard({
             <small>{t('admin.attendanceCenter.noActivity')}</small>
           )}
         </div>
-        <button
-          type="button"
-          className="btn btn--primary btn--sm"
-          onClick={() => onOpen(row.id)}
-          disabled={row.allowed_actions.can_open_class === false}
-        >
-          {t(actionKey(row))}
-        </button>
+        <div className="attendance-center-class-card__actions">
+          {classShowsRegisteredState(row) ? (
+            <span className="attendance-center-registered-badge">
+              {t('admin.attendanceCenter.attendanceRegistered')}
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={() => onOpen(
+                row.id,
+                classOperationAction(row) === 'view' ? 'view' : 'record',
+              )}
+              disabled={row.allowed_actions.can_open_class === false}
+            >
+              {t(actionKey(row))}
+            </button>
+          )}
+
+          {classShowsCorrectionAction(row) ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => onOpen(row.id, 'correct')}
+              disabled={row.allowed_actions.can_open_class === false}
+            >
+              {t('admin.attendanceCenter.correctAttendance')}
+            </button>
+          ) : classShowsRegisteredState(row) ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => onOpen(row.id, 'view')}
+              disabled={row.allowed_actions.can_open_class === false}
+            >
+              {t('admin.attendanceCenter.viewAttendance')}
+            </button>
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -238,11 +278,13 @@ function RosterStatusEditor({
 function ClassWorkspace({
   classId,
   date,
+  mode,
   onClose,
   onReloadOverview,
 }: {
   classId: number;
   date: string;
+  mode: ClassWorkspaceMode;
   onClose: () => void;
   onReloadOverview: () => void;
 }) {
@@ -262,6 +304,11 @@ function ClassWorkspace({
       setConflict(false);
     }
   }, [state.data]);
+
+  useEffect(() => {
+    setShowCorrection(mode === 'correct');
+    setCorrectionRecord(null);
+  }, [mode, classId, date]);
 
   const dirtyItems = useMemo(() => buildAttendanceClassBatchItems(rows), [rows]);
 
@@ -312,7 +359,12 @@ function ClassWorkspace({
     <section className="attendance-center-class-workspace" aria-label={t('admin.attendanceCenter.classWorkspace')}>
       <ResourceView state={state} loadingLabel={t('attendance.loadingRoster')}>
         {(details) => {
-          const writable = details.recording_allowed && details.allowed_actions.can_record_today;
+          const writable = (
+            mode !== 'correct'
+            && details.recording_allowed
+            && details.allowed_actions.can_record_today
+            && details.summary.unrecorded_students > 0
+          );
           return (
             <>
               <div className="attendance-center-class-workspace__head">
@@ -334,7 +386,7 @@ function ClassWorkspace({
                 <Kpi label={t('admin.attendanceCenter.absenceRate')} value={pct(details.summary.absence_rate)} />
               </div>
 
-              {!writable ? (
+              {!writable && mode !== 'correct' ? (
                 <div className="attendance-center-info-banner" role="status">
                   <strong>{t('admin.attendanceCenter.readOnlyTitle')}</strong>
                   <span>
@@ -399,7 +451,7 @@ function ClassWorkspace({
                     {saving ? t('common.saving') : t('attendance.saveAttendance')}
                   </button>
                 </div>
-              ) : details.allowed_actions.can_correct ? (
+              ) : mode !== 'correct' && details.allowed_actions.can_correct ? (
                 <div className="attendance-center-correction-entry">
                   <button
                     type="button"
@@ -409,7 +461,7 @@ function ClassWorkspace({
                       setShowCorrection((value) => !value);
                     }}
                   >
-                    {t('admin.attendanceOps.quickAction')}
+                    {t('admin.attendanceCenter.correctAttendance')}
                   </button>
                 </div>
               ) : null}
@@ -418,6 +470,8 @@ function ClassWorkspace({
                 <AdminAttendanceCorrectionPanel
                   open={showCorrection}
                   selectedDate={date}
+                  selectedClassId={classId}
+                  selectedClassName={details.class_name}
                   initialRecord={correctionRecord}
                   onSuccess={() => {
                     setShowCorrection(false);
@@ -441,29 +495,59 @@ export function AdminAttendanceOperationsCenter() {
   const [date, setDate] = useState(today);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<AttendanceClassFilter>('all');
+  const [cycleFilter, setCycleFilter] = useState<AttendanceCycleFilter>('all');
   const [levelFilter, setLevelFilter] = useState<AttendanceLevelFilter>('all');
   const [classFilter, setClassFilter] = useState<AttendanceClassIdFilter>('all');
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [workspaceMode, setWorkspaceMode] = useState<ClassWorkspaceMode>('view');
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
 
   const state = useAdminResource<AttendanceOperationsOverview>(overviewPath(), { date }, { keepPreviousData: true });
+  const academicContextState = useAdminResource<AcademicContextOptionsResponse>(
+    endpoints.admin.academicContextOptions,
+    undefined,
+    { keepPreviousData: true },
+  );
   const overview = state.data;
   const levelOptions = useMemo(
-    () => buildAttendanceLevelOptions(overview?.classes ?? []),
-    [overview?.classes],
+    () => buildAttendanceLevelOptions(
+      overview?.classes ?? [],
+      academicContextState.data?.levels ?? [],
+    ),
+    [overview?.classes, academicContextState.data?.levels],
+  );
+  const cycleOptions = useMemo(
+    () => buildAttendanceCycleOptions(
+      levelOptions,
+      academicContextState.data?.cycles ?? [],
+    ),
+    [levelOptions, academicContextState.data?.cycles],
+  );
+  const visibleLevelOptions = useMemo(
+    () => levelsForAttendanceCycle(levelOptions, cycleFilter),
+    [levelOptions, cycleFilter],
+  );
+  const cycleClasses = useMemo(
+    () => classesForAttendanceCycle(
+      overview?.classes ?? [],
+      cycleFilter,
+      levelOptions,
+    ),
+    [overview?.classes, cycleFilter, levelOptions],
   );
   const classOptions = useMemo(
-    () => classesForAttendanceLevel(overview?.classes ?? [], levelFilter),
-    [overview?.classes, levelFilter],
+    () => classesForAttendanceLevel(cycleClasses, levelFilter),
+    [cycleClasses, levelFilter],
   );
   const classes = useMemo(
     () => filterAttendanceOperationClasses(
-      overview?.classes ?? [],
+      cycleClasses,
       search,
       statusFilter,
       levelFilter,
       classFilter,
     ),
-    [overview?.classes, search, statusFilter, levelFilter, classFilter],
+    [cycleClasses, search, statusFilter, levelFilter, classFilter],
   );
 
   useEffect(() => {
@@ -472,9 +556,42 @@ export function AdminAttendanceOperationsCenter() {
   }, [overview, selectedClassId]);
 
   useEffect(() => {
+    if (selectedClassId == null) return;
+    const frame = window.requestAnimationFrame(() => {
+      workspaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      workspaceRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedClassId, workspaceMode]);
+
+  useEffect(() => {
+    if (cycleFilter === 'all') return;
+    if (!cycleOptions.some((row) => row.id === cycleFilter)) {
+      setCycleFilter('all');
+      setLevelFilter('all');
+      setClassFilter('all');
+    }
+  }, [cycleFilter, cycleOptions]);
+
+  useEffect(() => {
+    if (levelFilter === 'all') return;
+    if (!visibleLevelOptions.some((row) => row.id === levelFilter)) {
+      setLevelFilter('all');
+      setClassFilter('all');
+    }
+  }, [levelFilter, visibleLevelOptions]);
+
+  useEffect(() => {
     if (classFilter === 'all') return;
     if (!classOptions.some((row) => row.id === classFilter)) setClassFilter('all');
   }, [classFilter, classOptions]);
+
+  function chooseCycle(cycle: AttendanceCycleFilter) {
+    setCycleFilter(cycle);
+    setLevelFilter('all');
+    setClassFilter('all');
+    setSelectedClassId(null);
+  }
 
   function chooseLevel(level: AttendanceLevelFilter) {
     setLevelFilter(level);
@@ -487,6 +604,16 @@ export function AdminAttendanceOperationsCenter() {
     const next: AttendanceClassIdFilter = value === 'all' ? 'all' : Number(value);
     setClassFilter(next);
     setSelectedClassId(null);
+  }
+
+  function openClass(classId: number, mode: ClassWorkspaceMode) {
+    setSelectedClassId(classId);
+    setWorkspaceMode(mode);
+  }
+
+  function closeClass() {
+    setSelectedClassId(null);
+    setWorkspaceMode('view');
   }
 
   return (
@@ -564,6 +691,38 @@ export function AdminAttendanceOperationsCenter() {
                 <section className="attendance-center-filter-stage">
                   <div className="attendance-center-filter-stage__head">
                     <div>
+                      <strong>{t('academicContext.fields.cycle')}</strong>
+                      <span>{t('academicContext.hints.chooseCycleFirst')}</span>
+                    </div>
+                  </div>
+                  <div className="attendance-center-level-grid" role="group" aria-label={t('academicContext.fields.cycle')}>
+                    <button
+                      type="button"
+                      className={cn('attendance-center-level-chip', cycleFilter === 'all' && 'attendance-center-level-chip--active')}
+                      aria-pressed={cycleFilter === 'all'}
+                      onClick={() => chooseCycle('all')}
+                    >
+                      <span>{t('admin.attendanceCenter.filterAll')}</span>
+                      <small>{t('admin.attendanceCenter.levelClassCount', { count: data.classes.length })}</small>
+                    </button>
+                    {cycleOptions.map((cycle) => (
+                      <button
+                        key={cycle.id}
+                        type="button"
+                        className={cn('attendance-center-level-chip', cycleFilter === cycle.id && 'attendance-center-level-chip--active')}
+                        aria-pressed={cycleFilter === cycle.id}
+                        onClick={() => chooseCycle(cycle.id)}
+                      >
+                        <span dir="auto">{cycle.name}</span>
+                        <small>{t('admin.attendanceCenter.levelClassCount', { count: cycle.classCount })}</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="attendance-center-filter-stage">
+                  <div className="attendance-center-filter-stage__head">
+                    <div>
                       <strong>{t('admin.attendanceCenter.levelsFilterTitle')}</strong>
                       <span>{t('admin.attendanceCenter.levelsFilterHint')}</span>
                     </div>
@@ -576,9 +735,9 @@ export function AdminAttendanceOperationsCenter() {
                       onClick={() => chooseLevel('all')}
                     >
                       <span>{t('admin.attendanceCenter.allLevels')}</span>
-                      <small>{t('admin.attendanceCenter.levelClassCount', { count: data.classes.length })}</small>
+                      <small>{t('admin.attendanceCenter.levelClassCount', { count: cycleClasses.length })}</small>
                     </button>
-                    {levelOptions.map((level) => (
+                    {visibleLevelOptions.map((level) => (
                       <button
                         key={level.id}
                         type="button"
@@ -644,25 +803,33 @@ export function AdminAttendanceOperationsCenter() {
                 </section>
               </div>
 
+              {selectedClassId != null ? (
+                <div
+                  ref={workspaceRef}
+                  className="attendance-center-workspace-anchor"
+                  tabIndex={-1}
+                >
+                  <ClassWorkspace
+                    key={`${selectedClassId}:${workspaceMode}:${date}`}
+                    classId={selectedClassId}
+                    date={date}
+                    mode={workspaceMode}
+                    onClose={closeClass}
+                    onReloadOverview={() => state.reload()}
+                  />
+                </div>
+              ) : null}
+
               {data.classes.length === 0 ? (
                 <p className="attendance-center-empty">{t('admin.attendanceCenter.noClasses')}</p>
               ) : classes.length === 0 ? (
                 <p className="attendance-center-empty">{t('admin.attendanceCenter.noMatches')}</p>
               ) : (
                 <div className="attendance-center-class-grid">
-                  {classes.map((row) => <ClassCard key={row.id} row={row} onOpen={setSelectedClassId} />)}
+                  {classes.map((row) => <ClassCard key={row.id} row={row} onOpen={openClass} />)}
                 </div>
               )}
             </section>
-
-            {selectedClassId != null ? (
-              <ClassWorkspace
-                classId={selectedClassId}
-                date={date}
-                onClose={() => setSelectedClassId(null)}
-                onReloadOverview={() => state.reload()}
-              />
-            ) : null}
 
             <section className="attendance-center-attention">
               <div className="attendance-center-section-head">
