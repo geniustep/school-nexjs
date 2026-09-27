@@ -79,15 +79,65 @@ export interface AttendanceBatchResult {
   errors: { student_id: number; error: string }[];
 }
 
-// Teacher "attendance today" view.
+// Teacher "attendance today" view — Odoo 18.0.1.0.381.
 // NOTE: The API returns `id` (not `student_id`) in the not_recorded array.
 export interface AttendanceTodayStudent extends StudentNameFields {
   id: number;
-  status?: AttendanceStatus;
+}
+
+export type AttendanceTeacherSheetState = 'not_started' | 'in_progress' | 'completed';
+
+export interface AttendanceTeacherSheetOwner {
+  teacher_id: number;
+  name: string;
+}
+
+export interface AttendanceTeacherRecordingLock {
+  locked: boolean;
+  reason:
+    | 'recorded_by_other_teacher'
+    | 'attendance_sheet_completed'
+    | 'existing_without_owner'
+    | 'attendance_blocked_by_calendar'
+    | string
+    | null;
+}
+
+export interface AttendanceTeacherAllowedActions {
+  can_view: boolean;
+  can_record_today: boolean;
+  can_continue: boolean;
+}
+
+export interface AttendanceTodayCalendarGate {
+  allowed: boolean | null;
+  hard_blocked: boolean | null;
+  provisional_only: boolean | null;
+  closure_kind: string | null;
+  status: string | null;
+  causing_event: unknown;
+  day_part: string | null;
+}
+
+export interface AttendanceTodaySummary {
+  present: number;
+  absent: number;
+  late: number;
+  left_early: number;
+  total_students: number;
 }
 
 export interface AttendanceToday {
+  date: string;
+  class_id: number;
+  class_name: string;
+  recording_allowed: boolean;
+  sheet_state: AttendanceTeacherSheetState;
+  sheet_owner: AttendanceTeacherSheetOwner | null;
+  recording_lock: AttendanceTeacherRecordingLock;
+  allowed_actions: AttendanceTeacherAllowedActions;
+  calendar_gate: AttendanceTodayCalendarGate;
   recorded: AttendanceRecord[];
   not_recorded: AttendanceTodayStudent[];
-  summary: AttendanceSummary;
+  summary: AttendanceTodaySummary;
 }

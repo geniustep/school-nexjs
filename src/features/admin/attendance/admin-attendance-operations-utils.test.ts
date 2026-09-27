@@ -131,22 +131,33 @@ describe('attendance operations center utilities', () => {
     ]);
   });
 
-  it('uses backend operation_status and permissions for the primary class action', () => {
+  it('keeps normal recording distinct from correction and completed state', () => {
     expect(classOperationAction(classRow({ operation_status: 'not_started' }))).toBe('record');
     expect(classOperationAction(classRow({ operation_status: 'in_progress' }))).toBe('continue');
-    expect(
-      classOperationAction(
-        classRow({
-          operation_status: 'completed',
-          allowed_actions: {
-            can_view: true,
-            can_open_class: true,
-            can_record_today: false,
-            can_correct: false,
-          },
-        }),
-      ),
-    ).toBe('view');
+
+    const completed = classRow({
+      operation_status: 'completed',
+      allowed_actions: {
+        can_view: true,
+        can_open_class: true,
+        can_record_today: true,
+        can_correct: true,
+      },
+    });
+    expect(classOperationAction(completed)).toBe('view');
+    expect(classShowsRegisteredState(completed)).toBe(true);
+    expect(classShowsCorrectionAction(completed)).toBe(true);
+
+    const viewOnly = classRow({
+      operation_status: 'completed',
+      allowed_actions: {
+        can_view: true,
+        can_open_class: true,
+        can_record_today: false,
+        can_correct: false,
+      },
+    });
+    expect(classShowsCorrectionAction(viewOnly)).toBe(false);
   });
 
   it('builds level-first options from backend class references', () => {

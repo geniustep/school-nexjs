@@ -1,8 +1,6 @@
 'use client';
 
-// Teacher batch attendance entry. Loads today's roster for an assigned class,
-// lets the teacher set a status per student, and submits via the documented
-// batch endpoint. Handles partial success (saved/failed/errors).
+// Teacher batch attendance entry — Odoo 18.0.1.0.381 ownership-aware UX.
 
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
@@ -13,14 +11,22 @@ import { useT } from '@/features/i18n/locale-context';
 import { Card } from '@/components/ui/primitives';
 import { endpoints } from '@/lib/api/endpoints';
 import { isoDate } from '@/lib/utils/format';
-import { getStudentDisplayName } from '@/lib/utils/student';
 import { cn } from '@/lib/utils/cn';
-import { buildTeacherAttendanceBatchItem } from './attendance-concurrency';
 import type {
-  AttendanceToday,
   AttendanceStatus,
   AttendanceBatchResult,
+  AttendanceToday,
 } from '@/types/attendance';
+import {
+  attendanceSheetLockReason,
+  buildTeacherAttendanceBatchItems,
+  buildTeacherAttendanceRoster,
+  countTeacherAttendanceRoster,
+  isAttendanceSheetLockedError,
+  markTeacherAttendanceAllPresent,
+  teacherAttendanceSheetUiMode,
+  type TeacherAttendanceRosterRow,
+} from './attendance-teacher-sheet';
 
 const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
@@ -31,48 +37,11 @@ const STATUS_BTN: Record<AttendanceStatus, string> = {
   left_early: 'btn--status-blue',
 };
 
-interface RosterRow {
-  student_id: number;
-  full_name: string;
-  status: AttendanceStatus;
-  note: string;
-  expected_write_date?: string;
-  expected_missing: boolean;
-}
-
-function buildRoster(today: AttendanceToday): RosterRow[] {
-  const rows: RosterRow[] = [];
-  const seen = new Set<number>();
-  for (const r of today.recorded ?? []) {
-    if (!r.student?.id) continue;
-    if (seen.has(r.student.id)) continue;
-    seen.add(r.student.id);
-    rows.push({
-      student_id: r.student.id,
-      full_name: getStudentDisplayName(r.student),
-      status: r.status,
-      note: r.notes ?? r.note ?? '',
-      expected_write_date: r.expected_write_date ?? undefined,
-      expected_missing: false,
-    });
-  }
-  // API returns `id` (not `student_id`) in the not_recorded array.
-  for (const n of today.not_recorded ?? []) {
-    if (!n.id) continue;
-    if (seen.has(n.id)) continue;
-    seen.add(n.id);
-    rows.push({
-      student_id: n.id,
-      full_name: getStudentDisplayName(n),
-      status: n.status ?? 'present',
-      note: '',
-      expected_missing: true,
-    });
-  }
-  return rows.sort((a, b) => a.full_name.localeCompare(b.full_name));
-}
-
-function isTeacherTodayOnly(error: { code: string; message?: string; details?: Record<string, unknown> }): boolean {
+function isTeacherTodayOnly(error: {
+  code: string;
+  message?: string;
+  details?: Record<string, unknown>;
+}): boolean {
   if (error.code !== 'validation_error') return false;
   if (error.details?.policy === 'teacher_today_only') return true;
   return /today/i.test(error.message ?? '');
@@ -82,35 +51,25 @@ export function AttendanceBatch({ classId }: { classId: number }) {
   const t = useT();
   const toast = useToast();
   const today = isoDate();
-  const [date, setDate] = useState(today);
   const state = useResource<AttendanceToday>(endpoints.teacher.attendanceToday(classId));
-  const [roster, setRoster] = useState<RosterRow[]>([]);
+  const [roster, setRoster] = useState<TeacherAttendanceRosterRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
-    if (state.data) {
-      setRoster(buildRoster(state.data));
-      setTouched(false);
-    }
+    if (state.data) setRoster(buildTeacherAttendanceRoster(state.data));
   }, [state.data]);
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = {};
-    for (const r of roster) c[r.status] = (c[r.status] ?? 0) + 1;
-    return c;
-  }, [roster]);
+  const counts = useMemo(() => countTeacherAttendanceRoster(roster), [roster]);
+  const pendingItems = useMemo(() => buildTeacherAttendanceBatchItems(roster), [roster]);
 
   function setStatus(studentId: number, status: AttendanceStatus) {
-    setTouched(true);
     setRoster((rows) =>
-      rows.map((r) => (r.student_id === studentId ? { ...r, status } : r)),
+      rows.map((row) => (row.student_id === studentId ? { ...row, status } : row)),
     );
   }
 
-  function setAll(status: AttendanceStatus) {
-    setTouched(true);
-    setRoster((rows) => rows.map((r) => ({ ...r, status })));
+  function setAllPresent() {
+    setRoster((rows) => markTeacherAttendanceAllPresent(rows));
   }
 
   function statusLabel(status: AttendanceStatus): string {
@@ -118,32 +77,33 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     return t(`attendance.${key}`);
   }
 
-  async function submit() {
-    const invalidRows = roster.filter((r) => !r.student_id);
-    if (invalidRows.length > 0) {
-      toast.error(t('attendance.invalidStudentIds'));
-      return;
-    }
+  async function submit(data: AttendanceToday) {
+    if (!data.recording_allowed || pendingItems.length === 0 || submitting) return;
+
     setSubmitting(true);
     const res = await api.post<AttendanceBatchResult>(
       endpoints.teacher.attendanceBatch(classId),
       {
-        date,
-        items: roster.map((r) =>
-          buildTeacherAttendanceBatchItem({
-            studentId: r.student_id,
-            status: r.status,
-            note: r.note,
-            expectedWriteDate: r.expected_write_date,
-            expectedMissing: r.expected_missing,
-          }),
-        ),
+        date: data.date || today,
+        items: pendingItems,
       },
     );
     setSubmitting(false);
 
     if (!res.success) {
-      if (res.error.code === 'permission_denied') {
+      if (isAttendanceSheetLockedError(res.error)) {
+        const reason = attendanceSheetLockReason(res.error);
+        toast.warning(
+          reason === 'recorded_by_other_teacher'
+            ? t('attendance.sheetLockedByOtherToast')
+            : reason === 'completed' || reason === 'attendance_sheet_completed'
+              ? t('attendance.sheetCompletedToast')
+              : t('attendance.sheetLockedToast'),
+        );
+        state.reload();
+        return;
+      }
+      if (res.error.code === 'permission_denied' || res.error.code === 'forbidden') {
         toast.error(t('attendance.permissionDenied'));
       } else if (isTeacherTodayOnly(res.error)) {
         toast.error(t('attendance.todayOnlyError'));
@@ -156,132 +116,194 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     const { saved, failed, errors } = res.data;
     if (failed > 0) {
       toast.error(t('attendance.partialSave', { saved, failed }));
-      errors.slice(0, 2).forEach((e) =>
-        toast.error(t('attendance.studentError', { id: e.student_id, error: e.error })),
+      errors.slice(0, 2).forEach((error) =>
+        toast.error(t('attendance.studentError', { id: error.student_id, error: error.error })),
       );
     } else {
       toast.success(t('attendance.saveSuccess', { count: saved }));
     }
-    setTouched(false);
     state.reload();
   }
 
   return (
     <ResourceView state={state} loadingLabel={t('attendance.loadingRoster')}>
-      {() => (
-        <>
-          <div className="attendance-toolbar">
-            <label className="attendance-toolbar__field">
-              <span className="muted">{t('attendance.dateLabel')}</span>
-              <input
-                className="input"
-                type="date"
-                value={date}
-                min={today}
-                max={today}
-                onChange={(e) => setDate(e.target.value)}
-                title={t('attendance.todayOnlyTitle')}
-              />
-              <span className="tiny muted">{t('attendance.todayOnly')}</span>
-            </label>
-            <span className="spacer" />
-            <span className="tiny muted">{t('attendance.defaultPresent')}</span>
-            <button
-              className={cn('btn btn--sm', STATUS_BTN.present)}
-              onClick={() => setAll('present')}
-              type="button"
-              title={t('attendance.markAllPresentTitle')}
-            >
-              {t('attendance.markAllPresent')}
-            </button>
-          </div>
+      {(data) => {
+        const mode = teacherAttendanceSheetUiMode(data);
+        const editable = mode === 'record' || mode === 'continue';
+        const ownerName = data.sheet_owner?.name ?? null;
+        const lockReason = data.recording_lock.reason;
 
-          {roster.length === 0 ? (
-            <Card>
-              <p className="muted">{t('attendance.noStudents')}</p>
-            </Card>
-          ) : (
-            <>
-              <div className="attendance-chips">
-                {STATUSES.map((s) => (
-                  <span key={s} className={cn('attendance-chip', `attendance-chip--${s}`)}>
-                    {statusLabel(s)}: <strong>{counts[s] ?? 0}</strong>
-                  </span>
-                ))}
-              </div>
+        return (
+          <>
+            {mode === 'continue' ? (
+              <Card>
+                <strong>{t('attendance.sheetContinueTitle')}</strong>
+                <p className="muted">{t('attendance.sheetContinueDesc')}</p>
+              </Card>
+            ) : null}
 
-              <div className="table-wrap card" style={{ padding: 0 }}>
-                <table className="data">
-                  <thead>
-                    <tr>
-                      <th>{t('attendance.student')}</th>
-                      <th style={{ width: 340 }}>{t('attendance.statusColumn')}</th>
-                      <th>{t('attendance.note')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {roster.map((r) => (
-                      <tr key={r.student_id}>
-                        <td>
-                          <strong>{r.full_name}</strong>
-                        </td>
-                        <td>
-                          <div className="wrap-gap">
-                            {STATUSES.map((s) => (
-                              <button
-                                key={s}
-                                type="button"
-                                className={cn(
-                                  'btn btn--sm',
-                                  STATUS_BTN[s],
-                                  r.status === s && 'btn--status-active',
-                                )}
-                                onClick={() => setStatus(r.student_id, s)}
-                              >
-                                {statusLabel(s)}
-                              </button>
-                            ))}
-                          </div>
-                        </td>
-                        <td>
-                          <input
-                            className="input"
-                            placeholder={t('attendance.optionalNote')}
-                            value={r.note}
-                            onChange={(e) => {
-                              setTouched(true);
-                              setRoster((rows) =>
-                                rows.map((x) =>
-                                  x.student_id === r.student_id
-                                    ? { ...x, note: e.target.value }
-                                    : x,
-                                ),
-                              );
-                            }}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            {mode === 'locked_other' ? (
+              <Card>
+                <strong>{t('attendance.sheetLockedByOtherTitle')}</strong>
+                <p className="muted">{t('attendance.sheetLockedByOtherDesc')}</p>
+                {ownerName ? (
+                  <p className="tiny muted" dir="auto">
+                    {t('attendance.sheetOwner', { name: ownerName })}
+                  </p>
+                ) : null}
+              </Card>
+            ) : null}
 
-              <div className={cn('save-bar save-bar--sticky', touched && 'save-bar--dirty')}>
-                <span className="save-bar__status">
-                  {touched ? t('attendance.unsavedChanges') : t('attendance.allSaved')}
-                </span>
+            {mode === 'completed' ? (
+              <Card>
+                <strong>{t('attendance.sheetCompletedTitle')}</strong>
+                <p className="muted">{t('attendance.sheetCompletedDesc')}</p>
+                {ownerName ? (
+                  <p className="tiny muted" dir="auto">
+                    {t('attendance.sheetOwner', { name: ownerName })}
+                  </p>
+                ) : null}
+              </Card>
+            ) : null}
+
+            {mode === 'blocked' ? (
+              <Card>
+                <strong>{t('attendance.sheetBlockedTitle')}</strong>
+                <p className="muted">
+                  {lockReason === 'attendance_blocked_by_calendar'
+                    ? t('attendance.sheetBlockedCalendar')
+                    : lockReason === 'existing_without_owner'
+                      ? t('attendance.sheetBlockedLegacy')
+                      : t('attendance.sheetBlockedDesc')}
+                </p>
+              </Card>
+            ) : null}
+
+            <div className="attendance-toolbar">
+              <label className="attendance-toolbar__field">
+                <span className="muted">{t('attendance.dateLabel')}</span>
+                <input
+                  className="input"
+                  type="date"
+                  value={data.date || today}
+                  min={data.date || today}
+                  max={data.date || today}
+                  readOnly
+                  title={t('attendance.todayOnlyTitle')}
+                />
+                <span className="tiny muted">{t('attendance.todayOnly')}</span>
+              </label>
+              <span className="spacer" />
+              <span className="tiny muted">{t('attendance.unrecordedNeutralHint')}</span>
+              {editable ? (
                 <button
-                  className="btn btn--primary"
-                  onClick={submit}
-                  disabled={submitting || roster.length === 0}
+                  className={cn('btn btn--sm', STATUS_BTN.present)}
+                  onClick={setAllPresent}
+                  type="button"
+                  title={t('attendance.markAllPresentTitle')}
                 >
-                  {submitting ? t('common.saving') : t('attendance.saveAttendance')}
+                  {t('attendance.markAllPresent')}
                 </button>
-              </div>
-            </>
-          )}
-        </>
-      )}
+              ) : null}
+            </div>
+
+            {roster.length === 0 ? (
+              <Card>
+                <p className="muted">{t('attendance.noStudents')}</p>
+              </Card>
+            ) : (
+              <>
+                <div className="attendance-chips">
+                  {STATUSES.map((status) => (
+                    <span key={status} className={cn('attendance-chip', `attendance-chip--${status}`)}>
+                      {statusLabel(status)}: <strong>{counts[status]}</strong>
+                    </span>
+                  ))}
+                  <span className="attendance-chip">
+                    {t('attendance.notRecorded')}: <strong>{counts.not_recorded}</strong>
+                  </span>
+                </div>
+
+                <div className="table-wrap card" style={{ padding: 0 }}>
+                  <table className="data">
+                    <thead>
+                      <tr>
+                        <th>{t('attendance.student')}</th>
+                        <th style={{ width: 340 }}>{t('attendance.statusColumn')}</th>
+                        <th>{t('attendance.note')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {roster.map((row) => (
+                        <tr key={row.student_id}>
+                          <td>
+                            <strong>{row.full_name}</strong>
+                            {row.status == null ? (
+                              <span className="tiny muted"> · {t('attendance.notRecorded')}</span>
+                            ) : null}
+                          </td>
+                          <td>
+                            <div className="wrap-gap">
+                              {STATUSES.map((status) => (
+                                <button
+                                  key={status}
+                                  type="button"
+                                  className={cn(
+                                    'btn btn--sm',
+                                    STATUS_BTN[status],
+                                    row.status === status && 'btn--status-active',
+                                  )}
+                                  disabled={!editable}
+                                  onClick={() => setStatus(row.student_id, status)}
+                                >
+                                  {statusLabel(status)}
+                                </button>
+                              ))}
+                            </div>
+                          </td>
+                          <td>
+                            <input
+                              className="input"
+                              placeholder={t('attendance.optionalNote')}
+                              value={row.note}
+                              disabled={!editable || row.status == null}
+                              onChange={(event) => {
+                                const note = event.target.value;
+                                setRoster((rows) =>
+                                  rows.map((item) =>
+                                    item.student_id === row.student_id ? { ...item, note } : item,
+                                  ),
+                                );
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {editable ? (
+                  <div className={cn('save-bar save-bar--sticky', pendingItems.length > 0 && 'save-bar--dirty')}>
+                    <span className="save-bar__status">
+                      {pendingItems.length > 0
+                        ? t('attendance.unsavedChanges')
+                        : t('attendance.noChanges')}
+                    </span>
+                    <button
+                      className="btn btn--primary"
+                      onClick={() => submit(data)}
+                      disabled={submitting || pendingItems.length === 0}
+                    >
+                      {submitting ? t('common.saving') : t('attendance.saveAttendance')}
+                    </button>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </>
+        );
+      }}
     </ResourceView>
   );
 }

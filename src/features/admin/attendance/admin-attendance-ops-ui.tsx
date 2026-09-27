@@ -273,11 +273,15 @@ export function AdminAttendanceCorrectionPanel({
   open,
   onSuccess,
   selectedDate,
+  selectedClassId,
+  selectedClassName,
   initialRecord,
 }: {
   open: boolean;
   onSuccess: () => void;
   selectedDate: string;
+  selectedClassId?: number;
+  selectedClassName?: string;
   initialRecord?: AttendanceRecord | null;
 }) {
   const t = useT();
@@ -296,6 +300,8 @@ export function AdminAttendanceCorrectionPanel({
       <AttendanceCorrectPanel
         onSuccess={onSuccess}
         selectedDate={selectedDate}
+        selectedClassId={selectedClassId}
+        selectedClassName={selectedClassName}
         initialRecord={initialRecord}
       />
     </section>

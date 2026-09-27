@@ -158,14 +158,31 @@ export function filterAttendanceOperationClasses(
 
 export function classOperationAction(
   row: AttendanceOverviewClass,
-): 'record' | 'continue' | 'review' | 'view' {
-  if (row.allowed_actions.can_record_today) {
-    if (row.operation_status === 'not_started') return 'record';
-    if (row.operation_status === 'in_progress') return 'continue';
-    return 'review';
+): 'record' | 'continue' | 'view' {
+  if (
+    row.allowed_actions.can_record_today
+    && row.operation_status === 'not_started'
+  ) {
+    return 'record';
   }
-  if (row.allowed_actions.can_correct) return 'review';
+  if (
+    row.allowed_actions.can_record_today
+    && row.operation_status === 'in_progress'
+  ) {
+    return 'continue';
+  }
   return 'view';
+}
+
+export function classShowsRegisteredState(row: AttendanceOverviewClass): boolean {
+  return row.operation_status === 'completed';
+}
+
+export function classShowsCorrectionAction(row: AttendanceOverviewClass): boolean {
+  return Boolean(
+    row.allowed_actions.can_correct
+    && row.operation_status !== 'empty',
+  );
 }
 
 export function hasAttendanceBatchConcurrencyFailure(errors: Array<{ error: string }>): boolean {
