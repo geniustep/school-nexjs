@@ -118,6 +118,15 @@ export function BellScheduleSettingsPage() {
     void load();
   }, [load]);
 
+  const refreshAudioAssets = useCallback(async () => {
+    const result = await fetchEdgeAudioAssets();
+    if (!result.success) {
+      toast.error(copy.loadError);
+      return;
+    }
+    setAssets(result.data.assets);
+  }, [copy.loadError, toast]);
+
   function updateEvent(clientKey: string, patch: Partial<BellEventDraft>) {
     setDraft((current) =>
       current
@@ -245,7 +254,7 @@ export function BellScheduleSettingsPage() {
       </div>
 
       {workspace === 'audio' ? (
-        <AudioLibraryPanel assets={assets} onChanged={load} />
+        <AudioLibraryPanel assets={assets} onChanged={refreshAudioAssets} />
       ) : (
         <>
       <div className="edge-status-grid">
