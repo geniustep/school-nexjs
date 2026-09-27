@@ -82,15 +82,17 @@ export function hydrateBellScheduleDraft(
       ? data.active_version?.valid_until.slice(0, 10) || rangeEnd
       : rangeEnd,
     events:
-      schedule?.events.map((event) => ({
-        client_key: `db-${event.id}`,
-        id: event.id,
-        weekday: event.weekday,
-        local_time: event.local_time,
-        label: event.label,
-        audio_asset_uid: event.audio_asset.asset_uid,
-        active: event.active,
-      })) ?? [],
+      schedule?.events
+        .filter((event) => event.active)
+        .map((event) => ({
+          client_key: `db-${event.id}`,
+          id: event.id,
+          weekday: event.weekday,
+          local_time: event.local_time,
+          label: event.label,
+          audio_asset_uid: event.audio_asset.asset_uid,
+          active: true,
+        })) ?? [],
   };
 }
 
