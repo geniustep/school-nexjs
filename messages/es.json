@@ -608,8 +608,27 @@
       "stepStatus": "Elegir el estado",
       "statusHelp": "Revise el estado actual y elija el estado que desea aplicar.",
       "stepSave": "Revisar y guardar",
-      "saveHelp": "Compruebe el estado y la nota antes de guardar."
-    }
+      "saveHelp": "Compruebe el estado y la nota antes de guardar.",
+      "classContext": "Clase seleccionada",
+      "selectedClassFallback": "Clase actual",
+      "classContextHint": "La búsqueda se limita a los alumnos de esta clase."
+    },
+    "sheetContinueTitle": "Continuar el registro de asistencia",
+    "sheetContinueDesc": "Has empezado la asistencia de esta clase. Completa los alumnos restantes.",
+    "sheetLockedByOtherTitle": "La asistencia de esta clase ya está registrada",
+    "sheetLockedByOtherDesc": "Otro profesor ya ha comenzado a registrar la asistencia de esta clase.",
+    "sheetOwner": "Registrado por: {name}",
+    "sheetCompletedTitle": "Asistencia de la clase registrada",
+    "sheetCompletedDesc": "El registro de esta clase está completo y ahora es de solo lectura.",
+    "sheetBlockedTitle": "Registro de asistencia no disponible",
+    "sheetBlockedCalendar": "El registro está cerrado hoy según el calendario del centro.",
+    "sheetBlockedLegacy": "Existen registros sin un responsable fiable de la hoja. Contacta con administración.",
+    "sheetBlockedDesc": "El contrato actual de asistencia no permite registrar en esta hoja.",
+    "sheetLockedByOtherToast": "Otro profesor es el responsable de esta hoja. Se ha recargado el estado más reciente.",
+    "sheetCompletedToast": "La asistencia de la clase está completa. Se ha recargado el estado más reciente.",
+    "sheetLockedToast": "La hoja de asistencia está bloqueada. Se ha recargado el estado más reciente.",
+    "unrecordedNeutralHint": "No registrado no significa presente ni ausente.",
+    "noChanges": "No hay cambios que guardar"
   },
   "auth": {
     "brand": "Raqeem",
@@ -2613,7 +2632,10 @@
       "allClasses": "Todas las clases",
       "searchWithinClasses": "Buscar entre las clases visibles…",
       "statusFilterTitle": "Estado de registro",
-      "visibleClassesCount": "Mostrando {visible} de {total} clases"
+      "visibleClassesCount": "Mostrando {visible} de {total} clases",
+      "correctAttendance": "Corregir asistencia",
+      "attendanceRegistered": "Asistencia registrada",
+      "viewAttendance": "Ver asistencia"
     },
     "attendanceList": {
       "title": "Asistencia",

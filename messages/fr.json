@@ -608,8 +608,27 @@
       "stepStatus": "Choisir l’état",
       "statusHelp": "Vérifiez l’état actuel puis choisissez l’état à appliquer.",
       "stepSave": "Vérifier et enregistrer",
-      "saveHelp": "Vérifiez l’état et la note avant d’enregistrer."
-    }
+      "saveHelp": "Vérifiez l’état et la note avant d’enregistrer.",
+      "classContext": "Classe sélectionnée",
+      "selectedClassFallback": "Classe actuelle",
+      "classContextHint": "La recherche est limitée aux élèves de cette classe."
+    },
+    "sheetContinueTitle": "Poursuivre la saisie des présences",
+    "sheetContinueDesc": "Vous avez commencé la saisie pour cette classe. Complétez les élèves restants.",
+    "sheetLockedByOtherTitle": "Présences déjà saisies pour cette classe",
+    "sheetLockedByOtherDesc": "Un autre enseignant a déjà commencé la saisie des présences de cette classe.",
+    "sheetOwner": "Saisie par : {name}",
+    "sheetCompletedTitle": "Présences de la classe enregistrées",
+    "sheetCompletedDesc": "La saisie de cette classe est terminée et reste disponible en consultation.",
+    "sheetBlockedTitle": "Saisie des présences indisponible",
+    "sheetBlockedCalendar": "La saisie est fermée aujourd’hui selon le calendrier de l’établissement.",
+    "sheetBlockedLegacy": "Des présences existent sans responsable de feuille fiable. Veuillez contacter l’administration.",
+    "sheetBlockedDesc": "Le contrat actuel de présence ne permet pas de saisir cette feuille.",
+    "sheetLockedByOtherToast": "Cette feuille appartient désormais à un autre enseignant. L’état le plus récent a été rechargé.",
+    "sheetCompletedToast": "La saisie de la classe est terminée. L’état le plus récent a été rechargé.",
+    "sheetLockedToast": "La feuille de présence est verrouillée. L’état le plus récent a été rechargé.",
+    "unrecordedNeutralHint": "Non saisi ne signifie ni présent ni absent.",
+    "noChanges": "Aucune modification à enregistrer"
   },
   "auth": {
     "brand": "Raqeem",
@@ -2613,7 +2632,10 @@
       "allClasses": "Toutes les classes",
       "searchWithinClasses": "Rechercher dans les classes affichées…",
       "statusFilterTitle": "État de saisie",
-      "visibleClassesCount": "{visible} classes affichées sur {total}"
+      "visibleClassesCount": "{visible} classes affichées sur {total}",
+      "correctAttendance": "Corriger les présences",
+      "attendanceRegistered": "Présences saisies",
+      "viewAttendance": "Consulter les présences"
     },
     "attendanceList": {
       "title": "Présences",

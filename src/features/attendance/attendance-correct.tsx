@@ -61,10 +61,14 @@ function targetFromRecord(record: AttendanceRecord): AttendanceTarget {
 export function AttendanceCorrectPanel({
   onSuccess,
   selectedDate,
+  selectedClassId,
+  selectedClassName,
   initialRecord,
 }: {
   onSuccess?: () => void;
   selectedDate?: string;
+  selectedClassId?: number;
+  selectedClassName?: string;
   initialRecord?: AttendanceRecord | null;
 }) {
   const t = useT();
@@ -131,6 +135,7 @@ export function AttendanceCorrectPanel({
   );
 
   function chooseStudent(student: StudentSearchHit) {
+    if (selectedClassId && student.class?.id !== selectedClassId) return;
     const nextTarget = targetFromStudent(student);
     setTarget(nextTarget);
     setQuery(nextTarget.name);
@@ -199,9 +204,16 @@ export function AttendanceCorrectPanel({
     );
   }
 
+  const scopedSearchResults = useMemo(
+    () => selectedClassId
+      ? search.results.filter((student) => student.class?.id === selectedClassId)
+      : search.results,
+    [search.results, selectedClassId],
+  );
+
   const showSearchResults =
     query.trim().length >= 2 &&
-    search.results.length > 0 &&
+    scopedSearchResults.length > 0 &&
     (!target || query.trim() !== target.name);
 
   return (
@@ -217,6 +229,24 @@ export function AttendanceCorrectPanel({
         ) : null}
 
         <section className="attendance-quick-step attendance-quick-step--search">
+          {selectedClassId ? (
+            <div className="attendance-selected-student">
+              <span className="attendance-selected-student__avatar" aria-hidden="true">🏫</span>
+              <div className="attendance-selected-student__body">
+                <span className="attendance-selected-student__eyebrow">
+                  {t('attendance.correctPanel.classContext')}
+                </span>
+                <strong dir="auto">
+                  {selectedClassName || t('attendance.correctPanel.selectedClassFallback')}
+                </strong>
+                <p className="tiny muted">
+                  {t('attendance.correctPanel.classContextHint')}
+                </p>
+              </div>
+              <span className="attendance-selected-student__date mono tiny" dir="ltr">{date}</span>
+            </div>
+          ) : null}
+
           <div className="attendance-quick-step__head">
             <span className="attendance-quick-step__number" aria-hidden="true">1</span>
             <div>
@@ -248,7 +278,7 @@ export function AttendanceCorrectPanel({
 
           {showSearchResults ? (
             <div className="attendance-student-search-results" role="listbox">
-              {search.results.map((student) => (
+              {scopedSearchResults.map((student) => (
                 <button
                   key={student.id}
                   type="button"
