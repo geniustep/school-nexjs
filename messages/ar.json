@@ -608,8 +608,27 @@
       "stepStatus": "اختر الحالة",
       "statusHelp": "راجع الحالة الحالية ثم اختر الحالة التي تريد اعتمادها.",
       "stepSave": "راجع واحفظ",
-      "saveHelp": "تحقق من الحالة والملاحظة قبل الحفظ."
-    }
+      "saveHelp": "تحقق من الحالة والملاحظة قبل الحفظ.",
+      "classContext": "القسم المحدد",
+      "selectedClassFallback": "القسم الحالي",
+      "classContextHint": "يعرض البحث تلاميذ هذا القسم فقط."
+    },
+    "sheetContinueTitle": "متابعة تسجيل الحضور",
+    "sheetContinueDesc": "بدأتَ تسجيل حضور هذا القسم. أكمل الحالات المتبقية.",
+    "sheetLockedByOtherTitle": "الحضور مسجل للقسم",
+    "sheetLockedByOtherDesc": "تم بدء تسجيل حضور هذا القسم بواسطة أستاذ آخر.",
+    "sheetOwner": "المسجل: {name}",
+    "sheetCompletedTitle": "تم تسجيل حضور القسم",
+    "sheetCompletedDesc": "اكتمل تسجيل حضور هذا القسم وأصبح متاحًا للعرض فقط.",
+    "sheetBlockedTitle": "تسجيل الحضور غير متاح",
+    "sheetBlockedCalendar": "التسجيل مغلق وفق تقويم المدرسة لهذا اليوم.",
+    "sheetBlockedLegacy": "توجد سجلات حضور سابقة دون مالك موثوق لورقة القسم؛ راجع الإدارة.",
+    "sheetBlockedDesc": "لا يسمح عقد الحضور الحالي بالتسجيل في هذه الورقة.",
+    "sheetLockedByOtherToast": "سُجلت ملكية ورقة الحضور لأستاذ آخر. تم تحميل أحدث حالة.",
+    "sheetCompletedToast": "اكتمل تسجيل حضور القسم. تم تحميل أحدث حالة.",
+    "sheetLockedToast": "ورقة الحضور مقفلة. تم تحميل أحدث حالة.",
+    "unrecordedNeutralHint": "غير المسجل لا يُحتسب حاضرًا ولا غائبًا.",
+    "noChanges": "لا توجد تغييرات للحفظ"
   },
   "auth": {
     "brand": "رَقِيم",
@@ -2716,7 +2735,10 @@
       "allClasses": "كل الأقسام",
       "searchWithinClasses": "ابحث داخل الأقسام الظاهرة…",
       "statusFilterTitle": "حالة التسجيل",
-      "visibleClassesCount": "إظهار {visible} من {total} قسمًا"
+      "visibleClassesCount": "إظهار {visible} من {total} قسمًا",
+      "correctAttendance": "تصحيح الحضور",
+      "attendanceRegistered": "الحضور مسجل",
+      "viewAttendance": "عرض الحضور"
     },
     "attendanceList": {
       "title": "الحضور والغياب",
