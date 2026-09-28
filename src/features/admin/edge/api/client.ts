@@ -6,6 +6,7 @@ import type {
   EdgeBellScheduleData,
   EdgeBellSchedulePutInput,
   EdgeDevicesData,
+  EdgePairingHandoffData,
 } from '@/features/admin/edge/types';
 
 async function edgeRequest<T>(url: string, init?: RequestInit): Promise<ApiResponse<T>> {
@@ -114,4 +115,12 @@ export function edgeAudioLibraryPreviewUrl(libraryUid: string): string {
 
 export function fetchEdgeDevices(): Promise<ApiResponse<EdgeDevicesData>> {
   return edgeRequest<EdgeDevicesData>('/api/admin/edge/devices');
+}
+
+
+export function createEdgePairingGrant(): Promise<ApiResponse<EdgePairingHandoffData>> {
+  return edgeRequest<EdgePairingHandoffData>('/api/admin/edge/pairing-grants', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
 }

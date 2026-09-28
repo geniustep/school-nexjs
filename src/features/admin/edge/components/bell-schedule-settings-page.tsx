@@ -5,6 +5,7 @@ import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/stat
 import { Badge, Card, InfoBanner, PageHeader, SectionHead } from '@/components/ui/primitives';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { AudioLibraryPanel } from '@/features/admin/edge/components/audio-library-panel';
+import { EdgeOnboardingPanel } from '@/features/admin/edge/components/edge-onboarding-panel';
 import { useToast } from '@/components/ui/toast';
 import { useLocale } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
@@ -34,6 +35,10 @@ import {
   toBellSchedulePutInput,
   validateBellScheduleDraft,
 } from '@/features/admin/edge/utils/bell-schedule-draft';
+import {
+  getEdgeDeviceConnectionState,
+  normalizeEdgeLastSeenUtc,
+} from '@/features/admin/edge/utils/edge-device-connection';
 import '../edge-bell-schedule.css';
 
 const WEEKDAYS: EdgeWeekday[] = ['0', '1', '2', '3', '4', '5', '6'];
@@ -82,6 +87,8 @@ export function BellScheduleSettingsPage() {
     [assets],
   );
 
+  const connectionState = useMemo(() => getEdgeDeviceConnectionState(devices), [devices]);
+
   const load = useCallback(async () => {
     setPageState({ status: 'loading' });
     const [scheduleResult, assetsResult, devicesResult] = await Promise.all([
@@ -117,6 +124,16 @@ export function BellScheduleSettingsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const refreshDevices = useCallback(async () => {
+    const result = await fetchEdgeDevices();
+    if (result.success) setDevices(result.data.devices);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => void refreshDevices(), 60_000);
+    return () => window.clearInterval(interval);
+  }, [refreshDevices]);
 
   const refreshAudioAssets = useCallback(async () => {
     const result = await fetchEdgeAudioAssets();
@@ -231,6 +248,39 @@ export function BellScheduleSettingsPage() {
   return (
     <div className="admin-workspace edge-bell-page">
       <PageHeader title={copy.title} subtitle={copy.subtitle} />
+
+      <div
+        className={`edge-connection-banner ${connectionState.connected ? 'is-connected' : 'is-disconnected'}`}
+        role="status"
+      >
+        <div className="edge-connection-copy">
+          <span className="edge-connection-dot" aria-hidden="true" />
+          <div>
+            <strong>
+              {connectionState.connected ? copy.edgeConnectedTitle : copy.edgeDisconnectedTitle}
+            </strong>
+            <p>
+              {connectionState.connected
+                ? `${connectionState.device?.hostname || connectionState.device?.name || 'Raqeem Edge'} · ${copy.agentVersion}: ${connectionState.device?.agent_version || '—'}`
+                : connectionState.reason === 'no_device'
+                  ? copy.edgeNoDeviceDesc
+                  : `${copy.edgeStaleDesc} ${
+                      connectionState.last_seen_at
+                        ? formatDateTime(
+                            normalizeEdgeLastSeenUtc(connectionState.last_seen_at) ||
+                              connectionState.last_seen_at,
+                          )
+                        : copy.neverSeen
+                    }`}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      {connectionState.reason === 'no_device' ? (
+        <EdgeOnboardingPanel devices={devices} locale={locale} onConnected={refreshDevices} />
+      ) : null}
 
       <div className="edge-workspace-tabs" role="tablist" aria-label={copy.title}>
         <button

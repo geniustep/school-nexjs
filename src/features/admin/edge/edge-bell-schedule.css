@@ -3,6 +3,64 @@
   gap: 16px;
 }
 
+.edge-connection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 17px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.edge-connection-banner.is-connected {
+  border-inline-start: 4px solid #15803d;
+}
+
+.edge-connection-banner.is-disconnected {
+  border-inline-start: 4px solid var(--c-danger);
+}
+
+.edge-connection-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.edge-connection-dot {
+  inline-size: 10px;
+  block-size: 10px;
+  flex: 0 0 auto;
+  margin-block-start: 5px;
+  border-radius: 999px;
+}
+
+.edge-connection-banner.is-connected .edge-connection-dot {
+  background: #15803d;
+}
+
+.edge-connection-banner.is-disconnected .edge-connection-dot {
+  background: var(--c-danger);
+}
+
+.edge-connection-copy strong {
+  display: block;
+  color: var(--c-text);
+  font-size: 14px;
+}
+
+.edge-connection-copy p {
+  margin: 4px 0 0;
+  color: var(--c-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+
+
 .edge-status-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -467,6 +525,14 @@
 }
 
 @media (max-width: 700px) {
+  .edge-connection-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  
+  
+  
   .edge-workspace-tabs {
     width: 100%;
   }
@@ -484,5 +550,50 @@
   .edge-audio-upload-grid,
   .edge-audio-card-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+
+.edge-onboarding {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 17px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.edge-onboarding > div {
+  min-width: 0;
+}
+
+.edge-onboarding strong {
+  display: block;
+  color: var(--c-text);
+  font-size: 14px;
+}
+
+.edge-onboarding p {
+  margin: 5px 0 0;
+  max-width: 760px;
+  color: var(--c-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.edge-onboarding .btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+  .edge-onboarding {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edge-onboarding .btn {
+    width: 100%;
   }
 }
