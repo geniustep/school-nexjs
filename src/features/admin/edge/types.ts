@@ -116,6 +116,26 @@ export interface EdgeDevicesData {
   devices: EdgeDevice[];
 }
 
+export interface EdgePairingGrantData {
+  pairing_code: string;
+  expires_at: string;
+  contract_version: string;
+}
+
+export interface EdgePairingHandoffData extends EdgePairingGrantData {
+  cloud_base_url: string;
+}
+
+export type EdgeOnboardingState =
+  | 'idle'
+  | 'creating_grant'
+  | 'contacting_agent'
+  | 'waiting_for_device'
+  | 'connected'
+  | 'agent_unreachable'
+  | 'expired'
+  | 'error';
+
 export interface EdgeBellEventPutInput {
   id: number | null;
   weekday: EdgeWeekday;

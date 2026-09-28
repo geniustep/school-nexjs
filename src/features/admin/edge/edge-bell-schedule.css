@@ -552,3 +552,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.edge-onboarding {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 17px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.edge-onboarding > div {
+  min-width: 0;
+}
+
+.edge-onboarding strong {
+  display: block;
+  color: var(--c-text);
+  font-size: 14px;
+}
+
+.edge-onboarding p {
+  margin: 5px 0 0;
+  max-width: 760px;
+  color: var(--c-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.edge-onboarding .btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+  .edge-onboarding {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edge-onboarding .btn {
+    width: 100%;
+  }
+}

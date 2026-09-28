@@ -1,17 +1,15 @@
-import { Cairo, Plus_Jakarta_Sans } from 'next/font/google';
+import '@fontsource-variable/cairo/wght.css';
+import '@fontsource-variable/plus-jakarta-sans/wght.css';
 
-export const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-latin',
-  display: 'swap',
-  fallback: ['Inter', 'Arial', 'sans-serif'],
-});
+/**
+ * Fontsource bundles the actual WOFF2 assets with the application.
+ * This keeps Raqeem's Cairo / Plus Jakarta Sans identity while avoiding
+ * build-time network requests to Google Fonts.
+ */
+export const plusJakarta = {
+  variable: 'font-latin-self-hosted',
+} as const;
 
-export const cairo = Cairo({
-  subsets: ['arabic'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-arabic',
-  display: 'swap',
-  fallback: ['Arial', 'sans-serif'],
-});
-
+export const cairo = {
+  variable: 'font-arabic-self-hosted',
+} as const;
