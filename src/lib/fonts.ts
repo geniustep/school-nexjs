@@ -1,17 +1,14 @@
-import { Cairo, Plus_Jakarta_Sans } from 'next/font/google';
+/**
+ * Build-safe font class tokens.
+ *
+ * Do not use next/font/google here: production builds must not depend on
+ * outbound access to Google Fonts. The global stylesheet owns the resilient
+ * local/system font stacks for RTL and LTR documents.
+ */
+export const plusJakarta = {
+  variable: 'font-latin-system',
+} as const;
 
-export const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-latin',
-  display: 'swap',
-  fallback: ['Inter', 'Arial', 'sans-serif'],
-});
-
-export const cairo = Cairo({
-  subsets: ['arabic'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-arabic',
-  display: 'swap',
-  fallback: ['Arial', 'sans-serif'],
-});
-
+export const cairo = {
+  variable: 'font-arabic-system',
+} as const;
