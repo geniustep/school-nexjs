@@ -17,6 +17,7 @@ import {
   formatStaffTemplateRequiredField,
   groupStaffTemplatesByMainPosition,
   normalizeStaffTemplateRequiredFieldKey,
+  normalizeStaffPersonCandidateText,
   normalizeStaffCreationTemplate,
   normalizeStaffCreationTemplates,
   normalizeStaffTemplateBundleSelection,
@@ -61,6 +62,15 @@ import type { StaffCreationTemplate, StaffSmartCreateFormState, StaffTemplatePre
 const t = (key: string) => key;
 
 describe('staff-template-utils', () => {
+  it('normalizes Odoo false contact values before staff form state', () => {
+    expect(normalizeStaffPersonCandidateText(false)).toBe('');
+    expect(normalizeStaffPersonCandidateText(null)).toBe('');
+    expect(normalizeStaffPersonCandidateText(undefined)).toBe('');
+    expect(normalizeStaffPersonCandidateText('guardian@example.com')).toBe(
+      'guardian@example.com',
+    );
+  });
+
   it('normalizes templates from array or envelope', () => {
     const raw = [
       {

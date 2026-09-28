@@ -33,15 +33,27 @@ export function StaffExistingPersonPicker({
     }
 
     const controller = new AbortController();
+    setLoading(false);
     const timer = window.setTimeout(async () => {
       setLoading(true);
-      const result = await api.get<StaffPersonCandidate[]>(
-        endpoints.admin.staffPersonCandidates,
-        { search: query.trim(), limit: 20, active_school_id: activeSchoolId },
-        { signal: controller.signal },
-      );
-      if (!controller.signal.aborted) {
-        setRows(result.success ? result.data ?? [] : []);
+      try {
+        const result = await api.get<StaffPersonCandidate[]>(
+          endpoints.admin.staffPersonCandidates,
+          { search: query.trim(), limit: 20, active_school_id: activeSchoolId },
+          { signal: controller.signal },
+        );
+        if (!controller.signal.aborted) {
+          setRows(result.success ? result.data ?? [] : []);
+          setLoading(false);
+        }
+      } catch (error) {
+        if (
+          controller.signal.aborted ||
+          (error instanceof Error && error.name === 'AbortError')
+        ) {
+          return;
+        }
+        setRows([]);
         setLoading(false);
       }
     }, 250);
@@ -114,7 +126,12 @@ export function StaffExistingPersonPicker({
                     <span className="staff-existing-person__result-main">
                       <strong>{person.name}</strong>
                       <span className="muted">
-                        {[person.phone, person.email].filter(Boolean).join(' · ') || t('common.dash')}
+                        {[person.phone, person.email]
+                          .filter(
+                            (value): value is string =>
+                              typeof value === 'string' && Boolean(value.trim()),
+                          )
+                          .join(' · ') || t('common.dash')}
                       </span>
                     </span>
                     <span className="staff-existing-person__result-meta">
