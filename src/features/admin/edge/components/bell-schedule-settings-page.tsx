@@ -5,6 +5,7 @@ import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/stat
 import { Badge, Card, InfoBanner, PageHeader, SectionHead } from '@/components/ui/primitives';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { AudioLibraryPanel } from '@/features/admin/edge/components/audio-library-panel';
+import { EdgeOnboardingPanel } from '@/features/admin/edge/components/edge-onboarding-panel';
 import { useToast } from '@/components/ui/toast';
 import { useLocale } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
@@ -276,6 +277,10 @@ export function BellScheduleSettingsPage() {
         </div>
 
       </div>
+
+      {connectionState.reason === 'no_device' ? (
+        <EdgeOnboardingPanel devices={devices} locale={locale} onConnected={refreshDevices} />
+      ) : null}
 
       <div className="edge-workspace-tabs" role="tablist" aria-label={copy.title}>
         <button

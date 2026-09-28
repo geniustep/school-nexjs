@@ -39,6 +39,7 @@ export const endpoints = {
     edgeAudioLibraryContent: (libraryUid: string) =>
       `/admin/edge/audio-library/${encodeURIComponent(libraryUid)}/content`,
     edgeDevices: '/admin/edge/devices',
+    edgePairingGrants: '/admin/edge/pairing-grants',
     adminRequests: '/admin/admin-requests',
     adminRequest: (id: number | string) => `/admin/admin-requests/${id}`,
     adminRequestAction: (id: number | string, action: string) =>
