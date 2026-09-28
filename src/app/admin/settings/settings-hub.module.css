@@ -178,6 +178,11 @@
   color: #c2410c;
 }
 
+.quickIconEdge {
+  background: var(--c-surface-2);
+  color: var(--raqeem-primary);
+}
+
 .quickCopy {
   display: grid;
   align-content: start;

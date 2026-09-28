@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/toast';
 import { canViewAcademicSetup } from '@/lib/permissions/academic-setup';
 import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
 import { canViewAdminRequestTypeSettings } from '@/lib/permissions/admin-request-types-settings';
+import { canManageEdgeSettings } from '@/features/admin/edge/permissions/edge-settings';
 import { hasPermission } from '@/lib/permissions/permissions';
 import {
   fetchFinanceReceiptSettings,
@@ -36,6 +37,8 @@ const COPY = {
     brandingDesc: 'الاسم، الشعار، الألوان ومعلومات المؤسسة الظاهرة في الواجهات والمستندات.',
     requestTypesTitle: 'أنواع الطلبات الإدارية',
     requestTypesDesc: 'إدارة أنواع الطلبات المتاحة للأسرة ومسارها الافتراضي داخل المؤسسة.',
+    bellTitle: 'الجرس المدرسي',
+    bellDesc: 'اضبط أوقات الجرس والأصوات التي سيشغّلها Raqeem Edge تلقائيًا داخل المؤسسة.',
     open: 'فتح الإعدادات',
     documentsTitle: 'الطباعة والمستندات',
     documentsDesc: 'اضبط السلوك الافتراضي للمستندات التي تُطبع من رقيم.',
@@ -68,6 +71,8 @@ const COPY = {
     brandingDesc: 'Nom, logo, couleurs et informations affichées dans les interfaces et documents.',
     requestTypesTitle: 'Types de demandes administratives',
     requestTypesDesc: 'Gérez les demandes disponibles pour les familles et leur circuit par défaut.',
+    bellTitle: 'Sonnerie scolaire',
+    bellDesc: 'Configurez les horaires et les sons que Raqeem Edge exécutera automatiquement dans l’établissement.',
     open: 'Ouvrir les paramètres',
     documentsTitle: 'Impression et documents',
     documentsDesc: 'Définissez le comportement par défaut des documents imprimés depuis Raqeem.',
@@ -99,6 +104,7 @@ export default function AdminSettingsPage() {
   const showAcademic = canViewAcademicSetup(user);
   const showBranding = canViewSchoolBrandingSettings(user);
   const showAdminRequestTypes = canViewAdminRequestTypeSettings(user);
+  const showEdge = canManageEdgeSettings(user);
   const canManageReceiptSettings = hasPermission(user, 'finance.manage_settings');
 
   const [settings, setSettings] = useState<FinanceReceiptSettings | null>(null);
@@ -203,6 +209,19 @@ export default function AdminSettingsPage() {
               <span className={styles.quickCopy}>
                 <strong>{copy.requestTypesTitle}</strong>
                 <span>{copy.requestTypesDesc}</span>
+              </span>
+              <span className={styles.quickAction}>{copy.open} →</span>
+            </Link>
+          ) : null}
+
+          {showEdge ? (
+            <Link href="/admin/settings/bell-schedule" className={styles.quickCard}>
+              <span className={`${styles.quickIcon} ${styles.quickIconEdge}`} aria-hidden="true">
+                🔔
+              </span>
+              <span className={styles.quickCopy}>
+                <strong>{copy.bellTitle}</strong>
+                <span>{copy.bellDesc}</span>
               </span>
               <span className={styles.quickAction}>{copy.open} →</span>
             </Link>
