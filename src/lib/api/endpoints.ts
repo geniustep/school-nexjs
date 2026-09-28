@@ -199,6 +199,8 @@ export const endpoints = {
 
     /** Hierarchical academic filter options — GET only. */
     academicContextOptions: '/admin/academic-context/options',
+    /** Working Week — school/year-scoped GET + atomic PUT. */
+    timetableWorkingWeek: '/admin/timetable/working-week',
     academicYearTerms: (academicYearId: number | string) =>
       `/admin/academic-years/${academicYearId}/terms`,
     academicYearTermsInitialize: (academicYearId: number | string) =>
