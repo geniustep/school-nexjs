@@ -78,11 +78,11 @@ html {
 }
 
 html[dir='rtl'] body {
-  font-family: Cairo, 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-family: 'Cairo Variable', Cairo, 'Segoe UI', Tahoma, Arial, sans-serif;
 }
 
 html[dir='ltr'] body {
-  font-family: 'Plus Jakarta Sans', Inter, 'Segoe UI', Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', Inter, 'Segoe UI', Arial, sans-serif;
 }
 
 body {
