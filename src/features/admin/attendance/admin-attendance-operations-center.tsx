@@ -42,7 +42,6 @@ import {
   hasAttendanceBatchConcurrencyFailure,
   isAttendanceRosterRowDirty,
   levelsForAttendanceCycle,
-  markUnrecordedPresent,
   type AttendanceClassFilter,
   type AttendanceClassIdFilter,
   type AttendanceCycleFilter,
@@ -300,10 +299,18 @@ function ClassWorkspace({
 
   useEffect(() => {
     if (state.data) {
-      setRows(buildAttendanceRosterDraft(state.data));
+      const defaultsToPresent = (
+        mode === 'record'
+        && state.data.recording_allowed
+        && state.data.allowed_actions.can_record_today
+      );
+      setRows(buildAttendanceRosterDraft(
+        state.data,
+        defaultsToPresent ? 'present' : null,
+      ));
       setConflict(false);
     }
-  }, [state.data]);
+  }, [state.data, mode]);
 
   useEffect(() => {
     setShowCorrection(mode === 'correct');
@@ -416,9 +423,6 @@ function ClassWorkspace({
               {writable && details.summary.unrecorded_students > 0 ? (
                 <div className="attendance-center-roster-toolbar">
                   <span>{t('admin.attendanceCenter.unrecordedHint', { count: details.summary.unrecorded_students })}</span>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => setRows((current) => markUnrecordedPresent(current))}>
-                    {t('admin.attendanceCenter.markUnrecordedPresent')}
-                  </button>
                 </div>
               ) : null}
 
