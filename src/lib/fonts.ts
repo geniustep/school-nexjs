@@ -1,14 +1,15 @@
+import '@fontsource-variable/cairo/wght.css';
+import '@fontsource-variable/plus-jakarta-sans/wght.css';
+
 /**
- * Build-safe font class tokens.
- *
- * Do not use next/font/google here: production builds must not depend on
- * outbound access to Google Fonts. The global stylesheet owns the resilient
- * local/system font stacks for RTL and LTR documents.
+ * Fontsource bundles the actual WOFF2 assets with the application.
+ * This keeps Raqeem's Cairo / Plus Jakarta Sans identity while avoiding
+ * build-time network requests to Google Fonts.
  */
 export const plusJakarta = {
-  variable: 'font-latin-system',
+  variable: 'font-latin-self-hosted',
 } as const;
 
 export const cairo = {
-  variable: 'font-arabic-system',
+  variable: 'font-arabic-self-hosted',
 } as const;
