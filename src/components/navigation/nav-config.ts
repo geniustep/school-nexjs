@@ -12,6 +12,7 @@ import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { shouldUsePedagogicalNav } from '@/lib/admin/pedagogical-dashboard';
 import { canViewTeachingPlanning } from '@/lib/permissions/teaching-planning';
 import { canReviewCommunication } from '@/lib/permissions/communication';
+import { canManageEdgeSettings } from '@/features/admin/edge/permissions/edge-settings';
 
 export interface NavItem {
   labelKey: string;
@@ -307,8 +308,8 @@ function adminNav(user: CurrentUser): NavSection[] {
     });
   }
 
-  if (canViewSettings(user) || canViewSchoolBrandingSettings(user)) {
-    if (!pedagogicalNav || canViewSettings(user)) {
+  if (canViewSettings(user) || canViewSchoolBrandingSettings(user) || canManageEdgeSettings(user)) {
+    if (!pedagogicalNav || canViewSettings(user) || canManageEdgeSettings(user)) {
       pushSection(sections, {
         groupId: 'system',
         icon: '🛠️',
