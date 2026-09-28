@@ -56,7 +56,10 @@ export function AttendanceBatch({ classId }: { classId: number }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (state.data) setRoster(buildTeacherAttendanceRoster(state.data));
+    if (!state.data) return;
+    const mode = teacherAttendanceSheetUiMode(state.data);
+    const editable = mode === 'record' || mode === 'continue';
+    setRoster(buildTeacherAttendanceRoster(state.data, editable ? 'present' : null));
   }, [state.data]);
 
   const counts = useMemo(() => countTeacherAttendanceRoster(roster), [roster]);
@@ -194,7 +197,11 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 <span className="tiny muted">{t('attendance.todayOnly')}</span>
               </label>
               <span className="spacer" />
-              <span className="tiny muted">{t('attendance.unrecordedNeutralHint')}</span>
+              <span className="tiny muted">
+                {editable
+                  ? t('attendance.markAllPresentTitle')
+                  : t('attendance.unrecordedNeutralHint')}
+              </span>
               {editable ? (
                 <button
                   className={cn('btn btn--sm', STATUS_BTN.present)}

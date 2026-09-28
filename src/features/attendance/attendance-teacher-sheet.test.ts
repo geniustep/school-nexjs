@@ -50,18 +50,27 @@ function today(overrides: Partial<AttendanceToday> = {}): AttendanceToday {
 }
 
 describe('teacher attendance sheet 381 frontend contract', () => {
-  it('keeps not-recorded students neutral and emits no writes on load', () => {
+  it('defaults unrecorded students to present in an editable recording roster', () => {
+    const rows = buildTeacherAttendanceRoster(today(), 'present');
+    expect(rows.map((row) => row.status)).toEqual(['present', 'present']);
+    expect(countTeacherAttendanceRoster(rows)).toMatchObject({
+      present: 2,
+      absent: 0,
+      not_recorded: 0,
+    });
+    expect(buildTeacherAttendanceBatchItems(rows)).toEqual([
+      { student_id: 1, status: 'present', expected_missing: true },
+      { student_id: 2, status: 'present', expected_missing: true },
+    ]);
+  });
+
+  it('keeps unrecorded students neutral when the screen is not editable', () => {
     const rows = buildTeacherAttendanceRoster(today());
     expect(rows.map((row) => row.status)).toEqual([null, null]);
-    expect(countTeacherAttendanceRoster(rows)).toMatchObject({
-      present: 0,
-      absent: 0,
-      not_recorded: 2,
-    });
     expect(buildTeacherAttendanceBatchItems(rows)).toEqual([]);
   });
 
-  it('marks present only after an explicit bulk user action', () => {
+  it('still supports explicitly marking a neutral roster present', () => {
     const rows = markTeacherAttendanceAllPresent(buildTeacherAttendanceRoster(today()));
     expect(countTeacherAttendanceRoster(rows)).toMatchObject({
       present: 2,

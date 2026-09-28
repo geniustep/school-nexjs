@@ -127,6 +127,7 @@ function normalizedNote(value: string | null | undefined): string {
 
 export function buildAttendanceRosterDraft(
   details: AttendanceClassDetails,
+  defaultUnrecordedStatus: AttendanceStatus | null = null,
 ): AttendanceRosterDraftRow[] {
   const rows: AttendanceRosterDraftRow[] = [];
   const seen = new Set<number>();
@@ -156,7 +157,7 @@ export function buildAttendanceRosterDraft(
       studentId: student.id,
       name: getStudentDisplayName(student),
       baselineStatus: null,
-      status: null,
+      status: defaultUnrecordedStatus,
       baselineNote: '',
       note: '',
       expectedMissing: true,
