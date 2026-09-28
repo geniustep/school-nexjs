@@ -31,6 +31,7 @@ function normalizedNote(value: string | null | undefined): string {
 
 export function buildTeacherAttendanceRoster(
   today: AttendanceToday,
+  defaultUnrecordedStatus: AttendanceStatus | null = null,
 ): TeacherAttendanceRosterRow[] {
   const rows: TeacherAttendanceRosterRow[] = [];
   const seen = new Set<number>();
@@ -58,7 +59,7 @@ export function buildTeacherAttendanceRoster(
       student_id: student.id,
       full_name: getStudentDisplayName(student),
       baseline_status: null,
-      status: null,
+      status: defaultUnrecordedStatus,
       baseline_note: '',
       note: '',
       expected_missing: true,
