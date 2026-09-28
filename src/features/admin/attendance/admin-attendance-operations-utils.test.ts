@@ -109,7 +109,17 @@ function classRow(overrides: Partial<AttendanceOverviewClass> = {}): AttendanceO
 }
 
 describe('attendance operations center utilities', () => {
-  it('keeps not-recorded students neutral instead of treating them as absent or present', () => {
+  it('defaults unrecorded students to present for an editable admin recording roster', () => {
+    const roster = buildAttendanceRosterDraft(details(), 'present');
+    const missing = roster.find((row) => row.studentId === 102);
+    expect(missing?.baselineStatus).toBeNull();
+    expect(missing?.status).toBe('present');
+    expect(buildAttendanceClassBatchItems(roster)).toEqual([
+      { student_id: 102, status: 'present', expected_missing: true },
+    ]);
+  });
+
+  it('keeps unrecorded students neutral for read-only or correction views', () => {
     const roster = buildAttendanceRosterDraft(details());
     const missing = roster.find((row) => row.studentId === 102);
     expect(missing?.baselineStatus).toBeNull();
@@ -117,7 +127,7 @@ describe('attendance operations center utilities', () => {
     expect(buildAttendanceClassBatchItems(roster)).toEqual([]);
   });
 
-  it('adds expected_missing only after an explicit status choice for an unrecorded student', () => {
+  it('still adds expected_missing after an explicit status choice from a neutral roster', () => {
     const roster = markUnrecordedPresent(buildAttendanceRosterDraft(details()));
     expect(buildAttendanceClassBatchItems(roster)).toEqual([
       { student_id: 102, status: 'present', expected_missing: true },
