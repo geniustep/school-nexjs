@@ -11,6 +11,7 @@ import {
 } from '@/features/admin/edge/utils/edge-onboarding';
 
 const LOCAL_AGENT_ENROLL_URL = 'http://127.0.0.1:8787/api/onboarding/enroll';
+const EDGE_AGENT_DOWNLOAD_URL = 'https://download.raqeem.ma/edge/latest/RaqeemEdgeSetup-x64.exe';
 
 function handoffId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -128,7 +129,11 @@ export function EdgeOnboardingPanel({
                       : 'نفّذ هذه الخطوة من حاسوب Windows الذي سيشغّل الجرس.'}
         </p>
       </div>
-      <button type="button" className="btn btn--primary" disabled={busy || state === 'connected'} onClick={() => void start()}>
+      <div className="edge-onboarding-actions">
+        <a className="btn btn--ghost" href={EDGE_AGENT_DOWNLOAD_URL}>
+          {fr ? 'Télécharger Raqeem Edge pour Windows' : 'تحميل Raqeem Edge لـ Windows'}
+        </a>
+        <button type="button" className="btn btn--primary" disabled={busy || state === 'connected'} onClick={() => void start()}>
         {busy
           ? fr
             ? 'Connexion…'
@@ -138,7 +143,8 @@ export function EdgeOnboardingPanel({
               ? 'Connecté'
               : 'متصل'
             : label}
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
