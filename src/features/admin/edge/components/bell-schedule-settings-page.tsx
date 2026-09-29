@@ -290,9 +290,7 @@ export function BellScheduleSettingsPage() {
         </div>
       </div>
 
-      {connectionState.reason === 'no_device' ? (
-        <EdgeOnboardingPanel devices={devices} locale={locale} onConnected={refreshDevices} />
-      ) : null}
+      <EdgeOnboardingPanel devices={devices} locale={locale} onConnected={refreshDevices} />
 
       <div className="edge-workspace-tabs" role="tablist" aria-label={copy.title}>
         <button
