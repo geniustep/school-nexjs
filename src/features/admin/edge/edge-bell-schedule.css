@@ -58,6 +58,20 @@
   line-height: 1.5;
 }
 
+.edge-connection-actions {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  flex: 0 0 auto;
+  max-width: 360px;
+  text-align: end;
+}
+
+.edge-connection-actions .muted {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 
 
 
@@ -528,6 +542,16 @@
   .edge-connection-banner {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .edge-connection-actions {
+    justify-items: stretch;
+    max-width: none;
+    text-align: start;
+  }
+
+  .edge-connection-actions .btn {
+    width: 100%;
   }
 
   
