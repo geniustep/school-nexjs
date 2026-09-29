@@ -42,6 +42,7 @@ import {
 import '../edge-bell-schedule.css';
 
 const WEEKDAYS: EdgeWeekday[] = ['0', '1', '2', '3', '4', '5', '6'];
+const EDGE_AGENT_DOWNLOAD_URL = 'https://download.raqeem.ma/edge/latest/RaqeemEdgeSetup-x64.exe';
 
 function isoToday(): string {
   const now = new Date();
@@ -275,7 +276,18 @@ export function BellScheduleSettingsPage() {
             </p>
           </div>
         </div>
-
+        <div className="edge-connection-actions">
+          <span className="muted">
+            {locale === 'fr'
+              ? 'Cet état concerne l’appareil lié à l’établissement, pas nécessairement cet ordinateur.'
+              : 'هذه حالة جهاز المدرسة المرتبط، وليست بالضرورة حالة هذا الحاسوب.'}
+          </span>
+          <a className="btn btn--ghost" href={EDGE_AGENT_DOWNLOAD_URL}>
+            {locale === 'fr'
+              ? 'Installer Raqeem Edge sur cet ordinateur'
+              : 'تثبيت Raqeem Edge على هذا الحاسوب'}
+          </a>
+        </div>
       </div>
 
       {connectionState.reason === 'no_device' ? (
