@@ -2570,6 +2570,7 @@
       "recordingCompletion": "Progreso del registro",
       "recordedOfExpected": "{recorded} de {expected} registrados",
       "lastActivity": "Última actividad",
+    "recordedBy": "Asistencia registrada por",
       "noActivity": "Sin actividad registrada",
       "correctRecord": "Corregir registro",
       "classWorkspace": "Asistencia de la clase",
