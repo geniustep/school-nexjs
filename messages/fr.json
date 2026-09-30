@@ -2570,7 +2570,7 @@
       "recordingCompletion": "Avancement de la saisie",
       "recordedOfExpected": "{recorded} sur {expected} enregistrés",
       "lastActivity": "Dernière activité",
-      "recordedBy": "Présence enregistrée par",
+    "recordedBy": "Présence enregistrée par",
       "noActivity": "Aucune activité enregistrée",
       "correctRecord": "Corriger l’enregistrement",
       "classWorkspace": "Présence de la classe",
