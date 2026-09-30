@@ -120,6 +120,8 @@ function ClassCard({
   onOpen: (classId: number, mode: ClassWorkspaceMode) => void;
 }) {
   const t = useT();
+  const recordedBy = row.last_recorded_by?.name ?? null;
+  const recordedAt = row.last_recorded_at;
   const lastActor = row.last_modified_by?.name ?? row.last_recorded_by?.name ?? null;
   const lastAt = row.last_modified_at ?? row.last_recorded_at;
 
@@ -154,15 +156,28 @@ function ClassCard({
 
       <div className="attendance-center-class-card__footer">
         <div className="attendance-center-class-card__activity">
-          <span>{t('admin.attendanceCenter.lastActivity')}</span>
-          {lastActor || lastAt ? (
-            <small>
-              {lastActor ? <span dir="auto">{lastActor}</span> : null}
-              {lastActor && lastAt ? ' · ' : null}
-              {lastAt ? <span dir="ltr">{formatDateTime(lastAt)}</span> : null}
-            </small>
+          {recordedBy || recordedAt ? (
+            <>
+              <span>{t('admin.attendanceCenter.recordedBy')}</span>
+              <small>
+                {recordedBy ? <strong dir="auto">{recordedBy}</strong> : null}
+                {recordedBy && recordedAt ? ' · ' : null}
+                {recordedAt ? <span dir="ltr">{formatDateTime(recordedAt)}</span> : null}
+              </small>
+            </>
           ) : (
-            <small>{t('admin.attendanceCenter.noActivity')}</small>
+            <>
+              <span>{t('admin.attendanceCenter.lastActivity')}</span>
+              {lastActor || lastAt ? (
+                <small>
+                  {lastActor ? <span dir="auto">{lastActor}</span> : null}
+                  {lastActor && lastAt ? ' · ' : null}
+                  {lastAt ? <span dir="ltr">{formatDateTime(lastAt)}</span> : null}
+                </small>
+              ) : (
+                <small>{t('admin.attendanceCenter.noActivity')}</small>
+              )}
+            </>
           )}
         </div>
         <div className="attendance-center-class-card__actions">
