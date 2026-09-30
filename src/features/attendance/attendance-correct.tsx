@@ -74,6 +74,7 @@ export function AttendanceCorrectPanel({
   const t = useT();
   const toast = useToast();
   const date = selectedDate || isoDate();
+  const directCorrection = initialRecord != null;
 
   const [query, setQuery] = useState('');
   const [target, setTarget] = useState<AttendanceTarget | null>(null);
@@ -250,52 +251,62 @@ export function AttendanceCorrectPanel({
           <div className="attendance-quick-step__head">
             <span className="attendance-quick-step__number" aria-hidden="true">1</span>
             <div>
-              <h3 className="attendance-quick-step__title">{t('attendance.correctPanel.stepSearch')}</h3>
-              <p className="attendance-quick-step__hint">{t('attendance.correctPanel.searchHelp')}</p>
+              <h3 className="attendance-quick-step__title">
+                {directCorrection ? t('attendance.correctPanel.selectedStudent') : t('attendance.correctPanel.stepSearch')}
+              </h3>
+              <p className="attendance-quick-step__hint">
+                {directCorrection ? t('attendance.correctPanel.statusHelp') : t('attendance.correctPanel.searchHelp')}
+              </p>
             </div>
           </div>
 
-          <label className="attendance-quick-ops__search">
-            <div className="attendance-search-box">
-              <span className="attendance-search-box__icon" aria-hidden="true">⌕</span>
-              <input
-                className="input attendance-search-box__input"
-                value={query}
-                onChange={(event) => changeQuery(event.target.value)}
-                placeholder={t('attendance.correctPanel.studentSearchPlaceholder')}
-                aria-label={t('attendance.correctPanel.studentSearchLabel')}
-                autoComplete="off"
-              />
-            </div>
-          </label>
-
-          {search.loading ? (
-            <p className="tiny muted">{t('attendance.correctPanel.searchingStudents')}</p>
-          ) : null}
-          {search.error ? (
-            <p className="form-error">{t('attendance.correctPanel.studentSearchFailed')}</p>
-          ) : null}
-
-          {showSearchResults ? (
-            <div className="attendance-student-search-results" role="listbox">
-              {scopedSearchResults.map((student) => (
-                <button
-                  key={student.id}
-                  type="button"
-                  className="attendance-student-search-result"
-                  onClick={() => chooseStudent(student)}
-                >
-                  <span className="attendance-student-search-result__avatar" aria-hidden="true">👤</span>
-                  <span className="attendance-student-search-result__body">
-                    <strong dir="auto">{getStudentDisplayName(student)}</strong>
-                    <span className="tiny muted" dir="auto">
-                      {[student.class?.name, student.level?.name].filter(Boolean).join(' · ') || t('common.dash')}
-                    </span>
-                  </span>
-                  <span className="attendance-student-search-result__arrow" aria-hidden="true">›</span>
-                </button>
-              ))}
-            </div>
+          {!directCorrection ? (
+            <>
+                        <label className="attendance-quick-ops__search">
+                          <div className="attendance-search-box">
+                            <span className="attendance-search-box__icon" aria-hidden="true">⌕</span>
+                            <input
+                              className="input attendance-search-box__input"
+                              value={query}
+                              onChange={(event) => changeQuery(event.target.value)}
+                              placeholder={t('attendance.correctPanel.studentSearchPlaceholder')}
+                              aria-label={t('attendance.correctPanel.studentSearchLabel')}
+                              autoComplete="off"
+                            />
+                          </div>
+                        </label>
+              
+                        {search.loading ? (
+                          <p className="tiny muted">{t('attendance.correctPanel.searchingStudents')}</p>
+                        ) : null}
+                        {search.error ? (
+                          <p className="form-error">{t('attendance.correctPanel.studentSearchFailed')}</p>
+                        ) : null}
+              
+                        {showSearchResults ? (
+                          <div className="attendance-student-search-results" role="listbox">
+                            {scopedSearchResults.map((student) => (
+                              <button
+                                key={student.id}
+                                type="button"
+                                className="attendance-student-search-result"
+                                onClick={() => chooseStudent(student)}
+                              >
+                                <span className="attendance-student-search-result__avatar" aria-hidden="true">👤</span>
+                                <span className="attendance-student-search-result__body">
+                                  <strong dir="auto">{getStudentDisplayName(student)}</strong>
+                                  <span className="tiny muted" dir="auto">
+                                    {[student.class?.name, student.level?.name].filter(Boolean).join(' · ') || t('common.dash')}
+                                  </span>
+                                </span>
+                                <span className="attendance-student-search-result__arrow" aria-hidden="true">›</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+              
+              
+            </>
           ) : null}
 
           {target ? (
