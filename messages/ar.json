@@ -2673,7 +2673,7 @@
       "recordingCompletion": "اكتمال التسجيل",
       "recordedOfExpected": "{recorded} من {expected} مسجّل",
       "lastActivity": "آخر نشاط",
-      "recordedBy": "سجّل الحضور",
+    "recordedBy": "سجّل الحضور",
       "noActivity": "لا يوجد نشاط مسجل",
       "correctRecord": "تصحيح السجل",
       "classWorkspace": "حضور القسم",
