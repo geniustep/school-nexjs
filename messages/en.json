@@ -2570,7 +2570,7 @@
       "recordingCompletion": "Recording completion",
       "recordedOfExpected": "{recorded} of {expected} recorded",
       "lastActivity": "Last activity",
-      "recordedBy": "Attendance recorded by",
+    "recordedBy": "Attendance recorded by",
       "noActivity": "No recorded activity",
       "correctRecord": "Correct record",
       "classWorkspace": "Class attendance",
