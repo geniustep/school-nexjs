@@ -37,11 +37,6 @@ export function buildFinanceServiceFormPayload(
   }
   return {
     ...base,
-    category: values.category || undefined,
-    allocation_priority_level: values.priorityLevel,
     active: values.active,
-    code: values.code.trim() || undefined,
-    description: values.description.trim() || undefined,
-    selectable_in_admissions: Boolean(values.selectableInAdmissions),
   };
 }
