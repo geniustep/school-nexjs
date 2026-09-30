@@ -68,6 +68,12 @@ export interface EnrollmentPlanLine {
   line_id: number;
   fee_type_id?: number | null;
   fee_type_name: string;
+  fee_type_name_ar?: string | null;
+  fee_type_name_fr?: string | null;
+  fee_type_code?: string | null;
+  fee_type_category?: string | null;
+  is_refundable?: boolean;
+  is_free?: boolean;
   frequency?: string | null;
   base_amount?: number | null;
   amount?: number | null;
