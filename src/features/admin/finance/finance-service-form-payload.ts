@@ -1,5 +1,7 @@
 export type FinanceServiceFormValues = {
-  name: string;
+  nameAr: string;
+  nameFr: string;
+  paymentNature: 'free' | 'paid' | '';
   category: string;
   priorityLevel: string;
   active: boolean;
@@ -9,21 +11,32 @@ export type FinanceServiceFormValues = {
 };
 
 /**
- * Create payload — full visible service fields.
- * Update payload — Runtime write surface currently accepts only
- * `selectable_in_admissions` (other keys return unsupported-field 422).
+ * Create/update payload for the canonical service catalog.
+ * Pricing remains authoritative on fee-plan lines; paymentNature is
+ * catalog classification only.
  */
 export function buildFinanceServiceFormPayload(
   values: FinanceServiceFormValues,
   mode: 'create' | 'update' = 'create',
 ): Record<string, unknown> {
+  const nameAr = values.nameAr.trim();
+  const nameFr = values.nameFr.trim();
+  const base = {
+    name: nameAr,
+    name_ar: nameAr,
+    name_fr: nameFr || null,
+    payment_nature: values.paymentNature || null,
+    category: values.category || undefined,
+    allocation_priority_level: values.priorityLevel,
+    code: values.code.trim() || undefined,
+    description: values.description.trim() || null,
+    selectable_in_admissions: Boolean(values.selectableInAdmissions),
+  };
   if (mode === 'update') {
-    return {
-      selectable_in_admissions: Boolean(values.selectableInAdmissions),
-    };
+    return base;
   }
   return {
-    name: values.name.trim(),
+    ...base,
     category: values.category || undefined,
     allocation_priority_level: values.priorityLevel,
     active: values.active,
