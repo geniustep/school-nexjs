@@ -37,6 +37,12 @@ function readOptionalLine(value: unknown): EnrollmentPlanLine | null {
     line_id: lineId,
     fee_type_id: asNumber(record.fee_type_id),
     fee_type_name: feeTypeName,
+    fee_type_name_ar: asString(record.fee_type_name_ar),
+    fee_type_name_fr: asString(record.fee_type_name_fr),
+    fee_type_code: asString(record.fee_type_code),
+    fee_type_category: asString(record.fee_type_category),
+    is_refundable: asBoolean(record.is_refundable),
+    is_free: asBoolean(record.is_free),
     frequency: asString(record.frequency),
     base_amount: asNumber(record.base_amount),
     amount: asNumber(record.amount),
@@ -72,4 +78,19 @@ export function readFullRegistrationOptionalLines(payload: unknown): EnrollmentP
       (line): line is EnrollmentPlanLine =>
         line != null && line.is_optional === true && line.fee_type_id != null,
     );
+}
+
+
+export function localizedEnrollmentServiceName(
+  line: EnrollmentPlanLine,
+  locale: string,
+): string {
+  const fallback = line.fee_type_name || line.fee_type_code || '';
+  if (locale === 'ar') {
+    return line.fee_type_name_ar?.trim() || fallback;
+  }
+  if (locale === 'fr') {
+    return line.fee_type_name_fr?.trim() || fallback;
+  }
+  return fallback;
 }
