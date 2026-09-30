@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils/cn';
 import { formatDateTime } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { AcademicContextOptionsResponse } from '@/types/academic-context';
-import type { AttendanceStatus } from '@/types/attendance';
+import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 import type {
   AttendanceClassBatchResult,
   AttendanceClassDetails,
@@ -278,12 +278,14 @@ function ClassWorkspace({
   classId,
   date,
   mode,
+  initialCorrectionRecord,
   onClose,
   onReloadOverview,
 }: {
   classId: number;
   date: string;
   mode: ClassWorkspaceMode;
+  initialCorrectionRecord?: AttendanceRecord | null;
   onClose: () => void;
   onReloadOverview: () => void;
 }) {
@@ -314,8 +316,8 @@ function ClassWorkspace({
 
   useEffect(() => {
     setShowCorrection(mode === 'correct');
-    setCorrectionRecord(null);
-  }, [mode, classId, date]);
+    setCorrectionRecord(mode === 'correct' ? initialCorrectionRecord ?? null : null);
+  }, [mode, classId, date, initialCorrectionRecord]);
 
   const dirtyItems = useMemo(() => buildAttendanceClassBatchItems(rows), [rows]);
 
@@ -495,15 +497,21 @@ function ClassWorkspace({
 
 export function AdminAttendanceOperationsCenter() {
   const t = useT();
+  const { activeSchoolId } = useAdminSession();
   const today = todayIso();
   const [date, setDate] = useState(today);
   const [search, setSearch] = useState('');
+  const [studentView, setStudentView] = useState<'classes' | 'absent'>('classes');
   const [statusFilter, setStatusFilter] = useState<AttendanceClassFilter>('all');
   const [cycleFilter, setCycleFilter] = useState<AttendanceCycleFilter>('all');
   const [levelFilter, setLevelFilter] = useState<AttendanceLevelFilter>('all');
   const [classFilter, setClassFilter] = useState<AttendanceClassIdFilter>('all');
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [workspaceMode, setWorkspaceMode] = useState<ClassWorkspaceMode>('view');
+  const [selectedCorrectionRecord, setSelectedCorrectionRecord] = useState<AttendanceRecord | null>(null);
+  const [absentRows, setAbsentRows] = useState<AttendanceRecord[]>([]);
+  const [absentLoading, setAbsentLoading] = useState(false);
+  const [absentLoadFailed, setAbsentLoadFailed] = useState(false);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
 
   const state = useAdminResource<AttendanceOperationsOverview>(overviewPath(), { date }, { keepPreviousData: true });
@@ -546,13 +554,83 @@ export function AdminAttendanceOperationsCenter() {
   const classes = useMemo(
     () => filterAttendanceOperationClasses(
       cycleClasses,
-      search,
+      studentView === 'classes' ? search : '',
       statusFilter,
       levelFilter,
       classFilter,
     ),
-    [cycleClasses, search, statusFilter, levelFilter, classFilter],
+    [cycleClasses, search, statusFilter, levelFilter, classFilter, studentView],
   );
+
+  useEffect(() => {
+    if (studentView !== 'absent') {
+      setAbsentRows([]);
+      setAbsentLoading(false);
+      setAbsentLoadFailed(false);
+      return;
+    }
+
+    const candidates = classes.filter(
+      (row) => row.counts.absent > 0 && row.allowed_actions.can_open_class !== false,
+    );
+    if (candidates.length === 0) {
+      setAbsentRows([]);
+      setAbsentLoading(false);
+      setAbsentLoadFailed(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setAbsentLoading(true);
+    setAbsentLoadFailed(false);
+
+    Promise.all(
+      candidates.map((row) =>
+        api.get<AttendanceClassDetails>(
+          classPath(row.id),
+          {
+            date,
+            ...(activeSchoolId != null ? { active_school_id: activeSchoolId } : {}),
+          },
+          { signal: controller.signal },
+        ),
+      ),
+    )
+      .then((results) => {
+        if (controller.signal.aborted) return;
+        const failed = results.some((result) => !result.success);
+        const rows = results
+          .flatMap((result) =>
+            result.success
+              ? result.data.recorded.filter((record) => record.status === 'absent')
+              : [],
+          )
+          .sort((a, b) => getStudentDisplayName(a.student).localeCompare(getStudentDisplayName(b.student)));
+        setAbsentRows(rows);
+        setAbsentLoadFailed(failed);
+        setAbsentLoading(false);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setAbsentRows([]);
+        setAbsentLoadFailed(true);
+        setAbsentLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [activeSchoolId, classes, date, studentView]);
+
+  const visibleAbsentRows = useMemo(() => {
+    const needle = search.trim().toLocaleLowerCase();
+    if (!needle) return absentRows;
+    return absentRows.filter((record) => {
+      const haystack = [
+        getStudentDisplayName(record.student),
+        record.class?.name ?? '',
+      ].join(' ').toLocaleLowerCase();
+      return haystack.includes(needle);
+    });
+  }, [absentRows, search]);
 
   useEffect(() => {
     if (selectedClassId == null || !overview) return;
@@ -611,11 +689,21 @@ export function AdminAttendanceOperationsCenter() {
   }
 
   function openClass(classId: number, mode: ClassWorkspaceMode) {
+    setSelectedCorrectionRecord(null);
     setSelectedClassId(classId);
     setWorkspaceMode(mode);
   }
 
+  function openCorrectionRecord(record: AttendanceRecord) {
+    const classId = record.class?.id;
+    if (!classId) return;
+    setSelectedCorrectionRecord(record);
+    setSelectedClassId(classId);
+    setWorkspaceMode('correct');
+  }
+
   function closeClass() {
+    setSelectedCorrectionRecord(null);
     setSelectedClassId(null);
     setWorkspaceMode('view');
   }
@@ -691,100 +779,68 @@ export function AdminAttendanceOperationsCenter() {
                 </div>
               </div>
 
-              <div className="attendance-center-filter-stack">
-                <section className="attendance-center-filter-stage">
-                  <div className="attendance-center-filter-stage__head">
-                    <div>
-                      <strong>{t('academicContext.fields.cycle')}</strong>
-                      <span>{t('academicContext.hints.chooseCycleFirst')}</span>
-                    </div>
-                  </div>
-                  <div className="attendance-center-level-grid" role="group" aria-label={t('academicContext.fields.cycle')}>
-                    <button
-                      type="button"
-                      className={cn('attendance-center-level-chip', cycleFilter === 'all' && 'attendance-center-level-chip--active')}
-                      aria-pressed={cycleFilter === 'all'}
-                      onClick={() => chooseCycle('all')}
-                    >
-                      <span>{t('admin.attendanceCenter.filterAll')}</span>
-                      <small>{t('admin.attendanceCenter.levelClassCount', { count: data.classes.length })}</small>
-                    </button>
-                    {cycleOptions.map((cycle) => (
-                      <button
-                        key={cycle.id}
-                        type="button"
-                        className={cn('attendance-center-level-chip', cycleFilter === cycle.id && 'attendance-center-level-chip--active')}
-                        aria-pressed={cycleFilter === cycle.id}
-                        onClick={() => chooseCycle(cycle.id)}
+              <div className="attendance-center-filter-stack attendance-center-filter-stack--compact">
+                <section className="attendance-center-filter-stage attendance-center-filter-stage--compact">
+                  <div className="attendance-center-compact-filters">
+                    <label className="attendance-center-compact-field">
+                      <span>{t('academicContext.fields.cycle')}</span>
+                      <select
+                        className="input"
+                        value={String(cycleFilter)}
+                        onChange={(event) => chooseCycle(event.target.value === 'all' ? 'all' : Number(event.target.value))}
                       >
-                        <span dir="auto">{cycle.name}</span>
-                        <small>{t('admin.attendanceCenter.levelClassCount', { count: cycle.classCount })}</small>
-                      </button>
-                    ))}
-                  </div>
-                </section>
+                        <option value="all">{t('admin.attendanceCenter.filterAll')}</option>
+                        {cycleOptions.map((cycle) => (
+                          <option key={cycle.id} value={cycle.id}>{cycle.name}</option>
+                        ))}
+                      </select>
+                    </label>
 
-                <section className="attendance-center-filter-stage">
-                  <div className="attendance-center-filter-stage__head">
-                    <div>
-                      <strong>{t('admin.attendanceCenter.levelsFilterTitle')}</strong>
-                      <span>{t('admin.attendanceCenter.levelsFilterHint')}</span>
-                    </div>
-                  </div>
-                  <div className="attendance-center-level-grid" role="group" aria-label={t('admin.attendanceCenter.levelsFilterTitle')}>
-                    <button
-                      type="button"
-                      className={cn('attendance-center-level-chip', levelFilter === 'all' && 'attendance-center-level-chip--active')}
-                      aria-pressed={levelFilter === 'all'}
-                      onClick={() => chooseLevel('all')}
-                    >
-                      <span>{t('admin.attendanceCenter.allLevels')}</span>
-                      <small>{t('admin.attendanceCenter.levelClassCount', { count: cycleClasses.length })}</small>
-                    </button>
-                    {visibleLevelOptions.map((level) => (
-                      <button
-                        key={level.id}
-                        type="button"
-                        className={cn('attendance-center-level-chip', levelFilter === level.id && 'attendance-center-level-chip--active')}
-                        aria-pressed={levelFilter === level.id}
-                        onClick={() => chooseLevel(level.id)}
+                    <label className="attendance-center-compact-field">
+                      <span>{t('admin.attendanceCenter.levelsFilterTitle')}</span>
+                      <select
+                        className="input"
+                        value={String(levelFilter)}
+                        onChange={(event) => chooseLevel(event.target.value === 'all' ? 'all' : Number(event.target.value))}
                       >
-                        <span dir="auto">{level.name}</span>
-                        <small>{t('admin.attendanceCenter.levelClassCount', { count: level.classCount })}</small>
-                      </button>
-                    ))}
+                        <option value="all">{t('admin.attendanceCenter.allLevels')}</option>
+                        {visibleLevelOptions.map((level) => (
+                          <option key={level.id} value={level.id}>{level.name}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="attendance-center-compact-field">
+                      <span>{t('admin.attendanceCenter.classFilterTitle')}</span>
+                      <select
+                        className="input"
+                        value={String(classFilter)}
+                        onChange={(event) => chooseClass(event.target.value)}
+                      >
+                        <option value="all">{t('admin.attendanceCenter.allClasses')}</option>
+                        {classOptions.map((row) => (
+                          <option key={row.id} value={row.id}>{row.name}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="attendance-center-compact-field">
+                      <span>{studentView === 'absent' ? t('attendance.student') : t('admin.attendanceCenter.classFilterTitle')}</span>
+                      <input
+                        className="input"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder={
+                          studentView === 'absent'
+                            ? t('attendance.correctPanel.studentSearchPlaceholder')
+                            : t('admin.attendanceCenter.searchWithinClasses')
+                        }
+                      />
+                    </label>
                   </div>
                 </section>
 
-                <section className="attendance-center-filter-stage">
-                  <div className="attendance-center-filter-stage__head">
-                    <div>
-                      <strong>{t('admin.attendanceCenter.classFilterTitle')}</strong>
-                      <span>{t('admin.attendanceCenter.classFilterHint')}</span>
-                    </div>
-                  </div>
-                  <div className="attendance-center-class-filter-row">
-                    <select
-                      className="input"
-                      value={String(classFilter)}
-                      onChange={(event) => chooseClass(event.target.value)}
-                      aria-label={t('admin.attendanceCenter.classFilterTitle')}
-                    >
-                      <option value="all">{t('admin.attendanceCenter.allClasses')}</option>
-                      {classOptions.map((row) => (
-                        <option key={row.id} value={row.id}>{row.name}</option>
-                      ))}
-                    </select>
-                    <input
-                      className="input"
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      placeholder={t('admin.attendanceCenter.searchWithinClasses')}
-                    />
-                  </div>
-                </section>
-
-                <section className="attendance-center-filter-stage">
+                <section className="attendance-center-filter-stage attendance-center-filter-stage--compact">
                   <div className="attendance-center-filter-stage__head">
                     <div>
                       <strong>{t('admin.attendanceCenter.statusFilterTitle')}</strong>
@@ -805,6 +861,25 @@ export function AdminAttendanceOperationsCenter() {
                     ))}
                   </div>
                 </section>
+
+                <section className="attendance-center-view-switch" aria-label={t('attendance.statusColumn')}>
+                  <button
+                    type="button"
+                    className={cn('attendance-center-view-switch__button', studentView === 'classes' && 'attendance-center-view-switch__button--active')}
+                    aria-pressed={studentView === 'classes'}
+                    onClick={() => setStudentView('classes')}
+                  >
+                    {t('admin.attendanceCenter.classesEyebrow')}
+                  </button>
+                  <button
+                    type="button"
+                    className={cn('attendance-center-view-switch__button', studentView === 'absent' && 'attendance-center-view-switch__button--active')}
+                    aria-pressed={studentView === 'absent'}
+                    onClick={() => setStudentView('absent')}
+                  >
+                    {t('attendance.absent')} · {data.summary.absent}
+                  </button>
+                </section>
               </div>
 
               {selectedClassId != null ? (
@@ -814,17 +889,56 @@ export function AdminAttendanceOperationsCenter() {
                   tabIndex={-1}
                 >
                   <ClassWorkspace
-                    key={`${selectedClassId}:${workspaceMode}:${date}`}
+                    key={`${selectedClassId}:${workspaceMode}:${date}:${selectedCorrectionRecord?.id ?? 'none'}`}
                     classId={selectedClassId}
                     date={date}
                     mode={workspaceMode}
+                    initialCorrectionRecord={selectedCorrectionRecord}
                     onClose={closeClass}
                     onReloadOverview={() => state.reload()}
                   />
                 </div>
               ) : null}
 
-              {data.classes.length === 0 ? (
+              {studentView === 'absent' ? (
+                absentLoading ? (
+                  <p className="attendance-center-empty">{t('attendance.loadingRoster')}</p>
+                ) : absentLoadFailed && absentRows.length === 0 ? (
+                  <p className="attendance-center-empty">{t('attendance.correctPanel.lookupFailed')}</p>
+                ) : visibleAbsentRows.length === 0 ? (
+                  <p className="attendance-center-empty">{t('admin.attendanceCenter.noMatches')}</p>
+                ) : (
+                  <div className="attendance-center-absent-list">
+                    {absentLoadFailed ? (
+                      <p className="attendance-center-absent-list__warning">{t('attendance.correctPanel.lookupFailed')}</p>
+                    ) : null}
+                    {visibleAbsentRows.map((record) => {
+                      const note = record.notes?.trim() || record.note?.trim() || '';
+                      return (
+                        <article key={record.id} className="attendance-center-absent-row">
+                          <div className="attendance-center-absent-row__student">
+                            <strong dir="auto">{getStudentDisplayName(record.student)}</strong>
+                            <span dir="auto">{record.class?.name ?? t('common.dash')}</span>
+                          </div>
+                          <AttendanceBadge status={record.status} />
+                          <span className="attendance-center-absent-row__note" dir="auto">
+                            {note || t('common.dash')}
+                          </span>
+                          {record.allowed_actions?.can_correct === true ? (
+                            <button
+                              type="button"
+                              className="btn btn--ghost btn--sm"
+                              onClick={() => openCorrectionRecord(record)}
+                            >
+                              {t('admin.attendanceCenter.correctRecord')}
+                            </button>
+                          ) : null}
+                        </article>
+                      );
+                    })}
+                  </div>
+                )
+              ) : data.classes.length === 0 ? (
                 <p className="attendance-center-empty">{t('admin.attendanceCenter.noClasses')}</p>
               ) : classes.length === 0 ? (
                 <p className="attendance-center-empty">{t('admin.attendanceCenter.noMatches')}</p>
