@@ -22,8 +22,11 @@ export interface EdgeAttendanceMappingData {
   reconciled_event_count?: number; remaining_pending_count?: number;
 }
 export interface EdgeStaffCandidate {
-  id:number; name:string; name_ar?:string|null; name_fr?:string|null; role_display_name?:string|null;
-  job_title?:string|null; active:boolean; status?:string|null;
+  id:number; staff_relationship_id:number|null; name:string; name_ar?:string|null; name_fr?:string|null;
+  role_display_name?:string|null; job_title?:string|null; active?:boolean; status?:string|null;
+}
+export interface EdgeStaffPickerData {
+  staff: EdgeStaffCandidate[];
 }
 
 export type EdgeWeekday = '0' | '1' | '2' | '3' | '4' | '5' | '6';
