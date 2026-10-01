@@ -39,6 +39,11 @@ export const endpoints = {
     edgeAudioLibraryContent: (libraryUid: string) =>
       `/admin/edge/audio-library/${encodeURIComponent(libraryUid)}/content`,
     edgeDevices: '/admin/edge/devices',
+    edgeAttendanceSourceDevices: '/admin/edge/attendance/source-devices',
+    edgeAttendanceSourcePersons: (sourceId: number | string) =>
+      `/admin/edge/attendance/source-devices/${encodeURIComponent(String(sourceId))}/persons`,
+    edgeAttendancePersonMapping: (sourceId: number | string, externalPersonId: string) =>
+      `/admin/edge/attendance/source-devices/${encodeURIComponent(String(sourceId))}/persons/${encodeURIComponent(externalPersonId)}/mapping`,
     edgePairingGrants: '/admin/edge/pairing-grants',
     adminRequests: '/admin/admin-requests',
     adminRequest: (id: number | string) => `/admin/admin-requests/${id}`,

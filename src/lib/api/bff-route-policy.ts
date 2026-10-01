@@ -8,6 +8,7 @@ const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 export const BFF_ADMIN_FAMILIES = [
   'dashboard',
   'school-branding',
+  'edge',
   'students',
   'financial-agreements',
   'service-subscriptions',
@@ -140,6 +141,7 @@ const BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES = new Set([
   'exam-results',
   'assessment',
   'school-branding',
+  'edge',
   'setup',
   'academic-context',
   'academic-years',
