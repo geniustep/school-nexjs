@@ -37,6 +37,8 @@ const COPY = {
     brandingDesc: 'الاسم، الشعار، الألوان ومعلومات المؤسسة الظاهرة في الواجهات والمستندات.',
     requestTypesTitle: 'أنواع الطلبات الإدارية',
     requestTypesDesc: 'إدارة أنواع الطلبات المتاحة للأسرة ومسارها الافتراضي داخل المؤسسة.',
+    devicesTitle: 'الأجهزة المحلية',
+    devicesDesc: 'إدارة أجهزة رقيم المحلية وربط مستخدمي أجهزة الحضور بالموظفين.',
     bellTitle: 'الجرس المدرسي',
     bellDesc: 'اضبط أوقات الجرس والأصوات التي سيشغّلها Raqeem Edge تلقائيًا داخل المؤسسة.',
     open: 'فتح الإعدادات',
@@ -71,6 +73,8 @@ const COPY = {
     brandingDesc: 'Nom, logo, couleurs et informations affichées dans les interfaces et documents.',
     requestTypesTitle: 'Types de demandes administratives',
     requestTypesDesc: 'Gérez les demandes disponibles pour les familles et leur circuit par défaut.',
+    devicesTitle: 'Appareils locaux',
+    devicesDesc: 'Gérez les appareils Raqeem locaux et associez les utilisateurs de présence au personnel.',
     bellTitle: 'Sonnerie scolaire',
     bellDesc: 'Configurez les horaires et les sons que Raqeem Edge exécutera automatiquement dans l’établissement.',
     open: 'Ouvrir les paramètres',
@@ -209,6 +213,17 @@ export default function AdminSettingsPage() {
               <span className={styles.quickCopy}>
                 <strong>{copy.requestTypesTitle}</strong>
                 <span>{copy.requestTypesDesc}</span>
+              </span>
+              <span className={styles.quickAction}>{copy.open} →</span>
+            </Link>
+          ) : null}
+
+          {showEdge ? (
+            <Link href="/admin/settings/local-devices" className={styles.quickCard}>
+              <span className={`${styles.quickIcon} ${styles.quickIconEdge}`} aria-hidden="true">◫</span>
+              <span className={styles.quickCopy}>
+                <strong>{copy.devicesTitle}</strong>
+                <span>{copy.devicesDesc}</span>
               </span>
               <span className={styles.quickAction}>{copy.open} →</span>
             </Link>

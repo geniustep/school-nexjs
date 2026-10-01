@@ -59,6 +59,7 @@ import {
   mapAdmissionPrefillToFullRegistration,
   parseFullRegistrationAdmissionId,
 } from '../utils/full-registration-admission-prefill';
+import { localizedEnrollmentServiceName } from '../utils/full-registration-optional-lines';
 import styles from './full-registration-page.module.css';
 
 type GuardianKey = 'father' | 'mother' | 'single';
@@ -918,8 +919,8 @@ export function FullRegistrationPage() {
     const selected = new Set(selectedServiceIds);
     return optionalLines
       .filter((line) => line.fee_type_id != null && selected.has(Number(line.fee_type_id)))
-      .map((line) => line.fee_type_name);
-  }, [optionalLines, selectedServiceIds]);
+      .map((line) => localizedEnrollmentServiceName(line, locale));
+  }, [locale, optionalLines, selectedServiceIds]);
 
   const selectedLevelName = useMemo(
     () =>
@@ -1419,7 +1420,7 @@ export function FullRegistrationPage() {
                         )
                       }
                     />
-                    {line.fee_type_name}
+                    {localizedEnrollmentServiceName(line, locale)}
                   </span>
                   <span className={styles.serviceAmount}>
                     {amount != null ? `${amount.toLocaleString(locale)} MAD` : '—'}
