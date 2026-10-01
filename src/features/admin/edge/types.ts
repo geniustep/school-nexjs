@@ -1,5 +1,26 @@
 import type { ApiErrorBody } from '@/types/api';
 
+export interface EdgeAttendanceSourceDevice {
+  id: number; source_device_id: string; vendor: string; name: string; active: boolean;
+  edge_device_id?: number | null; persons_count?: number; mapped_count?: number; unmapped_count?: number;
+}
+export interface EdgeAttendanceMapping {
+  id?: number; staff_relationship_id: number; active: boolean;
+  staff_name?: string | null; staff_name_ar?: string | null; staff_name_fr?: string | null;
+}
+export interface EdgeAttendanceDevicePerson {
+  external_person_id: string; display_label: string; present_on_device: boolean;
+  device_user_active?: boolean | null; device_user_active_state?: string | null; vendor_user_type?: string | null;
+  mapping?: EdgeAttendanceMapping | null;
+}
+export interface EdgeAttendanceSourceDevicesData { source_devices: EdgeAttendanceSourceDevice[]; }
+export interface EdgeAttendancePersonsData { persons: EdgeAttendanceDevicePerson[]; source_device?: EdgeAttendanceSourceDevice; }
+export interface EdgeAttendanceMappingData { person?: EdgeAttendanceDevicePerson; mapping?: EdgeAttendanceMapping; }
+export interface EdgeStaffCandidate {
+  id:number; name:string; name_ar?:string|null; name_fr?:string|null; role_display_name?:string|null;
+  job_title?:string|null; active:boolean; status?:string|null;
+}
+
 export type EdgeWeekday = '0' | '1' | '2' | '3' | '4' | '5' | '6';
 
 export interface EdgeSchoolSummary {
