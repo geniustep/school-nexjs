@@ -11,6 +11,10 @@ import { ResourceView } from '@/components/states/resource';
 import { useToast } from '@/components/ui/toast';
 import { AdminAttendanceCorrectionPanel } from '@/features/admin/attendance/admin-attendance-ops-ui';
 import { todayIso } from '@/features/admin/attendance/admin-attendance-utils';
+import {
+  buildAdminAttendanceMutationRequest,
+  isAttendanceConcurrencyError,
+} from '@/features/attendance/attendance-concurrency';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
@@ -313,6 +317,7 @@ function ClassWorkspace({
   const [conflict, setConflict] = useState(false);
   const [showCorrection, setShowCorrection] = useState(false);
   const [correctionRecord, setCorrectionRecord] = useState<AttendanceRosterDraftRow['record']>(null);
+  const [bulkCorrectionReason, setBulkCorrectionReason] = useState('');
 
   useEffect(() => {
     if (state.data) {
@@ -330,8 +335,10 @@ function ClassWorkspace({
   }, [state.data, mode]);
 
   useEffect(() => {
-    setShowCorrection(mode === 'correct');
-    setCorrectionRecord(mode === 'correct' ? initialCorrectionRecord ?? null : null);
+    const directCorrection = mode === 'correct' && initialCorrectionRecord != null;
+    setShowCorrection(directCorrection);
+    setCorrectionRecord(directCorrection ? initialCorrectionRecord : null);
+    setBulkCorrectionReason('');
   }, [mode, classId, date, initialCorrectionRecord]);
 
   const dirtyItems = useMemo(() => buildAttendanceClassBatchItems(rows), [rows]);
@@ -379,6 +386,60 @@ function ClassWorkspace({
     onReloadOverview();
   }
 
+  async function saveCorrections() {
+    if (!state.data?.allowed_actions.can_correct || dirtyItems.length === 0 || saving) return;
+    setSaving(true);
+    setConflict(false);
+
+    let saved = 0;
+    let failed = 0;
+    let concurrencyFailure = false;
+    let permissionFailure = false;
+
+    for (const item of dirtyItems) {
+      const row = rows.find((candidate) => candidate.studentId === item.student_id);
+      if (!row?.status) continue;
+
+      const res = await api.post<AttendanceRecord>(
+        endpoints.admin.attendanceCorrect,
+        buildAdminAttendanceMutationRequest({
+          date,
+          classId,
+          studentId: row.studentId,
+          status: row.status,
+          note: row.note,
+          correctionReason: bulkCorrectionReason,
+          record: row.record,
+        }),
+      );
+
+      if (res.success) {
+        saved += 1;
+      } else {
+        failed += 1;
+        concurrencyFailure ||= isAttendanceConcurrencyError(res.error);
+        permissionFailure ||= res.error.code === 'permission_denied' || res.error.code === 'forbidden';
+      }
+    }
+
+    setSaving(false);
+
+    if (concurrencyFailure) {
+      setConflict(true);
+      toast.warning(t('admin.attendanceCenter.conflictTitle'));
+    } else if (permissionFailure) {
+      toast.error(t('admin.attendanceCenter.permissionDenied'));
+    } else if (failed > 0) {
+      toast.error(t('attendance.partialSave', { saved, failed }));
+    } else {
+      toast.success(t('attendance.saveSuccess', { count: saved }));
+      setBulkCorrectionReason('');
+    }
+
+    state.reload();
+    onReloadOverview();
+  }
+
   return (
     <section className="attendance-center-class-workspace" aria-label={t('admin.attendanceCenter.classWorkspace')}>
       <ResourceView state={state} loadingLabel={t('attendance.loadingRoster')}>
@@ -389,6 +450,9 @@ function ClassWorkspace({
             && details.allowed_actions.can_record_today
             && details.summary.unrecorded_students > 0
           );
+          const bulkCorrection = mode === 'correct' && initialCorrectionRecord == null;
+          const correctionWritable = bulkCorrection && details.allowed_actions.can_correct;
+          const rowsEditable = writable || correctionWritable;
           return (
             <>
               <div className="attendance-center-class-workspace__head">
@@ -437,7 +501,19 @@ function ClassWorkspace({
                 </div>
               ) : null}
 
-              {writable && details.summary.unrecorded_students > 0 ? (
+              {correctionWritable ? (
+                <div className="attendance-center-roster-toolbar">
+                  <label className="attendance-center-compact-field" style={{ width: '100%' }}>
+                    <span>{t('attendance.correctPanel.correctionReason')}</span>
+                    <input
+                      className="input"
+                      value={bulkCorrectionReason}
+                      onChange={(event) => setBulkCorrectionReason(event.target.value)}
+                      placeholder={t('attendance.correctPanel.correctionReasonPlaceholder')}
+                    />
+                  </label>
+                </div>
+              ) : writable && details.summary.unrecorded_students > 0 ? (
                 <div className="attendance-center-roster-toolbar">
                   <span>{t('admin.attendanceCenter.unrecordedHint', { count: details.summary.unrecorded_students })}</span>
                 </div>
@@ -448,11 +524,11 @@ function ClassWorkspace({
                   <RosterStatusEditor
                     key={row.studentId}
                     row={row}
-                    enabled={writable}
+                    enabled={rowsEditable}
                     onStatus={(status) => updateRow(row.studentId, { status })}
                     onNote={(note) => updateRow(row.studentId, { note })}
                     onCorrect={
-                      !writable && details.allowed_actions.can_correct && row.record
+                      !rowsEditable && details.allowed_actions.can_correct && row.record
                         ? () => {
                             setCorrectionRecord(row.record);
                             setShowCorrection(true);
@@ -465,11 +541,20 @@ function ClassWorkspace({
 
               {rows.length === 0 ? <p className="attendance-center-empty">{t('attendance.noStudents')}</p> : null}
 
-              {writable ? (
+              {writable || correctionWritable ? (
                 <div className="attendance-center-savebar">
                   <span>{dirtyItems.length > 0 ? t('admin.attendanceCenter.pendingChanges', { count: dirtyItems.length }) : t('admin.attendanceCenter.noChanges')}</span>
-                  <button type="button" className="btn btn--primary" disabled={dirtyItems.length === 0 || saving} onClick={save}>
-                    {saving ? t('common.saving') : t('attendance.saveAttendance')}
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    disabled={dirtyItems.length === 0 || saving}
+                    onClick={correctionWritable ? saveCorrections : save}
+                  >
+                    {saving
+                      ? t('common.saving')
+                      : correctionWritable
+                        ? t('attendance.correctPanel.saveCorrection')
+                        : t('attendance.saveAttendance')}
                   </button>
                 </div>
               ) : mode !== 'correct' && details.allowed_actions.can_correct ? (
@@ -487,7 +572,7 @@ function ClassWorkspace({
                 </div>
               ) : null}
 
-              {details.allowed_actions.can_correct ? (
+              {details.allowed_actions.can_correct && !correctionWritable ? (
                 <AdminAttendanceCorrectionPanel
                   open={showCorrection}
                   selectedDate={date}
