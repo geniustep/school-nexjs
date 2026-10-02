@@ -141,7 +141,8 @@
     "classResults": "Resultados de clases",
     "diagnosticAssessment": "Evaluación diagnóstica",
     "teachingPlanning": "Planificación pedagógica",
-    "teachingAssignments": "Asignaciones docentes"
+    "teachingAssignments": "Asignaciones docentes",
+    "staffAttendance": "Asistencia del personal"
   },
   "states": {
     "draft": "Borrador",
@@ -2570,7 +2571,7 @@
       "recordingCompletion": "Progreso del registro",
       "recordedOfExpected": "{recorded} de {expected} registrados",
       "lastActivity": "Última actividad",
-    "recordedBy": "Asistencia registrada por",
+      "recordedBy": "Asistencia registrada por",
       "noActivity": "Sin actividad registrada",
       "correctRecord": "Corregir registro",
       "classWorkspace": "Asistencia de la clase",
