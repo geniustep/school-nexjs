@@ -18,6 +18,7 @@ import { useLocale } from '@/features/i18n/locale-context';
 import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { fetchRegulatoryReferenceOverview, projectRegulatoryReferenceToCalendar } from './api';
 import { regulatoryCalendarState, type RegulatoryCalendarState } from './regulatory-calendar-state';
+import { localizedRegulatoryTitle } from './localized-title';
 import type { RegulatoryReferenceItem, RegulatoryReferenceOverview } from './types';
 import './regulatory-reference.css';
 
@@ -236,11 +237,13 @@ function ReferenceItems({
   pending,
   copy,
   formatDate,
+  locale,
 }: {
   items: RegulatoryReferenceItem[];
   pending?: boolean;
   copy: Copy;
   formatDate: (value?: string | null) => string;
+  locale: string;
 }) {
   if (items.length === 0) {
     return <div className="regulatory-reference__empty">{pending ? copy.noPending : copy.noUpcoming}</div>;
@@ -256,7 +259,7 @@ function ReferenceItems({
               {dateLabel(item, formatDate, copy)}
             </div>
             <div className="regulatory-reference__item-main">
-              <strong dir="auto">{item.title}</strong>
+              <strong dir="auto">{localizedRegulatoryTitle(item, locale)}</strong>
               <div className="regulatory-reference__item-meta">
                 <span>{item.code}</span>
                 {source ? <span>{source}</span> : null}
@@ -424,7 +427,7 @@ export function RegulatoryReferencePage() {
                   <h2>{copy.upcoming}</h2>
                   <span>{overview.upcoming.length}</span>
                 </div>
-                <ReferenceItems items={overview.upcoming} copy={copy} formatDate={formatDate} />
+                <ReferenceItems items={overview.upcoming} copy={copy} formatDate={formatDate} locale={locale} />
               </section>
 
               <section className="regulatory-reference__panel regulatory-reference__panel--pending">
@@ -438,6 +441,7 @@ export function RegulatoryReferencePage() {
                   pending
                   copy={copy}
                   formatDate={formatDate}
+                  locale={locale}
                 />
               </section>
             </div>

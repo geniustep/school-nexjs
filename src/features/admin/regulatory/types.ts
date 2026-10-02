@@ -2,6 +2,7 @@ export interface RegulatoryReferenceItem {
   public_id: string;
   code: string;
   title: string;
+  title_fr?: string | null;
   item_type: string;
   date_from: string | null;
   date_to: string | null;
