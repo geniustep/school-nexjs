@@ -1,280 +1,82 @@
 'use client';
-
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge, PageHeader } from '@/components/ui/primitives';
-import { fetchStaffAttendanceHistory, fetchStaffAttendanceToday } from './api';
-import type {
-  StaffAttendanceHistoryRow,
-  StaffAttendanceStatus,
-  StaffAttendanceSummary,
-  StaffAttendanceTodayMeta,
-  StaffAttendanceTodayRow,
-} from './types';
+import { fetchStaffAttendanceHistory, fetchStaffAttendanceMonthly, fetchStaffAttendanceMonthlyDetail, fetchStaffAttendanceToday } from './api';
+import type { StaffAttendanceHistoryRow, StaffAttendanceMonthlyDetail, StaffAttendanceMonthlyRow, StaffAttendanceTodayMeta, StaffAttendanceTodayRow } from './types';
 import './staff-attendance.css';
 
-const EMPTY_SUMMARY: StaffAttendanceSummary = {
-  total_staff: 0,
-  present_today: 0,
-  no_record_today: 0,
-};
+const EMPTY={total_staff:0,present_today:0,no_record_today:0};
+const now=new Date();
+const nameOf=(r:{name:string;name_ar?:string|null;name_fr?:string|null})=>r.name_ar||r.name_fr||r.name||'—';
+const timeOf=(v?:string|null)=>{if(!v)return '—';const m=v.match(/(\d{2}:\d{2})(?::\d{2})?$/);return m?.[1]??v;};
+const durationOf=(m?:number|null,d?:string|null)=>d||(m==null?'—':`${Math.floor(m/60)}س ${m%60}د`);
+const dayLabel=(s?:string)=>({present_complete:'مدة مكتملة',single_morning_record:'تسجيل صباحي واحد',single_record:'تسجيل واحد',insufficient_interval:'فاصل أقل من 4 ساعات',no_record:'لم يسجل'}[s||'']||'مسجل');
+const tone=(s?:string)=>s==='present_complete'?'green':s==='no_record'?'slate':'amber';
 
-function displayName(row: StaffAttendanceTodayRow) {
-  return row.name_ar || row.name_fr || row.name || '—';
-}
+export default function StaffAttendancePage(){
+ const [view,setView]=useState<'today'|'monthly'|'history'>('today');
+ const [rows,setRows]=useState<StaffAttendanceTodayRow[]>([]),[meta,setMeta]=useState<StaffAttendanceTodayMeta|null>(null);
+ const [loading,setLoading]=useState(false),[error,setError]=useState(''),[searchInput,setSearchInput]=useState(''),[search,setSearch]=useState('');
+ const [status,setStatus]=useState<'all'|'present'|'no_record'|'present_complete'|'single_morning_record'|'single_record'|'insufficient_interval'>('all');
+ const [localDate,setLocalDate]=useState('');
+ const [month,setMonth]=useState(now.getMonth()+1),[year,setYear]=useState(now.getFullYear()),[monthly,setMonthly]=useState<StaffAttendanceMonthlyRow[]>([]);
+ const [monthlyLoading,setMonthlyLoading]=useState(false),[monthlyError,setMonthlyError]=useState(''),[detail,setDetail]=useState<StaffAttendanceMonthlyDetail|null>(null),[detailLoading,setDetailLoading]=useState(false);
+ const [history,setHistory]=useState<StaffAttendanceHistoryRow[]>([]),[historyLoading,setHistoryLoading]=useState(false),[historyError,setHistoryError]=useState('');
+ const [dateFrom,setDateFrom]=useState(''),[dateTo,setDateTo]=useState(''),[historySearch,setHistorySearch]=useState('');
 
-function formatTime(value?: string | null) {
-  if (!value) return '—';
-  const match = value.match(/(\d{2}:\d{2})(?::\d{2})?$/);
-  return match?.[1] ?? value;
-}
+ const loadToday=useCallback(async()=>{setLoading(true);setError('');const r=await fetchStaffAttendanceToday({search,status,local_date:localDate||undefined,page:1,page_size:100});if(r.success){setRows(r.data||[]);setMeta(r.meta as unknown as StaffAttendanceTodayMeta);}else{setRows([]);setError(r.error.message||'تعذر تحميل الحضور.');}setLoading(false);},[search,status,localDate]);
+ const loadMonthly=useCallback(async()=>{setMonthlyLoading(true);setMonthlyError('');const r=await fetchStaffAttendanceMonthly({month,year,search:search||undefined,page:1,page_size:100});if(r.success)setMonthly(r.data||[]);else{setMonthly([]);setMonthlyError(r.error.message||'تعذر تحميل التقرير الشهري.');}setMonthlyLoading(false);},[month,year,search]);
+ const loadHistory=useCallback(async()=>{setHistoryLoading(true);setHistoryError('');const r=await fetchStaffAttendanceHistory({date_from:dateFrom||undefined,date_to:dateTo||undefined,page:1,page_size:100});if(r.success)setHistory(r.data||[]);else{setHistory([]);setHistoryError(r.error.message||'تعذر تحميل سجل التسجيلات.');}setHistoryLoading(false);},[dateFrom,dateTo]);
+ useEffect(()=>{if(view==='today')void loadToday();if(view==='monthly')void loadMonthly();if(view==='history')void loadHistory();},[view,loadToday,loadMonthly,loadHistory]);
+ const staffById=useMemo(()=>new Map(rows.map(r=>[r.staff_relationship_id,r])),[rows]);
+ const filteredHistory=useMemo(()=>{const q=historySearch.trim().toLowerCase();if(!q)return history;return history.filter(e=>{const s=staffById.get(e.staff_relationship_id);return [s?.name,s?.name_ar,s?.name_fr,e.external_person_id,e.source_device?.name].filter(Boolean).join(' ').toLowerCase().includes(q);});},[history,historySearch,staffById]);
+ const summary=meta?.summary??EMPTY;
+ const submit=(e:FormEvent)=>{e.preventDefault();setSearch(searchInput.trim());};
+ const openDetail=async(r:StaffAttendanceMonthlyRow)=>{setDetailLoading(true);const x=await fetchStaffAttendanceMonthlyDetail(r.staff_relationship_id,month,year);if(x.success)setDetail(x.data||null);setDetailLoading(false);};
 
-function StaffAttendanceContent() {
-  const [rows, setRows] = useState<StaffAttendanceTodayRow[]>([]);
-  const [meta, setMeta] = useState<StaffAttendanceTodayMeta | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<'all' | StaffAttendanceStatus>('all');
-  const [selected, setSelected] = useState<StaffAttendanceTodayRow | null>(null);
-  const [history, setHistory] = useState<StaffAttendanceHistoryRow[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState('');
-  const [view, setView] = useState<'today' | 'history'>('today');
-  const [historyAll, setHistoryAll] = useState<StaffAttendanceHistoryRow[]>([]);
-  const [historyAllLoading, setHistoryAllLoading] = useState(false);
-  const [historyAllError, setHistoryAllError] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [historySearch, setHistorySearch] = useState('');
+ return <div className="admin-workspace staff-attendance-page">
+  <PageHeader title="حضور الطاقم" />
+  <div className="staff-attendance-tabs" role="tablist">
+   <button className={view==='today'?'is-active':''} onClick={()=>setView('today')}>اليوم</button>
+   <button className={view==='monthly'?'is-active':''} onClick={()=>setView('monthly')}>التقرير الشهري</button>
+   <button className={view==='history'?'is-active':''} onClick={()=>setView('history')}>سجل التسجيلات</button>
+  </div>
+  <p className="staff-attendance-lead">يظهر فقط الطاقم المرتبط فعليًا بجهاز الحضور. عدم وجود تسجيل لا يعني الغياب.</p>
 
-  const loadToday = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    const response = await fetchStaffAttendanceToday({ search, status, page: 1, page_size: 100 });
-    if (!response.success) {
-      setError(response.error.message || 'تعذر تحميل حضور الطاقم.');
-      setRows([]);
-      setLoading(false);
-      return;
-    }
-    setRows(response.data || []);
-    setMeta(response.meta as unknown as StaffAttendanceTodayMeta);
-    setLoading(false);
-  }, [search, status]);
+  {view==='today'&&<>
+   <div className="staff-attendance-summary">
+    <button className={status==='all'?'is-active':''} onClick={()=>setStatus('all')}><span>الطاقم المرتبط</span><strong>{summary.total_staff}</strong></button>
+    <button className={status==='present'?'is-active':''} onClick={()=>setStatus('present')}><span>له تسجيل اليوم</span><strong>{summary.present_today}</strong></button>
+    <button className={status==='no_record'?'is-active':''} onClick={()=>setStatus('no_record')}><span>لم يسجل اليوم</span><strong>{summary.no_record_today}</strong></button>
+   </div>
+   <form className="staff-attendance-toolbar" onSubmit={submit}>
+    <input className="input" value={searchInput} onChange={e=>setSearchInput(e.target.value)} placeholder="ابحث باسم الموظف…" />
+    <input className="input attendance-date" type="date" value={localDate} onChange={e=>setLocalDate(e.target.value)} />
+    <select className="input attendance-status" value={status} onChange={e=>setStatus(e.target.value as typeof status)}>
+     <option value="all">كل الحالات</option><option value="present">له تسجيل</option><option value="present_complete">مدة مكتملة</option><option value="single_morning_record">تسجيل صباحي واحد</option><option value="single_record">تسجيل واحد</option><option value="insufficient_interval">فاصل أقل من 4 ساعات</option><option value="no_record">لم يسجل</option>
+    </select>
+    <button className="btn btn--primary btn--sm">بحث</button><button className="btn btn--secondary btn--sm" type="button" onClick={()=>void loadToday()}>تحديث البيانات</button>
+   </form>
+   {error&&<div className="staff-attendance-error">{error}</div>}{loading&&<div className="staff-attendance-state">جارٍ تحميل الحضور…</div>}
+   {!loading&&!error&&<div className="staff-attendance-table-wrap"><table className="staff-attendance-table"><thead><tr><th>الموظف</th><th>الحالة</th><th>أول تسجيل</th><th>آخر تسجيل</th><th>مدة الحضور</th><th>التسجيلات</th></tr></thead><tbody>
+    {rows.map(r=><tr key={r.staff_relationship_id}><td><strong dir="auto">{nameOf(r)}</strong>{r.name_fr&&r.name_fr!==nameOf(r)&&<small dir="auto">{r.name_fr}</small>}</td><td><Badge tone={tone(r.day_status)}>{dayLabel(r.day_status)}</Badge>{r.note&&<small className="attendance-note">{r.note}</small>}</td><td>{timeOf(r.first_seen_at)}</td><td>{timeOf(r.last_seen_at)}</td><td><strong>{durationOf(r.attendance_duration_minutes,r.attendance_duration_display)}</strong></td><td>{r.observations_count}</td></tr>)}
+    {!rows.length&&<tr><td colSpan={6} className="staff-attendance-empty">لا توجد نتائج مطابقة.</td></tr>}
+   </tbody></table></div>}
+  </>}
 
-  useEffect(() => { void loadToday(); }, [loadToday]);
+  {view==='monthly'&&<section className="attendance-monthly">
+   <div className="staff-attendance-toolbar"><select className="input" value={month} onChange={e=>setMonth(Number(e.target.value))}>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{new Intl.DateTimeFormat('ar-MA',{month:'long'}).format(new Date(2026,i,1))}</option>)}</select><input className="input attendance-year" type="number" min="2000" value={year} onChange={e=>setYear(Number(e.target.value))}/><button className="btn btn--secondary btn--sm" onClick={()=>void loadMonthly()}>تحديث التقرير</button></div>
+   <p className="attendance-policy">اليوم ذو تسجيل صباحي واحد يُحتسب يوم عمل مسجلًا، لكن لا تُفترض له ساعات. المدة تُحسب فقط عندما يفصل بين أول وآخر تسجيل 4 ساعات على الأقل.</p>
+   {monthlyError&&<div className="staff-attendance-error">{monthlyError}</div>}{monthlyLoading&&<div className="staff-attendance-state">جارٍ إعداد التقرير الشهري…</div>}
+   {!monthlyLoading&&!monthlyError&&<div className="staff-attendance-table-wrap"><table className="staff-attendance-table"><thead><tr><th>الموظف</th><th>أيام العمل المسجلة</th><th>أيام بتسجيل</th><th>إجمالي مدة الحضور</th><th>المتوسط اليومي</th><th></th></tr></thead><tbody>{monthly.map(r=><tr key={r.staff_relationship_id}><td><strong dir="auto">{nameOf(r)}</strong></td><td><strong>{r.recorded_work_days}</strong></td><td>{r.days_with_records}</td><td>{durationOf(r.total_attendance_duration_minutes)}</td><td>{durationOf(r.average_attendance_duration_minutes,r.average_attendance_duration_display)}</td><td><button className="btn btn--secondary btn--sm" onClick={()=>void openDetail(r)}>تفاصيل الأيام</button></td></tr>)}{!monthly.length&&<tr><td colSpan={6} className="staff-attendance-empty">لا توجد بيانات لهذا الشهر.</td></tr>}</tbody></table></div>}
+  </section>}
 
-  useEffect(() => {
-    if (!selected) {
-      setHistory([]);
-      return;
-    }
-    let active = true;
-    setHistoryLoading(true);
-    setHistoryError('');
-    void fetchStaffAttendanceHistory({
-      staff_relationship_id: selected.staff_relationship_id,
-      page: 1,
-      page_size: 50,
-    }).then((response) => {
-      if (!active) return;
-      if (response.success) setHistory(response.data || []);
-      else setHistoryError(response.error.message || 'تعذر تحميل السجل التاريخي.');
-      setHistoryLoading(false);
-    });
-    return () => { active = false; };
-  }, [selected]);
+  {view==='history'&&<section className="staff-attendance-history-view">
+   <div className="staff-attendance-history-filters"><label>من تاريخ<input className="input" type="date" value={dateFrom} onChange={e=>setDateFrom(e.target.value)}/></label><label>إلى تاريخ<input className="input" type="date" value={dateTo} onChange={e=>setDateTo(e.target.value)}/></label><label className="staff-attendance-history-search">بحث<input className="input" value={historySearch} onChange={e=>setHistorySearch(e.target.value)} placeholder="اسم الموظف أو الجهاز…"/></label><button className="btn btn--secondary btn--sm" onClick={()=>void loadHistory()}>تحديث البيانات</button></div>
+   {historyError&&<div className="staff-attendance-error">{historyError}</div>}{historyLoading&&<div className="staff-attendance-state">جارٍ تحميل سجل التسجيلات…</div>}
+   {!historyLoading&&!historyError&&<div className="staff-attendance-table-wrap"><table className="staff-attendance-table"><thead><tr><th>التاريخ</th><th>وقت التسجيل</th><th>الموظف</th><th>الجهاز</th><th>طريقة التحقق</th></tr></thead><tbody>{filteredHistory.map(e=>{const s=staffById.get(e.staff_relationship_id);return <tr key={e.id}><td>{e.local_date}</td><td>{timeOf(e.local_time)}</td><td><strong dir="auto">{s?nameOf(s):`#${e.staff_relationship_id}`}</strong></td><td>{e.source_device?.name||e.source_device?.source_device_id||'جهاز الحضور'}</td><td>{e.verification_method||'—'}</td></tr>})}{!filteredHistory.length&&<tr><td colSpan={5} className="staff-attendance-empty">لا توجد تسجيلات في الفترة المحددة.</td></tr>}</tbody></table></div>}
+  </section>}
 
-  const loadHistoryAll = useCallback(async () => {
-    setHistoryAllLoading(true);
-    setHistoryAllError('');
-    const response = await fetchStaffAttendanceHistory({
-      date_from: dateFrom || undefined,
-      date_to: dateTo || undefined,
-      page: 1,
-      page_size: 100,
-    });
-    if (response.success) setHistoryAll(response.data || []);
-    else {
-      setHistoryAll([]);
-      setHistoryAllError(response.error.message || 'تعذر تحميل سجل الحضور.');
-    }
-    setHistoryAllLoading(false);
-  }, [dateFrom, dateTo]);
-
-  useEffect(() => {
-    if (view === 'history') void loadHistoryAll();
-  }, [view, loadHistoryAll]);
-
-  const staffById = useMemo(
-    () => new Map(rows.map((row) => [row.staff_relationship_id, row])),
-    [rows],
-  );
-  const filteredHistory = useMemo(() => {
-    const needle = historySearch.trim().toLocaleLowerCase();
-    if (!needle) return historyAll;
-    return historyAll.filter((event) => {
-      const staff = staffById.get(event.staff_relationship_id);
-      const haystack = [
-        staff?.name,
-        staff?.name_ar,
-        staff?.name_fr,
-        event.external_person_id,
-        event.source_device?.name,
-        event.source_device?.source_device_id,
-      ].filter(Boolean).join(' ').toLocaleLowerCase();
-      return haystack.includes(needle);
-    });
-  }, [historyAll, historySearch, staffById]);
-
-  const summary = meta?.summary ?? EMPTY_SUMMARY;
-  const titleDate = useMemo(() => meta?.local_date ? ` — ${meta.local_date}` : '', [meta]);
-
-  const submitSearch = (event: FormEvent) => {
-    event.preventDefault();
-    setSearch(searchInput.trim());
-  };
-
-  return (
-    <div className="admin-workspace staff-attendance-page">
-      <PageHeader title={`حضور الطاقم اليوم${titleDate}`} />
-      <div className="staff-attendance-tabs" role="tablist" aria-label="عرض الحضور">
-        <button type="button" role="tab" aria-selected={view === 'today'} className={view === 'today' ? 'is-active' : ''} onClick={() => setView('today')}>حضور اليوم</button>
-        <button type="button" role="tab" aria-selected={view === 'history'} className={view === 'history' ? 'is-active' : ''} onClick={() => setView('history')}>سجل الحضور</button>
-      </div>
-      <p className="staff-attendance-lead">
-        تسجيلات الدخول الفعلية إلى المؤسسة. «لم يُسجل حضور اليوم» لا تعني الغياب.
-        {meta?.timezone ? <span> المنطقة الزمنية: {meta.timezone}</span> : null}
-      </p>
-
-      {view === 'today' ? (
-        <>
-                <div className="staff-attendance-summary">
-                  <button type="button" className={status === 'all' ? 'is-active' : ''} onClick={() => setStatus('all')}>
-                    <span>إجمالي الطاقم</span><strong>{summary.total_staff}</strong>
-                  </button>
-                  <button type="button" className={status === 'present' ? 'is-active' : ''} onClick={() => setStatus('present')}>
-                    <span>حضر اليوم</span><strong>{summary.present_today}</strong>
-                  </button>
-                  <button type="button" className={status === 'no_record' ? 'is-active' : ''} onClick={() => setStatus('no_record')}>
-                    <span>لم يُسجل حضور اليوم</span><strong>{summary.no_record_today}</strong>
-                  </button>
-                </div>
-          
-                <form className="staff-attendance-toolbar" onSubmit={submitSearch}>
-                  <input
-                    className="input"
-                    value={searchInput}
-                    onChange={(event) => setSearchInput(event.target.value)}
-                    placeholder="ابحث باسم الموظف…"
-                    aria-label="البحث في الطاقم"
-                  />
-                  <button className="btn btn--primary btn--sm" type="submit">بحث</button>
-                  {(search || searchInput) ? (
-                    <button className="btn btn--secondary btn--sm" type="button" onClick={() => { setSearchInput(''); setSearch(''); }}>
-                      مسح
-                    </button>
-                  ) : null}
-                  <button className="btn btn--secondary btn--sm" type="button" onClick={() => void loadToday()}>تحديث</button>
-                </form>
-          
-                {error ? <div className="staff-attendance-error">{error}</div> : null}
-                {loading ? <div className="staff-attendance-state">جارٍ تحميل الحضور…</div> : null}
-          
-                {!loading && !error ? (
-                  <div className="staff-attendance-table-wrap">
-                    <table className="staff-attendance-table">
-                      <thead><tr><th>الموظف</th><th>الحالة اليوم</th><th>أول تسجيل</th><th>آخر تسجيل</th><th>التسجيلات</th><th></th></tr></thead>
-                      <tbody>
-                        {rows.map((row) => (
-                          <tr key={row.staff_relationship_id}>
-                            <td>
-                              <strong dir="auto">{displayName(row)}</strong>
-                              {row.name_fr && row.name_fr !== displayName(row) ? <small dir="auto">{row.name_fr}</small> : null}
-                              {row.role ? <small>{row.role}</small> : null}
-                            </td>
-                            <td>
-                              <Badge tone={row.status === 'present' ? 'green' : 'slate'}>
-                                {row.status === 'present' ? 'حضر اليوم' : 'لم يُسجل حضور اليوم'}
-                              </Badge>
-                            </td>
-                            <td>{formatTime(row.first_seen_at)}</td>
-                            <td>{formatTime(row.last_seen_at)}</td>
-                            <td>{row.observations_count}</td>
-                            <td><button className="btn btn--secondary btn--sm" type="button" onClick={() => setSelected(row)}>السجل</button></td>
-                          </tr>
-                        ))}
-                        {rows.length === 0 ? <tr><td colSpan={6} className="staff-attendance-empty">لا توجد نتائج مطابقة.</td></tr> : null}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : null}
-        </>
-      ) : (
-        <section className="staff-attendance-history-view">
-          <div className="staff-attendance-history-filters">
-            <label>من تاريخ<input className="input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} /></label>
-            <label>إلى تاريخ<input className="input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} /></label>
-            <label className="staff-attendance-history-search">بحث<input className="input" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)} placeholder="اسم الموظف أو معرف الجهاز…" /></label>
-            <button className="btn btn--secondary btn--sm" type="button" onClick={() => void loadHistoryAll()}>تحديث</button>
-          </div>
-          {historyAllError ? <div className="staff-attendance-error">{historyAllError}</div> : null}
-          {historyAllLoading ? <div className="staff-attendance-state">جارٍ تحميل سجل الحضور…</div> : null}
-          {!historyAllLoading && !historyAllError ? (
-            <div className="staff-attendance-table-wrap">
-              <table className="staff-attendance-table">
-                <thead><tr><th>التاريخ</th><th>الوقت</th><th>الموظف</th><th>الجهاز</th><th>طريقة التحقق</th></tr></thead>
-                <tbody>
-                  {filteredHistory.map((event) => {
-                    const staff = staffById.get(event.staff_relationship_id);
-                    return (
-                      <tr key={event.id}>
-                        <td>{event.local_date}</td>
-                        <td>{event.local_time}</td>
-                        <td><strong dir="auto">{staff ? displayName(staff) : `#${event.staff_relationship_id}`}</strong>{staff?.name_fr && staff.name_fr !== displayName(staff) ? <small dir="auto">{staff.name_fr}</small> : null}</td>
-                        <td>{event.source_device?.name || event.source_device?.source_device_id || 'جهاز الحضور'}</td>
-                        <td>{event.verification_method || '—'}</td>
-                      </tr>
-                    );
-                  })}
-                  {filteredHistory.length === 0 ? <tr><td colSpan={5} className="staff-attendance-empty">لا توجد تسجيلات في الفترة المحددة.</td></tr> : null}
-                </tbody>
-              </table>
-            </div>
-          ) : null}
-        </section>
-      )}
-
-      {selected ? (
-        <div className="staff-attendance-history" role="dialog" aria-modal="true" aria-label="السجل التاريخي">
-          <button className="staff-attendance-history__backdrop" aria-label="إغلاق" onClick={() => setSelected(null)} />
-          <section>
-            <header>
-              <div><h2 dir="auto">{displayName(selected)}</h2><p>السجل التاريخي للتسجيلات المقبولة</p></div>
-              <button className="btn btn--secondary btn--sm" type="button" onClick={() => setSelected(null)}>إغلاق</button>
-            </header>
-            {historyLoading ? <div className="staff-attendance-state">جارٍ تحميل السجل…</div> : null}
-            {historyError ? <div className="staff-attendance-error">{historyError}</div> : null}
-            {!historyLoading && !historyError ? (
-              <div className="staff-attendance-history__list">
-                {history.map((event) => (
-                  <article key={event.id}>
-                    <strong>{event.local_date} · {event.local_time}</strong>
-                    <span>{event.source_device?.name || event.source_device?.source_device_id || 'جهاز الحضور'}</span>
-                    {event.verification_method ? <small>{event.verification_method}</small> : null}
-                  </article>
-                ))}
-                {history.length === 0 ? <div className="staff-attendance-state">لا توجد تسجيلات تاريخية.</div> : null}
-              </div>
-            ) : null}
-          </section>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-export default function StaffAttendancePage() {
-  return <StaffAttendanceContent />;
+  {(detail||detailLoading)&&<div className="staff-attendance-history" role="dialog" aria-modal="true"><button className="staff-attendance-history__backdrop" onClick={()=>setDetail(null)} aria-label="إغلاق"/><section><header><div><h2>{detail?nameOf(detail):'تفاصيل الشهر'}</h2><p>{month}/{year}</p></div><button className="btn btn--secondary btn--sm" onClick={()=>setDetail(null)}>إغلاق</button></header>{detailLoading?<div className="staff-attendance-state">جارٍ تحميل التفاصيل…</div>:detail&&<><div className="attendance-detail-summary"><strong>{detail.recorded_work_days}</strong><span>أيام عمل مسجلة</span><strong>{durationOf(detail.total_attendance_duration_minutes)}</strong><span>إجمالي مدة الحضور</span></div><div className="staff-attendance-history__list">{detail.days.map(d=><article key={d.local_date}><strong>{d.local_date}</strong><span>{timeOf(d.first_seen_at)} ← {timeOf(d.last_seen_at)} · {durationOf(d.attendance_duration_minutes,d.attendance_duration_display)}</span><Badge tone={tone(d.day_status)}>{dayLabel(d.day_status)}</Badge>{d.note&&<small>{d.note}</small>}</article>)}</div></>}</section></div>}
+ </div>;
 }
