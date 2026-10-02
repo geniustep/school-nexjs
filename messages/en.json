@@ -141,7 +141,8 @@
     "classResults": "Class results",
     "diagnosticAssessment": "Diagnostic assessment",
     "teachingPlanning": "Pedagogical planning",
-    "teachingAssignments": "Teaching assignments"
+    "teachingAssignments": "Teaching assignments",
+    "staffAttendance": "Staff attendance"
   },
   "states": {
     "draft": "Draft",
@@ -2570,7 +2571,7 @@
       "recordingCompletion": "Recording completion",
       "recordedOfExpected": "{recorded} of {expected} recorded",
       "lastActivity": "Last activity",
-    "recordedBy": "Attendance recorded by",
+      "recordedBy": "Attendance recorded by",
       "noActivity": "No recorded activity",
       "correctRecord": "Correct record",
       "classWorkspace": "Class attendance",
