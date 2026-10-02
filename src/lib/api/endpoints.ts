@@ -41,6 +41,8 @@ export const endpoints = {
     edgeDevices: '/admin/edge/devices',
     staffAttendanceToday: '/admin/staff/attendance/today',
     staffAttendanceHistory: '/admin/staff/attendance/history',
+    staffAttendanceMonthly: '/admin/staff/attendance/monthly',
+    staffAttendanceMonthlyDetail: '/admin/staff/attendance/monthly/detail',
     edgeAttendanceSourceDevices: '/admin/edge/attendance/source-devices',
     edgeAttendanceSourcePersons: (sourceId: number | string) =>
       `/admin/edge/attendance/source-devices/${encodeURIComponent(String(sourceId))}/persons`,
