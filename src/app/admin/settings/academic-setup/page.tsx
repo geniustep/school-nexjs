@@ -25,11 +25,36 @@ import {
   canManageTeachingAssignments,
 } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 
 export default function AcademicSetupOverviewPage() {
   const t = useT();
+  const { locale } = useLocale();
   const user = useSession();
+  const workingWeekEntry =
+    locale === 'fr'
+      ? {
+          title: 'Semaine scolaire',
+          description: "Définir les jours et périodes d’étude utilisés par l’emploi du temps et le calendrier scolaire.",
+          action: 'Configurer',
+        }
+      : locale === 'es'
+        ? {
+            title: 'Semana escolar',
+            description: 'Defina los días y periodos lectivos utilizados por el horario y el calendario escolar.',
+            action: 'Configurar',
+          }
+        : locale === 'en'
+          ? {
+              title: 'School week',
+              description: 'Define the study days and periods used by the timetable and school calendar.',
+              action: 'Configure',
+            }
+          : {
+              title: 'أيام الدراسة الأسبوعية',
+              description: 'حدد أيام وفترات الدراسة التي يعتمد عليها استعمال الزمن والتقويم المدرسي.',
+              action: 'إعداد',
+            };
   const readinessState = useSetupReadiness();
   const lists = useAcademicSetupLists();
   const trackOptionsState = useTrackOptions();
@@ -127,6 +152,18 @@ export default function AcademicSetupOverviewPage() {
           </p>
         </div>
         <SetupDomainCards data={data} />
+        <div className="academic-setup-gap-banner">
+          <div className="academic-setup-gap-banner__copy">
+            <strong>{workingWeekEntry.title}</strong>
+            <span className="tiny muted">{workingWeekEntry.description}</span>
+          </div>
+          <Link
+            href="/admin/settings/academic-setup/working-week"
+            className="btn btn--primary btn--sm"
+          >
+            {workingWeekEntry.action}
+          </Link>
+        </div>
       </section>
 
       <GuidedFlowJourney steps={steps} />
