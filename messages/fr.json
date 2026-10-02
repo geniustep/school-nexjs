@@ -11443,7 +11443,13 @@
           "pricingUnit": "Unité de tarification",
           "unitPrice": "Prix unitaire",
           "actions": "Actions"
-        }
+        },
+        "nameAr": "Nom du service en arabe",
+        "nameFr": "Nom du service en français",
+        "paymentNature": "Nature du service",
+        "paymentNatureFree": "Gratuite",
+        "paymentNaturePaid": "Payante",
+        "paymentNatureHint": "Cette classification décrit le service ; le montant réel reste défini par le plan financier."
       },
       "collections": {
         "studentSelector": {

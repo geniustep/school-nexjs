@@ -11424,7 +11424,13 @@
           "pricingUnit": "Pricing unit",
           "unitPrice": "Unit price",
           "actions": "Actions"
-        }
+        },
+        "nameAr": "Service name in Arabic",
+        "nameFr": "Service name in French",
+        "paymentNature": "Service payment nature",
+        "paymentNatureFree": "Free",
+        "paymentNaturePaid": "Paid",
+        "paymentNatureHint": "This classifies the service only; the actual amount remains defined by the fee plan."
       },
       "collections": {
         "studentSelector": {

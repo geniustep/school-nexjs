@@ -28,7 +28,9 @@ export function FinanceServiceForm({
   const categories = refState.data?.service_categories ?? [];
   const isEdit = service != null;
 
-  const [name, setName] = useState('');
+  const [nameAr, setNameAr] = useState('');
+  const [nameFr, setNameFr] = useState('');
+  const [paymentNature, setPaymentNature] = useState<'free' | 'paid' | ''>('');
   const [code, setCode] = useState('');
   const [category, setCategory] = useState('');
   const [priorityLevel, setPriorityLevel] = useState('normal');
@@ -40,7 +42,9 @@ export function FinanceServiceForm({
 
   useEffect(() => {
     if (!service) {
-      setName('');
+      setNameAr('');
+      setNameFr('');
+      setPaymentNature('');
       setCode('');
       setCategory('');
       setPriorityLevel('normal');
@@ -49,7 +53,9 @@ export function FinanceServiceForm({
       setDescription('');
       return;
     }
-    setName(service.name ?? '');
+    setNameAr(service.name_ar?.trim() || service.name || '');
+    setNameFr(service.name_fr?.trim() || '');
+    setPaymentNature(service.payment_nature ?? '');
     setCode(service.code ?? '');
     setCategory(service.category ?? '');
     setPriorityLevel(normalizeCollectionPriorityLevel(service.allocation_priority_level));
@@ -71,7 +77,9 @@ export function FinanceServiceForm({
 
     const payload = buildFinanceServiceFormPayload(
       {
-        name,
+        nameAr,
+        nameFr,
+        paymentNature,
         category,
         priorityLevel,
         active,
@@ -105,14 +113,41 @@ export function FinanceServiceForm({
       {error ? <p className="form-error">{error}</p> : null}
 
       <label className="finance-services-form__field">
-        {t('admin.finance.services.columns.name')}
+        {t('admin.finance.services.nameAr')}
         <input
           className="input"
           required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          dir="auto"
+          value={nameAr}
+          onChange={(e) => setNameAr(e.target.value)}
+          dir="rtl"
         />
+      </label>
+
+      <label className="finance-services-form__field">
+        {t('admin.finance.services.nameFr')}
+        <input
+          className="input"
+          value={nameFr}
+          onChange={(e) => setNameFr(e.target.value)}
+          dir="ltr"
+        />
+      </label>
+
+      <label className="finance-services-form__field">
+        {t('admin.finance.services.paymentNature')}
+        <select
+          className="input"
+          required
+          value={paymentNature}
+          onChange={(e) => setPaymentNature(e.target.value as 'free' | 'paid')}
+        >
+          <option value="">{t('common.select')}</option>
+          <option value="free">{t('admin.finance.services.paymentNatureFree')}</option>
+          <option value="paid">{t('admin.finance.services.paymentNaturePaid')}</option>
+        </select>
+        <span className="tiny muted finance-services-form__hint">
+          {t('admin.finance.services.paymentNatureHint')}
+        </span>
       </label>
 
       <label className="finance-services-form__field">

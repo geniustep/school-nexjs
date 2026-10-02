@@ -469,6 +469,9 @@ export interface FinanceServiceCatalogItem {
   id: number;
   code?: string;
   name: string;
+  name_ar?: string | null;
+  name_fr?: string | null;
+  payment_nature?: 'free' | 'paid' | null;
   category?: string;
   default_amount?: number;
   currency?: FinanceCurrency;

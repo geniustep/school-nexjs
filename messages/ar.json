@@ -11661,7 +11661,13 @@
           "pricingUnit": "وحدة التسعير",
           "unitPrice": "سعر الوحدة",
           "actions": "إجراءات"
-        }
+        },
+        "nameAr": "اسم الخدمة بالعربية",
+        "nameFr": "اسم الخدمة بالفرنسية",
+        "paymentNature": "طبيعة الخدمة",
+        "paymentNatureFree": "مجانية",
+        "paymentNaturePaid": "مؤدى عنها",
+        "paymentNatureHint": "هذا التصنيف يصف طبيعة الخدمة فقط؛ المبلغ الفعلي تحدده الخطة المالية."
       },
       "collections": {
         "studentSelector": {
