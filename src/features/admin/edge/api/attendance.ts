@@ -12,7 +12,9 @@ export async function fetchStaffCandidates(search:string){
  const q=search.trim().toLocaleLowerCase();
  const staff=(response.data.staff??[]).filter((item:EdgeStaffCandidate)=>{
   if(!q)return true;
-  return [item.name,item.name_ar,item.name_fr].some(value=>value?.trim().toLocaleLowerCase().includes(q));
+  return [item.name,item.name_ar,item.name_fr].some(value=>
+   typeof value==='string'&&value.trim().toLocaleLowerCase().includes(q)
+  );
  });
  return {...response,data:staff};
 }
