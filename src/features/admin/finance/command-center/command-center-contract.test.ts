@@ -80,6 +80,7 @@ describe('Finance Command Center contract helpers', () => {
     ).toBe('/admin/finance/installments?quick=due_next_7_days');
     expect(safeFinanceCommandCenterActionPath('https://evil.example/admin/finance')).toBeNull();
     expect(safeFinanceCommandCenterActionPath('/admin/students')).toBeNull();
+    expect(safeFinanceCommandCenterActionPath('/admin/financeevil')).toBeNull();
     expect(safeFinanceCommandCenterActionPath('//evil.example/admin/finance')).toBeNull();
   });
 
