@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { Badge, PageHeader } from '@/components/ui/primitives';
 import { fetchStaffAttendanceHistory, fetchStaffAttendanceToday } from './api';
 import type {
@@ -187,9 +186,5 @@ function StaffAttendanceContent() {
 }
 
 export default function StaffAttendancePage() {
-  return (
-    <RequireAdminPermission permission="view_attendance">
-      <StaffAttendanceContent />
-    </RequireAdminPermission>
-  );
+  return <StaffAttendanceContent />;
 }

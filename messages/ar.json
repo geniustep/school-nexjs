@@ -141,7 +141,8 @@
     "settings": "الإعدادات",
     "classResults": "نتائج الأقسام",
     "teachingPlanning": "التخطيط التربوي",
-    "teachingAssignments": "إسنادات التدريس"
+    "teachingAssignments": "إسنادات التدريس",
+    "staffAttendance": "حضور الطاقم"
   },
   "states": {
     "draft": "مسودة",
@@ -2673,7 +2674,7 @@
       "recordingCompletion": "اكتمال التسجيل",
       "recordedOfExpected": "{recorded} من {expected} مسجّل",
       "lastActivity": "آخر نشاط",
-    "recordedBy": "سجّل الحضور",
+      "recordedBy": "سجّل الحضور",
       "noActivity": "لا يوجد نشاط مسجل",
       "correctRecord": "تصحيح السجل",
       "classWorkspace": "حضور القسم",
