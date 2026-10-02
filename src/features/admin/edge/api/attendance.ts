@@ -15,3 +15,6 @@ export async function fetchStaffCandidates(search:string){
 }
 export const saveAttendancePersonMapping=(sourceId:number,externalPersonId:string,staffRelationshipId:number,devicePersonLabel?:string)=>
  api.put<EdgeAttendanceMappingData>(endpoints.admin.edgeAttendancePersonMapping(sourceId,externalPersonId),{staff_relationship_id:staffRelationshipId,...(devicePersonLabel?{device_person_label:devicePersonLabel}:{})});
+
+export const unlinkAttendancePersonMapping=(sourceId:number,externalPersonId:string)=>
+ api.patch<{mapping_id:number;external_person_id:string;active:boolean;mapping_status:'inactive_mapping'}>(endpoints.admin.edgeAttendancePersonMapping(sourceId,externalPersonId),{active:false});
