@@ -90,12 +90,16 @@ export function isCommandCenterPeriodReady(
 export function safeFinanceCommandCenterActionPath(
   raw: string | null | undefined,
 ): string | null {
-  if (!raw || !raw.startsWith('/admin/finance')) return null;
-  if (raw.startsWith('//') || raw.includes('\\')) return null;
+  if (!raw || raw.startsWith('//') || raw.includes('\\')) return null;
   try {
     const url = new URL(raw, 'https://raqeem.invalid');
     if (url.origin !== 'https://raqeem.invalid') return null;
-    if (!url.pathname.startsWith('/admin/finance')) return null;
+    if (
+      url.pathname !== '/admin/finance' &&
+      !url.pathname.startsWith('/admin/finance/')
+    ) {
+      return null;
+    }
     return `${url.pathname}${url.search}`;
   } catch {
     return null;
