@@ -109,6 +109,12 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/staff',
     icon: '🧑‍💼',
   });
+  pushIf(staffItems, canAccessStaffCenter(user), {
+    labelKey: 'nav.staffAttendance',
+    href: '/admin/staff/attendance',
+    icon: '🕘',
+    isActive: (pathname) => pathname === '/admin/staff/attendance' || pathname.startsWith('/admin/staff/attendance/'),
+  });
   pushSection(sections, {
     groupId: 'staff',
     icon: '👔',
