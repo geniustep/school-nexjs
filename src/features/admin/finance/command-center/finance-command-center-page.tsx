@@ -72,6 +72,29 @@ function availabilityReasonKey(reason?: string | null): string {
   }
 }
 
+function attentionReasonKey(reason?: string | null): string {
+  switch (reason) {
+    case 'overdue_age_90_plus':
+      return 'admin.finance.commandCenter.attentionReason.overdue90';
+    case 'installments_due_next_7_days':
+      return 'admin.finance.commandCenter.attentionReason.dueNext7';
+    case 'payment_promise_open':
+      return 'admin.finance.commandCenter.attentionReason.promiseOpen';
+    case 'next_followup_today':
+      return 'admin.finance.commandCenter.attentionReason.followupToday';
+    case 'next_followup_overdue':
+      return 'admin.finance.commandCenter.attentionReason.followupOverdue';
+    case 'confirmed_collection_unallocated':
+      return 'admin.finance.commandCenter.attentionReason.unallocated';
+    case 'cheque_rejected':
+      return 'admin.finance.commandCenter.attentionReason.chequeRejected';
+    case 'historical_settlement_attribution_required':
+      return 'admin.finance.commandCenter.reason.historicalAttributionRequired';
+    default:
+      return 'admin.finance.commandCenter.attentionReason.other';
+  }
+}
+
 function CommandCenterHeader({
   refreshing,
   onRefresh,
@@ -603,7 +626,7 @@ function AttentionSection({
                   {item.count != null ? <strong><bdi dir="ltr">{item.count}</bdi></strong> : null}
                 </div>
                 <h3>{attentionTitle(item, t)}</h3>
-                <p>{t(availabilityReasonKey(item.reason_code))}</p>
+                <p>{t(attentionReasonKey(item.reason_code))}</p>
                 {item.amount != null ? (
                   <FinanceMoney amount={item.amount} currency={currency} />
                 ) : null}
