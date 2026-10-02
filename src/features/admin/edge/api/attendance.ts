@@ -11,6 +11,9 @@ export async function fetchStaffCandidates(search:string){
  if(!response.success)return response;
  const q=search.trim().toLocaleLowerCase();
  const staff=(response.data.staff??[]).filter((item:EdgeStaffCandidate)=>{
+  // Attendance identity is a school.staff.relationship. Generic staff/options can
+  // also contain school users (for example student accounts) with no staff relation.
+  if(item.staff_relationship_id==null)return false;
   if(!q)return true;
   return [item.name,item.name_ar,item.name_fr].some(value=>
    typeof value==='string'&&value.trim().toLocaleLowerCase().includes(q)
