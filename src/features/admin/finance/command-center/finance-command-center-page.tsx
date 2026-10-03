@@ -137,47 +137,12 @@ function ContextBar({
 }) {
   const t = useT();
   const { formatDate, formatDateTime } = useFormat();
-  const {
-    activeSchoolId,
-    schools,
-    activeAcademicYearId,
-    academicYears,
-    setActiveAcademicYear,
-    academicYearLoading,
-  } = useAdminSession();
-
-  const activeSchool = schools.find((school) => school.id === activeSchoolId);
-  const selectedYear = academicYears.find((year) => year.id === activeAcademicYearId);
   const asOfDate = summary?.meta.as_of_date;
   const generatedAt = summary?.meta.generated_at;
 
   return (
     <section className="card fcc-context" aria-label={t('admin.finance.commandCenter.contextTitle')}>
       <div className="fcc-context__identity">
-        <div className="fcc-context__fact">
-          <span>{t('admin.finance.commandCenter.school')}</span>
-          <strong dir="auto">{activeSchool?.name ?? t('common.dash')}</strong>
-        </div>
-        <label className="fcc-context__fact">
-          <span>{t('admin.finance.commandCenter.academicYear')}</span>
-          <select
-            className="input"
-            value={activeAcademicYearId ?? ''}
-            disabled={academicYearLoading}
-            onChange={(event) => {
-              const id = Number(event.target.value);
-              if (Number.isFinite(id) && id > 0) setActiveAcademicYear(id);
-            }}
-          >
-            {activeAcademicYearId == null ? (
-              <option value="">{t('admin.finance.commandCenter.selectAcademicYear')}</option>
-            ) : null}
-            {academicYears.map((year) => (
-              <option key={year.id} value={year.id}>{year.name}</option>
-            ))}
-          </select>
-          {selectedYear ? <small>{selectedYear.name}</small> : null}
-        </label>
         <div className="fcc-context__fact">
           <span>{t('admin.finance.commandCenter.asOf')}</span>
           <strong><bdi dir="ltr">{asOfDate ? formatDate(asOfDate) : t('common.dash')}</bdi></strong>

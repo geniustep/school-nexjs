@@ -46,7 +46,8 @@ export function useFinanceCommandCenter(period: FinanceCommandCenterPeriodState)
   const performance = useAdminResource<FinanceCommandCenterPerformance>(
     performanceQuery ? endpoints.admin.financeCommandCenterCollectionPerformance : null,
     performanceQuery ?? undefined,
-    { keepPreviousData: true },
+    // Global school/year changes must never display the previous context while refetching.
+    { keepPreviousData: false },
   );
 
   const aging = useAdminResource<FinanceCommandCenterAging>(
