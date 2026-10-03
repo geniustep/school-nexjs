@@ -230,7 +230,6 @@ function SummarySection({ summary }: { summary: FinanceCommandCenterSummary }) {
   const collected = summary.kpis.recognized_collected_to_date;
   const rate = summary.kpis.collection_rate_to_date;
   const overdue = summary.kpis.overdue;
-  const liquidity = summary.unavailable_metrics.available_liquidity;
   const forecast = summary.unavailable_metrics.expected_liquidity_30d;
 
   return (
@@ -299,13 +298,6 @@ function SummarySection({ summary }: { summary: FinanceCommandCenterSummary }) {
         </div>
 
         <div className="fcc-treasury-grid">
-          <MetricCard
-            label={t('admin.finance.commandCenter.kpi.availableLiquidity')}
-            value={liquidity.available ? t('common.dash') : t('admin.finance.commandCenter.unavailable')}
-            hint={t(availabilityReasonKey(liquidity.reason_code))}
-            tone="warning"
-            compact
-          />
           <MetricCard
             label={t('admin.finance.commandCenter.kpi.expectedLiquidity30')}
             value={forecast.available ? t('common.dash') : t('admin.finance.commandCenter.unavailable')}
