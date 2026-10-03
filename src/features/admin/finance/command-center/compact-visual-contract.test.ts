@@ -23,9 +23,15 @@ describe('Finance Command Center compact visual contract', () => {
     page.indexOf('function AgingSection'),
   );
 
-  it('keeps exactly six governing KPI cards', () => {
-    expect(summarySection.match(/<MetricCard/g) ?? []).toHaveLength(6);
-    expect(summarySection.match(/\bcompact\b/g) ?? []).toHaveLength(2);
+  it('keeps the visible KPI set without the unavailable liquidity card', () => {
+    expect(summarySection.match(/<MetricCard/g) ?? []).toHaveLength(5);
+    expect(summarySection.match(/\bcompact\b/g) ?? []).toHaveLength(1);
+    expect(summarySection).not.toContain(
+      'admin.finance.commandCenter.kpi.availableLiquidity',
+    );
+    expect(summarySection).toContain(
+      'admin.finance.commandCenter.kpi.expectedLiquidity30',
+    );
   });
 
   it('keeps the detailed performance table collapsed by default', () => {
