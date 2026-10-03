@@ -13221,6 +13221,8 @@
         "loadingPerformance": "Cargando análisis de vencimientos y cobros…",
         "performanceEmpty": "No hay datos de vencimiento en el periodo seleccionado.",
         "performanceHistoricalUnavailable": "Cobro, tasa y saldo se ocultan porque liquidaciones históricas no atribuidas podrían hacerlos incompletos.",
+        "showDetails": "Mostrar detalles",
+        "hideDetails": "Ocultar detalles",
         "legend": "Leyenda",
         "due": "Vencido",
         "collected": "Cobrado reconocido",

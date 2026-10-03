@@ -5,20 +5,20 @@
   --fcc-primary: var(--raqeem-primary, #243b6b);
   --fcc-secondary: var(--raqeem-secondary, #24a6a1);
   --fcc-accent: var(--raqeem-accent, #f2a541);
-  gap: 18px;
+  gap: 14px;
 }
 
 .fcc-hero {
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  min-height: 168px;
-  padding: 26px 28px;
+  gap: 20px;
+  min-height: 106px;
+  padding: 18px 22px;
   border: 1px solid color-mix(in srgb, var(--fcc-primary) 18%, var(--fcc-border));
-  border-radius: 18px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at 82% 15%, color-mix(in srgb, var(--fcc-secondary) 18%, transparent), transparent 34%),
     linear-gradient(135deg, color-mix(in srgb, var(--fcc-primary) 8%, var(--c-surface, #fff)), var(--c-surface, #fff));
@@ -28,12 +28,12 @@
 .fcc-hero::after {
   content: '';
   position: absolute;
-  width: 220px;
-  height: 220px;
-  inset-inline-end: -74px;
-  inset-block-start: -92px;
+  width: 150px;
+  height: 150px;
+  inset-inline-end: -52px;
+  inset-block-start: -66px;
   border-radius: 50%;
-  border: 34px solid color-mix(in srgb, var(--fcc-primary) 6%, transparent);
+  border: 24px solid color-mix(in srgb, var(--fcc-primary) 5%, transparent);
   pointer-events: none;
 }
 
@@ -45,7 +45,7 @@
 
 .fcc-hero__eyebrow {
   display: inline-flex;
-  margin-block-end: 16px;
+  margin-block-end: 7px;
   color: var(--fcc-primary);
   font-size: 12px;
   font-weight: 700;
@@ -64,38 +64,41 @@
 .fcc-hero h1 {
   margin: 0;
   color: var(--fcc-ink);
-  font-size: clamp(25px, 3vw, 34px);
+  font-size: clamp(23px, 2.4vw, 29px);
   font-weight: 750;
   letter-spacing: -0.02em;
 }
 
 .fcc-hero p {
   max-width: 720px;
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   color: var(--fcc-muted);
-  line-height: 1.65;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .fcc-context {
-  padding: 18px;
+  padding: 12px 14px;
   display: grid;
-  gap: 18px;
+  grid-template-columns: minmax(260px, .8fr) minmax(0, 2fr);
+  align-items: start;
+  gap: 14px;
 }
 
 .fcc-context__identity {
   display: grid;
-  grid-template-columns: minmax(180px, 1.3fr) repeat(3, minmax(150px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 8px;
 }
 
 .fcc-context__fact {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
+  gap: 3px;
+  padding: 8px 10px;
   border: 1px solid var(--fcc-border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--c-surface-2, #f8fafc);
 }
 
@@ -107,7 +110,7 @@
 }
 
 .fcc-context__fact strong {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .fcc-context__fact .input {
@@ -117,21 +120,21 @@
 }
 
 .fcc-period {
-  padding-block-start: 16px;
-  border-block-start: 1px solid var(--fcc-border);
+  padding: 0;
+  border: 0;
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .fcc-period__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px;
 }
 
 .fcc-period__head strong {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .fcc-period__head span {
@@ -140,9 +143,15 @@
 }
 
 .fcc-period__presets {
-  display: flex;
-  gap: 8px;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 3px;
   flex-wrap: wrap;
+  padding: 3px;
+  border: 1px solid var(--fcc-border);
+  border-radius: 11px;
+  background: var(--c-surface-2, #f8fafc);
 }
 
 .fcc-period__custom {
@@ -175,7 +184,7 @@
 .fcc-section__head h2 {
   margin: 0;
   color: var(--fcc-ink);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 750;
 }
 
@@ -212,11 +221,11 @@
 
 .fcc-kpi {
   position: relative;
-  min-height: 132px;
+  min-height: 112px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+  gap: 6px;
+  padding: 14px;
   text-decoration: none;
   transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
 }
@@ -247,7 +256,7 @@ a.fcc-kpi:hover {
 
 .fcc-kpi__value {
   color: var(--fcc-ink);
-  font-size: clamp(21px, 2.2vw, 28px);
+  font-size: clamp(20px, 2vw, 26px);
   font-weight: 760;
   line-height: 1.15;
 }
@@ -255,12 +264,32 @@ a.fcc-kpi:hover {
 .fcc-kpi__hint {
   margin-block-start: auto;
   color: var(--fcc-muted);
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.fcc-kpi--compact {
+  min-height: 86px;
+  padding: 11px 14px;
+}
+
+.fcc-kpi--compact::before {
+  width: 24px;
+  height: 2px;
+}
+
+.fcc-kpi--compact .fcc-kpi__value {
+  font-size: 16px;
+  font-weight: 720;
+}
+
+.fcc-kpi--compact .fcc-kpi__hint {
+  margin-block-start: 1px;
+  max-width: 680px;
 }
 
 .fcc-skeleton {
-  min-height: 132px;
+  min-height: 112px;
   background:
     linear-gradient(90deg, transparent, rgba(148, 163, 184, .12), transparent),
     var(--c-surface, #fff);
@@ -274,25 +303,25 @@ a.fcc-kpi:hover {
 
 .fcc-performance {
   overflow: hidden;
-  padding: 18px;
+  padding: 14px;
 }
 
 .fcc-performance__chart {
-  min-height: 250px;
+  min-height: 190px;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(72px, 1fr);
+  grid-auto-columns: minmax(66px, 1fr);
   align-items: end;
-  gap: 12px;
+  gap: 9px;
   overflow-x: auto;
-  padding: 18px 4px 10px;
+  padding: 10px 2px 8px;
   border-block-end: 1px solid var(--fcc-border);
 }
 
 .fcc-performance__month {
-  min-width: 72px;
+  min-width: 66px;
   display: grid;
-  grid-template-rows: 180px auto auto;
+  grid-template-rows: 128px auto auto;
   gap: 7px;
   text-align: center;
   color: var(--fcc-muted);
@@ -300,7 +329,7 @@ a.fcc-kpi:hover {
 }
 
 .fcc-performance__bars {
-  height: 180px;
+  height: 128px;
   display: flex;
   align-items: end;
   justify-content: center;
@@ -350,9 +379,44 @@ a.fcc-kpi:hover {
 .fcc-legend__dot--due { background: color-mix(in srgb, var(--fcc-primary) 75%, white); }
 .fcc-legend__dot--collected { background: var(--fcc-secondary); }
 
+.fcc-performance__details {
+  margin-block-start: 10px;
+  border-block-start: 1px solid var(--fcc-border);
+}
+
+.fcc-performance__details-toggle {
+  width: fit-content;
+  cursor: pointer;
+  list-style: none;
+  margin-block-start: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--fcc-border);
+  border-radius: 9px;
+  color: var(--fcc-primary);
+  background: var(--c-surface-2, #f8fafc);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fcc-performance__details-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.fcc-performance__details-open {
+  display: none;
+}
+
+.fcc-performance__details[open] .fcc-performance__details-closed {
+  display: none;
+}
+
+.fcc-performance__details[open] .fcc-performance__details-open {
+  display: inline;
+}
+
 .fcc-table-wrap {
   overflow-x: auto;
-  margin-block-start: 16px;
+  margin-block-start: 8px;
 }
 
 .fcc-table {
@@ -362,7 +426,7 @@ a.fcc-kpi:hover {
 
 .fcc-table th,
 .fcc-table td {
-  padding: 10px 12px;
+  padding: 8px 10px;
   text-align: start;
   border-block-end: 1px solid var(--fcc-border);
   white-space: nowrap;
@@ -382,20 +446,20 @@ a.fcc-kpi:hover {
 .fcc-decision-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr);
-  gap: 18px;
+  gap: 14px;
   align-items: start;
 }
 
 .fcc-aging {
-  padding: 10px 16px;
+  padding: 8px 12px;
 }
 
 .fcc-aging__row {
   display: grid;
   grid-template-columns: minmax(120px, .8fr) minmax(150px, 1.7fr) minmax(130px, .8fr);
   align-items: center;
-  gap: 14px;
-  padding: 13px 2px;
+  gap: 12px;
+  padding: 10px 2px;
   color: inherit;
   text-decoration: none;
   border-block-end: 1px solid var(--fcc-border);
@@ -455,8 +519,8 @@ a.fcc-kpi:hover {
 
 .fcc-attention {
   display: grid;
-  gap: 8px;
-  padding: 14px 16px;
+  gap: 7px;
+  padding: 12px 14px;
   border-inline-start: 4px solid var(--fcc-primary);
 }
 
@@ -488,7 +552,7 @@ a.fcc-kpi:hover {
 }
 
 .fcc-attention-empty {
-  padding: 20px;
+  padding: 14px;
   display: grid;
   gap: 5px;
   border-style: dashed;
@@ -504,6 +568,10 @@ a.fcc-kpi:hover {
 }
 
 @media (max-width: 1100px) {
+  .fcc-context {
+    grid-template-columns: 1fr;
+  }
+
   .fcc-context__identity {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -524,7 +592,7 @@ a.fcc-kpi:hover {
 
   .fcc-hero {
     min-height: 0;
-    padding: 20px;
+    padding: 15px 16px;
     align-items: stretch;
     flex-direction: column;
   }
@@ -533,6 +601,7 @@ a.fcc-kpi:hover {
     align-self: flex-start;
   }
 
+  .fcc-context,
   .fcc-context__identity,
   .fcc-treasury-grid,
   .fcc-period__custom {
