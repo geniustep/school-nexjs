@@ -202,12 +202,14 @@ function MetricCard({
   hint,
   href,
   tone,
+  compact = false,
 }: {
   label: string;
   value: React.ReactNode;
   hint?: React.ReactNode;
   href?: string | null;
   tone?: 'default' | 'danger' | 'success' | 'warning';
+  compact?: boolean;
 }) {
   const body = (
     <>
@@ -216,7 +218,7 @@ function MetricCard({
       {hint ? <span className="fcc-kpi__hint">{hint}</span> : null}
     </>
   );
-  const className = `card fcc-kpi fcc-kpi--${tone ?? 'default'}`;
+  const className = `card fcc-kpi fcc-kpi--${tone ?? 'default'}${compact ? ' fcc-kpi--compact' : ''}`;
   return href ? <Link href={href} className={className}>{body}</Link> : <article className={className}>{body}</article>;
 }
 
@@ -302,12 +304,14 @@ function SummarySection({ summary }: { summary: FinanceCommandCenterSummary }) {
             value={liquidity.available ? t('common.dash') : t('admin.finance.commandCenter.unavailable')}
             hint={t(availabilityReasonKey(liquidity.reason_code))}
             tone="warning"
+            compact
           />
           <MetricCard
             label={t('admin.finance.commandCenter.kpi.expectedLiquidity30')}
             value={forecast.available ? t('common.dash') : t('admin.finance.commandCenter.unavailable')}
             hint={t(availabilityReasonKey(forecast.reason_code))}
             tone="warning"
+            compact
           />
         </div>
       </section>
@@ -427,38 +431,48 @@ function PerformanceSection({
           ))}
         </div>
 
-        <div className="fcc-table-wrap">
-          <table className="fcc-table">
-            <thead>
-              <tr>
-                <th>{t('admin.finance.commandCenter.periodColumn')}</th>
-                <th>{t('admin.finance.commandCenter.due')}</th>
-                <th>{t('admin.finance.commandCenter.collected')}</th>
-                <th>{t('admin.finance.commandCenter.collectionRate')}</th>
-                <th>{t('admin.finance.commandCenter.remaining')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item) => (
-                <tr key={item.period}>
-                  <td>{periodLabel(item.period, locale)}</td>
-                  <td><FinanceMoney amount={item.due_amount} currency={currency} /></td>
-                  <td>
-                    {item.recognized_collected_amount == null
-                      ? <span className="muted">—</span>
-                      : <FinanceMoney amount={item.recognized_collected_amount} currency={currency} />}
-                  </td>
-                  <td>{percentage(item.collection_rate)}</td>
-                  <td>
-                    {item.remaining_amount == null
-                      ? <span className="muted">—</span>
-                      : <FinanceMoney amount={item.remaining_amount} currency={currency} />}
-                  </td>
+        <details className="fcc-performance__details">
+          <summary className="fcc-performance__details-toggle">
+            <span className="fcc-performance__details-closed">
+              {t('admin.finance.commandCenter.showDetails')}
+            </span>
+            <span className="fcc-performance__details-open">
+              {t('admin.finance.commandCenter.hideDetails')}
+            </span>
+          </summary>
+          <div className="fcc-table-wrap">
+            <table className="fcc-table">
+              <thead>
+                <tr>
+                  <th>{t('admin.finance.commandCenter.periodColumn')}</th>
+                  <th>{t('admin.finance.commandCenter.due')}</th>
+                  <th>{t('admin.finance.commandCenter.collected')}</th>
+                  <th>{t('admin.finance.commandCenter.collectionRate')}</th>
+                  <th>{t('admin.finance.commandCenter.remaining')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {data.items.map((item) => (
+                  <tr key={item.period}>
+                    <td>{periodLabel(item.period, locale)}</td>
+                    <td><FinanceMoney amount={item.due_amount} currency={currency} /></td>
+                    <td>
+                      {item.recognized_collected_amount == null
+                        ? <span className="muted">—</span>
+                        : <FinanceMoney amount={item.recognized_collected_amount} currency={currency} />}
+                    </td>
+                    <td>{percentage(item.collection_rate)}</td>
+                    <td>
+                      {item.remaining_amount == null
+                        ? <span className="muted">—</span>
+                        : <FinanceMoney amount={item.remaining_amount} currency={currency} />}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
       </div>
     </section>
   );
