@@ -13220,6 +13220,8 @@
         "loadingPerformance": "Loading due and collection performance…",
         "performanceEmpty": "No due data exists in the selected period.",
         "performanceHistoricalUnavailable": "Collected, rate and remaining values are hidden here because unattributed historical settlements could make them incomplete.",
+        "showDetails": "Show details",
+        "hideDetails": "Hide details",
         "legend": "Chart legend",
         "due": "Due",
         "collected": "Recognized collected",

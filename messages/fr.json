@@ -13241,6 +13241,8 @@
         "loadingPerformance": "Chargement de l’analyse échéances/encaissements…",
         "performanceEmpty": "Aucune échéance dans la période sélectionnée.",
         "performanceHistoricalUnavailable": "L’encaissement, le taux et le restant sont masqués ici car des règlements historiques non attribués pourraient rendre ces valeurs incomplètes.",
+        "showDetails": "Afficher les détails",
+        "hideDetails": "Masquer les détails",
         "legend": "Légende",
         "due": "Échu",
         "collected": "Encaissé reconnu",
