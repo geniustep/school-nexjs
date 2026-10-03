@@ -3,6 +3,7 @@ import {
   FINANCE_VIEW,
   FINANCE_VIEW_CASH_SESSIONS,
   FINANCE_VIEW_CHEQUES,
+  FINANCE_VIEW_STUDENT_BALANCE,
 } from '@/lib/permissions/finance';
 
 /** Server gate for finance workspace — before any nested client fetch. */
@@ -11,6 +12,7 @@ export default async function AdminFinanceLayout({ children }: { children: React
     FINANCE_VIEW,
     FINANCE_VIEW_CHEQUES,
     FINANCE_VIEW_CASH_SESSIONS,
+    FINANCE_VIEW_STUDENT_BALANCE,
   ]);
   return children;
 }

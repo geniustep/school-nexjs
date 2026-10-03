@@ -634,6 +634,11 @@ export const endpoints = {
     financeReceipt: (id: number | string) => `/admin/finance/receipts/${id}`,
     financeReceiptPdf: (id: number | string) => `/admin/finance/receipts/${id}/pdf`,
     financeOverview: '/admin/finance/overview',
+    financeCommandCenterSummary: '/admin/finance/command-center/summary',
+    financeCommandCenterCollectionPerformance:
+      '/admin/finance/command-center/collection-performance',
+    financeCommandCenterAging: '/admin/finance/command-center/aging',
+    financeCommandCenterAttention: '/admin/finance/command-center/attention',
     financeInstallments: '/admin/finance/installments',
     financePaymentJournals: '/admin/finance/payment-journals',
     financeAcademicYears: '/admin/finance/academic-years',
