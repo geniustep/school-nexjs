@@ -1,3 +1,5 @@
+import type { FinanceInstallment, FinanceInstallmentListSummary } from './finance';
+
 export interface FinanceCommandCenterCurrency {
   id: number;
   name: string;
@@ -21,23 +23,40 @@ export interface FinanceCommandCenterAvailability {
   reason_code?: string | null;
 }
 
+export type FinanceCommandCenterMetricKey =
+  | 'due_to_date'
+  | 'recognized_collected_to_date'
+  | 'collection_rate_to_date'
+  | 'overdue'
+  | 'aging'
+  | 'collection_performance';
+
+export interface FinanceCommandCenterDrilldownTarget {
+  endpoint: string;
+  query: Record<string, string | number | null | undefined>;
+}
+
 export interface FinanceCommandCenterSummary extends Record<string, unknown> {
   meta: FinanceCommandCenterMeta;
   kpis: {
     due_to_date: {
       amount: number;
       installments_count: number;
+      drilldown?: FinanceCommandCenterDrilldownTarget | null;
     };
     recognized_collected_to_date: FinanceCommandCenterAvailability & {
       amount?: number | null;
       operational_settled_amount?: number | null;
       historical_unattributed_amount?: number | null;
       basis?: string | null;
+      drilldown?: FinanceCommandCenterDrilldownTarget | null;
     };
     collection_rate_to_date: FinanceCommandCenterAvailability & {
       value?: number | null;
       numerator?: number | null;
       denominator?: number | null;
+      formula?: string | null;
+      drilldown?: FinanceCommandCenterDrilldownTarget | null;
     };
     overdue: FinanceCommandCenterAvailability & {
       amount?: number | null;
@@ -46,7 +65,12 @@ export interface FinanceCommandCenterSummary extends Record<string, unknown> {
       installments_count: number;
       billing_accounts_count: number;
       students_count: number;
+      drilldown?: FinanceCommandCenterDrilldownTarget | null;
     };
+  };
+  explain?: {
+    endpoint?: string | null;
+    query_keys?: string[];
   };
   unavailable_metrics: {
     available_liquidity: FinanceCommandCenterAvailability;
@@ -73,6 +97,7 @@ export interface FinanceCommandCenterPerformanceItem {
   installments_count: number;
   billing_accounts_count: number;
   students_count: number;
+  drilldown?: FinanceCommandCenterDrilldownTarget | null;
 }
 
 export interface FinanceCommandCenterPerformance {
@@ -101,6 +126,7 @@ export interface FinanceCommandCenterAgingItem {
   students_count: number;
   percentage_of_overdue?: number | null;
   reason_code?: string | null;
+  drilldown?: FinanceCommandCenterDrilldownTarget | null;
 }
 
 export interface FinanceCommandCenterAging {
@@ -126,6 +152,7 @@ export interface FinanceCommandCenterAttentionItem {
   amount?: number | null;
   reason_code: string;
   action_path?: string | null;
+  drilldown?: FinanceCommandCenterDrilldownTarget | null;
 }
 
 export interface FinanceCommandCenterAttention {
@@ -137,4 +164,37 @@ export interface FinanceCommandCenterAttention {
     cash_variance?: boolean;
     cash_variance_reason?: string | null;
   };
+}
+
+export interface FinanceCommandCenterDrilldown {
+  meta?: FinanceCommandCenterMeta | null;
+  items: FinanceInstallment[];
+  summary: FinanceInstallmentListSummary;
+  applied_filters?: Record<string, unknown>;
+  drilldown?: FinanceCommandCenterDrilldownTarget | null;
+}
+
+export interface FinanceCommandCenterExplain {
+  meta: FinanceCommandCenterMeta;
+  metric_key: FinanceCommandCenterMetricKey;
+  aging_bucket?: FinanceCommandCenterAgingKey | null;
+  period?: string | null;
+  currency?: FinanceCommandCenterCurrency | null;
+  record_count: number;
+  filters?: Record<string, unknown>;
+  data_quality_status: string;
+  reason_codes?: string[];
+  excluded_or_unattributed_amount?: number | null;
+  drilldown_target?: FinanceCommandCenterDrilldownTarget | null;
+  explain_endpoint?: string | null;
+  value?: number | {
+    due_amount: number;
+    recognized_collected_amount?: number | null;
+    collection_rate?: number | null;
+  } | null;
+  operational_value?: number | null;
+  definition?: string | null;
+  formula?: string | null;
+  numerator?: number | null;
+  denominator?: number | null;
 }
