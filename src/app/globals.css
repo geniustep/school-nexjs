@@ -1697,6 +1697,34 @@ table.data tbody tr:hover {
   text-align: center;
 }
 
+.activation-card__success > p {
+  margin: 0;
+}
+
+.activation-card__stores {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--login-brand-primary) 12%, var(--c-border) 88%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--login-brand-primary) 4%, white 96%);
+  text-align: center;
+}
+
+.activation-card__stores > p {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.activation-card__store-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
 .activation-card__identity {
   display: grid;
   gap: 6px;
