@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ApiErrorView, EmptyState, ErrorState, LoadingState } from '@/components/states/states';
 import { Badge, InfoBanner } from '@/components/ui/primitives';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
@@ -235,7 +235,6 @@ function SummarySection({
   const collected = summary.kpis.recognized_collected_to_date;
   const rate = summary.kpis.collection_rate_to_date;
   const overdue = summary.kpis.overdue;
-  const forecast = summary.unavailable_metrics.expected_liquidity_30d;
 
   return (
     <>
@@ -309,15 +308,6 @@ function SummarySection({
           />
         </div>
 
-        <div className="fcc-treasury-grid">
-          <MetricCard
-            label={t('admin.finance.commandCenter.kpi.expectedLiquidity30')}
-            value={forecast.available ? t('common.dash') : t('admin.finance.commandCenter.unavailable')}
-            hint={t(availabilityReasonKey(forecast.reason_code))}
-            tone="warning"
-            compact
-          />
-        </div>
       </section>
     </>
   );
@@ -340,24 +330,50 @@ function periodLabel(period: string, locale: string): string {
   }).format(new Date(Date.UTC(year, month - 1, 1, 12)));
 }
 
+function comparisonPeriodKeys(asOfDate: string | null | undefined): {
+  previous: string | null;
+  current: string | null;
+} {
+  if (!asOfDate || !/^\d{4}-\d{2}-\d{2}$/.test(asOfDate)) {
+    return { previous: null, current: null };
+  }
+  const [year, month] = asOfDate.slice(0, 7).split('-').map(Number);
+  if (!year || !month) return { previous: null, current: null };
+  const previousDate = new Date(Date.UTC(year, month - 2, 1, 12));
+  return {
+    current: `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`,
+    previous: `${previousDate.getUTCFullYear()}-${String(previousDate.getUTCMonth() + 1).padStart(2, '0')}`,
+  };
+}
+
 function ComparisonMonthCard({
   item,
+  period,
+  roleLabel,
   currency,
   locale,
 }: {
-  item: FinanceCommandCenterPerformanceItem;
+  item: FinanceCommandCenterPerformanceItem | undefined;
+  period: string;
+  roleLabel: string;
   currency?: string;
   locale: string;
 }) {
   const t = useT();
+  const money = (amount: number | null | undefined) => (
+    amount == null
+      ? <span className="muted">{t('common.dash')}</span>
+      : <FinanceMoney amount={amount} currency={currency} />
+  );
   return (
     <article className="fcc-month-comparison__card">
-      <strong>{periodLabel(item.period, locale)}</strong>
+      <span className="fcc-month-comparison__period-role">{roleLabel}</span>
+      <strong>{periodLabel(period, locale)}</strong>
       <dl>
-        <div><dt>{t('admin.finance.commandCenter.due')}</dt><dd><FinanceMoney amount={item.due_amount} currency={currency} /></dd></div>
-        <div><dt>{t('admin.finance.commandCenter.collected')}</dt><dd><FinanceMoney amount={item.recognized_collected_amount} currency={currency} /></dd></div>
-        <div><dt>{t('admin.finance.commandCenter.collectionRate')}</dt><dd>{percentage(item.collection_rate)}</dd></div>
-        <div><dt>{t('admin.finance.commandCenter.remaining')}</dt><dd><FinanceMoney amount={item.remaining_amount} currency={currency} /></dd></div>
+        <div><dt>{t('admin.finance.commandCenter.due')}</dt><dd>{money(item?.due_amount)}</dd></div>
+        <div><dt>{t('admin.finance.commandCenter.collected')}</dt><dd>{money(item?.recognized_collected_amount)}</dd></div>
+        <div><dt>{t('admin.finance.commandCenter.collectionRate')}</dt><dd>{percentage(item?.collection_rate)}</dd></div>
+        <div><dt>{t('admin.finance.commandCenter.remaining')}</dt><dd>{money(item?.remaining_amount)}</dd></div>
       </dl>
     </article>
   );
@@ -366,20 +382,11 @@ function ComparisonMonthCard({
 function MonthComparison({ data }: { data: FinanceCommandCenterPerformance }) {
   const t = useT();
   const { locale } = useLocale();
-  const periods = data.items.map((item) => item.period);
-  const periodKey = periods.join('|');
-  const [monthA, setMonthA] = useState(periods.at(-2) ?? periods[0] ?? '');
-  const [monthB, setMonthB] = useState(periods.at(-1) ?? periods[0] ?? '');
+  const { previous, current } = comparisonPeriodKeys(data.meta.as_of_date);
+  if (!previous || !current) return null;
 
-  useEffect(() => {
-    if (!periods.length) return;
-    if (!periods.includes(monthA)) setMonthA(periods.at(-2) ?? periods[0]);
-    if (!periods.includes(monthB)) setMonthB(periods.at(-1) ?? periods[0]);
-  }, [monthA, monthB, periodKey]);
-
-  if (data.items.length < 2) return null;
-  const left = data.items.find((item) => item.period === monthA) ?? data.items[0];
-  const right = data.items.find((item) => item.period === monthB) ?? data.items[1];
+  const previousItem = data.items.find((item) => item.period === previous);
+  const currentItem = data.items.find((item) => item.period === current);
   const currency = data.meta.currency?.name;
 
   return (
@@ -389,24 +396,22 @@ function MonthComparison({ data }: { data: FinanceCommandCenterPerformance }) {
           <strong>{t('admin.finance.commandCenter.decision.comparison')}</strong>
           <span>{t('admin.finance.commandCenter.decision.dueCohortComparison')}</span>
         </div>
-        <div className="fcc-month-comparison__selectors">
-          <label>
-            <span>{t('admin.finance.commandCenter.decision.firstMonth')}</span>
-            <select value={monthA} onChange={(event) => setMonthA(event.target.value)}>
-              {data.items.map((item) => <option value={item.period} key={`a-${item.period}`}>{periodLabel(item.period, locale)}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>{t('admin.finance.commandCenter.decision.secondMonth')}</span>
-            <select value={monthB} onChange={(event) => setMonthB(event.target.value)}>
-              {data.items.map((item) => <option value={item.period} key={`b-${item.period}`}>{periodLabel(item.period, locale)}</option>)}
-            </select>
-          </label>
-        </div>
       </div>
       <div className="fcc-month-comparison__grid">
-        <ComparisonMonthCard item={left} currency={currency} locale={locale} />
-        <ComparisonMonthCard item={right} currency={currency} locale={locale} />
+        <ComparisonMonthCard
+          item={previousItem}
+          period={previous}
+          roleLabel={t('admin.finance.commandCenter.period.previous_month')}
+          currency={currency}
+          locale={locale}
+        />
+        <ComparisonMonthCard
+          item={currentItem}
+          period={current}
+          roleLabel={t('admin.finance.commandCenter.period.this_month')}
+          currency={currency}
+          locale={locale}
+        />
       </div>
     </section>
   );
