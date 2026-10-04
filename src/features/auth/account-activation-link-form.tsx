@@ -18,7 +18,8 @@ type ApiEnvelope<T> = { success: true; data: T } | { success: false; error?: { c
 const APP_OPEN_URL = process.env.NEXT_PUBLIC_RAQEEM_APP_OPEN_URL?.trim() ?? '';
 const ANDROID_STORE_URL = process.env.NEXT_PUBLIC_RAQEEM_ANDROID_STORE_URL?.trim()
   || 'https://play.google.com/store/apps/details?id=ma.raqeem.app';
-const IOS_STORE_URL = process.env.NEXT_PUBLIC_RAQEEM_IOS_STORE_URL?.trim() ?? '';
+const IOS_STORE_URL = process.env.NEXT_PUBLIC_RAQEEM_IOS_STORE_URL?.trim()
+  || 'https://apps.apple.com/us/app/raqeem/id6802398877';
 
 type ActivationIdentity = {
   status?: string;
