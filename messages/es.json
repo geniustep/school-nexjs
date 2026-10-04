@@ -13300,7 +13300,8 @@
           "nextPage": "Siguiente",
           "invalidTargetTitle": "No se pudieron abrir los detalles de forma segura",
           "invalidTargetDesc": "La interfaz rechazó el destino porque no coincide con el contrato aprobado del Centro de mando financiero.",
-          "definition": {
+                    "rateNoDuplicateTable": "La tasa de cobro utiliza el mismo conjunto de cuotas vencidas; sus componentes se muestran arriba en lugar de repetir la misma tabla.",
+"definition": {
             "due": "Suma de las cuotas cuya fecha de vencimiento ya se alcanzó a la fecha de situación, dentro del ámbito financiero autorizado.",
             "collected": "Importe liquidado y reconocido sobre el mismo conjunto de cuotas vencidas; no se añaden cuotas futuras fuera del conjunto.",
             "rate": "Cobrado reconocido dividido por vencido sobre el mismo conjunto, calculado por Backend.",
