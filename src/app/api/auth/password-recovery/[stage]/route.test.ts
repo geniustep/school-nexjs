@@ -100,6 +100,19 @@ describe('Password Recovery BFF', () => {
     expect(init.body).toBe(JSON.stringify({ phone: '0668707907' }));
   });
 
+  it('rejects an obviously invalid phone before any upstream call', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await POST(
+      requestFor('request', { phone: '0' }),
+      contextFor('request'),
+    );
+
+    expect(response.status).toBe(422);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('rejects client identity injection before upstream', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

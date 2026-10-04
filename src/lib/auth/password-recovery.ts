@@ -2,6 +2,15 @@ import type { ApiResponse } from '@/types/api';
 
 export type PasswordRecoveryStage = 'request' | 'verify' | 'complete';
 
+const MOROCCAN_LOCAL_PHONE = /^0[5-7]\d{8}$/;
+const MOROCCAN_INTL_PHONE = /^(?:\+212|212|00212)[5-7]\d{8}$/;
+
+export function isPlausibleRecoveryPhone(value: string): boolean {
+  const compact = value.trim().replace(/[\s().-]/g, '');
+  if (!compact) return false;
+  return MOROCCAN_LOCAL_PHONE.test(compact) || MOROCCAN_INTL_PHONE.test(compact);
+}
+
 export type PasswordRecoveryRequestBody = { phone: string };
 export type PasswordRecoveryVerifyBody = { phone: string; otp: string };
 export type PasswordRecoveryCompleteBody = {
@@ -26,7 +35,7 @@ export function parsePasswordRecoveryPayload(
     if (Object.keys(payload).some((key) => key !== 'phone')) return { ok: false };
     if (typeof payload.phone !== 'string') return { ok: false };
     const phone = payload.phone.trim();
-    if (!phone || phone.length > 64) return { ok: false };
+    if (!phone || phone.length > 64 || !isPlausibleRecoveryPhone(phone)) return { ok: false };
     return { ok: true, body: { phone } };
   }
 
@@ -38,7 +47,7 @@ export function parsePasswordRecoveryPayload(
     }
     const phone = payload.phone.trim();
     const otp = payload.otp.trim();
-    if (!phone || phone.length > 64 || !/^\d{6}$/.test(otp)) return { ok: false };
+    if (!phone || phone.length > 64 || !isPlausibleRecoveryPhone(phone) || !/^\d{6}$/.test(otp)) return { ok: false };
     return { ok: true, body: { phone, otp } };
   }
 

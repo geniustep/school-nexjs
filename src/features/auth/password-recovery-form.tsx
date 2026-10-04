@@ -11,7 +11,7 @@ import {
   loginBrandingStyle,
   loginPageBranded,
 } from '@/lib/public-school-branding/client';
-import { parseRetryAfterSeconds } from '@/lib/auth/password-recovery';
+import { isPlausibleRecoveryPhone, parseRetryAfterSeconds } from '@/lib/auth/password-recovery';
 import type { ApiResponse } from '@/types/api';
 import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
 
@@ -122,6 +122,10 @@ export function PasswordRecoveryForm({
   async function requestOtp({ resend = false }: { resend?: boolean } = {}) {
     if (!phone.trim()) {
       setError(t('auth.passwordRecovery.errors.phoneRequired'));
+      return;
+    }
+    if (!isPlausibleRecoveryPhone(phone)) {
+      setError(t('auth.passwordRecovery.errors.phoneInvalid'));
       return;
     }
     if (resend && cooldownRemaining > 0) return;
