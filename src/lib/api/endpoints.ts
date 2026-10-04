@@ -639,6 +639,8 @@ export const endpoints = {
       '/admin/finance/command-center/collection-performance',
     financeCommandCenterAging: '/admin/finance/command-center/aging',
     financeCommandCenterAttention: '/admin/finance/command-center/attention',
+    financeCommandCenterDrilldown: '/admin/finance/command-center/drilldown',
+    financeCommandCenterExplain: '/admin/finance/command-center/explain',
     financeInstallments: '/admin/finance/installments',
     financePaymentJournals: '/admin/finance/payment-journals',
     financeAcademicYears: '/admin/finance/academic-years',
