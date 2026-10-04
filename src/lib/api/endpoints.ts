@@ -13,6 +13,9 @@ export const endpoints = {
     me: '/me',
     accountActivationVerify: '/auth/account-activation/verify',
     accountActivationSetPassword: '/auth/account-activation/set-password',
+    passwordRecoveryRequest: '/auth/password-recovery/request',
+    passwordRecoveryVerify: '/auth/password-recovery/verify',
+    passwordRecoveryComplete: '/auth/password-recovery/complete',
   },
 
   public: {
