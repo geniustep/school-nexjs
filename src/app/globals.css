@@ -3466,3 +3466,64 @@ table.data tbody tr:hover {
 .date-picker__footer-btn--primary:hover {
   background: var(--c-primary-soft);
 }
+
+
+/* ---------- Password recovery ---------- */
+.login-card__forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-start: -2px;
+}
+
+.login-card__forgot a,
+.password-recovery-card__secondary button {
+  color: var(--login-brand-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.login-card__forgot a:hover {
+  text-decoration: underline;
+}
+
+.password-recovery-card__notice {
+  margin-block-end: 14px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--login-brand-primary) 18%, var(--c-border) 82%);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--login-brand-primary) 6%, white 94%);
+  color: var(--c-text);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.password-recovery-card__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-block-start: 16px;
+}
+
+.password-recovery-card__secondary button {
+  appearance: none;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.password-recovery-card__secondary button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.password-recovery-card__secondary button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.password-recovery-card .activation-card__success h1,
+.password-recovery-card .activation-card__success p {
+  margin: 0;
+}
