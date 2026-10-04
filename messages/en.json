@@ -663,6 +663,47 @@
       "role_not_available": "This role is not available for your account. Your current role was kept.",
       "role_switch_failed": "Could not switch role. Please try again.",
       "invalid_active_role": "Invalid role."
+    },
+    "forgotPassword": "Forgot password?",
+    "passwordRecovery": {
+      "title": "Forgot password?",
+      "intro": "Enter the phone number linked to your Raqeem account. If it matches an eligible account, a verification code will be sent.",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "06XXXXXXXX",
+      "sendCode": "Send verification code",
+      "sending": "Sending request…",
+      "backToLogin": "Back to sign in",
+      "requestAccepted": "If this number is linked to an eligible account, you will receive a verification code.",
+      "otpTitle": "Enter verification code",
+      "otpIntro": "Enter the 6-digit verification code.",
+      "otpLabel": "Verification code",
+      "verifyCode": "Verify code",
+      "verifying": "Verifying…",
+      "changePhone": "Change phone number",
+      "resend": "Resend code",
+      "resendCountdown": "Resend in {seconds}s",
+      "passwordTitle": "Create a new password",
+      "passwordIntro": "Choose a new password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "setPassword": "Set password",
+      "updating": "Updating password…",
+      "successTitle": "Password updated successfully",
+      "successBody": "You can now sign in to Raqeem with your phone number and new password.",
+      "signIn": "Sign in",
+      "errors": {
+        "phoneRequired": "Enter your phone number.",
+        "otpFormat": "Enter a 6-digit verification code.",
+        "validation": "Check the entered information and try again.",
+        "network": "Could not reach the server. Please try again.",
+        "unavailable": "Password recovery is temporarily unavailable. Please try again later.",
+        "rateLimited": "Too many attempts. Please wait and try again.",
+        "verificationFailed": "The code could not be verified. Check it or request a new code.",
+        "passwordRequired": "Enter the new password.",
+        "passwordMismatch": "Password confirmation does not match.",
+        "passwordPolicy": "The password does not meet the security requirements.",
+        "generic": "Could not complete password recovery. Please try again."
+      }
     }
   },
   "channels": {
@@ -13299,8 +13340,8 @@
           "nextPage": "Next",
           "invalidTargetTitle": "Details could not be opened safely",
           "invalidTargetDesc": "The client rejected this target because it does not match the approved Finance Command Center contract.",
-                    "rateNoDuplicateTable": "Collection rate uses the same due-installment population, so its components are shown above instead of repeating the same records table.",
-"definition": {
+          "rateNoDuplicateTable": "Collection rate uses the same due-installment population, so its components are shown above instead of repeating the same records table.",
+          "definition": {
             "due": "Sum of installment amounts whose due date has been reached as of the current position date, within the authorized finance scope.",
             "collected": "Recognized settled amount on the same due-installment population; future installments outside that population are not added.",
             "rate": "Recognized collected divided by due for the same due population, calculated by Backend.",

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useSyncExternalStore } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
@@ -176,6 +177,9 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
                   )}
                 </button>
               </div>
+            </div>
+            <div className="login-card__forgot">
+              <Link href="/forgot-password">{t('auth.forgotPassword')}</Link>
             </div>
             <button
               className={`btn btn--primary btn--block login-card__submit${submitting ? ' login-card__submit--busy' : ''}`}

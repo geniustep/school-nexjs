@@ -663,6 +663,47 @@
       "role_not_available": "Este rol no está disponible para su cuenta. Se mantuvo su rol actual.",
       "role_switch_failed": "No se pudo cambiar de rol. Inténtelo de nuevo.",
       "invalid_active_role": "Rol no válido."
+    },
+    "forgotPassword": "¿Olvidaste la contraseña?",
+    "passwordRecovery": {
+      "title": "¿Olvidaste la contraseña?",
+      "intro": "Introduce el número de teléfono vinculado a tu cuenta de Raqeem. Si corresponde a una cuenta válida, se enviará un código de verificación.",
+      "phoneLabel": "Número de teléfono",
+      "phonePlaceholder": "06XXXXXXXX",
+      "sendCode": "Enviar código de verificación",
+      "sending": "Enviando solicitud…",
+      "backToLogin": "Volver al inicio de sesión",
+      "requestAccepted": "Si este número está vinculado a una cuenta válida, recibirás un código de verificación.",
+      "otpTitle": "Introduce el código de verificación",
+      "otpIntro": "Introduce el código de 6 dígitos.",
+      "otpLabel": "Código de verificación",
+      "verifyCode": "Verificar código",
+      "verifying": "Verificando…",
+      "changePhone": "Cambiar número",
+      "resend": "Reenviar código",
+      "resendCountdown": "Reenviar en {seconds}s",
+      "passwordTitle": "Crea una nueva contraseña",
+      "passwordIntro": "Elige una nueva contraseña para tu cuenta.",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "setPassword": "Establecer contraseña",
+      "updating": "Actualizando contraseña…",
+      "successTitle": "Contraseña actualizada correctamente",
+      "successBody": "Ahora puedes iniciar sesión en Raqeem con tu número de teléfono y tu nueva contraseña.",
+      "signIn": "Iniciar sesión",
+      "errors": {
+        "phoneRequired": "Introduce el número de teléfono.",
+        "otpFormat": "Introduce un código de verificación de 6 dígitos.",
+        "validation": "Revisa los datos introducidos e inténtalo de nuevo.",
+        "network": "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+        "unavailable": "La recuperación de contraseña no está disponible temporalmente. Inténtalo más tarde.",
+        "rateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+        "verificationFailed": "No se pudo verificar el código. Revísalo o solicita uno nuevo.",
+        "passwordRequired": "Introduce la nueva contraseña.",
+        "passwordMismatch": "La confirmación de la contraseña no coincide.",
+        "passwordPolicy": "La contraseña no cumple los requisitos de seguridad.",
+        "generic": "No se pudo completar la recuperación de la contraseña. Inténtalo de nuevo."
+      }
     }
   },
   "channels": {
@@ -13300,8 +13341,8 @@
           "nextPage": "Siguiente",
           "invalidTargetTitle": "No se pudieron abrir los detalles de forma segura",
           "invalidTargetDesc": "La interfaz rechazó el destino porque no coincide con el contrato aprobado del Centro de mando financiero.",
-                    "rateNoDuplicateTable": "La tasa de cobro utiliza el mismo conjunto de cuotas vencidas; sus componentes se muestran arriba en lugar de repetir la misma tabla.",
-"definition": {
+          "rateNoDuplicateTable": "La tasa de cobro utiliza el mismo conjunto de cuotas vencidas; sus componentes se muestran arriba en lugar de repetir la misma tabla.",
+          "definition": {
             "due": "Suma de las cuotas cuya fecha de vencimiento ya se alcanzó a la fecha de situación, dentro del ámbito financiero autorizado.",
             "collected": "Importe liquidado y reconocido sobre el mismo conjunto de cuotas vencidas; no se añaden cuotas futuras fuera del conjunto.",
             "rate": "Cobrado reconocido dividido por vencido sobre el mismo conjunto, calculado por Backend.",
