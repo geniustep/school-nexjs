@@ -14,6 +14,10 @@ describe('Finance Command Center compact visual contract', () => {
     'src/features/admin/finance/command-center/command-center.css',
   );
 
+  const contextSection = page.slice(
+    page.indexOf('function ContextBar'),
+    page.indexOf('function MetricCard'),
+  );
   const summarySection = page.slice(
     page.indexOf('function SummarySection'),
     page.indexOf('function periodLabel'),
@@ -42,10 +46,10 @@ describe('Finance Command Center compact visual contract', () => {
       '<details open className="fcc-performance__details">',
     );
     expect(performanceSection).toContain(
-      "admin.finance.commandCenter.showDetails",
+      'admin.finance.commandCenter.showDetails',
     );
     expect(performanceSection).toContain(
-      "admin.finance.commandCenter.hideDetails",
+      'admin.finance.commandCenter.hideDetails',
     );
   });
 
@@ -85,6 +89,6 @@ describe('Finance Command Center compact visual contract', () => {
     expect(css).toContain('.fcc-kpi--compact');
     expect(page).not.toContain('setActiveAcademicYear');
     expect(page).not.toContain('activeSchool?.name');
-    expect(page).not.toContain('<select');
+    expect(contextSection).not.toContain('<select');
   });
 });

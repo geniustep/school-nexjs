@@ -655,3 +655,263 @@ a.fcc-kpi:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Decision Intelligence — append to command-center.css */
+.fcc-kpi--interactive,
+.fcc-aging__row--interactive,
+.fcc-performance__month--interactive {
+  width: 100%;
+  border: inherit;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.fcc-kpi--interactive {
+  appearance: none;
+}
+
+.fcc-kpi--interactive:focus-visible,
+.fcc-aging__row--interactive:focus-visible,
+.fcc-performance__month--interactive:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fcc-primary) 70%, white);
+  outline-offset: 2px;
+}
+
+.fcc-aging__row--interactive {
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid var(--fcc-border);
+}
+
+.fcc-aging__row--interactive:disabled,
+.fcc-performance__month--interactive:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.fcc-performance__month--interactive {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.fcc-performance__month--interactive:not(:disabled):hover,
+.fcc-aging__row--interactive:not(:disabled):hover {
+  background: color-mix(in srgb, var(--fcc-primary) 3%, transparent);
+}
+
+.fcc-month-comparison {
+  display: grid;
+  gap: 10px;
+  padding: 12px 0 2px;
+}
+
+.fcc-month-comparison__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fcc-month-comparison__head > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.fcc-month-comparison__head strong {
+  color: var(--fcc-ink);
+  font-size: 13px;
+}
+
+.fcc-month-comparison__head span,
+.fcc-month-comparison__selectors label > span {
+  color: var(--fcc-muted);
+  font-size: 10.5px;
+}
+
+.fcc-month-comparison__selectors {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fcc-month-comparison__selectors label {
+  display: grid;
+  gap: 4px;
+}
+
+.fcc-month-comparison__selectors select {
+  min-width: 138px;
+  padding: 6px 9px;
+  border: 1px solid var(--fcc-border);
+  border-radius: 8px;
+  color: var(--fcc-ink);
+  background: var(--c-surface, #fff);
+  font: inherit;
+  font-size: 11px;
+}
+
+.fcc-month-comparison__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fcc-month-comparison__card {
+  padding: 10px 12px;
+  border: 1px solid var(--fcc-border);
+  border-radius: 10px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.fcc-month-comparison__card > strong {
+  display: block;
+  margin-block-end: 8px;
+  color: var(--fcc-ink);
+  font-size: 12px;
+}
+
+.fcc-month-comparison__card dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.fcc-month-comparison__card dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fcc-month-comparison__card dt {
+  color: var(--fcc-muted);
+  font-size: 10.5px;
+}
+
+.fcc-month-comparison__card dd {
+  margin: 0;
+  color: var(--fcc-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.fcc-decision-sheet {
+  display: grid;
+  gap: 16px;
+}
+
+.fcc-decision-sheet__explain,
+.fcc-decision-sheet__records {
+  display: grid;
+  gap: 10px;
+}
+
+.fcc-decision-sheet__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fcc-decision-sheet__section-head h3 {
+  margin: 0;
+  color: var(--fcc-ink);
+  font-size: 14px;
+}
+
+.fcc-decision-sheet__section-head span {
+  color: var(--fcc-muted);
+  font-size: 11px;
+}
+
+.fcc-decision-sheet__facts,
+.fcc-decision-sheet__formula-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fcc-decision-sheet__formula-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fcc-decision-sheet__facts > div,
+.fcc-decision-sheet__formula-grid > div,
+.fcc-decision-sheet__excluded {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid var(--fcc-border);
+  border-radius: 9px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.fcc-decision-sheet__facts span,
+.fcc-decision-sheet__formula-grid span,
+.fcc-decision-sheet__excluded span,
+.fcc-decision-sheet__formula > span {
+  color: var(--fcc-muted);
+  font-size: 10.5px;
+}
+
+.fcc-decision-sheet__definition {
+  margin: 0;
+  color: var(--fcc-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.fcc-decision-sheet__formula {
+  display: grid;
+  gap: 5px;
+}
+
+.fcc-decision-sheet__formula code {
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: var(--c-surface-2, #f8fafc);
+  color: var(--fcc-ink);
+  font-size: 11px;
+}
+
+.fcc-decision-table td:first-child {
+  min-width: 150px;
+}
+
+.fcc-decision-sheet__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.fcc-decision-sheet__pagination > span {
+  color: var(--fcc-muted);
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .fcc-month-comparison__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fcc-month-comparison__selectors,
+  .fcc-month-comparison__selectors label,
+  .fcc-month-comparison__selectors select {
+    width: 100%;
+  }
+
+  .fcc-month-comparison__grid,
+  .fcc-decision-sheet__facts,
+  .fcc-decision-sheet__formula-grid {
+    grid-template-columns: 1fr;
+  }
+}
