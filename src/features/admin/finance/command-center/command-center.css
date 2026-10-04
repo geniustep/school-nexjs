@@ -915,3 +915,22 @@ a.fcc-kpi:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.fcc-month-comparison__period-role {
+  display: block;
+  margin-block-end: 2px;
+  color: var(--fcc-primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.fcc-decision-sheet__rate-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--fcc-border);
+  border-radius: 9px;
+  color: var(--fcc-muted);
+  background: var(--c-surface-2, #f8fafc);
+  font-size: 11.5px;
+  line-height: 1.55;
+}

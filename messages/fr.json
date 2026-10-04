@@ -13320,7 +13320,8 @@
           "nextPage": "Suivant",
           "invalidTargetTitle": "Impossible d’ouvrir les détails en toute sécurité",
           "invalidTargetDesc": "L’interface a refusé la cible car elle ne correspond pas au contrat approuvé du Centre de pilotage financier.",
-          "definition": {
+                    "rateNoDuplicateTable": "Le taux de recouvrement repose sur le même ensemble d’échéances dues ; ses composantes sont affichées ci-dessus au lieu de répéter le même tableau.",
+"definition": {
             "due": "Somme des échéances dont la date est atteinte à la date de situation, dans le périmètre financier autorisé.",
             "collected": "Montant réglé et reconnu sur le même ensemble d’échéances dues ; les paiements futurs hors de cet ensemble ne sont pas ajoutés.",
             "rate": "Rapport entre l’encaissé reconnu et le dû sur le même périmètre d’échéances, calculé par le Backend.",
