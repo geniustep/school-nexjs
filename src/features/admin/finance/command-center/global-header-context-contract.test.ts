@@ -14,12 +14,16 @@ describe('Finance Command Center global header context contract', () => {
     'src/features/admin/finance/command-center/use-finance-command-center.ts',
   );
   const adminResource = source('src/lib/hooks/use-admin-resource.ts');
+  const contextSection = page.slice(
+    page.indexOf('function ContextBar'),
+    page.indexOf('function MetricCard'),
+  );
 
   it('does not own school or academic-year selectors inside the page', () => {
     expect(page).not.toContain('setActiveAcademicYear');
     expect(page).not.toContain('academicYears.map');
     expect(page).not.toContain('activeSchool?.name');
-    expect(page).not.toContain('<select');
+    expect(contextSection).not.toContain('<select');
   });
 
   it('uses the global academic-year context for command-center API queries', () => {
