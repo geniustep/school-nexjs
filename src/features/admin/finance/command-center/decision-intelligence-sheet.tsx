@@ -82,9 +82,15 @@ export function DecisionIntelligenceSheet({
     { keepPreviousData: false },
   );
 
+  const metricKey = (
+    explain.data?.metric_key
+    ?? (typeof baseQuery?.metric_key === 'string' ? baseQuery.metric_key : null)
+  ) as FinanceCommandCenterMetricKey | null;
+  const showRecords = metricKey !== 'collection_rate_to_date';
+
   const drilldown = useAdminResource<FinanceCommandCenterDrilldown>(
-    selection && drilldownQuery ? endpoints.admin.financeCommandCenterDrilldown : null,
-    drilldownQuery,
+    selection && drilldownQuery && showRecords ? endpoints.admin.financeCommandCenterDrilldown : null,
+    showRecords ? drilldownQuery : undefined,
     { keepPreviousData: false },
   );
 
@@ -92,6 +98,10 @@ export function DecisionIntelligenceSheet({
   const currency = explanation?.currency?.name ?? explanation?.meta.currency?.name;
   const pagination = drilldown.meta?.pagination;
   const invalidTarget = Boolean(selection && !baseQuery);
+
+  const showDueColumn = metricKey === 'due_to_date' || metricKey === 'collection_performance';
+  const showCollectedColumn = metricKey === 'recognized_collected_to_date' || metricKey === 'collection_performance';
+  const showRemainingColumn = metricKey === 'overdue' || metricKey === 'aging' || metricKey === 'collection_performance';
 
   return (
     <MobileBottomSheet
@@ -184,12 +194,6 @@ export function DecisionIntelligenceSheet({
                   </div>
                 ) : null}
 
-                {explanation.formula ? (
-                  <div className="fcc-decision-sheet__formula">
-                    <span>{t('admin.finance.commandCenter.decision.formula')}</span>
-                    <code dir="ltr">{explanation.formula}</code>
-                  </div>
-                ) : null}
 
                 {(explanation.excluded_or_unattributed_amount ?? 0) > 0 ? (
                   <div className="fcc-decision-sheet__excluded">
@@ -204,83 +208,89 @@ export function DecisionIntelligenceSheet({
             ) : null}
           </section>
 
-          <section className="fcc-decision-sheet__records">
-            <div className="fcc-decision-sheet__section-head">
-              <h3>{t('admin.finance.commandCenter.decision.exactDetails')}</h3>
-              {pagination ? (
-                <span>
-                  {t('admin.finance.commandCenter.decision.recordsCountValue', {
-                    count: String(pagination.total),
-                  })}
-                </span>
-              ) : null}
-            </div>
-
-            {drilldown.initialLoading ? (
-              <LoadingState label={t('admin.finance.commandCenter.decision.loadingDetails')} />
-            ) : drilldown.error ? (
-              <ApiErrorView error={drilldown.error} onRetry={drilldown.reload} />
-            ) : !drilldown.data?.items.length ? (
-              <EmptyState compact description={t('admin.finance.commandCenter.decision.noRecords')} />
-            ) : (
-              <>
-                <div className="fcc-table-wrap">
-                  <table className="fcc-table fcc-decision-table">
-                    <thead>
-                      <tr>
-                        <th>{t('admin.finance.commandCenter.decision.student')}</th>
-                        <th>{t('admin.finance.commandCenter.decision.installment')}</th>
-                        <th>{t('admin.finance.commandCenter.decision.dueDate')}</th>
-                        <th>{t('admin.finance.commandCenter.due')}</th>
-                        <th>{t('admin.finance.commandCenter.collected')}</th>
-                        <th>{t('admin.finance.commandCenter.remaining')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {drilldown.data.items.map((item) => (
-                        <tr key={item.id ?? `${item.student_id ?? 'student'}-${item.due_date ?? 'date'}-${item.sequence ?? 'seq'}` }>
-                          <td>{item.student_name ?? '—'}</td>
-                          <td>{item.installment_description ?? item.name ?? '—'}</td>
-                          <td>
-                            <bdi dir="ltr">
-                              {item.due_date ? formatDate(item.due_date) : '—'}
-                            </bdi>
-                          </td>
-                          <td><FinanceMoney amount={item.amount} currency={currency} /></td>
-                          <td><FinanceMoney amount={item.paid_amount} currency={currency} /></td>
-                          <td><FinanceMoney amount={item.remaining_amount} currency={currency} /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {pagination && pagination.total_pages > 1 ? (
-                  <div className="fcc-decision-sheet__pagination">
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => setPage((current) => Math.max(1, current - 1))}
-                      disabled={pagination.page <= 1 || drilldown.loading}
-                    >
-                      {t('admin.finance.commandCenter.decision.previousPage')}
-                    </button>
-                    <span>
-                      <bdi dir="ltr">{pagination.page} / {pagination.total_pages}</bdi>
-                    </span>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => setPage((current) => Math.min(pagination.total_pages, current + 1))}
-                      disabled={pagination.page >= pagination.total_pages || drilldown.loading}
-                    >
-                      {t('admin.finance.commandCenter.decision.nextPage')}
-                    </button>
-                  </div>
+          {showRecords ? (
+            <section className="fcc-decision-sheet__records">
+              <div className="fcc-decision-sheet__section-head">
+                <h3>{t('admin.finance.commandCenter.decision.exactDetails')}</h3>
+                {pagination ? (
+                  <span>
+                    {t('admin.finance.commandCenter.decision.recordsCountValue', {
+                      count: String(pagination.total),
+                    })}
+                  </span>
                 ) : null}
-              </>
-            )}
-          </section>
+              </div>
+
+              {drilldown.initialLoading ? (
+                <LoadingState label={t('admin.finance.commandCenter.decision.loadingDetails')} />
+              ) : drilldown.error ? (
+                <ApiErrorView error={drilldown.error} onRetry={drilldown.reload} />
+              ) : !drilldown.data?.items.length ? (
+                <EmptyState compact description={t('admin.finance.commandCenter.decision.noRecords')} />
+              ) : (
+                <>
+                  <div className="fcc-table-wrap">
+                    <table className="fcc-table fcc-decision-table">
+                      <thead>
+                        <tr>
+                          <th>{t('admin.finance.commandCenter.decision.student')}</th>
+                          <th>{t('admin.finance.commandCenter.decision.installment')}</th>
+                          <th>{t('admin.finance.commandCenter.decision.dueDate')}</th>
+                          {showDueColumn ? <th>{t('admin.finance.commandCenter.due')}</th> : null}
+                          {showCollectedColumn ? <th>{t('admin.finance.commandCenter.collected')}</th> : null}
+                          {showRemainingColumn ? <th>{t('admin.finance.commandCenter.remaining')}</th> : null}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {drilldown.data.items.map((item) => (
+                          <tr key={item.id ?? `${item.student_id ?? 'student'}-${item.due_date ?? 'date'}-${item.sequence ?? 'seq'}` }>
+                            <td>{item.student_name ?? '—'}</td>
+                            <td>{item.installment_description ?? item.name ?? '—'}</td>
+                            <td>
+                              <bdi dir="ltr">
+                                {item.due_date ? formatDate(item.due_date) : '—'}
+                              </bdi>
+                            </td>
+                            {showDueColumn ? <td><FinanceMoney amount={item.amount} currency={currency} /></td> : null}
+                            {showCollectedColumn ? <td><FinanceMoney amount={item.paid_amount} currency={currency} /></td> : null}
+                            {showRemainingColumn ? <td><FinanceMoney amount={item.remaining_amount} currency={currency} /></td> : null}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {pagination && pagination.total_pages > 1 ? (
+                    <div className="fcc-decision-sheet__pagination">
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => setPage((current) => Math.max(1, current - 1))}
+                        disabled={pagination.page <= 1 || drilldown.loading}
+                      >
+                        {t('admin.finance.commandCenter.decision.previousPage')}
+                      </button>
+                      <span>
+                        <bdi dir="ltr">{pagination.page} / {pagination.total_pages}</bdi>
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => setPage((current) => Math.min(pagination.total_pages, current + 1))}
+                        disabled={pagination.page >= pagination.total_pages || drilldown.loading}
+                      >
+                        {t('admin.finance.commandCenter.decision.nextPage')}
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </section>
+          ) : explanation ? (
+            <p className="fcc-decision-sheet__rate-note">
+              {t('admin.finance.commandCenter.decision.rateNoDuplicateTable')}
+            </p>
+          ) : null}
         </div>
       )}
     </MobileBottomSheet>

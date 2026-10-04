@@ -13299,7 +13299,8 @@
           "nextPage": "Next",
           "invalidTargetTitle": "Details could not be opened safely",
           "invalidTargetDesc": "The client rejected this target because it does not match the approved Finance Command Center contract.",
-          "definition": {
+                    "rateNoDuplicateTable": "Collection rate uses the same due-installment population, so its components are shown above instead of repeating the same records table.",
+"definition": {
             "due": "Sum of installment amounts whose due date has been reached as of the current position date, within the authorized finance scope.",
             "collected": "Recognized settled amount on the same due-installment population; future installments outside that population are not added.",
             "rate": "Recognized collected divided by due for the same due population, calculated by Backend.",

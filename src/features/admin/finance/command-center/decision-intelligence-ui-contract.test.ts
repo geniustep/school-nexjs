@@ -32,8 +32,25 @@ describe('Finance Command Center decision intelligence UI contract', () => {
     expect(sheet.match(/keepPreviousData: false/g) ?? []).toHaveLength(2);
   });
 
-  it('keeps comparison side-by-side without client-side financial deltas', () => {
-    expect(page).toContain('fcc-month-comparison');
+  it('defaults comparison to backend as-of previous and current months without selectors or client-side deltas', () => {
+    expect(page).toContain('comparisonPeriodKeys(data.meta.as_of_date)');
+    expect(page).toContain("admin.finance.commandCenter.period.previous_month");
+    expect(page).toContain("admin.finance.commandCenter.period.this_month");
+    expect(page).not.toContain('fcc-month-comparison__selectors');
     expect(page).not.toMatch(/delta|growth|variancePercent|differenceAmount/);
+  });
+
+  it('never renders raw backend formulas and avoids the duplicated rate drill-down table', () => {
+    expect(sheet).not.toContain('<code dir="ltr">{explanation.formula}</code>');
+    expect(sheet).toContain("metricKey !== 'collection_rate_to_date'");
+    expect(sheet).toContain('rateNoDuplicateTable');
+  });
+
+  it('uses metric-specific financial columns instead of one repeated records table', () => {
+    expect(sheet).toContain("metricKey === 'due_to_date'");
+    expect(sheet).toContain("metricKey === 'recognized_collected_to_date'");
+    expect(sheet).toContain("metricKey === 'overdue'");
+    expect(sheet).toContain("metricKey === 'aging'");
+    expect(sheet).toContain("metricKey === 'collection_performance'");
   });
 });
