@@ -693,6 +693,7 @@
       "signIn": "Iniciar sesión",
       "errors": {
         "phoneRequired": "Introduce el número de teléfono.",
+        "phoneInvalid": "Introduce un número de teléfono válido.",
         "otpFormat": "Introduce un código de verificación de 6 dígitos.",
         "validation": "Revisa los datos introducidos e inténtalo de nuevo.",
         "network": "No se pudo conectar con el servidor. Inténtalo de nuevo.",
