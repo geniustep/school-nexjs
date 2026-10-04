@@ -15,6 +15,11 @@ import { storeActivationLoginHandoff } from '@/lib/auth/account-activation-login
 
 type Stage = 'checking' | 'ready' | 'done' | 'invalid';
 type ApiEnvelope<T> = { success: true; data: T } | { success: false; error?: { code?: string } };
+const APP_OPEN_URL = process.env.NEXT_PUBLIC_RAQEEM_APP_OPEN_URL?.trim() ?? '';
+const ANDROID_STORE_URL = process.env.NEXT_PUBLIC_RAQEEM_ANDROID_STORE_URL?.trim()
+  || 'https://play.google.com/store/apps/details?id=ma.raqeem.app';
+const IOS_STORE_URL = process.env.NEXT_PUBLIC_RAQEEM_IOS_STORE_URL?.trim() ?? '';
+
 type ActivationIdentity = {
   status?: string;
   recipient_name_ar?: string;
@@ -25,10 +30,10 @@ type ActivationIdentity = {
 };
 
 const COPY = {
-  ar: { checking: 'جارٍ التحقق من رابط التفعيل…', title: 'إنشاء كلمة المرور', intro: 'اختر كلمة مرور آمنة لإكمال تفعيل حسابك.', password: 'كلمة المرور', confirm: 'تأكيد كلمة المرور', showPassword: 'إظهار كلمة المرور', hidePassword: 'إخفاء كلمة المرور', save: 'تفعيل الحساب', saving: 'جارٍ التفعيل…', mismatch: 'كلمتا المرور غير متطابقتين.', invalid: 'رابط التفعيل غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا من إدارة المؤسسة.', policy: 'كلمة المرور لا تستوفي متطلبات الأمان.', network: 'تعذر الاتصال بالخادم. حاول مجددًا.', done: 'تم تفعيل حسابك بنجاح', login: 'الانتقال إلى تسجيل الدخول', back: 'العودة إلى تسجيل الدخول', greeting: 'مرحبًا', institution: 'المؤسسة', username: 'اسم المستخدم للدخول', copyUsername: 'نسخ اسم المستخدم', copied: 'تم النسخ' },
-  fr: { checking: 'Vérification du lien…', title: 'Créer le mot de passe', intro: 'Choisissez un mot de passe sécurisé pour activer votre compte.', password: 'Mot de passe', confirm: 'Confirmer le mot de passe', showPassword: 'Afficher le mot de passe', hidePassword: 'Masquer le mot de passe', save: 'Activer le compte', saving: 'Activation…', mismatch: 'Les mots de passe ne correspondent pas.', invalid: "Le lien d’activation est invalide ou expiré. Demandez un nouveau lien à l’établissement.", policy: 'Le mot de passe ne respecte pas les exigences de sécurité.', network: 'Serveur inaccessible. Réessayez.', done: 'Votre compte a été activé', login: 'Se connecter', back: 'Retour à la connexion', greeting: 'Bonjour', institution: 'Établissement', username: 'Identifiant de connexion', copyUsername: "Copier l’identifiant", copied: 'Copié' },
-  en: { checking: 'Checking activation link…', title: 'Create password', intro: 'Choose a secure password to activate your account.', password: 'Password', confirm: 'Confirm password', showPassword: 'Show password', hidePassword: 'Hide password', save: 'Activate account', saving: 'Activating…', mismatch: 'Passwords do not match.', invalid: 'The activation link is invalid or expired. Ask the institution for a new link.', policy: 'The password does not meet the security requirements.', network: 'Could not reach the server. Try again.', done: 'Your account has been activated', login: 'Go to sign in', back: 'Back to sign in', greeting: 'Hello', institution: 'Institution', username: 'Username', copyUsername: 'Copy username', copied: 'Copied' },
-  es: { checking: 'Comprobando el enlace…', title: 'Crear contraseña', intro: 'Elige una contraseña segura para activar tu cuenta.', password: 'Contraseña', confirm: 'Confirmar contraseña', showPassword: 'Mostrar contraseña', hidePassword: 'Ocultar contraseña', save: 'Activar cuenta', saving: 'Activando…', mismatch: 'Las contraseñas no coinciden.', invalid: 'El enlace no es válido o ha caducado. Solicita uno nuevo.', policy: 'La contraseña no cumple los requisitos de seguridad.', network: 'No se pudo conectar. Inténtalo de nuevo.', done: 'Tu cuenta ha sido activada', login: 'Iniciar sesión', back: 'Volver al inicio de sesión', greeting: 'Hola', institution: 'Centro educativo', username: 'Nombre de usuario', copyUsername: 'Copiar nombre de usuario', copied: 'Copiado' },
+  ar: { checking: 'جارٍ التحقق من رابط التفعيل…', title: 'إنشاء كلمة المرور', intro: 'اختر كلمة مرور آمنة لإكمال تفعيل حسابك.', password: 'كلمة المرور', confirm: 'تأكيد كلمة المرور', showPassword: 'إظهار كلمة المرور', hidePassword: 'إخفاء كلمة المرور', save: 'تفعيل الحساب', saving: 'جارٍ التفعيل…', mismatch: 'كلمتا المرور غير متطابقتين.', invalid: 'رابط التفعيل غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا من إدارة المؤسسة.', policy: 'كلمة المرور لا تستوفي متطلبات الأمان.', network: 'تعذر الاتصال بالخادم. حاول مجددًا.', done: 'تم تفعيل حسابك بنجاح', doneIntro: 'حسابك جاهز الآن. من الآن فصاعدًا سجّل الدخول إلى رقيم برقم هاتفك وكلمة المرور التي اخترتها.', openApp: 'فتح تطبيق رقيم', webLogin: 'الدخول من المتصفح', stores: 'يمكنك أيضًا تنزيل التطبيق من المتجر:', androidStore: 'Google Play', iosStore: 'App Store', appUnavailable: 'زر فتح التطبيق سيظهر تلقائيًا عند تهيئة رابط التطبيق الرسمي.', login: 'الانتقال إلى تسجيل الدخول', back: 'العودة إلى تسجيل الدخول', greeting: 'مرحبًا', institution: 'المؤسسة', username: 'اسم المستخدم للدخول', copyUsername: 'نسخ اسم المستخدم', copied: 'تم النسخ' },
+  fr: { checking: 'Vérification du lien…', title: 'Créer le mot de passe', intro: 'Choisissez un mot de passe sécurisé pour activer votre compte.', password: 'Mot de passe', confirm: 'Confirmer le mot de passe', showPassword: 'Afficher le mot de passe', hidePassword: 'Masquer le mot de passe', save: 'Activer le compte', saving: 'Activation…', mismatch: 'Les mots de passe ne correspondent pas.', invalid: "Le lien d’activation est invalide ou expiré. Demandez un nouveau lien à l’établissement.", policy: 'Le mot de passe ne respecte pas les exigences de sécurité.', network: 'Serveur inaccessible. Réessayez.', done: 'Votre compte a été activé', doneIntro: 'Votre compte est prêt. Désormais, connectez-vous à Raqeem avec votre numéro de téléphone et le mot de passe que vous venez de choisir.', openApp: 'Ouvrir l’application Raqeem', webLogin: 'Se connecter sur le Web', stores: 'Vous pouvez aussi télécharger l’application :', androidStore: 'Google Play', iosStore: 'App Store', appUnavailable: 'Le bouton d’ouverture de l’application apparaîtra dès que le lien officiel de l’application sera configuré.', login: 'Se connecter', back: 'Retour à la connexion', greeting: 'Bonjour', institution: 'Établissement', username: 'Identifiant de connexion', copyUsername: "Copier l’identifiant", copied: 'Copié' },
+  en: { checking: 'Checking activation link…', title: 'Create password', intro: 'Choose a secure password to activate your account.', password: 'Password', confirm: 'Confirm password', showPassword: 'Show password', hidePassword: 'Hide password', save: 'Activate account', saving: 'Activating…', mismatch: 'Passwords do not match.', invalid: 'The activation link is invalid or expired. Ask the institution for a new link.', policy: 'The password does not meet the security requirements.', network: 'Could not reach the server. Try again.', done: 'Your account has been activated', doneIntro: 'Your account is ready. From now on, sign in to Raqeem with your phone number and the password you just chose.', openApp: 'Open Raqeem app', webLogin: 'Sign in on the web', stores: 'You can also download the app:', androidStore: 'Google Play', iosStore: 'App Store', appUnavailable: 'The open-app button will appear when the official app link is configured.', login: 'Go to sign in', back: 'Back to sign in', greeting: 'Hello', institution: 'Institution', username: 'Username', copyUsername: 'Copy username', copied: 'Copied' },
+  es: { checking: 'Comprobando el enlace…', title: 'Crear contraseña', intro: 'Elige una contraseña segura para activar tu cuenta.', password: 'Contraseña', confirm: 'Confirmar contraseña', showPassword: 'Mostrar contraseña', hidePassword: 'Ocultar contraseña', save: 'Activar cuenta', saving: 'Activando…', mismatch: 'Las contraseñas no coinciden.', invalid: 'El enlace no es válido o ha caducado. Solicita uno nuevo.', policy: 'La contraseña no cumple los requisitos de seguridad.', network: 'No se pudo conectar. Inténtalo de nuevo.', done: 'Tu cuenta ha sido activada', doneIntro: 'Tu cuenta está lista. A partir de ahora, inicia sesión en Raqeem con tu número de teléfono y la contraseña que acabas de elegir.', openApp: 'Abrir la app Raqeem', webLogin: 'Iniciar sesión en la web', stores: 'También puedes descargar la app:', androidStore: 'Google Play', iosStore: 'App Store', appUnavailable: 'El botón para abrir la app aparecerá cuando se configure el enlace oficial de la aplicación.', login: 'Iniciar sesión', back: 'Volver al inicio de sesión', greeting: 'Hola', institution: 'Centro educativo', username: 'Nombre de usuario', copyUsername: 'Copiar nombre de usuario', copied: 'Copiado' },
 } as const;
 
 async function post<T>(stage: 'inspect' | 'complete', body: unknown): Promise<ApiEnvelope<T>> {
@@ -98,6 +103,7 @@ export function AccountActivationLinkForm({ branding, token }: { branding: Login
   const recipientName = locale === 'ar' ? identity?.recipient_name_ar : identity?.recipient_name_fr;
   const schoolName = locale === 'ar' ? identity?.school_name_ar : identity?.school_name_fr;
   const showIdentity = Boolean(recipientName && schoolName && identity?.login);
+  const hasStoreLinks = Boolean(ANDROID_STORE_URL || IOS_STORE_URL);
 
   const branded = loginPageBranded(branding);
   return (
@@ -110,7 +116,7 @@ export function AccountActivationLinkForm({ branding, token }: { branding: Login
           <div className="login-card__mark"><BrandLogo variant="full" className="login-card__raqeem-logo" /></div>
           <h1 className="login-card__title">{stage === 'done' ? c.done : stage === 'invalid' ? c.invalid : stage === 'checking' ? c.checking : c.title}</h1>
           {stage === 'ready' && <p className="login-card__sub">{c.intro}</p>}
-          {showIdentity && (stage === 'ready' || stage === 'done') && (
+          {showIdentity && stage === 'ready' && (
             <section className="activation-card__identity" aria-label={c.username}>
               <p className="activation-card__greeting">{c.greeting}، {recipientName}</p>
               <p className="activation-card__institution">{c.institution}: {schoolName}</p>
@@ -128,7 +134,26 @@ export function AccountActivationLinkForm({ branding, token }: { branding: Login
             <button className="btn btn--primary btn--block login-card__submit" type="submit" disabled={busy}>{busy ? c.saving : c.save}</button>
           </form>}
           {stage === 'checking' && <div className="loading-spinner" role="status" aria-label={c.checking} />}
-          {stage === 'done' && <div className="activation-card__success"><button className="btn btn--primary btn--block" type="button" onClick={goToLogin}>{c.login}</button></div>}
+          {stage === 'done' && (
+            <div className="activation-card__success">
+              <p className="login-card__sub">{c.doneIntro}</p>
+              {APP_OPEN_URL ? (
+                <a className="btn btn--primary btn--block" href={APP_OPEN_URL}>{c.openApp}</a>
+              ) : (
+                <p className="activation-card__hint">{c.appUnavailable}</p>
+              )}
+              <button className="btn btn--secondary btn--block" type="button" onClick={goToLogin}>{c.webLogin}</button>
+              {hasStoreLinks && (
+                <div className="activation-card__stores">
+                  <p>{c.stores}</p>
+                  <div className="activation-card__store-links">
+                    {ANDROID_STORE_URL && <a className="btn btn--ghost btn--sm" href={ANDROID_STORE_URL} target="_blank" rel="noreferrer">{c.androidStore}</a>}
+                    {IOS_STORE_URL && <a className="btn btn--ghost btn--sm" href={IOS_STORE_URL} target="_blank" rel="noreferrer">{c.iosStore}</a>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {(stage === 'invalid' || stage === 'ready') && <Link className="activation-card__back" href="/login">{c.back}</Link>}
         </div>
       </main>
