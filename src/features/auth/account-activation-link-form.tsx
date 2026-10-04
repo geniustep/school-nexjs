@@ -142,7 +142,7 @@ export function AccountActivationLinkForm({ branding, token }: { branding: Login
               ) : (
                 <p className="activation-card__hint">{c.appUnavailable}</p>
               )}
-              <button className="btn btn--secondary btn--block" type="button" onClick={goToLogin}>{c.webLogin}</button>
+              <button className="btn btn--ghost btn--block" type="button" onClick={goToLogin}>{c.webLogin}</button>
               {hasStoreLinks && (
                 <div className="activation-card__stores">
                   <p>{c.stores}</p>
