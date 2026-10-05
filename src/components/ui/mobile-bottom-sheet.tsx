@@ -41,6 +41,7 @@ export function MobileBottomSheet({
 
   useEffect(() => {
     if (!open) return;
+    const openedHref = window.location.href;
     history.pushState({ mobileSheet: true }, '');
     historyPushedRef.current = true;
     function onPopState() {
@@ -52,7 +53,12 @@ export function MobileBottomSheet({
       window.removeEventListener('popstate', onPopState);
       if (historyPushedRef.current) {
         historyPushedRef.current = false;
-        history.back();
+        // Only remove the synthetic sheet history entry when the user is still
+        // on the page that opened the sheet. If a link inside the sheet caused
+        // intentional navigation, calling history.back() here would undo it.
+        if (window.location.href === openedHref) {
+          history.back();
+        }
       }
     };
   }, [open, onClose]);
