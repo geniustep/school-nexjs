@@ -382,12 +382,18 @@ function ComparisonMonthCard({
 function MonthComparison({ data }: { data: FinanceCommandCenterPerformance }) {
   const t = useT();
   const { locale } = useLocale();
+  const { formatDate } = useFormat();
   const { previous, current } = comparisonPeriodKeys(data.meta.as_of_date);
   if (!previous || !current) return null;
 
   const previousItem = data.items.find((item) => item.period === previous);
   const currentItem = data.items.find((item) => item.period === current);
   const currency = data.meta.currency?.name;
+  const currentAsOfLabel = data.meta.as_of_date
+    ? t('admin.finance.commandCenter.decision.currentMonthToDate', {
+        date: formatDate(data.meta.as_of_date),
+      })
+    : t('admin.finance.commandCenter.period.this_month');
 
   return (
     <section className="fcc-month-comparison" aria-label={t('admin.finance.commandCenter.decision.compareTwoMonths')}>
@@ -408,7 +414,7 @@ function MonthComparison({ data }: { data: FinanceCommandCenterPerformance }) {
         <ComparisonMonthCard
           item={currentItem}
           period={current}
-          roleLabel={t('admin.finance.commandCenter.period.this_month')}
+          roleLabel={currentAsOfLabel}
           currency={currency}
           locale={locale}
         />
