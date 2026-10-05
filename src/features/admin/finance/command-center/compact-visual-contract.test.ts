@@ -82,6 +82,12 @@ describe('Finance Command Center compact visual contract', () => {
     expect(css).toContain('margin-block-start');
   });
 
+  it('shows a persistent but subtle affordance on clickable KPIs and aging rows', () => {
+    expect(css).toContain('.fcc-kpi--interactive::after');
+    expect(css).toContain('.fcc-aging__row--interactive::after');
+    expect(css).toContain("content: '↗'");
+  });
+
   it('enforces the compact hierarchy without restoring local context filters', () => {
     expect(css).toContain('min-height: 106px');
     expect(css).toContain('grid-template-rows: 128px auto auto');

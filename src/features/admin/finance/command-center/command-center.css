@@ -670,6 +670,27 @@ a.fcc-kpi:hover {
 
 .fcc-kpi--interactive {
   appearance: none;
+  padding-inline-end: 34px;
+}
+
+.fcc-kpi--interactive::after,
+.fcc-aging__row--interactive::after {
+  content: '↗';
+  position: absolute;
+  inset-block-start: 11px;
+  inset-inline-end: 12px;
+  color: var(--fcc-primary);
+  font-size: 12px;
+  font-weight: 800;
+  opacity: .55;
+  pointer-events: none;
+}
+
+.fcc-kpi--interactive:hover::after,
+.fcc-kpi--interactive:focus-visible::after,
+.fcc-aging__row--interactive:not(:disabled):hover::after,
+.fcc-aging__row--interactive:not(:disabled):focus-visible::after {
+  opacity: 1;
 }
 
 .fcc-kpi--interactive:focus-visible,
@@ -680,6 +701,8 @@ a.fcc-kpi:hover {
 }
 
 .fcc-aging__row--interactive {
+  position: relative;
+  padding-inline-end: 28px;
   background: transparent;
   border: 0;
   border-block-end: 1px solid var(--fcc-border);
