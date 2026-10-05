@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { MobileBottomSheet } from '@/components/ui/mobile-bottom-sheet';
@@ -44,6 +45,10 @@ function metricDefinitionKey(metric: FinanceCommandCenterMetricKey): string {
 function percentage(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return '—';
   return `${value.toFixed(1)}%`;
+}
+
+function studentFinanceHref(studentId: number | string): string {
+  return `/admin/students/${studentId}?tab=finance&returnTo=${encodeURIComponent('/admin/finance/command-center')}`;
 }
 
 export function DecisionIntelligenceSheet({
@@ -239,6 +244,7 @@ export function DecisionIntelligenceSheet({
                           {showDueColumn ? <th>{t('admin.finance.commandCenter.due')}</th> : null}
                           {showCollectedColumn ? <th>{t('admin.finance.commandCenter.collected')}</th> : null}
                           {showRemainingColumn ? <th>{t('admin.finance.commandCenter.remaining')}</th> : null}
+                          <th>{t('admin.finance.commandCenter.decision.action')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -254,6 +260,18 @@ export function DecisionIntelligenceSheet({
                             {showDueColumn ? <td><FinanceMoney amount={item.amount} currency={currency} /></td> : null}
                             {showCollectedColumn ? <td><FinanceMoney amount={item.paid_amount} currency={currency} /></td> : null}
                             {showRemainingColumn ? <td><FinanceMoney amount={item.remaining_amount} currency={currency} /></td> : null}
+                            <td>
+                              {item.student_id ? (
+                                <Link
+                                  href={studentFinanceHref(item.student_id)}
+                                  className="btn btn--ghost btn--sm"
+                                >
+                                  {t('admin.finance.commandCenter.decision.openStudentFinance')}
+                                </Link>
+                              ) : (
+                                <span className="muted">{t('common.dash')}</span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
