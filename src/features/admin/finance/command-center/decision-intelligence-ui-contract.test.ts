@@ -35,7 +35,7 @@ describe('Finance Command Center decision intelligence UI contract', () => {
   it('defaults comparison to backend as-of previous and current months without selectors or client-side deltas', () => {
     expect(page).toContain('comparisonPeriodKeys(data.meta.as_of_date)');
     expect(page).toContain("admin.finance.commandCenter.period.previous_month");
-    expect(page).toContain("admin.finance.commandCenter.period.this_month");
+    expect(page).toContain("admin.finance.commandCenter.decision.currentMonthToDate");
     expect(page).not.toContain('fcc-month-comparison__selectors');
     expect(page).not.toMatch(/delta|growth|variancePercent|differenceAmount/);
   });
@@ -44,6 +44,12 @@ describe('Finance Command Center decision intelligence UI contract', () => {
     expect(sheet).not.toContain('<code dir="ltr">{explanation.formula}</code>');
     expect(sheet).toContain("metricKey !== 'collection_rate_to_date'");
     expect(sheet).toContain('rateNoDuplicateTable');
+  });
+
+  it('links exact records to the governed student finance workspace with a safe return path', () => {
+    expect(sheet).toContain("/admin/students/${studentId}?tab=finance");
+    expect(sheet).toContain("encodeURIComponent('/admin/finance/command-center')");
+    expect(sheet).toContain('admin.finance.commandCenter.decision.openStudentFinance');
   });
 
   it('uses metric-specific financial columns instead of one repeated records table', () => {
