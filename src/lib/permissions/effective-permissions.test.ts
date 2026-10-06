@@ -163,7 +163,7 @@ describe('navigation finance access', () => {
   it('includes finance section in desktop nav', () => {
     const sections = navForUser(user);
     const financeSection = sections.find((s) =>
-      s.items.some((item) => item.href === '/admin/finance'),
+      s.items.some((item) => item.href === '/admin/finance/command-center'),
     );
     expect(financeSection).toBeTruthy();
   });

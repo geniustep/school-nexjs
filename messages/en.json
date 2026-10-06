@@ -142,7 +142,14 @@
     "diagnosticAssessment": "Diagnostic assessment",
     "teachingPlanning": "Pedagogical planning",
     "teachingAssignments": "Teaching assignments",
-    "staffAttendance": "Staff attendance"
+    "staffAttendance": "Staff attendance",
+    "financeCommandCenter": "Command center",
+    "financeCollectionsCash": "Collections & cash desk",
+    "financeArrearsFollowup": "Arrears & follow-up",
+    "financeInstallmentsAccounts": "Installments & accounts",
+    "financeCheques": "Cheques",
+    "financeReports": "Financial reports",
+    "financeSetup": "Finance setup"
   },
   "states": {
     "draft": "Draft",

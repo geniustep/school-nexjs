@@ -5,7 +5,19 @@ import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
 import { canViewSettings, canAccessStaffCenter } from '@/lib/permissions/academic-setup';
 import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
-import { FINANCE_VIEW } from '@/lib/permissions/finance';
+import {
+  FINANCE_VIEW,
+  canViewBillingProfile,
+  canViewCashSessions,
+  canViewCheques,
+  canViewCreditBalances,
+  canViewFinanceAgreements,
+  canViewFinanceInstallments,
+  canViewFinanceServices,
+  canViewFinanceSetup,
+  canViewPayments,
+  canViewStudentBalance,
+} from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
@@ -298,19 +310,102 @@ function adminNav(user: CurrentUser): NavSection[] {
     });
   }
 
-  if (canShowAdminNavPermission(user, FINANCE_VIEW)) {
+  {
+    const financeItems: NavItem[] = [];
+    const canViewFinanceHome = canShowAdminNavPermission(user, FINANCE_VIEW);
+    const canViewCollections = canViewPayments(user);
+    const canViewCashDesk = canViewCashSessions(user);
+    const canViewArrears = canViewStudentBalance(user);
+    const canViewInstallments = canViewFinanceInstallments(user);
+    const canViewBillingAccounts = canViewBillingProfile(user);
+    const canViewCredits = canViewCreditBalances(user);
+    const canViewFinanceCheques = canViewCheques(user);
+    const canViewFinanceReports = canViewPayments(user);
+    const canViewSetup = canViewFinanceSetup(user);
+    const canViewServices = canViewFinanceServices(user);
+    const canViewAgreements = canViewFinanceAgreements(user);
+
+    pushIf(financeItems, canViewFinanceHome, {
+      labelKey: 'nav.financeCommandCenter',
+      href: '/admin/finance/command-center',
+      icon: '🎯',
+      isActive: (pathname) =>
+        pathname === '/admin/finance' || pathname.startsWith('/admin/finance/command-center'),
+    });
+
+    if (canViewCollections || canViewCashDesk) {
+      financeItems.push({
+        labelKey: 'nav.financeCollectionsCash',
+        href: canViewCollections ? '/admin/finance/collections' : '/admin/finance/cash-desk',
+        icon: '💳',
+        isActive: (pathname) =>
+          pathname.startsWith('/admin/finance/collections') ||
+          pathname.startsWith('/admin/finance/cash-desk') ||
+          pathname.startsWith('/admin/finance/receipts'),
+      });
+    }
+
+    pushIf(financeItems, canViewArrears, {
+      labelKey: 'nav.financeArrearsFollowup',
+      href: '/admin/finance/arrears',
+      icon: '📌',
+      isActive: (pathname) => pathname.startsWith('/admin/finance/arrears'),
+    });
+
+    if (canViewInstallments || canViewBillingAccounts || canViewCredits) {
+      financeItems.push({
+        labelKey: 'nav.financeInstallmentsAccounts',
+        href: canViewInstallments
+          ? '/admin/finance/installments'
+          : canViewBillingAccounts
+            ? '/admin/finance/billing-accounts'
+            : '/admin/finance/credit-balances',
+        icon: '📅',
+        isActive: (pathname) =>
+          pathname.startsWith('/admin/finance/installments') ||
+          pathname.startsWith('/admin/finance/billing-accounts') ||
+          pathname.startsWith('/admin/finance/credit-balances') ||
+          pathname.startsWith('/admin/finance/students') ||
+          pathname.startsWith('/admin/finance/student-fees'),
+      });
+    }
+
+    pushIf(financeItems, canViewFinanceCheques, {
+      labelKey: 'nav.financeCheques',
+      href: '/admin/finance/cheques',
+      icon: '🧾',
+      isActive: (pathname) => pathname.startsWith('/admin/finance/cheques'),
+    });
+
+    pushIf(financeItems, canViewFinanceReports, {
+      labelKey: 'nav.financeReports',
+      href: '/admin/finance/reports/collections',
+      icon: '📊',
+      isActive: (pathname) => pathname.startsWith('/admin/finance/reports'),
+    });
+
+    if (canViewSetup || canViewServices || canViewAgreements) {
+      financeItems.push({
+        labelKey: 'nav.financeSetup',
+        href: canViewSetup
+          ? '/admin/finance/fee-plans'
+          : canViewServices
+            ? '/admin/finance/services'
+            : '/admin/finance/agreements',
+        icon: '⚙️',
+        isActive: (pathname) =>
+          pathname.startsWith('/admin/finance/fee-plans') ||
+          pathname.startsWith('/admin/finance/fee-types') ||
+          pathname.startsWith('/admin/finance/services') ||
+          pathname.startsWith('/admin/finance/agreements'),
+      });
+    }
+
     pushSection(sections, {
       groupId: 'finance',
       icon: '🏦',
-      titleKey: scopedNavTitle('nav.adminSchoolFinance', 'nav.scopedSchoolFinance', scopedLabels),
-      items: [
-        {
-          labelKey: 'nav.adminSchoolFinance',
-          href: '/admin/finance',
-          icon: '💰',
-          isActive: (pathname) => pathname.startsWith('/admin/finance'),
-        },
-      ],
+      titleKey: scopedNavTitle('nav.financeSection', 'nav.adminScopedFinance', scopedLabels),
+      items: financeItems,
     });
   }
 

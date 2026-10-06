@@ -142,7 +142,14 @@
     "classResults": "نتائج الأقسام",
     "teachingPlanning": "التخطيط التربوي",
     "teachingAssignments": "إسنادات التدريس",
-    "staffAttendance": "حضور الطاقم"
+    "staffAttendance": "حضور الطاقم",
+    "financeCommandCenter": "مركز القيادة",
+    "financeCollectionsCash": "التحصيل والصندوق",
+    "financeArrearsFollowup": "المتأخرات والمتابعة",
+    "financeInstallmentsAccounts": "الأقساط والحسابات",
+    "financeCheques": "الشيكات",
+    "financeReports": "التقارير المالية",
+    "financeSetup": "الإعداد المالي"
   },
   "states": {
     "draft": "مسودة",

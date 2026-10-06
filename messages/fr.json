@@ -142,7 +142,14 @@
     "diagnosticAssessment": "Évaluation diagnostique",
     "teachingPlanning": "Planification pédagogique",
     "teachingAssignments": "Affectations pédagogiques",
-    "staffAttendance": "Présence du personnel"
+    "staffAttendance": "Présence du personnel",
+    "financeCommandCenter": "Centre de pilotage",
+    "financeCollectionsCash": "Encaissements et caisse",
+    "financeArrearsFollowup": "Impayés et suivi",
+    "financeInstallmentsAccounts": "Échéances et comptes",
+    "financeCheques": "Chèques",
+    "financeReports": "Rapports financiers",
+    "financeSetup": "Paramétrage financier"
   },
   "states": {
     "draft": "Brouillon",
