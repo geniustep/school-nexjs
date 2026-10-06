@@ -30,7 +30,10 @@
     "brace-expansion": "1.1.21",
     "readdir-glob": {
       "brace-expansion": "2.1.7"
-    }
+    },
+    "source-map-js": "1.2.2",
+    "tinypool": "2.1.2",
+    "@vitest/mocker": "4.1.11"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
