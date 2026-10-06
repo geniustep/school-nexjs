@@ -142,7 +142,14 @@
     "diagnosticAssessment": "Evaluación diagnóstica",
     "teachingPlanning": "Planificación pedagógica",
     "teachingAssignments": "Asignaciones docentes",
-    "staffAttendance": "Asistencia del personal"
+    "staffAttendance": "Asistencia del personal",
+    "financeCommandCenter": "Centro de control",
+    "financeCollectionsCash": "Cobros y caja",
+    "financeArrearsFollowup": "Atrasos y seguimiento",
+    "financeInstallmentsAccounts": "Cuotas y cuentas",
+    "financeCheques": "Cheques",
+    "financeReports": "Informes financieros",
+    "financeSetup": "Configuración financiera"
   },
   "states": {
     "draft": "Borrador",
