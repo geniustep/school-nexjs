@@ -404,7 +404,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     pushSection(sections, {
       groupId: 'finance',
       icon: '🏦',
-      titleKey: scopedNavTitle('nav.adminSchoolFinance', 'nav.scopedSchoolFinance', scopedLabels),
+      titleKey: scopedNavTitle('nav.financeSection', 'nav.adminScopedFinance', scopedLabels),
       items: financeItems,
     });
   }
