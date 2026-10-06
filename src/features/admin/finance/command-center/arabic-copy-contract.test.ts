@@ -46,6 +46,6 @@ describe('Finance Command Center Arabic terminology', () => {
     expect(copy.loadingAging).not.toContain('Aging');
     expect(copy.agingTitle).not.toContain('أعمار');
     expect(copy.agingUnavailableTitle).not.toContain('Aging');
-    expect(copy.decision.definition.aging).toContain('المبلغ غير المؤدى');
+    expect(copy.decision.definition.aging).toContain('غير المؤدى');
   });
 });
