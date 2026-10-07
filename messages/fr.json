@@ -149,7 +149,8 @@
     "financeInstallmentsAccounts": "Échéances et comptes",
     "financeCheques": "Chèques",
     "financeReports": "Rapports financiers",
-    "financeSetup": "Paramétrage financier"
+    "financeSetup": "Paramétrage financier",
+    "financeHub": "Centre financier"
   },
   "states": {
     "draft": "Brouillon",

@@ -163,9 +163,10 @@ describe('navigation finance access', () => {
   it('includes finance section in desktop nav', () => {
     const sections = navForUser(user);
     const financeSection = sections.find((s) =>
-      s.items.some((item) => item.href === '/admin/finance/command-center'),
+      s.items.some((item) => item.href === '/admin/finance'),
     );
     expect(financeSection).toBeTruthy();
+    expect(financeSection?.items.some((item) => item.href === '/admin/finance/command-center')).toBe(true);
   });
 
   it('allows direct finance route permission check', () => {
