@@ -2,6 +2,7 @@ export type AgreementAmendmentOperationType =
   | 'add_line'
   | 'cancel_line'
   | 'modify_line'
+  | 'reconcile_periods'
   | 'adjust_line_amount'
   | 'adjust_installment_amount';
 
@@ -44,6 +45,7 @@ export interface AgreementAmendmentRequestPayload {
   operation_type: AgreementAmendmentOperationType;
   effective_period_id?: number;
   effective_period_ids?: number[];
+  target_period_ids?: number[];
   effective_period_end_id?: number;
   effective_date?: string;
   reason: string;
@@ -119,6 +121,12 @@ export interface AgreementAmendmentPreviewResponse {
   current_agreement?: unknown;
   selection_mode?: string;
   selected_period_ids?: unknown[];
+  current_periods?: unknown[];
+  target_periods?: unknown[];
+  preserved_periods?: unknown[];
+  current_quantity?: number;
+  resulting_quantity?: number;
+  already_aligned?: boolean;
   period_impacts?: unknown[];
   affected_periods?: unknown[];
   locked_periods?: unknown[];
@@ -156,6 +164,12 @@ export interface NormalizedAgreementAmendmentPreview {
   currentAgreement?: AgreementAmendmentCurrentAgreementBrief | null;
   selectionMode?: string | null;
   selectedPeriodIds?: number[];
+  currentPeriodIds?: number[];
+  targetPeriodIds?: number[];
+  preservedPeriodIds?: number[];
+  currentQuantity?: number | null;
+  resultingQuantity?: number | null;
+  alreadyAligned?: boolean;
   periodImpacts?: AgreementAmendmentPeriodImpact[];
   affectedPeriods: string[];
   lockedPeriods: string[];

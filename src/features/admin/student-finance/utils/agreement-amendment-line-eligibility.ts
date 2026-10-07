@@ -25,6 +25,7 @@ const VALID_AMENDMENT_OPERATIONS = new Set<AgreementAmendmentOperationType>([
   'add_line',
   'cancel_line',
   'modify_line',
+  'reconcile_periods',
   'adjust_line_amount',
 ]);
 
@@ -123,6 +124,16 @@ export function lineSupportsAdjustLineAmount(line: AgreementAmendmentLineOption)
 }
 
 /** Period modify_line path — Backend can_modify is required and wins conflicts. */
+export function lineSupportsReconcilePeriods(line: AgreementAmendmentLineOption): boolean {
+  if (line.isMonthly !== true) return false;
+  if (!isPeriodAmendableLineOption(line)) return false;
+  const reason =
+    resolveAgreementLineAmendmentBlockReasonCode(line) ??
+    line.statusReasonCode ??
+    line.amendmentBlockReason;
+  return reason !== 'agreement_line_lifecycle_unavailable';
+}
+
 export function lineSupportsModifyLine(line: AgreementAmendmentLineOption): boolean {
   if (!hasAgreementLineLifecycleActionContract(line)) return false;
   if (line.canModify !== true) return false;
@@ -187,6 +198,7 @@ export function isLineSelectableForAmountAmendment(line: AgreementAmendmentLineO
 export function isLineFullyBlockedForAmendment(line: AgreementAmendmentLineOption): boolean {
   return (
     !lineSupportsAdjustLineAmount(line) &&
+    !lineSupportsReconcilePeriods(line) &&
     !lineSupportsModifyLine(line) &&
     !lineSupportsCancelLine(line)
   );
@@ -212,6 +224,11 @@ export function resolveAgreementLineOperationBlockReasonCode(
   if (operationType === 'modify_line') {
     if (lineSupportsModifyLine(line) || lineSupportsAdjustLineAmount(line)) return null;
     return backendReason ?? AGREEMENT_LINE_LIFECYCLE_UNAVAILABLE_REASON;
+  }
+
+  if (operationType === 'reconcile_periods') {
+    if (lineSupportsReconcilePeriods(line)) return null;
+    return backendReason ?? 'line_not_period_reconcilable';
   }
 
   if (operationType === 'cancel_line') {

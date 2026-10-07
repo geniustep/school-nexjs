@@ -26,6 +26,8 @@ export function agreementAmendmentErrorMessageKey(code: string | undefined): str
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.noOpenPeriods';
     case 'locked_financial_records':
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.lockedFinancialRecords';
+    case 'locked_period_cannot_be_removed':
+      return 'admin.student360.financeWorkspace.agreementAmendment.errors.lockedFinancialRecords';
     case 'amendment_not_allowed':
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.amendmentNotAllowed';
     case 'invalid_operation_type':

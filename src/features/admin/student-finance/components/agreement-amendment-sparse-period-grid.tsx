@@ -20,6 +20,8 @@ const COPY = {
     current: 'الحالي',
     proposed: 'بعد التعديل',
     unavailable: 'غير قابل للتعديل',
+    includedMonth: 'مشمول في الاتفاق',
+    excludedMonth: 'غير مشمول',
   },
   fr: {
     selected: 'Inclus',
@@ -30,6 +32,8 @@ const COPY = {
     current: 'Actuel',
     proposed: 'Après modification',
     unavailable: 'Non modifiable',
+    includedMonth: 'Inclus dans l’accord',
+    excludedMonth: 'Non inclus',
   },
   en: {
     selected: 'Included',
@@ -40,6 +44,8 @@ const COPY = {
     current: 'Current',
     proposed: 'After change',
     unavailable: 'Not amendable',
+    includedMonth: 'Included in agreement',
+    excludedMonth: 'Not included',
   },
   es: {
     selected: 'Incluido',
@@ -50,6 +56,8 @@ const COPY = {
     current: 'Actual',
     proposed: 'Después del cambio',
     unavailable: 'No modificable',
+    includedMonth: 'Incluido en el acuerdo',
+    excludedMonth: 'No incluido',
   },
 } as const;
 
@@ -65,6 +73,7 @@ export function AgreementAmendmentSparsePeriodGrid({
   onToggle,
   onOverrideChange,
   onOverrideClear,
+  mode = 'price',
 }: {
   periods: AgreementAmendmentPeriodOption[];
   selectedPeriodIds: string[];
@@ -77,6 +86,7 @@ export function AgreementAmendmentSparsePeriodGrid({
   onToggle: (periodId: string) => void;
   onOverrideChange: (periodId: string, amount: string) => void;
   onOverrideClear: (periodId: string) => void;
+  mode?: 'price' | 'included';
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -137,7 +147,15 @@ export function AgreementAmendmentSparsePeriodGrid({
                 {label}
               </span>
               <span className="tiny muted">
-                {!selectable ? copy.unavailable : selected ? copy.selected : copy.excluded}
+                {!selectable
+                  ? copy.unavailable
+                  : mode === 'included'
+                    ? selected
+                      ? copy.includedMonth
+                      : copy.excludedMonth
+                    : selected
+                      ? copy.selected
+                      : copy.excluded}
               </span>
             </label>
 
@@ -156,7 +174,7 @@ export function AgreementAmendmentSparsePeriodGrid({
               ) : null}
             </div>
 
-            {selected && selectable ? (
+            {mode === 'price' && selected && selectable ? (
               <div className="student-finance-amendment-sparse-period__override">
                 {!editing ? (
                   <button
