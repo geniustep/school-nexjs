@@ -510,8 +510,8 @@ export function StudentFinanceAgreementAmendmentDialog({
     }
 
     if (
-      executionForm.operationType === 'modify_line' &&
-      executionForm.amendmentPath === 'period_range' &&
+      candidateForm.operationType === 'modify_line' &&
+      candidateForm.amendmentPath === 'period_range' &&
       candidateLine.isMonthly === true
     ) {
       const currentPeriodIds = resolveCurrentIncludedPeriodIds(
