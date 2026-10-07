@@ -10,6 +10,7 @@ import {
   lineSupportsAdjustLineAmount,
   lineSupportsCancelLine,
   lineSupportsModifyLine,
+  lineSupportsReconcilePeriods,
 } from './agreement-amendment-line-eligibility';
 
 export function resolveAvailableAmendmentPaths(
@@ -23,6 +24,9 @@ export function resolveAvailableAmendmentPaths(
     paths.push('adjust_amount');
   }
   if (operationType === 'modify_line' && lineSupportsModifyLine(line)) {
+    paths.push('period_range');
+  }
+  if (operationType === 'reconcile_periods' && lineSupportsReconcilePeriods(line)) {
     paths.push('period_range');
   }
   if (operationType === 'cancel_line' && lineSupportsCancelLine(line)) {
@@ -47,6 +51,7 @@ export function isLineSelectableForAmendmentOperation(
 ): boolean {
   if (operationType === 'add_line') return true;
   if (operationType === 'cancel_line') return isLineSelectableForCancelLine(line);
+  if (operationType === 'reconcile_periods') return lineSupportsReconcilePeriods(line);
   if (operationType === 'modify_line') {
     return isLineSelectableForModifyLine(line) || isLineSelectableForAmountAmendment(line);
   }
