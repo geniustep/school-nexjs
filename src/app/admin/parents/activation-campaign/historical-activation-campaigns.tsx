@@ -7,6 +7,7 @@ import { useLocale } from '@/features/i18n/locale-context';
 import {
   formatHistoricalDate,
   getHistoricalActivationStatusLabel,
+  getHistoricalCampaignArchiveStatus,
   getHistoricalMessageStatusLabel,
   getHistoricalMilestoneLabel,
   getParentActivationHistoricalCopy,
@@ -90,7 +91,9 @@ export function HistoricalActivationCampaigns() {
         return;
       }
       setCampaignList(response.data);
-      const archivedItems = response.data.items.filter((item) => item.state === 'prepared');
+      const archivedItems = response.data.items.filter(
+        (item) => getHistoricalCampaignArchiveStatus(item) !== null,
+      );
       setSelectedCampaignId((current) => {
         if (current && archivedItems.some((item) => item.id === current)) return current;
         return archivedItems[0]?.id ?? null;
@@ -190,7 +193,9 @@ export function HistoricalActivationCampaigns() {
   }, [selectedCampaignId, analytics, recipientView, recipientPageNumber, refreshKey]);
 
   const archivedCampaigns = useMemo(
-    () => campaignList?.items.filter((item) => item.state === 'prepared') ?? [],
+    () => campaignList?.items.filter(
+      (item) => getHistoricalCampaignArchiveStatus(item) !== null,
+    ) ?? [],
     [campaignList],
   );
 
@@ -288,10 +293,10 @@ export function HistoricalActivationCampaigns() {
             aria-label={copy.selectCampaign}
           >
             {archivedCampaigns.map((item) => {
-              const sent = item.funnel.dispatch_enqueued > 0;
+              const archiveStatus = getHistoricalCampaignArchiveStatus(item);
               return (
                 <option key={item.id} value={item.id}>
-                  {item.name} — #{item.id} — {sent ? copy.sentCampaign : copy.savedCampaign}
+                  {item.name} — #{item.id} — {archiveStatus === 'sent' ? copy.sentCampaign : copy.savedCampaign}
                 </option>
               );
             })}
@@ -303,8 +308,8 @@ export function HistoricalActivationCampaigns() {
             <div className={styles.campaignSummaryMain}>
               <div className={styles.campaignSummaryTitle}>
                 <strong dir="auto">{selectedListItem.name}</strong>
-                <Badge tone={selectedListItem.funnel.dispatch_enqueued > 0 ? 'green' : 'blue'}>
-                  {selectedListItem.funnel.dispatch_enqueued > 0 ? copy.sentCampaign : copy.savedCampaign}
+                <Badge tone={getHistoricalCampaignArchiveStatus(selectedListItem) === 'sent' ? 'green' : 'blue'}>
+                  {getHistoricalCampaignArchiveStatus(selectedListItem) === 'sent' ? copy.sentCampaign : copy.savedCampaign}
                 </Badge>
               </div>
               <span>{formatHistoricalDate(selectedListItem.prepared_at ?? selectedListItem.create_date, locale)}</span>
