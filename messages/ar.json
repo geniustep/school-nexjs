@@ -149,7 +149,8 @@
     "financeInstallmentsAccounts": "الأقساط والحسابات",
     "financeCheques": "الشيكات",
     "financeReports": "التقارير المالية",
-    "financeSetup": "الإعداد المالي"
+    "financeSetup": "الإعداد المالي",
+    "financeHub": "مركز المالية"
   },
   "states": {
     "draft": "مسودة",
