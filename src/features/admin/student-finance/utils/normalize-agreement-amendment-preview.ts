@@ -112,6 +112,22 @@ function readNumberArray(value: unknown): number[] {
   return [...new Set(numbers)];
 }
 
+function readPeriodIdArray(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  const ids: number[] = [];
+  for (const item of value) {
+    const direct = readFiniteNumber(item);
+    if (direct != null) {
+      ids.push(direct);
+      continue;
+    }
+    const rec = asRecord(item);
+    const id = readFiniteNumber(rec?.id) ?? readFiniteNumber(rec?.effective_period_id);
+    if (id != null) ids.push(id);
+  }
+  return [...new Set(ids)];
+}
+
 function readCurrentAgreement(value: unknown): AgreementAmendmentCurrentAgreementBrief | null {
   const rec = asRecord(value);
   if (!rec) return null;
@@ -243,6 +259,30 @@ export function normalizeAgreementAmendmentPreview(
         ...readNumberArray(root.selected_period_ids),
       ]),
     ],
+    currentPeriodIds: [
+      ...new Set([
+        ...readPeriodIdArray(data.current_periods),
+        ...readPeriodIdArray(root.current_periods),
+      ]),
+    ],
+    targetPeriodIds: [
+      ...new Set([
+        ...readPeriodIdArray(data.target_periods),
+        ...readPeriodIdArray(root.target_periods),
+      ]),
+    ],
+    preservedPeriodIds: [
+      ...new Set([
+        ...readPeriodIdArray(data.preserved_periods),
+        ...readPeriodIdArray(root.preserved_periods),
+      ]),
+    ],
+    currentQuantity:
+      readFiniteNumber(data.current_quantity) ?? readFiniteNumber(root.current_quantity),
+    resultingQuantity:
+      readFiniteNumber(data.resulting_quantity) ?? readFiniteNumber(root.resulting_quantity),
+    alreadyAligned:
+      readBool(data.already_aligned) ?? readBool(root.already_aligned) ?? false,
     periodImpacts,
     affectedPeriods: [
       ...new Set([

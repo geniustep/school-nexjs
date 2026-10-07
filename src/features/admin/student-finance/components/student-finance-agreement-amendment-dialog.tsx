@@ -62,6 +62,9 @@ import './agreement-amendment-feedback.css';
 const COPY = {
   ar: {
     modify: 'تعديل خدمة',
+    includedMonths: 'الأشهر المشمولة',
+    includedDescription: 'حدد الأشهر التي تشملها هذه الخدمة. الأشهر المرتبطة بأداء أو حركة مالية مؤكدة تبقى محمية.',
+    noChanges: 'لا توجد تغييرات على الأشهر المشمولة.',
     add: 'إضافة خدمة',
     remove: 'إزالة خدمة',
     service: 'الخدمة',
@@ -77,6 +80,9 @@ const COPY = {
   },
   fr: {
     modify: 'Modifier un service',
+    includedMonths: 'Mois inclus',
+    includedDescription: 'Sélectionnez les mois couverts par ce service. Les mois liés à un paiement ou à une opération financière confirmée restent protégés.',
+    noChanges: 'Aucun changement dans les mois inclus.',
     add: 'Ajouter un service',
     remove: 'Retirer un service',
     service: 'Service',
@@ -92,6 +98,9 @@ const COPY = {
   },
   en: {
     modify: 'Modify service',
+    includedMonths: 'Included months',
+    includedDescription: 'Select the months covered by this service. Months tied to confirmed payments or financial activity remain protected.',
+    noChanges: 'There are no changes to the included months.',
     add: 'Add service',
     remove: 'Remove service',
     service: 'Service',
@@ -107,6 +116,9 @@ const COPY = {
   },
   es: {
     modify: 'Modificar servicio',
+    includedMonths: 'Meses incluidos',
+    includedDescription: 'Seleccione los meses cubiertos por este servicio. Los meses vinculados a pagos o movimientos financieros confirmados permanecen protegidos.',
+    noChanges: 'No hay cambios en los meses incluidos.',
     add: 'Añadir servicio',
     remove: 'Eliminar servicio',
     service: 'Servicio',
@@ -126,6 +138,32 @@ type SparseAgreementAmendmentFormState = AgreementAmendmentFormState & {
   selectedPeriodIds: string[];
   periodAmountOverrides: Record<string, string>;
 };
+
+function resolveCurrentIncludedPeriodIds(
+  agreement: FinancialAgreement | null | undefined,
+  agreementLineId: number | null | undefined,
+  periods: AgreementAmendmentPeriodOption[],
+): string[] {
+  if (!agreementLineId) return [];
+  const scheduled = (agreement?.installments ?? []).filter((item) => {
+    const state = String(item.state ?? '').toLowerCase();
+    return (
+      item.agreement_line_id === agreementLineId &&
+      state !== 'cancelled' &&
+      state !== 'waived'
+    );
+  });
+  return periods
+    .filter((period) =>
+      scheduled.some(
+        (item) =>
+          Boolean(period.periodStart && period.periodEnd) &&
+          item.period_start === period.periodStart &&
+          item.period_end === period.periodEnd,
+      ),
+    )
+    .map((period) => String(period.id));
+}
 
 function defaultForm(locale: string): SparseAgreementAmendmentFormState {
   return {
@@ -273,18 +311,31 @@ export function StudentFinanceAgreementAmendmentDialog({
   }, [open, agreementId]);
 
   useEffect(() => {
-    if (form.operationType !== 'modify_line' || form.amendmentPath !== 'period_range') return;
+    if (
+      form.operationType !== 'reconcile_periods' &&
+      !(form.operationType === 'modify_line' && form.amendmentPath === 'period_range')
+    ) {
+      return;
+    }
     if (!form.sourceLineId || !modifyPeriodOptions.length) return;
-    if (periodSelectionInitializedLineId === form.sourceLineId) return;
-    const selectedPeriodIds = modifyPeriodOptions
-      .filter((period) => period.selectable !== false)
-      .map((period) => String(period.id));
+    const initializationKey = `${form.operationType}:${form.sourceLineId}`;
+    if (periodSelectionInitializedLineId === initializationKey) return;
+    const selectedPeriodIds =
+      form.operationType === 'reconcile_periods'
+        ? resolveCurrentIncludedPeriodIds(
+            agreementDetails ?? agreement,
+            selectedLine?.agreementLineId ?? selectedLine?.sourceLineId,
+            modifyPeriodOptions,
+          )
+        : modifyPeriodOptions
+            .filter((period) => period.selectable !== false)
+            .map((period) => String(period.id));
     setForm((prev) => ({
       ...prev,
       selectedPeriodIds,
       periodAmountOverrides: {},
     }));
-    setPeriodSelectionInitializedLineId(form.sourceLineId);
+    setPeriodSelectionInitializedLineId(initializationKey);
     setPreview(null);
     setPreviewReady(false);
   }, [
@@ -293,6 +344,9 @@ export function StudentFinanceAgreementAmendmentDialog({
     form.sourceLineId,
     modifyPeriodOptions,
     periodSelectionInitializedLineId,
+    agreementDetails,
+    agreement,
+    selectedLine,
   ]);
 
   function resetAndClose() {
@@ -323,7 +377,12 @@ export function StudentFinanceAgreementAmendmentDialog({
     setForm((prev) => ({
       ...prev,
       operationType,
-      amendmentPath: operationType === 'modify_line' || operationType === 'cancel_line' ? 'period_range' : '',
+      amendmentPath:
+        operationType === 'modify_line' ||
+        operationType === 'cancel_line' ||
+        operationType === 'reconcile_periods'
+          ? 'period_range'
+          : '',
       sourceLineId: '',
       feeTypeId: '',
       effectivePeriodId: '',
@@ -339,7 +398,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     const selected = lineOptions.find((line) => String(line.id) === sourceLineId);
     const availablePaths = resolveAvailableAmendmentPaths(selected, form.operationType);
     const amendmentPath =
-      form.operationType === 'cancel_line'
+      form.operationType === 'cancel_line' || form.operationType === 'reconcile_periods'
         ? 'period_range'
         : availablePaths.includes('period_range')
           ? 'period_range'
@@ -361,7 +420,9 @@ export function StudentFinanceAgreementAmendmentDialog({
       amount:
         prev.operationType === 'cancel_line'
           ? '0'
-          : selected?.unitPrice != null
+          : prev.operationType === 'reconcile_periods'
+            ? ''
+            : selected?.unitPrice != null
             ? String(selected.unitPrice)
             : selected?.amount != null
               ? String(selected.amount)
@@ -585,7 +646,8 @@ export function StudentFinanceAgreementAmendmentDialog({
   if (!open) return null;
 
   const formReady = canSubmitAgreementAmendmentForm(form, selectedLine);
-  const applyReady = previewReady && preview?.canApply === true && formReady;
+  const applyReady =
+    previewReady && preview?.canApply === true && preview.alreadyAligned !== true && formReady;
   const applyBlockMessage =
     previewReady && preview && !preview.canApply && preview.blockingReasons.length
       ? resolveAgreementAmendmentBlockingMessage(preview.blockingReasons[0]!, t)
@@ -593,9 +655,10 @@ export function StudentFinanceAgreementAmendmentDialog({
   const periodControlsActive =
     form.operationType === 'add_line' ||
     form.operationType === 'cancel_line' ||
+    form.operationType === 'reconcile_periods' ||
     (form.operationType === 'modify_line' && form.amendmentPath === 'period_range');
   const visiblePeriods = periodControlsActive
-    ? form.operationType === 'modify_line'
+    ? form.operationType === 'modify_line' || form.operationType === 'reconcile_periods'
       ? modifyPeriodOptions
       : periodOptions
     : [];
@@ -616,6 +679,7 @@ export function StudentFinanceAgreementAmendmentDialog({
           <fieldset className="student-finance-amendment-operation-selector">
             <div className="student-finance-amendment-operation-selector__options">
               {([
+                ['reconcile_periods', copy.includedMonths],
                 ['modify_line', copy.modify],
                 ['add_line', copy.add],
                 ['cancel_line', copy.remove],
@@ -633,6 +697,10 @@ export function StudentFinanceAgreementAmendmentDialog({
               ))}
             </div>
           </fieldset>
+
+          {form.operationType === 'reconcile_periods' ? (
+            <p className="tiny muted">{copy.includedDescription}</p>
+          ) : null}
 
           {form.operationType === 'add_line' ? (
             <label className="student-finance-amendment-service-select">
@@ -682,7 +750,9 @@ export function StudentFinanceAgreementAmendmentDialog({
             }}
           />
 
-          {form.operationType !== 'cancel_line' && (form.operationType === 'add_line' || selectedLine) ? (
+          {form.operationType !== 'cancel_line' &&
+          form.operationType !== 'reconcile_periods' &&
+          (form.operationType === 'add_line' || selectedLine) ? (
             <label className="student-finance-amendment-new-price">
               <span>{form.operationType === 'modify_line' ? copy.newPrice : copy.price}</span>
               <input
@@ -701,7 +771,7 @@ export function StudentFinanceAgreementAmendmentDialog({
             </label>
           ) : null}
 
-          {form.operationType === 'modify_line' &&
+          {(form.operationType === 'modify_line' || form.operationType === 'reconcile_periods') &&
           form.amendmentPath === 'period_range' &&
           selectedLine ? (
             <AgreementAmendmentSparsePeriodGrid
@@ -716,6 +786,7 @@ export function StudentFinanceAgreementAmendmentDialog({
               onToggle={togglePeriod}
               onOverrideChange={updatePeriodOverride}
               onOverrideClear={clearPeriodOverride}
+              mode={form.operationType === 'reconcile_periods' ? 'included' : 'price'}
             />
           ) : null}
 
@@ -734,7 +805,7 @@ export function StudentFinanceAgreementAmendmentDialog({
           ) : null}
 
           {periodControlsActive &&
-          (form.operationType === 'modify_line'
+          (form.operationType === 'modify_line' || form.operationType === 'reconcile_periods'
             ? selectedLine
             : form.operationType === 'add_line' || selectedLine) &&
           periodsError ? (
@@ -765,6 +836,9 @@ export function StudentFinanceAgreementAmendmentDialog({
             </section>
           ) : null}
 
+          {previewReady && preview?.alreadyAligned === true ? (
+            <p className="tiny muted">{copy.noChanges}</p>
+          ) : null}
           {formError ? <p className="form-error">{formError}</p> : null}
 
           <div className="student-finance-amendment-form__action-note tiny muted">

@@ -8,6 +8,7 @@ import {
   lineSupportsAdjustLineAmount,
   lineSupportsCancelLine,
   lineSupportsModifyLine,
+  lineSupportsReconcilePeriods,
 } from './agreement-amendment-line-eligibility';
 import { resolvePayloadOperationType } from './agreement-amendment-path';
 
@@ -93,6 +94,14 @@ function readLinePayload(
       : undefined;
   const feeTypeId = form.feeTypeId ? Number(form.feeTypeId) : selectedLine?.feeTypeId ?? undefined;
 
+  if (operationType === 'reconcile_periods') {
+    return stripUndefined({
+      source_line_id: sourceLineId,
+      agreement_line_id: agreementLineId,
+      fee_type_id: feeTypeId,
+    });
+  }
+
   if (operationType === 'adjust_line_amount') {
     return stripUndefined({
       source_line_id: sourceLineId,
@@ -125,6 +134,7 @@ function readLinePayload(
 
 export function usesPeriodRangeForForm(form: AgreementAmendmentFormState): boolean {
   if (usesSparsePeriodSelection(form)) return true;
+  if (form.operationType === 'reconcile_periods') return true;
   if (form.operationType === 'add_line') return true;
   if (form.operationType === 'cancel_line') return true;
   if (form.operationType === 'modify_line') return form.amendmentPath === 'period_range';
@@ -144,7 +154,9 @@ export function buildAgreementAmendmentPreviewPayload(
     line: readLinePayload(payloadOperationType, form, selectedLine),
   };
 
-  if (usesSparsePeriodSelection(form)) {
+  if (payloadOperationType === 'reconcile_periods') {
+    payload.target_period_ids = readSparsePeriodIds(form);
+  } else if (usesSparsePeriodSelection(form)) {
     payload.effective_period_ids = readSparsePeriodIds(form);
   } else if (payloadOperationType !== 'adjust_line_amount' && usesPeriodRangeForForm(form)) {
     const effectivePeriodId = form.effectivePeriodId.trim();
@@ -182,6 +194,10 @@ export function canSubmitAgreementAmendmentForm(
   }
 
   if (!form.sourceLineId || !selectedLine) return false;
+
+  if (form.operationType === 'reconcile_periods') {
+    return lineSupportsReconcilePeriods(selectedLine) && readSparsePeriodIds(form).length > 0;
+  }
 
   if (form.operationType === 'cancel_line') {
     if (!lineSupportsCancelLine(selectedLine)) return false;
