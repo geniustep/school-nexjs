@@ -10,6 +10,7 @@ import {
   isLineFullyBlockedForAmendment,
   lineSupportsAdjustLineAmount,
   lineSupportsPeriodAmendment,
+  lineSupportsReconcilePeriods,
   resolveAgreementLineOperationBlockReasonCode,
 } from '../utils/agreement-amendment-line-eligibility';
 import { isLineSelectableForAmendmentOperation } from '../utils/agreement-amendment-path';
@@ -89,7 +90,9 @@ export function AgreementAmendmentLinePicker({
         aria-label={t('admin.student360.financeWorkspace.agreementAmendment.fields.line')}
       >
         {lines.map((line) => {
-          const selectable = isLineSelectableForAmendmentOperation(line, operationType);
+          const selectable =
+            isLineSelectableForAmendmentOperation(line, operationType) ||
+            (operationType === 'modify_line' && lineSupportsReconcilePeriods(line));
           const isSelected = selectedLineId === String(line.id);
           const periodBlockReason = resolvePeriodBlockReasonLabel(line, t);
           const amountBlockReason = resolveAmountBlockReasonLabel(line, t);
