@@ -15,7 +15,8 @@ function messages(locale: 'ar' | 'fr' | 'en' | 'es') {
 describe('Finance sidebar workspace contract', () => {
   const nav = read('src/components/navigation/nav-config.ts');
 
-  it('expands finance into seven intent-based destinations', () => {
+  it('expands finance into eight intent-based destinations', () => {
+    expect(nav).toContain("labelKey: 'nav.financeHub'");
     expect(nav).toContain("labelKey: 'nav.financeCommandCenter'");
     expect(nav).toContain("labelKey: 'nav.financeCollectionsCash'");
     expect(nav).toContain("labelKey: 'nav.financeArrearsFollowup'");
@@ -24,6 +25,7 @@ describe('Finance sidebar workspace contract', () => {
     expect(nav).toContain("labelKey: 'nav.financeReports'");
     expect(nav).toContain("labelKey: 'nav.financeSetup'");
 
+    expect(nav).toContain("href: '/admin/finance'");
     expect(nav).toContain("href: '/admin/finance/command-center'");
     expect(nav).toContain("'/admin/finance/collections'");
     expect(nav).toContain("href: '/admin/finance/arrears'");
@@ -54,6 +56,7 @@ describe('Finance sidebar workspace contract', () => {
   it('ships the workspace labels in all supported admin locales', () => {
     for (const locale of ['ar', 'fr', 'en', 'es'] as const) {
       const copy = messages(locale).nav;
+      expect(copy.financeHub).toBeTruthy();
       expect(copy.financeCommandCenter).toBeTruthy();
       expect(copy.financeCollectionsCash).toBeTruthy();
       expect(copy.financeArrearsFollowup).toBeTruthy();
@@ -64,6 +67,7 @@ describe('Finance sidebar workspace contract', () => {
     }
 
     const ar = messages('ar').nav;
+    expect(ar.financeHub).toBe('مركز المالية');
     expect(ar.financeCommandCenter).toBe('مركز القيادة');
     expect(ar.financeCollectionsCash).toBe('التحصيل والصندوق');
     expect(ar.financeArrearsFollowup).toBe('المتأخرات والمتابعة');
