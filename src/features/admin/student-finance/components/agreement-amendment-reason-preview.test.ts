@@ -157,11 +157,13 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(autoPreviewSource).not.toContain('form.requestSubmit()');
   });
 
-  it('restores modify, add, and remove operations with modify as the default', () => {
+  it('shows only modify, add, and remove operations with modify as the default', () => {
     expect(dialogSource).toContain("operationType: 'modify_line'");
     expect(dialogSource).toContain("['modify_line', copy.modify]");
     expect(dialogSource).toContain("['add_line', copy.add]");
     expect(dialogSource).toContain("['cancel_line', copy.remove]");
+    expect(dialogSource).not.toContain("['reconcile_periods',");
+    expect(dialogSource).toContain("duration: 'مدة الاستفادة من الخدمة'");
     expect(dialogSource).toContain('<AgreementAmendmentSparsePeriodGrid');
     expect(dialogSource).toContain('<AgreementAmendmentMonthRail');
   });
@@ -173,9 +175,9 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
       'isLineSelectableForAmendmentOperation(line, form.operationType)',
     );
     expect(dialogSource).toContain("availablePaths.includes('adjust_amount')");
-    expect(dialogSource).toContain("form.operationType !== 'reconcile_periods'");
+    expect(dialogSource).toContain("selectedLine?.isMonthly === true");
     expect(dialogSource).toContain(
-      "form.operationType === 'modify_line' && form.amendmentPath === 'period_range'",
+      "form.operationType === 'modify_line' &&",
     );
     expect(dialogSource).toContain("form.amendmentPath === 'period_range'");
     expect(previewSource).toContain(
@@ -184,6 +186,21 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(previewSource).toContain(
       'resolveAgreementAmendmentPricingContractLabelMode(\n                  form.operationType,\n                  form.amendmentPath,',
     );
+  });
+
+  it('hides month selection when removing a monthly service and auto-resolves the stop period', () => {
+    expect(dialogSource).toContain('resolveAutomaticRemovalEffectivePeriodId');
+    expect(dialogSource).toContain("form.operationType === 'cancel_line' && selectedLine?.isMonthly === true");
+    expect(dialogSource).toContain('copy.removeDescription');
+    expect(dialogSource).not.toContain("(form.operationType === 'add_line' || form.operationType === 'cancel_line')");
+    expect(dialogSource).toContain("form.operationType === 'add_line' ? (");
+  });
+
+  it('routes duration-only edits internally and blocks combined price plus duration changes', () => {
+    expect(dialogSource).toContain('resolveUnifiedModifyIntent');
+    expect(dialogSource).toContain("operationType: 'reconcile_periods'");
+    expect(dialogSource).toContain('copy.combinedChangeNotSupported');
+    expect(dialogSource).toContain('previewMutationForm');
   });
 
   it('places reason before price and keeps apply gated by the latest authoritative preview', () => {
