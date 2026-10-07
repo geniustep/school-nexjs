@@ -57,9 +57,9 @@ describe('unified service amendment UX', () => {
 
   it('chooses the current or next billing period automatically for full-service removal', () => {
     const periods = [
-      { id: 10, periodStart: '2026-09-01', periodEnd: '2026-09-30' },
-      { id: 11, periodStart: '2026-10-01', periodEnd: '2026-10-31' },
-      { id: 12, periodStart: '2026-11-01', periodEnd: '2026-11-30' },
+      { id: 10, label: 'September 2026', periodStart: '2026-09-01', periodEnd: '2026-09-30' },
+      { id: 11, label: 'October 2026', periodStart: '2026-10-01', periodEnd: '2026-10-31' },
+      { id: 12, label: 'November 2026', periodStart: '2026-11-01', periodEnd: '2026-11-30' },
     ];
     expect(resolveAutomaticRemovalEffectivePeriodId(periods, '2026-10-07')).toBe('11');
   });
