@@ -315,7 +315,7 @@ const ROUTE_RULES: RouteRule[] = [
   {
     methods: ['GET', 'HEAD'],
     test: (p) =>
-      /^\/communication\/announcements\/[^/]+\/attachments\/[^/]+\/download$/.test(p),
+      /^\/communication\/announcements\/[^/]+\/attachments\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),
   },
 ];
 
