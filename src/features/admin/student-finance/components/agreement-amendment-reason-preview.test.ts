@@ -157,13 +157,30 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(autoPreviewSource).not.toContain('form.requestSubmit()');
   });
 
-  it('restores modify, add, and remove operations with modify as the default', () => {
+  it('shows only modify, add, and remove operations with modify as the default', () => {
     expect(dialogSource).toContain("operationType: 'modify_line'");
     expect(dialogSource).toContain("['modify_line', copy.modify]");
     expect(dialogSource).toContain("['add_line', copy.add]");
     expect(dialogSource).toContain("['cancel_line', copy.remove]");
-    expect(dialogSource).toContain('<AgreementAmendmentSparsePeriodGrid');
-    expect(dialogSource).toContain('<AgreementAmendmentMonthRail');
+    expect(dialogSource).not.toContain("['reconcile_periods',");
+    expect(dialogSource).toContain("serviceDuration: 'مدة الاستفادة من الخدمة'");
+    expect(dialogSource).toContain('mode="included"');
+  });
+
+  it('keeps remove service month-free and resolves its effective start internally', () => {
+    expect(dialogSource).toContain("candidateForm.operationType === 'cancel_line'");
+    expect(dialogSource).toContain("const firstPeriodId = periodOptions[0]?.id");
+    expect(dialogSource).toContain("form.operationType === 'add_line' ? (");
+    expect(dialogSource).not.toContain(
+      "(form.operationType === 'add_line' || form.operationType === 'cancel_line')",
+    );
+  });
+
+  it('blocks simultaneous price and duration changes instead of risking a partial financial mutation', () => {
+    expect(dialogSource).toContain('periodsChanged && priceChanged');
+    expect(dialogSource).toContain('copy.combinedChangeBlocked');
+    expect(dialogSource).toContain("operationType: 'reconcile_periods'");
+    expect(dialogSource).toContain("selectedPeriodIds: []");
   });
 
   it('keeps one-time amount amendments visible under Modify without monthly controls', () => {
@@ -173,7 +190,6 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
       'isLineSelectableForAmendmentOperation(line, form.operationType)',
     );
     expect(dialogSource).toContain("availablePaths.includes('adjust_amount')");
-    expect(dialogSource).toContain("form.operationType !== 'reconcile_periods'");
     expect(dialogSource).toContain(
       "form.operationType === 'modify_line' && form.amendmentPath === 'period_range'",
     );
