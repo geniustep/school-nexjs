@@ -23,10 +23,7 @@ export function resolveAvailableAmendmentPaths(
   if (operationType === 'modify_line' && lineSupportsAdjustLineAmount(line)) {
     paths.push('adjust_amount');
   }
-  if (
-    operationType === 'modify_line' &&
-    (lineSupportsModifyLine(line) || lineSupportsReconcilePeriods(line))
-  ) {
+  if (operationType === 'modify_line' && lineSupportsModifyLine(line)) {
     paths.push('period_range');
   }
   if (operationType === 'reconcile_periods' && lineSupportsReconcilePeriods(line)) {
@@ -56,11 +53,7 @@ export function isLineSelectableForAmendmentOperation(
   if (operationType === 'cancel_line') return isLineSelectableForCancelLine(line);
   if (operationType === 'reconcile_periods') return lineSupportsReconcilePeriods(line);
   if (operationType === 'modify_line') {
-    return (
-      isLineSelectableForModifyLine(line) ||
-      isLineSelectableForAmountAmendment(line) ||
-      lineSupportsReconcilePeriods(line)
-    );
+    return isLineSelectableForModifyLine(line) || isLineSelectableForAmountAmendment(line);
   }
   if (operationType === 'adjust_line_amount') {
     return isLineSelectableForAmountAmendment(line);
