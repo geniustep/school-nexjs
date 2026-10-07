@@ -129,10 +129,11 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(result.changed).toBe(true);
   });
 
-  it('owns sparse reconciliation in the parent and re-previews the exact reduced payload', () => {
+  it('owns sparse price reconciliation in the parent without mutating the visible duration selection', () => {
     expect(dialogSource).toContain('reconcileSparsePeriodSelectionWithPreview');
-    expect(dialogSource).toContain('const nextForm: SparseAgreementAmendmentFormState');
-    expect(dialogSource).toContain('await requestPreview(nextForm, false)');
+    expect(dialogSource).toContain('const nextMutationForm: SparseAgreementAmendmentFormState');
+    expect(dialogSource).toContain('buildAgreementAmendmentPreviewPayload');
+    expect(dialogSource).toContain('setPreviewMutationForm(nextMutationForm)');
     expect(dialogSource).toContain('setBlockedPeriodIds');
     expect(sparseGridSource).not.toContain('reconcileSparsePeriodSelectionWithPreview');
     expect(sparseGridSource).not.toContain('useEffect(() =>');
