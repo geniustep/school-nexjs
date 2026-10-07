@@ -190,10 +190,9 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
       'isLineSelectableForAmendmentOperation(line, form.operationType)',
     );
     expect(dialogSource).toContain("availablePaths.includes('adjust_amount')");
-    expect(dialogSource).toContain(
-      "form.operationType === 'modify_line' && form.amendmentPath === 'period_range'",
-    );
-    expect(dialogSource).toContain("form.amendmentPath === 'period_range'");
+    expect(dialogSource).toContain("form.operationType !== 'modify_line'");
+    expect(dialogSource).toContain("form.amendmentPath !== 'period_range'");
+    expect(dialogSource).toContain('selectedLine?.isMonthly !== true');
     expect(previewSource).toContain(
       "form.operationType !== 'modify_line' || form.amendmentPath === 'period_range'",
     );
