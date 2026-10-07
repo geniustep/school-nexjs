@@ -95,7 +95,8 @@ export function AgreementAmendmentLinePicker({
           const amountBlockReason = resolveAmountBlockReasonLabel(line, t);
           const operationBlockReason = resolveOperationBlockReasonLabel(line, operationType, t);
           const amountAmendable = lineSupportsAdjustLineAmount(line);
-          const periodAmendable = lineSupportsPeriodAmendment(line);
+          const periodAmendable =
+            operationType === 'reconcile_periods' ? selectable : lineSupportsPeriodAmendment(line);
           const fullyBlocked = isLineFullyBlockedForAmendment(line);
           const compactPrice = line.unitPrice ?? line.amount;
 
