@@ -62,9 +62,10 @@ import './agreement-amendment-feedback.css';
 const COPY = {
   ar: {
     modify: 'تعديل خدمة',
-    includedMonths: 'الأشهر المشمولة',
-    includedDescription: 'حدد الأشهر التي تشملها هذه الخدمة. الأشهر المرتبطة بأداء أو حركة مالية مؤكدة تبقى محمية.',
-    noChanges: 'لا توجد تغييرات على الأشهر المشمولة.',
+    serviceDuration: 'مدة الاستفادة من الخدمة',
+    durationDescription: 'حدد الأشهر التي ستستمر فيها هذه الخدمة. الأشهر المرتبطة بأداء أو حركة مالية مؤكدة تبقى محمية.',
+    noChanges: 'لا توجد تغييرات على الخدمة.',
+    combinedChangeBlocked: 'غيّر السعر أو مدة الاستفادة في عملية واحدة، ثم نفّذ التغيير الآخر بعد نجاح الأولى.',
     add: 'إضافة خدمة',
     remove: 'إزالة خدمة',
     service: 'الخدمة',
@@ -80,9 +81,10 @@ const COPY = {
   },
   fr: {
     modify: 'Modifier un service',
-    includedMonths: 'Mois inclus',
-    includedDescription: 'Sélectionnez les mois couverts par ce service. Les mois liés à un paiement ou à une opération financière confirmée restent protégés.',
-    noChanges: 'Aucun changement dans les mois inclus.',
+    serviceDuration: 'Durée du service',
+    durationDescription: 'Sélectionnez les mois pendant lesquels le service reste actif. Les mois liés à un paiement ou à une opération financière confirmée restent protégés.',
+    noChanges: 'Aucune modification du service.',
+    combinedChangeBlocked: 'Modifiez le prix ou la durée en une seule opération, puis appliquez l’autre changement après la première.',
     add: 'Ajouter un service',
     remove: 'Retirer un service',
     service: 'Service',
@@ -98,9 +100,10 @@ const COPY = {
   },
   en: {
     modify: 'Modify service',
-    includedMonths: 'Included months',
-    includedDescription: 'Select the months covered by this service. Months tied to confirmed payments or financial activity remain protected.',
-    noChanges: 'There are no changes to the included months.',
+    serviceDuration: 'Service duration',
+    durationDescription: 'Select the months during which this service remains active. Months tied to confirmed payments or financial activity remain protected.',
+    noChanges: 'There are no service changes.',
+    combinedChangeBlocked: 'Change either the price or the service duration in one operation, then apply the other change afterwards.',
     add: 'Add service',
     remove: 'Remove service',
     service: 'Service',
@@ -116,9 +119,10 @@ const COPY = {
   },
   es: {
     modify: 'Modificar servicio',
-    includedMonths: 'Meses incluidos',
-    includedDescription: 'Seleccione los meses cubiertos por este servicio. Los meses vinculados a pagos o movimientos financieros confirmados permanecen protegidos.',
-    noChanges: 'No hay cambios en los meses incluidos.',
+    serviceDuration: 'Duración del servicio',
+    durationDescription: 'Seleccione los meses durante los que el servicio seguirá activo. Los meses vinculados a pagos o movimientos financieros confirmados permanecen protegidos.',
+    noChanges: 'No hay cambios en el servicio.',
+    combinedChangeBlocked: 'Cambie el precio o la duración en una sola operación y aplique el otro cambio después.',
     add: 'Añadir servicio',
     remove: 'Eliminar servicio',
     service: 'Servicio',
@@ -163,6 +167,12 @@ function resolveCurrentIncludedPeriodIds(
       ),
     )
     .map((period) => String(period.id));
+}
+
+function samePeriodSelection(a: string[], b: string[]): boolean {
+  const left = [...new Set(a)].sort();
+  const right = [...new Set(b)].sort();
+  return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 function defaultForm(locale: string): SparseAgreementAmendmentFormState {
@@ -312,24 +322,20 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   useEffect(() => {
     if (
-      form.operationType !== 'reconcile_periods' &&
-      !(form.operationType === 'modify_line' && form.amendmentPath === 'period_range')
+      form.operationType !== 'modify_line' ||
+      form.amendmentPath !== 'period_range' ||
+      selectedLine?.isMonthly !== true
     ) {
       return;
     }
     if (!form.sourceLineId || !modifyPeriodOptions.length) return;
-    const initializationKey = `${form.operationType}:${form.sourceLineId}`;
+    const initializationKey = `modify_line:${form.sourceLineId}`;
     if (periodSelectionInitializedLineId === initializationKey) return;
-    const selectedPeriodIds =
-      form.operationType === 'reconcile_periods'
-        ? resolveCurrentIncludedPeriodIds(
-            agreementDetails ?? agreement,
-            selectedLine?.agreementLineId ?? selectedLine?.sourceLineId,
-            modifyPeriodOptions,
-          )
-        : modifyPeriodOptions
-            .filter((period) => period.selectable !== false)
-            .map((period) => String(period.id));
+    const selectedPeriodIds = resolveCurrentIncludedPeriodIds(
+      agreementDetails ?? agreement,
+      selectedLine?.agreementLineId ?? selectedLine?.sourceLineId,
+      modifyPeriodOptions,
+    );
     setForm((prev) => ({
       ...prev,
       selectedPeriodIds,
@@ -378,11 +384,7 @@ export function StudentFinanceAgreementAmendmentDialog({
       ...prev,
       operationType,
       amendmentPath:
-        operationType === 'modify_line' ||
-        operationType === 'cancel_line' ||
-        operationType === 'reconcile_periods'
-          ? 'period_range'
-          : '',
+        operationType === 'modify_line' || operationType === 'cancel_line' ? 'period_range' : '',
       sourceLineId: '',
       feeTypeId: '',
       effectivePeriodId: '',
@@ -398,7 +400,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     const selected = lineOptions.find((line) => String(line.id) === sourceLineId);
     const availablePaths = resolveAvailableAmendmentPaths(selected, form.operationType);
     const amendmentPath =
-      form.operationType === 'cancel_line' || form.operationType === 'reconcile_periods'
+      form.operationType === 'cancel_line'
         ? 'period_range'
         : availablePaths.includes('period_range')
           ? 'period_range'
@@ -420,9 +422,7 @@ export function StudentFinanceAgreementAmendmentDialog({
       amount:
         prev.operationType === 'cancel_line'
           ? '0'
-          : prev.operationType === 'reconcile_periods'
-            ? ''
-            : selected?.unitPrice != null
+          : selected?.unitPrice != null
             ? String(selected.unitPrice)
             : selected?.amount != null
               ? String(selected.amount)
@@ -487,6 +487,87 @@ export function StudentFinanceAgreementAmendmentDialog({
     setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'));
   }
 
+  function resolveExecutionForm(
+    candidateForm: SparseAgreementAmendmentFormState,
+    candidateLine = candidateForm.sourceLineId
+      ? allLineOptions.find((line) => String(line.id) === candidateForm.sourceLineId) ?? null
+      : null,
+  ): { form: SparseAgreementAmendmentFormState | null; error: string | null } {
+    if (!candidateLine) return { form: candidateForm, error: null };
+
+    if (candidateForm.operationType === 'cancel_line') {
+      const firstPeriodId = periodOptions[0]?.id != null ? String(periodOptions[0].id) : '';
+      return {
+        form: {
+          ...candidateForm,
+          effectivePeriodId: firstPeriodId,
+          effectivePeriodEndId: '',
+          selectedPeriodIds: [],
+          periodAmountOverrides: {},
+        },
+        error: firstPeriodId ? null : copy.noPeriods,
+      };
+    }
+
+    if (
+      executionForm.operationType === 'modify_line' &&
+      executionForm.amendmentPath === 'period_range' &&
+      candidateLine.isMonthly === true
+    ) {
+      const currentPeriodIds = resolveCurrentIncludedPeriodIds(
+        agreementDetails ?? agreement,
+        candidateLine.agreementLineId ?? candidateLine.sourceLineId,
+        modifyPeriodOptions,
+      );
+      const periodsChanged = !samePeriodSelection(candidateForm.selectedPeriodIds, currentPeriodIds);
+      const currentAmount = candidateLine.unitPrice ?? candidateLine.amount;
+      const nextAmount = Number(candidateForm.amount);
+      const priceChanged =
+        candidateForm.amount.trim() !== '' &&
+        Number.isFinite(nextAmount) &&
+        (currentAmount == null || Math.abs(nextAmount - Number(currentAmount)) > 0.0001);
+
+      if (periodsChanged && priceChanged) {
+        return { form: null, error: copy.combinedChangeBlocked };
+      }
+
+      if (periodsChanged) {
+        return {
+          form: {
+            ...candidateForm,
+            operationType: 'reconcile_periods',
+            amount: '',
+            effectivePeriodId: '',
+            effectivePeriodEndId: '',
+            periodAmountOverrides: {},
+          },
+          error: null,
+        };
+      }
+
+      if (priceChanged) {
+        const firstPeriodId =
+          currentPeriodIds[0] ??
+          (modifyPeriodOptions[0]?.id != null ? String(modifyPeriodOptions[0].id) : '');
+        return {
+          form: {
+            ...candidateForm,
+            operationType: 'modify_line',
+            selectedPeriodIds: [],
+            periodAmountOverrides: {},
+            effectivePeriodId: firstPeriodId,
+            effectivePeriodEndId: '',
+          },
+          error: firstPeriodId ? null : copy.noPeriods,
+        };
+      }
+
+      return { form: null, error: copy.noChanges };
+    }
+
+    return { form: candidateForm, error: null };
+  }
+
   async function requestPreview(
     candidateForm: SparseAgreementAmendmentFormState,
     allowSparseReconcile = true,
@@ -496,20 +577,26 @@ export function StudentFinanceAgreementAmendmentDialog({
     const candidateLine = candidateForm.sourceLineId
       ? allLineOptions.find((line) => String(line.id) === candidateForm.sourceLineId) ?? null
       : null;
+    const execution = resolveExecutionForm(candidateForm, candidateLine);
+    if (!execution.form) {
+      setFormError(execution.error ?? t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'));
+      return;
+    }
+    const executionForm = execution.form;
 
-    if (!canSubmitAgreementAmendmentReason(candidateForm.reason)) {
+    if (!canSubmitAgreementAmendmentReason(executionForm.reason)) {
       setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.reasonRequired'));
       return;
     }
 
     if (
-      candidateForm.operationType !== 'add_line' &&
+      executionForm.operationType !== 'add_line' &&
       candidateLine &&
-      !isLineSelectableForAmendmentOperation(candidateLine, candidateForm.operationType)
+      !isLineSelectableForAmendmentOperation(candidateLine, executionForm.operationType)
     ) {
       const blockCode = resolveAgreementLineOperationBlockReasonCode(
         candidateLine,
-        candidateForm.operationType,
+        executionForm.operationType,
       );
       const blockKey = blockCode ? agreementAmendmentReasonMessageKey(blockCode) : null;
       const blockLabel = blockKey ? t(blockKey) : null;
@@ -521,7 +608,7 @@ export function StudentFinanceAgreementAmendmentDialog({
       return;
     }
 
-    if (!canSubmitAgreementAmendmentForm(candidateForm, candidateLine)) {
+    if (!canSubmitAgreementAmendmentForm(executionForm, candidateLine)) {
       setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'));
       return;
     }
@@ -532,7 +619,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     setPreview(null);
     setPreviewReady(false);
 
-    const payload = buildAgreementAmendmentPreviewPayload(agreementId, candidateForm, candidateLine);
+    const payload = buildAgreementAmendmentPreviewPayload(agreementId, executionForm, candidateLine);
     const prepared = await prepareAgreementAmendmentPayload(studentId, payload);
     if (requestId !== previewRequestSeqRef.current) return;
     if (!prepared.success) {
@@ -570,8 +657,8 @@ export function StudentFinanceAgreementAmendmentDialog({
       periodImpacts.length
     ) {
       const reconciled = reconcileSparsePeriodSelectionWithPreview({
-        selectedPeriodIds: candidateForm.selectedPeriodIds,
-        periodAmountOverrides: candidateForm.periodAmountOverrides,
+        selectedPeriodIds: executionForm.selectedPeriodIds,
+        periodAmountOverrides: executionForm.periodAmountOverrides,
         periodImpacts,
       });
 
@@ -580,7 +667,7 @@ export function StudentFinanceAgreementAmendmentDialog({
           ...new Set([...current, ...reconciled.blockedPeriodIds]),
         ]);
         const nextForm: SparseAgreementAmendmentFormState = {
-          ...candidateForm,
+          ...executionForm,
           selectedPeriodIds: reconciled.selectedPeriodIds,
           periodAmountOverrides: reconciled.periodAmountOverrides,
         };
@@ -611,10 +698,15 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   async function handleApplyConfirmed() {
     if (!previewReady || !preview?.canApply || agreementId == null) return;
-    if (!canSubmitAgreementAmendmentForm(form, selectedLine)) return;
+    const execution = resolveExecutionForm(form, selectedLine);
+    if (!execution.form || !canSubmitAgreementAmendmentForm(execution.form, selectedLine)) {
+      setFormError(execution.error ?? t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'));
+      setShowApplyConfirm(false);
+      return;
+    }
 
     setApplyLoading(true);
-    const payload = buildAgreementAmendmentApplyPayload(agreementId, form, selectedLine);
+    const payload = buildAgreementAmendmentApplyPayload(agreementId, execution.form, selectedLine);
     const prepared = await prepareAgreementAmendmentPayload(studentId, payload);
     if (!prepared.success) {
       setApplyLoading(false);
@@ -645,7 +737,10 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   if (!open) return null;
 
-  const formReady = canSubmitAgreementAmendmentForm(form, selectedLine);
+  const executionState = resolveExecutionForm(form, selectedLine);
+  const formReady =
+    executionState.form != null &&
+    canSubmitAgreementAmendmentForm(executionState.form, selectedLine);
   const applyReady =
     previewReady && preview?.canApply === true && preview.alreadyAligned !== true && formReady;
   const applyBlockMessage =
@@ -654,11 +749,11 @@ export function StudentFinanceAgreementAmendmentDialog({
       : null;
   const periodControlsActive =
     form.operationType === 'add_line' ||
-    form.operationType === 'cancel_line' ||
-    form.operationType === 'reconcile_periods' ||
-    (form.operationType === 'modify_line' && form.amendmentPath === 'period_range');
+    (form.operationType === 'modify_line' &&
+      form.amendmentPath === 'period_range' &&
+      selectedLine?.isMonthly === true);
   const visiblePeriods = periodControlsActive
-    ? form.operationType === 'modify_line' || form.operationType === 'reconcile_periods'
+    ? form.operationType === 'modify_line'
       ? modifyPeriodOptions
       : periodOptions
     : [];
@@ -679,7 +774,6 @@ export function StudentFinanceAgreementAmendmentDialog({
           <fieldset className="student-finance-amendment-operation-selector">
             <div className="student-finance-amendment-operation-selector__options">
               {([
-                ['reconcile_periods', copy.includedMonths],
                 ['modify_line', copy.modify],
                 ['add_line', copy.add],
                 ['cancel_line', copy.remove],
@@ -697,10 +791,6 @@ export function StudentFinanceAgreementAmendmentDialog({
               ))}
             </div>
           </fieldset>
-
-          {form.operationType === 'reconcile_periods' ? (
-            <p className="tiny muted">{copy.includedDescription}</p>
-          ) : null}
 
           {form.operationType === 'add_line' ? (
             <label className="student-finance-amendment-service-select">
@@ -751,7 +841,6 @@ export function StudentFinanceAgreementAmendmentDialog({
           />
 
           {form.operationType !== 'cancel_line' &&
-          form.operationType !== 'reconcile_periods' &&
           (form.operationType === 'add_line' || selectedLine) ? (
             <label className="student-finance-amendment-new-price">
               <span>{form.operationType === 'modify_line' ? copy.newPrice : copy.price}</span>
@@ -771,10 +860,13 @@ export function StudentFinanceAgreementAmendmentDialog({
             </label>
           ) : null}
 
-          {(form.operationType === 'modify_line' || form.operationType === 'reconcile_periods') &&
+          {form.operationType === 'modify_line' &&
           form.amendmentPath === 'period_range' &&
-          selectedLine ? (
-            <AgreementAmendmentSparsePeriodGrid
+          selectedLine?.isMonthly === true ? (
+            <section className="student-finance-amendment-duration">
+              <span>{copy.serviceDuration}</span>
+              <p className="tiny muted">{copy.durationDescription}</p>
+              <AgreementAmendmentSparsePeriodGrid
               periods={modifyPeriodOptions}
               selectedPeriodIds={form.selectedPeriodIds}
               periodAmountOverrides={form.periodAmountOverrides}
@@ -786,12 +878,12 @@ export function StudentFinanceAgreementAmendmentDialog({
               onToggle={togglePeriod}
               onOverrideChange={updatePeriodOverride}
               onOverrideClear={clearPeriodOverride}
-              mode={form.operationType === 'reconcile_periods' ? 'included' : 'price'}
+              mode="included"
             />
+            </section>
           ) : null}
 
-          {(form.operationType === 'add_line' || form.operationType === 'cancel_line') &&
-          (form.operationType === 'add_line' || selectedLine) ? (
+          {form.operationType === 'add_line' ? (
             <section className="student-finance-amendment-effective-month">
               <span>{copy.effectiveFrom}</span>
               <AgreementAmendmentMonthRail
@@ -805,7 +897,7 @@ export function StudentFinanceAgreementAmendmentDialog({
           ) : null}
 
           {periodControlsActive &&
-          (form.operationType === 'modify_line' || form.operationType === 'reconcile_periods'
+          (form.operationType === 'modify_line'
             ? selectedLine
             : form.operationType === 'add_line' || selectedLine) &&
           periodsError ? (
