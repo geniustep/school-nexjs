@@ -12,6 +12,12 @@ describe('odoo-binary-response', () => {
     expect(isOdooBinaryResponse('application/pdf; charset=binary', 'inline')).toBe(true);
   });
 
+  it('detects inline image responses as binary', () => {
+    expect(isOdooBinaryResponse('image/jpeg', 'inline')).toBe(true);
+    expect(isOdooBinaryResponse('image/png', null)).toBe(true);
+    expect(isOdooBinaryResponse('image/webp; charset=binary', 'inline')).toBe(true);
+  });
+
   it('does not treat JSON as binary', () => {
     expect(isOdooBinaryResponse('application/json', null)).toBe(false);
   });

@@ -8,6 +8,7 @@ export function isOdooBinaryResponse(
   if (cd.includes('attachment')) return true;
   if (cd.includes('inline') && ct.includes('application/pdf')) return true;
   if (ct.includes('application/pdf')) return true;
+  if (ct.startsWith('image/')) return true;
   if (ct.includes('text/csv')) return true;
   if (ct.includes('application/csv')) return true;
   if (ct.includes('application/octet-stream')) return true;
