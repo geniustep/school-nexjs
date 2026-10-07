@@ -149,7 +149,8 @@
     "financeInstallmentsAccounts": "Cuotas y cuentas",
     "financeCheques": "Cheques",
     "financeReports": "Informes financieros",
-    "financeSetup": "Configuración financiera"
+    "financeSetup": "Configuración financiera",
+    "financeHub": "Centro financiero"
   },
   "states": {
     "draft": "Borrador",
