@@ -326,11 +326,17 @@ function adminNav(user: CurrentUser): NavSection[] {
     const canViewAgreements = canViewFinanceAgreements(user);
 
     pushIf(financeItems, canViewFinanceHome, {
+      labelKey: 'nav.financeHub',
+      href: '/admin/finance',
+      icon: '💰',
+      isActive: (pathname) => pathname === '/admin/finance',
+    });
+
+    pushIf(financeItems, canViewFinanceHome, {
       labelKey: 'nav.financeCommandCenter',
       href: '/admin/finance/command-center',
       icon: '🎯',
-      isActive: (pathname) =>
-        pathname === '/admin/finance' || pathname.startsWith('/admin/finance/command-center'),
+      isActive: (pathname) => pathname.startsWith('/admin/finance/command-center'),
     });
 
     if (canViewCollections || canViewCashDesk) {
