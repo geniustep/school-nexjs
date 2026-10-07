@@ -28,7 +28,10 @@ import {
   isLineSelectableForAmendmentOperation,
   resolveAvailableAmendmentPaths,
 } from '../utils/agreement-amendment-path';
-import { resolveAgreementLineOperationBlockReasonCode } from '../utils/agreement-amendment-line-eligibility';
+import {
+  lineSupportsReconcilePeriods,
+  resolveAgreementLineOperationBlockReasonCode,
+} from '../utils/agreement-amendment-line-eligibility';
 import {
   buildAgreementAmendmentApplyPayload,
   buildAgreementAmendmentPreviewPayload,
@@ -246,8 +249,10 @@ export function StudentFinanceAgreementAmendmentDialog({
   const hasSelectableLines = useMemo(
     () =>
       form.operationType === 'add_line' ||
-      lineOptions.some((line) =>
-        isLineSelectableForAmendmentOperation(line, form.operationType),
+      lineOptions.some(
+        (line) =>
+          isLineSelectableForAmendmentOperation(line, form.operationType) ||
+          (form.operationType === 'modify_line' && lineSupportsReconcilePeriods(line)),
       ),
     [form.operationType, lineOptions],
   );
@@ -438,13 +443,17 @@ export function StudentFinanceAgreementAmendmentDialog({
     const selected = lineOptions.find((line) => String(line.id) === sourceLineId);
     const availablePaths = resolveAvailableAmendmentPaths(selected, form.operationType);
     const amendmentPath =
-      form.operationType === 'cancel_line' || form.operationType === 'reconcile_periods'
+      form.operationType === 'cancel_line'
         ? 'period_range'
-        : availablePaths.includes('period_range')
+        : form.operationType === 'modify_line' &&
+            selected &&
+            lineSupportsReconcilePeriods(selected)
           ? 'period_range'
-          : availablePaths.includes('adjust_amount')
-            ? 'adjust_amount'
-            : '';
+          : availablePaths.includes('period_range')
+            ? 'period_range'
+            : availablePaths.includes('adjust_amount')
+              ? 'adjust_amount'
+              : '';
     setAmbiguousCandidates([]);
     setPeriodSelectionInitializedLineId(null);
     setBlockedPeriodIds([]);
