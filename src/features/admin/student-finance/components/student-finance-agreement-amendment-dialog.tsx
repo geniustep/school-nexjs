@@ -495,26 +495,6 @@ export function StudentFinanceAgreementAmendmentDialog({
     invalidatePreview();
   }
 
-  function updatePeriodOverride(periodId: string, amount: string) {
-    setForm((prev) => ({
-      ...prev,
-      periodAmountOverrides: {
-        ...prev.periodAmountOverrides,
-        [periodId]: amount,
-      },
-    }));
-    invalidatePreview();
-  }
-
-  function clearPeriodOverride(periodId: string) {
-    setForm((prev) => {
-      const nextOverrides = { ...prev.periodAmountOverrides };
-      delete nextOverrides[periodId];
-      return { ...prev, periodAmountOverrides: nextOverrides };
-    });
-    invalidatePreview();
-  }
-
   function handleAmbiguousCandidateSelection(candidate: AgreementAmendmentAmbiguousLineCandidate) {
     const matched = lineOptions.find((line) => line.id === candidate.sourceLineId);
     if (matched) {
