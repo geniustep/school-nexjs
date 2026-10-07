@@ -149,7 +149,8 @@
     "financeInstallmentsAccounts": "Installments & accounts",
     "financeCheques": "Cheques",
     "financeReports": "Financial reports",
-    "financeSetup": "Finance setup"
+    "financeSetup": "Finance setup",
+    "financeHub": "Finance hub"
   },
   "states": {
     "draft": "Draft",
