@@ -11473,7 +11473,13 @@
           "pricingUnit": "Unidad de precio",
           "unitPrice": "Precio unitario",
           "actions": "Acciones"
-        }
+        },
+        "nameAr": "Nombre del servicio en árabe",
+        "nameFr": "Nombre del servicio en francés",
+        "paymentNature": "Naturaleza del servicio",
+        "paymentNatureFree": "Gratuito",
+        "paymentNaturePaid": "De pago",
+        "paymentNatureHint": "Esta clasificación describe el servicio; el importe real lo define el plan financiero."
       },
       "collections": {
         "studentSelector": {
