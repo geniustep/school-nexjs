@@ -187,8 +187,18 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
   it('keeps a month-specific override on modify_line while duration stays unchanged', () => {
     expect(dialogSource).toContain('monthPriceOverrideChanged');
     expect(dialogSource).toContain('const priceChanged = basePriceChanged || monthPriceOverrideChanged');
-    expect(dialogSource).toContain('selectedPeriodIds: currentPeriodIds');
+    expect(dialogSource).toContain('hasUserChangedServiceDuration');
+    expect(dialogSource).toContain('durationEditedByUser');
+    expect(dialogSource).toContain('blockedPeriodIds');
+    expect(dialogSource).not.toContain('selectedPeriodIds: currentPeriodIds');
     expect(dialogSource).not.toContain('periodAmountOverrides: {},\n            effectivePeriodId: firstPeriodId');
+  });
+
+  it('does not mistake automatic locked-period pruning for a user duration edit', () => {
+    expect(dialogSource).toContain('const [durationEditedByUser, setDurationEditedByUser] = useState(false)');
+    expect(dialogSource).toContain('setDurationEditedByUser(true)');
+    expect(dialogSource).toContain('userEditedDuration: durationEditedByUser');
+    expect(dialogSource).toContain('blockedPeriodIds,');
   });
 
   it('blocks simultaneous price and duration changes instead of risking a partial financial mutation', () => {
