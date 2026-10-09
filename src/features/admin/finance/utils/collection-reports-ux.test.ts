@@ -43,7 +43,7 @@ const classes: SchoolClass[] = [
 ];
 
 describe('collection report operational UX helpers', () => {
-  it('builds today, yesterday, week, and month presets without changing the backend contract', () => {
+  it('builds today, yesterday, week, last-7-days, and month presets without changing the backend contract', () => {
     expect(collectionReportsPresetUpdates('today', NOW)).toEqual({
       dateMode: 'day',
       date: '2026-09-04',
@@ -57,6 +57,12 @@ describe('collection report operational UX helpers', () => {
       dateFrom: '2026-08-31',
       dateTo: '2026-09-04',
     });
+    expect(collectionReportsPresetUpdates('last7', NOW)).toEqual({
+      dateMode: 'range',
+      date: '',
+      dateFrom: '2026-08-29',
+      dateTo: '2026-09-04',
+    });
     expect(collectionReportsPresetUpdates('month', NOW)).toEqual({
       dateMode: 'range',
       date: '',
@@ -67,7 +73,9 @@ describe('collection report operational UX helpers', () => {
 
   it('resolves matching presets and treats any other range as custom', () => {
     const week = collectionReportsPresetUpdates('week', NOW);
+    const last7 = collectionReportsPresetUpdates('last7', NOW);
     expect(resolveCollectionReportsDatePreset(week, NOW)).toBe('week');
+    expect(resolveCollectionReportsDatePreset(last7, NOW)).toBe('last7');
     expect(
       resolveCollectionReportsDatePreset(
         { dateMode: 'range', date: '', dateFrom: '2026-08-15', dateTo: '2026-08-30' },

@@ -37,6 +37,40 @@
   gap: 4px;
 }
 
+
+.finance-collection-period__quick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.finance-collection-period__day-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.finance-collection-period__day-label {
+  min-width: 180px;
+  text-align: center;
+  color: var(--c-text, #0f172a);
+  font-size: 0.9rem;
+}
+
+.finance-collection-period__nav:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.finance-collection-period__nav:disabled:hover,
+.finance-collection-period__nav:disabled:focus-visible {
+  border-color: var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+}
+
 .finance-collection-period__month-row {
   display: flex;
   align-items: end;
@@ -167,12 +201,27 @@
     flex-direction: column;
   }
 
-  .finance-collection-period__modes {
+  .finance-collection-period__quick {
     width: 100%;
+    justify-content: flex-start;
   }
 
-  .finance-collection-period__modes .finance-collection-reports__seg {
-    flex: 1 1 0;
+  .finance-collection-period__quick .finance-collection-reports__seg {
+    flex: 1 1 140px;
+  }
+
+  .finance-collection-period__day-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .finance-collection-period__day-label {
+    min-width: 0;
+  }
+
+  .finance-collection-period__day-row .finance-collection-period__today {
+    grid-column: 1 / -1;
+    justify-self: center;
   }
 
   .finance-collection-period__month-row {
