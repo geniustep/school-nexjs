@@ -214,6 +214,12 @@ export const endpoints = {
     academicContextOptions: '/admin/academic-context/options',
     /** Working Week — school/year-scoped GET + atomic PUT. */
     timetableWorkingWeek: '/admin/timetable/working-week',
+    classTimetableAssignments:(id:number)=>`/admin/classes/${id}/timetable-assignments`,
+    classTimetableDraft:(id:number)=>`/admin/classes/${id}/timetable-draft`,
+    classTimetableDraftOpen:(id:number)=>`/admin/classes/${id}/timetable-draft/open`,
+    classTimetableDraftBulk:(id:number)=>`/admin/classes/${id}/timetable-draft/lines/bulk`,
+    classTimetableDraftValidate:(id:number)=>`/admin/classes/${id}/timetable-draft/validate`,
+    classTimetableDraftPublish:(id:number)=>`/admin/classes/${id}/timetable-draft/publish`,
     academicYearTerms: (academicYearId: number | string) =>
       `/admin/academic-years/${academicYearId}/terms`,
     academicYearTermsInitialize: (academicYearId: number | string) =>
