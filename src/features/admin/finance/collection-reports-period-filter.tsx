@@ -4,7 +4,7 @@
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  * @design-status adopted
  *
- * Calendar-month-first period control for collection reports. It only maps
+ * Smart daily/monthly period control for collection reports. It only maps
  * user choices to the existing date/date_from/date_to contract; financial
  * calculations remain authoritative in Odoo.
  */
@@ -17,6 +17,7 @@ import {
   collectionReportsMonthValueFromFilters,
   collectionReportsRangeIsWholeMonth,
   currentCollectionReportsMonthValue,
+  shiftCollectionReportsDay,
   shiftCollectionReportsMonth,
 } from '@/features/admin/finance/utils/collection-reports-period';
 import {
@@ -29,7 +30,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useLocale } from '@/features/i18n/locale-context';
 import '@/features/admin/finance/collection-reports-period-filter.css';
 
-export type CollectionReportsPeriodMode = 'month' | 'custom';
+export type CollectionReportsPeriodMode = 'day' | 'preset' | 'month' | 'custom';
 
 type Props = {
   filters: CollectionReportsFilters;
@@ -42,13 +43,19 @@ type Props = {
 const COPY = {
   ar: {
     period: 'الفترة',
-    monthMode: 'الشهر',
-    customMode: 'فترة مخصصة',
-    month: 'الشهر',
-    year: 'السنة',
+    today: 'اليوم',
+    yesterday: 'أمس',
+    week: 'هذا الأسبوع',
+    last7: 'آخر 7 أيام',
     currentMonth: 'هذا الشهر',
+    customMode: 'فترة مخصصة',
+    previousDay: 'اليوم السابق',
+    nextDay: 'اليوم التالي',
+    backToday: 'العودة إلى اليوم',
     previousMonth: 'الشهر السابق',
     nextMonth: 'الشهر التالي',
+    month: 'الشهر',
+    year: 'السنة',
     dateFrom: 'من',
     dateTo: 'إلى',
     apply: 'تطبيق الفترة',
@@ -58,13 +65,19 @@ const COPY = {
   },
   en: {
     period: 'Period',
-    monthMode: 'Month',
-    customMode: 'Custom range',
-    month: 'Month',
-    year: 'Year',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    week: 'This week',
+    last7: 'Last 7 days',
     currentMonth: 'This month',
+    customMode: 'Custom range',
+    previousDay: 'Previous day',
+    nextDay: 'Next day',
+    backToday: 'Back to today',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
+    month: 'Month',
+    year: 'Year',
     dateFrom: 'From',
     dateTo: 'To',
     apply: 'Apply period',
@@ -74,13 +87,19 @@ const COPY = {
   },
   fr: {
     period: 'Période',
-    monthMode: 'Mois',
-    customMode: 'Période personnalisée',
-    month: 'Mois',
-    year: 'Année',
+    today: "Aujourd’hui",
+    yesterday: 'Hier',
+    week: 'Cette semaine',
+    last7: '7 derniers jours',
     currentMonth: 'Ce mois',
+    customMode: 'Période personnalisée',
+    previousDay: 'Jour précédent',
+    nextDay: 'Jour suivant',
+    backToday: "Revenir à aujourd’hui",
     previousMonth: 'Mois précédent',
     nextMonth: 'Mois suivant',
+    month: 'Mois',
+    year: 'Année',
     dateFrom: 'Du',
     dateTo: 'Au',
     apply: 'Appliquer la période',
@@ -90,13 +109,19 @@ const COPY = {
   },
   es: {
     period: 'Periodo',
-    monthMode: 'Mes',
-    customMode: 'Periodo personalizado',
-    month: 'Mes',
-    year: 'Año',
+    today: 'Hoy',
+    yesterday: 'Ayer',
+    week: 'Esta semana',
+    last7: 'Últimos 7 días',
     currentMonth: 'Este mes',
+    customMode: 'Periodo personalizado',
+    previousDay: 'Día anterior',
+    nextDay: 'Día siguiente',
+    backToday: 'Volver a hoy',
     previousMonth: 'Mes anterior',
     nextMonth: 'Mes siguiente',
+    month: 'Mes',
+    year: 'Año',
     dateFrom: 'Desde',
     dateTo: 'Hasta',
     apply: 'Aplicar periodo',
@@ -125,14 +150,24 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
   const searchParams = useSearchParams();
   const copy = COPY[locale];
 
+  const today = useMemo(() => collectionReportsPresetUpdates('today').date, []);
+  const currentMonthValue = useMemo(() => currentCollectionReportsMonthValue(), []);
+  const activePreset = resolveCollectionReportsDatePreset(filters);
   const explicitCustomMode = searchParams.get('period_ui') === 'custom';
-  const periodMode: CollectionReportsPeriodMode =
-    explicitCustomMode || !collectionReportsRangeIsWholeMonth(filters) ? 'custom' : 'month';
-  const legacyDateChipPresent = resolveCollectionReportsDatePreset(filters) !== 'today';
+  const wholeMonth = collectionReportsRangeIsWholeMonth(filters);
+
+  const periodMode: CollectionReportsPeriodMode = explicitCustomMode
+    ? 'custom'
+    : filters.dateMode === 'day'
+      ? 'day'
+      : wholeMonth
+        ? 'month'
+        : activePreset === 'week' || activePreset === 'last7'
+          ? 'preset'
+          : 'custom';
 
   const selectedMonthValue = collectionReportsMonthValueFromFilters(filters);
   const [selectedYear, selectedMonth] = selectedMonthValue.split('-').map(Number);
-  const currentMonthValue = useMemo(() => currentCollectionReportsMonthValue(), []);
 
   const [dateFromDraft, setDateFromDraft] = useState(
     filters.dateMode === 'range' ? filters.dateFrom : filters.date,
@@ -147,10 +182,11 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
     setDateToDraft(filters.dateMode === 'range' ? filters.dateTo : filters.date);
   }, [filters.date, filters.dateFrom, filters.dateMode, filters.dateTo, periodMode]);
 
-  const yearOptions = useMemo(
-    () => Array.from({ length: 11 }, (_, index) => selectedYear - 5 + index),
-    [selectedYear],
-  );
+  const yearOptions = useMemo(() => {
+    const currentYear = Number(currentMonthValue.slice(0, 4));
+    const start = Math.min(selectedYear, currentYear) - 5;
+    return Array.from({ length: currentYear - start + 1 }, (_, index) => start + index);
+  }, [currentMonthValue, selectedYear]);
 
   const rangeInvalid = collectionReportsRangeIsInverted(dateFromDraft, dateToDraft);
   const customComplete = Boolean(dateFromDraft.trim() && dateToDraft.trim());
@@ -170,23 +206,29 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
     return formatDate(filters.dateFrom || filters.dateTo);
   }, [filters.date, filters.dateFrom, filters.dateMode, filters.dateTo, formatDate]);
 
-  function applyMonth(monthValue: string) {
+  function applyDay(day: string) {
+    const safeDay = day > today ? today : day;
     onFiltersChange(
-      {
-        ...collectionReportsMonthRange(monthValue),
-        page: 1,
-      },
+      { dateMode: 'day', date: safeDay, dateFrom: '', dateTo: '', page: 1 },
+      { periodMode: 'day' },
+    );
+  }
+
+  function applyPreset(preset: 'today' | 'yesterday' | 'week' | 'last7') {
+    const update = collectionReportsPresetUpdates(preset);
+    onFiltersChange({ ...update, page: 1 }, { periodMode: preset === 'today' || preset === 'yesterday' ? 'day' : 'preset' });
+  }
+
+  function applyMonth(monthValue: string) {
+    const safeMonth = monthValue > currentMonthValue ? currentMonthValue : monthValue;
+    onFiltersChange(
+      { ...collectionReportsMonthRange(safeMonth), page: 1 },
       { periodMode: 'month' },
     );
   }
 
-  function selectMode(mode: CollectionReportsPeriodMode) {
-    if (mode === 'month') {
-      applyMonth(selectedMonthValue);
-      return;
-    }
-
-    const fallbackDate = filters.date || filters.dateFrom || collectionReportsPresetUpdates('today').date;
+  function openCustomMode() {
+    const fallbackDate = filters.date || filters.dateFrom || today;
     const from = filters.dateMode === 'range' ? filters.dateFrom || fallbackDate : fallbackDate;
     const to = filters.dateMode === 'range' ? filters.dateTo || from : fallbackDate;
     setDateFromDraft(from);
@@ -194,37 +236,74 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
     onFiltersChange({}, { periodMode: 'custom' });
   }
 
+  const quickItems = [
+    { key: 'today', label: copy.today, active: activePreset === 'today', run: () => applyPreset('today') },
+    { key: 'yesterday', label: copy.yesterday, active: activePreset === 'yesterday', run: () => applyPreset('yesterday') },
+    { key: 'week', label: copy.week, active: activePreset === 'week', run: () => applyPreset('week') },
+    { key: 'last7', label: copy.last7, active: activePreset === 'last7', run: () => applyPreset('last7') },
+    {
+      key: 'month',
+      label: copy.currentMonth,
+      active: wholeMonth && selectedMonthValue === currentMonthValue,
+      run: () => applyMonth(currentMonthValue),
+    },
+    { key: 'custom', label: copy.customMode, active: periodMode === 'custom', run: openCustomMode },
+  ] as const;
+
   return (
-    <section
-      className="finance-collection-period"
-      aria-labelledby="fcr-period-title"
-      data-legacy-date-chip={legacyDateChipPresent ? 'true' : 'false'}
-    >
+    <section className="finance-collection-period" aria-labelledby="fcr-period-title">
       <div className="finance-collection-period__head">
         <strong id="fcr-period-title" className="finance-collection-period__title">
           {copy.period}
         </strong>
-        <div className="finance-collection-period__modes" role="tablist" aria-label={copy.period}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={periodMode === 'month'}
-            className={`finance-collection-reports__seg${periodMode === 'month' ? ' is-active' : ''}`}
-            onClick={() => selectMode('month')}
-          >
-            {copy.monthMode}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={periodMode === 'custom'}
-            className={`finance-collection-reports__seg${periodMode === 'custom' ? ' is-active' : ''}`}
-            onClick={() => selectMode('custom')}
-          >
-            {copy.customMode}
-          </button>
+        <div className="finance-collection-period__quick" aria-label={copy.period}>
+          {quickItems.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`finance-collection-reports__seg${item.active ? ' is-active' : ''}`}
+              aria-pressed={item.active}
+              onClick={item.run}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {periodMode === 'day' ? (
+        <div className="finance-collection-period__day-row">
+          <button
+            type="button"
+            className="finance-collection-period__nav"
+            aria-label={copy.previousDay}
+            onClick={() => applyDay(shiftCollectionReportsDay(filters.date || today, -1))}
+          >
+            ‹
+          </button>
+          <strong className="finance-collection-period__day-label" dir="auto">
+            {formatDate(filters.date || today)}
+          </strong>
+          {filters.date !== today ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm finance-collection-period__today"
+              onClick={() => applyPreset('today')}
+            >
+              {copy.backToday}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="finance-collection-period__nav"
+            aria-label={copy.nextDay}
+            disabled={(filters.date || today) >= today}
+            onClick={() => applyDay(shiftCollectionReportsDay(filters.date || today, 1))}
+          >
+            ›
+          </button>
+        </div>
+      ) : null}
 
       {periodMode === 'month' ? (
         <div className="finance-collection-period__month-row">
@@ -247,11 +326,15 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
                 applyMonth(`${selectedYear}-${String(Number(event.target.value)).padStart(2, '0')}`)
               }
             >
-              {Array.from({ length: 12 }, (_, index) => (
-                <option key={index + 1} value={index + 1}>
-                  {monthName(index, locale)}
-                </option>
-              ))}
+              {Array.from({ length: 12 }, (_, index) => {
+                const value = index + 1;
+                const candidate = `${selectedYear}-${String(value).padStart(2, '0')}`;
+                return (
+                  <option key={value} value={value} disabled={candidate > currentMonthValue}>
+                    {monthName(index, locale)}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -262,9 +345,7 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
               className="input"
               value={String(selectedYear)}
               onChange={(event) =>
-                applyMonth(
-                  `${event.target.value}-${String(selectedMonth).padStart(2, '0')}`,
-                )
+                applyMonth(`${event.target.value}-${String(selectedMonth).padStart(2, '0')}`)
               }
             >
               {yearOptions.map((year) => (
@@ -275,25 +356,29 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
             </select>
           </div>
 
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm finance-collection-period__today"
-            disabled={selectedMonthValue === currentMonthValue}
-            onClick={() => applyMonth(currentMonthValue)}
-          >
-            {copy.currentMonth}
-          </button>
+          {selectedMonthValue !== currentMonthValue ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm finance-collection-period__today"
+              onClick={() => applyMonth(currentMonthValue)}
+            >
+              {copy.currentMonth}
+            </button>
+          ) : null}
 
           <button
             type="button"
             className="finance-collection-period__nav"
             aria-label={copy.nextMonth}
+            disabled={selectedMonthValue >= currentMonthValue}
             onClick={() => applyMonth(shiftCollectionReportsMonth(selectedMonthValue, 1))}
           >
             ›
           </button>
         </div>
-      ) : (
+      ) : null}
+
+      {periodMode === 'custom' ? (
         <div className="finance-collection-period__custom">
           <p className="finance-collection-period__hint">{copy.customHint}</p>
           <div className="finance-collection-period__custom-fields">
@@ -341,7 +426,7 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
             </p>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       <div className="finance-collection-period__shown" aria-live="polite">
         <span>{copy.shownPeriod}</span>
