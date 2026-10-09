@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ErrorState, LoadingState } from '@/components/states/states';
 import { TeacherFocusedAssignments } from '@/features/admin/academic-setup/components/teacher-focused-assignments';
+import { TeacherAssignmentTransferActions } from '@/features/admin/teachers/components/teacher-assignment-transfer-actions';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -49,6 +50,11 @@ export function TeacherAssignmentsPanel({ teacher }: { teacher: TeacherDetail })
 
       <TeacherFocusedAssignments
         teacher={teacher as unknown as Teacher}
+        academicYearId={activeAcademicYearId}
+        canManage={canManage}
+      />
+      <TeacherAssignmentTransferActions
+        teacherId={teacher.id}
         academicYearId={activeAcademicYearId}
         canManage={canManage}
       />
