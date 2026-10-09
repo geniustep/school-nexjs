@@ -41,12 +41,6 @@ const URL_KEYS: Record<keyof CollectionReportsFilters, string> = {
 
 function readFilters(searchParams: URLSearchParams): CollectionReportsFilters {
   const defaults = defaultCollectionReportsFilters();
-  const hasExplicitDate =
-    searchParams.has('date') ||
-    searchParams.has('date_from') ||
-    searchParams.has('date_to') ||
-    searchParams.has('date_mode');
-
   const dateModeRaw = searchParams.get('date_mode') ?? '';
   const dateMode =
     dateModeRaw === 'range'
