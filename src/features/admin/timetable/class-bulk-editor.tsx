@@ -62,3 +62,70 @@ if(kind==='publish'){busyRef.current=false;await load(classId);setNotice('تم �
 else{setDraft(res.data.draft);setLines(res.data.draft.lines.map(toEdit));setNotice(kind==='open'?'تم فتح المسودة':'اكتمل التحقق')}
 }catch(e){setNotice(error(e))}finally{busyRef.current=false;setBusy(false)}
 };
+
+const save=async()=>{
+if(!draft||!canManage||busy||busyRef.current)return;
+const changed=lines.filter(l=>l.dirty);
+if(changed.some(l=>!l.assignment_id||!Number.isFinite(l.start_time)||!Number.isFinite(l.end_time)||l.end_time<=l.start_time)){setNotice('تحقق من الإسناد وتوقيت كل حصة');return}
+busyRef.current=true;setBusy(true);
+try{
+const r=await api.post<{draft:Draft;bulk_result:{errors:BulkError[]}}>(endpoints.admin.classTimetableDraftBulk(classId),{
+draft_id:draft.draft_id,lines:changed.map(l=>({...l.line_id?{line_id:l.line_id}:{},assignment_id:l.assignment_id,weekday:l.weekday,start_time:l.start_time,end_time:l.end_time,...l.room_id?{room_id:l.room_id}:{}})),delete_line_ids:deleted
+});
+if(!r.success)throw new Error(r.error.message);
+const problems=r.data.bulk_result?.errors??[];
+const bad=new Set(problems.filter(e=>e.index!==undefined).map(e=>e.index));
+const failed=changed.filter((_,i)=>bad.has(i)).map(l=>({...l,error:problems.find(p=>p.line_id===l.line_id)?.message??'رفض الخادم هذه الحصة'}));
+const ids=new Set(failed.map(l=>l.line_id).filter(Boolean));
+setDraft(r.data.draft);setLines([...r.data.draft.lines.filter(l=>!ids.has(l.line_id)).map(toEdit),...failed]);
+setDeleted(problems.filter(e=>e.line_id!==undefined).map(e=>e.line_id!));
+setNotice(problems.length?'حفظ جزئي: راجع الحصص المرفوضة':'تم حفظ المسودة');
+}catch(e){setNotice(error(e))}finally{busyRef.current=false;setBusy(false)}
+};
+const add=()=>{
+if(!draft||!selected||!canManage||busy)return;
+const s=decimal(start),e=decimal(end);
+if(!Number.isFinite(s)||!Number.isFinite(e)||e<=s){setNotice('وقت النهاية يجب أن يكون بعد البداية');return}
+setLines(v=>[...v,{key:'new-'+Date.now()+'-'+v.length,assignment_id:selected,weekday:day,start_time:s,end_time:e,dirty:true}]);setNotice('حصة جديدة غير محفوظة');
+};
+const update=(key:string,patch:Partial<Editable>)=>setLines(v=>v.map(l=>l.key===key?{...l,...patch,dirty:true,error:undefined}:l));
+const remove=(key:string)=>{
+const found=lines.find(l=>l.key===key);
+if(found?.line_id)setDeleted(ids=>[...ids,found.line_id!]);
+setLines(v=>v.filter(l=>l.key!==key));
+};
+return <section className="class-bulk">
+<h2>محرّر استعمال الزمان حسب القسم</h2>
+<p>اختر القسم ثم المادة والأستاذ من الإسنادات الموجودة؛ الحفظ في مسودة مستقلة لكل قسم.</p>
+<div className="class-bulk__filters">
+<label>السلك<select value={cycle} onChange={e=>{if(!choose(0))return;setCycle(e.target.value);setLevel('');setTrack('')}}><option value="">جميع الأسلاك</option>{cycles.map(v=><option key={v}>{v}</option>)}</select></label>
+<label>المستوى<select value={level} onChange={e=>{if(!choose(0))return;setLevel(e.target.value);setTrack('')}}><option value="">جميع المستويات</option>{levels.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
+<label>المسلك<select value={track} onChange={e=>{if(!choose(0))return;setTrack(e.target.value)}}><option value="">جميع المسالك</option>{tracks.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
+<label>القسم<select value={classId} onChange={e=>{choose(Number(e.target.value))}}><option value={0}>اختر القسم</option>{options.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+</div>
+{notice&&<p role="status" className="class-bulk__notice">{notice}</p>}
+{busy&&<p>جارٍ تنفيذ العملية...</p>}
+{classId&&!draft&&!busy&&<button disabled={!canManage} onClick={()=>void act('open')}>فتح مسودة القسم</button>}
+{draft&&<><p>الحالة: {draft.state} · تعارضات: {draft.conflict_count}{dirty?' · تعديلات غير محفوظة':''}</p>
+<div className="class-bulk__form">
+<label>المادة والأستاذ<select value={selected} onChange={e=>setSelected(Number(e.target.value))}><option value={0}>اختر الإسناد</option>{assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}</select></label>
+<label>اليوم<select value={day} onChange={e=>setDay(e.target.value)}>{DAYS.map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
+<label>البداية<input type="time" value={start} onChange={e=>setStart(e.target.value)}/></label>
+<label>النهاية<input type="time" value={end} onChange={e=>setEnd(e.target.value)}/></label>
+<button disabled={busy||!canManage||!selected} onClick={add}>إضافة حصة</button>
+</div>
+<div className="class-bulk__days">
+{DAYS.map(([v,name])=><div key={v} className="class-bulk__day"><h3>{name}</h3>
+{lines.filter(l=>l.weekday===v).sort((a,b)=>a.start_time-b.start_time).map(l=><div key={l.key} className="class-bulk__line">
+<select disabled={busy||!canManage} value={l.assignment_id} onChange={e=>update(l.key,{assignment_id:Number(e.target.value)})}>{assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}</select>
+<input aria-label="بداية الحصة" type="time" value={clock(l.start_time)} disabled={busy||!canManage} onChange={e=>update(l.key,{start_time:decimal(e.target.value)})}/>
+<input aria-label="نهاية الحصة" type="time" value={clock(l.end_time)} disabled={busy||!canManage} onChange={e=>update(l.key,{end_time:decimal(e.target.value)})}/>
+<button disabled={busy||!canManage} onClick={()=>remove(l.key)}>حذف</button>
+{l.dirty&&<small>غير محفوظ</small>}{l.error&&<small role="alert">{l.error}</small>}
+{l.conflict_messages?.map((m,i)=><small role="alert" key={i}>{m}</small>)}
+</div>)}</div>)}
+</div>
+<div className="class-bulk__actions"><button disabled={busy||!canManage||!dirty} onClick={()=>void save()}>حفظ المسودة</button><button disabled={busy||!canManage||dirty} onClick={()=>void act('validate')}>التحقق</button><button disabled={busy||dirty||!canPublish||!draft.can_publish} onClick={()=>void act('publish')}>نشر هذا القسم</button></div>
+</>}
+</section>;
+}
