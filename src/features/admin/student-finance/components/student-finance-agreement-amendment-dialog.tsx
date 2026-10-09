@@ -46,6 +46,7 @@ import {
   readAmbiguousAgreementLineCandidates,
 } from '../utils/resolve-agreement-amendment-ambiguous-target';
 import { resolveAgreementAmendmentBlockingMessage } from '../utils/resolve-agreement-amendment-warning';
+import { hasUserChangedServiceDuration } from '../utils/agreement-amendment-user-intent';
 import { AgreementAmendmentLinePicker } from './agreement-amendment-line-picker';
 import { AgreementAmendmentMonthRail } from './agreement-amendment-month-rail';
 import {
@@ -169,12 +170,6 @@ function resolveCurrentIncludedPeriodIds(
     .map((period) => String(period.id));
 }
 
-function samePeriodSelection(a: string[], b: string[]): boolean {
-  const left = [...new Set(a)].sort();
-  const right = [...new Set(b)].sort();
-  return left.length === right.length && left.every((value, index) => value === right[index]);
-}
-
 function defaultForm(locale: string): SparseAgreementAmendmentFormState {
   return {
     operationType: 'modify_line',
@@ -226,6 +221,7 @@ export function StudentFinanceAgreementAmendmentDialog({
   const [periodSelectionInitializedLineId, setPeriodSelectionInitializedLineId] = useState<string | null>(null);
   const [ambiguousCandidates, setAmbiguousCandidates] = useState<AgreementAmendmentAmbiguousLineCandidate[]>([]);
   const [blockedPeriodIds, setBlockedPeriodIds] = useState<string[]>([]);
+  const [durationEditedByUser, setDurationEditedByUser] = useState(false);
 
   const agreementId = agreement?.id ?? null;
   const canEdit = workspaceAllowed === true && agreementId != null;
@@ -283,6 +279,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     setPeriodSelectionInitializedLineId(null);
     setAmbiguousCandidates([]);
     setBlockedPeriodIds([]);
+    setDurationEditedByUser(false);
   }, [open, agreementId, agreement, locale]);
 
   useEffect(() => {
@@ -342,6 +339,7 @@ export function StudentFinanceAgreementAmendmentDialog({
       periodAmountOverrides: {},
     }));
     setPeriodSelectionInitializedLineId(initializationKey);
+    setDurationEditedByUser(false);
     setPreview(null);
     setPreviewReady(false);
   }, [
@@ -365,6 +363,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     setShowApplyConfirm(false);
     setPeriodSelectionInitializedLineId(null);
     setBlockedPeriodIds([]);
+    setDurationEditedByUser(false);
     onClose();
   }
 
@@ -380,6 +379,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     setPeriodSelectionInitializedLineId(null);
     setAmbiguousCandidates([]);
     setBlockedPeriodIds([]);
+    setDurationEditedByUser(false);
     setForm((prev) => ({
       ...prev,
       operationType,
@@ -410,6 +410,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     setAmbiguousCandidates([]);
     setPeriodSelectionInitializedLineId(null);
     setBlockedPeriodIds([]);
+    setDurationEditedByUser(false);
     setForm((prev) => ({
       ...prev,
       amendmentPath,
@@ -441,6 +442,7 @@ export function StudentFinanceAgreementAmendmentDialog({
   }
 
   function togglePeriod(periodId: string) {
+    setDurationEditedByUser(true);
     setForm((prev) => {
       const selected = prev.selectedPeriodIds.includes(periodId);
       if (!selected) {
@@ -519,7 +521,12 @@ export function StudentFinanceAgreementAmendmentDialog({
         candidateLine.agreementLineId ?? candidateLine.sourceLineId,
         modifyPeriodOptions,
       );
-      const periodsChanged = !samePeriodSelection(candidateForm.selectedPeriodIds, currentPeriodIds);
+      const periodsChanged = hasUserChangedServiceDuration({
+        userEditedDuration: durationEditedByUser,
+        currentPeriodIds,
+        selectedPeriodIds: candidateForm.selectedPeriodIds,
+        blockedPeriodIds,
+      });
       const currentAmount = candidateLine.unitPrice ?? candidateLine.amount;
       const nextAmount = Number(candidateForm.amount);
       const basePriceChanged =
@@ -554,11 +561,10 @@ export function StudentFinanceAgreementAmendmentDialog({
           form: {
             ...candidateForm,
             operationType: 'modify_line',
-            selectedPeriodIds: currentPeriodIds,
             effectivePeriodId: '',
             effectivePeriodEndId: '',
           },
-          error: currentPeriodIds.length ? null : copy.noPeriods,
+          error: candidateForm.selectedPeriodIds.length ? null : copy.noPeriods,
         };
       }
 
