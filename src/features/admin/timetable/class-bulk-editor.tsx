@@ -28,9 +28,11 @@ const version=useRef(0),busyRef=useRef(false);
 const all=useMemo(()=>classes.data??[],[classes.data]);
 const cycles=useMemo(()=>Array.from(new Set(all.map(c=>c.level?.cycle?.name).filter((v):v is string=>!!v))),[all]);
 const levels=useMemo(()=>all.filter(c=>!cycle||c.level?.cycle?.name===cycle).map(c=>({id:c.level?.id,name:c.level?.name})).filter(x=>x.id&&x.name).filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i),[all,cycle]);
-const tracks=useMemo(()=>all.filter(c=>c.level?.id===Number(level)).map(c=>({id:c.track?.id??0,name:c.track?.name??'بدون مسلك'})).filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i),[all,level]);
+const tracks=useMemo(()=>all.filter(c=>!!level&&c.level?.id===Number(level)&&!!c.track?.id).map(c=>({id:c.track!.id,name:c.track!.name})).filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i),[all,level]);
+const showTrack=tracks.length>1;
 const options=useMemo(()=>all.filter(c=>(!cycle||c.level?.cycle?.name===cycle)&&(!level||c.level?.id===Number(level))&&(!track||(c.track?.id??0)===Number(track))),[all,cycle,level,track]);
 const dirty=lines.some(l=>l.dirty)||deleted.length>0;
+const currentClass=all.find(c=>c.id===classId);
 async function load(id:number){
 const token=++version.current;setDraft(null);setLines([]);setDeleted([]);setAssignments([]);setNotice('');
 if(!id)return;
@@ -97,15 +99,15 @@ setLines(v=>v.filter(l=>l.key!==key));
 return <section className="class-bulk">
 <h2>محرّر استعمال الزمان حسب القسم</h2>
 <p>اختر القسم ثم المادة والأستاذ من الإسنادات الموجودة؛ الحفظ في مسودة مستقلة لكل قسم.</p>
-<div className="class-bulk__filters">
+<div className="class-bulk__filters" aria-label="اختيار القسم">
 <label>السلك<select value={cycle} onChange={e=>{if(!choose(0))return;setCycle(e.target.value);setLevel('');setTrack('')}}><option value="">جميع الأسلاك</option>{cycles.map(v=><option key={v}>{v}</option>)}</select></label>
-<label>المستوى<select value={level} onChange={e=>{if(!choose(0))return;setLevel(e.target.value);setTrack('')}}><option value="">جميع المستويات</option>{levels.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
-<label>المسلك<select value={track} onChange={e=>{if(!choose(0))return;setTrack(e.target.value)}}><option value="">جميع المسالك</option>{tracks.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
-<label>القسم<select value={classId} onChange={e=>{choose(Number(e.target.value))}}><option value={0}>اختر القسم</option>{options.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+<label>المستوى<select disabled={!cycle||busy} value={level} onChange={e=>{if(!choose(0))return;setLevel(e.target.value);setTrack('')}}><option value="">جميع المستويات</option>{levels.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
+{showTrack&&<label>المسلك (عند الحاجة)<select disabled={busy||!level} value={track} onChange={e=>{if(!choose(0))return;setTrack(e.target.value)}}><option value="">جميع المسالك</option>{tracks.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>}
+<label>القسم<select disabled={!level||busy} value={classId} onChange={e=>{choose(Number(e.target.value))}}><option value={0}>اختر القسم</option>{options.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
 </div>
 {notice&&<p role="status" className="class-bulk__notice">{notice}</p>}
 {busy&&<p>جارٍ تنفيذ العملية...</p>}
-{classId&&!draft&&!busy&&<button disabled={!canManage} onClick={()=>void act('open')}>فتح مسودة القسم</button>}
+{classId&&!draft&&!busy&&<div className="class-bulk__selection" aria-live="polite"><div><span className="class-bulk__selection-label">القسم المختار</span><strong>{currentClass?.name??'القسم'}</strong><span className="class-bulk__selection-hint">{cycle} · {currentClass?.level?.name??''}</span></div><button type="button" className="class-bulk__primary-button" disabled={!canManage} onClick={()=>void act('open')}>بدء إعداد استعمال الزمان <span aria-hidden="true">←</span></button>{!canManage&&<small>ليس لديك صلاحية إدارة استعمال الزمان.</small>}</div>}
 {draft&&<><p>الحالة: {draft.state} · تعارضات: {draft.conflict_count}{dirty?' · تعديلات غير محفوظة':''}</p>
 <div className="class-bulk__form">
 <label>المادة والأستاذ<select value={selected} onChange={e=>setSelected(Number(e.target.value))}><option value={0}>اختر الإسناد</option>{assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}</select></label>
