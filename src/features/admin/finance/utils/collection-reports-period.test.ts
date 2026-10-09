@@ -5,6 +5,7 @@ import {
   collectionReportsRangeIsWholeMonth,
   currentCollectionReportsMonthRange,
   currentCollectionReportsMonthValue,
+  shiftCollectionReportsDay,
   shiftCollectionReportsMonth,
 } from '@/features/admin/finance/utils/collection-reports-period';
 
@@ -46,6 +47,11 @@ describe('collection reports month period helpers', () => {
         dateTo: '2026-09-30',
       }),
     ).toBe(false);
+  });
+
+  it('moves daily navigation across month and year boundaries', () => {
+    expect(shiftCollectionReportsDay('2026-10-01', -1, NOW)).toBe('2026-09-30');
+    expect(shiftCollectionReportsDay('2026-12-31', 1, NOW)).toBe('2027-01-01');
   });
 
   it('moves month navigation across year boundaries', () => {

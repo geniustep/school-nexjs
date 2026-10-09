@@ -5,6 +5,7 @@ export type CollectionReportsDatePreset =
   | 'today'
   | 'yesterday'
   | 'week'
+  | 'last7'
   | 'month'
   | 'custom';
 
@@ -55,6 +56,17 @@ export function collectionReportsPresetUpdates(
     };
   }
 
+  if (preset === 'last7') {
+    const start = new Date(today);
+    start.setDate(start.getDate() - 6);
+    return {
+      dateMode: 'range',
+      date: '',
+      dateFrom: isoDate(start),
+      dateTo: todayIso,
+    };
+  }
+
   return {
     dateMode: 'range',
     date: '',
@@ -70,6 +82,7 @@ export function resolveCollectionReportsDatePreset(
   const today = collectionReportsPresetUpdates('today', now);
   const yesterday = collectionReportsPresetUpdates('yesterday', now);
   const week = collectionReportsPresetUpdates('week', now);
+  const last7 = collectionReportsPresetUpdates('last7', now);
   const month = collectionReportsPresetUpdates('month', now);
 
   if (filters.dateMode === 'day' && filters.date === today.date) return 'today';
@@ -80,6 +93,13 @@ export function resolveCollectionReportsDatePreset(
     filters.dateTo === week.dateTo
   ) {
     return 'week';
+  }
+  if (
+    filters.dateMode === 'range' &&
+    filters.dateFrom === last7.dateFrom &&
+    filters.dateTo === last7.dateTo
+  ) {
+    return 'last7';
   }
   if (
     filters.dateMode === 'range' &&
