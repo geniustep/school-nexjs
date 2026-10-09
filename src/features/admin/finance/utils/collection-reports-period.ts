@@ -20,6 +20,15 @@ function normalizedMonthParts(monthValue: string, now = new Date()): { year: num
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 
+export function shiftCollectionReportsDay(dayValue: string, delta: number, now = new Date()): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayValue.trim());
+  const base = match
+    ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  base.setDate(base.getDate() + delta);
+  return `${base.getFullYear()}-${twoDigits(base.getMonth() + 1)}-${twoDigits(base.getDate())}`;
+}
+
 export function currentCollectionReportsMonthValue(now = new Date()): string {
   return `${now.getFullYear()}-${twoDigits(now.getMonth() + 1)}`;
 }
