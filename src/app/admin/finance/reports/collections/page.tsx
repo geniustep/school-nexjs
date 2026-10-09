@@ -13,9 +13,6 @@ import {
   type CollectionReportsPeriodMode,
 } from '@/features/admin/finance/collection-reports-period-filter';
 import {
-  currentCollectionReportsMonthRange,
-} from '@/features/admin/finance/utils/collection-reports-period';
-import {
   defaultCollectionReportsFilters,
   isCollectionReportAggDimension,
   isCollectionReportsView,
@@ -44,13 +41,6 @@ const URL_KEYS: Record<keyof CollectionReportsFilters, string> = {
 
 function readFilters(searchParams: URLSearchParams): CollectionReportsFilters {
   const defaults = defaultCollectionReportsFilters();
-  const hasExplicitDate =
-    searchParams.has('date') ||
-    searchParams.has('date_from') ||
-    searchParams.has('date_to') ||
-    searchParams.has('date_mode');
-
-  const monthlyDefault = currentCollectionReportsMonthRange();
   const dateModeRaw = searchParams.get('date_mode') ?? '';
   const dateMode =
     dateModeRaw === 'range'
@@ -59,11 +49,7 @@ function readFilters(searchParams: URLSearchParams): CollectionReportsFilters {
         ? 'day'
         : searchParams.has('date_from') || searchParams.has('date_to')
           ? 'range'
-          : searchParams.has('date')
-            ? 'day'
-            : hasExplicitDate
-              ? defaults.dateMode
-              : monthlyDefault.dateMode;
+          : 'day';
 
   const pageRaw = searchParams.get('page');
   const viewRaw = searchParams.get('view') ?? '';
@@ -72,12 +58,8 @@ function readFilters(searchParams: URLSearchParams): CollectionReportsFilters {
   return {
     dateMode,
     date: searchParams.get('date') ?? (dateMode === 'day' ? defaults.date : ''),
-    dateFrom:
-      searchParams.get('date_from') ??
-      (!hasExplicitDate && dateMode === 'range' ? monthlyDefault.dateFrom : ''),
-    dateTo:
-      searchParams.get('date_to') ??
-      (!hasExplicitDate && dateMode === 'range' ? monthlyDefault.dateTo : ''),
+    dateFrom: searchParams.get('date_from') ?? '',
+    dateTo: searchParams.get('date_to') ?? '',
     cycle: searchParams.get('cycle') ?? '',
     levelId: searchParams.get('level_id') ?? '',
     classId: searchParams.get('class_id') ?? '',
@@ -154,15 +136,9 @@ export default function AdminFinanceCollectionReportsPage() {
       // disappearing when a custom range happens to equal a full month.
       if (options?.periodMode === 'custom') {
         params.set('period_ui', 'custom');
-      } else if (options?.periodMode === 'month') {
+      } else if (options?.periodMode) {
         params.delete('period_ui');
-      } else if (
-        updates.dateMode === 'day' &&
-        updates.date === defaults.date &&
-        updates.dateFrom === '' &&
-        updates.dateTo === ''
-      ) {
-        // Legacy reset actions resolve back to the new month-first default.
+      } else if (updates.dateMode === 'day') {
         params.delete('period_ui');
       }
 
