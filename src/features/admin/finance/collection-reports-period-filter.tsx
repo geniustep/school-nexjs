@@ -154,6 +154,7 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
   const currentMonthValue = useMemo(() => currentCollectionReportsMonthValue(), []);
   const activePreset = resolveCollectionReportsDatePreset(filters);
   const explicitCustomMode = searchParams.get('period_ui') === 'custom';
+  const legacyDateChipPresent = activePreset !== 'today';
   const wholeMonth = collectionReportsRangeIsWholeMonth(filters);
 
   const periodMode: CollectionReportsPeriodMode = explicitCustomMode
@@ -251,7 +252,11 @@ export function CollectionReportsPeriodFilter({ filters, onFiltersChange }: Prop
   ] as const;
 
   return (
-    <section className="finance-collection-period" aria-labelledby="fcr-period-title">
+    <section
+      className="finance-collection-period"
+      aria-labelledby="fcr-period-title"
+      data-legacy-date-chip={legacyDateChipPresent ? 'true' : 'false'}
+    >
       <div className="finance-collection-period__head">
         <strong id="fcr-period-title" className="finance-collection-period__title">
           {copy.period}
