@@ -176,6 +176,21 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     );
   });
 
+  it('restores month-specific pricing inside the unified Modify Service duration grid', () => {
+    expect(dialogSource).toContain('allowPriceOverrides');
+    expect(dialogSource).toContain('periodAmountOverrides={form.periodAmountOverrides}');
+    expect(sparseGridSource).toContain('allowPriceOverrides = false');
+    expect(sparseGridSource).toContain("(mode === 'price' || allowPriceOverrides)");
+    expect(sparseGridSource).toContain('specialPriceForMonth');
+  });
+
+  it('keeps a month-specific override on modify_line while duration stays unchanged', () => {
+    expect(dialogSource).toContain('monthPriceOverrideChanged');
+    expect(dialogSource).toContain('const priceChanged = basePriceChanged || monthPriceOverrideChanged');
+    expect(dialogSource).toContain('selectedPeriodIds: currentPeriodIds');
+    expect(dialogSource).not.toContain('periodAmountOverrides: {},\n            effectivePeriodId: firstPeriodId');
+  });
+
   it('blocks simultaneous price and duration changes instead of risking a partial financial mutation', () => {
     expect(dialogSource).toContain('periodsChanged && priceChanged');
     expect(dialogSource).toContain('copy.combinedChangeBlocked');
