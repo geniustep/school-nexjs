@@ -17,6 +17,7 @@ export default function AdminTimetablePage() {
     <RequireAdminPermission permission="view_timetable">
       <div className="admin-workspace">
         <PageHeader title={t('timetable.title')} subtitle={t('admin.timetableDesc')} />
+        <p><a href="/admin/timetable/bulk">محرّر استعمال الزمان حسب القسم ←</a></p>
         <AdminTimetablePanel />
       </div>
     </RequireAdminPermission>
