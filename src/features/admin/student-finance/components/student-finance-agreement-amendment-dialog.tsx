@@ -522,10 +522,14 @@ export function StudentFinanceAgreementAmendmentDialog({
       const periodsChanged = !samePeriodSelection(candidateForm.selectedPeriodIds, currentPeriodIds);
       const currentAmount = candidateLine.unitPrice ?? candidateLine.amount;
       const nextAmount = Number(candidateForm.amount);
-      const priceChanged =
+      const basePriceChanged =
         candidateForm.amount.trim() !== '' &&
         Number.isFinite(nextAmount) &&
         (currentAmount == null || Math.abs(nextAmount - Number(currentAmount)) > 0.0001);
+      const monthPriceOverrideChanged = Object.values(candidateForm.periodAmountOverrides).some(
+        (value) => value.trim() !== '',
+      );
+      const priceChanged = basePriceChanged || monthPriceOverrideChanged;
 
       if (periodsChanged && priceChanged) {
         return { form: null, error: copy.combinedChangeBlocked };
@@ -546,19 +550,15 @@ export function StudentFinanceAgreementAmendmentDialog({
       }
 
       if (priceChanged) {
-        const firstPeriodId =
-          currentPeriodIds[0] ??
-          (modifyPeriodOptions[0]?.id != null ? String(modifyPeriodOptions[0].id) : '');
         return {
           form: {
             ...candidateForm,
             operationType: 'modify_line',
-            selectedPeriodIds: [],
-            periodAmountOverrides: {},
-            effectivePeriodId: firstPeriodId,
+            selectedPeriodIds: currentPeriodIds,
+            effectivePeriodId: '',
             effectivePeriodEndId: '',
           },
-          error: firstPeriodId ? null : copy.noPeriods,
+          error: currentPeriodIds.length ? null : copy.noPeriods,
         };
       }
 
@@ -879,6 +879,7 @@ export function StudentFinanceAgreementAmendmentDialog({
               onOverrideChange={updatePeriodOverride}
               onOverrideClear={clearPeriodOverride}
               mode="included"
+              allowPriceOverrides
             />
             </section>
           ) : null}
