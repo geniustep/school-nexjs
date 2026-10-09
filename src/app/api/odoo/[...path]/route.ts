@@ -45,10 +45,25 @@ import { getHostFromHeaders, resolveTenantRuntimeConfigFromRequest } from '@/lib
 
 export const dynamic = 'force-dynamic';
 
-function pathPolicyResponse(reason: string) {
+function isParentPickupSessionPath(path: string): boolean {
+  return path === '/parent/pickup/session';
+}
+
+function withSensitivePickupHeaders(path: string, response: NextResponse): NextResponse {
+  if (isParentPickupSessionPath(path)) {
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('Pragma', 'no-cache');
+  }
+  return response;
+}
+
+function pathPolicyResponse(reason: string, path: string) {
   const status = reason === 'method_not_allowed' ? 405 : 404;
   const code = reason === 'method_not_allowed' ? 'method_not_allowed' : 'invalid_path';
-  return NextResponse.json(unsafeBffPathErrorBody(code), { status });
+  return withSensitivePickupHeaders(
+    path,
+    NextResponse.json(unsafeBffPathErrorBody(code), { status }),
+  );
 }
 
 async function handle(request: NextRequest, segments: string[]) {
@@ -81,12 +96,15 @@ async function handle(request: NextRequest, segments: string[]) {
   const method = request.method.toUpperCase();
   const policy = assertBffRoutePolicy(path, method);
   if (!policy.ok) {
-    return pathPolicyResponse(policy.reason);
+    return pathPolicyResponse(policy.reason, path);
   }
 
   const originCheck = assertMutationOrigin(request, method);
   if (!originCheck.ok) {
-    return NextResponse.json(mutationOriginForbiddenBody(), { status: 403 });
+    return withSensitivePickupHeaders(
+      path,
+      NextResponse.json(mutationOriginForbiddenBody(), { status: 403 }),
+    );
   }
 
   // Defense: ensure the would-be upstream URL cannot escape /api/v1.
@@ -101,14 +119,20 @@ async function handle(request: NextRequest, segments: string[]) {
     config.apiPrefix,
   );
   if (!prefixOk.ok) {
-    return NextResponse.json(unsafeBffPathErrorBody('invalid_path'), { status: 400 });
+    return withSensitivePickupHeaders(
+      path,
+      NextResponse.json(unsafeBffPathErrorBody('invalid_path'), { status: 400 }),
+    );
   }
 
   const roleResolved = resolveActiveRoleFromRequest(request);
   if (!roleResolved.ok) {
-    return NextResponse.json(activeRoleErrorBody(roleResolved.code, roleResolved.message), {
-      status: 400,
-    });
+    return withSensitivePickupHeaders(
+      path,
+      NextResponse.json(activeRoleErrorBody(roleResolved.code, roleResolved.message), {
+        status: 400,
+      }),
+    );
   }
   const activeRole: LegalActiveRole | undefined =
     roleResolved.role ?? (await getActiveRoleCookie()) ?? undefined;
@@ -162,9 +186,12 @@ async function handle(request: NextRequest, segments: string[]) {
           injectActiveSchoolId: shouldInjectActiveSchoolIdInBody(path),
         });
         if (!bound.ok) {
-          return NextResponse.json(activeSchoolBodyMismatchResponse(bound.reason), {
-            status: 422,
-          });
+          return withSensitivePickupHeaders(
+            path,
+            NextResponse.json(activeSchoolBodyMismatchResponse(bound.reason), {
+              status: 422,
+            }),
+          );
         }
         body = bound.body;
       }
@@ -236,7 +263,7 @@ async function handle(request: NextRequest, segments: string[]) {
     response.headers.set('Cache-Control', 'private, no-store');
     response.headers.set('Pragma', 'no-cache');
   }
-  return response;
+  return withSensitivePickupHeaders(path, response);
 }
 
 type Ctx = { params: Promise<{ path: string[] }> };
