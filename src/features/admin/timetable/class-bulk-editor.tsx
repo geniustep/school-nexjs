@@ -87,7 +87,7 @@ const bad=rejectedTimetableIndexes(problems);
 const failed=changed.flatMap((l,i)=>bad.has(i)?[{...l,error:errorForTimetableLine(problems,i,l.line_id)?.message??'رفض الخادم هذه الحصة'}]:[]);
 const ids=new Set(validTimetableLineIds(failed.map(l=>l.line_id)));
 setDraft(r.data.draft);setLines([...r.data.draft.lines.filter(l=>!l.line_id||!ids.has(l.line_id)).map(toEdit),...failed]);
-setDeleted(failedTimetableDeletionIds(problems));
+setDeleted(failedTimetableDeletionIds(problems).filter(id=>deleted.includes(id)));
 setNotice(timetableBulkSaveNotice(problems,(r.data.bulk_result?.created?.length??0)+(r.data.bulk_result?.updated?.length??0)+(r.data.bulk_result?.deleted?.length??0)));
 }catch(e){setNotice(error(e))}finally{busyRef.current=false;setBusy(false)}
 };
