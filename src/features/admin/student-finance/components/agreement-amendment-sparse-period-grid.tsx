@@ -74,6 +74,7 @@ export function AgreementAmendmentSparsePeriodGrid({
   onOverrideChange,
   onOverrideClear,
   mode = 'price',
+  allowPriceOverrides = false,
 }: {
   periods: AgreementAmendmentPeriodOption[];
   selectedPeriodIds: string[];
@@ -87,6 +88,7 @@ export function AgreementAmendmentSparsePeriodGrid({
   onOverrideChange: (periodId: string, amount: string) => void;
   onOverrideClear: (periodId: string) => void;
   mode?: 'price' | 'included';
+  allowPriceOverrides?: boolean;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -174,7 +176,7 @@ export function AgreementAmendmentSparsePeriodGrid({
               ) : null}
             </div>
 
-            {mode === 'price' && selected && selectable ? (
+            {(mode === 'price' || allowPriceOverrides) && selected && selectable ? (
               <div className="student-finance-amendment-sparse-period__override">
                 {!editing ? (
                   <button
