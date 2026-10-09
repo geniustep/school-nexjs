@@ -1,1 +1,15 @@
 .class-bulk{padding:1.5rem;max-width:100%;overflow-x:auto}.class-bulk__filters,.class-bulk__form{display:flex;flex-wrap:wrap;gap:1rem;margin:1.2rem 0}.class-bulk label{display:flex;flex-direction:column;gap:.35rem;min-width:145px}.class-bulk select,.class-bulk input{border:1px solid var(--border,#ccc);border-radius:8px;padding:.55rem;background:var(--background,#fff);color:inherit}.class-bulk button{border:1px solid var(--border,#bbb);border-radius:8px;padding:.65rem 1rem;cursor:pointer}.class-bulk button:disabled{opacity:.5}.class-bulk__days{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}.class-bulk__day{border:1px solid var(--border,#ddd);border-radius:12px;padding:.8rem}.class-bulk__line{display:flex;flex-wrap:wrap;gap:.35rem;padding:.5rem 0;border-top:1px solid var(--border,#ddd)}.class-bulk__line select{width:100%}.class-bulk__line input{width:105px}.class-bulk__line small{color:#ad3434}.class-bulk__actions{display:flex;gap:.7rem;margin-top:1.5rem}.class-bulk__notice{padding:.8rem;border:1px solid var(--border,#ddd);border-radius:8px}
+/* Class-first workflow: selectors clarify the order; the draft action is primary. */
+.class-bulk__filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;align-items:end;background:var(--card,var(--background,#fff));padding:1.25rem;border:1px solid var(--border,#e4e5e7);border-radius:16px}
+.class-bulk__filters label{min-width:0;font-weight:600;font-size:.9rem}
+.class-bulk__filters select{min-height:44px;width:100%}
+.class-bulk__filters select:disabled{opacity:.55;cursor:not-allowed}
+.class-bulk__selection{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.25rem;padding:1.25rem 1.5rem;border-radius:16px;border:1px solid var(--border,#ddd);background:var(--card,var(--background,#fff));margin:1rem 0}
+.class-bulk__selection>div{display:flex;flex-direction:column;gap:.25rem}
+.class-bulk__selection-label{font-size:.75rem;color:var(--muted-foreground,#666)}
+.class-bulk__selection strong{font-size:1.2rem;line-height:1.6}
+.class-bulk__selection-hint{font-size:.82rem;color:var(--muted-foreground,#666)}
+.class-bulk button.class-bulk__primary-button{background:var(--primary,#167f65);color:var(--primary-foreground,#fff);border:1px solid var(--primary,#167f65);font-weight:700;min-height:48px;padding:.8rem 1.5rem;box-shadow:0 3px 10px rgba(0,0,0,.1);transition:transform .14s,box-shadow .14s}
+.class-bulk button.class-bulk__primary-button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 16px rgba(0,0,0,.16)}
+.class-bulk button.class-bulk__primary-button:focus-visible{outline:3px solid var(--ring,#6ebfad);outline-offset:3px}
+@media(max-width:740px){.class-bulk__filters{grid-template-columns:1fr}.class-bulk__selection{align-items:stretch}.class-bulk button.class-bulk__primary-button{width:100%}}
