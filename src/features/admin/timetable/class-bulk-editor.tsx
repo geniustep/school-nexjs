@@ -3,6 +3,8 @@ import {useEffect,useMemo,useRef,useState} from 'react';
 import {api} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {useGlobalAcademicYearResource} from '@/features/academic-context/hooks/use-global-academic-year-resource';
+import {useAdminResource} from '@/lib/hooks/use-admin-resource';
+import type {Level} from '@/types/class';
 import {useSession} from '@/features/auth/session-context';
 import {hasPermission} from '@/lib/permissions/permissions';
 import type {SchoolClass} from '@/types/class';
@@ -20,17 +22,21 @@ const error=(e:unknown)=>e instanceof Error?e.message:'تعذر إتمام ال�
 export function ClassBulkTimetableEditor(){
 const user=useSession(),canManage=hasPermission(user,'manage_timetable'),canPublish=hasPermission(user,'publish_timetable');
 const classes=useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes);
+const levelResource=useAdminResource<Level[]>(endpoints.admin.levels, {page_size:500});
 const [cycle,setCycle]=useState(''),[level,setLevel]=useState(''),[track,setTrack]=useState(''),[classId,setClassId]=useState(0);
 const [assignments,setAssignments]=useState<Assignment[]>([]),[draft,setDraft]=useState<Draft|null>(null),[lines,setLines]=useState<Editable[]>([]),[deleted,setDeleted]=useState<number[]>([]);
 const [selected,setSelected]=useState(0),[day,setDay]=useState('monday'),[start,setStart]=useState('08:00'),[end,setEnd]=useState('09:00');
 const [notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
 const version=useRef(0),busyRef=useRef(false);
 const all=useMemo(()=>classes.data??[],[classes.data]);
-const cycles=useMemo(()=>Array.from(new Set(all.map(c=>c.level?.cycle?.name).filter((v):v is string=>!!v))),[all]);
-const levels=useMemo(()=>all.filter(c=>!cycle||c.level?.cycle?.name===cycle).map(c=>({id:c.level?.id,name:c.level?.name})).filter(x=>x.id&&x.name).filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i),[all,cycle]);
+const allLevels=useMemo(()=>levelResource.data??[],[levelResource.data]);
+const linkedLevels=useMemo(()=>new Set(all.map(c=>c.level?.id).filter((id):id is number=>typeof id==='number')),[all]);
+const knownLevels=useMemo(()=>allLevels.filter(l=>linkedLevels.has(l.id)),[allLevels,linkedLevels]);
+const cycles=useMemo(()=>Array.from(new Set(knownLevels.map(l=>l.cycle?.name).filter((v):v is string=>!!v))),[knownLevels]);
+const levels=useMemo(()=>knownLevels.filter(l=>!cycle||l.cycle?.name===cycle).map(l=>({id:l.id,name:l.name})),[knownLevels,cycle]);
 const tracks=useMemo(()=>all.filter(c=>!!level&&c.level?.id===Number(level)&&!!c.track?.id).map(c=>({id:c.track!.id,name:c.track!.name})).filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i),[all,level]);
 const showTrack=tracks.length>1;
-const options=useMemo(()=>all.filter(c=>(!cycle||c.level?.cycle?.name===cycle)&&(!level||c.level?.id===Number(level))&&(!track||(c.track?.id??0)===Number(track))),[all,cycle,level,track]);
+const options=useMemo(()=>all.filter(c=>(!level||c.level?.id===Number(level))&&(!track||(c.track?.id??0)===Number(track))),[all,level,track]);
 const dirty=lines.some(l=>l.dirty)||deleted.length>0;
 const currentClass=all.find(c=>c.id===classId);
 async function load(id:number){
@@ -100,6 +106,9 @@ return <section className="class-bulk">
 <h2>محرّر استعمال الزمان حسب القسم</h2>
 <p>اختر القسم ثم المادة والأستاذ من الإسنادات الموجودة؛ الحفظ في مسودة مستقلة لكل قسم.</p>
 <div className="class-bulk__filters" aria-label="اختيار القسم">
+{classes.loading||levelResource.loading?<p role="status">جارٍ تحميل الأسلاك والأقسام...</p>:null}
+{classes.error||levelResource.error?<p role="alert">تعذر تحميل بيانات الأسلاك أو الأقسام. حاول تحديث الصفحة.</p>:null}
+{!classes.loading&&!levelResource.loading&&cycles.length===0?<p role="alert">لا توجد أسلاك مرتبطة بمستويات الأقسام الحالية. تحقق من إعدادات المستويات والسنة الدراسية.</p>:null}
 <label>السلك<select value={cycle} onChange={e=>{if(!choose(0))return;setCycle(e.target.value);setLevel('');setTrack('')}}><option value="">جميع الأسلاك</option>{cycles.map(v=><option key={v}>{v}</option>)}</select></label>
 <label>المستوى<select disabled={!cycle||busy} value={level} onChange={e=>{if(!choose(0))return;setLevel(e.target.value);setTrack('')}}><option value="">جميع المستويات</option>{levels.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
 {showTrack&&<label>المسلك (عند الحاجة)<select disabled={busy||!level} value={track} onChange={e=>{if(!choose(0))return;setTrack(e.target.value)}}><option value="">جميع المسالك</option>{tracks.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>}
