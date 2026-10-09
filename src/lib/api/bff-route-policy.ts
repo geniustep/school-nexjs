@@ -238,6 +238,14 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ALL_METHODS,
     test: (p) => familyPattern('teacher', BFF_TEACHER_FAMILIES).test(p),
   },
+  /**
+   * Parent QR pickup session — exact POST only.
+   * Not added to BFF_PARENT_FAMILIES (no nested /parent/pickup/* family).
+   */
+  {
+    methods: ['POST'],
+    test: (p) => p === '/parent/pickup/session',
+  },
   {
     methods: ALL_METHODS,
     test: (p) => familyPattern('parent', BFF_PARENT_FAMILIES).test(p),
