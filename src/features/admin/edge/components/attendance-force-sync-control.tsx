@@ -1,0 +1,39 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useToast } from '@/components/ui/toast';
+import { useLocale } from '@/features/i18n/locale-context';
+import { enqueueAttendanceForceSync, fetchAttendanceForceSyncStatus } from '@/features/admin/edge/api/attendance';
+import type { EdgeAttendanceForceSyncState, EdgeAttendanceForceSyncStatus, EdgeAttendanceSourceDevice } from '@/features/admin/edge/types';
+
+const POLL_INTERVAL_MS = 2500;
+const EXPIRY_GRACE_MS = 10000;
+const FALLBACK_OBSERVATION_MS = 35 * 60_000;
+const ACTIVE_STATES = new Set<EdgeAttendanceForceSyncState>(['queued','dispatched','running']);
+const TERMINAL_STATES = new Set<EdgeAttendanceForceSyncState>(['success','partial','failed','already_running','expired','rejected_scope']);
+
+export function isAttendanceForceSyncActive(state: EdgeAttendanceForceSyncState){return ACTIVE_STATES.has(state)}
+export function isAttendanceForceSyncTerminal(state: EdgeAttendanceForceSyncState){return TERMINAL_STATES.has(state)}
+
+const COPY={ar:{syncNow:'مزامنة الآن',starting:'جارٍ بدء المزامنة…',queued:'جارٍ بدء المزامنة…',dispatched:'تم إرسال طلب المزامنة إلى الجهاز…',running:'جارٍ مزامنة بيانات جهاز الحضور…',success:'اكتملت المزامنة بنجاح',partial:'اكتملت المزامنة جزئيًا',failed:'تعذرت المزامنة',already_running:'توجد مزامنة جارية بالفعل',expired:'انتهت مهلة طلب المزامنة',rejected_scope:'تعذر تنفيذ المزامنة لهذا الجهاز',inactive:'فعّل جهاز الحضور قبل المزامنة.',startFailed:'تعذر بدء المزامنة.',statusFailed:'تعذر تحديث حالة المزامنة مؤقتًا. لن تتم إعادة إرسال الطلب.',observationStopped:'توقفت متابعة الحالة بعد انتهاء مهلة الطلب. لم تتم إعادة إرسال المزامنة.',persons:'أشخاص الدليل',events:'تسجيلات جديدة',duplicates:'موجودة مسبقًا'},fr:{syncNow:'Synchroniser maintenant',starting:'Démarrage de la synchronisation…',queued:'Démarrage de la synchronisation…',dispatched:'Demande envoyée à l’appareil…',running:'Synchronisation des données de présence…',success:'Synchronisation terminée',partial:'Synchronisation partiellement terminée',failed:'Échec de la synchronisation',already_running:'Une synchronisation est déjà en cours',expired:'La demande de synchronisation a expiré',rejected_scope:'Synchronisation indisponible pour cet appareil',inactive:'Activez l’appareil de présence avant la synchronisation.',startFailed:'Impossible de démarrer la synchronisation.',statusFailed:'Impossible d’actualiser temporairement l’état. La demande ne sera pas renvoyée.',observationStopped:'Le suivi a été arrêté après l’expiration de la demande. Aucune nouvelle demande n’a été envoyée.',persons:'Personnes du répertoire',events:'Nouveaux pointages',duplicates:'Déjà présents'}} as const;
+
+function parseOdooDateTime(value:string){const normalized=value.includes('T')?value:value.replace(' ','T');const zoned=/Z$|[+-]\\d\\d:\\d\\d$/.test(normalized)?normalized:normalized+'Z';return Date.parse(zoned)}
+function commandDeadline(command:EdgeAttendanceForceSyncStatus){const t=parseOdooDateTime(command.expires_at);return Number.isFinite(t)?t+EXPIRY_GRACE_MS:Date.now()+FALLBACK_OBSERVATION_MS}
+function storageKey(sourceId:number){return 'raqeem.edge.attendance.force-sync.'+sourceId}
+function rememberRequest(sourceId:number,requestId:string){try{window.sessionStorage.setItem(storageKey(sourceId),requestId)}catch{/* ignore storage unavailability */}}
+function forgetRequest(sourceId:number){try{window.sessionStorage.removeItem(storageKey(sourceId))}catch{/* ignore storage unavailability */}}
+function rememberedRequest(sourceId:number){try{return window.sessionStorage.getItem(storageKey(sourceId))}catch{return null}}
+function toneFor(state:EdgeAttendanceForceSyncState):'success'|'warning'|'error'|'info'{if(state==='success')return'success';if(state==='partial'||state==='already_running'||state==='expired')return'warning';if(state==='failed'||state==='rejected_scope')return'error';return'info'}
+
+export function AttendanceForceSyncControl({source}:{source:EdgeAttendanceSourceDevice}){
+ const{locale}=useLocale();const c=locale==='fr'?COPY.fr:COPY.ar;const toast=useToast();
+ const[command,setCommand]=useState<EdgeAttendanceForceSyncStatus|null>(null);const[submitting,setSubmitting]=useState(false);const[recovering,setRecovering]=useState(true);const[statusFetchFailed,setStatusFetchFailed]=useState(false);const[observationStopped,setObservationStopped]=useState(false);const notified=useRef<string|null>(null);
+ const active=command?isAttendanceForceSyncActive(command.state):false;const terminal=command?isAttendanceForceSyncTerminal(command.state):false;
+ useEffect(()=>{let cancelled=false;const requestId=rememberedRequest(source.id);if(!requestId){setRecovering(false);return()=>{cancelled=true}};void fetchAttendanceForceSyncStatus(requestId).then(r=>{if(cancelled)return;if(r.success){setCommand(r.data);if(isAttendanceForceSyncTerminal(r.data.state))forgetRequest(source.id)}else{setStatusFetchFailed(true)}setRecovering(false)});return()=>{cancelled=true}},[source.id]);
+ useEffect(()=>{if(!command||!active||observationStopped)return;let cancelled=false;const deadline=commandDeadline(command);const poll=async()=>{if(cancelled)return;if(Date.now()>deadline){setObservationStopped(true);return}const r=await fetchAttendanceForceSyncStatus(command.request_id);if(cancelled)return;if(!r.success){setStatusFetchFailed(true);return}setStatusFetchFailed(false);setCommand(r.data)};const timer=window.setInterval(()=>void poll(),POLL_INTERVAL_MS);return()=>{cancelled=true;window.clearInterval(timer)}},[command?.request_id,active,observationStopped]);
+ useEffect(()=>{if(!command||!terminal||notified.current===command.request_id)return;forgetRequest(source.id);notified.current=command.request_id;const m=c[command.state];const tone=toneFor(command.state);if(tone==='success')toast.success(m);else if(tone==='warning')toast.warning(m);else if(tone==='error')toast.error(m);else toast.show(m)},[c,command,source.id,terminal,toast]);
+ async function start(){if(!source.active||submitting||active)return;setSubmitting(true);setStatusFetchFailed(false);setObservationStopped(false);try{const r=await enqueueAttendanceForceSync(source.id);if(!r.success){toast.error(c.startFailed);return}rememberRequest(source.id,r.data.request_id);notified.current=null;setCommand(r.data)}finally{setSubmitting(false)}}
+ const summary=useMemo(()=>{const items:Array<[string,number]>=[];if(!command||!terminal)return items;if(typeof command.persons_synced==='number')items.push([c.persons,command.persons_synced]);if(typeof command.events_inserted==='number')items.push([c.events,command.events_inserted]);if(typeof command.duplicates==='number')items.push([c.duplicates,command.duplicates]);return items},[c,command,terminal]);
+ const statusText=command?c[command.state]:null;
+ return <section className="edge-force-sync" aria-live="polite" data-testid="attendance-force-sync"><div className="edge-force-sync__action"><button className="btn btn--primary btn--sm" type="button" disabled={!source.active||recovering||submitting||active} onClick={()=>void start()}>{submitting?c.starting:active?c[command!.state]:c.syncNow}</button>{!source.active?<span className="edge-force-sync__hint">{c.inactive}</span>:null}</div>{statusText?<div className={'edge-force-sync__status edge-force-sync__status--'+toneFor(command!.state)}><strong>{statusText}</strong>{summary.length?<div className="edge-force-sync__summary">{summary.map(([label,value])=><span key={label}>{label}: <b>{value}</b></span>)}</div>:null}{command?.safe_error_message?<span className="edge-force-sync__hint" dir="auto">{command.safe_error_message}</span>:null}</div>:null}{statusFetchFailed&&active&&!observationStopped?<p className="edge-force-sync__hint edge-force-sync__hint--warning">{c.statusFailed}</p>:null}{observationStopped&&active?<p className="edge-force-sync__hint edge-force-sync__hint--warning">{c.observationStopped}</p>:null}</section>
+}

@@ -51,6 +51,10 @@ export const endpoints = {
       `/admin/edge/attendance/source-devices/${encodeURIComponent(String(sourceId))}/persons`,
     edgeAttendancePersonMapping: (sourceId: number | string, externalPersonId: string) =>
       `/admin/edge/attendance/source-devices/${encodeURIComponent(String(sourceId))}/persons/${encodeURIComponent(externalPersonId)}/mapping`,
+    edgeAttendanceForceSync: (sourceId: number | string) =>
+      `/admin/edge/attendance/source-devices/${encodeURIComponent(String(sourceId))}/force-sync`,
+    edgeAttendanceForceSyncStatus: (requestId: string) =>
+      `/admin/edge/attendance/force-sync/${encodeURIComponent(requestId)}`,
     edgePairingGrants: '/admin/edge/pairing-grants',
     adminRequests: '/admin/admin-requests',
     adminRequest: (id: number | string) => `/admin/admin-requests/${id}`,

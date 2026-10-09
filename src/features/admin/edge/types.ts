@@ -29,6 +29,48 @@ export interface EdgeStaffPickerData {
   staff: EdgeStaffCandidate[];
 }
 
+export type EdgeAttendanceForceSyncState =
+  | 'queued'
+  | 'dispatched'
+  | 'running'
+  | 'success'
+  | 'partial'
+  | 'failed'
+  | 'already_running'
+  | 'expired'
+  | 'rejected_scope';
+
+export interface EdgeAttendanceForceSyncStep {
+  name: 'directory' | 'poll' | 'upload';
+  state: 'pending' | 'running' | 'success' | 'failed' | 'skipped' | 'partial';
+}
+
+export interface EdgeAttendanceForceSyncStatus {
+  request_id: string;
+  operation: 'attendance.force_sync';
+  state: EdgeAttendanceForceSyncState;
+  status?: EdgeAttendanceForceSyncState;
+  source_device: { id: number; source_device_id: string; name: string; active: boolean };
+  edge_device: { id: number; device_uid: string; device_name: string; active: boolean };
+  requested_at: string;
+  dispatched_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  expires_at: string;
+  watermark_before: string | null;
+  watermark_after: string | null;
+  steps: EdgeAttendanceForceSyncStep[];
+  events_polled: number | null;
+  events_inserted: number | null;
+  duplicates: number | null;
+  persons_synced: number | null;
+  directory_complete: boolean | null;
+  outbox_uploaded_events: number | null;
+  outbox_uploaded_directory: number | null;
+  error_code: string | null;
+  safe_error_message: string | null;
+}
+
 export type EdgeWeekday = '0' | '1' | '2' | '3' | '4' | '5' | '6';
 
 export interface EdgeSchoolSummary {
