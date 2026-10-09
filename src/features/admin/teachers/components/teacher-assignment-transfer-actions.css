@@ -1,0 +1,15 @@
+.teacher-assignment-transfer{display:grid;gap:14px;padding:18px;border:1px solid var(--c-border);border-radius:16px;background:var(--c-surface,#fff)}
+.teacher-assignment-transfer header h3{font-size:16px;margin:0 0 5px}
+.teacher-assignment-transfer header p{margin:0}
+.teacher-assignment-transfer__list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:10px}
+.teacher-assignment-transfer__item{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px;border:1px solid var(--c-border);border-radius:12px}
+.teacher-assignment-transfer__details{display:grid;gap:6px;min-width:0}
+.teacher-assignment-transfer__details strong{overflow-wrap:anywhere}
+.teacher-assignment-transfer__actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.teacher-assignment-transfer__notice{padding:12px;border:1px solid var(--c-border);border-radius:10px;background:var(--c-surface-2,#f4f6f9)}
+.teacher-assignment-transfer__dialog{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.48)}
+.teacher-assignment-transfer__dialog-inner{width:min(100%,520px);display:grid;gap:14px;max-height:90vh;overflow:auto;padding:22px;border-radius:16px;background:var(--c-surface,#fff);color:var(--c-text);box-shadow:0 15px 65px rgba(0,0,0,.17)}
+.teacher-assignment-transfer__dialog-inner h3,.teacher-assignment-transfer__dialog-inner p{margin:0}
+.teacher-assignment-transfer__field{display:grid;gap:6px;font-size:13px;font-weight:600}
+.teacher-assignment-transfer__field input,.teacher-assignment-transfer__field textarea{width:100%;padding:10px;border:1px solid var(--c-border);border-radius:8px;background:var(--c-surface,#fff);color:var(--c-text);font:inherit}
+@media(max-width:640px){.teacher-assignment-transfer{padding:12px}.teacher-assignment-transfer__actions{width:100%}.teacher-assignment-transfer__actions .btn{flex:1}}

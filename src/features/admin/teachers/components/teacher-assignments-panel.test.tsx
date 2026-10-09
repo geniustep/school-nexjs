@@ -21,6 +21,22 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+// This panel test verifies composition; the transfer widget has its own data/toast dependencies.
+vi.mock('@/features/admin/teachers/components/teacher-assignment-transfer-actions', () => ({
+  TeacherAssignmentTransferActions: ({
+    teacherId, academicYearId, canManage,
+  }: {
+    teacherId: number; academicYearId: number; canManage: boolean;
+  }) => (
+    <div
+      data-testid="teacher-assignment-transfer-actions"
+      data-teacher-id={teacherId}
+      data-academic-year-id={academicYearId}
+      data-can-manage={String(canManage)}
+    />
+  ),
+}));
+
 vi.mock('@/features/admin/academic-setup/components/teacher-focused-assignments', () => ({
   TeacherFocusedAssignments: ({
     teacher,
@@ -86,6 +102,11 @@ describe('TeacherAssignmentsPanel', () => {
   it('uses the canonical teacher-focused workspace with the current teacher and academic year', () => {
     render(<TeacherAssignmentsPanel teacher={teacher} />);
 
+    const transfer = screen.getByTestId('teacher-assignment-transfer-actions');
+    expect(transfer.getAttribute('data-teacher-id')).toBe('2437');
+    expect(transfer.getAttribute('data-academic-year-id')).toBe('7');
+    expect(transfer.getAttribute('data-can-manage')).toBe('true');
+
     const focused = screen.getByTestId('teacher-focused-assignments');
     expect(focused.getAttribute('data-teacher-id')).toBe('2437');
     expect(focused.getAttribute('data-academic-year-id')).toBe('7');
@@ -106,6 +127,9 @@ describe('TeacherAssignmentsPanel', () => {
 
     expect(
       screen.getByTestId('teacher-focused-assignments').getAttribute('data-can-manage'),
+    ).toBe('false');
+    expect(
+      screen.getByTestId('teacher-assignment-transfer-actions').getAttribute('data-can-manage'),
     ).toBe('false');
   });
 
