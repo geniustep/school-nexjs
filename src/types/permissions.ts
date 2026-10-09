@@ -27,6 +27,7 @@ export type Permission =
   | 'manage_exam_results'
   | 'view_timetable'
   | 'manage_timetable'
+  | 'publish_timetable'
   | 'view_attachments'
   | 'manage_attachments'
   | 'view_reports'
