@@ -359,7 +359,7 @@ export function TeacherAssignmentMatrixPicker({
 
   async function confirmEnd() {
     if (!ending || !canEnd(ending) || !endReason.trim() ||
-        !/^\\d{4}-\\d{2}-\\d{2}$/.test(endDate)) return;
+        !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return;
     const key = pairKey(ending.class.id, ending.subject.id);
     const owners = occupiedBy.get(key);
     if (owners?.length !== 1 || owners[0].id !== ending.id) return;
