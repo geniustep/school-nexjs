@@ -405,3 +405,11 @@
   gap: 8px;
   justify-content: flex-end;
 }
+
+.teacher-assignment-matrix__replace-unavailable {
+  flex-basis: 100%;
+  color: var(--c-text-muted, #64748b);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: start;
+}
