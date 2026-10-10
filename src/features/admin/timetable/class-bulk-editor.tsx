@@ -9,11 +9,12 @@ import {useSession} from '@/features/auth/session-context';
 import {hasPermission} from '@/lib/permissions/permissions';
 import type {SchoolClass} from '@/types/class';
 import './class-bulk-editor.css';
+import {errorForTimetableLine,failedTimetableDeletionIds,rejectedTimetableIndexes,timetableBulkSaveNotice,validTimetableLineIds,type BulkSaveError} from './utils/bulk-save-result';
 type Assignment={assignment_id:number;subject_name:string;teacher_name:string};
 type Line={line_id?:number;assignment_id:number;weekday:string;start_time:number;end_time:number;room_id?:number|false;conflict_messages?:string[]};
 type Draft={draft_id:number;state:string;write_date:string;conflict_count:number;can_publish:boolean;lines:Line[]};
 type Editable=Line&{key:string;dirty:boolean;error?:string};
-type BulkError={index?:number;line_id?:number;message:string};
+type BulkError=BulkSaveError;
 const DAYS=[['monday','الاثنين'],['tuesday','الثلاثاء'],['wednesday','الأربعاء'],['thursday','الخميس'],['friday','الجمعة'],['saturday','السبت']] as const;
 const clock=(n:number)=>{const m=Math.round(n*60);return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const decimal=(v:string)=>{const [h,m]=v.split(':').map(Number);return h+m/60};
@@ -77,17 +78,17 @@ const changed=lines.filter(l=>l.dirty);
 if(changed.some(l=>!l.assignment_id||!Number.isFinite(l.start_time)||!Number.isFinite(l.end_time)||l.end_time<=l.start_time)){setNotice('تحقق من الإسناد وتوقيت كل حصة');return}
 busyRef.current=true;setBusy(true);
 try{
-const r=await api.post<{draft:Draft;bulk_result:{errors:BulkError[]}}>(endpoints.admin.classTimetableDraftBulk(classId),{
-draft_id:draft.draft_id,lines:changed.map(l=>({...l.line_id?{line_id:l.line_id}:{},assignment_id:l.assignment_id,weekday:l.weekday,start_time:l.start_time,end_time:l.end_time,...l.room_id?{room_id:l.room_id}:{}})),delete_line_ids:deleted
+const r=await api.post<{draft:Draft;bulk_result:{errors:BulkError[];created?:unknown[];updated?:unknown[];deleted?:unknown[]}}>(endpoints.admin.classTimetableDraftBulk(classId),{
+draft_id:draft.draft_id,lines:changed.map(l=>({...l.line_id?{line_id:l.line_id}:{},assignment_id:l.assignment_id,weekday:l.weekday,start_time:l.start_time,end_time:l.end_time,...l.room_id?{room_id:l.room_id}:{}})),delete_line_ids:validTimetableLineIds(deleted)
 });
 if(!r.success)throw new Error(r.error.message);
 const problems=r.data.bulk_result?.errors??[];
-const bad=new Set(problems.filter(e=>e.index!==undefined).map(e=>e.index));
-const failed=changed.filter((_,i)=>bad.has(i)).map(l=>({...l,error:problems.find(p=>p.line_id===l.line_id)?.message??'رفض الخادم هذه الحصة'}));
-const ids=new Set(failed.map(l=>l.line_id).filter(Boolean));
-setDraft(r.data.draft);setLines([...r.data.draft.lines.filter(l=>!ids.has(l.line_id)).map(toEdit),...failed]);
-setDeleted(problems.filter(e=>e.line_id!==undefined).map(e=>e.line_id!));
-setNotice(problems.length?'حفظ جزئي: راجع الحصص المرفوضة':'تم حفظ المسودة');
+const bad=rejectedTimetableIndexes(problems);
+const failed=changed.flatMap((l,i)=>bad.has(i)?[{...l,error:errorForTimetableLine(problems,i,l.line_id)?.message??'رفض الخادم هذه الحصة'}]:[]);
+const ids=new Set(validTimetableLineIds(failed.map(l=>l.line_id)));
+setDraft(r.data.draft);setLines([...r.data.draft.lines.filter(l=>!l.line_id||!ids.has(l.line_id)).map(toEdit),...failed]);
+setDeleted(failedTimetableDeletionIds(problems).filter(id=>deleted.includes(id)));
+setNotice(timetableBulkSaveNotice(problems,(r.data.bulk_result?.created?.length??0)+(r.data.bulk_result?.updated?.length??0)+(r.data.bulk_result?.deleted?.length??0)));
 }catch(e){setNotice(error(e))}finally{busyRef.current=false;setBusy(false)}
 };
 const add=()=>{
