@@ -98,12 +98,16 @@ export function TeacherAssignmentMatrixPicker({
   const [replaceReason, setReplaceReason] = useState('');
   const [replaceDate, setReplaceDate] = useState('');
   const [replacing, setReplacing] = useState(false);
+  const [ending, setEnding] = useState<TeachingAssignment | null>(null);
+  const [endReason, setEndReason] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [endError, setEndError] = useState('');
   const [replaceError, setReplaceError] = useState('');
   const occupancyState = useAdminResource<TeachingAssignment[]>(
     endpoints.admin.teachingAssignments,
     academicYearId > 0
-      ? { academic_year_id: academicYearId, operationally_active: 1, page_size: 500 }
-      : { active: 1, page_size: 500 },
+      ? { academic_year_id: academicYearId, operationally_active: 1 }
+      : { active: 1 },
   );
   const [selectedSubjectKeys, setSelectedSubjectKeys] = useState<string[]>([]);
   const [selectedCycleCodes, setSelectedCycleCodes] = useState<string[]>([]);
@@ -308,13 +312,12 @@ export function TeacherAssignmentMatrixPicker({
   // Fail closed for incomplete/paginated occupancy or ambiguous current owners.
   const occupancyRows = occupancyState.data?.length ?? 0;
   const occupancyPagination = occupancyState.meta?.pagination;
+  // Backend returns an unbounded list when page_size is absent. Never allow a
+  // mutation on partial data, errors, or pagination reporting more records.
   const occupancyComplete = !occupancyState.loading && !occupancyState.error &&
-    Array.isArray(occupancyState.data) && (
-      occupancyPagination && Number.isFinite(occupancyPagination.total)
-        ? occupancyPagination.total <= occupancyRows &&
-          occupancyPagination.page === 1
-        : occupancyRows < 500
-    );
+    Array.isArray(occupancyState.data) &&
+    !!occupancyPagination && Number.isFinite(occupancyPagination.total) &&
+    occupancyPagination.total === occupancyRows && occupancyPagination.page === 1;
   const occupiedBy = useMemo(() => {
     const map = new Map<string, TeachingAssignment[]>();
     for (const assignment of occupancyState.data ?? []) {
@@ -326,9 +329,15 @@ export function TeacherAssignmentMatrixPicker({
     return map;
   }, [occupancyState.data, currentTeacherId]);
 
+  const canEnd = (assignment: TeachingAssignment): boolean =>
+    !disabled && !replacementBlocked && !replacing && !ending && occupancyComplete &&
+    academicYearId > 0 && currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
+    assignment.allowed_actions != null && !Array.isArray(assignment.allowed_actions) &&
+    assignment.allowed_actions.end === true;
+
   const canReplace = (assignment: TeachingAssignment): boolean => {
     const actions = assignment.allowed_actions;
-    return !disabled && !replacementBlocked && !replacing && occupancyComplete &&
+    return !disabled && !replacementBlocked && !replacing && !ending && occupancyComplete &&
       academicYearId > 0 && currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
       Boolean(actions && !Array.isArray(actions) && actions.replace === true);
   };
@@ -342,10 +351,35 @@ export function TeacherAssignmentMatrixPicker({
       return t('admin.teacherProfile.inlineReplaceMissingContext');
     }
     const actions = owners[0].allowed_actions;
-    if (!actions || Array.isArray(actions) || actions.replace !== true) {
+    if (!actions || Array.isArray(actions) || (actions.replace !== true && actions.end !== true)) {
       return t('admin.teacherProfile.inlineReplaceBackendBlocked');
     }
     return t('admin.teacherProfile.inlineReplaceUnavailable');
+  }
+
+  async function confirmEnd() {
+    if (!ending || !canEnd(ending) || !endReason.trim() ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(endDate)) return;
+    const key = pairKey(ending.class.id, ending.subject.id);
+    const owners = occupiedBy.get(key);
+    if (owners?.length !== 1 || owners[0].id !== ending.id) return;
+    setReplacing(true);
+    setEndError('');
+    const response = await api.post<{ warnings?: { code?: string; message?: string }[] }>(
+      `${endpoints.admin.teachingAssignments}/${ending.id}/end`,
+      { reason: endReason.trim(), effective_to: endDate },
+    );
+    setReplacing(false);
+    if (!response.success) {
+      setEndError(response.error?.message || t('admin.teacherProfile.inlineEndFailed'));
+      return;
+    }
+    setEnding(null);
+    await occupancyState.reload();
+    await onReplaced?.();
+    toast.success(t('admin.teacherProfile.inlineEndSuccess'));
+    const warnings = response.data?.warnings ?? [];
+    if (warnings.length) toast.error(warnings.map((w) => w.message || w.code).filter(Boolean).join(' • '));
   }
 
   async function confirmReplacement() {
@@ -712,9 +746,15 @@ export function TeacherAssignmentMatrixPicker({
       </section>
 
       {!occupancyComplete && !occupancyState.loading ? (
-        <p className="teacher-assignment-matrix__warning" role="alert">
-          {t('admin.academicSetup.teacherAssignmentMatrix.occupancyUnavailable')}
-        </p>
+        <div className="teacher-assignment-matrix__warning" role="alert">
+          <p>{t('admin.academicSetup.teacherAssignmentMatrix.occupancyUnavailable')}</p>
+          {occupancyState.error ? <p dir="auto">{occupancyState.error.message} ({occupancyState.error.code})</p> : null}
+          {!occupancyState.error && occupancyPagination ? (
+            <p>{t('admin.teacherProfile.inlineOccupancyCount')}: {occupancyRows} / {occupancyPagination.total}</p>
+          ) : null}
+          <button type="button" className="btn btn--ghost btn--sm"
+            onClick={() => occupancyState.reload()}>{t('admin.teacherProfile.inlineOccupancyRetry')}</button>
+        </div>
       ) : null}
 
       {subjectsReady && scopeReady ? (
@@ -807,11 +847,21 @@ export function TeacherAssignmentMatrixPicker({
                                 >
                                   <span aria-hidden="true">🔒</span>
                                   <span dir="auto">{owner?.teacher.name ?? t('common.dash')}</span>
-                                  {owner && canReplace(owner) ? (
-                                    <button type="button" className="teacher-assignment-matrix__replace-button"
-                                      onClick={() => { setReplacement(owner); setReplaceReason(''); setReplaceDate(''); setReplaceError(''); }}>
-                                      {t('admin.teacherProfile.inlineReplaceAction')}
-                                    </button>
+                                  {owner && (canReplace(owner) || canEnd(owner)) ? (
+                                    <span className="teacher-assignment-matrix__cell-actions">
+                                      {canReplace(owner) ? (
+                                        <button type="button" className="teacher-assignment-matrix__replace-button"
+                                          onClick={() => { setReplacement(owner); setReplaceReason(''); setReplaceDate(''); setReplaceError(''); }}>
+                                          {t('admin.teacherProfile.inlineReplaceAction')}
+                                        </button>
+                                      ) : null}
+                                      {canEnd(owner) ? (
+                                        <button type="button" className="teacher-assignment-matrix__replace-button"
+                                          onClick={() => { setEnding(owner); setEndReason(''); setEndDate(''); setEndError(''); }}>
+                                          {t('admin.teacherProfile.inlineEndAction')}
+                                        </button>
+                                      ) : null}
+                                    </span>
                                   ) : (
                                     <span className="teacher-assignment-matrix__replace-unavailable" role="status">
                                       {replacementUnavailableReason(owners)}
@@ -849,6 +899,36 @@ export function TeacherAssignmentMatrixPicker({
             </div>
           )}
         </section>
+      ) : null}
+
+      {ending ? (
+        <div className="teacher-assignment-matrix__dialog-backdrop">
+          <section role="dialog" aria-modal="true" aria-labelledby="teacher-end-heading"
+            className="teacher-assignment-matrix__dialog">
+            <h3 id="teacher-end-heading">{t('admin.teacherProfile.inlineEndTitle')}</h3>
+            <p dir="auto">{ending.class.name} — {ending.subject.name}</p>
+            <p>{t('admin.teacherProfile.inlineReplacePrevious')}: <strong dir="auto">{ending.teacher.name}</strong></p>
+            <p>{t('admin.teacherProfile.inlineEndNotice')}</p>
+            <label>{t('admin.teacherProfile.inlineEndReason')}
+              <textarea value={endReason} rows={2} disabled={replacing}
+                onChange={(event) => setEndReason(event.target.value)} required />
+            </label>
+            <label>{t('admin.teacherProfile.inlineEndDate')}
+              <input type="date" value={endDate} disabled={replacing}
+                onChange={(event) => setEndDate(event.target.value)} required />
+            </label>
+            {endError ? <p role="alert" className="teacher-assignment-matrix__warning">{endError}</p> : null}
+            <div className="teacher-assignment-matrix__dialog-actions">
+              <button type="button" className="btn btn--ghost btn--sm" disabled={replacing}
+                onClick={() => setEnding(null)}>{t('common.cancel')}</button>
+              <button type="button" className="btn btn--primary btn--sm"
+                disabled={replacing || !canEnd(ending) || !endReason.trim() || !endDate}
+                onClick={() => void confirmEnd()}>
+                {replacing ? t('common.saving') : t('admin.teacherProfile.inlineEndConfirm')}
+              </button>
+            </div>
+          </section>
+        </div>
       ) : null}
 
       {replacement ? (
