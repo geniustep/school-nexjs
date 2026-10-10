@@ -330,7 +330,7 @@ export function TeacherAssignmentMatrixPicker({
   }, [occupancyState.data, currentTeacherId]);
 
   const canEnd = (assignment: TeachingAssignment): boolean =>
-    !disabled && !replacementBlocked && !replacing && !ending && occupancyComplete &&
+    !disabled && !replacementBlocked && !replacing && occupancyComplete &&
     academicYearId > 0 && currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
     assignment.allowed_actions != null && !Array.isArray(assignment.allowed_actions) &&
     assignment.allowed_actions.end === true;
