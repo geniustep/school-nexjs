@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
+import Link from 'next/link';
 import {api} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {useGlobalAcademicYearResource} from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -27,7 +28,7 @@ const classes=useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.class
 const levelResource=useAdminResource<Level[]>(endpoints.admin.levels, {page_size:500});
 const [cycle,setCycle]=useState(''),[level,setLevel]=useState(''),[track,setTrack]=useState(''),[classId,setClassId]=useState(0);
 const [assignments,setAssignments]=useState<Assignment[]>([]),[draft,setDraft]=useState<Draft|null>(null),[lines,setLines]=useState<Editable[]>([]),[deleted,setDeleted]=useState<number[]>([]);
-const [selected,setSelected]=useState(0),[day,setDay]=useState('monday'),[start,setStart]=useState('08:00'),[end,setEnd]=useState('09:00');
+const [selected,setSelected]=useState(0),[day,setDay]=useState(''),[start,setStart]=useState(''),[end,setEnd]=useState('');
 const [notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
 const [setup,setSetup]=useState<TimetableSetupContext|null>(null),[setupUnavailable,setSetupUnavailable]=useState(false);
 const version=useRef(0),busyRef=useRef(false);
@@ -124,11 +125,13 @@ return <section className="class-bulk">
 {showTrack&&<label>المسلك (عند الحاجة)<select disabled={busy||!level} value={track} onChange={e=>{if(!choose(0))return;setTrack(e.target.value)}}><option value="">جميع المسالك</option>{tracks.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>}
 <label>القسم<select disabled={!level||busy} value={classId} onChange={e=>{choose(Number(e.target.value))}}><option value={0}>اختر القسم</option>{options.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
 </div>
-{classId>0&&<p role="status" className="class-bulk__notice">{timetableSetupMessage(setup,setupUnavailable)}</p>}
+{classId>0&&!setupReady&&<section role="status" aria-live="polite" className="class-bulk__setup-card"><strong>إعداد استعمال الزمان غير جاهز</strong><p>{timetableSetupMessage(setup,setupUnavailable)}</p><p>يمكنك متابعة مراجعة القسم، لكن لن تتم إضافة حصص أو حفظها حتى تكتمل الأيام الدراسية والفترات المعتمدة.</p>{canManage&&<Link className="class-bulk__setup-link" href="/admin/settings">فتح إعدادات المؤسسة <span aria-hidden="true">←</span></Link>}{!canManage&&<small>تواصل مع مسؤول المؤسسة المخوّل لإكمال الإعداد.</small>}</section>}
+{classId>0&&setupReady&&<p role="status" className="class-bulk__notice">{timetableSetupMessage(setup,setupUnavailable)}</p>}
 {notice&&<p role="status" className="class-bulk__notice">{notice}</p>}
 {busy&&<p>جارٍ تنفيذ العملية...</p>}
+{draft&&!setupReady&&!busy&&<p className="class-bulk__draft-summary">المسودة الحالية محفوظة: {draft.state} · التعارضات: {draft.conflict_count}. سيظهر المحرر بمجرد اكتمال إعداد استعمال الزمان.</p>}
 {classId&&!draft&&!busy&&<div className="class-bulk__selection" aria-live="polite"><div><span className="class-bulk__selection-label">القسم المختار</span><strong>{currentClass?.name??'القسم'}</strong><span className="class-bulk__selection-hint">{cycle} · {currentClass?.level?.name??''}</span></div><button type="button" className="class-bulk__primary-button" disabled={!canManage||!setupReady} onClick={()=>void act('open')}>بدء إعداد استعمال الزمان <span aria-hidden="true">←</span></button>{!canManage&&<small>ليس لديك صلاحية إدارة استعمال الزمان.</small>}</div>}
-{draft&&<><p>الحالة: {draft.state} · تعارضات: {draft.conflict_count}{dirty?' · تعديلات غير محفوظة':''}</p>
+{draft&&setupReady&&<><p>الحالة: {draft.state} · تعارضات: {draft.conflict_count}{dirty?' · تعديلات غير محفوظة':''}</p>
 <div className="class-bulk__form">
 <label>المادة والأستاذ<select value={selected} onChange={e=>setSelected(Number(e.target.value))}><option value={0}>اختر الإسناد</option>{assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}</select></label>
 <label>اليوم<select value={openDays.includes(day)?day:''} disabled={!setupReady} onChange={e=>setDay(e.target.value)}><option value="">اختر يومًا</option>{DAYS.filter(([v])=>openDays.includes(v)).map(([v,n])=><option key={v} value={v}>{n}</option>)}</select></label>
