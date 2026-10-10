@@ -8,7 +8,7 @@
  * | levels.manage / classes.manage | manage_classes                                |
  * | subjects.manage                | manage_classes                                |
  * | teachers.manage                | manage_teachers                               |
- * | teaching_assignments.manage    | manage_classes AND manage_teachers            |
+ * | teaching_assignments.manage    | teachers.assignments.manage OR (manage_classes AND manage_teachers) |
  * | staff.manage                   | (no backend API — view gated by setup access) |
  */
 
@@ -74,7 +74,10 @@ export function canManageTeachers(user: CurrentUser | null): boolean {
 }
 
 export function canManageTeachingAssignments(user: CurrentUser | null): boolean {
-  return canManageClasses(user) && canManageTeachers(user);
+  return !!user && (
+    hasStaffCapability(user, 'teachers.assignments.manage') ||
+    (canManageClasses(user) && canManageTeachers(user))
+  );
 }
 
 /** Staff mutations — requires school admin access capability or legacy full-school admin kinds. */
