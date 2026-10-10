@@ -343,3 +343,65 @@
     gap: 6px;
   }
 }
+
+/* Replacement is offered only inside the occupied class/subject cell. */
+.teacher-assignment-matrix__cell--blocked {
+  display: flex;
+  flex-wrap: wrap;
+  cursor: default;
+}
+.teacher-assignment-matrix__replace-button {
+  border: 1px solid var(--admin-accent, #233966);
+  border-radius: 7px;
+  background: var(--c-surface, #fff);
+  color: var(--admin-accent, #233966);
+  padding: 5px 8px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.teacher-assignment-matrix__replace-button:focus-visible {
+  outline: 2px solid var(--admin-accent, #233966);
+  outline-offset: 2px;
+}
+.teacher-assignment-matrix__dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+}
+.teacher-assignment-matrix__dialog {
+  width: min(100%, 480px);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #172033);
+}
+.teacher-assignment-matrix__dialog h3,
+.teacher-assignment-matrix__dialog p { margin: 0; }
+.teacher-assignment-matrix__dialog label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.teacher-assignment-matrix__dialog input,
+.teacher-assignment-matrix__dialog textarea {
+  width: 100%;
+  border: 1px solid var(--c-border, #d7dee8);
+  border-radius: 8px;
+  padding: 9px;
+  font: inherit;
+}
+.teacher-assignment-matrix__dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
