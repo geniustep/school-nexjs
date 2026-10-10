@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { api } from '@/lib/api/client';
+import { useToast } from '@/components/ui/toast';
 import { endpoints } from '@/lib/api/endpoints';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level, SchoolClass, Subject } from '@/types/class';
@@ -68,7 +70,11 @@ export function TeacherAssignmentMatrixPicker({
   selectedPairs,
   eligibility,
   currentTeacherId = null,
+  teacherName,
+  academicYearId,
   disabled = false,
+  replacementBlocked = false,
+  onReplaced,
   onChange,
   onEligibilityChange,
 }: {
@@ -78,14 +84,24 @@ export function TeacherAssignmentMatrixPicker({
   selectedPairs: TeacherAssignmentPair[];
   eligibility?: TeacherTeachingEligibility;
   currentTeacherId?: number | null;
+  teacherName?: string;
+  academicYearId: number;
   disabled?: boolean;
+  replacementBlocked?: boolean;
+  onReplaced?: () => Promise<void> | void;
   onChange: (pairs: TeacherAssignmentPair[]) => void;
   onEligibilityChange?: (eligibility: TeacherTeachingEligibility) => void;
 }) {
   const t = useT();
+  const toast = useToast();
+  const [replacement, setReplacement] = useState<TeachingAssignment | null>(null);
+  const [replaceReason, setReplaceReason] = useState('');
+  const [replaceDate, setReplaceDate] = useState('');
+  const [replacing, setReplacing] = useState(false);
+  const [replaceError, setReplaceError] = useState('');
   const occupancyState = useAdminResource<TeachingAssignment[]>(
     endpoints.admin.teachingAssignments,
-    { active: 1, page_size: 500 },
+    { academic_year_id: academicYearId, operationally_active: 1, page_size: 500 },
   );
   const [selectedSubjectKeys, setSelectedSubjectKeys] = useState<string[]>([]);
   const [selectedCycleCodes, setSelectedCycleCodes] = useState<string[]>([]);
@@ -287,18 +303,56 @@ export function TeacherAssignmentMatrixPicker({
     [selectedPairs],
   );
 
+  // Fail closed for incomplete/paginated occupancy or ambiguous current owners.
+  const occupancyComplete = !occupancyState.loading && !occupancyState.error &&
+    (occupancyState.data?.length ?? 0) < 500;
   const occupiedBy = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, TeachingAssignment[]>();
     for (const assignment of occupancyState.data ?? []) {
-      if (assignment.active === false || assignment.role !== 'main') continue;
+      if (assignment.active === false || assignment.state !== 'active' || assignment.role !== 'main') continue;
       if (currentTeacherId != null && assignment.teacher?.id === currentTeacherId) continue;
-      map.set(
-        pairKey(assignment.class.id, assignment.subject.id),
-        assignment.teacher?.name || t('common.dash'),
-      );
+      const key = pairKey(assignment.class.id, assignment.subject.id);
+      map.set(key, [...(map.get(key) ?? []), assignment]);
     }
     return map;
-  }, [occupancyState.data, currentTeacherId, t]);
+  }, [occupancyState.data, currentTeacherId]);
+
+  const canReplace = (assignment: TeachingAssignment): boolean => {
+    const actions = assignment.allowed_actions;
+    return !disabled && !replacementBlocked && !replacing && occupancyComplete &&
+      currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
+      Boolean(actions && !Array.isArray(actions) && actions.replace === true);
+  };
+
+  async function confirmReplacement() {
+    if (!replacement || !canReplace(replacement) || !replaceReason.trim() ||
+        !/^\\d{4}-\\d{2}-\\d{2}$/.test(replaceDate)) return;
+    const key = pairKey(replacement.class.id, replacement.subject.id);
+    const owners = occupiedBy.get(key);
+    if (owners?.length !== 1 || owners[0].id !== replacement.id) return;
+    setReplacing(true);
+    setReplaceError('');
+    const response = await api.post<{ warnings?: { code?: string; message?: string }[] }>(
+      `${endpoints.admin.teachingAssignments}/${replacement.id}/replace`,
+      {
+        new_teacher_id: currentTeacherId,
+        effective_from: replaceDate,
+        reason: replaceReason.trim(),
+        role: replacement.role,
+      },
+    );
+    setReplacing(false);
+    if (!response.success) {
+      setReplaceError(response.error?.message || t('admin.teacherProfile.inlineReplaceFailed'));
+      return;
+    }
+    setReplacement(null);
+    await occupancyState.reload();
+    await onReplaced?.();
+    toast.success(t('admin.teacherProfile.inlineReplaceSuccess'));
+    const warnings = response.data?.warnings ?? [];
+    if (warnings.length) toast.error(warnings.map((w) => w.message || w.code).filter(Boolean).join(' • '));
+  }
 
   function resolveSubjectForClass(family: SubjectFamily, cls: SchoolClass): Subject | null {
     const direct = (cls.subjects ?? []).find(
@@ -432,7 +486,7 @@ export function TeacherAssignmentMatrixPicker({
 
   function togglePair(classId: number, subjectId: number) {
     const key = pairKey(classId, subjectId);
-    if (occupiedBy.has(key) || occupancyState.error) return;
+    if (!occupancyComplete || occupiedBy.has(key)) return;
     const next = selectedPairSet.has(key)
       ? selectedPairs.filter((pair) => pairKey(pair.classId, pair.subjectId) !== key)
       : [...selectedPairs, { classId, subjectId }];
@@ -446,7 +500,7 @@ export function TeacherAssignmentMatrixPicker({
         const subject = resolveSubjectForClass(family, cls);
         if (!subject) continue;
         const key = pairKey(cls.id, subject.id);
-        if (!occupiedBy.has(key)) next.set(key, { classId: cls.id, subjectId: subject.id });
+        if (occupancyComplete && !occupiedBy.has(key)) next.set(key, { classId: cls.id, subjectId: subject.id });
       }
     }
     onChange([...next.values()]);
@@ -633,7 +687,7 @@ export function TeacherAssignmentMatrixPicker({
         ) : null}
       </section>
 
-      {occupancyState.error ? (
+      {!occupancyComplete && !occupancyState.loading ? (
         <p className="teacher-assignment-matrix__warning" role="alert">
           {t('admin.academicSetup.teacherAssignmentMatrix.occupancyUnavailable')}
         </p>
@@ -659,7 +713,7 @@ export function TeacherAssignmentMatrixPicker({
                 type="button"
                 className="btn btn--ghost btn--sm"
                 onClick={selectAllAvailable}
-                disabled={disabled || Boolean(occupancyState.error) || occupancyState.loading}
+                disabled={disabled || !occupancyComplete}
               >
                 {t('admin.academicSetup.teacherAssignmentMatrix.selectAllAvailable')}
               </button>
@@ -716,19 +770,26 @@ export function TeacherAssignmentMatrixPicker({
 
                           const key = pairKey(cls.id, subject.id);
                           const selected = selectedPairSet.has(key);
-                          const owner = occupiedBy.get(key);
+                          const owners = occupiedBy.get(key) ?? [];
+                          const owner = owners.length === 1 ? owners[0] : null;
                           return (
                             <td key={family.key}>
-                              {owner ? (
-                                <span
+                              {owners.length > 0 ? (
+                                <div
                                   className="teacher-assignment-matrix__cell teacher-assignment-matrix__cell--blocked"
                                   title={t('admin.academicSetup.teacherAssignmentMatrix.occupiedBy', {
-                                    name: owner,
+                                    name: owner?.teacher.name ?? t('common.dash'),
                                   })}
                                 >
                                   <span aria-hidden="true">🔒</span>
-                                  <span dir="auto">{owner}</span>
-                                </span>
+                                  <span dir="auto">{owner?.teacher.name ?? t('common.dash')}</span>
+                                  {owner && canReplace(owner) ? (
+                                    <button type="button" className="teacher-assignment-matrix__replace-button"
+                                      onClick={() => { setReplacement(owner); setReplaceReason(''); setReplaceDate(''); setReplaceError(''); }}>
+                                      {t('admin.teacherProfile.inlineReplaceAction')}
+                                    </button>
+                                  ) : null}
+                                </div>
                               ) : (
                                 <button
                                   type="button"
@@ -739,7 +800,7 @@ export function TeacherAssignmentMatrixPicker({
                                     selected ? ' teacher-assignment-matrix__cell--selected' : ''
                                   }`}
                                   onClick={() => togglePair(cls.id, subject.id)}
-                                  disabled={disabled || Boolean(occupancyState.error) || occupancyState.loading}
+                                  disabled={disabled || !occupancyComplete}
                                 >
                                   <span aria-hidden="true">{selected ? '×' : '＋'}</span>
                                   <span>
@@ -760,6 +821,36 @@ export function TeacherAssignmentMatrixPicker({
             </div>
           )}
         </section>
+      ) : null}
+
+      {replacement ? (
+        <div className="teacher-assignment-matrix__dialog-backdrop">
+          <section role="dialog" aria-modal="true" aria-labelledby="teacher-replace-heading"
+            className="teacher-assignment-matrix__dialog">
+            <h3 id="teacher-replace-heading">{t('admin.teacherProfile.inlineReplaceTitle')}</h3>
+            <p dir="auto">{replacement.class.name} — {replacement.subject.name}</p>
+            <p>{t('admin.teacherProfile.inlineReplacePrevious')}: <strong dir="auto">{replacement.teacher.name}</strong></p>
+            <p>{t('admin.teacherProfile.inlineReplaceNew')}: <strong dir="auto">{teacherName || String(currentTeacherId)}</strong></p>
+            <label>{t('admin.teacherProfile.inlineReplaceReason')}
+              <textarea value={replaceReason} rows={2} disabled={replacing}
+                onChange={(event) => setReplaceReason(event.target.value)} required />
+            </label>
+            <label>{t('admin.teacherProfile.inlineReplaceDate')}
+              <input type="date" value={replaceDate} disabled={replacing}
+                onChange={(event) => setReplaceDate(event.target.value)} required />
+            </label>
+            {replaceError ? <p role="alert" className="teacher-assignment-matrix__warning">{replaceError}</p> : null}
+            <div className="teacher-assignment-matrix__dialog-actions">
+              <button type="button" className="btn btn--ghost btn--sm" disabled={replacing}
+                onClick={() => setReplacement(null)}>{t('common.cancel')}</button>
+              <button type="button" className="btn btn--primary btn--sm"
+                disabled={replacing || !canReplace(replacement) || !replaceReason.trim() || !replaceDate}
+                onClick={() => void confirmReplacement()}>
+                {replacing ? t('common.saving') : t('admin.teacherProfile.inlineReplaceConfirm')}
+              </button>
+            </div>
+          </section>
+        </div>
       ) : null}
 
       <section className="teacher-assignment-matrix__summary" aria-live="polite">
