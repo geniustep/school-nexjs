@@ -543,7 +543,7 @@ export function TeacherAssignmentMatrixPicker({
     const nextLevelIds = selectedLevelIds.filter((id) => id !== levelId);
     setSelectedLevelIds(nextLevelIds);
     emitTeachingEligibility(selectedSubjectKeys, selectedCycleCodes, nextLevelIds);
-    onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
+    if (!browseOnlyFilters) onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
   }
 
   function togglePair(classId: number, subjectId: number) {
