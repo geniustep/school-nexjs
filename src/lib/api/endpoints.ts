@@ -218,6 +218,7 @@ export const endpoints = {
     academicContextOptions: '/admin/academic-context/options',
     /** Working Week — school/year-scoped GET + atomic PUT. */
     timetableWorkingWeek: '/admin/timetable/working-week',
+    timetableSetupContext: '/admin/timetable/setup-context',
     classTimetableAssignments:(id:number)=>`/admin/classes/${id}/timetable-assignments`,
     classTimetableDraft:(id:number)=>`/admin/classes/${id}/timetable-draft`,
     classTimetableDraftOpen:(id:number)=>`/admin/classes/${id}/timetable-draft/open`,
