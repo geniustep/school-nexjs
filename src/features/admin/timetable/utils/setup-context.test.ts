@@ -22,6 +22,9 @@ describe('timetable setup-context gating',()=>{
    expect(timetableSetupReady(ready)).toBe(true);
    expect(allowedTimetableDays(ready)).toEqual(['monday','tuesday']);
  });
+ it('accepts backend weekday objects with key fields',()=>{
+   expect(allowedTimetableDays({...ready,allowed_weekdays:[{key:'monday',label:'الاثنين',day_mode:'full'},{key:'friday',day_mode:'morning_only'}]})).toEqual(['monday','friday']);
+ });
  it('treats an unavailable undeployed API as blocking',()=>{
    expect(timetableSetupMessage(null,true)).toContain('تعذّر التحقق');
  });
