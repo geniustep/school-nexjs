@@ -74,6 +74,7 @@ export function TeacherAssignmentMatrixPicker({
   academicYearId = 0,
   disabled = false,
   replacementBlocked = false,
+  browseOnlyFilters = false,
   onReplaced,
   onChange,
   onEligibilityChange,
@@ -88,6 +89,8 @@ export function TeacherAssignmentMatrixPicker({
   academicYearId?: number;
   disabled?: boolean;
   replacementBlocked?: boolean;
+  /** Browsing class/subject filters must never mutate saved teacher eligibility or drafts. */
+  browseOnlyFilters?: boolean;
   onReplaced?: () => Promise<void> | void;
   onChange: (pairs: TeacherAssignmentPair[]) => void;
   onEligibilityChange?: (eligibility: TeacherTeachingEligibility) => void;
@@ -474,7 +477,7 @@ export function TeacherAssignmentMatrixPicker({
     cycleCodes: string[],
     levelIds: number[],
   ) {
-    onEligibilityChange?.(buildTeachingEligibility(subjectKeys, cycleCodes, levelIds));
+    if (!browseOnlyFilters) onEligibilityChange?.(buildTeachingEligibility(subjectKeys, cycleCodes, levelIds));
   }
 
   function addSubject(key: string) {
@@ -492,6 +495,7 @@ export function TeacherAssignmentMatrixPicker({
     const nextSubjectKeys = selectedSubjectKeys.filter((item) => item !== key);
     setSelectedSubjectKeys(nextSubjectKeys);
     emitTeachingEligibility(nextSubjectKeys, selectedCycleCodes, selectedLevelIds);
+    if (browseOnlyFilters) return;
     onChange(
       selectedPairs.filter((pair) => {
         if (familyIds.has(pair.subjectId)) return false;
@@ -522,7 +526,7 @@ export function TeacherAssignmentMatrixPicker({
     setSelectedCycleCodes(nextCycleCodes);
     setSelectedLevelIds(nextLevelIds);
     emitTeachingEligibility(selectedSubjectKeys, nextCycleCodes, nextLevelIds);
-    onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
+    if (!browseOnlyFilters) onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
   }
 
   function toggleLevel(levelId: number) {
@@ -539,7 +543,7 @@ export function TeacherAssignmentMatrixPicker({
     const nextLevelIds = selectedLevelIds.filter((id) => id !== levelId);
     setSelectedLevelIds(nextLevelIds);
     emitTeachingEligibility(selectedSubjectKeys, selectedCycleCodes, nextLevelIds);
-    onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
+    if (!browseOnlyFilters) onChange(selectedPairs.filter((pair) => !removedClassIds.has(pair.classId)));
   }
 
   function togglePair(classId: number, subjectId: number) {
