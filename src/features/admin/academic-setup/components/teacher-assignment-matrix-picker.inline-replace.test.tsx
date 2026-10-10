@@ -137,6 +137,29 @@ describe('inline teacher replacement from locked assignment cell', () => {
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 
+  it('browses levels and subjects without editing eligibility or another teacher assignment', async () => {
+    const onEligibilityChange = vi.fn();
+    const onChange = vi.fn();
+    render(
+      <TeacherAssignmentMatrixPicker
+        levels={levels} classes={classes} subjects={[subject]}
+        selectedPairs={[]}
+        eligibility={{ subjectIds: [10], cycleIds: [], levelIds: [20] }}
+        currentTeacherId={57} teacherName="الأستاذة الجديدة" academicYearId={8}
+        browseOnlyFilters
+        onChange={onChange} onEligibilityChange={onEligibilityChange}
+      />,
+    );
+    expect(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' })).toBeTruthy();
+    // Deselect and reselect the level for browsing only.
+    fireEvent.click(screen.getByRole('button', { name: /الأولى إعدادي/ }));
+    fireEvent.click(screen.getByRole('button', { name: /الأولى إعدادي/ }));
+    expect(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' })).toBeTruthy();
+    expect(onEligibilityChange).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+  });
+
   it('shows both actions in the occupied cell but never mutates when end is cancelled', async () => {
     mount();
     fireEvent.click(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' }));
