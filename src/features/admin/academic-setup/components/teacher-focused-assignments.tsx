@@ -257,6 +257,7 @@ export function TeacherFocusedAssignments({
           academicYearId={academicYearId}
           disabled={!canManage || saving}
           replacementBlocked={dirty || saving}
+          browseOnlyFilters
           onReplaced={async () => {
             await assignmentsState.reload();
             setInitialized(false);
