@@ -13,3 +13,6 @@
 .class-bulk button.class-bulk__primary-button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 16px rgba(0,0,0,.16)}
 .class-bulk button.class-bulk__primary-button:focus-visible{outline:3px solid var(--ring,#6ebfad);outline-offset:3px}
 @media(max-width:740px){.class-bulk__filters{grid-template-columns:1fr}.class-bulk__selection{align-items:stretch}.class-bulk button.class-bulk__primary-button{width:100%}}
+
+.class-bulk__setup-card{margin:1.2rem 0;padding:1.5rem;border:1px solid var(--border,#ddd);border-radius:16px;background:var(--card,var(--background,#fff));display:flex;flex-direction:column;align-items:flex-start;gap:.65rem}
+.class-bulk__setup-card strong{font-size:1.1rem}.class-bulk__setup-card p{margin:0;line-height:1.8;color:var(--muted-foreground,#555)}.class-bulk__setup-link{display:inline-flex;align-items:center;gap:.4rem;min-height:44px;padding:.65rem 1.15rem;border-radius:9px;background:var(--primary,#167f65);color:var(--primary-foreground,#fff);font-weight:700;text-decoration:none}.class-bulk__setup-link:focus-visible{outline:3px solid var(--ring,#6ebfad);outline-offset:3px}.class-bulk__draft-summary{padding:1rem;border-radius:10px;border:1px solid var(--border,#ddd);color:var(--muted-foreground,#555)}
