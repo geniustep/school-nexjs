@@ -326,6 +326,21 @@ export function TeacherAssignmentMatrixPicker({
       Boolean(actions && !Array.isArray(actions) && actions.replace === true);
   };
 
+  function replacementUnavailableReason(owners: TeachingAssignment[]): string {
+    if (!occupancyComplete) return t('admin.teacherProfile.inlineReplaceUnavailableData');
+    if (owners.length !== 1) return t('admin.teacherProfile.inlineReplaceAmbiguous');
+    if (disabled) return t('admin.teacherProfile.inlineReplaceNoPermission');
+    if (replacementBlocked) return t('admin.teacherProfile.inlineReplaceUnsaved');
+    if (academicYearId <= 0 || currentTeacherId == null) {
+      return t('admin.teacherProfile.inlineReplaceMissingContext');
+    }
+    const actions = owners[0].allowed_actions;
+    if (!actions || Array.isArray(actions) || actions.replace !== true) {
+      return t('admin.teacherProfile.inlineReplaceBackendBlocked');
+    }
+    return t('admin.teacherProfile.inlineReplaceUnavailable');
+  }
+
   async function confirmReplacement() {
     if (!replacement || !canReplace(replacement) || !replaceReason.trim() ||
         !/^\d{4}-\d{2}-\d{2}$/.test(replaceDate)) return;
@@ -790,7 +805,11 @@ export function TeacherAssignmentMatrixPicker({
                                       onClick={() => { setReplacement(owner); setReplaceReason(''); setReplaceDate(''); setReplaceError(''); }}>
                                       {t('admin.teacherProfile.inlineReplaceAction')}
                                     </button>
-                                  ) : null}
+                                  ) : (
+                                    <span className="teacher-assignment-matrix__replace-unavailable" role="status">
+                                      {replacementUnavailableReason(owners)}
+                                    </span>
+                                  )}
                                 </div>
                               ) : (
                                 <button
