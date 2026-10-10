@@ -8,6 +8,7 @@ import type { Level, SchoolClass, Subject } from '@/types/class';
 
 const mock = vi.hoisted(() => ({
   assignments: [] as TeachingAssignment[],
+  pagination: null as { page: number; total: number; page_size: number; total_pages: number } | null,
   apiPost: vi.fn(),
   reload: vi.fn().mockResolvedValue(undefined),
   toastSuccess: vi.fn(),
@@ -20,7 +21,8 @@ vi.mock('@/lib/api/endpoints', () => ({
 }));
 vi.mock('@/lib/hooks/use-admin-resource', () => ({
   useAdminResource: () => ({
-    data: mock.assignments, loading: false, error: null, reload: mock.reload,
+    data: mock.assignments, meta: mock.pagination ? { pagination: mock.pagination } : null,
+    loading: false, error: null, reload: mock.reload,
   }),
 }));
 vi.mock('@/components/ui/toast', () => ({
@@ -64,6 +66,7 @@ function mount(props: { replacementBlocked?: boolean; canManage?: boolean } = {}
 describe('inline teacher replacement from locked assignment cell', () => {
   beforeEach(() => {
     mock.assignments = [assignment()];
+    mock.pagination = null;
     mock.apiPost.mockReset();
     mock.reload.mockClear();
     mock.toastSuccess.mockClear();
@@ -97,6 +100,29 @@ describe('inline teacher replacement from locked assignment cell', () => {
   it('explains unsaved changes without sending a mutation', async () => {
     mount({ replacementBlocked: true });
     expect(await screen.findByText('admin.teacherProfile.inlineReplaceUnsaved')).toBeTruthy();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+  });
+
+  it('allows 500 complete occupancy rows when pagination confirms total=500', async () => {
+    mock.assignments = [
+      assignment(),
+      ...Array.from({ length: 499 }, (_, i) => ({
+        ...assignment(),
+        id: 1000 + i,
+        class: { id: 1000 + i, name: `Other ${i}` },
+      })),
+    ];
+    mock.pagination = { page: 1, page_size: 500, total: 500, total_pages: 1 };
+    mount();
+    expect(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeTruthy();
+  });
+
+  it('fails closed on truncated occupancy when pagination reports more rows', async () => {
+    mock.assignments = [assignment()];
+    mock.pagination = { page: 1, page_size: 500, total: 501, total_pages: 2 };
+    mount();
+    expect(await screen.findByText('admin.teacherProfile.inlineReplaceUnavailableData')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeNull();
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 
