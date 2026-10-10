@@ -253,7 +253,15 @@ export function TeacherFocusedAssignments({
           }))}
           eligibility={eligibility}
           currentTeacherId={teacher.id}
+          teacherName={teacher.name}
+          academicYearId={academicYearId}
           disabled={!canManage || saving}
+          replacementBlocked={dirty || saving}
+          onReplaced={async () => {
+            await assignmentsState.reload();
+            setInitialized(false);
+            onSaved?.();
+          }}
           onChange={handlePairsChange}
           onEligibilityChange={setEligibility}
         />
