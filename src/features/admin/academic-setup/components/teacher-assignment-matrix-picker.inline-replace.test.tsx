@@ -86,6 +86,20 @@ describe('inline teacher replacement from locked assignment cell', () => {
     expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeNull();
   });
 
+  it('explains a denied backend capability without offering replacement', async () => {
+    mock.assignments = [assignment(false)];
+    mount();
+    expect(await screen.findByText('admin.teacherProfile.inlineReplaceBackendBlocked')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeNull();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+  });
+
+  it('explains unsaved changes without sending a mutation', async () => {
+    mount({ replacementBlocked: true });
+    expect(await screen.findByText('admin.teacherProfile.inlineReplaceUnsaved')).toBeTruthy();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+  });
+
   it('requires backend replace capability and does not mutate on cancel', async () => {
     mock.assignments = [assignment(false)];
     mount();
