@@ -9,6 +9,7 @@ import type { Level, SchoolClass, Subject } from '@/types/class';
 const mock = vi.hoisted(() => ({
   assignments: [] as TeachingAssignment[],
   pagination: null as { page: number; total: number; page_size: number; total_pages: number } | null,
+  error: null as { code: string; message: string } | null,
   apiPost: vi.fn(),
   reload: vi.fn().mockResolvedValue(undefined),
   toastSuccess: vi.fn(),
@@ -21,8 +22,9 @@ vi.mock('@/lib/api/endpoints', () => ({
 }));
 vi.mock('@/lib/hooks/use-admin-resource', () => ({
   useAdminResource: () => ({
-    data: mock.assignments, meta: mock.pagination ? { pagination: mock.pagination } : null,
-    loading: false, error: null, reload: mock.reload,
+    data: mock.assignments,
+    meta: { pagination: mock.pagination ?? { page: 1, page_size: mock.assignments.length, total: mock.assignments.length, total_pages: 1 } },
+    loading: false, error: mock.error, reload: mock.reload,
   }),
 }));
 vi.mock('@/components/ui/toast', () => ({
@@ -45,7 +47,7 @@ function assignment(allowed = true): TeachingAssignment {
     class: { id: 30, name: '1APIC-1' },
     subject: { id: 10, name: 'الفيزياء والكيمياء' },
     teacher: { id: 99, name: 'الأستاذ السابق' },
-    allowed_actions: { replace: allowed },
+    allowed_actions: { replace: allowed, end: allowed },
   } as TeachingAssignment;
 }
 
@@ -67,6 +69,7 @@ describe('inline teacher replacement from locked assignment cell', () => {
   beforeEach(() => {
     mock.assignments = [assignment()];
     mock.pagination = null;
+    mock.error = null;
     mock.apiPost.mockReset();
     mock.reload.mockClear();
     mock.toastSuccess.mockClear();
@@ -131,6 +134,47 @@ describe('inline teacher replacement from locked assignment cell', () => {
     mount();
     expect(await screen.findByText('الأستاذ السابق')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeNull();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+  });
+
+  it('shows both actions in the occupied cell but never mutates when end is cancelled', async () => {
+    mount();
+    fireEvent.click(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' }));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'common.cancel' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+  });
+
+  it('ends only the exact assignment with a reason and date, then refreshes', async () => {
+    mock.apiPost.mockResolvedValue({ success: true, data: { warnings: [] } });
+    mount();
+    fireEvent.click(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' }));
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'تغيير توزيع الحصص' } });
+    fireEvent.change(screen.getByLabelText('admin.teacherProfile.inlineEndDate'), {
+      target: { value: '2026-10-10' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherProfile.inlineEndConfirm' }));
+    await waitFor(() => expect(mock.apiPost).toHaveBeenCalledWith(
+      '/admin/teaching-assignments/77/end',
+      { reason: 'تغيير توزيع الحصص', effective_to: '2026-10-10' },
+    ));
+    await waitFor(() => expect(mock.reload).toHaveBeenCalled());
+  });
+
+  it('respects independent backend end capability', async () => {
+    mock.assignments = [{ ...assignment(false), allowed_actions: { replace: true, end: false } }];
+    mount();
+    expect(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineEndAction' })).toBeNull();
+  });
+
+  it('shows API errors and provides a retry without mutations', async () => {
+    mock.error = { code: 'server_error', message: 'Error fetching assignments' };
+    mount();
+    expect(await screen.findByText(/Error fetching assignments/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherProfile.inlineOccupancyRetry' }));
+    expect(mock.reload).toHaveBeenCalledTimes(1);
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 

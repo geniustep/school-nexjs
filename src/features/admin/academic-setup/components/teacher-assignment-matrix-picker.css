@@ -413,3 +413,6 @@
   line-height: 1.5;
   text-align: start;
 }
+
+.teacher-assignment-matrix__cell-actions { display: flex; flex-wrap: wrap; gap: 6px; flex-basis: 100%; }
+.teacher-assignment-matrix__warning p { margin: 0 0 6px; overflow-wrap: anywhere; }
