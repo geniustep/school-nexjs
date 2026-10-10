@@ -306,8 +306,15 @@ export function TeacherAssignmentMatrixPicker({
   );
 
   // Fail closed for incomplete/paginated occupancy or ambiguous current owners.
+  const occupancyRows = occupancyState.data?.length ?? 0;
+  const occupancyPagination = occupancyState.meta?.pagination;
   const occupancyComplete = !occupancyState.loading && !occupancyState.error &&
-    (occupancyState.data?.length ?? 0) < 500;
+    Array.isArray(occupancyState.data) && (
+      occupancyPagination && Number.isFinite(occupancyPagination.total)
+        ? occupancyPagination.total <= occupancyRows &&
+          occupancyPagination.page === 1
+        : occupancyRows < 500
+    );
   const occupiedBy = useMemo(() => {
     const map = new Map<string, TeachingAssignment[]>();
     for (const assignment of occupancyState.data ?? []) {
