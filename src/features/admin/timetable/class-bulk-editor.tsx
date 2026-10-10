@@ -1,6 +1,5 @@
 'use client';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import Link from 'next/link';
 import {api} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {useGlobalAcademicYearResource} from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -125,7 +124,7 @@ return <section className="class-bulk">
 {showTrack&&<label>المسلك (عند الحاجة)<select disabled={busy||!level} value={track} onChange={e=>{if(!choose(0))return;setTrack(e.target.value)}}><option value="">جميع المسالك</option>{tracks.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>}
 <label>القسم<select disabled={!level||busy} value={classId} onChange={e=>{choose(Number(e.target.value))}}><option value={0}>اختر القسم</option>{options.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
 </div>
-{classId>0&&!setupReady&&<section role="status" aria-live="polite" className="class-bulk__setup-card"><strong>إعداد استعمال الزمان غير جاهز</strong><p>{timetableSetupMessage(setup,setupUnavailable)}</p><p>يمكنك متابعة مراجعة القسم، لكن لن تتم إضافة حصص أو حفظها حتى تكتمل الأيام الدراسية والفترات المعتمدة.</p>{canManage&&<Link className="class-bulk__setup-link" href="/admin/settings">فتح إعدادات المؤسسة <span aria-hidden="true">←</span></Link>}{!canManage&&<small>تواصل مع مسؤول المؤسسة المخوّل لإكمال الإعداد.</small>}</section>}
+{classId>0&&!setupReady&&<section role="status" aria-live="polite" className="class-bulk__setup-card"><strong>إعداد استعمال الزمان غير جاهز</strong><p>{timetableSetupMessage(setup,setupUnavailable)}</p><p>يمكنك متابعة مراجعة القسم، لكن لن تتم إضافة حصص أو حفظها حتى تكتمل الأيام الدراسية والفترات المعتمدة.</p><small>{canManage?"صفحة ضبط الأيام والفترات الدراسية غير متاحة بعد. لا يلزم الانتقال إلى الإعدادات العامة؛ سنوفر إعدادًا مستقلًا قبل السماح بتحرير الحصص.":"يرجى التواصل مع إدارة المؤسسة؛ إعداد الأيام والفترات الدراسية غير متاح بعد."}</small></section>}
 {classId>0&&setupReady&&<p role="status" className="class-bulk__notice">{timetableSetupMessage(setup,setupUnavailable)}</p>}
 {notice&&<p role="status" className="class-bulk__notice">{notice}</p>}
 {busy&&<p>جارٍ تنفيذ العملية...</p>}
