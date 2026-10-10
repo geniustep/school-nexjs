@@ -328,7 +328,7 @@ export function TeacherAssignmentMatrixPicker({
 
   async function confirmReplacement() {
     if (!replacement || !canReplace(replacement) || !replaceReason.trim() ||
-        !/^\\d{4}-\\d{2}-\\d{2}$/.test(replaceDate)) return;
+        !/^\d{4}-\d{2}-\d{2}$/.test(replaceDate)) return;
     const key = pairKey(replacement.class.id, replacement.subject.id);
     const owners = occupiedBy.get(key);
     if (owners?.length !== 1 || owners[0].id !== replacement.id) return;
