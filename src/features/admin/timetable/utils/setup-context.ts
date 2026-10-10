@@ -2,7 +2,7 @@ export type TimetableSetupContext = {
   school_id: number;
   academic_year_id: number;
   setup_complete: boolean;
-  allowed_weekdays: string[];
+  allowed_weekdays: Array<string | {key:string;label?:string;day_mode?:string}>;
   periods: unknown[];
   blockers: {open_draft: string[]; save_line: string[]; publish: string[]};
   completeness: {config_present:boolean; study_days_count:number; study_days_reliable:boolean; lesson_period_count:number};
@@ -18,5 +18,6 @@ export function timetableSetupMessage(context: TimetableSetupContext | null, una
 }
 export function allowedTimetableDays(context: TimetableSetupContext | null): string[] {
   if (!timetableSetupReady(context)) return [];
-  return Array.isArray(context?.allowed_weekdays) ? context.allowed_weekdays : [];
+  if (!Array.isArray(context?.allowed_weekdays)) return [];
+  return context.allowed_weekdays.map(day => typeof day === 'string' ? day : day?.key).filter((day):day is string => typeof day === 'string' && day.length > 0);
 }
