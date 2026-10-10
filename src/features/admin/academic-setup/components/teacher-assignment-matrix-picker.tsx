@@ -71,7 +71,7 @@ export function TeacherAssignmentMatrixPicker({
   eligibility,
   currentTeacherId = null,
   teacherName,
-  academicYearId,
+  academicYearId = 0,
   disabled = false,
   replacementBlocked = false,
   onReplaced,
@@ -85,7 +85,7 @@ export function TeacherAssignmentMatrixPicker({
   eligibility?: TeacherTeachingEligibility;
   currentTeacherId?: number | null;
   teacherName?: string;
-  academicYearId: number;
+  academicYearId?: number;
   disabled?: boolean;
   replacementBlocked?: boolean;
   onReplaced?: () => Promise<void> | void;
@@ -101,7 +101,9 @@ export function TeacherAssignmentMatrixPicker({
   const [replaceError, setReplaceError] = useState('');
   const occupancyState = useAdminResource<TeachingAssignment[]>(
     endpoints.admin.teachingAssignments,
-    { academic_year_id: academicYearId, operationally_active: 1, page_size: 500 },
+    academicYearId > 0
+      ? { academic_year_id: academicYearId, operationally_active: 1, page_size: 500 }
+      : { active: 1, page_size: 500 },
   );
   const [selectedSubjectKeys, setSelectedSubjectKeys] = useState<string[]>([]);
   const [selectedCycleCodes, setSelectedCycleCodes] = useState<string[]>([]);
@@ -320,7 +322,7 @@ export function TeacherAssignmentMatrixPicker({
   const canReplace = (assignment: TeachingAssignment): boolean => {
     const actions = assignment.allowed_actions;
     return !disabled && !replacementBlocked && !replacing && occupancyComplete &&
-      currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
+      academicYearId > 0 && currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
       Boolean(actions && !Array.isArray(actions) && actions.replace === true);
   };
 
