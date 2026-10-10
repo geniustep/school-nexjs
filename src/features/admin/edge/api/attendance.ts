@@ -2,7 +2,7 @@
 
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { EdgeAttendanceDevicePerson, EdgeAttendanceMappingData, EdgeAttendanceSourceDevice, EdgeStaffCandidate, EdgeStaffPickerData } from '@/features/admin/edge/types';
+import type { EdgeAttendanceDevicePerson, EdgeAttendanceForceSyncStatus, EdgeAttendanceMappingData, EdgeAttendanceSourceDevice, EdgeStaffCandidate, EdgeStaffPickerData } from '@/features/admin/edge/types';
 
 export const fetchAttendanceSourceDevices=()=>api.get<EdgeAttendanceSourceDevice[]>(endpoints.admin.edgeAttendanceSourceDevices);
 export const fetchAttendanceDevicePersons=(sourceId:number)=>api.get<EdgeAttendanceDevicePerson[]>(endpoints.admin.edgeAttendanceSourcePersons(sourceId));
@@ -26,3 +26,10 @@ export const saveAttendancePersonMapping=(sourceId:number,externalPersonId:strin
 
 export const unlinkAttendancePersonMapping=(sourceId:number,externalPersonId:string)=>
  api.patch<{mapping_id:number;external_person_id:string;active:boolean;mapping_status:'inactive_mapping'}>(endpoints.admin.edgeAttendancePersonMapping(sourceId,externalPersonId),{active:false});
+
+
+export const enqueueAttendanceForceSync=(sourceId:number)=>
+ api.post<EdgeAttendanceForceSyncStatus>(endpoints.admin.edgeAttendanceForceSync(sourceId),{});
+
+export const fetchAttendanceForceSyncStatus=(requestId:string)=>
+ api.get<EdgeAttendanceForceSyncStatus>(endpoints.admin.edgeAttendanceForceSyncStatus(requestId));
