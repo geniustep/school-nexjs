@@ -136,7 +136,7 @@ function Studio(){
             const isSelected=selection===cell?.key;
             const modified=cell?.key?Object.prototype.hasOwnProperty.call(pending,cell.key):false;
             return <button key={day} type="button" aria-label={unavailable?'فترة غير متاحة':`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}، ${assignment?.subject_name??'خانة شاغرة'}`} aria-pressed={isSelected} disabled={unavailable||!canManage} onClick={()=>{setSelection(cell?.key??'');setFeedback('')}} className={unavailable?styles.cellClosed:isSelected?styles.cellSelected:assignment?styles.cellFilled:styles.cellEmpty}>
-              {unavailable?<span aria-hidden="true">—</span>:assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small>{modified&&<i>معدل محليًا</i>}</>:cell?.savedLine?<><strong>حصة مسجلة</strong><small>تحقق من إسنادها</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
+              {unavailable?<span aria-hidden="true">—</span>:assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small>{modified&&<i>معدل محليًا</i>}</>:modified?<><strong>خانة فارغة مؤقتًا</strong><small>تعديل محلي</small></>:cell?.savedLine?<><strong>حصة مسجلة</strong><small>تحقق من إسنادها</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
             </button>
           })}
         </div>)}
