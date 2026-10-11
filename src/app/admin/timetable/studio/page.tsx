@@ -1,5 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
+import {useSession} from '@/features/auth/session-context';
+import {hasPermission} from '@/lib/permissions/permissions';
 import Link from 'next/link';
 import {RequireAdminPermission} from '@/components/admin/require-admin-permission';
 import {useGlobalAcademicYearResource} from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -21,6 +23,8 @@ export default function TimetableStudioPage(){
  return <RequireAdminPermission permission="view_timetable"><Studio/></RequireAdminPermission>;
 }
 function Studio(){
+ const user=useSession();
+ const canManage=hasPermission(user,'manage_timetable');
  const classes=useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes,{page_size:500});
  const levels=useAdminResource<Level[]>(endpoints.admin.levels,{page_size:500});
  const [cycle,setCycle]=useState('');
@@ -39,12 +43,14 @@ function Studio(){
  const [pending,setPending]=useState<Record<string,number|null>>({});
  const [selection,setSelection]=useState('');
  const [chosenAssignment,setChosenAssignment]=useState(0);
+ const [history,setHistory]=useState<Array<Record<string,number|null>>>([]);
+ const [feedback,setFeedback]=useState('');
  const availableDays=useMemo(()=>allowedTimetableDays(context),[context]);
  const periods=useMemo(()=>context?.periods??[],[context]);
  const grid=useMemo(()=>buildStudioGrid(periods,availableDays,draft?.lines??[],pending),[periods,availableDays,draft,pending]);
  useEffect(()=>{
   let active=true;
-  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setSelection('');setChosenAssignment(0);
+  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setSelection('');setChosenAssignment(0);setHistory([]);setFeedback('');
   if(!classId)return;
   setBusy(true);
   void Promise.all([
@@ -61,23 +67,30 @@ function Studio(){
   return ()=>{active=false};
  },[classId]);
  const selected=selection?grid.find(cell=>cell.key===selection):undefined;
- const placementEnabled=!!context?.setup_complete && !!draft && !(context?.blockers?.save_line?.length) && periods.length>0;
+ const placementEnabled=canManage && !!context?.setup_complete && periods.length>0 && assignments.length>0;
+ const saveBlocked=!!context?.blockers?.save_line?.length || !draft;
+ const previewCount=Object.keys(pending).length;
+ const remember=(next:Record<string,number|null>)=>{setHistory(old=>[...old.slice(-29),pending]);setPending(next);};
+ const revert=()=>{if(!history.length)return;setPending(history[history.length-1]);setHistory(old=>old.slice(0,-1));setFeedback('تم التراجع عن آخر تغيير في المعاينة.');};
  const place=()=>{
    if(!selected||!chosenAssignment||!placementEnabled)return;
-   const slot=selectStudioPeriod(periods,selected.periodId,selected.day,availableDays);
+   const slot=selectStudioPeriod(periods,selected.periodId,selected.day,availableDays,context?.allowed_weekdays);
    if(!slot)return;
-   if(selected.savedLine){setError('الخانة تحتوي على حصة محفوظة. التعديل عليها سيكون متاحًا بعد تفعيل عقد الشبكة.');return;}
-   setPending(old=>({...old,[selected.key]:chosenAssignment}));
-   setSelection('');setError('');
+   remember({...pending,[selected.key]:chosenAssignment});
+   setSelection('');setFeedback('أُضيفت الحصة إلى المعاينة. لم يُحفظ التغيير بعد.');setError('');
  };
  const clear=()=>{
-   if(!selected)return;
-   setPending(old=>{const next={...old};delete next[selected.key];return next});
-   setSelection('');
+   if(!selected||!placementEnabled)return;
+   remember({...pending,[selected.key]:null});
+   setSelection('');setFeedback('أُزيلت الحصة من المعاينة فقط.');
+ };
+ const resetPreview=()=>{
+   if(previewCount && !window.confirm('إلغاء جميع تعديلات المعاينة غير المحفوظة؟'))return;
+   remember({});setSelection('');setFeedback('تمت استعادة المعاينة الأصلية.');
  };
  return <main className={styles.studio} dir="rtl">
   <header className={styles.hero}>
-   <div><span className={styles.eyebrow}>RAQEEM · TIMETABLE STUDIO</span><h1>استوديو استعمال الزمان</h1><p>أنشئ استعمال الزمان بصريًا انطلاقًا من الفترات والإسنادات المعتمدة، دون إدخال الساعات مرة أخرى.</p></div>
+   <div><span className={styles.eyebrow}>رقيم / التنظيم الدراسي</span><h1>استوديو استعمال الزمان</h1><p>وزّع المواد والأساتذة على شبكة الحصص المعتمدة، دون إعادة كتابة الأوقات.</p></div>
    <div className={styles.heroActions}><Link href="/admin/timetable/bulk">المحرر السابق</Link><Link href="/admin/timetable/setup">إعداد الأيام والفترات</Link></div>
   </header>
   <section className={styles.filters} aria-label="اختيار السلك والمستوى والقسم">
@@ -97,41 +110,46 @@ function Studio(){
   {!classId&&!busy&&<section className={styles.empty}><span aria-hidden="true" className={styles.emptyIcon}>▦</span><h2>شبكتك الأسبوعية تبدأ من هنا</h2><p>اختر السلك ثم المستوى ثم القسم؛ سيظهر استعمال الزمان المعتمد والإسنادات المتاحة.</p></section>}
   {busy&&<section className={styles.empty} role="status"><div className={styles.skeleton}/><div className={styles.skeleton}/><p>جارٍ تحميل جدول القسم والفترات...</p></section>}
   {error&&<div role="alert" className={styles.warning}>{error} <button type="button" onClick={()=>{setError('');setClassId(0)}}>إعادة المحاولة</button></div>}
-  {ready&&context&&<div style={{display:'grid',gap:16}}>
+  {ready&&context&&<div className={styles.workspace}>
     {!context.setup_complete&&<div role="alert" className={styles.warning}><strong>إعداد استعمال الزمان غير مكتمل</strong><p>يجب إكمال الأيام الدراسية والفترات قبل توزيع الحصص.</p><Link href="/admin/timetable/setup">فتح إعداد الأيام والفترات ←</Link></div>}
-    {context.blockers.save_line.length>0&&<p role="status">الحفظ غير متاح بسبب حواجز Odoo: {context.blockers.save_line.join('، ')}. لن يجري تجاوزها في الواجهة.</p>}
+    {saveBlocked&&<div className={styles.statusNote} role="status"><span aria-hidden="true">◈</span><div><strong>التوزيع التجريبي متاح الآن</strong><p>يمكنك إضافة الحصص وتغييرها والتراجع عنها داخل هذه الصفحة. حفظ المسودة في المؤسسة غير متاح مؤقتًا إلى حين اكتمال ربط إعداد التوقيت؛ لن تُرسل تعديلاتك دون إجراء حفظ صريح.</p></div></div>}
+    <div className={styles.workspaceStats}><span><strong>{periods.length}</strong> فترات معتمدة</span><span><strong>{assignments.length}</strong> إسنادات متاحة</span><span><strong>{previewCount}</strong> تعديلات قيد التجربة</span><div className={styles.quickActions}><button type="button" disabled={!history.length} onClick={revert}>↶ تراجع</button><button type="button" disabled={!previewCount} onClick={resetPreview}>إلغاء التعديلات</button></div></div>
+
     <div className={styles.assignments}>
      <h2>المواد والأساتذة</h2><p>اختر إسنادًا ثم انقر على خانة في الشبكة لمعاينة توزيعه.</p>
-     <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}>
-      {assignments.map(a=><button key={a.assignment_id} type="button" onClick={()=>setChosenAssignment(a.assignment_id)} aria-pressed={chosenAssignment===a.assignment_id} className={chosenAssignment===a.assignment_id?styles.assignmentActive:styles.assignment}>{a.subject_name} — {a.teacher_name}</button>)}
+     <div className={styles.assignmentList}>
+      {assignments.map(a=><button key={a.assignment_id} type="button" onClick={()=>setChosenAssignment(a.assignment_id)} aria-pressed={chosenAssignment===a.assignment_id} disabled={!canManage} className={chosenAssignment===a.assignment_id?styles.assignmentActive:styles.assignment}>{a.subject_name} — {a.teacher_name}</button>)}
      </div>
     </div>
-    <div className={styles.gridPanel}><div className={styles.gridPanelHeader}><h2>الشبكة الأسبوعية</h2><span>الأوقات مستمدة من إعداد المؤسسة</span></div><div style={{overflowX:'auto'}}>
-     <div style={{minWidth:750,display:'grid',gridTemplateColumns:'110px repeat(7,minmax(95px,1fr))',gap:5}}>
-      <div style={{fontWeight:700,padding:10}}>الفترة</div>
-      {DAYS.map(([key,label])=><div key={key} style={{padding:10,fontWeight:700,textAlign:'center'}}>{label}</div>)}
-      {periods.map(p=><div key={p.id} style={{display:'contents'}}>
-       <div style={{padding:10,background:'var(--card)',border:'1px solid var(--border)',borderRadius:9}}><strong>{p.name}</strong><div style={{fontSize:12}} dir="ltr">{clock(p.start_time)}–{clock(p.end_time)}</div></div>
-       {DAYS.map(([day])=>{
-        const cell=grid.find(c=>c.day===day&&c.periodId===p.id);
-        const ass=cell?.assignmentId?assignments.find(a=>a.assignment_id===cell.assignmentId):null;
-        const unavailable=!availableDays.includes(day)||!selectStudioPeriod(periods,p.id,day,availableDays,context.allowed_weekdays);
-        return <button key={day} type="button" disabled={unavailable||!placementEnabled&& !cell?.savedLine} onClick={()=>setSelection(cell?.key??'')} style={{minHeight:74,padding:7,border:'1px solid var(--border)',borderRadius:9,background:cell?.key===selection?'var(--muted)':'var(--card)',opacity:unavailable?.45:1,textAlign:'center'}}>
-          {unavailable?'—':ass?<><strong>{ass.subject_name}</strong><div style={{fontSize:11}}>{ass.teacher_name}</div></>:cell?.savedLine?<><strong>حصة محفوظة</strong><div style={{fontSize:11}}>إسناد غير متاح حاليًا</div></>:'+'}
-         </button>
-       })}
-      </div>)}
-     </div>
+    <div className={styles.gridPanel}>
+      <div className={styles.gridPanelHeader}><div><h2>الشبكة الأسبوعية</h2><p>انقر على أي خانة متاحة لوضع الإسناد المختار أو تغييره.</p></div><span>الحصص وفق التوقيت المعتمد</span></div>
+      <div className={styles.gridScroll}>
+      <div className={styles.weekGrid}>
+        <div className={styles.dayHead}>الفترة</div>
+        {DAYS.map(([key,label])=><div className={styles.dayHead} key={key}>{label}</div>)}
+        {periods.map(p=><div key={p.id} className={styles.gridRow}>
+          <div className={styles.periodLabel}><strong>{p.name}</strong><time dir="ltr">{clock(p.start_time)} – {clock(p.end_time)}</time></div>
+          {DAYS.map(([day])=>{
+            const cell=grid.find(c=>c.day===day&&c.periodId===p.id);
+            const assignment=cell?.assignmentId?assignments.find(a=>a.assignment_id===cell.assignmentId):null;
+            const unavailable=!selectStudioPeriod(periods,p.id,day,availableDays,context.allowed_weekdays);
+            const isSelected=selection===cell?.key;
+            const modified=cell?.key?Object.prototype.hasOwnProperty.call(pending,cell.key):false;
+            return <button key={day} type="button" aria-label={unavailable?'فترة غير متاحة':`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}، ${assignment?.subject_name??'خانة شاغرة'}`} aria-pressed={isSelected} disabled={unavailable||!canManage} onClick={()=>{setSelection(cell?.key??'');setFeedback('')}} className={unavailable?styles.cellClosed:isSelected?styles.cellSelected:assignment?styles.cellFilled:styles.cellEmpty}>
+              {unavailable?<span aria-hidden="true">—</span>:assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small>{modified&&<i>معدل محليًا</i>}</>:modified?<><strong>خانة فارغة مؤقتًا</strong><small>تعديل محلي</small></>:cell?.savedLine?<><strong>حصة مسجلة</strong><small>تحقق من إسنادها</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
+            </button>
+          })}
+        </div>)}
+      </div>
+      </div>
     </div>
-    </div>
-    {selected&&<section style={{padding:16,border:'1px solid var(--border)',borderRadius:12,display:'flex',alignItems:'end',gap:12,flexWrap:'wrap'}}>
-     <strong>الخانة المختارة: {DAYS.find(d=>d[0]===selected.day)?.[1]} — {periods.find(p=>p.id===selected.periodId)?.name}</strong>
-     <button type="button" onClick={place} disabled={!chosenAssignment||!placementEnabled||!!selected.savedLine}>وضع الإسناد</button>
-     {Object.prototype.hasOwnProperty.call(pending,selected.key)&&<button type="button" onClick={clear}>إزالة التوزيع المؤقت</button>}
+    {selected&&<section className={styles.composer} aria-label="تحرير الخانة">
+      <div><span className={styles.eyebrow}>الخانة المختارة</span><h3>{DAYS.find(d=>d[0]===selected.day)?.[1]} · {periods.find(p=>p.id===selected.periodId)?.name}</h3><p>اختر مادة وأستاذًا من الإسنادات أعلاه، ثم اضغط «وضع الحصة».</p></div>
+      <div className={styles.composerActions}><button type="button" className={styles.primaryAction} onClick={place} disabled={!chosenAssignment||!placementEnabled}>وضع الحصة</button><button type="button" onClick={clear} disabled={!placementEnabled||(!selected.savedLine&&!Object.prototype.hasOwnProperty.call(pending,selected.key))}>تفريغ الخانة</button><button type="button" onClick={()=>setSelection('')}>إلغاء</button></div>
     </section>}
-    <p role="status" style={{padding:13,borderRadius:12,border:'1px solid var(--border)'}}>
-     هذه معاينة توزيع محلية دون حفظ. {Object.keys(pending).length} خانة قيد التجربة. سيُفعّل الحفظ بعد نشر عقد Odoo الخاص بـ period_id والتحقق من ربط المسودة وإجراءات الصلاحيات؛ لا توجد كتابة خفية على Nibras.
-    </p>
+    {feedback&&<p role="status" className={styles.feedback}>{feedback}</p>}
+    <div className={styles.bottomBar}><div><strong>معاينة قابلة للتعديل</strong><p>التعديلات الحالية محفوظة داخل الصفحة مؤقتًا فقط، وستُفقد عند تغيير القسم أو تحديث الصفحة.</p></div><button type="button" disabled title="حفظ الجدول غير متاح حتى اكتمال ربط الإعداد بالمسودة">حفظ استعمال الزمان · قريبًا</button></div>
+
    </div>}
  </main>;
 }
