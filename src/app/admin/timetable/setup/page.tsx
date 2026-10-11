@@ -31,25 +31,8 @@ const normalizeTime=(time:string|number):string=>{
   const minutes=Math.round(time*60);
   return String(Math.floor(minutes/60)).padStart(2,'0')+':'+String(minutes%60).padStart(2,'0');
 };
-const DEFAULT_MODES: Mode[]=['full','full','full','full','morning_only','closed','closed'];
-const freshDays=():Day[]=>WEEKDAYS.map(([day_of_week],i)=>({day_of_week,day_mode:DEFAULT_MODES[i],sequence:(i+1)*10}));
-const minute=(value:string|number):number=>{
-  if(typeof value==='number')return Number.isFinite(value)?Math.round(value*60):NaN;
-  const match=/^(\d{1,2}):(\d{2})$/.exec(value);
-  return match&&Number(match[1])<24&&Number(match[2])<60?Number(match[1])*60+Number(match[2]):NaN;
-};
-const clock=(n:number)=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
-function inferredBreaks(periods:Period[],existing:Break[]):Break[]{
-  const ordered=periods.map((p,i)=>({...p,index:i})).filter(p=>Number.isFinite(minute(p.start_time))&&Number.isFinite(minute(p.end_time))).sort((a,b)=>minute(a.start_time)-minute(b.start_time));
-  const generated:Break[]=[];
-  for(let i=1;i<ordered.length;i++){
-    const prev=ordered[i-1],next=ordered[i],start=minute(prev.end_time),end=minute(next.start_time);
-    if(end<=start||existing.some(b=>Number.isFinite(minute(b.start_time))&&minute(b.start_time)<end&&minute(b.end_time)>start))continue;
-    const lunch=prev.session_half!==next.session_half||end-start>=60;
-    generated.push({name:lunch?'استراحة الغداء':'استراحة '+(generated.filter(b=>b.name.startsWith('استراحة ')).length+1),start_time:clock(start),end_time:clock(end),sequence:(existing.length+generated.length+1)*10});
-  }
-  return generated;
-}
+import {DEFAULT_DAY_MODES,inferredBreaks,toMinutes} from './timetable-setup-utils';
+const freshDays=():Day[]=>WEEKDAYS.map(([day_of_week],i)=>({day_of_week,day_mode:DEFAULT_DAY_MODES[i],sequence:(i+1)*10}));
 function Editor(){
   const router=useRouter();
   const user=useSession();
@@ -79,7 +62,7 @@ function Editor(){
     setSetup(data);setName(data.name??('استعمال الزمان — '+year));setDuration(data.slot_duration_minutes?String(data.slot_duration_minutes):'');
     setScope(data.configuration_scope.scope_mode==='classes'?'classes':'whole_school');
     setClassIds(data.configuration_scope.scope_class_ids??[]);
-    setDays(WEEKDAYS.map(([day_of_week],i)=>{const current=data.study_days.find(d=>d.day_of_week===day_of_week);return {...current,day_of_week,day_mode:current?.day_mode??(data.is_first_time?DEFAULT_MODES[i]:null),sequence:current?.sequence??(i+1)*10};}));
+    setDays(WEEKDAYS.map(([day_of_week],i)=>{const current=data.study_days.find(d=>d.day_of_week===day_of_week);return {...current,day_of_week,day_mode:current?.day_mode??(data.is_first_time?DEFAULT_DAY_MODES[i]:null),sequence:current?.sequence??(i+1)*10};}));
     setPeriods(data.periods.map(p=>({...p,start_time:normalizeTime(p.start_time),end_time:normalizeTime(p.end_time)})));
     setBreaks(data.breaks.map(b=>({...b,start_time:normalizeTime(b.start_time),end_time:normalizeTime(b.end_time)})));
     setReady(true);setBusy(false);
@@ -91,7 +74,7 @@ function Editor(){
   const setBreak=(i:number,patch:Partial<Break>)=>{mark();setBreaks(v=>v.map((p,k)=>k===i?{...p,...patch}:p))};
   const autoBreaks=inferredBreaks(periods,breaks);
   const effectiveBreaks=[...breaks,...autoBreaks];
-  const durationFromFirst=periods.length?minute(periods[0].end_time)-minute(periods[0].start_time):NaN;
+  const durationFromFirst=periods.length?toMinutes(periods[0].end_time)-toMinutes(periods[0].start_time):NaN;
   const effectiveDuration=Number(duration)>0?Number(duration):durationFromFirst;
   const body=()=>({
     academic_year_id:year,
