@@ -182,6 +182,11 @@ function familyPattern(root: string, families: readonly string[]): RegExp {
 const ROUTE_RULES: RouteRule[] = [
   { methods: ['GET', 'HEAD'], test: (p) => p === '/me' },
   { methods: ['POST'], test: (p) => p === '/auth/logout' || p === '/auth/refresh' },
+  /** User Activity V1: explicit read-only route; Odoo enforces RBAC and school scope. */
+  {
+    methods: ['GET', 'HEAD'],
+    test: (p) => p === '/admin/user-activity',
+  },
   /**
    * Platform reference subject create — exact POST only.
    * Not added to BFF_ADMIN_FAMILIES (no nested /id routes) and not bound for body school injection.
