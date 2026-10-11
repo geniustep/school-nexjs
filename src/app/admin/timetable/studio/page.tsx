@@ -44,6 +44,13 @@ function Studio(){
  const [saveMessage,setSaveMessage]=useState('');
  const availableDays=useMemo(()=>allowedTimetableDays(context),[context]);
  const periods=useMemo(()=>context?.periods??[],[context]);
+ const mayLeavePreview=()=>!Object.keys(pending).length||window.confirm('لديك تغييرات غير محفوظة في هذا القسم. هل تريد مغادرته وفقدانها؟');
+ useEffect(()=>{
+   if(!Object.keys(pending).length)return;
+   const warn=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue=''};
+   window.addEventListener('beforeunload',warn);
+   return ()=>window.removeEventListener('beforeunload',warn);
+ },[pending]);
  const grid=useMemo(()=>buildStudioGrid(periods,availableDays,draft?.lines??[],pending),[periods,availableDays,draft,pending]);
  useEffect(()=>{
   let active=true;
@@ -140,9 +147,9 @@ function Studio(){
   <section className={styles.filters} aria-label="اختيار السلك والمستوى والقسم">
    <div className={styles.filterHeader}><div><h2>اختر القسم الدراسي</h2><p>حدد السلك، ثم المستوى، ثم القسم لعرض شبكته الأسبوعية.</p></div><span className={styles.count}>{classes.loading?'جارٍ تحميل الأقسام':allClasses.length+' قسمًا محمّلًا'}</span></div>
    <div className={styles.filterGrid}>
-    <label><span>01 · السلك</span><select value={cycle} disabled={classes.loading||levels.loading||catalog.cycles.length===0} onChange={e=>{setCycle(e.target.value);setLevelId(0);setClassId(0)}}><option value="">اختر السلك</option>{catalog.cycles.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
-    <label><span>02 · المستوى</span><select value={levelId} disabled={!cycle||filteredLevels.length===0} onChange={e=>{setLevelId(Number(e.target.value));setClassId(0)}}><option value={0}>اختر المستوى</option>{filteredLevels.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
-    <label><span>03 · القسم</span><select value={classId} disabled={!levelId||filteredClasses.length===0} onChange={e=>setClassId(Number(e.target.value))}><option value={0}>اختر القسم</option>{filteredClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+    <label><span>01 · السلك</span><select value={cycle} disabled={classes.loading||levels.loading||catalog.cycles.length===0} onChange={e=>{if(!mayLeavePreview())return;setCycle(e.target.value);setLevelId(0);setClassId(0)}}><option value="">اختر السلك</option>{catalog.cycles.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+    <label><span>02 · المستوى</span><select value={levelId} disabled={!cycle||filteredLevels.length===0} onChange={e=>{if(!mayLeavePreview())return;setLevelId(Number(e.target.value));setClassId(0)}}><option value={0}>اختر المستوى</option>{filteredLevels.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
+    <label><span>03 · القسم</span><select value={classId} disabled={!levelId||filteredClasses.length===0} onChange={e=>{if(mayLeavePreview())setClassId(Number(e.target.value))}}><option value={0}>اختر القسم</option>{filteredClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
    </div>
    {(cycle||levelId>0||classId>0)&&<div className={styles.path} aria-live="polite"><span>{cycle||'السلك'}</span><span aria-hidden="true">←</span><span>{filteredLevels.find(l=>l.id===levelId)?.name||'المستوى'}</span><span aria-hidden="true">←</span><strong>{filteredClasses.find(c=>c.id===classId)?.name||'القسم'}</strong></div>}
    {classes.loading||levels.loading?<p className={styles.info} role="status">جارٍ تحميل بيانات السنة الدراسية والأقسام...</p>:null}
