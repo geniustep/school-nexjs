@@ -881,9 +881,11 @@ export function TeacherAssignmentMatrixPicker({
                                         </button>
                                       ) : null}
                                       {canEnd(owner) ? (
-                                        <button type="button" className="teacher-assignment-matrix__replace-button"
+                                        <button type="button" className="teacher-assignment-matrix__quick-end-trigger"
+                                          aria-label={t('admin.teacherProfile.inlineEndAction')}
+                                          title={t('admin.teacherProfile.inlineEndAction')}
                                           onClick={() => { setEnding(owner); setEndError(''); }}>
-                                          {t('admin.teacherProfile.inlineEndAction')}
+                                          ×
                                         </button>
                                       ) : null}
                                     </span>
