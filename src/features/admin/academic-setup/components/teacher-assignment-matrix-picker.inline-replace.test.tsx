@@ -124,9 +124,10 @@ describe('inline teacher replacement from locked assignment cell', () => {
     expect(onReplaced).not.toHaveBeenCalled();
   });
 
-  it('explains unsaved changes without sending a mutation', async () => {
+  it('does not offer replacement with unsaved changes, but still offers independent end', async () => {
     mount({ replacementBlocked: true });
-    expect(await screen.findByText('admin.teacherProfile.inlineReplaceUnsaved')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeNull();
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 
