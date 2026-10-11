@@ -37,7 +37,6 @@ function Studio(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [pending,setPending]=useState<Record<string,number|null>>({});
- const [selection,setSelection]=useState('');
  const [chosenAssignment,setChosenAssignment]=useState(0);
  const [history,setHistory]=useState<Array<Record<string,number|null>>>([]);
  const [feedback,setFeedback]=useState('');
@@ -46,7 +45,7 @@ function Studio(){
  const grid=useMemo(()=>buildStudioGrid(periods,availableDays,draft?.lines??[],pending),[periods,availableDays,draft,pending]);
  useEffect(()=>{
   let active=true;
-  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setSelection('');setChosenAssignment(0);setHistory([]);setFeedback('');
+  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setChosenAssignment(0);setHistory([]);setFeedback('');
   if(!classId)return;
   setBusy(true);
   void Promise.all([
@@ -127,18 +126,15 @@ function Studio(){
             const key=cell?.key??day+':'+p.id;
             return <div key={day} className={unavailable?styles.cellClosed:styles.cellSlot}>
               {unavailable?<span aria-label="فترة غير متاحة">—</span>:<>
-                <button type="button" className={assignment?styles.cellFilled:styles.cellEmpty} aria-label={`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}: ${assignment?.subject_name??'إضافة حصة'}`} disabled={!placementEnabled} onClick={()=>{setSelection(key);if(chosenAssignment)updateCell(key,chosenAssignment)}}>
+                <button type="button" className={assignment?styles.cellFilled:styles.cellEmpty} aria-label={`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}: ${assignment?.subject_name??'إضافة حصة'}`} disabled={!placementEnabled} onClick={()=>{if(chosenAssignment)updateCell(key,chosenAssignment)}}>
                   {assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
                   {modified&&<i>تغيير مؤقت</i>}
                 </button>
-                {selection===key&&<div className={styles.cellPicker}>
-                  <label htmlFor={`pick-${day}-${p.id}`}>المادة والأستاذ</label>
-                  <select id={`pick-${day}-${p.id}`} value={cell?.assignmentId??0} onChange={e=>{const id=Number(e.target.value);updateCell(key,id||null);setSelection('')}} autoFocus>
-                    <option value={0}>خانة فارغة</option>
-                    {assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}
-                  </select>
-                  <button type="button" onClick={()=>setSelection('')}>إغلاق</button>
-                </div>}
+                <label className={styles.inlineSelectLabel} htmlFor={`pick-${day}-${p.id}`}>تغيير المادة والأستاذ</label>
+                <select className={styles.inlineCellSelect} id={`pick-${day}-${p.id}`} aria-label={`إسناد ${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}`} value={cell?.assignmentId??0} disabled={!placementEnabled} onChange={e=>{const id=Number(e.target.value);updateCell(key,id||null)}}>
+                  <option value={0}>+ اختيار إسناد</option>
+                  {assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}
+                </select>
               </>}
             </div>
           })}
