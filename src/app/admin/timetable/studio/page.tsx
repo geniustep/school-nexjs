@@ -126,7 +126,7 @@ function Studio(){
             const key=cell?.key??day+':'+p.id;
             return <div key={day} className={unavailable?styles.cellClosed:styles.cellSlot}>
               {unavailable?<span aria-label="فترة غير متاحة">—</span>:<>
-                <button type="button" className={assignment?styles.cellFilled:styles.cellEmpty} aria-label={`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}: ${assignment?.subject_name??'إضافة حصة'}`} disabled={!placementEnabled} onClick={()=>{if(chosenAssignment)updateCell(key,chosenAssignment)}}>
+                <button type="button" className={assignment?styles.cellFilled:styles.cellEmpty} aria-label={`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}: ${assignment?.subject_name??'إضافة حصة'}`} disabled={!placementEnabled} onClick={e=>{if(chosenAssignment){updateCell(key,chosenAssignment)}else{e.currentTarget.parentElement?.querySelector('select')?.focus()}}}>
                   {assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
                   {modified&&<i>تغيير مؤقت</i>}
                 </button>
