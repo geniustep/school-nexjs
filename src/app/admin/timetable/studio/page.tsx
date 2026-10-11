@@ -96,7 +96,7 @@ function Studio(){
   </section>
   {!classId&&!busy&&<section className={styles.empty}><span aria-hidden="true" className={styles.emptyIcon}>▦</span><h2>شبكتك الأسبوعية تبدأ من هنا</h2><p>اختر السلك ثم المستوى ثم القسم؛ سيظهر استعمال الزمان المعتمد والإسنادات المتاحة.</p></section>}
   {busy&&<section className={styles.empty} role="status"><div className={styles.skeleton}/><div className={styles.skeleton}/><p>جارٍ تحميل جدول القسم والفترات...</p></section>}
-  {error&&<div role="alert" className={styles.warning}>{error} <button type="button" onClick={()=>setClassId(id=>{const current=id;setClassId(0);return current})}>إعادة المحاولة</button></div>}
+  {error&&<div role="alert" className={styles.warning}>{error} <button type="button" onClick={()=>{setError('');setClassId(0)}}>إعادة المحاولة</button></div>}
   {ready&&context&&<div style={{display:'grid',gap:16}}>
     {!context.setup_complete&&<div role="alert" className={styles.warning}><strong>إعداد استعمال الزمان غير مكتمل</strong><p>يجب إكمال الأيام الدراسية والفترات قبل توزيع الحصص.</p><Link href="/admin/timetable/setup">فتح إعداد الأيام والفترات ←</Link></div>}
     {context.blockers.save_line.length>0&&<p role="status">الحفظ غير متاح بسبب حواجز Odoo: {context.blockers.save_line.join('، ')}. لن يجري تجاوزها في الواجهة.</p>}
