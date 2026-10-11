@@ -2,6 +2,8 @@ import type { Locale } from '@/lib/i18n/config';
 
 const MESSAGES: Record<Locale, Record<string, string>> = {
   ar: {
+    'admin.teacherProfile.inlineEndQuickConfirm': 'هل تريد إنهاء إسناد الأستاذ الحالي؟',
+    'admin.teacherProfile.inlineEndQuickAction': 'إنهاء',
     'admin.teacherProfile.inlineEndAction': 'إنهاء الإسناد',
     'admin.teacherProfile.inlineEndTitle': 'إنهاء إسناد الأستاذ لهذا القسم والمادة',
     'admin.teacherProfile.inlineEndNotice': 'سيُنهى هذا الإسناد مع الاحتفاظ بالسجل التاريخي، دون تعيين أستاذ بديل.',
@@ -60,6 +62,8 @@ const MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.teacherProfile.invalidHireDate': 'أدخل تاريخ التحاق صحيحًا.',
   },
   fr: {
+    'admin.teacherProfile.inlineEndQuickConfirm': 'Terminer l\'affectation actuelle ?',
+    'admin.teacherProfile.inlineEndQuickAction': 'Terminer',
     'admin.teacherProfile.inlineEndAction': 'Terminer l\'affectation',
     'admin.teacherProfile.inlineEndTitle': 'Terminer cette affectation',
     'admin.teacherProfile.inlineEndNotice': 'Cette affectation sera terminée et conservée dans l\'historique, sans désigner de remplaçant.',
@@ -118,6 +122,8 @@ const MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.teacherProfile.invalidHireDate': "Saisissez une date d'entrée valide.",
   },
   en: {
+    'admin.teacherProfile.inlineEndQuickConfirm': 'End the current teacher\'s assignment?',
+    'admin.teacherProfile.inlineEndQuickAction': 'End',
     'admin.teacherProfile.inlineEndAction': 'End assignment',
     'admin.teacherProfile.inlineEndTitle': 'End this class and subject assignment',
     'admin.teacherProfile.inlineEndNotice': 'This assignment will end and remain in the historical record without assigning a replacement.',
@@ -176,6 +182,8 @@ const MESSAGES: Record<Locale, Record<string, string>> = {
     'admin.teacherProfile.invalidHireDate': 'Enter a valid hire date.',
   },
   es: {
+    'admin.teacherProfile.inlineEndQuickConfirm': '¿Finalizar la asignación actual?',
+    'admin.teacherProfile.inlineEndQuickAction': 'Finalizar',
     'admin.teacherProfile.inlineEndAction': 'Finalizar asignación',
     'admin.teacherProfile.inlineEndTitle': 'Finalizar esta asignación',
     'admin.teacherProfile.inlineEndNotice': 'La asignación finalizará y se conservará en el historial sin nombrar sustituto.',
