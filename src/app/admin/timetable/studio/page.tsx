@@ -11,7 +11,7 @@ import {buildStudioGrid,selectStudioPeriod,type StudioPeriod,type StudioLine} fr
 
 type Assignment={assignment_id:number;subject_name:string;teacher_name:string};
 type Draft={draft_id:number;state:string;lines:StudioLine[];conflict_count:number};
-type Context=TimetableSetupContext&{periods:StudioPeriod[];breaks:{id:number;name:string;start_time:number;end_time:number}[]};
+type Context=Omit<TimetableSetupContext,'periods'>&{periods:StudioPeriod[];breaks:{id:number;name:string;start_time:number;end_time:number}[]};
 const DAYS=[['monday','الاثنين'],['tuesday','الثلاثاء'],['wednesday','الأربعاء'],['thursday','الخميس'],['friday','الجمعة'],['saturday','السبت'],['sunday','الأحد']] as const;
 const clock=(value:number)=>{const n=Math.round(value*60);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
 export default function TimetableStudioPage(){
