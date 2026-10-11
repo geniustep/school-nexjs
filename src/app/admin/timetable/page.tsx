@@ -33,7 +33,7 @@ export default function AdminTimetablePage() {
           <Link href="/admin/timetable/studio" className="group flex min-h-32 flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 no-underline transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
             <span aria-hidden="true" className="text-xl">🧩</span>
             <strong className="text-base">استوديو استعمال الزمان V3</strong>
-            <span className="text-sm text-[var(--muted-foreground)]">معاينة الشبكة الأسبوعية وتوزيع الإسنادات محليًا، دون حفظ.</span>
+            <span className="text-sm text-[var(--muted-foreground)]">تحرير شبكة القسم الأسبوعية وحفظ مسودتها، ثم التحقق منها ونشرها حسب الصلاحيات.</span>
           </Link>
           <Link href="/admin/timetable/bulk" className="group flex min-h-32 flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 no-underline transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
             <span aria-hidden="true" className="text-xl">📅</span>
