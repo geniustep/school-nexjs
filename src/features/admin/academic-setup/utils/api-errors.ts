@@ -218,6 +218,10 @@ export function mapTeacherApiError(
   error: ApiErrorBody,
   t: (key: string) => string,
 ): string {
+  const code = String(error.code ?? '');
+  if (Object.prototype.hasOwnProperty.call(ASSIGNMENT_ERRORS, code)) {
+    return mapAcademicSetupApiError(error, t, 'assignment');
+  }
   return mapAcademicSetupApiError(error, t, 'teacher');
 }
 
