@@ -75,7 +75,7 @@ function Studio(){
  };
  const resetPreview=()=>{
    if(previewCount && !window.confirm('إلغاء جميع تعديلات المعاينة غير المحفوظة؟'))return;
-   remember({});setSelection('');setFeedback('تمت استعادة المعاينة الأصلية.');
+   remember({});setFeedback('تمت استعادة المعاينة الأصلية.');
  };
  return <main className={styles.studio} dir="rtl">
   <header className={styles.hero}>
