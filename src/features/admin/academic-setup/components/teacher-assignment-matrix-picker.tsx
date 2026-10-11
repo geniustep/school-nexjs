@@ -76,6 +76,7 @@ export function TeacherAssignmentMatrixPicker({
   replacementBlocked = false,
   browseOnlyFilters = false,
   onReplaced,
+  onEnded,
   onChange,
   onEligibilityChange,
 }: {
@@ -92,6 +93,8 @@ export function TeacherAssignmentMatrixPicker({
   /** Browsing class/subject filters must never mutate saved teacher eligibility or drafts. */
   browseOnlyFilters?: boolean;
   onReplaced?: () => Promise<void> | void;
+  /** End is independent of the current teacher's unsaved draft. */
+  onEnded?: () => Promise<void> | void;
   onChange: (pairs: TeacherAssignmentPair[]) => void;
   onEligibilityChange?: (eligibility: TeacherTeachingEligibility) => void;
 }) {
@@ -331,7 +334,7 @@ export function TeacherAssignmentMatrixPicker({
   }, [occupancyState.data, currentTeacherId]);
 
   const canEnd = (assignment: TeachingAssignment): boolean =>
-    !disabled && !replacementBlocked && !replacing && occupancyComplete &&
+    !disabled && !replacing && occupancyComplete &&
     academicYearId > 0 && currentTeacherId != null && currentTeacherId !== assignment.teacher.id &&
     assignment.allowed_actions != null && !Array.isArray(assignment.allowed_actions) &&
     assignment.allowed_actions.end === true;
@@ -384,7 +387,7 @@ export function TeacherAssignmentMatrixPicker({
     }
     setEnding(null);
     await occupancyState.reload();
-    await onReplaced?.();
+    await onEnded?.();
     toast.success(t('admin.teacherProfile.inlineEndSuccess'));
     const warnings = response.data?.warnings ?? [];
     if (warnings.length) toast.error(warnings.map((w) => w.message || w.code).filter(Boolean).join(' • '));
