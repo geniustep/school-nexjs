@@ -183,7 +183,7 @@ describe('inline teacher replacement from locked assignment cell', () => {
       '/admin/teaching-assignments/77/end',
       expect.objectContaining({
         reason: 'إعادة توزيع إسنادات التدريس — إنهاء سريع من ملف الأستاذ',
-        effective_to: expect.stringMatching(/^\\d{4}-\\d{2}-\\d{2}$/),
+        effective_to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
       }),
     );
     await waitFor(() => expect(mock.reload).toHaveBeenCalled());
