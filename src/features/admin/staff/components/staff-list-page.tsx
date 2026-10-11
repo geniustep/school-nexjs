@@ -147,6 +147,7 @@ export function StaffListPage() {
 
   return (
     <div className="admin-workspace staff-center-page">
+      <div style={{ marginBottom: '0.75rem' }}><Link href="/admin/user-activity" className="btn btn--ghost btn--sm">نشاط الحسابات / Activité des comptes</Link></div>
       <PageHeader
         title={t('admin.staffCenter.pageTitle')}
         actions={
