@@ -2,6 +2,8 @@
 import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 import {RequireAdminPermission} from '@/components/admin/require-admin-permission';
+import {useSession} from '@/features/auth/session-context';
+import {hasPermission} from '@/lib/permissions/permissions';
 import {useGlobalAcademicYearResource} from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import {api} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
@@ -13,7 +15,7 @@ import {allowedTimetableDays,type TimetableSetupContext} from '@/features/admin/
 import {buildStudioGrid,buildStudioSaveChanges,selectStudioPeriod,type StudioPeriod,type StudioLine} from './studio-utils';
 
 type Assignment={assignment_id:number;subject_name:string;teacher_name:string};
-type Draft={draft_id:number;state:string;write_date:string;config_id?:number|false;lines:StudioLine[];conflict_count:number};
+type Draft={draft_id:number;state:string;write_date:string;config_id?:number|false;lines:StudioLine[];conflict_count:number;can_publish?:boolean};
 type Context=Omit<TimetableSetupContext,'periods'>&{config?:{id:number}|null;periods:StudioPeriod[];breaks:{id:number;name:string;start_time:number;end_time:number}[]};
 const DAYS=[['monday','الاثنين'],['tuesday','الثلاثاء'],['wednesday','الأربعاء'],['thursday','الخميس'],['friday','الجمعة'],['saturday','السبت'],['sunday','الأحد']] as const;
 const clock=(value:number)=>{const n=Math.round(value*60);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
@@ -21,6 +23,9 @@ export default function TimetableStudioPage(){
  return <RequireAdminPermission permission="view_timetable"><Studio/></RequireAdminPermission>;
 }
 function Studio(){
+ const user=useSession();
+ const canManage=hasPermission(user,'manage_timetable');
+ const canPublish=hasPermission(user,'publish_timetable');
  const classes=useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes,{page_size:500});
  const levels=useAdminResource<Level[]>(endpoints.admin.levels,{page_size:500});
  const [cycle,setCycle]=useState('');
@@ -147,6 +152,29 @@ function Studio(){
    }catch{setSaveMessage('تعذر تأكيد الحفظ. راجع المسودة الحالية قبل إعادة المحاولة.')}
    finally{setSaving(false)}
  };
+ const reviewDraft=async()=>{
+   if(!classId||!draft||!canManage||saving||previewCount>0||saveBlocked)return;
+   setSaving(true);setSaveMessage('');
+   try{
+     const result=await api.post<{draft:Draft}>(endpoints.admin.classTimetableDraftValidate(classId),{draft_id:draft.draft_id});
+     if(!result.success){setSaveMessage('تعذر التحقق من المسودة. راجع التعارضات وصلاحياتك ثم حاول مجددًا.');return}
+     await reloadSaved();
+     setSaveMessage('اكتمل التحقق من المسودة. راجع جاهزيتها للنشر.');
+   }catch{setSaveMessage('تعذر تأكيد التحقق؛ أعد تحميل المسودة قبل المتابعة.')}
+   finally{setSaving(false)}
+ };
+ const publishDraft=async()=>{
+   if(!classId||!draft||!canPublish||!draft.can_publish||saving||previewCount>0||saveBlocked)return;
+   if(!window.confirm('نشر استعمال الزمن لهذا القسم فقط؟ سيصبح الجدول المنشور معتمدًا.'))return;
+   setSaving(true);setSaveMessage('');
+   try{
+     const result=await api.post<{draft:Draft}>(endpoints.admin.classTimetableDraftPublish(classId),{draft_id:draft.draft_id,expected_write_date:draft.write_date});
+     if(!result.success){setSaveMessage('تعذر نشر المسودة. تحقق من صلاحية النشر ومن النسخة الحالية.');return}
+     await reloadSaved();
+     setSaveMessage('تم نشر استعمال الزمن لهذا القسم بعد تأكيد الخدمة.');
+   }catch{setSaveMessage('تعذر تأكيد النشر؛ راجع حالة القسم قبل إعادة المحاولة.')}
+   finally{setSaving(false)}
+ };
  const resetPreview=()=>{
    if(previewCount && !window.confirm('إلغاء جميع تعديلات المعاينة غير المحفوظة؟'))return;
    remember({});setFeedback('تمت استعادة المعاينة الأصلية.');
@@ -220,7 +248,9 @@ function Studio(){
     <div className={styles.bottomBar}><div><strong>{previewCount?'لديك تغييرات غير محفوظة':'مسودة استعمال الزمان'}</strong><p>احفظ توزيع الحصص لتعود إليه لاحقًا. الحفظ لا يعني اعتماد الجدول أو نشره.</p></div><div className={styles.composerActions}>
        {!draft&&<button type="button" onClick={()=>void openDraft()} disabled={saving}>فتح مسودة للقسم</button>}
        {needsBinding&&<button type="button" onClick={()=>void bindDraft()} disabled={saving||!draft||draft.lines.length>0}>ربط المسودة بالإعداد</button>}
-       <button type="button" className={styles.primaryAction} disabled={saving||saveBlocked||previewCount===0} onClick={()=>void saveDraft()}>{saving?'جارٍ التحقق…':'حفظ المسودة'}</button>
+       <button type="button" className={styles.primaryAction} disabled={saving||saveBlocked||previewCount===0||!canManage} onClick={()=>void saveDraft()}>{saving?'جارٍ تنفيذ العملية…':'حفظ المسودة'}</button>
+       <button type="button" disabled={saving||saveBlocked||previewCount>0||!canManage||draft?.state==='published'} onClick={()=>void reviewDraft()}>التحقق من المسودة</button>
+       <button type="button" disabled={saving||saveBlocked||previewCount>0||!canPublish||!draft?.can_publish} onClick={()=>void publishDraft()}>نشر هذا القسم</button>
        </div></div>
     {saveMessage&&<p role="status" className={styles.feedback}>{saveMessage}</p>}
 
