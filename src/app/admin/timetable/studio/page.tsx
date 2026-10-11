@@ -1,7 +1,5 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
-import {useSession} from '@/features/auth/session-context';
-import {hasPermission} from '@/lib/permissions/permissions';
 import Link from 'next/link';
 import {RequireAdminPermission} from '@/components/admin/require-admin-permission';
 import {useGlobalAcademicYearResource} from '@/features/academic-context/hooks/use-global-academic-year-resource';
@@ -23,8 +21,6 @@ export default function TimetableStudioPage(){
  return <RequireAdminPermission permission="view_timetable"><Studio/></RequireAdminPermission>;
 }
 function Studio(){
- const user=useSession();
- const canManage=hasPermission(user,'manage_timetable');
  const classes=useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes,{page_size:500});
  const levels=useAdminResource<Level[]>(endpoints.admin.levels,{page_size:500});
  const [cycle,setCycle]=useState('');
@@ -41,7 +37,6 @@ function Studio(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [pending,setPending]=useState<Record<string,number|null>>({});
- const [selection,setSelection]=useState('');
  const [chosenAssignment,setChosenAssignment]=useState(0);
  const [history,setHistory]=useState<Array<Record<string,number|null>>>([]);
  const [feedback,setFeedback]=useState('');
@@ -50,7 +45,7 @@ function Studio(){
  const grid=useMemo(()=>buildStudioGrid(periods,availableDays,draft?.lines??[],pending),[periods,availableDays,draft,pending]);
  useEffect(()=>{
   let active=true;
-  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setSelection('');setChosenAssignment(0);setHistory([]);setFeedback('');
+  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setChosenAssignment(0);setHistory([]);setFeedback('');
   if(!classId)return;
   setBusy(true);
   void Promise.all([
@@ -66,27 +61,21 @@ function Studio(){
   }).catch(()=>{if(active)setError('تعذر الاتصال بخدمة استعمال الزمان.')}).finally(()=>{if(active)setBusy(false)});
   return ()=>{active=false};
  },[classId]);
- const selected=selection?grid.find(cell=>cell.key===selection):undefined;
- const placementEnabled=canManage && !!context?.setup_complete && periods.length>0 && assignments.length>0;
+ const placementEnabled=periods.length>0 && assignments.length>0;
  const saveBlocked=!!context?.blockers?.save_line?.length || !draft;
  const previewCount=Object.keys(pending).length;
  const remember=(next:Record<string,number|null>)=>{setHistory(old=>[...old.slice(-29),pending]);setPending(next);};
  const revert=()=>{if(!history.length)return;setPending(history[history.length-1]);setHistory(old=>old.slice(0,-1));setFeedback('تم التراجع عن آخر تغيير في المعاينة.');};
- const place=()=>{
-   if(!selected||!chosenAssignment||!placementEnabled)return;
-   const slot=selectStudioPeriod(periods,selected.periodId,selected.day,availableDays,context?.allowed_weekdays);
-   if(!slot)return;
-   remember({...pending,[selected.key]:chosenAssignment});
-   setSelection('');setFeedback('أُضيفت الحصة إلى المعاينة. لم يُحفظ التغيير بعد.');setError('');
- };
- const clear=()=>{
-   if(!selected||!placementEnabled)return;
-   remember({...pending,[selected.key]:null});
-   setSelection('');setFeedback('أُزيلت الحصة من المعاينة فقط.');
+ const updateCell=(key:string,assignmentId:number|null)=>{
+   // Preview-only editing deliberately does not require backend write capability.
+   if(!placementEnabled)return;
+   remember({...pending,[key]:assignmentId});
+   setFeedback(assignmentId===null?'تم تفريغ الخانة في المعاينة.':'تم توزيع الحصة في المعاينة. يمكنك متابعة بقية الخانات مباشرة.');
+   setError('');
  };
  const resetPreview=()=>{
    if(previewCount && !window.confirm('إلغاء جميع تعديلات المعاينة غير المحفوظة؟'))return;
-   remember({});setSelection('');setFeedback('تمت استعادة المعاينة الأصلية.');
+   remember({});setFeedback('تمت استعادة المعاينة الأصلية.');
  };
  return <main className={styles.studio} dir="rtl">
   <header className={styles.hero}>
@@ -116,9 +105,9 @@ function Studio(){
     <div className={styles.workspaceStats}><span><strong>{periods.length}</strong> فترات معتمدة</span><span><strong>{assignments.length}</strong> إسنادات متاحة</span><span><strong>{previewCount}</strong> تعديلات قيد التجربة</span><div className={styles.quickActions}><button type="button" disabled={!history.length} onClick={revert}>↶ تراجع</button><button type="button" disabled={!previewCount} onClick={resetPreview}>إلغاء التعديلات</button></div></div>
 
     <div className={styles.assignments}>
-     <h2>المواد والأساتذة</h2><p>اختر إسنادًا ثم انقر على خانة في الشبكة لمعاينة توزيعه.</p>
+     <h2>المواد والأساتذة</h2><p>اضغط على اسم المادة لتحديدها، ثم اضغط على أي خانة لتوزيعها فورًا. أو اختر المادة مباشرة من قائمة الخانة.</p>
      <div className={styles.assignmentList}>
-      {assignments.map(a=><button key={a.assignment_id} type="button" onClick={()=>setChosenAssignment(a.assignment_id)} aria-pressed={chosenAssignment===a.assignment_id} disabled={!canManage} className={chosenAssignment===a.assignment_id?styles.assignmentActive:styles.assignment}>{a.subject_name} — {a.teacher_name}</button>)}
+      {assignments.map(a=><button key={a.assignment_id} type="button" onClick={()=>setChosenAssignment(a.assignment_id)} aria-pressed={chosenAssignment===a.assignment_id} className={chosenAssignment===a.assignment_id?styles.assignmentActive:styles.assignment}>{a.subject_name} — {a.teacher_name}</button>)}
      </div>
     </div>
     <div className={styles.gridPanel}>
@@ -133,20 +122,26 @@ function Studio(){
             const cell=grid.find(c=>c.day===day&&c.periodId===p.id);
             const assignment=cell?.assignmentId?assignments.find(a=>a.assignment_id===cell.assignmentId):null;
             const unavailable=!selectStudioPeriod(periods,p.id,day,availableDays,context.allowed_weekdays);
-            const isSelected=selection===cell?.key;
             const modified=cell?.key?Object.prototype.hasOwnProperty.call(pending,cell.key):false;
-            return <button key={day} type="button" aria-label={unavailable?'فترة غير متاحة':`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}، ${assignment?.subject_name??'خانة شاغرة'}`} aria-pressed={isSelected} disabled={unavailable||!canManage} onClick={()=>{setSelection(cell?.key??'');setFeedback('')}} className={unavailable?styles.cellClosed:isSelected?styles.cellSelected:assignment?styles.cellFilled:styles.cellEmpty}>
-              {unavailable?<span aria-hidden="true">—</span>:assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small>{modified&&<i>معدل محليًا</i>}</>:modified?<><strong>خانة فارغة مؤقتًا</strong><small>تعديل محلي</small></>:cell?.savedLine?<><strong>حصة مسجلة</strong><small>تحقق من إسنادها</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
-            </button>
+            const key=cell?.key??day+':'+p.id;
+            return <div key={day} className={unavailable?styles.cellClosed:styles.cellSlot}>
+              {unavailable?<span aria-label="فترة غير متاحة">—</span>:<>
+                <button type="button" className={assignment?styles.cellFilled:styles.cellEmpty} aria-label={`${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}: ${assignment?.subject_name??'إضافة حصة'}`} disabled={!placementEnabled} onClick={e=>{if(chosenAssignment){updateCell(key,chosenAssignment)}else{e.currentTarget.parentElement?.querySelector('select')?.focus()}}}>
+                  {assignment?<><strong>{assignment.subject_name}</strong><small>{assignment.teacher_name}</small></>:<><span className={styles.addSymbol}>＋</span><small>إضافة حصة</small></>}
+                  {modified&&<i>تغيير مؤقت</i>}
+                </button>
+                <label className={styles.inlineSelectLabel} htmlFor={`pick-${day}-${p.id}`}>تغيير المادة والأستاذ</label>
+                <select className={styles.inlineCellSelect} id={`pick-${day}-${p.id}`} aria-label={`إسناد ${DAYS.find(d=>d[0]===day)?.[1]}، ${p.name}`} value={cell?.assignmentId??0} disabled={!placementEnabled} onChange={e=>{const id=Number(e.target.value);updateCell(key,id||null)}}>
+                  <option value={0}>+ اختيار إسناد</option>
+                  {assignments.map(a=><option key={a.assignment_id} value={a.assignment_id}>{a.subject_name} — {a.teacher_name}</option>)}
+                </select>
+              </>}
+            </div>
           })}
         </div>)}
       </div>
       </div>
     </div>
-    {selected&&<section className={styles.composer} aria-label="تحرير الخانة">
-      <div><span className={styles.eyebrow}>الخانة المختارة</span><h3>{DAYS.find(d=>d[0]===selected.day)?.[1]} · {periods.find(p=>p.id===selected.periodId)?.name}</h3><p>اختر مادة وأستاذًا من الإسنادات أعلاه، ثم اضغط «وضع الحصة».</p></div>
-      <div className={styles.composerActions}><button type="button" className={styles.primaryAction} onClick={place} disabled={!chosenAssignment||!placementEnabled}>وضع الحصة</button><button type="button" onClick={clear} disabled={!placementEnabled||(!selected.savedLine&&!Object.prototype.hasOwnProperty.call(pending,selected.key))}>تفريغ الخانة</button><button type="button" onClick={()=>setSelection('')}>إلغاء</button></div>
-    </section>}
     {feedback&&<p role="status" className={styles.feedback}>{feedback}</p>}
     <div className={styles.bottomBar}><div><strong>معاينة قابلة للتعديل</strong><p>التعديلات الحالية محفوظة داخل الصفحة مؤقتًا فقط، وستُفقد عند تغيير القسم أو تحديث الصفحة.</p></div><button type="button" disabled title="حفظ الجدول غير متاح حتى اكتمال ربط الإعداد بالمسودة">حفظ استعمال الزمان · قريبًا</button></div>
 
