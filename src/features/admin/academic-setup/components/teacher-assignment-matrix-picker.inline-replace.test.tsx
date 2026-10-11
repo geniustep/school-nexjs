@@ -100,6 +100,30 @@ describe('inline teacher replacement from locked assignment cell', () => {
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 
+  it('keeps quick end available with pending drafts and never invokes draft reset callback', async () => {
+    const onReplaced = vi.fn();
+    mock.apiPost.mockResolvedValue({ success: true, data: { warnings: [] } });
+    render(
+      <TeacherAssignmentMatrixPicker
+        levels={levels} classes={classes} subjects={[subject]}
+        selectedPairs={[]}
+        eligibility={{ subjectIds: [10], cycleIds: [], levelIds: [20] }}
+        currentTeacherId={57} teacherName="الأستاذة الجديدة" academicYearId={8}
+        replacementBlocked
+        onChange={vi.fn()} onReplaced={onReplaced}
+      />,
+    );
+    // Pending edits continue to block replacement, not independent termination.
+    expect(screen.queryByRole('button', { name: 'admin.teacherProfile.inlineReplaceAction' })).toBeNull();
+    fireEvent.click(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' }));
+    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherProfile.inlineEndQuickAction' }));
+    await waitFor(() => expect(mock.apiPost).toHaveBeenCalledWith(
+      '/admin/teaching-assignments/77/end', expect.any(Object),
+    ));
+    await waitFor(() => expect(mock.reload).toHaveBeenCalled());
+    expect(onReplaced).not.toHaveBeenCalled();
+  });
+
   it('explains unsaved changes without sending a mutation', async () => {
     mount({ replacementBlocked: true });
     expect(await screen.findByText('admin.teacherProfile.inlineReplaceUnsaved')).toBeTruthy();
