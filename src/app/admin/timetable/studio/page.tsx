@@ -93,6 +93,18 @@ function Studio(){
    if(!ctx.success)throw new Error('تعذر تحديث حالة استعمال الزمان.');
    setDraft(nextDraft);setContext(ctx.data);
  };
+ const openDraft=async()=>{
+   if(!classId||draft||saving)return;
+   if(!window.confirm('إنشاء مسودة استعمال الزمان لهذا القسم؟ لن تُنشر أي حصة.'))return;
+   setSaving(true);setSaveMessage('');
+   try{
+     const result=await api.post<{draft:Draft}>(endpoints.admin.classTimetableDraftOpen(classId),{});
+     if(!result.success){setSaveMessage('تعذر فتح مسودة جديدة. تحقق من صلاحيات استعمال الزمان.');return}
+     await reloadSaved();
+     setSaveMessage('المسودة جاهزة. يمكنك ربطها بالتوقيت ثم حفظ الحصص.');
+   }catch{setSaveMessage('تعذر تأكيد إنشاء المسودة. أعد فتح القسم للتحقق من وجودها.')}
+   finally{setSaving(false)}
+ };
  const bindDraft=async()=>{
    if(!draft||!context?.config?.id||saving)return;
    if(draft.lines.length){
@@ -103,7 +115,7 @@ function Studio(){
    setSaving(true);setSaveMessage('');
    try{
      const result=await api.post<{draft:Draft}>(
-       `/api/v1/admin/classes/${classId}/timetable-draft/bind-config`,
+       `${endpoints.admin.classTimetableDraft(classId)}/bind-config`,
        {draft_id:draft.draft_id,config_id:context.config.id,expected_write_date:draft.write_date},
      );
      if(!result.success){setSaveMessage('تعذر ربط المسودة. تأكد من نشر تحديث الخدمة وصحة صلاحياتك، ثم أعد المحاولة.');return}
@@ -122,7 +134,7 @@ function Studio(){
    setSaving(true);setSaveMessage('');
    try{
      const result=await api.post<{draft:Draft;bulk_result:{errors:Array<unknown>}}>(
-       `/api/v1/admin/classes/${classId}/timetable-draft/studio-save`,
+       `${endpoints.admin.classTimetableDraft(classId)}/studio-save`,
        {draft_id:draft.draft_id,expected_write_date:draft.write_date,...changes},
      );
      if(!result.success || result.data.bulk_result?.errors?.length){
@@ -206,6 +218,7 @@ function Studio(){
     </div>
     {feedback&&<p role="status" className={styles.feedback}>{feedback}</p>}
     <div className={styles.bottomBar}><div><strong>{previewCount?'لديك تغييرات غير محفوظة':'مسودة استعمال الزمان'}</strong><p>احفظ توزيع الحصص لتعود إليه لاحقًا. الحفظ لا يعني اعتماد الجدول أو نشره.</p></div><div className={styles.composerActions}>
+       {!draft&&<button type="button" onClick={()=>void openDraft()} disabled={saving}>فتح مسودة للقسم</button>}
        {needsBinding&&<button type="button" onClick={()=>void bindDraft()} disabled={saving||!draft||draft.lines.length>0}>ربط المسودة بالإعداد</button>}
        <button type="button" className={styles.primaryAction} disabled={saving||saveBlocked||previewCount===0} onClick={()=>void saveDraft()}>{saving?'جارٍ التحقق…':'حفظ المسودة'}</button>
        </div></div>
