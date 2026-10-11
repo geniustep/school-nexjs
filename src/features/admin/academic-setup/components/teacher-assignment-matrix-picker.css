@@ -419,3 +419,6 @@
 
 .teacher-assignment-matrix__quick-end { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; flex-basis: 100%; }
 .teacher-assignment-matrix__quick-end-prompt { font-size: 12px; flex-basis: 100%; }
+
+.teacher-assignment-matrix__quick-end-trigger { width: 26px; height: 26px; padding: 0; border: 1px solid var(--c-border, #d7dee8); border-radius: 7px; background: transparent; color: var(--c-danger, #b42318); font-size: 19px; line-height: 1; cursor: pointer; }
+.teacher-assignment-matrix__quick-end-trigger:focus-visible { outline: 2px solid var(--admin-accent, #233966); outline-offset: 2px; }
