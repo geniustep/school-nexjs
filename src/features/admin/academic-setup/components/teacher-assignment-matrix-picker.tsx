@@ -102,8 +102,6 @@ export function TeacherAssignmentMatrixPicker({
   const [replaceDate, setReplaceDate] = useState('');
   const [replacing, setReplacing] = useState(false);
   const [ending, setEnding] = useState<TeachingAssignment | null>(null);
-  const [endReason, setEndReason] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [endError, setEndError] = useState('');
   const [replaceError, setReplaceError] = useState('');
   const occupancyState = useAdminResource<TeachingAssignment[]>(
@@ -361,16 +359,23 @@ export function TeacherAssignmentMatrixPicker({
   }
 
   async function confirmEnd() {
-    if (!ending || !canEnd(ending) || !endReason.trim() ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) return;
+    if (!ending || !canEnd(ending)) return;
     const key = pairKey(ending.class.id, ending.subject.id);
     const owners = occupiedBy.get(key);
     if (owners?.length !== 1 || owners[0].id !== ending.id) return;
     setReplacing(true);
     setEndError('');
+    // The backend requires an audit reason and an effective date. Both are set
+    // automatically for this explicit in-cell user confirmation.
+    const today = new Date();
+    const effectiveTo = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, '0'),
+      String(today.getDate()).padStart(2, '0'),
+    ].join('-');
     const response = await api.post<{ warnings?: { code?: string; message?: string }[] }>(
       `${endpoints.admin.teachingAssignments}/${ending.id}/end`,
-      { reason: endReason.trim(), effective_to: endDate },
+      { reason: 'إعادة توزيع إسنادات التدريس — إنهاء سريع من ملف الأستاذ', effective_to: effectiveTo },
     );
     setReplacing(false);
     if (!response.success) {
@@ -851,7 +856,23 @@ export function TeacherAssignmentMatrixPicker({
                                 >
                                   <span aria-hidden="true">🔒</span>
                                   <span dir="auto">{owner?.teacher.name ?? t('common.dash')}</span>
-                                  {owner && (canReplace(owner) || canEnd(owner)) ? (
+                                  {owner && ending?.id === owner.id ? (
+                                    <span className="teacher-assignment-matrix__quick-end" role="group"
+                                      aria-label={t('admin.teacherProfile.inlineEndTitle')}>
+                                      <span className="teacher-assignment-matrix__quick-end-prompt">
+                                        {t('admin.teacherProfile.inlineEndQuickConfirm')}
+                                      </span>
+                                      <button type="button" className="btn btn--ghost btn--sm"
+                                        disabled={replacing} onClick={() => { setEnding(null); setEndError(''); }}>
+                                        {t('common.cancel')}
+                                      </button>
+                                      <button type="button" className="btn btn--danger btn--sm"
+                                        disabled={replacing || !canEnd(owner)} onClick={() => void confirmEnd()}>
+                                        {replacing ? t('common.saving') : t('admin.teacherProfile.inlineEndQuickAction')}
+                                      </button>
+                                      {endError ? <span role="alert" className="teacher-assignment-matrix__replace-unavailable">{endError}</span> : null}
+                                    </span>
+                                  ) : owner && (canReplace(owner) || canEnd(owner)) ? (
                                     <span className="teacher-assignment-matrix__cell-actions">
                                       {canReplace(owner) ? (
                                         <button type="button" className="teacher-assignment-matrix__replace-button"
@@ -860,9 +881,11 @@ export function TeacherAssignmentMatrixPicker({
                                         </button>
                                       ) : null}
                                       {canEnd(owner) ? (
-                                        <button type="button" className="teacher-assignment-matrix__replace-button"
-                                          onClick={() => { setEnding(owner); setEndReason(''); setEndDate(''); setEndError(''); }}>
-                                          {t('admin.teacherProfile.inlineEndAction')}
+                                        <button type="button" className="teacher-assignment-matrix__quick-end-trigger"
+                                          aria-label={t('admin.teacherProfile.inlineEndAction')}
+                                          title={t('admin.teacherProfile.inlineEndAction')}
+                                          onClick={() => { setEnding(owner); setEndError(''); }}>
+                                          ×
                                         </button>
                                       ) : null}
                                     </span>
@@ -903,36 +926,6 @@ export function TeacherAssignmentMatrixPicker({
             </div>
           )}
         </section>
-      ) : null}
-
-      {ending ? (
-        <div className="teacher-assignment-matrix__dialog-backdrop">
-          <section role="dialog" aria-modal="true" aria-labelledby="teacher-end-heading"
-            className="teacher-assignment-matrix__dialog">
-            <h3 id="teacher-end-heading">{t('admin.teacherProfile.inlineEndTitle')}</h3>
-            <p dir="auto">{ending.class.name} — {ending.subject.name}</p>
-            <p>{t('admin.teacherProfile.inlineReplacePrevious')}: <strong dir="auto">{ending.teacher.name}</strong></p>
-            <p>{t('admin.teacherProfile.inlineEndNotice')}</p>
-            <label>{t('admin.teacherProfile.inlineEndReason')}
-              <textarea value={endReason} rows={2} disabled={replacing}
-                onChange={(event) => setEndReason(event.target.value)} required />
-            </label>
-            <label>{t('admin.teacherProfile.inlineEndDate')}
-              <input type="date" value={endDate} disabled={replacing}
-                onChange={(event) => setEndDate(event.target.value)} required />
-            </label>
-            {endError ? <p role="alert" className="teacher-assignment-matrix__warning">{endError}</p> : null}
-            <div className="teacher-assignment-matrix__dialog-actions">
-              <button type="button" className="btn btn--ghost btn--sm" disabled={replacing}
-                onClick={() => setEnding(null)}>{t('common.cancel')}</button>
-              <button type="button" className="btn btn--primary btn--sm"
-                disabled={replacing || !canEnd(ending) || !endReason.trim() || !endDate}
-                onClick={() => void confirmEnd()}>
-                {replacing ? t('common.saving') : t('admin.teacherProfile.inlineEndConfirm')}
-              </button>
-            </div>
-          </section>
-        </div>
       ) : null}
 
       {replacement ? (
