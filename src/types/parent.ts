@@ -1,6 +1,7 @@
 // Parent / unified person profile — GET /admin/parents/{id}
 
 import type { Ref, SchoolRef } from './api';
+import type { AuthenticationActivityListBlock } from '@/features/admin/account/components/authentication-activity';
 import type { UserAccountInfo } from './account';
 import type { StaffPasswordPolicy } from './academic-setup';
 import type { StudentNameFields } from './student';
@@ -90,6 +91,7 @@ export interface ParentChild extends StudentNameFields {
 export interface Parent extends IdentityDocumentReadFields {
   id: number;
   code?: string | null;
+  authentication_activity?: AuthenticationActivityListBlock | null;
   name: string;
   name_ar?: string | null;
   name_fr?: string | null;
