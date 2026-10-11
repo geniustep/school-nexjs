@@ -1,6 +1,7 @@
 // Academic setup API types — synced with School API v1 admin setup endpoints.
 
 import type { Ref, SchoolRef } from './api';
+import type { AuthenticationActivityListBlock } from '@/features/admin/account/components/authentication-activity';
 import type { UserAccountInfo } from './account';
 
 export type ApiWarning = {
@@ -190,6 +191,7 @@ export interface StaffDetailEnvelope {
 
 export interface StaffMember {
   id: number;
+  authentication_activity?: AuthenticationActivityListBlock | null;
   name: string;
   name_ar?: string | null;
   name_fr?: string | null;

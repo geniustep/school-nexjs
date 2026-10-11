@@ -8,6 +8,7 @@ import type { ParentFamilyGroup } from '@/features/admin/parents/utils/group-par
 import { useLocale, type TranslateFn } from '@/features/i18n/locale-context';
 import type { Locale } from '@/lib/i18n/config';
 import { pluralForm } from '@/lib/i18n/count-plural';
+import { AuthenticationActivity } from '@/features/admin/account/components/authentication-activity';
 import { getStudentDisplayName } from '@/lib/utils/student';
 
 function childrenCountLabel(t: TranslateFn, locale: Locale, count: number): string {
@@ -51,6 +52,7 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
               <span className="parents-family-card__guardian-role">{relationshipTypeLabel(t, relationshipType)}:</span>
               <div className="parents-family-card__guardian-content">
                 <Link href={href} data-all-schools-record-school-id={schoolId ?? undefined} data-all-schools-record-href={schoolId ? href : undefined} className="parents-family-card__guardian-name" dir="auto">{parent.name}</Link>
+                <span className="parents-family-card__guardian-meta"><AuthenticationActivity value={parent.authentication_activity} locale={locale} /></span>
                 {parent.phone ?? parent.mobile ? <span className="parents-family-card__guardian-meta"><span className="mono" dir="ltr">{parent.phone ?? parent.mobile}</span></span> : null}
               </div>
             </li>;
