@@ -10,11 +10,11 @@ import {useAdminResource} from '@/lib/hooks/use-admin-resource';
 import {buildStudioCatalog,studioLevelsForCycle,studioClassesForLevel} from './academic-filters';
 import styles from './studio.module.css';
 import {allowedTimetableDays,type TimetableSetupContext} from '@/features/admin/timetable/utils/setup-context';
-import {buildStudioGrid,selectStudioPeriod,type StudioPeriod,type StudioLine} from './studio-utils';
+import {buildStudioGrid,buildStudioSaveChanges,selectStudioPeriod,type StudioPeriod,type StudioLine} from './studio-utils';
 
 type Assignment={assignment_id:number;subject_name:string;teacher_name:string};
-type Draft={draft_id:number;state:string;lines:StudioLine[];conflict_count:number};
-type Context=Omit<TimetableSetupContext,'periods'>&{periods:StudioPeriod[];breaks:{id:number;name:string;start_time:number;end_time:number}[]};
+type Draft={draft_id:number;state:string;write_date:string;config_id?:number|false;lines:StudioLine[];conflict_count:number};
+type Context=Omit<TimetableSetupContext,'periods'>&{config?:{id:number}|null;periods:StudioPeriod[];breaks:{id:number;name:string;start_time:number;end_time:number}[]};
 const DAYS=[['monday','الاثنين'],['tuesday','الثلاثاء'],['wednesday','الأربعاء'],['thursday','الخميس'],['friday','الجمعة'],['saturday','السبت'],['sunday','الأحد']] as const;
 const clock=(value:number)=>{const n=Math.round(value*60);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')};
 export default function TimetableStudioPage(){
@@ -40,12 +40,14 @@ function Studio(){
  const [chosenAssignment,setChosenAssignment]=useState(0);
  const [history,setHistory]=useState<Array<Record<string,number|null>>>([]);
  const [feedback,setFeedback]=useState('');
+ const [saving,setSaving]=useState(false);
+ const [saveMessage,setSaveMessage]=useState('');
  const availableDays=useMemo(()=>allowedTimetableDays(context),[context]);
  const periods=useMemo(()=>context?.periods??[],[context]);
  const grid=useMemo(()=>buildStudioGrid(periods,availableDays,draft?.lines??[],pending),[periods,availableDays,draft,pending]);
  useEffect(()=>{
   let active=true;
-  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setChosenAssignment(0);setHistory([]);setFeedback('');
+  setContext(null);setDraft(null);setAssignments([]);setPending({});setError('');setReady(false);setChosenAssignment(0);setHistory([]);setFeedback('');setSaveMessage('');
   if(!classId)return;
   setBusy(true);
   void Promise.all([
@@ -62,7 +64,8 @@ function Studio(){
   return ()=>{active=false};
  },[classId]);
  const placementEnabled=periods.length>0 && assignments.length>0;
- const saveBlocked=!!context?.blockers?.save_line?.length || !draft;
+ const needsBinding=!!draft && !draft.config_id && !!context?.config?.id;
+ const saveBlocked=!draft || !draft.config_id || !!context?.blockers?.save_line?.some(code=>code!=='draft_config_unlinked');
  const previewCount=Object.keys(pending).length;
  const remember=(next:Record<string,number|null>)=>{setHistory(old=>[...old.slice(-29),pending]);setPending(next);};
  const revert=()=>{if(!history.length)return;setPending(history[history.length-1]);setHistory(old=>old.slice(0,-1));setFeedback('تم التراجع عن آخر تغيير في المعاينة.');};
@@ -72,6 +75,58 @@ function Studio(){
    remember({...pending,[key]:assignmentId});
    setFeedback(assignmentId===null?'تم تفريغ الخانة في المعاينة.':'تم توزيع الحصة في المعاينة. يمكنك متابعة بقية الخانات مباشرة.');
    setError('');
+ };
+ const reloadSaved=async()=>{
+   const res=await api.get<{draft:Draft|null}>(endpoints.admin.classTimetableDraft(classId));
+   if(!res.success||!res.data.draft)throw new Error('تعذر إعادة قراءة المسودة من الخدمة.');
+   const nextDraft=res.data.draft;
+   const ctx=await api.get<Context>(endpoints.admin.timetableSetupContext,{
+     class_id:classId,draft_id:nextDraft.draft_id,
+   });
+   if(!ctx.success)throw new Error('تعذر تحديث حالة استعمال الزمان.');
+   setDraft(nextDraft);setContext(ctx.data);
+ };
+ const bindDraft=async()=>{
+   if(!draft||!context?.config?.id||saving)return;
+   if(draft.lines.length){
+     setSaveMessage('تحتوي المسودة على حصص قديمة، ويلزم فحصها قبل ربطها بإعداد آخر.');
+     return;
+   }
+   if(!window.confirm('هل تريد ربط هذه المسودة بإعداد استعمال الزمان المعتمد؟ لن تُضاف أو تُنشر أي حصة.'))return;
+   setSaving(true);setSaveMessage('');
+   try{
+     const result=await api.post<{draft:Draft}>(
+       `/api/v1/admin/classes/${classId}/timetable-draft/bind-config`,
+       {draft_id:draft.draft_id,config_id:context.config.id,expected_write_date:draft.write_date},
+     );
+     if(!result.success){setSaveMessage('تعذر ربط المسودة. تأكد من نشر تحديث الخدمة وصحة صلاحياتك، ثم أعد المحاولة.');return}
+     await reloadSaved();
+     setSaveMessage('تم ربط المسودة بالإعداد المعتمد. يمكنك الآن حفظ التوزيع.');
+   }catch{setSaveMessage('تعذر تأكيد ربط المسودة. أعد فتح القسم للتحقق من حالتها.')}
+   finally{setSaving(false)}
+ };
+ const saveDraft=async()=>{
+   if(!draft||!context||saveBlocked||saving)return;
+   const changes=buildStudioSaveChanges(grid,pending);
+   if(!changes.lines.length&&!changes.delete_line_ids.length){
+     setSaveMessage('لا توجد حصص جديدة أو معدلة تستدعي الحفظ.');
+     return;
+   }
+   setSaving(true);setSaveMessage('');
+   try{
+     const result=await api.post<{draft:Draft;bulk_result:{errors:Array<unknown>}}>(
+       `/api/v1/admin/classes/${classId}/timetable-draft/studio-save`,
+       {draft_id:draft.draft_id,expected_write_date:draft.write_date,...changes},
+     );
+     if(!result.success || result.data.bulk_result?.errors?.length){
+       setSaveMessage('لم يكتمل الحفظ. لم نؤكد أي تغيير؛ راجع الحصص والنسخة الحالية للمسودة.');
+       return;
+     }
+     await reloadSaved();
+     setPending({});setHistory([]);
+     setSaveMessage('حُفظت المسودة بنجاح بعد تأكيد الخدمة وإعادة قراءة الحصص.');
+   }catch{setSaveMessage('تعذر تأكيد الحفظ. راجع المسودة الحالية قبل إعادة المحاولة.')}
+   finally{setSaving(false)}
  };
  const resetPreview=()=>{
    if(previewCount && !window.confirm('إلغاء جميع تعديلات المعاينة غير المحفوظة؟'))return;
@@ -101,7 +156,7 @@ function Studio(){
   {error&&<div role="alert" className={styles.warning}>{error} <button type="button" onClick={()=>{setError('');setClassId(0)}}>إعادة المحاولة</button></div>}
   {ready&&context&&<div className={styles.workspace}>
     {!context.setup_complete&&<div role="alert" className={styles.warning}><strong>إعداد استعمال الزمان غير مكتمل</strong><p>يجب إكمال الأيام الدراسية والفترات قبل توزيع الحصص.</p><Link href="/admin/timetable/setup">فتح إعداد الأيام والفترات ←</Link></div>}
-    {saveBlocked&&<div className={styles.statusNote} role="status"><span aria-hidden="true">◈</span><div><strong>التوزيع التجريبي متاح الآن</strong><p>يمكنك إضافة الحصص وتغييرها والتراجع عنها داخل هذه الصفحة. حفظ المسودة في المؤسسة غير متاح مؤقتًا إلى حين اكتمال ربط إعداد التوقيت؛ لن تُرسل تعديلاتك دون إجراء حفظ صريح.</p></div></div>}
+    {saveBlocked&&<div className={styles.statusNote} role="status"><span aria-hidden="true">◈</span><div><strong>التوزيع التجريبي متاح الآن</strong><p>يمكنك إضافة الحصص وتغييرها والتراجع عنها داخل هذه الصفحة. يمكنك تجهيز الجدول الآن. لن تُرسل تعديلاتك حتى تضغط «حفظ المسودة»؛ وقد تحتاج المسودة إلى ربط بإعداد التوقيت أولًا.</p></div></div>}
     <div className={styles.workspaceStats}><span><strong>{periods.length}</strong> فترات معتمدة</span><span><strong>{assignments.length}</strong> إسنادات متاحة</span><span><strong>{previewCount}</strong> تعديلات قيد التجربة</span><div className={styles.quickActions}><button type="button" disabled={!history.length} onClick={revert}>↶ تراجع</button><button type="button" disabled={!previewCount} onClick={resetPreview}>إلغاء التعديلات</button></div></div>
 
     <div className={styles.assignments}>
@@ -143,7 +198,11 @@ function Studio(){
       </div>
     </div>
     {feedback&&<p role="status" className={styles.feedback}>{feedback}</p>}
-    <div className={styles.bottomBar}><div><strong>معاينة قابلة للتعديل</strong><p>التعديلات الحالية محفوظة داخل الصفحة مؤقتًا فقط، وستُفقد عند تغيير القسم أو تحديث الصفحة.</p></div><button type="button" disabled title="حفظ الجدول غير متاح حتى اكتمال ربط الإعداد بالمسودة">حفظ استعمال الزمان · قريبًا</button></div>
+    <div className={styles.bottomBar}><div><strong>{previewCount?'لديك تغييرات غير محفوظة':'مسودة استعمال الزمان'}</strong><p>احفظ توزيع الحصص لتعود إليه لاحقًا. الحفظ لا يعني اعتماد الجدول أو نشره.</p></div><div className={styles.composerActions}>
+       {needsBinding&&<button type="button" onClick={()=>void bindDraft()} disabled={saving||!draft||draft.lines.length>0}>ربط المسودة بالإعداد</button>}
+       <button type="button" className={styles.primaryAction} disabled={saving||saveBlocked||previewCount===0} onClick={()=>void saveDraft()}>{saving?'جارٍ التحقق…':'حفظ المسودة'}</button>
+       </div></div>
+    {saveMessage&&<p role="status" className={styles.feedback}>{saveMessage}</p>}
 
    </div>}
  </main>;
