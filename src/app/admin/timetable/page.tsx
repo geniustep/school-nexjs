@@ -22,7 +22,7 @@ export default function AdminTimetablePage() {
     <RequireAdminPermission permission="view_timetable">
       <div className="admin-workspace">
         <PageHeader title={t('timetable.title')} subtitle={t('admin.timetableDesc')} />
-        <nav aria-label="إجراءات استعمال الزمان" className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <nav aria-label="إجراءات استعمال الزمان" className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
           {canManage ? (
             <Link href="/admin/timetable/setup" className="group flex min-h-32 flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 no-underline transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
               <span aria-hidden="true" className="text-xl">⚙️</span>
@@ -30,6 +30,11 @@ export default function AdminTimetablePage() {
               <span className="text-sm text-[var(--muted-foreground)]">ضبط أيام الدراسة والحصص والاستراحات دون اختيار قسم.</span>
             </Link>
           ) : null}
+          <Link href="/admin/timetable/studio" className="group flex min-h-32 flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 no-underline transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
+            <span aria-hidden="true" className="text-xl">🧩</span>
+            <strong className="text-base">استوديو استعمال الزمان V3</strong>
+            <span className="text-sm text-[var(--muted-foreground)]">معاينة الشبكة الأسبوعية وتوزيع الإسنادات محليًا، دون حفظ.</span>
+          </Link>
           <Link href="/admin/timetable/bulk" className="group flex min-h-32 flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 no-underline transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]">
             <span aria-hidden="true" className="text-xl">📅</span>
             <strong className="text-base">تحرير حصص الأقسام</strong>
