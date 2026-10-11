@@ -160,28 +160,32 @@ describe('inline teacher replacement from locked assignment cell', () => {
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 
-  it('shows both actions in the occupied cell but never mutates when end is cancelled', async () => {
+  it('shows a compact in-cell confirmation with cancel and no mutation', async () => {
     mount();
     fireEvent.click(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' }));
-    expect(screen.getByRole('dialog')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'common.cancel' }));
+    expect(screen.getByRole('group', { name: 'admin.teacherProfile.inlineEndTitle' })).toBeTruthy();
     expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.queryByLabelText('admin.teacherProfile.inlineEndDate')).toBeNull();
+    expect(mock.apiPost).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'common.cancel' }));
+    expect(screen.queryByRole('group', { name: 'admin.teacherProfile.inlineEndTitle' })).toBeNull();
     expect(mock.apiPost).not.toHaveBeenCalled();
   });
 
-  it('ends only the exact assignment with a reason and date, then refreshes', async () => {
+  it('ends only the exact occupied assignment with automatic reason and date', async () => {
     mock.apiPost.mockResolvedValue({ success: true, data: { warnings: [] } });
     mount();
     fireEvent.click(await screen.findByRole('button', { name: 'admin.teacherProfile.inlineEndAction' }));
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'تغيير توزيع الحصص' } });
-    fireEvent.change(screen.getByLabelText('admin.teacherProfile.inlineEndDate'), {
-      target: { value: '2026-10-10' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherProfile.inlineEndConfirm' }));
-    await waitFor(() => expect(mock.apiPost).toHaveBeenCalledWith(
+    fireEvent.click(screen.getByRole('button', { name: 'admin.teacherProfile.inlineEndQuickAction' }));
+    await waitFor(() => expect(mock.apiPost).toHaveBeenCalledTimes(1));
+    expect(mock.apiPost).toHaveBeenCalledWith(
       '/admin/teaching-assignments/77/end',
-      { reason: 'تغيير توزيع الحصص', effective_to: '2026-10-10' },
-    ));
+      expect.objectContaining({
+        reason: 'إعادة توزيع إسنادات التدريس — إنهاء سريع من ملف الأستاذ',
+        effective_to: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      }),
+    );
     await waitFor(() => expect(mock.reload).toHaveBeenCalled());
   });
 
