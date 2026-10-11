@@ -872,7 +872,7 @@ export function TeacherAssignmentMatrixPicker({
                                       </button>
                                       {endError ? <span role="alert" className="teacher-assignment-matrix__replace-unavailable">{endError}</span> : null}
                                     </span>
-                                  ) :                                   {owner && (canReplace(owner) || canEnd(owner)) ? (
+                                  ) : owner && (canReplace(owner) || canEnd(owner)) ? (
                                     <span className="teacher-assignment-matrix__cell-actions">
                                       {canReplace(owner) ? (
                                         <button type="button" className="teacher-assignment-matrix__replace-button"
