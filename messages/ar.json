@@ -7134,6 +7134,7 @@
       "tabs": {
         "overview": "نظرة عامة",
         "enrollment": "التسجيل الدراسي",
+        "behavior": "السلوك",
         "academic": "النتائج الدراسية",
         "guardians": "أولياء الأمر",
         "documents": "الوثائق",
@@ -7157,6 +7158,10 @@
         "enrollment": {
           "title": "التسجيل الدراسي",
           "description": "عرض التسجيل الحالي والسجل الدراسي السابق للتلميذ."
+        },
+        "behavior": {
+          "title": "السلوك والانضباط",
+          "description": "الرصيد السلوكي السنوي، الأحداث الموثقة، الوقائع الجسيمة وسجل التغييرات."
         },
         "academic": {
           "title": "النتائج الدراسية",
@@ -10491,6 +10496,78 @@
             "notReadySummary": "يوجد {count} تلميذًا غير جاهز لإنشاء الخطة.",
             "ambiguousFailure": "لم يُؤكد نجاح إنشاء الخطة أو فشله. يمكنك إعادة التحقق بنفس المحاولة دون تغيير المعطيات، أو راجع الوضعية المالية."
           }
+        }
+      },
+      "behavior": {
+        "currentBalance": "الرصيد السلوكي الحالي",
+        "academicYear": "السنة الدراسية",
+        "startingBalance": "رصيد البداية",
+        "openIncidents": "وقائع مفتوحة",
+        "policyVersion": "نسخة السياسة",
+        "recordEvent": "تسجيل حدث سلوكي",
+        "recordEventHint": "اختر واقعة محددة يمكن ملاحظتها وتوثيقها. يحدد النظام أثرها تلقائيًا.",
+        "category": "الفئة",
+        "event": "الحدث",
+        "selectEvent": "اختر الحدث",
+        "impact": "الأثر على الرصيد",
+        "note": "الملاحظة",
+        "notePlaceholder": "اكتب وصفًا موجزًا عند الحاجة، ويصبح إلزاميًا للأحداث التي تتطلب توثيقًا.",
+        "noteRequired": "الملاحظة إلزامية لهذا الحدث.",
+        "incidentRequired": "ينشئ واقعة متابعة",
+        "saveEvent": "تسجيل الحدث",
+        "saving": "جارٍ الحفظ…",
+        "recovery": "استعادة الرصيد",
+        "recoveryDesc": "تُستخدم بعد تحسن موثق أو إجراء إصلاحي، ولا تتجاوز 100.",
+        "recoveryAmount": "النقاط المستعادة",
+        "recoveryReason": "سبب الاستعادة",
+        "recoveryReasonRequired": "سبب الاستعادة إلزامي.",
+        "applyRecovery": "اعتماد الاستعادة",
+        "incidents": "الوقائع المفتوحة",
+        "incidentsDesc": "الأحداث الجسيمة التي تحتاج إغلاقًا إداريًا موثقًا.",
+        "resolveIncident": "إغلاق الواقعة",
+        "resolutionNote": "ملاحظة الإغلاق",
+        "resolutionRequired": "ملاحظة الإغلاق إلزامية.",
+        "confirmResolve": "تأكيد الإغلاق",
+        "events": "الأحداث المسجلة",
+        "eventsDesc": "السجل السنوي للأحداث التي أثرت في الرصيد.",
+        "noEvents": "لا توجد أحداث سلوكية مسجلة",
+        "noEventsDesc": "يبدأ التلميذ السنة برصيد 100، ولا يتغير إلا بحدث موثق.",
+        "reversed": "معكوس",
+        "incident": "واقعة",
+        "recordedBy": "سجله",
+        "systemRecord": "سجل نظامي",
+        "reverse": "عكس حدث مسجل خطأ",
+        "reverseReason": "سبب العكس",
+        "reverseReasonRequired": "سبب العكس إلزامي.",
+        "confirmReverse": "تأكيد العكس",
+        "ledger": "سجل الرصيد",
+        "ledgerDesc": "كل حركة خصم أو عكس أو استعادة مع الرصيد الناتج.",
+        "noTransactions": "لا توجد حركات على الرصيد بعد.",
+        "eventSaved": "تم تسجيل الحدث.",
+        "eventReversed": "تم عكس الحدث مع الحفاظ على سجل التدقيق.",
+        "recoverySaved": "تم اعتماد استعادة الرصيد.",
+        "incidentResolved": "تم إغلاق الواقعة.",
+        "actionFailed": "تعذر تنفيذ العملية.",
+        "categories": {
+          "discipline": "السلوك والانضباط العام",
+          "uniform": "الزي والمظهر المدرسي",
+          "homework": "الواجبات والاستعداد للدراسة",
+          "attendance": "الحضور واحترام الوقت",
+          "respect": "الاحترام والعلاقات",
+          "violence": "الشجار والعنف",
+          "property_safety": "الممتلكات والسلامة",
+          "integrity": "النزاهة الدراسية والمدرسية"
+        },
+        "severities": {
+          "minor": "بسيط",
+          "moderate": "متوسط",
+          "serious": "جسيم",
+          "critical": "حرج"
+        },
+        "transactionKinds": {
+          "event": "حدث",
+          "reversal": "عكس",
+          "recovery": "استعادة"
         }
       }
     },

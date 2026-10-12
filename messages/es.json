@@ -6974,6 +6974,7 @@
       "tabs": {
         "overview": "Resumen",
         "enrollment": "Matrícula",
+        "behavior": "Conducta",
         "academic": "Resultados académicos",
         "guardians": "Tutores",
         "documents": "Documentos",
@@ -6997,6 +6998,10 @@
         "enrollment": {
           "title": "Matrícula",
           "description": "Consulte la matrícula actual y el historial académico."
+        },
+        "behavior": {
+          "title": "Conducta y disciplina",
+          "description": "Saldo anual de conducta, eventos documentados, incidentes graves e historial del saldo."
         },
         "academic": {
           "title": "Resultados académicos",
@@ -10264,6 +10269,78 @@
             "notReadySummary": "{count} alumnos no están listos para la creación del plan.",
             "ambiguousFailure": "No se confirmó el éxito o el fallo de la creación del plan. Puede volver a comprobar con el mismo intento sin cambiar los datos, o revisar la situación financiera."
           }
+        }
+      },
+      "behavior": {
+        "currentBalance": "Saldo de conducta actual",
+        "academicYear": "Año escolar",
+        "startingBalance": "Saldo inicial",
+        "openIncidents": "Incidentes abiertos",
+        "policyVersion": "Versión de la política",
+        "recordEvent": "Registrar evento",
+        "recordEventHint": "Seleccione un hecho observable y documentable. El sistema aplica automáticamente su impacto.",
+        "category": "Categoría",
+        "event": "Evento",
+        "selectEvent": "Seleccionar evento",
+        "impact": "Impacto en el saldo",
+        "note": "Nota",
+        "notePlaceholder": "Añada un contexto breve cuando sea necesario. La nota es obligatoria para algunos eventos.",
+        "noteRequired": "Este evento requiere una nota.",
+        "incidentRequired": "Crea un incidente de seguimiento",
+        "saveEvent": "Registrar evento",
+        "saving": "Guardando…",
+        "recovery": "Recuperación del saldo",
+        "recoveryDesc": "Úsela tras una mejora verificada o una acción correctiva. El saldo no supera 100.",
+        "recoveryAmount": "Puntos recuperados",
+        "recoveryReason": "Motivo de recuperación",
+        "recoveryReasonRequired": "El motivo de recuperación es obligatorio.",
+        "applyRecovery": "Aplicar recuperación",
+        "incidents": "Incidentes abiertos",
+        "incidentsDesc": "Eventos graves que requieren un cierre administrativo documentado.",
+        "resolveIncident": "Cerrar incidente",
+        "resolutionNote": "Nota de cierre",
+        "resolutionRequired": "La nota de cierre es obligatoria.",
+        "confirmResolve": "Confirmar cierre",
+        "events": "Eventos registrados",
+        "eventsDesc": "Historial anual de eventos que afectaron el saldo.",
+        "noEvents": "No hay eventos de conducta registrados",
+        "noEventsDesc": "El alumno empieza el año con 100 y el saldo solo cambia mediante eventos documentados.",
+        "reversed": "Revertido",
+        "incident": "Incidente",
+        "recordedBy": "Registrado por",
+        "systemRecord": "Registro del sistema",
+        "reverse": "Revertir evento incorrecto",
+        "reverseReason": "Motivo de reversión",
+        "reverseReasonRequired": "El motivo de reversión es obligatorio.",
+        "confirmReverse": "Confirmar reversión",
+        "ledger": "Historial del saldo",
+        "ledgerDesc": "Cada deducción, reversión o recuperación con el saldo resultante.",
+        "noTransactions": "Aún no hay movimientos de saldo.",
+        "eventSaved": "Evento registrado.",
+        "eventReversed": "Evento revertido conservando la auditoría.",
+        "recoverySaved": "Recuperación aplicada.",
+        "incidentResolved": "Incidente cerrado.",
+        "actionFailed": "No se pudo completar la acción.",
+        "categories": {
+          "discipline": "Conducta y disciplina",
+          "uniform": "Uniforme y presentación",
+          "homework": "Tareas y preparación",
+          "attendance": "Asistencia y puntualidad",
+          "respect": "Respeto y relaciones",
+          "violence": "Peleas y violencia",
+          "property_safety": "Bienes y seguridad",
+          "integrity": "Integridad escolar"
+        },
+        "severities": {
+          "minor": "Leve",
+          "moderate": "Moderado",
+          "serious": "Grave",
+          "critical": "Crítico"
+        },
+        "transactionKinds": {
+          "event": "Evento",
+          "reversal": "Reversión",
+          "recovery": "Recuperación"
         }
       }
     },

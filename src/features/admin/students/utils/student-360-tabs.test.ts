@@ -14,6 +14,7 @@ describe('STUDENT_360_TAB_ORDER', () => {
     expect(STUDENT_360_TAB_ORDER).toEqual([
       'overview',
       'enrollment',
+      'behavior',
       'guardians',
       'finance',
       'documents',
@@ -36,6 +37,10 @@ describe('parseStudent360Tab', () => {
 
   it('activates enrollment from URL', () => {
     expect(parseStudent360Tab('enrollment', available)).toBe('enrollment');
+  });
+
+  it('activates behavior from URL', () => {
+    expect(parseStudent360Tab('behavior', available)).toBe('behavior');
   });
 
   it('activates academic from URL', () => {
@@ -104,6 +109,6 @@ describe('buildAvailableStudent360Tabs', () => {
         showHealth: false,
         showDocuments: true,
       }),
-    ).toEqual(['overview', 'enrollment', 'guardians', 'finance', 'documents', 'academic']);
+    ).toEqual(['overview', 'enrollment', 'behavior', 'guardians', 'finance', 'documents', 'academic']);
   });
 });
