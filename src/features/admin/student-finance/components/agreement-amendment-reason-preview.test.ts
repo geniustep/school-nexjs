@@ -167,6 +167,14 @@ describe('Finance Amendment reason and sparse-period UX contract', () => {
     expect(dialogSource).toContain('mode="included"');
   });
 
+  it('reads included months from matching operational installments and the agreement projection', () => {
+    expect(dialogSource).toContain('agreement.historical_installments ?? []');
+    expect(dialogSource).toContain('item.agreement_line_id === agreementLineId');
+    expect(dialogSource).toContain('const operationalMatch = active.some');
+    expect(dialogSource).toContain('if (!operationalMatch) return false');
+    expect(dialogSource).toContain('projected.length === 0 || projected.some(sameMonth)');
+  });
+
   it('keeps remove service month-free and resolves its effective start internally', () => {
     expect(dialogSource).toContain("candidateForm.operationType === 'cancel_line'");
     expect(dialogSource).toContain("const firstPeriodId = periodOptions[0]?.id");

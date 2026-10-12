@@ -149,24 +149,38 @@ function resolveCurrentIncludedPeriodIds(
   agreementLineId: number | null | undefined,
   periods: AgreementAmendmentPeriodOption[],
 ): string[] {
-  if (!agreementLineId) return [];
-  const scheduled = (agreement?.installments ?? []).filter((item) => {
+  if (!agreementLineId || !agreement) return [];
+  const line = (agreement.lines ?? agreement.source_fees ?? []).find(
+    (candidate) => candidate.id === agreementLineId || candidate.agreement_line_id === agreementLineId,
+  );
+  const serviceId = line?.service_id ?? line?.service?.id;
+  const active = (agreement.installments ?? []).filter((item) => {
     const state = String(item.state ?? '').toLowerCase();
-    return (
-      item.agreement_line_id === agreementLineId &&
-      state !== 'cancelled' &&
-      state !== 'waived'
-    );
+    return state !== 'cancelled' && state !== 'waived';
   });
+  const projected = (agreement.historical_installments ?? []).filter((item) => {
+    const state = String(item.state ?? '').toLowerCase();
+    return item.agreement_line_id === agreementLineId && state !== 'cancelled' && state !== 'waived';
+  });
+  // Operational installments may omit agreement_line_id. Use the agreement projection
+  // to identify the line, then require an operational installment for the same service/month.
+  // Never treat the historical projection as an operational installment by itself.
   return periods
-    .filter((period) =>
-      scheduled.some(
-        (item) =>
-          Boolean(period.periodStart && period.periodEnd) &&
-          item.period_start === period.periodStart &&
-          item.period_end === period.periodEnd,
-      ),
-    )
+    .filter((period) => {
+      if (!period.periodStart || !period.periodEnd) return false;
+      const sameMonth = (item: { period_start?: string | null; period_end?: string | null }) =>
+        item.period_start === period.periodStart && item.period_end === period.periodEnd;
+      const operationalMatch = active.some((item) =>
+        sameMonth(item) &&
+        (item.agreement_line_id === agreementLineId ||
+          (item.agreement_line_id == null &&
+            serviceId != null &&
+            'service' in item &&
+            (item as { service?: { id?: number } }).service?.id === serviceId)),
+      );
+      if (!operationalMatch) return false;
+      return projected.length === 0 || projected.some(sameMonth);
+    })
     .map((period) => String(period.id));
 }
 
