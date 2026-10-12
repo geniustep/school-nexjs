@@ -204,6 +204,9 @@ export function StudentFinanceAgreementAmendmentDialog({
   const { locale } = useLocale();
   const copy = COPY[locale] ?? COPY.en;
   const toast = useToast();
+  // Keep the latest agreement summary without resetting in-progress form edits on refetch.
+  const latestAgreementRef = useRef(agreement);
+  latestAgreementRef.current = agreement;
   const { feeTypes, loading: feeTypesLoading } = useFeeTypeOptions();
   const { rootRef } = useAgreementAmendmentAutoPreview<HTMLFormElement>();
   const previewRequestSeqRef = useRef(0);
@@ -215,6 +218,7 @@ export function StudentFinanceAgreementAmendmentDialog({
   const [formError, setFormError] = useState<string | null>(null);
   const [showApplyConfirm, setShowApplyConfirm] = useState(false);
   const [agreementDetails, setAgreementDetails] = useState<FinancialAgreement | null>(agreement);
+  const [detailsLoadedForAgreementId, setDetailsLoadedForAgreementId] = useState<number | null>(null);
   const [fetchedPeriods, setFetchedPeriods] = useState<AgreementAmendmentPeriodOption[]>([]);
   const [periodsLoading, setPeriodsLoading] = useState(false);
   const [periodsError, setPeriodsError] = useState<string | null>(null);
@@ -273,14 +277,15 @@ export function StudentFinanceAgreementAmendmentDialog({
     setPreviewLoading(false);
     setFormError(null);
     setShowApplyConfirm(false);
-    setAgreementDetails(agreement);
+    setAgreementDetails(latestAgreementRef.current);
+    setDetailsLoadedForAgreementId(null);
     setFetchedPeriods([]);
     setPeriodsError(null);
     setPeriodSelectionInitializedLineId(null);
     setAmbiguousCandidates([]);
     setBlockedPeriodIds([]);
     setDurationEditedByUser(false);
-  }, [open, agreementId, agreement, locale]);
+  }, [open, agreementId, locale]);
 
   useEffect(() => {
     if (!open || agreementId == null) return;
@@ -309,8 +314,13 @@ export function StudentFinanceAgreementAmendmentDialog({
     if (!open || agreementId == null) return;
     let cancelled = false;
     void fetchFinancialAgreement(agreementId).then((res) => {
-      if (cancelled || !res.success || !res.data) return;
+      if (cancelled) return;
+      if (!res.success || !res.data) {
+        setDetailsLoadedForAgreementId(null);
+        return;
+      }
       setAgreementDetails(res.data);
+      setDetailsLoadedForAgreementId(agreementId);
     });
     return () => {
       cancelled = true;
@@ -325,6 +335,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     ) {
       return;
     }
+    if (detailsLoadedForAgreementId !== agreementId) return;
     if (!form.sourceLineId || !modifyPeriodOptions.length) return;
     const initializationKey = `modify_line:${form.sourceLineId}`;
     if (periodSelectionInitializedLineId === initializationKey) return;
@@ -346,6 +357,8 @@ export function StudentFinanceAgreementAmendmentDialog({
     form.operationType,
     form.amendmentPath,
     form.sourceLineId,
+    detailsLoadedForAgreementId,
+    agreementId,
     modifyPeriodOptions,
     periodSelectionInitializedLineId,
     agreementDetails,
