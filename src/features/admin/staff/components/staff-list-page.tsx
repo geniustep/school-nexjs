@@ -28,7 +28,8 @@ import {
 } from '@/features/admin/account/utils/account-filter-query';
 import { canManageStaff } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { AuthenticationActivity } from '@/features/admin/account/components/authentication-activity';
 import { statusLabel } from '@/lib/utils/labels';
 import type { StaffMember } from '@/types/academic-setup';
 import '@/features/admin/staff/staff-center.css';
@@ -37,6 +38,7 @@ export function StaffListPage() {
   const router = useRouter();
   const user = useSession();
   const t = useT();
+  const { locale } = useLocale();
   const canManage = canManageStaff(user);
   const [search, setSearch] = useState('');
   const [accountStatus, setAccountStatus] = useState<AccountStatusValue>('');
@@ -113,6 +115,11 @@ export function StaffListPage() {
         },
       },
       {
+        key: 'authentication-activity',
+        header: locale === 'fr' ? 'Dernière connexion' : locale === 'en' ? 'Last sign-in' : 'آخر تسجيل دخول',
+        render: (member) => <AuthenticationActivity value={member.authentication_activity} locale={locale} />,
+      },
+      {
         key: 'status',
         header: t('common.status'),
         render: (member) => {
@@ -142,7 +149,7 @@ export function StaffListPage() {
         },
       },
     ],
-    [t],
+    [t, locale],
   );
 
   return (
