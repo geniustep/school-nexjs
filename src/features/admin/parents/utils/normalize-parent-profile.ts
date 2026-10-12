@@ -333,6 +333,9 @@ export function normalizeParentProfile(data: unknown): Parent | null {
 
   return {
     id: raw.id,
+    authentication_activity: raw.authentication_activity && typeof raw.authentication_activity === 'object'
+      ? (raw.authentication_activity as Parent['authentication_activity'])
+      : undefined,
     code: guardianCode,
     name,
     name_ar:
