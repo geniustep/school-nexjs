@@ -30,7 +30,6 @@ import { canManageStaff } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { AuthenticationActivity } from '@/features/admin/account/components/authentication-activity';
-import { statusLabel } from '@/lib/utils/labels';
 import type { StaffMember } from '@/types/academic-setup';
 import '@/features/admin/staff/staff-center.css';
 
@@ -42,6 +41,7 @@ export function StaffListPage() {
   const canManage = canManageStaff(user);
   const [search, setSearch] = useState('');
   const [accountStatus, setAccountStatus] = useState<AccountStatusValue>('');
+  const [signInFilter, setSignInFilter] = useState('');
   const staffQuery = useMemo(
     () => ({ limit: 200, ...buildStaffAccountStatusQuery(accountStatus) }),
     [accountStatus],
@@ -62,8 +62,9 @@ export function StaffListPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return listState.staff;
     return listState.staff.filter((member) => {
+      if (signInFilter && member.authentication_activity?.activity_state !== signInFilter) return false;
+      if (!q) return true;
       const haystack = [
         resolveStaffDisplayName(member),
         member.email,
@@ -76,7 +77,7 @@ export function StaffListPage() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [listState.staff, search]);
+  }, [listState.staff, search, signInFilter]);
 
   const columns: Column<StaffMember>[] = useMemo(
     () => [
@@ -121,24 +122,25 @@ export function StaffListPage() {
       },
       {
         key: 'status',
-        header: t('common.status'),
+        header: locale === 'fr' ? 'État du compte' : locale === 'en' ? 'Account status' : 'حالة الحساب',
         render: (member) => {
           const inactive = isStaffInactive(member);
           const hasAccount = Boolean(member.user_id || member.account || member.login);
           const warnings = staffWarningCount(member);
 
-          if (!inactive && hasAccount && warnings === 0) return null;
+          const accountState = member.account?.status ?? member.account_status;
+          const displayState = !hasAccount || accountState === 'no_account' ? 'no_account'
+            : accountState === 'suspended' ? 'suspended'
+              : inactive || accountState === 'inactive' ? 'inactive' : 'active';
+          const names: Record<string, string> = locale === 'fr'
+            ? { active: 'Actif', inactive: 'Inactif', suspended: 'Suspendu', no_account: 'Sans compte' }
+            : locale === 'en'
+              ? { active: 'Active', inactive: 'Inactive', suspended: 'Suspended', no_account: 'No account' }
+              : { active: 'نشط', inactive: 'غير نشط', suspended: 'معلّق', no_account: 'دون حساب' };
 
           return (
             <div className="staff-center-type-badges">
-              {inactive ? (
-                <Badge tone="amber">{statusLabel(t, member.status ?? member.account_status)}</Badge>
-              ) : null}
-              {!hasAccount ? (
-                <Badge tone="slate">
-                  {t('admin.staffCenter.hasAccount')}: {t('common.no')}
-                </Badge>
-              ) : null}
+              <Badge tone={displayState === 'active' ? 'blue' : displayState === 'suspended' ? 'amber' : 'slate'}>{names[displayState]}</Badge>
               {warnings > 0 ? (
                 <Badge tone="amber">
                   {t('admin.staffCenter.warningsCount')}: {warnings}
@@ -189,7 +191,14 @@ export function StaffListPage() {
           <option value="inactive">{t('admin.account.filterInactiveAccount')}</option>
           <option value="suspended">{t('states.suspended')}</option>
         </select>
+        <select className="input" value={signInFilter} onChange={(event) => setSignInFilter(event.target.value)} aria-label={locale === 'fr' ? 'Filtrer les connexions (liste chargée)' : 'تصفية تسجيل الدخول (القائمة المحملة)'}>
+          <option value="">{locale === 'fr' ? 'Toutes les connexions' : 'جميع حالات الدخول'}</option>
+          <option value="authenticated">{locale === 'fr' ? 'Déjà connecté' : 'سجّل الدخول'}</option>
+          <option value="never_authenticated">{locale === 'fr' ? 'Jamais connecté' : 'لم يسجل الدخول بعد'}</option>
+          <option value="no_account">{locale === 'fr' ? 'Sans compte' : 'دون حساب'}</option>
+        </select>
       </div>
+      <p className="tiny muted">{locale === 'fr' ? 'Filtre de connexion appliqué aux lignes chargées.' : 'فلتر الدخول يطبّق على السجلات المحمّلة فقط.'}</p>
 
       <ResourceView
         state={resourceState}
