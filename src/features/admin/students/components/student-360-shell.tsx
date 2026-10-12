@@ -37,6 +37,7 @@ import { Student360TabErrorBoundary } from './student-360-tab-error-boundary';
 import { Student360TabHeader } from './student-360-tab-header';
 import { StudentOverviewTab } from './student-overview-tab';
 import { StudentEnrollmentTab } from './student-enrollment-tab';
+import { StudentBehaviorTab } from './student-behavior-tab';
 import { StudentAcademicResultsTab } from './student-academic-results-tab';
 import { StudentGuardiansTab } from './student-guardians-tab';
 import { StudentDocumentsTab } from './student-documents-tab';
@@ -244,6 +245,12 @@ export function Student360Shell({ studentId }: { studentId: string }) {
             details={resolvedDetails}
             canManage={caps.can_manage && !archived}
             onCreateEnrollment={() => router.push(`/admin/students/${studentId}/edit?tab=schooling`)}
+          />
+        )}
+        {tab === 'behavior' && (
+          <StudentBehaviorTab
+            studentId={s.id}
+            canManage={caps.can_manage && !archived}
           />
         )}
         {tab === 'academic' && <StudentAcademicResultsTab details={resolvedDetails} />}
