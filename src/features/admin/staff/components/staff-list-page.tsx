@@ -129,7 +129,7 @@ export function StaffListPage() {
           const warnings = staffWarningCount(member);
 
           const accountState = member.account?.status ?? member.account_status;
-          const displayState = !hasAccount || accountState === 'no_account' ? 'no_account'
+          const displayState = !hasAccount || accountState === 'not_created' ? 'no_account'
             : accountState === 'suspended' ? 'suspended'
               : inactive || accountState === 'inactive' ? 'inactive' : 'active';
           const names: Record<string, string> = locale === 'fr'
