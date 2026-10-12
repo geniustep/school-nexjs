@@ -6974,6 +6974,7 @@
       "tabs": {
         "overview": "Aperçu",
         "enrollment": "Inscription",
+        "behavior": "Comportement",
         "academic": "Résultats académiques",
         "guardians": "Responsables",
         "documents": "Documents",
@@ -6997,6 +6998,10 @@
         "enrollment": {
           "title": "Inscription",
           "description": "Consultez l'inscription actuelle et l'historique scolaire."
+        },
+        "behavior": {
+          "title": "Comportement et discipline",
+          "description": "Solde comportemental annuel, événements documentés, incidents et historique des mouvements."
         },
         "academic": {
           "title": "Résultats académiques",
@@ -10283,6 +10288,78 @@
             "notReadySummary": "{count} élèves ne sont pas prêts pour la création du plan.",
             "ambiguousFailure": "Le succès ou l’échec de la création du plan n’a pas été confirmé. Vous pouvez revérifier avec la même tentative sans changer les données, ou consulter la situation financière."
           }
+        }
+      },
+      "behavior": {
+        "currentBalance": "Solde comportemental actuel",
+        "academicYear": "Année scolaire",
+        "startingBalance": "Solde initial",
+        "openIncidents": "Incidents ouverts",
+        "policyVersion": "Version de la politique",
+        "recordEvent": "Enregistrer un événement",
+        "recordEventHint": "Sélectionnez un fait observable et documentable. Son impact est défini automatiquement.",
+        "category": "Catégorie",
+        "event": "Événement",
+        "selectEvent": "Sélectionner un événement",
+        "impact": "Impact sur le solde",
+        "note": "Note",
+        "notePlaceholder": "Ajoutez un bref contexte si nécessaire. La note est obligatoire pour certains événements.",
+        "noteRequired": "Une note est obligatoire pour cet événement.",
+        "incidentRequired": "Crée un incident de suivi",
+        "saveEvent": "Enregistrer",
+        "saving": "Enregistrement…",
+        "recovery": "Récupération du solde",
+        "recoveryDesc": "À utiliser après une amélioration vérifiée ou une mesure corrective, sans dépasser 100.",
+        "recoveryAmount": "Points récupérés",
+        "recoveryReason": "Motif de récupération",
+        "recoveryReasonRequired": "Le motif de récupération est obligatoire.",
+        "applyRecovery": "Valider la récupération",
+        "incidents": "Incidents ouverts",
+        "incidentsDesc": "Événements graves nécessitant une clôture administrative documentée.",
+        "resolveIncident": "Clôturer l’incident",
+        "resolutionNote": "Note de clôture",
+        "resolutionRequired": "La note de clôture est obligatoire.",
+        "confirmResolve": "Confirmer la clôture",
+        "events": "Événements enregistrés",
+        "eventsDesc": "Historique annuel des événements ayant affecté le solde.",
+        "noEvents": "Aucun événement comportemental enregistré",
+        "noEventsDesc": "L’élève commence l’année à 100 et le solde ne change qu’après un événement documenté.",
+        "reversed": "Annulé",
+        "incident": "Incident",
+        "recordedBy": "Enregistré par",
+        "systemRecord": "Enregistrement système",
+        "reverse": "Annuler un événement erroné",
+        "reverseReason": "Motif de l’annulation",
+        "reverseReasonRequired": "Le motif de l’annulation est obligatoire.",
+        "confirmReverse": "Confirmer l’annulation",
+        "ledger": "Historique du solde",
+        "ledgerDesc": "Chaque débit, annulation ou récupération avec le solde obtenu.",
+        "noTransactions": "Aucun mouvement de solde pour le moment.",
+        "eventSaved": "Événement enregistré.",
+        "eventReversed": "Événement annulé avec conservation de la piste d’audit.",
+        "recoverySaved": "Récupération du solde validée.",
+        "incidentResolved": "Incident clôturé.",
+        "actionFailed": "Impossible d’exécuter l’action.",
+        "categories": {
+          "discipline": "Comportement et discipline",
+          "uniform": "Tenue et présentation",
+          "homework": "Devoirs et préparation",
+          "attendance": "Présence et ponctualité",
+          "respect": "Respect et relations",
+          "violence": "Bagarres et violence",
+          "property_safety": "Biens et sécurité",
+          "integrity": "Intégrité scolaire"
+        },
+        "severities": {
+          "minor": "Mineur",
+          "moderate": "Modéré",
+          "serious": "Grave",
+          "critical": "Critique"
+        },
+        "transactionKinds": {
+          "event": "Événement",
+          "reversal": "Annulation",
+          "recovery": "Récupération"
         }
       }
     },

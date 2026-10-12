@@ -6974,6 +6974,7 @@
       "tabs": {
         "overview": "Overview",
         "enrollment": "Enrollment",
+        "behavior": "Behavior",
         "academic": "Academic results",
         "guardians": "Guardians",
         "documents": "Documents",
@@ -6997,6 +6998,10 @@
         "enrollment": {
           "title": "Enrollment",
           "description": "View the current enrollment and prior academic history for this student."
+        },
+        "behavior": {
+          "title": "Behavior & discipline",
+          "description": "Annual behavior balance, documented events, serious incidents, and score history."
         },
         "academic": {
           "title": "Academic results",
@@ -10264,6 +10269,78 @@
             "notReadySummary": "{count} students are not ready for plan creation.",
             "ambiguousFailure": "Plan creation success or failure was not confirmed. You may re-check with the same attempt without changing inputs, or review the financial situation."
           }
+        }
+      },
+      "behavior": {
+        "currentBalance": "Current behavior balance",
+        "academicYear": "Academic year",
+        "startingBalance": "Starting balance",
+        "openIncidents": "Open incidents",
+        "policyVersion": "Policy version",
+        "recordEvent": "Record behavior event",
+        "recordEventHint": "Choose a specific observable event. The system applies its governed score impact automatically.",
+        "category": "Category",
+        "event": "Event",
+        "selectEvent": "Select an event",
+        "impact": "Score impact",
+        "note": "Note",
+        "notePlaceholder": "Add brief context when needed. A note is mandatory for events that require documentation.",
+        "noteRequired": "A note is required for this event.",
+        "incidentRequired": "Creates a follow-up incident",
+        "saveEvent": "Record event",
+        "saving": "Saving…",
+        "recovery": "Score recovery",
+        "recoveryDesc": "Use after verified improvement or a corrective action. The balance never exceeds 100.",
+        "recoveryAmount": "Recovered points",
+        "recoveryReason": "Recovery reason",
+        "recoveryReasonRequired": "A recovery reason is required.",
+        "applyRecovery": "Apply recovery",
+        "incidents": "Open incidents",
+        "incidentsDesc": "Serious events that require a documented administrative closure.",
+        "resolveIncident": "Resolve incident",
+        "resolutionNote": "Resolution note",
+        "resolutionRequired": "A resolution note is required.",
+        "confirmResolve": "Confirm resolution",
+        "events": "Recorded events",
+        "eventsDesc": "Annual history of events that affected the score.",
+        "noEvents": "No behavior events recorded",
+        "noEventsDesc": "The student starts the year at 100. The balance changes only through documented events.",
+        "reversed": "Reversed",
+        "incident": "Incident",
+        "recordedBy": "Recorded by",
+        "systemRecord": "System record",
+        "reverse": "Reverse incorrect event",
+        "reverseReason": "Reversal reason",
+        "reverseReasonRequired": "A reversal reason is required.",
+        "confirmReverse": "Confirm reversal",
+        "ledger": "Score ledger",
+        "ledgerDesc": "Every deduction, reversal, or recovery with the resulting balance.",
+        "noTransactions": "No score transactions yet.",
+        "eventSaved": "Event recorded.",
+        "eventReversed": "Event reversed while preserving the audit trail.",
+        "recoverySaved": "Score recovery applied.",
+        "incidentResolved": "Incident resolved.",
+        "actionFailed": "The action could not be completed.",
+        "categories": {
+          "discipline": "Behavior & discipline",
+          "uniform": "Uniform & appearance",
+          "homework": "Homework & readiness",
+          "attendance": "Attendance & time",
+          "respect": "Respect & relationships",
+          "violence": "Fights & violence",
+          "property_safety": "Property & safety",
+          "integrity": "Academic & school integrity"
+        },
+        "severities": {
+          "minor": "Minor",
+          "moderate": "Moderate",
+          "serious": "Serious",
+          "critical": "Critical"
+        },
+        "transactionKinds": {
+          "event": "Event",
+          "reversal": "Reversal",
+          "recovery": "Recovery"
         }
       }
     },
