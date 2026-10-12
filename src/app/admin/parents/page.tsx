@@ -112,7 +112,7 @@ export default function AdminParentsPage() {
     <ParentsListFilters search={search} statusFilter={statusFilter} accountFilter={accountFilter} childrenFilter={childrenFilter} relationshipFilter={relationshipFilter} languageFilter={languageFilter} hideWithoutChildren={hideWithoutChildren} hasActiveFilters={hasActiveFilters} onSearchChange={setSearch} onSearchClear={clearSearch} onStatusFilterChange={setStatusFilter} onAccountFilterChange={setAccountFilter} onChildrenFilterChange={setChildrenFilter} onRelationshipFilterChange={setRelationshipFilter} onLanguageFilterChange={setLanguageFilter} onHideWithoutChildrenChange={setHideWithoutChildren} onReset={resetFilters} />
     {state.fetching ? <p className="parents-list__fetching-hint" aria-live="polite">{t('admin.parentsList.refetching')}</p> : null}
     <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={() => !state.loading && families.length === 0} empty={listEmptyState}>
-      {() => <><ParentsFamilyList families={families} />{pg ? <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} pageSize={PARENTS_PAGE_SIZE} onPage={setPage} /> : null}</>}
+      {() => <><ParentsFamilyList families={families} activityFilter={activityFilter} />{pg ? <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} pageSize={PARENTS_PAGE_SIZE} onPage={setPage} /> : null}</>}
     </ResourceView>
   </div>;
 }
