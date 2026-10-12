@@ -26,6 +26,7 @@ describe('Student 360 header + tabs shell UX1', () => {
     expect(STUDENT_360_TAB_ORDER).toEqual([
       'overview',
       'enrollment',
+      'behavior',
       'guardians',
       'finance',
       'documents',
@@ -36,6 +37,7 @@ describe('Student 360 header + tabs shell UX1', () => {
 
   it('preserves URL tab keys and deep links', () => {
     expect(buildStudent360TabHref(2081, 'overview')).toBe('/admin/students/2081');
+    expect(buildStudent360TabHref(2081, 'behavior')).toBe('/admin/students/2081?tab=behavior');
     expect(buildStudent360TabHref(2081, 'finance')).toBe('/admin/students/2081?tab=finance');
     expect(buildStudent360TabHref(2081, 'academic')).toBe('/admin/students/2081?tab=academic');
     expect(parseStudent360Tab('finance', [...STUDENT_360_TAB_ORDER])).toBe('finance');
@@ -48,7 +50,7 @@ describe('Student 360 header + tabs shell UX1', () => {
         showHealth: false,
         showDocuments: true,
       }),
-    ).toEqual(['overview', 'enrollment', 'guardians', 'finance', 'documents', 'academic']);
+    ).toEqual(['overview', 'enrollment', 'behavior', 'guardians', 'finance', 'documents', 'academic']);
   });
 
   it('keeps edit as the only visible secondary action and parks rare actions in overflow', () => {

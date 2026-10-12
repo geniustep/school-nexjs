@@ -70,6 +70,14 @@ export const endpoints = {
     studentPostRegistrationSetup: (id: number | string) =>
       `/admin/students/${id}/post-registration-setup`,
     studentOverview: (id: number | string) => `/admin/students/${id}/overview`,
+    studentBehaviorEventTypes: '/admin/students/behavior-event-types',
+    studentBehavior: (id: number | string) => `/admin/students/${id}/behavior`,
+    studentBehaviorEvents: (id: number | string) => `/admin/students/${id}/behavior/events`,
+    studentBehaviorEventReverse: (studentId: number | string, eventId: number | string) =>
+      `/admin/students/${studentId}/behavior/events/${eventId}/reverse`,
+    studentBehaviorRecovery: (id: number | string) => `/admin/students/${id}/behavior/recovery`,
+    studentBehaviorIncidentResolve: (studentId: number | string, incidentId: number | string) =>
+      `/admin/students/${studentId}/behavior/incidents/${incidentId}/resolve`,
     studentUpdate: (id: number | string) => `/admin/students/${id}/update`,
     studentAcademicPlacementCorrect: (id: number | string) =>
       `/admin/students/${id}/academic-placement/correct`,
