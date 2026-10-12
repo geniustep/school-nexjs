@@ -88,8 +88,8 @@ function Studio(){
    setFeedback(assignmentId===null?'تم تفريغ الخانة في المعاينة.':'تم توزيع الحصة في المعاينة. يمكنك متابعة بقية الخانات مباشرة.');
    setError('');
  };
- const reloadSaved=async()=>{
-   const res=await api.get<{draft:Draft|null}>(endpoints.admin.classTimetableDraft(classId));
+ const reloadSaved=async(explicitDraftId?:number)=>{
+   const res=await api.get<{draft:Draft|null}>(endpoints.admin.classTimetableDraft(classId),explicitDraftId?{draft_id:explicitDraftId}:undefined);
    if(!res.success||!res.data.draft)throw new Error('تعذر إعادة قراءة المسودة من الخدمة.');
    const nextDraft=res.data.draft;
    const ctx=await api.get<Context>(endpoints.admin.timetableSetupContext,{
@@ -170,7 +170,7 @@ function Studio(){
    try{
      const result=await api.post<{draft:Draft}>(endpoints.admin.classTimetableDraftPublish(classId),{draft_id:draft.draft_id,expected_write_date:draft.write_date});
      if(!result.success){setSaveMessage('تعذر نشر المسودة. تحقق من صلاحية النشر ومن النسخة الحالية.');return}
-     await reloadSaved();
+     await reloadSaved(draft.draft_id);
      setSaveMessage('تم نشر استعمال الزمن لهذا القسم بعد تأكيد الخدمة.');
    }catch{setSaveMessage('تعذر تأكيد النشر؛ راجع حالة القسم قبل إعادة المحاولة.')}
    finally{setSaving(false)}
@@ -248,7 +248,7 @@ function Studio(){
     <div className={styles.bottomBar}><div><strong>{previewCount?'لديك تغييرات غير محفوظة':'مسودة استعمال الزمان'}</strong><p>احفظ توزيع الحصص لتعود إليه لاحقًا. الحفظ لا يعني اعتماد الجدول أو نشره.</p></div><div className={styles.composerActions}>
        {!draft&&<button type="button" onClick={()=>void openDraft()} disabled={saving}>فتح مسودة للقسم</button>}
        {needsBinding&&<button type="button" onClick={()=>void bindDraft()} disabled={saving||!draft||draft.lines.length>0}>ربط المسودة بالإعداد</button>}
-       <button type="button" className={styles.primaryAction} disabled={saving||saveBlocked||previewCount===0||!canManage} onClick={()=>void saveDraft()}>{saving?'جارٍ تنفيذ العملية…':'حفظ المسودة'}</button>
+       <button type="button" className={styles.primaryAction} disabled={saving||saveBlocked||previewCount===0||!canManage||draft?.state==='published'} onClick={()=>void saveDraft()}>{saving?'جارٍ تنفيذ العملية…':'حفظ المسودة'}</button>
        <button type="button" disabled={saving||saveBlocked||previewCount>0||!canManage||draft?.state==='published'} onClick={()=>void reviewDraft()}>التحقق من المسودة</button>
        <button type="button" disabled={saving||saveBlocked||previewCount>0||!canPublish||!draft?.can_publish} onClick={()=>void publishDraft()}>نشر هذا القسم</button>
        </div></div>
