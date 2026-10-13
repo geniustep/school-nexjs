@@ -13358,12 +13358,12 @@
         "collectionRate": "Tasa de cobro",
         "remaining": "Pendiente",
         "loadingAging": "Cargando antigüedad de saldos…",
-        "agingTitle": "Antigüedad de saldos",
+        "agingTitle": "Importes pendientes",
         "agingSubtitle": "Saldo abierto agrupado por antigüedad actual del atraso.",
         "agingUnavailableTitle": "El aging no puede mostrarse de forma fiable",
         "outstanding": "Saldo abierto total",
         "aging": {
-          "current": "No atrasado",
+          "current": "Importes que aún no están vencidos",
           "1_30": "1–30 días",
           "31_60": "31–60 días",
           "61_90": "61–90 días",
@@ -13445,16 +13445,20 @@
         "loadingContext": "Cargando contexto financiero…",
         "yearRequiredTitle": "Se requiere un año académico",
         "yearRequiredDesc": "El Centro de mando financiero exige un año académico explícito para no mezclar periodos financieros diferentes.",
-        "performanceBasis": "Importes agrupados por mes de vencimiento, no por fecha de cobro.",
+        "performanceBasis": "Cada mes muestra los cargos que vencen en ese mes y lo pagado hasta hoy.",
         "paidInAdvance": "Pagado por adelantado",
         "selectMonth": "Elegir mes",
         "shareOfOverdue": "de los atrasos",
         "nonPeriodic": {
-          "title": "Cuotas no periódicas",
-          "count": "Número de cuotas",
-          "paid": "Pagado"
+          "title": "Otros cargos",
+          "count": "Número de cargos registrados",
+          "paid": "Pagado",
+          "total": "Total de cargos",
+          "remaining": "Pendiente de cobro",
+          "helpLabel": "¿Qué significa?",
+          "description": "Cargos registrados fuera del calendario de cuotas mensuales."
         },
-        "overdueBreakdown": "Distribución de cuotas vencidas",
+        "overdueBreakdown": "Atrasos según su antigüedad",
         "performanceBasisHelp": "¿Cómo se calculan estos importes?",
         "attentionUnit": {
           "arrears_90_plus": "cuentas de pago",
@@ -13466,7 +13470,8 @@
           "incoming_cheques_rejected": "cheques",
           "finance_data_quality": "incidencias",
           "other": "elementos"
-        }
+        },
+        "arrearsAccountsCountLabel": "Cuentas de pago afectadas:"
       }
     },
     "guardianAccount": {
