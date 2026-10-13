@@ -32,10 +32,11 @@ describe('Finance Command Center decision intelligence UI contract', () => {
     expect(sheet.match(/keepPreviousData: false/g) ?? []).toHaveLength(2);
   });
 
-  it('defaults comparison to backend as-of previous and current months without selectors or client-side deltas', () => {
-    expect(page).toContain('comparisonPeriodKeys(data.meta.as_of_date)');
-    expect(page).toContain("admin.finance.commandCenter.period.previous_month");
-    expect(page).toContain("admin.finance.commandCenter.decision.currentMonthToDate");
+  it('compares only two fully elapsed months when the full academic year is selected', () => {
+    expect(page).toContain("period.preset !== 'academic_year'");
+    expect(page).toContain('item.period < data.meta.as_of_date.slice(0, 7)');
+    expect(page).toContain('if (elapsed.length < 2) return null');
+    expect(page).not.toContain('comparisonPeriodKeys(data.meta.as_of_date)');
     expect(page).not.toContain('fcc-month-comparison__selectors');
     expect(page).not.toMatch(/delta|growth|variancePercent|differenceAmount/);
   });
@@ -46,17 +47,17 @@ describe('Finance Command Center decision intelligence UI contract', () => {
     expect(sheet).toContain('rateNoDuplicateTable');
   });
 
-  it('links exact records to the governed student finance workspace with a safe return path', () => {
-    expect(sheet).toContain("/admin/students/${studentId}?tab=finance");
-    expect(sheet).toContain("encodeURIComponent('/admin/finance/command-center')");
-    expect(sheet).toContain('admin.finance.commandCenter.decision.openStudentFinance');
-  });
-
   it('uses metric-specific financial columns instead of one repeated records table', () => {
     expect(sheet).toContain("metricKey === 'due_to_date'");
     expect(sheet).toContain("metricKey === 'recognized_collected_to_date'");
     expect(sheet).toContain("metricKey === 'overdue'");
     expect(sheet).toContain("metricKey === 'aging'");
     expect(sheet).toContain("metricKey === 'collection_performance'");
+  });
+
+  it('links exact records to the governed student finance workspace with a safe return path', () => {
+    expect(sheet).toContain("/admin/students/${studentId}?tab=finance");
+    expect(sheet).toContain("encodeURIComponent('/admin/finance/command-center')");
+    expect(sheet).toContain('admin.finance.commandCenter.decision.openStudentFinance');
   });
 });
