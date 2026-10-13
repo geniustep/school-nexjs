@@ -1,0 +1,55 @@
+/** @raqeem-design docs/design/RAQEEM-DESIGN.md — scoped Finance workspace. */
+.expenses-readiness {
+  display: grid;
+  gap: 16px;
+}
+.expenses-readiness__return {
+  width: fit-content;
+  color: var(--raqeem-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.expenses-readiness__header .page-header { margin: 0; }
+.expenses-readiness__intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.expenses-readiness__check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.expenses-readiness__check-card {
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+.expenses-readiness__check-label {
+  font-size: 13px;
+  color: var(--c-text-muted);
+  line-height: 1.5;
+}
+.expenses-readiness__status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.expenses-readiness__footnote {
+  color: var(--c-text-muted);
+  font-size: 13px;
+  line-height: 1.65;
+  max-width: 74ch;
+}
+.expenses-readiness__identity { font-size: 13px; color: var(--c-text-muted); }
+.expenses-readiness__refresh { white-space: nowrap; }
+@media (max-width: 780px) {
+  .expenses-readiness__check-grid { grid-template-columns: 1fr; }
+  .expenses-readiness__check-card { min-height: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .expenses-readiness *, .expenses-readiness *::before, .expenses-readiness *::after {
+    transition: none !important;
+  }
+}
