@@ -68,7 +68,7 @@ describe('Finance sidebar workspace contract', () => {
 
     const ar = messages('ar').nav;
     expect(ar.financeHub).toBe('مركز المالية');
-    expect(ar.financeCommandCenter).toBe('مركز القيادة');
+    expect(ar.financeCommandCenter).toBe('لوحة القيادة المالية');
     expect(ar.financeCollectionsCash).toBe('التحصيل والصندوق');
     expect(ar.financeArrearsFollowup).toBe('المتأخرات والمتابعة');
     expect(ar.financeInstallmentsAccounts).toBe('الأقساط والحسابات');
