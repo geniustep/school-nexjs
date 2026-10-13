@@ -13694,7 +13694,21 @@
         "shareOfOverdue": "من المتأخرات",
         "nonPeriodic": {
           "title": "واجبات غير دورية",
-          "count": "عدد الواجبات"
+          "count": "عدد الواجبات",
+          "paid": "المؤدى"
+        },
+        "overdueBreakdown": "توزيع الواجبات المتأخرة",
+        "performanceBasisHelp": "كيف احتُسبت هذه المبالغ؟",
+        "attentionUnit": {
+          "arrears_90_plus": "حساب أداء",
+          "due_next_7_days": "قسط",
+          "payment_promises_open": "وعد أداء",
+          "followups_due_today": "متابعة",
+          "followups_overdue": "متابعة",
+          "collection_unallocated": "عملية أداء",
+          "incoming_cheques_rejected": "شيك",
+          "finance_data_quality": "حالة",
+          "other": "حالة"
         }
       }
     },

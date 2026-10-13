@@ -13447,7 +13447,21 @@
         "shareOfOverdue": "de los atrasos",
         "nonPeriodic": {
           "title": "Cuotas no periódicas",
-          "count": "Número de cuotas"
+          "count": "Número de cuotas",
+          "paid": "Pagado"
+        },
+        "overdueBreakdown": "Distribución de cuotas vencidas",
+        "performanceBasisHelp": "¿Cómo se calculan estos importes?",
+        "attentionUnit": {
+          "arrears_90_plus": "cuentas de pago",
+          "due_next_7_days": "cuotas",
+          "payment_promises_open": "promesas",
+          "followups_due_today": "seguimientos",
+          "followups_overdue": "seguimientos",
+          "collection_unallocated": "cobros",
+          "incoming_cheques_rejected": "cheques",
+          "finance_data_quality": "incidencias",
+          "other": "elementos"
         }
       }
     },
