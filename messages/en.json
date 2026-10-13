@@ -143,7 +143,7 @@
     "teachingPlanning": "Pedagogical planning",
     "teachingAssignments": "Teaching assignments",
     "staffAttendance": "Staff attendance",
-    "financeCommandCenter": "Command center",
+    "financeCommandCenter": "Financial dashboard",
     "financeCollectionsCash": "Collections & cash desk",
     "financeArrearsFollowup": "Arrears & follow-up",
     "financeInstallmentsAccounts": "Installments & accounts",
@@ -13295,8 +13295,8 @@
       "billingPartyGuardian": "Guardian",
       "billingPartyCustom": "Custom party",
       "commandCenter": {
-        "backToFinance": "Back to Finance Center",
-        "title": "Finance Command Center",
+        "backToFinance": "Finance",
+        "title": "Financial dashboard",
         "subtitle": "A trusted decision view of dues, recognized collections, arrears and priorities, backed by Raqeem’s financial source of truth.",
         "refresh": "Refresh data",
         "refreshing": "Refreshing…",
@@ -13312,7 +13312,8 @@
           "academic_year": "Academic year",
           "this_month": "This month",
           "previous_month": "Previous month",
-          "custom": "Custom period"
+          "custom": "Custom period",
+          "month": "Choose a month"
         },
         "dateFrom": "From",
         "dateTo": "To",
@@ -13438,7 +13439,15 @@
         "openAction": "Open workspace",
         "loadingContext": "Loading financial context…",
         "yearRequiredTitle": "Academic year required",
-        "yearRequiredDesc": "The Finance Command Center requires an explicit academic year so financial periods are never mixed."
+        "yearRequiredDesc": "The Finance Command Center requires an explicit academic year so financial periods are never mixed.",
+        "performanceBasis": "Amounts are grouped by installment due month, not by payment receipt date.",
+        "paidInAdvance": "Paid in advance",
+        "selectMonth": "Select a month",
+        "shareOfOverdue": "of overdue",
+        "nonPeriodic": {
+          "title": "Non-periodic fees",
+          "count": "Fee count"
+        }
       }
     },
     "guardianAccount": {

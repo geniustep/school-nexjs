@@ -143,7 +143,7 @@
     "teachingPlanning": "Planification pédagogique",
     "teachingAssignments": "Affectations pédagogiques",
     "staffAttendance": "Présence du personnel",
-    "financeCommandCenter": "Centre de pilotage",
+    "financeCommandCenter": "Tableau de bord financier",
     "financeCollectionsCash": "Encaissements et caisse",
     "financeArrearsFollowup": "Impayés et suivi",
     "financeInstallmentsAccounts": "Échéances et comptes",
@@ -13316,8 +13316,8 @@
       "billingPartyGuardian": "Guardian",
       "billingPartyCustom": "Custom party",
       "commandCenter": {
-        "backToFinance": "Retour au centre financier",
-        "title": "Centre de pilotage financier",
+        "backToFinance": "Finances",
+        "title": "Tableau de bord financier",
         "subtitle": "Une vue décisionnelle fiable des échéances, encaissements, impayés et priorités, fondée sur la source de vérité financière de Raqeem.",
         "refresh": "Actualiser les données",
         "refreshing": "Actualisation…",
@@ -13333,7 +13333,8 @@
           "academic_year": "Année scolaire",
           "this_month": "Ce mois",
           "previous_month": "Mois précédent",
-          "custom": "Période personnalisée"
+          "custom": "Période personnalisée",
+          "month": "Choisir un mois"
         },
         "dateFrom": "Du",
         "dateTo": "Au",
@@ -13459,7 +13460,15 @@
         "openAction": "Ouvrir l’espace de travail",
         "loadingContext": "Chargement du contexte financier…",
         "yearRequiredTitle": "Année scolaire requise",
-        "yearRequiredDesc": "Le centre de pilotage exige une année scolaire explicite afin de ne pas mélanger des périodes financières différentes."
+        "yearRequiredDesc": "Le centre de pilotage exige une année scolaire explicite afin de ne pas mélanger des périodes financières différentes.",
+        "performanceBasis": "Montants regroupés selon le mois d’échéance, et non la date d’encaissement.",
+        "paidInAdvance": "Réglé en avance",
+        "selectMonth": "Choisir un mois",
+        "shareOfOverdue": "des impayés",
+        "nonPeriodic": {
+          "title": "Frais non périodiques",
+          "count": "Nombre de frais"
+        }
       }
     },
     "guardianAccount": {

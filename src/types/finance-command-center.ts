@@ -103,6 +103,7 @@ export interface FinanceCommandCenterPerformanceItem {
 export interface FinanceCommandCenterPerformance {
   meta: FinanceCommandCenterMeta;
   items: FinanceCommandCenterPerformanceItem[];
+  non_periodic_charges?: { due_amount: number; collected_amount: number; remaining_amount: number; count: number } | null;
   data_quality?: {
     historical_settlement_attribution_complete?: boolean;
     historical_unattributed_amount?: number | null;

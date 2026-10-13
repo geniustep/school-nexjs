@@ -57,6 +57,17 @@ describe('Finance Command Center contract helpers', () => {
     });
   });
 
+  it('resolves a selected month using the school-local date', () => {
+    expect(resolveCommandCenterPerformanceQuery(7, { preset: 'month', dateFrom: '2026-10-01', dateTo: '' }, '2026-10-13')).toEqual({
+      academic_year_id: 7, date_from: '2026-10-01', date_to: '2026-10-13',
+    });
+    expect(resolveCommandCenterPerformanceQuery(7, { preset: 'month', dateFrom: '2027-01-01', dateTo: '' }, '2026-10-13')).toEqual({
+      academic_year_id: 7, date_from: '2027-01-01', date_to: '2027-01-31',
+    });
+    expect(resolveCommandCenterPerformanceQuery(7, { preset: 'month', dateFrom: '2026-13-01', dateTo: '' }, '2026-10-13')).toBeNull();
+    expect(isCommandCenterPeriodReady({ preset: 'month', dateFrom: '', dateTo: '' }, '2026-10-13')).toBe(false);
+  });
+
   it('fails closed on incomplete or inverted custom periods', () => {
     expect(
       resolveCommandCenterPerformanceQuery(
