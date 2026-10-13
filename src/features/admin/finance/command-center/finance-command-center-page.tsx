@@ -446,11 +446,17 @@ function PerformanceSection({
 
         {period.preset === 'academic_year' && data.non_periodic_charges ? (
           <section className="fcc-non-periodic" aria-label={t('admin.finance.commandCenter.nonPeriodic.title')}>
-            <h3>{t('admin.finance.commandCenter.nonPeriodic.title')}</h3>
+            <div className="fcc-non-periodic__heading">
+              <h3>{t('admin.finance.commandCenter.nonPeriodic.title')}</h3>
+              <details className="fcc-non-periodic__help">
+                <summary>{t('admin.finance.commandCenter.nonPeriodic.helpLabel')}</summary>
+                <p>{t('admin.finance.commandCenter.nonPeriodic.description')}</p>
+              </details>
+            </div>
             <dl>
-              <div><dt>{t('admin.finance.commandCenter.due')}</dt><dd><FinanceMoney amount={data.non_periodic_charges.due_amount} currency={currency} /></dd></div>
+              <div><dt>{t('admin.finance.commandCenter.nonPeriodic.total')}</dt><dd><FinanceMoney amount={data.non_periodic_charges.due_amount} currency={currency} /></dd></div>
               <div><dt>{t('admin.finance.commandCenter.nonPeriodic.paid')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.collected_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
-              <div><dt>{t('admin.finance.commandCenter.remaining')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.remaining_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
+              <div><dt>{t('admin.finance.commandCenter.nonPeriodic.remaining')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.remaining_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
               <div><dt>{t('admin.finance.commandCenter.nonPeriodic.count')}</dt><dd><bdi dir="ltr">{data.non_periodic_charges.count}</bdi></dd></div>
             </dl>
           </section>
@@ -587,7 +593,15 @@ function AttentionSection({ data, loading, error, reload, onOpenDecision }: {
               <article className={`card fcc-attention fcc-attention--${item.severity}`} key={`${item.type}-${index}`}>
                 <div className="fcc-attention__head">
                   <Badge tone={tone}>{t(`admin.finance.commandCenter.severity.${item.severity === 'high' || item.severity === 'medium' ? item.severity : 'info'}`)}</Badge>
-                  {item.count != null ? <strong className="fcc-attention__count"><bdi dir="ltr">{item.count}</bdi> {t(`admin.finance.commandCenter.attentionUnit.${ATTENTION_TYPES.has(item.type) ? item.type : "other"}`)}</strong> : null}
+                  {item.count != null ? (
+                    <strong className="fcc-attention__count">
+                      {item.type === 'arrears_90_plus' ? (
+                        <>{t('admin.finance.commandCenter.arrearsAccountsCountLabel')} <bdi dir="ltr">{item.count}</bdi></>
+                      ) : (
+                        <><bdi dir="ltr">{item.count}</bdi> {t(`admin.finance.commandCenter.attentionUnit.${ATTENTION_TYPES.has(item.type) ? item.type : 'other'}`)}</>
+                      )}
+                    </strong>
+                  ) : null}
                 </div>
                 <h3>{title}</h3>
                 <p>{t(attentionReasonKey(item.reason_code))}</p>
