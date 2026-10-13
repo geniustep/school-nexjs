@@ -8,7 +8,6 @@ import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
-import { useFormat } from '@/features/i18n/use-format';
 import type {
   FinanceCommandCenterAging,
   FinanceCommandCenterAttentionItem,
@@ -34,6 +33,7 @@ const PERIOD_PRESETS: FinanceCommandCenterPeriodPreset[] = [
   'academic_year',
   'this_month',
   'previous_month',
+  'month',
   'custom',
 ];
 
@@ -104,7 +104,6 @@ function CommandCenterHeader({
           {t('admin.finance.commandCenter.backToFinance')}
         </Link>
         <h1>{t('admin.finance.commandCenter.title')}</h1>
-        <p>{t('admin.finance.commandCenter.subtitle')}</p>
       </div>
       <button
         type="button"
@@ -123,66 +122,44 @@ function CommandCenterHeader({
 function ContextBar({
   period,
   onPeriodChange,
-  summary,
 }: {
   period: FinanceCommandCenterPeriodState;
   onPeriodChange: (next: FinanceCommandCenterPeriodState) => void;
-  summary: FinanceCommandCenterSummary | null;
 }) {
   const t = useT();
-  const { formatDate, formatDateTime } = useFormat();
-  const asOfDate = summary?.meta.as_of_date;
-  const generatedAt = summary?.meta.generated_at;
-
+  const { locale } = useLocale();
   return (
-    <section className="card fcc-context" aria-label={t('admin.finance.commandCenter.contextTitle')}>
-      <div className="fcc-context__identity">
-        <div className="fcc-context__fact">
-          <span>{t('admin.finance.commandCenter.asOf')}</span>
-          <strong><bdi dir="ltr">{asOfDate ? formatDate(asOfDate) : t('common.dash')}</bdi></strong>
-        </div>
-        <div className="fcc-context__fact">
-          <span>{t('admin.finance.commandCenter.lastUpdated')}</span>
-          <strong><bdi dir="ltr">{generatedAt ? formatDateTime(generatedAt) : t('common.dash')}</bdi></strong>
-        </div>
-      </div>
-
+    <section className="card fcc-context" aria-label={t('admin.finance.commandCenter.analysisPeriod')}>
       <div className="fcc-period">
-        <div className="fcc-period__head">
-          <strong>{t('admin.finance.commandCenter.analysisPeriod')}</strong>
-          <span>{t('admin.finance.commandCenter.periodScopeNote')}</span>
-        </div>
+        <strong>{t('admin.finance.commandCenter.analysisPeriod')}</strong>
         <div className="fcc-period__presets">
           {PERIOD_PRESETS.map((preset) => (
-            <button
-              key={preset}
-              type="button"
+            <button key={preset} type="button"
               className={`btn btn--sm ${period.preset === preset ? 'btn--primary' : 'btn--ghost'}`}
               aria-pressed={period.preset === preset}
-              onClick={() => onPeriodChange({ ...period, preset })}
-            >
+              onClick={() => onPeriodChange(preset === 'month'
+                ? { preset, dateFrom: period.dateFrom ? `${period.dateFrom.slice(0, 7)}-01` : '', dateTo: '' }
+                : { ...period, preset })}>
               {t(`admin.finance.commandCenter.period.${preset}`)}
             </button>
           ))}
         </div>
+        {period.preset === 'month' ? (
+          <label className="fcc-period__month">
+            <span>{t('admin.finance.commandCenter.selectMonth')}</span>
+            <input type="month" lang={locale === 'ar' ? 'ar-MA' : locale}
+              value={period.dateFrom.slice(0, 7)}
+              onChange={(event) => onPeriodChange({
+                ...period, dateFrom: event.target.value ? `${event.target.value}-01` : '', dateTo: '',
+              })}/>
+          </label>
+        ) : null}
         {period.preset === 'custom' ? (
           <div className="fcc-period__custom">
-            <label>
-              <span>{t('admin.finance.commandCenter.dateFrom')}</span>
-              <DatePickerInput
-                value={period.dateFrom}
-                onChange={(dateFrom) => onPeriodChange({ ...period, dateFrom })}
-                presets={false}
-              />
-            </label>
-            <label>
-              <span>{t('admin.finance.commandCenter.dateTo')}</span>
-              <DatePickerInput
-                value={period.dateTo}
-                onChange={(dateTo) => onPeriodChange({ ...period, dateTo })}
-                presets={false}
-              />
-            </label>
+            <label><span>{t('admin.finance.commandCenter.dateFrom')}</span>
+              <DatePickerInput value={period.dateFrom} onChange={(dateFrom) => onPeriodChange({ ...period, dateFrom })} presets={false}/></label>
+            <label><span>{t('admin.finance.commandCenter.dateTo')}</span>
+              <DatePickerInput value={period.dateTo} onChange={(dateTo) => onPeriodChange({ ...period, dateTo })} presets={false}/></label>
           </div>
         ) : null}
       </div>
@@ -250,7 +227,6 @@ function SummarySection({
         <div className="fcc-section__head">
           <div>
             <h2>{t('admin.finance.commandCenter.positionTitle')}</h2>
-            <p>{t('admin.finance.commandCenter.positionSubtitle')}</p>
           </div>
         </div>
         <div className="fcc-kpi-grid">
@@ -284,7 +260,7 @@ function SummarySection({
             onOpen={rate.available && rate.drilldown
               ? () => onOpenDecision(t('admin.finance.commandCenter.kpi.collectionRate'), rate.drilldown!)
               : null}
-            tone="success"
+            tone="default"
           />
           <MetricCard
             label={t('admin.finance.commandCenter.kpi.overdue')}
@@ -330,21 +306,7 @@ function periodLabel(period: string, locale: string): string {
   }).format(new Date(Date.UTC(year, month - 1, 1, 12)));
 }
 
-function comparisonPeriodKeys(asOfDate: string | null | undefined): {
-  previous: string | null;
-  current: string | null;
-} {
-  if (!asOfDate || !/^\d{4}-\d{2}-\d{2}$/.test(asOfDate)) {
-    return { previous: null, current: null };
-  }
-  const [year, month] = asOfDate.slice(0, 7).split('-').map(Number);
-  if (!year || !month) return { previous: null, current: null };
-  const previousDate = new Date(Date.UTC(year, month - 2, 1, 12));
-  return {
-    current: `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`,
-    previous: `${previousDate.getUTCFullYear()}-${String(previousDate.getUTCMonth() + 1).padStart(2, '0')}`,
-  };
-}
+
 
 function ComparisonMonthCard({
   item,
@@ -379,45 +341,28 @@ function ComparisonMonthCard({
   );
 }
 
-function MonthComparison({ data }: { data: FinanceCommandCenterPerformance }) {
+function MonthComparison({ data, period }: { data: FinanceCommandCenterPerformance; period: FinanceCommandCenterPeriodState }) {
   const t = useT();
   const { locale } = useLocale();
-  const { previous, current } = comparisonPeriodKeys(data.meta.as_of_date);
-  if (!previous || !current) return null;
-
-  const previousItem = data.items.find((item) => item.period === previous);
-  const currentItem = data.items.find((item) => item.period === current);
+  if (period.preset !== 'academic_year') return null;
+  const elapsed = data.items.filter((item) => item.period < data.meta.as_of_date.slice(0, 7));
+  if (elapsed.length < 2) return null;
+  const previousItem = elapsed[elapsed.length - 2];
+  const currentItem = elapsed[elapsed.length - 1];
   const currency = data.meta.currency?.name;
-
   return (
     <section className="fcc-month-comparison" aria-label={t('admin.finance.commandCenter.decision.compareTwoMonths')}>
-      <div className="fcc-month-comparison__head">
-        <div>
-          <strong>{t('admin.finance.commandCenter.decision.comparison')}</strong>
-          <span>{t('admin.finance.commandCenter.decision.dueCohortComparison')}</span>
-        </div>
-      </div>
+      <div className="fcc-month-comparison__head"><strong>{t('admin.finance.commandCenter.decision.comparison')}</strong></div>
       <div className="fcc-month-comparison__grid">
-        <ComparisonMonthCard
-          item={previousItem}
-          period={previous}
-          roleLabel={t('admin.finance.commandCenter.period.previous_month')}
-          currency={currency}
-          locale={locale}
-        />
-        <ComparisonMonthCard
-          item={currentItem}
-          period={current}
-          roleLabel={t('admin.finance.commandCenter.period.this_month')}
-          currency={currency}
-          locale={locale}
-        />
+        <ComparisonMonthCard item={previousItem} period={previousItem.period} roleLabel={t('admin.finance.commandCenter.decision.firstMonth')} currency={currency} locale={locale} />
+        <ComparisonMonthCard item={currentItem} period={currentItem.period} roleLabel={t('admin.finance.commandCenter.decision.secondMonth')} currency={currency} locale={locale} />
       </div>
     </section>
   );
 }
 
 function PerformanceSection({
+  period,
   data,
   loading,
   error,
@@ -425,6 +370,7 @@ function PerformanceSection({
   periodReady,
   onOpenDecision,
 }: {
+  period: FinanceCommandCenterPeriodState;
   data: FinanceCommandCenterPerformance | null;
   loading: boolean;
   error: Parameters<typeof ApiErrorView>[0]['error'] | null;
@@ -460,7 +406,7 @@ function PerformanceSection({
   return (
     <section className="fcc-section">
       <div className="fcc-section__head">
-        <div><h2>{t('admin.finance.commandCenter.performanceTitle')}</h2><p>{t('admin.finance.commandCenter.performanceSubtitle')}</p></div>
+        <div><h2>{t('admin.finance.commandCenter.performanceTitle')}</h2></div>
         <div className="fcc-legend" aria-label={t('admin.finance.commandCenter.legend')}>
           <span><i className="fcc-legend__dot fcc-legend__dot--due" />{t('admin.finance.commandCenter.due')}</span>
           <span><i className="fcc-legend__dot fcc-legend__dot--collected" />{t('admin.finance.commandCenter.collected')}</span>
@@ -474,25 +420,37 @@ function PerformanceSection({
           {data.items.map((item) => (
             <button
               type="button"
-              className="fcc-performance__month fcc-performance__month--interactive"
+              className={`fcc-performance__month fcc-performance__month--interactive ${item.period > data.meta.as_of_date.slice(0, 7) ? "fcc-performance__month--future" : ""}`}
               key={item.period}
               disabled={!item.drilldown}
               onClick={() => item.drilldown && onOpenDecision(periodLabel(item.period, locale), item.drilldown)}
             >
               <span className="fcc-performance__bars" aria-label={periodLabel(item.period, locale)}>
-                <span className="fcc-performance__bar fcc-performance__bar--due" style={{ height: `${Math.max(4, ((item.due_amount ?? 0) / max) * 100)}%` }} title={String(item.due_amount ?? 0)} />
+                <span className="fcc-performance__bar fcc-performance__bar--due" style={{ height: `${((item.due_amount ?? 0) / max) * 100}%` }} title={String(item.due_amount ?? 0)} />
                 {item.recognized_collected_amount != null ? (
-                  <span className="fcc-performance__bar fcc-performance__bar--collected" style={{ height: `${Math.max(4, (item.recognized_collected_amount / max) * 100)}%` }} title={String(item.recognized_collected_amount)} />
+                  <span className="fcc-performance__bar fcc-performance__bar--collected" style={{ height: `${(item.recognized_collected_amount / max) * 100}%` }} title={String(item.recognized_collected_amount)} />
                 ) : null}
               </span>
               <span>{periodLabel(item.period, locale)}</span>
-              <strong>{item.collection_rate == null ? '—' : `${item.collection_rate.toFixed(1)}%`}</strong>
+              <strong>{item.period > data.meta.as_of_date.slice(0, 7) ? t('admin.finance.commandCenter.paidInAdvance') : item.due_amount === 0 || item.collection_rate == null ? '—' : `${item.collection_rate.toFixed(1)}%`}</strong>
             </button>
           ))}
         </div>
 
-        <MonthComparison data={data} />
+        <MonthComparison data={data} period={period} />
+        <p className="fcc-performance__basis">{t('admin.finance.commandCenter.performanceBasis')}</p>
 
+        {period.preset === 'academic_year' && data.non_periodic_charges ? (
+          <section className="fcc-non-periodic" aria-label={t('admin.finance.commandCenter.nonPeriodic.title')}>
+            <h3>{t('admin.finance.commandCenter.nonPeriodic.title')}</h3>
+            <dl>
+              <div><dt>{t('admin.finance.commandCenter.due')}</dt><dd><FinanceMoney amount={data.non_periodic_charges.due_amount} currency={currency} /></dd></div>
+              <div><dt>{t('admin.finance.commandCenter.collected')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.collected_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
+              <div><dt>{t('admin.finance.commandCenter.remaining')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.remaining_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
+              <div><dt>{t('admin.finance.commandCenter.nonPeriodic.count')}</dt><dd><bdi dir="ltr">{data.non_periodic_charges.count}</bdi></dd></div>
+            </dl>
+          </section>
+        ) : null}
         <details className="fcc-performance__details">
           <summary className="fcc-performance__details-toggle">
             <span className="fcc-performance__details-closed">{t('admin.finance.commandCenter.showDetails')}</span>
@@ -547,7 +505,7 @@ function AgingSection({ data, loading, error, reload, onOpenDecision }: {
   return (
     <section className="fcc-section">
       <div className="fcc-section__head">
-        <div><h2>{t('admin.finance.commandCenter.agingTitle')}</h2><p>{t('admin.finance.commandCenter.agingSubtitle')}</p></div>
+        <div><h2>{t('admin.finance.commandCenter.agingTitle')}</h2></div>
         <div className="fcc-section__summary"><span>{t('admin.finance.commandCenter.outstanding')}</span><FinanceMoney amount={data.summary.outstanding_amount} currency={currency} /></div>
       </div>
       <div className="card fcc-aging">
@@ -563,10 +521,10 @@ function AgingSection({ data, loading, error, reload, onOpenDecision }: {
               <strong>{t(`admin.finance.commandCenter.aging.${item.key}`)}</strong>
               <span>{t('admin.finance.commandCenter.installmentsCount', { count: String(item.installments_count) })}</span>
             </span>
-            <span className="fcc-aging__track" aria-hidden="true"><span style={{ width: `${Math.max(2, ((item.amount ?? 0) / max) * 100)}%` }} /></span>
+            <span className="fcc-aging__track" aria-hidden="true"><span style={{ width: `${((item.amount ?? 0) / max) * 100}%` }} /></span>
             <span className="fcc-aging__value">
               <FinanceMoney amount={item.amount} currency={currency} />
-              {item.key !== 'current' && item.percentage_of_overdue != null ? <small><bdi dir="ltr">{item.percentage_of_overdue.toFixed(1)}%</bdi></small> : null}
+              {item.key !== 'current' && item.percentage_of_overdue != null ? <small><bdi dir="ltr">{item.percentage_of_overdue.toFixed(1)}%</bdi> {t('admin.finance.commandCenter.shareOfOverdue')}</small> : null}
             </span>
           </button>
         ))}
@@ -597,7 +555,7 @@ function AttentionSection({ data, loading, error, reload, onOpenDecision }: {
 
   return (
     <section className="fcc-section">
-      <div className="fcc-section__head"><div><h2>{t('admin.finance.commandCenter.attentionTitle')}</h2><p>{t('admin.finance.commandCenter.attentionSubtitle')}</p></div></div>
+      <div className="fcc-section__head"><div><h2>{t('admin.finance.commandCenter.attentionTitle')}</h2></div></div>
       {!visible.length ? (
         <div className="card fcc-attention-empty"><strong>{t('admin.finance.commandCenter.attentionClearTitle')}</strong><span>{t('admin.finance.commandCenter.attentionClearDesc')}</span></div>
       ) : (
@@ -663,7 +621,6 @@ export function FinanceCommandCenterPage() {
   return (
     <div className="admin-workspace finance-command-center">
       <CommandCenterHeader refreshing={commandCenter.refreshing} onRefresh={commandCenter.refresh} />
-      <ContextBar period={period} onPeriodChange={setPeriod} summary={summary} />
 
       {commandCenter.summary.initialLoading ? (
         <div className="fcc-kpi-grid" aria-busy="true">{Array.from({ length: 4 }).map((_, index) => <div className="card fcc-kpi fcc-skeleton" key={index} />)}</div>
@@ -673,7 +630,9 @@ export function FinanceCommandCenterPage() {
         <SummarySection summary={summary} onOpenDecision={openDecision} />
       ) : null}
 
+      <ContextBar period={period} onPeriodChange={setPeriod} />
       <PerformanceSection
+        period={period}
         data={commandCenter.performance.data}
         loading={commandCenter.performance.initialLoading}
         error={commandCenter.performance.error}
