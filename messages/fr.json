@@ -13378,12 +13378,12 @@
         "collectionRate": "Taux",
         "remaining": "Restant",
         "loadingAging": "Chargement de l’ancienneté des créances…",
-        "agingTitle": "Ancienneté des créances",
+        "agingTitle": "Reste à encaisser",
         "agingSubtitle": "Répartition du solde ouvert selon l’ancienneté actuelle du retard.",
         "agingUnavailableTitle": "Aging indisponible de façon fiable",
         "outstanding": "Solde ouvert total",
         "aging": {
-          "current": "Non échu",
+          "current": "Montants non encore en retard",
           "1_30": "1–30 jours",
           "31_60": "31–60 jours",
           "61_90": "61–90 jours",
@@ -13465,16 +13465,20 @@
         "loadingContext": "Chargement du contexte financier…",
         "yearRequiredTitle": "Année scolaire requise",
         "yearRequiredDesc": "Le centre de pilotage exige une année scolaire explicite afin de ne pas mélanger des périodes financières différentes.",
-        "performanceBasis": "Montants regroupés selon le mois d’échéance, et non la date d’encaissement.",
+        "performanceBasis": "Chaque mois indique les frais exigibles ce mois-là et la part réglée à ce jour.",
         "paidInAdvance": "Réglé en avance",
         "selectMonth": "Choisir un mois",
         "shareOfOverdue": "des impayés",
         "nonPeriodic": {
-          "title": "Frais non périodiques",
-          "count": "Nombre de frais",
-          "paid": "Réglé"
+          "title": "Autres frais",
+          "count": "Nombre de frais enregistrés",
+          "paid": "Réglé",
+          "total": "Total des frais",
+          "remaining": "Reste à encaisser",
+          "helpLabel": "De quoi s’agit-il ?",
+          "description": "Frais enregistrés hors de l’échéancier mensuel."
         },
-        "overdueBreakdown": "Répartition des échéances en retard",
+        "overdueBreakdown": "Impayés selon la durée du retard",
         "performanceBasisHelp": "Comment ces montants sont-ils calculés ?",
         "attentionUnit": {
           "arrears_90_plus": "comptes payeurs",
@@ -13486,7 +13490,8 @@
           "incoming_cheques_rejected": "chèques",
           "finance_data_quality": "anomalies",
           "other": "éléments"
-        }
+        },
+        "arrearsAccountsCountLabel": "Comptes payeurs concernés :"
       }
     },
     "guardianAccount": {
