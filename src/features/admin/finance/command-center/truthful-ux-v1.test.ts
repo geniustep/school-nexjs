@@ -45,14 +45,26 @@ describe('Finance dashboard truthful UX', () => {
     expect(end).toBeGreaterThan(start);
     const nonPeriodic = page.slice(start, end);
     expect(nonPeriodic).toContain('commandCenter.nonPeriodic.paid');
+    expect(nonPeriodic).toContain('commandCenter.nonPeriodic.total');
+    expect(nonPeriodic).toContain('commandCenter.nonPeriodic.remaining');
+    expect(nonPeriodic).toContain('commandCenter.nonPeriodic.helpLabel');
+    expect(nonPeriodic).toContain('commandCenter.nonPeriodic.description');
     expect(nonPeriodic).not.toContain("commandCenter.collected')}</dt>");
+  });
+  it('labels 90-plus day alerts with an explicit billing-account count', () => {
+    expect(page).toContain("item.type === 'arrears_90_plus'");
+    expect(page).toContain('commandCenter.arrearsAccountsCountLabel');
   });
   it('uses the Moroccan Arabic finance dashboard vocabulary', () => {
     const c = ar.admin.finance.commandCenter;
     expect(c.title).toBe('لوحة القيادة المالية');
     expect(c.kpi.collected).toBe('المؤدى من الواجبات المستحقة');
     expect(c.collectionRate).toBe('نسبة الاستخلاص');
-    expect(c.nonPeriodic.title).toBe('واجبات غير دورية');
+    expect(c.nonPeriodic.title).toBe('واجبات أخرى');
+    expect(c.nonPeriodic.total).toBe('إجمالي الواجبات');
+    expect(c.nonPeriodic.count).toBe('عدد الواجبات المسجلة');
+    expect(c.aging.current).toBe('مبالغ لا تُعدّ متأخرة بعد');
+    expect(c.performanceBasis).toBe('كل شهر يبيّن واجباته وما أُدّي منها حتى اليوم.');
     expect(ar.nav.financeCommandCenter).toBe('لوحة القيادة المالية');
   });
 });

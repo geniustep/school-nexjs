@@ -35,10 +35,11 @@ describe('Finance Command Center Arabic terminology', () => {
   it('uses plain operational wording for overdue-duration grouping', () => {
     const copy = arabicMessages().admin.finance.commandCenter;
 
-    expect(copy.agingTitle).toBe('الباقي استخلاصه حسب أجل الأداء');
+    expect(copy.agingTitle).toBe('الباقي استخلاصه');
     expect(copy.agingSubtitle).toBe(
       'توزيع المبالغ غير المؤداة حسب المدة التي مضت على تاريخ الاستحقاق.',
     );
+    expect(copy.aging.current).toBe('مبالغ لا تُعدّ متأخرة بعد');
     expect(copy.aging['1_30']).toBe('متأخر من يوم إلى 30 يومًا');
     expect(copy.aging['31_60']).toBe('متأخر من 31 إلى 60 يومًا');
     expect(copy.aging['61_90']).toBe('متأخر من 61 إلى 90 يومًا');

@@ -307,7 +307,7 @@ a.fcc-kpi:hover {
 }
 
 .fcc-performance__chart {
-  min-height: 190px;
+  min-height: 160px;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(66px, 1fr);
@@ -321,7 +321,7 @@ a.fcc-kpi:hover {
 .fcc-performance__month {
   min-width: 66px;
   display: grid;
-  grid-template-rows: 128px auto auto;
+  grid-template-rows: 104px auto auto;
   gap: 7px;
   text-align: center;
   color: var(--fcc-muted);
@@ -329,7 +329,7 @@ a.fcc-kpi:hover {
 }
 
 .fcc-performance__bars {
-  height: 128px;
+  height: 104px;
   display: flex;
   align-items: end;
   justify-content: center;
@@ -1012,3 +1012,11 @@ a.fcc-kpi:hover {
   .finance-command-center .fcc-period__presets { width: 100%; }
   .finance-command-center .fcc-aging__current { flex-wrap: wrap; }
 }
+
+/* Plain-language financial dashboard: details on demand, compact chart. */
+.finance-command-center .fcc-non-periodic__heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-block-end: 8px; }
+.finance-command-center .fcc-non-periodic__heading h3 { margin: 0; }
+.finance-command-center .fcc-non-periodic__help { color: var(--fcc-muted); font-size: 11px; }
+.finance-command-center .fcc-non-periodic__help summary { cursor: pointer; color: var(--fcc-primary); }
+.finance-command-center .fcc-non-periodic__help p { margin: 6px 0; line-height: 1.5; }
+.finance-command-center .fcc-aging__current .fcc-aging__label strong { max-width: 100%; overflow-wrap: anywhere; }
