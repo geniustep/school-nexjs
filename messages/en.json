@@ -13450,7 +13450,21 @@
         "shareOfOverdue": "of overdue",
         "nonPeriodic": {
           "title": "Non-periodic fees",
-          "count": "Fee count"
+          "count": "Fee count",
+          "paid": "Settled"
+        },
+        "overdueBreakdown": "Overdue installments breakdown",
+        "performanceBasisHelp": "How are these amounts calculated?",
+        "attentionUnit": {
+          "arrears_90_plus": "billing accounts",
+          "due_next_7_days": "installments",
+          "payment_promises_open": "promises",
+          "followups_due_today": "follow-ups",
+          "followups_overdue": "follow-ups",
+          "collection_unallocated": "collections",
+          "incoming_cheques_rejected": "cheques",
+          "finance_data_quality": "issues",
+          "other": "items"
         }
       }
     },
