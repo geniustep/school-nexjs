@@ -143,7 +143,7 @@
     "teachingPlanning": "Planificación pedagógica",
     "teachingAssignments": "Asignaciones docentes",
     "staffAttendance": "Asistencia del personal",
-    "financeCommandCenter": "Centro de control",
+    "financeCommandCenter": "Panel financiero",
     "financeCollectionsCash": "Cobros y caja",
     "financeArrearsFollowup": "Atrasos y seguimiento",
     "financeInstallmentsAccounts": "Cuotas y cuentas",
@@ -13297,8 +13297,8 @@
       "billingPartyGuardian": "Guardian",
       "billingPartyCustom": "Custom party",
       "commandCenter": {
-        "backToFinance": "Volver al centro financiero",
-        "title": "Centro de mando financiero",
+        "backToFinance": "Finanzas",
+        "title": "Panel financiero",
         "subtitle": "Una vista fiable para decidir sobre vencimientos, cobros reconocidos, atrasos y prioridades, basada en la fuente de verdad financiera de Raqeem.",
         "refresh": "Actualizar datos",
         "refreshing": "Actualizando…",
@@ -13314,7 +13314,8 @@
           "academic_year": "Año académico",
           "this_month": "Este mes",
           "previous_month": "Mes anterior",
-          "custom": "Periodo personalizado"
+          "custom": "Periodo personalizado",
+          "month": "Elegir mes"
         },
         "dateFrom": "Desde",
         "dateTo": "Hasta",
@@ -13443,7 +13444,15 @@
         "openAction": "Abrir espacio de trabajo",
         "loadingContext": "Cargando contexto financiero…",
         "yearRequiredTitle": "Se requiere un año académico",
-        "yearRequiredDesc": "El Centro de mando financiero exige un año académico explícito para no mezclar periodos financieros diferentes."
+        "yearRequiredDesc": "El Centro de mando financiero exige un año académico explícito para no mezclar periodos financieros diferentes.",
+        "performanceBasis": "Importes agrupados por mes de vencimiento, no por fecha de cobro.",
+        "paidInAdvance": "Pagado por adelantado",
+        "selectMonth": "Elegir mes",
+        "shareOfOverdue": "de los atrasos",
+        "nonPeriodic": {
+          "title": "Cuotas no periódicas",
+          "count": "Número de cuotas"
+        }
       }
     },
     "guardianAccount": {
