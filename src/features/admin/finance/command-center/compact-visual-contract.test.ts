@@ -84,7 +84,7 @@ describe('Finance Command Center compact visual contract', () => {
 
   it('enforces the compact hierarchy without restoring local context filters', () => {
     expect(css).toContain('min-height: 106px');
-    expect(css).toContain('grid-template-rows: 128px auto auto');
+    expect(css).toContain('grid-template-rows: 104px auto auto');
     expect(css).toContain('.fcc-kpi--compact');
     expect(page).not.toContain('setActiveAcademicYear');
     expect(page).not.toContain('activeSchool?.name');
