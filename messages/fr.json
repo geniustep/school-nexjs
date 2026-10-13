@@ -13471,7 +13471,21 @@
         "shareOfOverdue": "des impayés",
         "nonPeriodic": {
           "title": "Frais non périodiques",
-          "count": "Nombre de frais"
+          "count": "Nombre de frais",
+          "paid": "Réglé"
+        },
+        "overdueBreakdown": "Répartition des échéances en retard",
+        "performanceBasisHelp": "Comment ces montants sont-ils calculés ?",
+        "attentionUnit": {
+          "arrears_90_plus": "comptes payeurs",
+          "due_next_7_days": "échéances",
+          "payment_promises_open": "promesses",
+          "followups_due_today": "relances",
+          "followups_overdue": "relances",
+          "collection_unallocated": "encaissements",
+          "incoming_cheques_rejected": "chèques",
+          "finance_data_quality": "anomalies",
+          "other": "éléments"
         }
       }
     },
