@@ -13356,12 +13356,12 @@
         "collectionRate": "Collection rate",
         "remaining": "Remaining",
         "loadingAging": "Loading receivables aging…",
-        "agingTitle": "Receivables aging",
+        "agingTitle": "Outstanding amounts",
         "agingSubtitle": "Open balance grouped by current overdue age.",
         "agingUnavailableTitle": "Aging cannot be shown safely",
         "outstanding": "Total outstanding",
         "aging": {
-          "current": "Not overdue",
+          "current": "Amounts not yet overdue",
           "1_30": "1–30 days",
           "31_60": "31–60 days",
           "61_90": "61–90 days",
@@ -13440,16 +13440,20 @@
         "loadingContext": "Loading financial context…",
         "yearRequiredTitle": "Academic year required",
         "yearRequiredDesc": "The Finance Command Center requires an explicit academic year so financial periods are never mixed.",
-        "performanceBasis": "Amounts are grouped by installment due month, not by payment receipt date.",
+        "performanceBasis": "Each month shows the fees due that month and the amount paid toward them to date.",
         "paidInAdvance": "Paid in advance",
         "selectMonth": "Select a month",
         "shareOfOverdue": "of overdue",
         "nonPeriodic": {
-          "title": "Non-periodic fees",
-          "count": "Fee count",
-          "paid": "Settled"
+          "title": "Other fees",
+          "count": "Recorded fee count",
+          "paid": "Settled",
+          "total": "Total fees",
+          "remaining": "Remaining to collect",
+          "helpLabel": "What does this mean?",
+          "description": "Fees recorded outside the monthly installment schedule."
         },
-        "overdueBreakdown": "Overdue installments breakdown",
+        "overdueBreakdown": "Overdue amounts by duration",
         "performanceBasisHelp": "How are these amounts calculated?",
         "attentionUnit": {
           "arrears_90_plus": "billing accounts",
@@ -13461,7 +13465,8 @@
           "incoming_cheques_rejected": "cheques",
           "finance_data_quality": "issues",
           "other": "items"
-        }
+        },
+        "arrearsAccountsCountLabel": "Billing accounts affected:"
       }
     },
     "guardianAccount": {
