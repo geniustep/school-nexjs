@@ -5,6 +5,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useAllSchoolsCopy } from '@/features/admin/all-schools/all-schools-i18n';
 import { useT } from '@/features/i18n/locale-context';
 import { isAllSchoolsReadMode } from '@/lib/admin/all-schools-read-mode';
+import { formatAcademicYearSwitcherLabel } from '@/lib/utils/academic-year-display';
 
 export function AcademicYearSwitcher({ hideLabel = false }: { hideLabel?: boolean }) {
   const t = useT();
@@ -57,7 +58,7 @@ export function AcademicYearSwitcher({ hideLabel = false }: { hideLabel?: boolea
             </option>
             {academicYears.map((year) => (
               <option key={year.id} value={year.id} dir="auto">
-                {year.name}
+                {formatAcademicYearSwitcherLabel(year.name)}
               </option>
             ))}
           </>
