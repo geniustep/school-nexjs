@@ -26,6 +26,27 @@ describe('Finance dashboard truthful UX', () => {
     expect(page).not.toContain('Math.max(4,');
     expect(page).not.toContain('Math.max(2,');
   });
+  it('keeps overdue proportions relative only to overdue items', () => {
+    expect(page).toContain("const current = data.items.find((item) => item.key === 'current')");
+    expect(page).toContain("const overdueItems = data.items.filter((item) => item.key !== 'current')");
+    expect(page).toContain('item.percentage_of_overdue');
+    expect(page).not.toContain('const max = Math.max(1, ...data.items.map');
+  });
+  it('shows count units and keeps explanatory basis hidden by default', () => {
+    expect(page).toContain('commandCenter.attentionUnit.');
+    expect(page).toContain('fcc-attention__count');
+    expect(page).toContain('<details className="fcc-performance__basis-help">');
+    expect(page).not.toContain('<p className="fcc-performance__basis">');
+  });
+  it('uses a dedicated non-periodic paid label', () => {
+    const start = page.indexOf('<section className="fcc-non-periodic"');
+    const end = page.indexOf('<details className="fcc-performance__details">', start);
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const nonPeriodic = page.slice(start, end);
+    expect(nonPeriodic).toContain('commandCenter.nonPeriodic.paid');
+    expect(nonPeriodic).not.toContain("commandCenter.collected')}</dt>");
+  });
   it('uses the Moroccan Arabic finance dashboard vocabulary', () => {
     const c = ar.admin.finance.commandCenter;
     expect(c.title).toBe('لوحة القيادة المالية');

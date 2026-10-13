@@ -410,6 +410,7 @@ function PerformanceSection({
         <div className="fcc-legend" aria-label={t('admin.finance.commandCenter.legend')}>
           <span><i className="fcc-legend__dot fcc-legend__dot--due" />{t('admin.finance.commandCenter.due')}</span>
           <span><i className="fcc-legend__dot fcc-legend__dot--collected" />{t('admin.finance.commandCenter.collected')}</span>
+          <span className="fcc-legend__future">{t('admin.finance.commandCenter.paidInAdvance')}</span>
         </div>
       </div>
 
@@ -432,20 +433,23 @@ function PerformanceSection({
                 ) : null}
               </span>
               <span>{periodLabel(item.period, locale)}</span>
-              <strong>{item.period > data.meta.as_of_date.slice(0, 7) ? t('admin.finance.commandCenter.paidInAdvance') : item.due_amount === 0 || item.collection_rate == null ? '—' : `${item.collection_rate.toFixed(1)}%`}</strong>
+              <strong>{item.period > data.meta.as_of_date.slice(0, 7) ? null : item.due_amount === 0 || item.collection_rate == null ? '—' : `${item.collection_rate.toFixed(1)}%`}</strong>
             </button>
           ))}
         </div>
 
         <MonthComparison data={data} period={period} />
-        <p className="fcc-performance__basis">{t('admin.finance.commandCenter.performanceBasis')}</p>
+        <details className="fcc-performance__basis-help">
+          <summary aria-label={t('admin.finance.commandCenter.performanceBasisHelp')} title={t('admin.finance.commandCenter.performanceBasisHelp')}>ⓘ</summary>
+          <p>{t('admin.finance.commandCenter.performanceBasis')}</p>
+        </details>
 
         {period.preset === 'academic_year' && data.non_periodic_charges ? (
           <section className="fcc-non-periodic" aria-label={t('admin.finance.commandCenter.nonPeriodic.title')}>
             <h3>{t('admin.finance.commandCenter.nonPeriodic.title')}</h3>
             <dl>
               <div><dt>{t('admin.finance.commandCenter.due')}</dt><dd><FinanceMoney amount={data.non_periodic_charges.due_amount} currency={currency} /></dd></div>
-              <div><dt>{t('admin.finance.commandCenter.collected')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.collected_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
+              <div><dt>{t('admin.finance.commandCenter.nonPeriodic.paid')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.collected_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
               <div><dt>{t('admin.finance.commandCenter.remaining')}</dt><dd>{complete ? <FinanceMoney amount={data.non_periodic_charges.remaining_amount} currency={currency} /> : t('admin.finance.commandCenter.unavailable')}</dd></div>
               <div><dt>{t('admin.finance.commandCenter.nonPeriodic.count')}</dt><dd><bdi dir="ltr">{data.non_periodic_charges.count}</bdi></dd></div>
             </dl>
@@ -500,7 +504,8 @@ function AgingSection({ data, loading, error, reload, onOpenDecision }: {
   }
 
   const currency = data.meta.currency?.name;
-  const max = Math.max(1, ...data.items.map((item) => item.amount ?? 0));
+  const current = data.items.find((item) => item.key === 'current');
+  const overdueItems = data.items.filter((item) => item.key !== 'current');
 
   return (
     <section className="fcc-section">
@@ -509,25 +514,39 @@ function AgingSection({ data, loading, error, reload, onOpenDecision }: {
         <div className="fcc-section__summary"><span>{t('admin.finance.commandCenter.outstanding')}</span><FinanceMoney amount={data.summary.outstanding_amount} currency={currency} /></div>
       </div>
       <div className="card fcc-aging">
-        {data.items.map((item) => (
-          <button
-            type="button"
-            className="fcc-aging__row fcc-aging__row--interactive"
-            key={item.key}
-            disabled={!item.drilldown}
-            onClick={() => item.drilldown && onOpenDecision(t(`admin.finance.commandCenter.aging.${item.key}`), item.drilldown)}
-          >
+        {current ? (
+          <button type="button" className="fcc-aging__current fcc-aging__row--interactive"
+            disabled={!current.drilldown}
+            onClick={() => current.drilldown && onOpenDecision(t('admin.finance.commandCenter.aging.current'), current.drilldown)}>
             <span className="fcc-aging__label">
-              <strong>{t(`admin.finance.commandCenter.aging.${item.key}`)}</strong>
-              <span>{t('admin.finance.commandCenter.installmentsCount', { count: String(item.installments_count) })}</span>
+              <strong>{t('admin.finance.commandCenter.aging.current')}</strong>
+              <span>{t('admin.finance.commandCenter.installmentsCount', { count: String(current.installments_count) })}</span>
             </span>
-            <span className="fcc-aging__track" aria-hidden="true"><span style={{ width: `${((item.amount ?? 0) / max) * 100}%` }} /></span>
-            <span className="fcc-aging__value">
-              <FinanceMoney amount={item.amount} currency={currency} />
-              {item.key !== 'current' && item.percentage_of_overdue != null ? <small><bdi dir="ltr">{item.percentage_of_overdue.toFixed(1)}%</bdi> {t('admin.finance.commandCenter.shareOfOverdue')}</small> : null}
-            </span>
+            <span className="fcc-aging__value"><FinanceMoney amount={current.amount} currency={currency} /></span>
           </button>
-        ))}
+        ) : null}
+        {overdueItems.length > 0 ? (
+          <div className="fcc-aging__overdue">
+            <h3>{t('admin.finance.commandCenter.overdueBreakdown')}</h3>
+            {overdueItems.map((item) => (
+              <button type="button" className="fcc-aging__row fcc-aging__row--interactive" key={item.key}
+                disabled={!item.drilldown}
+                onClick={() => item.drilldown && onOpenDecision(t(`admin.finance.commandCenter.aging.${item.key}`), item.drilldown)}>
+                <span className="fcc-aging__label">
+                  <strong>{t(`admin.finance.commandCenter.aging.${item.key}`)}</strong>
+                  <span>{t('admin.finance.commandCenter.installmentsCount', { count: String(item.installments_count) })}</span>
+                </span>
+                <span className="fcc-aging__track" aria-hidden="true">
+                  <span style={{ width: `${item.percentage_of_overdue == null ? 0 : Math.min(100, Math.max(0, item.percentage_of_overdue))}%` }} />
+                </span>
+                <span className="fcc-aging__value">
+                  <FinanceMoney amount={item.amount} currency={currency} />
+                  {item.percentage_of_overdue != null ? <small><bdi dir="ltr">{item.percentage_of_overdue.toFixed(1)}%</bdi> {t('admin.finance.commandCenter.shareOfOverdue')}</small> : null}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -568,7 +587,7 @@ function AttentionSection({ data, loading, error, reload, onOpenDecision }: {
               <article className={`card fcc-attention fcc-attention--${item.severity}`} key={`${item.type}-${index}`}>
                 <div className="fcc-attention__head">
                   <Badge tone={tone}>{t(`admin.finance.commandCenter.severity.${item.severity === 'high' || item.severity === 'medium' ? item.severity : 'info'}`)}</Badge>
-                  {item.count != null ? <strong><bdi dir="ltr">{item.count}</bdi></strong> : null}
+                  {item.count != null ? <strong className="fcc-attention__count"><bdi dir="ltr">{item.count}</bdi> {t(`admin.finance.commandCenter.attentionUnit.${ATTENTION_TYPES.has(item.type) ? item.type : "other"}`)}</strong> : null}
                 </div>
                 <h3>{title}</h3>
                 <p>{t(attentionReasonKey(item.reason_code))}</p>
