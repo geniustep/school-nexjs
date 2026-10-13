@@ -9,6 +9,7 @@ export type FinanceCommandCenterPeriodPreset =
   | 'academic_year'
   | 'this_month'
   | 'previous_month'
+  | 'month'
   | 'custom';
 
 export interface FinanceCommandCenterPeriodState {
@@ -71,6 +72,17 @@ export function resolveCommandCenterPerformanceQuery(
   const base: ListParams = { academic_year_id: academicYearId };
   if (period.preset === 'academic_year') return base;
 
+  if (period.preset === 'month') {
+    if (!/^\d{4}-\d{2}-01$/.test(period.dateFrom)) return null;
+    const selected = parseIsoDate(period.dateFrom);
+    if (!selected || selected.getUTCMonth() + 1 !== Number(period.dateFrom.slice(5, 7))) return null;
+    const ceiling = asOfDate ? parseIsoDate(asOfDate) : null;
+    return {
+      ...base,
+      date_from: isoDate(monthStart(selected)),
+      date_to: isoDate(ceiling && ceiling < monthEnd(selected) && ceiling >= monthStart(selected) ? ceiling : monthEnd(selected)),
+    };
+  }
   if (period.preset === 'custom') {
     if (!period.dateFrom || !period.dateTo || period.dateFrom > period.dateTo) return null;
     return {
@@ -106,6 +118,7 @@ export function isCommandCenterPeriodReady(
   asOfDate?: string | null,
 ): boolean {
   if (period.preset === 'academic_year') return true;
+  if (period.preset === 'month') return /^\d{4}-\d{2}-01$/.test(period.dateFrom) && Number(period.dateFrom.slice(5, 7)) >= 1 && Number(period.dateFrom.slice(5, 7)) <= 12;
   if (period.preset === 'custom') {
     return Boolean(period.dateFrom && period.dateTo && period.dateFrom <= period.dateTo);
   }
