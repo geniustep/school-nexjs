@@ -58,13 +58,19 @@ describe('Finance dashboard truthful UX', () => {
   it('uses the Moroccan Arabic finance dashboard vocabulary', () => {
     const c = ar.admin.finance.commandCenter;
     expect(c.title).toBe('لوحة القيادة المالية');
-    expect(c.kpi.collected).toBe('المؤدى من الواجبات المستحقة');
+    expect(c.kpi.due).toBe('المستحقات إلى اليوم');
+    expect(c.kpi.collected).toBe('المؤدى من المستحقات');
+    expect(c.kpi.overdue).toBe('المتأخرات');
+    expect(c.performanceTitle).toBe('الأقساط حسب شهر الاستحقاق');
+    expect(c.decision.explainTitle).toBe('كيف احتُسب هذا الرقم؟');
+    expect(c.decision.definition.rate).not.toContain('الواجبات');
+    expect(JSON.stringify(c)).not.toContain('الواجبات');
     expect(c.collectionRate).toBe('نسبة الاستخلاص');
-    expect(c.nonPeriodic.title).toBe('واجبات أخرى');
-    expect(c.nonPeriodic.total).toBe('إجمالي الواجبات');
-    expect(c.nonPeriodic.count).toBe('عدد الواجبات المسجلة');
-    expect(c.aging.current).toBe('مبالغ لا تُعدّ متأخرة بعد');
-    expect(c.performanceBasis).toBe('كل شهر يبيّن واجباته وما أُدّي منها حتى اليوم.');
+    expect(c.nonPeriodic.title).toBe('رسوم أخرى');
+    expect(c.nonPeriodic.total).toBe('إجمالي الرسوم');
+    expect(c.nonPeriodic.count).toBe('عدد الرسوم المسجلة');
+    expect(c.aging.current).toBe('المبالغ غير المتأخرة');
+    expect(c.performanceBasis).toBe('كل شهر يبيّن أقساطه وما أُدّي منها حتى اليوم.');
     expect(ar.nav.financeCommandCenter).toBe('لوحة القيادة المالية');
   });
 });
