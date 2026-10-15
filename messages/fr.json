@@ -15457,5 +15457,31 @@
       "validation": "Invalid data.",
       "pdfGenerationFailed": "PDF generation failed."
     }
+  },
+  "timetableWorkspace": {
+    "week": "Semaine",
+    "list": "Liste",
+    "publishedTitle": "Emplois du temps publiés",
+    "draftsTitle": "Brouillons",
+    "summaryScope": "Résumé de la page courante",
+    "published": "Publié",
+    "drafts": "Brouillons",
+    "conflicts": "Conflits",
+    "studio": "Ouvrir le studio",
+    "studioUnavailable": "Le studio est indisponible dans cette version.",
+    "settings": "Paramètres de la semaine scolaire",
+    "recurring": "Semaine récurrente sans dates",
+    "loadedOnly": "Séances chargées uniquement, sans total global.",
+    "incomplete": "Séances avec jour ou horaire incomplet",
+    "chooseClass": "Choisissez une classe pour consulter sa semaine.",
+    "viewClass": "Voir les séances de la classe",
+    "validated": "Validé",
+    "archived": "Archivé",
+    "draft": "Brouillon",
+    "warnings": "Avertissements",
+    "sessions": "Séances",
+    "details": "Détails du brouillon",
+    "noDrafts": "Aucun brouillon pour cette année scolaire.",
+    "page": "Page"
   }
 }

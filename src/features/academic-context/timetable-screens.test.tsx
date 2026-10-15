@@ -392,3 +392,18 @@ describe('Weekly Slot ≠ Session Occurrence', () => {
     expect(document.body.innerHTML).not.toMatch(/session-occurrence|create_delivery/i);
   });
 });
+ describe('weekly workspace controls', () => {
+  it('switches to the weekly view, filters sessions, and retains list actions', async () => {
+    mockResources([slot(), slot({id:2, day:'tuesday', subject:{id:12,name:'Science'}})]);
+    const user = userEvent.setup();
+    render(<AdminTimetablePanel initialView="week" aside={<aside>Draft rail</aside>} />);
+    expect(screen.getByText('Draft rail')).toBeTruthy();
+    expect(screen.getByText('Science')).toBeTruthy();
+    await user.selectOptions(screen.getByLabelText('admin.timetableList.day'), 'monday');
+    expect(screen.queryByText('Science')).toBeNull();
+    await user.click(screen.getByRole('button', {name:'timetableWorkspace.list'}));
+    expect(screen.getByRole('button', {name:'common.edit'})).toBeTruthy();
+    await user.click(screen.getByText('admin.timetableList.resetFilters'));
+    expect(screen.getByText('Science')).toBeTruthy();
+  });
+ });

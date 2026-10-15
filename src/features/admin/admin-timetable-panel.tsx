@@ -2,13 +2,15 @@
 
 /**
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
- * @design-status adopted
+ * @design-status review-needed
+ * Weekly workspace awaits browser Design QA.
  *
  * Admin operational timetable — DataTable + client filters + inline create/update.
  * Scheduling semantics, payloads, conflict validation, and endpoints are unchanged.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { TimetableWeek } from '@/features/admin/timetable/timetable-week';
 import { api } from '@/lib/api/client';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
@@ -35,7 +37,18 @@ import type { SchoolClass } from '@/types/class';
 import type { Teacher } from '@/types/teacher';
 import '@/features/admin/timetable/admin-timetable.css';
 
-export function AdminTimetablePanel() {
+export function AdminTimetablePanel({
+  aside,
+  initialView = 'list',
+  selectedClass,
+  onClassChange,
+}: {
+  aside?: ReactNode;
+  initialView?: 'week' | 'list';
+  selectedClass?: string;
+  onClassChange?: (value: string) => void;
+}) {
+  const [view, setView] = useState(initialView);
   const user = useSession();
   const t = useT();
   const toast = useToast();
@@ -46,7 +59,12 @@ export function AdminTimetablePanel() {
     page_size: 100,
   });
 
-  const [classFilter, setClassFilter] = useState('');
+  const [localClassFilter, setLocalClassFilter] = useState('');
+  const classFilter = selectedClass ?? localClassFilter;
+  function setClassFilter(value: string) {
+    setLocalClassFilter(value);
+    onClassChange?.(value);
+  }
   const [teacherFilter, setTeacherFilter] = useState('');
   const [dayFilter, setDayFilter] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -557,7 +575,11 @@ export function AdminTimetablePanel() {
   }
 
   return (
-    <div className="admin-timetable-panel">
+    <div className="admin-timetable-panel timetable-workspace__panel">
+      <SectionHead title={t('timetableWorkspace.publishedTitle')} />
+      <div className="timetable-workspace__view-switch" role="group" aria-label={t('timetableWorkspace.publishedTitle')}>
+        {(['week', 'list'] as const).map((mode) => <button key={mode} type="button" className={`btn btn--sm ${view === mode ? 'btn--primary' : 'btn--ghost'}`} aria-pressed={view === mode} onClick={() => setView(mode)}>{t(`timetableWorkspace.${mode}`)}</button>)}
+      </div>
       <div className="admin-timetable-panel__context">
         <div className="admin-timetable-panel__context-meta">
           <span className="admin-timetable-panel__count" dir="ltr">
@@ -640,6 +662,10 @@ export function AdminTimetablePanel() {
       {editId ? renderSlotForm('edit') : null}
       {canManage && showForm ? renderSlotForm('create') : null}
 
+      <div className={aside ? "timetable-workspace__body" : "timetable-workspace__body timetable-workspace__body--single"}>
+      {aside}
+      <div className="timetable-workspace__results" aria-busy={state.fetching}>
+      <p className="muted tiny">{t('timetableWorkspace.loadedOnly')}</p>
       <ResourceView
         state={state}
         loadingLabel={t('timetable.loadingWeek')}
@@ -647,11 +673,13 @@ export function AdminTimetablePanel() {
         empty={listEmpty}
       >
         {() => (
-          <Card pad={false} className="admin-timetable-panel__table-wrap">
+          view === 'week' ? <TimetableWeek slots={filtered} t={t} /> : <Card pad={false} className="admin-timetable-panel__table-wrap">
             <DataTable columns={columns} rows={filtered} rowKey={(s) => s.id} />
           </Card>
         )}
       </ResourceView>
+      </div>
+      </div>
     </div>
   );
 }
