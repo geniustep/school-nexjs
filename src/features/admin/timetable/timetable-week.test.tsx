@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { readFileSync } from 'node:fs';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { groupWeek, TimetableWeek } from './timetable-week';
@@ -26,3 +27,26 @@ describe('weekly timetable presentation', () => {
     expect(grouped.ranges).toEqual(['09:00–09:45', '10:00–10:45']);
   });
 });
+
+ describe('weekly table layout regression', () => {
+  it.each(['rtl', 'ltr'])('keeps native table columns and one caption with global styles in %s', (direction) => {
+    const style = document.createElement('style');
+    style.textContent = readFileSync('src/app/globals.css', 'utf8') + '\n' + readFileSync('src/features/admin/timetable/timetable-workspace.css', 'utf8');
+    document.head.append(style);
+    document.documentElement.dir = direction;
+    try {
+      render(<TimetableWeek slots={[slot(1), slot(2, 'tuesday')]} t={(key) => key} />);
+      const table = screen.getByRole('table');
+      expect(getComputedStyle(table).display).toBe('table');
+      expect(screen.getAllByText('timetableWorkspace.recurring')).toHaveLength(1);
+      const columns = within(table).getAllByRole('columnheader');
+      expect(table.querySelectorAll('col')).toHaveLength(columns.length);
+      for (const row of table.querySelectorAll('tbody tr')) {
+        expect(row.children.length).toBe(columns.length);
+      }
+    } finally {
+      style.remove();
+      document.documentElement.dir = '';
+    }
+  });
+ });

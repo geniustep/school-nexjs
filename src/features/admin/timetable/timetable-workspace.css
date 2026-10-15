@@ -16,18 +16,18 @@
 .timetable-workspace__draft-counts dd { margin: 4px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
 .timetable-workspace__pagination { padding: 12px; justify-content: space-between; }
 .timetable-workspace__results { min-width: 0; }
-.timetable-week__caption { margin-block: 0 12px; padding: 14px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-weight: 600; }
-.timetable-week__scroll { overflow-x: auto; border: 1px solid var(--c-border); border-radius: var(--radius); background: var(--c-surface); }
-.timetable-week { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; }
-.timetable-week th { background: var(--c-surface-2); color: var(--c-primary); font-size: 12px; padding: 14px 8px; }
-.timetable-week th:first-child { width: 110px; }
-.timetable-week td, .timetable-week tbody th { border-block-start: 1px solid var(--c-border); border-inline-end: 1px solid var(--c-border); vertical-align: top; padding: 8px; height: 110px; }
-.timetable-week tbody th { background: var(--c-surface); font-variant-numeric: tabular-nums; padding-block-start: 20px; }
-.timetable-week__session { padding: 10px; margin-block-end: 6px; background: var(--c-primary-soft, var(--c-surface-2)); border-inline-start: 3px solid var(--raqeem-secondary); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px; font-size: 12px; overflow-wrap: anywhere; }
-.timetable-week__session strong { font-size: 13px; color: var(--c-primary); }
-.timetable-week__incomplete { margin-block-start: 12px; padding: 12px; border: 1px solid var(--c-border); }
-.timetable-week__incomplete h3 { font-size: 14px; }
-.timetable-week__scroll:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 3px; }
+.admin-timetable-week__caption { caption-side: top; text-align: start; padding: 14px; background: var(--c-surface); border-block-end: 1px solid var(--c-border); font-weight: 600; }
+.admin-timetable-week__scroll { overflow-x: auto; border: 1px solid var(--c-border); border-radius: var(--radius); background: var(--c-surface); }
+.admin-timetable-week { display: table; width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; }
+.admin-timetable-week th { background: var(--c-surface-2); color: var(--c-primary); font-size: 12px; padding: 14px 8px; }
+.admin-timetable-week__time-column { width: 110px; }
+.admin-timetable-week td, .admin-timetable-week tbody th { border-block-start: 1px solid var(--c-border); border-inline-end: 1px solid var(--c-border); vertical-align: top; padding: 8px; height: 110px; }
+.admin-timetable-week tbody th { background: var(--c-surface); font-variant-numeric: tabular-nums; padding-block-start: 20px; }
+.admin-timetable-week__session { padding: 10px; margin-block-end: 6px; background: var(--c-primary-soft, var(--c-surface-2)); border-inline-start: 3px solid var(--raqeem-secondary); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px; font-size: 12px; overflow-wrap: anywhere; }
+.admin-timetable-week__session strong { font-size: 13px; color: var(--c-primary); }
+.admin-timetable-week__incomplete { margin-block-start: 12px; padding: 12px; border: 1px solid var(--c-border); }
+.admin-timetable-week__incomplete h3 { font-size: 14px; }
+.admin-timetable-week__scroll:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 3px; }
 @media (max-width: 1100px) { .timetable-workspace__body { grid-template-columns: minmax(180px, 230px) minmax(0, 1fr); } }
 @media (max-width: 900px) { .timetable-workspace__body { grid-template-columns: minmax(0, 1fr); } .timetable-workspace__drafts { order: 2; } .timetable-workspace__actions { width: 100%; } .timetable-workspace .btn { min-height: 44px; } .timetable-workspace__summary { gap: 12px 18px; } }
 
