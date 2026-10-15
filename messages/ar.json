@@ -15585,5 +15585,31 @@
       "validation": "Invalid data.",
       "pdfGenerationFailed": "PDF generation failed."
     }
+  },
+  "timetableWorkspace": {
+    "week": "العرض الأسبوعي",
+    "list": "عرض القائمة",
+    "publishedTitle": "الجداول المنشورة",
+    "draftsTitle": "مسودات استعمال الزمن",
+    "summaryScope": "ملخص الصفحة الحالية",
+    "published": "منشور",
+    "drafts": "مسودات",
+    "conflicts": "تعارضات",
+    "studio": "فتح الاستوديو",
+    "studioUnavailable": "الاستوديو غير متاح في النسخة الحالية.",
+    "settings": "إعدادات أيام الدراسة",
+    "recurring": "جدول أسبوعي متكرر دون تواريخ",
+    "loadedOnly": "الحصص المحمّلة فقط؛ لا تمثل إجمالي المؤسسة.",
+    "incomplete": "حصص ببيانات يوم أو وقت غير مكتملة",
+    "chooseClass": "اختر قسمًا لعرض أسبوعه بوضوح.",
+    "viewClass": "عرض حصص القسم",
+    "validated": "تم التحقق",
+    "archived": "مؤرشف",
+    "draft": "مسودة",
+    "warnings": "تنبيهات",
+    "sessions": "حصص",
+    "details": "تفاصيل المسودة",
+    "noDrafts": "لا توجد مسودات لهذه السنة الدراسية.",
+    "page": "الصفحة"
   }
 }
