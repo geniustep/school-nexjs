@@ -48,7 +48,7 @@ export const EXPENSES_READINESS_COPY: Record<ExpensesReadinessLocale, ExpensesRe
     reload: 'إعادة التحقق',
     footerHeading: 'ما الذي بقي قبل التفعيل؟',
     footerDescription: 'التحقق من حسابات المصاريف والدائنين، والموردين، ومراكز التكلفة، والصلاحيات، والمطابقة المحاسبية في بيئة الاختبار.',
-    actionsBlocked: 'لن تتاح الموافقة أو تسجيل الأداء قبل اعتماد نتيجة تدقيق Odoo.',
+    actionsBlocked: 'لن تتاح الموافقة أو تسجيل الأداء قبل اعتماد نتيجة التدقيق المحاسبي.',
   },
   fr: {
     back: 'Retour aux finances',
@@ -69,7 +69,7 @@ export const EXPENSES_READINESS_COPY: Record<ExpensesReadinessLocale, ExpensesRe
     reload: 'Vérifier à nouveau',
     footerHeading: 'Que reste-t-il avant l’activation ?',
     footerDescription: 'Vérifier les comptes de charges et fournisseurs, les tiers, les centres de coûts, les droits d’accès et les rapprochements dans l’environnement de test.',
-    actionsBlocked: 'Les approbations et paiements resteront indisponibles jusqu’à validation de l’audit Odoo.',
+    actionsBlocked: 'Les approbations et paiements resteront indisponibles jusqu’à validation de l’audit comptable.',
   },
   en: {
     back: 'Back to Finance',
@@ -90,7 +90,7 @@ export const EXPENSES_READINESS_COPY: Record<ExpensesReadinessLocale, ExpensesRe
     reload: 'Check again',
     footerHeading: 'What must be verified before activation?',
     footerDescription: 'Expense and payable accounts, vendors, cost centers, permissions, and accounting reconciliation in the test environment.',
-    actionsBlocked: 'Approval and payment actions remain unavailable until the Odoo audit is approved.',
+    actionsBlocked: 'Approval and payment actions remain unavailable until the accounting audit is approved.',
   },
   es: {
     back: 'Volver a Finanzas',
@@ -111,7 +111,7 @@ export const EXPENSES_READINESS_COPY: Record<ExpensesReadinessLocale, ExpensesRe
     reload: 'Volver a comprobar',
     footerHeading: '¿Qué falta antes de la activación?',
     footerDescription: 'Verificar cuentas de gastos y proveedores, terceros, centros de costes, permisos y conciliación contable en el entorno de pruebas.',
-    actionsBlocked: 'Las aprobaciones y los pagos seguirán deshabilitados hasta validar la auditoría de Odoo.',
+    actionsBlocked: 'Las aprobaciones y los pagos seguirán deshabilitados hasta validar la auditoría contable.',
   },
 };
 
