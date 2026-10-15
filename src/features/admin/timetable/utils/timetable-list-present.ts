@@ -57,10 +57,10 @@ export function presentTimetableDay(
   t: TranslateFn,
   fallback: string,
 ): string {
-  // API day_label may be in a different language from the current UI.
-  // Prefer translating the canonical day key in the active locale.
-  if (slot.day) return dayLabel(slot.day, t, fallback);
-  return slot.day_label || fallback;
+  // Prefer interface-language day labels, but retain the server label when
+  // translations are absent (including restricted i18n test contexts).
+  const localized = dayLabel(slot.day, t, '');
+  return localized || slot.day_label || fallback;
 }
 
 export function presentTimetableTimeRange(
