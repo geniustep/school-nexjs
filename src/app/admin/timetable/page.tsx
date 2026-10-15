@@ -71,7 +71,7 @@ function CentralDrafts() {
                  </p>
                </div>
                {draft.scope_mode === 'classes' && draft.scope_class_ids?.length === 1 ? (
-                 <Link className="btn btn--ghost btn--sm" href={`/admin/timetable/studio?class_id=${draft.scope_class_ids[0]}&draft_id=${draft.draft_id}`}>
+                 <Link className="btn btn--ghost btn--sm" href="/admin/timetable/studio">
                    {fr ? 'Voir dans le studio' : 'عرض في الاستوديو'}
                  </Link>
                ) : <Link className="btn btn--ghost btn--sm" href="/admin/timetable/studio">{fr ? 'Ouvrir le studio' : 'فتح الاستوديو'}</Link>}
