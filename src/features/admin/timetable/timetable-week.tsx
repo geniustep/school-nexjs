@@ -24,16 +24,16 @@ export function TimetableWeek({ slots, t }: { slots: TimetableSlot[]; t: Transla
   const { valid, ranges, incomplete } = groupWeek(slots);
   // Retain Sunday when supplied; do not invent school working days.
   const days = WEEK_DAYS.filter((day) => day !== 'sunday' || slots.some((s) => s.day === day));
-  const session = (s: TimetableSlot) => <article key={s.id} className="timetable-week__session">
+  const session = (s: TimetableSlot) => <article key={s.id} className="admin-timetable-week__session">
     <strong dir="auto">{s.subject?.name ?? t('common.dash')}</strong>
     <span dir="auto">{s.teacher?.name ?? t('common.dash')}</span>
     <span dir="auto">{s.class?.name ?? t('common.dash')}{s.room ? ` · ${s.room}` : ''}</span>
   </article>;
   return <section aria-label={t('timetableWorkspace.week')}>
-    <p className="timetable-week__caption">{t('timetableWorkspace.recurring')}</p>
-    <div className="timetable-week__scroll" tabIndex={0} role="region" aria-label={t('timetableWorkspace.week')}>
-      <table className="timetable-week">
-        <caption className="sr-only">{t('timetableWorkspace.recurring')}</caption>
+    <div className="admin-timetable-week__scroll" tabIndex={0} role="region" aria-label={t('timetableWorkspace.week')}>
+      <table className="admin-timetable-week">
+        <caption className="admin-timetable-week__caption">{t('timetableWorkspace.recurring')}</caption>
+        <colgroup><col className="admin-timetable-week__time-column" />{days.map((day) => <col key={day} />)}</colgroup>
         <thead><tr><th scope="col">{t('academic.time')}</th>{days.map((day) => <th scope="col" key={day}>{t(`days.${day}`)}</th>)}</tr></thead>
         <tbody>{ranges.map((range) => <tr key={range}>
           <th scope="row"><span dir="ltr">{range}</span></th>
@@ -41,6 +41,6 @@ export function TimetableWeek({ slots, t }: { slots: TimetableSlot[]; t: Transla
         </tr>)}</tbody>
       </table>
     </div>
-    {!!incomplete.length && <section className="timetable-week__incomplete"><h3>{t('timetableWorkspace.incomplete')}</h3>{incomplete.map((s) => <div key={s.id}><span>{presentTimetableDay(s, t, t('common.dash'))} · </span><span dir="ltr">{presentTimetableTimeRange(s.start_time, s.end_time, t('common.dash'))}</span>{session(s)}</div>)}</section>}
+    {!!incomplete.length && <section className="admin-timetable-week__incomplete"><h3>{t('timetableWorkspace.incomplete')}</h3>{incomplete.map((s) => <div key={s.id}><span>{presentTimetableDay(s, t, t('common.dash'))} · </span><span dir="ltr">{presentTimetableTimeRange(s.start_time, s.end_time, t('common.dash'))}</span>{session(s)}</div>)}</section>}
   </section>;
 }
