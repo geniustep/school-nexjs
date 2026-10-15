@@ -11,8 +11,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
-import { useSession } from '@/features/auth/session-context';
-import { hasPermission } from '@/lib/permissions/permissions';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { Card, SectionHead } from '@/components/ui/primitives';
@@ -36,10 +34,11 @@ import type { Teacher } from '@/types/teacher';
 import '@/features/admin/timetable/admin-timetable.css';
 
 export function AdminTimetablePanel() {
-  const user = useSession();
   const t = useT();
   const toast = useToast();
-  const canManage = hasPermission(user, 'manage_timetable');
+  // Direct slot mutations bypass the governed draft workflow. Keep this
+  // operational listing read-only; editing/publishing belongs in Studio.
+  const canManage = false;
   const state = useGlobalAcademicYearResource<TimetableSlot[]>(endpoints.admin.timetable);
   const classesState = useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes);
   const teachersState = useGlobalAcademicYearResource<Teacher[]>(endpoints.admin.teachers, {
