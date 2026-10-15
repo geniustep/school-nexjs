@@ -15441,5 +15441,31 @@
       "validation": "Invalid data.",
       "pdfGenerationFailed": "PDF generation failed."
     }
+  },
+  "timetableWorkspace": {
+    "week": "Semana",
+    "list": "Lista",
+    "publishedTitle": "Horarios publicados",
+    "draftsTitle": "Borradores",
+    "summaryScope": "Resumen de la página actual",
+    "published": "Publicado",
+    "drafts": "Borradores",
+    "conflicts": "Conflictos",
+    "studio": "Abrir estudio",
+    "studioUnavailable": "El estudio no está disponible en esta versión.",
+    "settings": "Configuración de la semana escolar",
+    "recurring": "Semana recurrente sin fechas",
+    "loadedOnly": "Solo sesiones cargadas; no es el total del centro.",
+    "incomplete": "Sesiones con día u horario incompleto",
+    "chooseClass": "Seleccione una clase para consultar su semana.",
+    "viewClass": "Ver sesiones de la clase",
+    "validated": "Validado",
+    "archived": "Archivado",
+    "draft": "Borrador",
+    "warnings": "Avisos",
+    "sessions": "Sesiones",
+    "details": "Detalles del borrador",
+    "noDrafts": "No hay borradores para este curso.",
+    "page": "Página"
   }
 }

@@ -15440,5 +15440,31 @@
       "validation": "Invalid data.",
       "pdfGenerationFailed": "PDF generation failed."
     }
+  },
+  "timetableWorkspace": {
+    "week": "Week",
+    "list": "List",
+    "publishedTitle": "Published timetables",
+    "draftsTitle": "Timetable drafts",
+    "summaryScope": "Current page summary",
+    "published": "Published",
+    "drafts": "Drafts",
+    "conflicts": "Conflicts",
+    "studio": "Open studio",
+    "studioUnavailable": "The studio is unavailable in this version.",
+    "settings": "School week settings",
+    "recurring": "Recurring week without dates",
+    "loadedOnly": "Loaded sessions only; not a school-wide total.",
+    "incomplete": "Sessions with incomplete day or time",
+    "chooseClass": "Select a class to inspect its week.",
+    "viewClass": "View class sessions",
+    "validated": "Validated",
+    "archived": "Archived",
+    "draft": "Draft",
+    "warnings": "Warnings",
+    "sessions": "Sessions",
+    "details": "Draft details",
+    "noDrafts": "No drafts for this academic year.",
+    "page": "Page"
   }
 }
