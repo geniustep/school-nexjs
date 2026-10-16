@@ -11444,7 +11444,7 @@
           "selectedServices": "Services sélectionnés",
           "selectedServicesCount": "{count} services sélectionnés",
           "selectedServicesHint": "Les indicateurs, la chronologie et les échéances reflètent le périmètre combiné des services sélectionnés.",
-          "averageDue": "Dû moyen",
+          "averageDue": "Montant moyen filtré par bénéficiaire",
           "averageOverdue": "Retard moyen",
           "attention": "Nécessite votre attention",
           "highestOverdue": "{service} présente le montant en retard le plus élevé",
@@ -13362,7 +13362,7 @@
         "dataQualityTitle": "Protection de la qualité des données active",
         "dataQualityHistorical": "Des règlements historiques ne peuvent pas être attribués précisément à des échéances ; Raqeem masque les indicateurs concernés plutôt que d’afficher des chiffres non fiables.",
         "positionTitle": "Position financière à ce jour",
-        "positionSubtitle": "Les quatre indicateurs clés proviennent directement des nouveaux contrats Odoo et ne sont pas recalculés dans l’interface.",
+        "positionSubtitle": "Les indicateurs proviennent directement des contrats financiers fiables de Raqeem, sans recalcul dans l’interface.",
         "kpi": {
           "due": "Échu à ce jour",
           "collected": "Encaissé reconnu",

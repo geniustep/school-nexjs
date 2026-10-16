@@ -11425,7 +11425,7 @@
           "selectedServices": "Servicios seleccionados",
           "selectedServicesCount": "{count} servicios seleccionados",
           "selectedServicesHint": "Los indicadores, la cronología y las cuotas reflejan el ámbito combinado de los servicios seleccionados.",
-          "averageDue": "Adeudo medio",
+          "averageDue": "Importe medio filtrado por beneficiario",
           "averageOverdue": "Vencido medio",
           "attention": "Necesita su atención",
           "highestOverdue": "{service} tiene el mayor importe vencido",
@@ -13342,7 +13342,7 @@
         "dataQualityTitle": "Protección de calidad de datos activa",
         "dataQualityHistorical": "Algunas liquidaciones históricas no pueden atribuirse con precisión a cuotas; Raqeem oculta los indicadores afectados en lugar de mostrar cifras poco fiables.",
         "positionTitle": "Posición financiera a la fecha",
-        "positionSubtitle": "Los cuatro indicadores principales llegan directamente de los nuevos contratos Odoo y no se recalculan en la interfaz.",
+        "positionSubtitle": "Los indicadores proceden directamente de los contratos financieros fiables de Raqeem y no se recalculan en la interfaz.",
         "kpi": {
           "due": "Vencido a la fecha",
           "collected": "Cobrado reconocido",

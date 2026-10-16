@@ -11425,7 +11425,7 @@
           "selectedServices": "Selected services",
           "selectedServicesCount": "{count} selected services",
           "selectedServicesHint": "Metrics, timeline, and installments reflect the combined scope of the selected services.",
-          "averageDue": "Average due",
+          "averageDue": "Average filtered amount per beneficiary",
           "averageOverdue": "Average overdue",
           "attention": "Needs your attention",
           "highestOverdue": "{service} has the highest overdue amount",
@@ -13341,7 +13341,7 @@
         "dataQualityTitle": "Data-quality protection is active",
         "dataQualityHistorical": "Some historical settlements cannot be attributed precisely to installments. Raqeem hides affected metrics instead of presenting unreliable numbers.",
         "positionTitle": "Financial position to date",
-        "positionSubtitle": "The four core metrics come directly from the new Odoo contracts and are not recomputed in the UI.",
+        "positionSubtitle": "The metrics are sourced from Raqeem's trusted financial contracts and are not recomputed in the UI.",
         "kpi": {
           "due": "Due to date",
           "collected": "Recognized collected",
