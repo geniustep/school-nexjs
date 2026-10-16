@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { parseFinanceQuickListResponse } from '@/lib/utils/finance-list-response';
 import { parseFinanceCanonicalMetrics } from '@/lib/utils/finance-canonical';
 
 function fixture() {
@@ -59,5 +60,22 @@ describe('canonical finance contracts', () => {
     const f = fixture();
     const partial = { ...f, values: { ...f.values, due_to_date: undefined } };
     expect(parseFinanceCanonicalMetrics(partial)).toBeNull();
+  });
+  it('keeps canonical yearly totals separate from filtered installments summary', () => {
+    const result = parseFinanceQuickListResponse<unknown>({
+      items: [],
+      summary: { total_amount: 300, total_count: 2 },
+      canonical_metrics: fixture(),
+    });
+    expect(result.summary?.total_amount).toBe(300);
+    expect(result.canonicalMetrics?.values.due_to_date).toBe(150);
+    expect(result.canonicalMetrics?.meta.academic_year_id).toBe(22);
+  });
+  it('keeps installments list readable without an upgraded runtime', () => {
+    const result = parseFinanceQuickListResponse<unknown>({
+      items: [], summary: { total_amount: 300 },
+    });
+    expect(result.summary?.total_amount).toBe(300);
+    expect(result.canonicalMetrics).toBeNull();
   });
 });
