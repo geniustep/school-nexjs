@@ -75,9 +75,10 @@ function Studio(){
   }).catch(()=>{if(active)setError('تعذر الاتصال بخدمة استعمال الزمان.')}).finally(()=>{if(active)setBusy(false)});
   return ()=>{active=false};
  },[classId]);
- const placementEnabled=periods.length>0 && assignments.length>0;
+ const placementEnabled=!saving && periods.length>0 && assignments.length>0;
  const needsBinding=!!draft && !draft.config_id && !!context?.config?.id;
- const saveBlocked=!draft || !draft.config_id || !!context?.blockers?.save_line?.some(code=>code!=='draft_config_unlinked');
+ const editableDraft=!!draft && ['draft','validated'].includes(draft.state);
+ const saveBlocked=!editableDraft || !draft?.config_id || !!context?.blockers?.save_line?.some(code=>code!=='draft_config_unlinked');
  const previewCount=Object.keys(pending).length;
  const remember=(next:Record<string,number|null>)=>{setHistory(old=>[...old.slice(-29),pending]);setPending(next);};
  const revert=()=>{if(!history.length)return;setPending(history[history.length-1]);setHistory(old=>old.slice(0,-1));setFeedback('تم التراجع عن آخر تغيير في المعاينة.');};
@@ -88,8 +89,8 @@ function Studio(){
    setFeedback(assignmentId===null?'تم تفريغ الخانة في المعاينة.':'تم توزيع الحصة في المعاينة. يمكنك متابعة بقية الخانات مباشرة.');
    setError('');
  };
- const reloadSaved=async(explicitDraftId?:number)=>{
-   const res=await api.get<{draft:Draft|null}>(endpoints.admin.classTimetableDraft(classId),explicitDraftId?{draft_id:explicitDraftId}:undefined);
+ const reloadSaved=async(draftId:number)=>{
+   const res=await api.get<{draft:Draft|null}>(endpoints.admin.classTimetableDraft(classId),{draft_id:draftId});
    if(!res.success||!res.data.draft)throw new Error('تعذر إعادة قراءة المسودة من الخدمة.');
    const nextDraft=res.data.draft;
    const ctx=await api.get<Context>(endpoints.admin.timetableSetupContext,{
@@ -105,7 +106,7 @@ function Studio(){
    try{
      const result=await api.post<{draft:Draft}>(endpoints.admin.classTimetableDraftOpen(classId),{});
      if(!result.success){setSaveMessage('تعذر فتح مسودة جديدة. تحقق من صلاحيات استعمال الزمان.');return}
-     await reloadSaved();
+     await reloadSaved(result.data.draft.draft_id);
      setSaveMessage('المسودة جاهزة. يمكنك ربطها بالتوقيت ثم حفظ الحصص.');
    }catch{setSaveMessage('تعذر تأكيد إنشاء المسودة. أعد فتح القسم للتحقق من وجودها.')}
    finally{setSaving(false)}
@@ -124,13 +125,13 @@ function Studio(){
        {draft_id:draft.draft_id,config_id:context.config.id,expected_write_date:draft.write_date},
      );
      if(!result.success){setSaveMessage('تعذر ربط المسودة. تأكد من نشر تحديث الخدمة وصحة صلاحياتك، ثم أعد المحاولة.');return}
-     await reloadSaved();
+     await reloadSaved(result.data.draft.draft_id);
      setSaveMessage('تم ربط المسودة بالإعداد المعتمد. يمكنك الآن حفظ التوزيع.');
    }catch{setSaveMessage('تعذر تأكيد ربط المسودة. أعد فتح القسم للتحقق من حالتها.')}
    finally{setSaving(false)}
  };
  const saveDraft=async()=>{
-   if(!draft||!context||saveBlocked||saving)return;
+   if(!draft||!context||saveBlocked||saving||!canManage)return;
    const changes=buildStudioSaveChanges(grid,pending);
    if(!changes.lines.length&&!changes.delete_line_ids.length){
      setSaveMessage('لا توجد حصص جديدة أو معدلة تستدعي الحفظ.');
@@ -142,13 +143,28 @@ function Studio(){
        `${endpoints.admin.classTimetableDraft(classId)}/studio-save`,
        {draft_id:draft.draft_id,expected_write_date:draft.write_date,...changes},
      );
-     if(!result.success || result.data.bulk_result?.errors?.length){
+     if(!result.success){
+       const code=result.error.code;
+       setSaveMessage(code==='draft_not_editable'
+         ?'رفضت الخدمة الحفظ بسبب حالة المسودة. تعديلاتك ما زالت هنا ولم تُحفظ؛ لا يلزم حذف المسودة. يلزم فحص حالتها قبل المتابعة.'
+         :code==='timetable_draft_stale'
+         ?'تغيرت المسودة منذ تحميلها. احتفظ بهذه الصفحة لمراجعة تعديلاتك غير المحفوظة، وافتح القسم في تبويب آخر للمقارنة قبل إعادة المحاولة.'
+         :'لم يكتمل الحفظ. تعديلاتك ما زالت هنا ولم تُحفظ؛ راجع الحصص والنسخة الحالية للمسودة.');
+       return;
+     }
+     if(result.data.bulk_result?.errors?.length){
        setSaveMessage('لم يكتمل الحفظ. لم نؤكد أي تغيير؛ راجع الحصص والنسخة الحالية للمسودة.');
        return;
      }
-     await reloadSaved();
+     // A successful atomic save is authoritative even if the follow-up GET fails.
+     setDraft(result.data.draft);
      setPending({});setHistory([]);
-     setSaveMessage('حُفظت المسودة بنجاح بعد تأكيد الخدمة وإعادة قراءة الحصص.');
+     try{
+       await reloadSaved(result.data.draft.draft_id);
+       setSaveMessage('حُفظت المسودة بنجاح بعد تأكيد الخدمة وإعادة قراءة الحصص.');
+     }catch{
+       setSaveMessage('حُفظت المسودة بنجاح، لكن تعذر تحديث عرضها. لا تعِد إرسال التعديلات المحفوظة.');
+     }
    }catch{setSaveMessage('تعذر تأكيد الحفظ. راجع المسودة الحالية قبل إعادة المحاولة.')}
    finally{setSaving(false)}
  };
@@ -158,7 +174,7 @@ function Studio(){
    try{
      const result=await api.post<{draft:Draft}>(endpoints.admin.classTimetableDraftValidate(classId),{draft_id:draft.draft_id});
      if(!result.success){setSaveMessage('تعذر التحقق من المسودة. راجع التعارضات وصلاحياتك ثم حاول مجددًا.');return}
-     await reloadSaved();
+     await reloadSaved(result.data.draft.draft_id);
      setSaveMessage('اكتمل التحقق من المسودة. راجع جاهزيتها للنشر.');
    }catch{setSaveMessage('تعذر تأكيد التحقق؛ أعد تحميل المسودة قبل المتابعة.')}
    finally{setSaving(false)}
@@ -187,9 +203,9 @@ function Studio(){
   <section className={styles.filters} aria-label="اختيار السلك والمستوى والقسم">
    <div className={styles.filterHeader}><div><h2>اختر القسم الدراسي</h2><p>حدد السلك، ثم المستوى، ثم القسم لعرض شبكته الأسبوعية.</p></div><span className={styles.count}>{classes.loading?'جارٍ تحميل الأقسام':allClasses.length+' قسمًا محمّلًا'}</span></div>
    <div className={styles.filterGrid}>
-    <label><span>01 · السلك</span><select value={cycle} disabled={classes.loading||levels.loading||catalog.cycles.length===0} onChange={e=>{if(!mayLeavePreview())return;setCycle(e.target.value);setLevelId(0);setClassId(0)}}><option value="">اختر السلك</option>{catalog.cycles.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
-    <label><span>02 · المستوى</span><select value={levelId} disabled={!cycle||filteredLevels.length===0} onChange={e=>{if(!mayLeavePreview())return;setLevelId(Number(e.target.value));setClassId(0)}}><option value={0}>اختر المستوى</option>{filteredLevels.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
-    <label><span>03 · القسم</span><select value={classId} disabled={!levelId||filteredClasses.length===0} onChange={e=>{if(mayLeavePreview())setClassId(Number(e.target.value))}}><option value={0}>اختر القسم</option>{filteredClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+    <label><span>01 · السلك</span><select value={cycle} disabled={saving||classes.loading||levels.loading||catalog.cycles.length===0} onChange={e=>{if(!mayLeavePreview())return;setCycle(e.target.value);setLevelId(0);setClassId(0)}}><option value="">اختر السلك</option>{catalog.cycles.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
+    <label><span>02 · المستوى</span><select value={levelId} disabled={saving||!cycle||filteredLevels.length===0} onChange={e=>{if(!mayLeavePreview())return;setLevelId(Number(e.target.value));setClassId(0)}}><option value={0}>اختر المستوى</option>{filteredLevels.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
+    <label><span>03 · القسم</span><select value={classId} disabled={saving||!levelId||filteredClasses.length===0} onChange={e=>{if(mayLeavePreview())setClassId(Number(e.target.value))}}><option value={0}>اختر القسم</option>{filteredClasses.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
    </div>
    {(cycle||levelId>0||classId>0)&&<div className={styles.path} aria-live="polite"><span>{cycle||'السلك'}</span><span aria-hidden="true">←</span><span>{filteredLevels.find(l=>l.id===levelId)?.name||'المستوى'}</span><span aria-hidden="true">←</span><strong>{filteredClasses.find(c=>c.id===classId)?.name||'القسم'}</strong></div>}
    {classes.loading||levels.loading?<p className={styles.info} role="status">جارٍ تحميل بيانات السنة الدراسية والأقسام...</p>:null}
@@ -204,7 +220,7 @@ function Studio(){
   {ready&&context&&<div className={styles.workspace}>
     {!context.setup_complete&&<div role="alert" className={styles.warning}><strong>إعداد استعمال الزمان غير مكتمل</strong><p>يجب إكمال الأيام الدراسية والفترات قبل توزيع الحصص.</p><Link href="/admin/timetable/setup">فتح إعداد الأيام والفترات ←</Link></div>}
     {saveBlocked&&<div className={styles.statusNote} role="status"><span aria-hidden="true">◈</span><div><strong>التوزيع التجريبي متاح الآن</strong><p>يمكنك إضافة الحصص وتغييرها والتراجع عنها داخل هذه الصفحة. يمكنك تجهيز الجدول الآن. لن تُرسل تعديلاتك حتى تضغط «حفظ المسودة»؛ وقد تحتاج المسودة إلى ربط بإعداد التوقيت أولًا.</p></div></div>}
-    <div className={styles.workspaceStats}><span><strong>{periods.length}</strong> فترات معتمدة</span><span><strong>{assignments.length}</strong> إسنادات متاحة</span><span><strong>{previewCount}</strong> تعديلات قيد التجربة</span><div className={styles.quickActions}><button type="button" disabled={!history.length} onClick={revert}>↶ تراجع</button><button type="button" disabled={!previewCount} onClick={resetPreview}>إلغاء التعديلات</button></div></div>
+    <div className={styles.workspaceStats}><span><strong>{periods.length}</strong> فترات معتمدة</span><span><strong>{assignments.length}</strong> إسنادات متاحة</span><span><strong>{previewCount}</strong> تعديلات قيد التجربة</span><div className={styles.quickActions}><button type="button" disabled={saving||!history.length} onClick={revert}>↶ تراجع</button><button type="button" disabled={saving||!previewCount} onClick={resetPreview}>إلغاء التعديلات</button></div></div>
 
     <div className={styles.assignments}>
      <h2>المواد والأساتذة</h2><p>اضغط على اسم المادة لتحديدها، ثم اضغط على أي خانة لتوزيعها فورًا. أو اختر المادة مباشرة من قائمة الخانة.</p>
