@@ -18,12 +18,14 @@ describe('timetable workspace contract boundaries',()=>{
   render(<TimetableWorkspace/>);
   expect(screen.getByRole('link',{name:'timetableWorkspace.settings'}).getAttribute('href')).toBe('/admin/timetable/setup');
   expect(screen.getByRole('link',{name:'timetableWorkspace.studio'}).getAttribute('href')).toBe('/admin/timetable/studio');
+  expect(screen.getByRole('link',{name:'timetableWorkspace.detailedEditor'}).getAttribute('href')).toBe('/admin/timetable/bulk');
   expect(screen.queryByText('timetableWorkspace.studioUnavailable')).toBeNull();
   expect(screen.getAllByRole('button',{name:'timetableWorkspace.viewClass'})).toHaveLength(1);
  });
  it('allows view-only studio access without exposing settings outside its permission',()=>{
   context.manage=false;render(<TimetableWorkspace/>);
   expect(screen.getByRole('link',{name:'timetableWorkspace.studio'}).getAttribute('href')).toBe('/admin/timetable/studio');
+  expect(screen.getByRole('link',{name:'timetableWorkspace.detailedEditor'}).getAttribute('href')).toBe('/admin/timetable/bulk');
   expect(screen.queryByRole('link',{name:'timetableWorkspace.settings'})).toBeNull();
  });
  it('does not display stale successful counters when the drafts request fails',()=>{

@@ -15482,6 +15482,7 @@
     "sessions": "Séances",
     "details": "Détails du brouillon",
     "noDrafts": "Aucun brouillon pour cette année scolaire.",
-    "page": "Page"
+    "page": "Page",
+    "detailedEditor": "Éditeur détaillé"
   }
 }
