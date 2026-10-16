@@ -1,4 +1,6 @@
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
+import { parseFinanceCanonicalMetrics } from '@/lib/utils/finance-canonical';
+import type { FinanceCanonicalMetrics } from '@/types/finance-canonical';
 import type {
   FinanceInstallmentAttention,
   FinanceInstallmentServiceFacet,
@@ -33,6 +35,7 @@ export type FinanceQuickListResult<T> = {
   serviceFacets: FinanceInstallmentServiceFacet[];
   timeline: FinanceInstallmentTimelinePoint[];
   attention: FinanceInstallmentAttention | null;
+  canonicalMetrics: FinanceCanonicalMetrics | null;
 };
 
 function isInstallmentServiceFacet(value: unknown): value is FinanceInstallmentServiceFacet {
@@ -67,13 +70,13 @@ export function parseFinanceQuickListResponse<T>(data: unknown): FinanceQuickLis
   if (Array.isArray(data)) {
     return {
       items: data as T[], summary: null, appliedFilters: null,
-      serviceFacets: [], timeline: [], attention: null,
+      serviceFacets: [], timeline: [], attention: null, canonicalMetrics: null,
     };
   }
   if (!data || typeof data !== 'object') {
     return {
       items: [], summary: null, appliedFilters: null,
-      serviceFacets: [], timeline: [], attention: null,
+      serviceFacets: [], timeline: [], attention: null, canonicalMetrics: null,
     };
   }
   const row = data as Record<string, unknown>;
@@ -94,5 +97,6 @@ export function parseFinanceQuickListResponse<T>(data: unknown): FinanceQuickLis
     row.attention && typeof row.attention === 'object'
       ? (row.attention as FinanceInstallmentAttention)
       : null;
-  return { items, summary, appliedFilters, serviceFacets, timeline, attention };
+  const canonicalMetrics = parseFinanceCanonicalMetrics(row.canonical_metrics);
+  return { items, summary, appliedFilters, serviceFacets, timeline, attention, canonicalMetrics };
 }
