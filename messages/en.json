@@ -15461,6 +15461,7 @@
     "sessions": "Sessions",
     "details": "Draft details",
     "noDrafts": "No drafts for this academic year.",
-    "page": "Page"
+    "page": "Page",
+    "detailedEditor": "Detailed editor"
   }
 }

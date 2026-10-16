@@ -15462,6 +15462,7 @@
     "sessions": "Sesiones",
     "details": "Detalles del borrador",
     "noDrafts": "No hay borradores para este curso.",
-    "page": "Página"
+    "page": "Página",
+    "detailedEditor": "Editor detallado"
   }
 }
