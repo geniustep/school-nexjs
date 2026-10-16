@@ -36,7 +36,7 @@ export function parseFinanceCanonicalMetrics(
   const asOf = meta.as_of_date;
   if (typeof schoolId !== 'number' || !Number.isSafeInteger(schoolId) || schoolId <= 0 ||
       typeof yearId !== 'number' || !Number.isSafeInteger(yearId) || yearId <= 0 ||
-      typeof asOf !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(asOf)) return null;
+      typeof asOf !== 'string' || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(asOf)) return null;
   if (expected?.schoolId != null && schoolId !== expected.schoolId) return null;
   if (expected?.academicYearId != null && yearId !== expected.academicYearId) return null;
 

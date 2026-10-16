@@ -18,6 +18,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW, canViewFinanceInstallments } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
 import { useSession } from '@/features/auth/session-context';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 
 function readFilters(searchParams: URLSearchParams): InstallmentsListFilters {
@@ -55,10 +56,15 @@ const URL_KEYS: Record<keyof InstallmentsListFilters, string> = {
 export default function AdminFinanceInstallmentsPage() {
   const t = useT();
   const user = useSession();
+  const { activeAcademicYearId, academicYearLoading } = useAdminSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/installments');
-  const filters = useMemo(() => readFilters(searchParams), [searchParams]);
+  const rawFilters = useMemo(() => readFilters(searchParams), [searchParams]);
+  const filters = useMemo(
+    () => ({ ...rawFilters, academicYearId: rawFilters.academicYearId || String(activeAcademicYearId ?? '') }),
+    [rawFilters, activeAcademicYearId],
+  );
 
   const onFiltersChange = useCallback(
     (updates: Partial<Record<keyof InstallmentsListFilters, string | number | null>>) => {
@@ -101,7 +107,11 @@ export default function AdminFinanceInstallmentsPage() {
         ‹ {t('admin.finance.backToFinance')}
       </Link>
       <PageHeader title={headerTitle} subtitle={headerSubtitle} />
-      <InstallmentsListPanel filters={filters} onFiltersChange={onFiltersChange} returnTo={returnTo} />
+      {academicYearLoading ? (
+        <p role="status">{t('admin.finance.canonical.loadingYear')}</p>
+      ) : (
+        <InstallmentsListPanel filters={filters} onFiltersChange={onFiltersChange} returnTo={returnTo} />
+      )}
     </RequireAdminPermission>
   );
 }

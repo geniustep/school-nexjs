@@ -88,8 +88,8 @@ function ServicePerformanceRows({
       <div className="installments-service-performance__head" aria-hidden>
         <span>{t('admin.finance.installments.analytics.service')}</span>
         <span>{t('admin.finance.installments.analytics.students')}</span>
-        <span>{t('admin.finance.installments.analytics.totalDue')}</span>
-        <span>{t('admin.finance.installments.analytics.averagePerStudent')}</span>
+        <span>{t('admin.finance.canonical.filteredScheduled')}</span>
+        <span>{t('admin.finance.canonical.averageScheduled')}</span>
         <span>{t('admin.finance.installments.analytics.performance')}</span>
         <span>{t('admin.finance.installments.analytics.collectionRate')}</span>
       </div>
@@ -119,6 +119,7 @@ function ServicePerformanceRows({
                 <span>
                   <strong dir="auto">{facet.service_name}</strong>
                   <small>{t('admin.finance.installments.analytics.installmentsCount', { count: facet.count })}</small>
+                  <small>{t('admin.finance.canonical.remainingSubset')}: <FinanceMoney amount={facet.total_remaining} /></small>
                 </span>
               </span>
               <span
@@ -134,7 +135,7 @@ function ServicePerformanceRows({
                 <FinanceMoney amount={performance.totalAmount} />
               </span>
               <span className="installments-service-performance__average">
-                <small>{t('admin.finance.installments.analytics.averagePerStudent')}</small>
+                <small>{t('admin.finance.canonical.averageScheduled')}</small>
                 {facet.average_amount_per_student == null
                   ? t('common.dash')
                   : <FinanceMoney amount={facet.average_amount_per_student} />}
@@ -182,7 +183,7 @@ function ServicePerformanceRows({
               <FinanceMoney amount={summary.total_amount ?? 0} />
             </span>
             <span className="installments-service-performance__average">
-              <small>{t('admin.finance.installments.analytics.averagePerStudent')}</small>
+              <small>{t('admin.finance.canonical.averageScheduled')}</small>
               {summary.average_amount_per_student == null
                 ? t('common.dash')
                 : <FinanceMoney amount={summary.average_amount_per_student} />}
