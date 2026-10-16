@@ -74,6 +74,7 @@ export function AssignmentBoard({
   const readinessState = useSetupReadiness({ academic_year_id: effectiveYearId });
   const pagination = meta?.pagination;
   const assignedCount = pagination?.total ?? assignments.length;
+  const uniqueSubjectCountOnPage = new Set(assignments.map((row) => row.subject.id)).size;
 
   const missingIssues = useMemo(() => {
     const all = filterAssignmentMissingIssues(readinessState.data?.issues ?? []);
@@ -162,6 +163,7 @@ export function AssignmentBoard({
           <div className="academic-setup-assignment-toolbar__summary" aria-live="polite">
             <strong>{assignedCount}</strong>
             <span className="muted">{t('admin.academicSetup.assignedCount')}</span>
+            <span className="tiny muted">{uniqueSubjectCountOnPage} مواد فريدة في الصفحة الحالية</span>
             {missingIssues.length > 0 ? (
               <button
                 type="button"
