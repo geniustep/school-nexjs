@@ -35,6 +35,10 @@ export interface TeachingAssignment {
   role: TeachingAssignmentRole;
   state: string;
   active: boolean;
+  is_operationally_active?: boolean;
+  effective_from?: string | null;
+  effective_to?: string | null;
+  termination_reason?: string | null;
   warnings?: ApiWarning[];
   notes?: string | null;
   teaching_offering_id?: number | null;

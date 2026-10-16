@@ -54,6 +54,8 @@ export async function createTeachingAssignment(payload: {
   role?: string;
   notes?: string;
   teaching_offering_id?: number;
+  effective_from?: string | null;
+  effective_to?: string | null;
   override?: true;
   override_reason?: string;
 }) {
@@ -83,6 +85,8 @@ export async function updateTeachingAssignment(
     notes: string;
     active: boolean;
     teaching_offering_id: number | null | false;
+    effective_from: string | null;
+    effective_to: string | null;
     override: true;
     override_reason: string;
   }>,

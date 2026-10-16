@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { TeachingAssignment } from '@/types/academic-setup';
+import { assignmentOperationalLabel } from '../utils/assignment-operational-state';
 
 export function AssignmentBySubject({ assignments, canManage, onEdit }: { assignments: TeachingAssignment[]; canManage: boolean; onEdit: (assignment: TeachingAssignment) => void }) {
   const t = useT();
@@ -37,6 +38,7 @@ export function AssignmentBySubject({ assignments, canManage, onEdit }: { assign
           {rows.map((row) => (
             <div key={row.id} className="academic-setup-assignment-row">
               <span>{row.class.name}</span>
+              <span className="tiny muted">{assignmentOperationalLabel(row)}</span>
               <button type="button" className="btn btn--ghost btn--sm" disabled={!canManage} onClick={() => onEdit(row)}>{row.teacher.name}</button>
             </div>
           ))}

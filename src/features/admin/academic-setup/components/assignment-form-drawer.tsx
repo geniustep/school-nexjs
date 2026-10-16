@@ -32,6 +32,8 @@ export type AssignmentFormCreatePayload = {
   weekly_hours?: number;
   role?: string;
   teaching_offering_id?: number;
+  effective_from?: string | null;
+  effective_to?: string | null;
   override?: true;
   override_reason?: string;
 };
@@ -41,6 +43,8 @@ export type AssignmentFormUpdatePayload = Partial<{
   weekly_hours: number;
   role: string;
   teaching_offering_id: number | null;
+  effective_from: string | null;
+  effective_to: string | null;
   override: true;
   override_reason: string;
 }>;
@@ -82,6 +86,8 @@ export function AssignmentFormDrawer({
   });
   const [weeklyHours, setWeeklyHours] = useState('2');
   const [offeringId, setOfferingId] = useState('');
+  const [effectiveFrom, setEffectiveFrom] = useState('');
+  const [effectiveTo, setEffectiveTo] = useState('');
   const [recheckNotice, setRecheckNotice] = useState(false);
   const [role, setRole] = useState('main');
   const [reviewing, setReviewing] = useState(false);
@@ -145,11 +151,15 @@ export function AssignmentFormDrawer({
         assignment.teaching_offering_id ? String(assignment.teaching_offering_id) : '',
       );
       setRole(assignment.role ?? 'main');
+      setEffectiveFrom(assignment.effective_from ?? '');
+      setEffectiveTo(assignment.effective_to ?? '');
     } else {
       setSelection({ teacherId: null, override: false, overrideReason: '' });
       setWeeklyHours('2');
       setOfferingId('');
       setRole('main');
+      setEffectiveFrom('');
+      setEffectiveTo('');
     }
     setRecheckNotice(false);
     setReviewing(false);
@@ -197,12 +207,18 @@ export function AssignmentFormDrawer({
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
       role,
       weekly_hours: Number(weeklyHours) || undefined,
+      effective_from: effectiveFrom || undefined,
+      effective_to: effectiveTo || undefined,
     };
-  }, [classId, subjectId, academicYearId, offeringId, weeklyHours, role]);
+  }, [classId, subjectId, academicYearId, offeringId, weeklyHours, role, effectiveFrom, effectiveTo]);
 
   const selectionValid = eligibleTeachersSelectionValid(selection);
   const offeringBlocksCreate = !assignment && offeringAmbiguous && !offeringId;
-  const canSubmit = canManage && selectionValid && !offeringBlocksCreate && !saving;
+  const validDateWindow = !effectiveFrom || !effectiveTo || effectiveFrom <= effectiveTo;
+  const editAllowed = !assignment || (Array.isArray(assignment.allowed_actions)
+    ? assignment.allowed_actions.includes('edit')
+    : assignment.allowed_actions?.edit !== false);
+  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && !offeringBlocksCreate && !saving;
 
   const selectedClass =
     contextClasses.find((item) => item.id === classId) ??
@@ -275,6 +291,8 @@ export function AssignmentFormDrawer({
         weekly_hours: Number(weeklyHours) || undefined,
         role,
         teaching_offering_id: offeringId ? Number(offeringId) : null,
+        effective_from: effectiveFrom || null,
+        effective_to: effectiveTo || null,
         ...buildOverrideFields(),
       });
       return;
@@ -288,6 +306,8 @@ export function AssignmentFormDrawer({
       weekly_hours: Number(weeklyHours) || 2,
       role,
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
+      effective_from: effectiveFrom || null,
+      effective_to: effectiveTo || null,
       ...buildOverrideFields(),
     });
   }
@@ -536,6 +556,34 @@ export function AssignmentFormDrawer({
                   />
                 </label>
 
+                <label className="assignment-drawer-detail-card">
+                  <span>تاريخ بداية الإسناد</span>
+                  <input
+                    type="date"
+                    lang="ar"
+                    value={effectiveFrom}
+                    disabled={!canManage || !editAllowed || saving}
+                    onChange={(event) => { setEffectiveFrom(event.target.value); resetTeacherChoice(); }}
+                  />
+                </label>
+                <label className="assignment-drawer-detail-card">
+                  <span>تاريخ نهاية الإسناد (اختياري)</span>
+                  <input
+                    type="date"
+                    lang="ar"
+                    value={effectiveTo}
+                    min={effectiveFrom || undefined}
+                    disabled={!canManage || !editAllowed || saving}
+                    onChange={(event) => { setEffectiveTo(event.target.value); resetTeacherChoice(); }}
+                  />
+                  <span className="tiny muted">اتركه فارغًا إذا كان الإسناد مفتوح النهاية.</span>
+                </label>
+                {!validDateWindow ? (
+                  <p role="alert" className="tiny assignment-drawer-error">
+                    تاريخ النهاية يجب ألا يسبق تاريخ البداية.
+                  </p>
+                ) : null}
+
                 {classId && subjectId && offeringAmbiguous ? (
                   <label className="assignment-drawer-detail-card">
                     <span>{t('academicContext.fields.offering')}</span>
@@ -659,6 +707,8 @@ export function AssignmentFormDrawer({
                     <span>{t('admin.academicSetup.assignmentRole')}</span>
                     <strong>{t(`admin.academicSetup.assignmentRoles.${role}`)}</strong>
                   </div>
+                  <div className="assignment-drawer-review-item"><span>بداية الإسناد</span><strong>{effectiveFrom || 'غير محددة'}</strong></div>
+                  <div className="assignment-drawer-review-item"><span>نهاية الإسناد</span><strong>{effectiveTo || 'مفتوحة'}</strong></div>
                 </div>
               </div>
             </section>
