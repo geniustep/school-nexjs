@@ -1,6 +1,57 @@
 import type { SchoolRef } from '@/types/api';
 import type { AdminScope } from '@/types/scope';
-import type { AdminBinding, AdminKind, CurrentUser } from '@/types/user';
+import type {
+  ActiveUserContext,
+  AdminBinding,
+  AdminKind,
+  CurrentUser,
+  Role,
+  UserRoleContext,
+} from '@/types/user';
+
+const ROLE_SET = new Set<Role>(['admin', 'teacher', 'parent', 'student']);
+
+function asRole(value: unknown): Role | null {
+  if (typeof value !== 'string') return null;
+  const role = value.trim().toLowerCase() as Role;
+  return ROLE_SET.has(role) ? role : null;
+}
+
+function asActiveContext(value: unknown): ActiveUserContext | null {
+  if (!value || typeof value !== 'object') return null;
+  const item = value as { school_id?: unknown; role?: unknown };
+  const schoolId = Number(item.school_id);
+  const role = asRole(item.role);
+  if (!Number.isInteger(schoolId) || schoolId <= 0 || !role) return null;
+  return { school_id: schoolId, role };
+}
+
+function asAvailableContexts(value: unknown): UserRoleContext[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const seen = new Set<string>();
+  const contexts: UserRoleContext[] = [];
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') continue;
+    const item = raw as Record<string, unknown>;
+    const schoolId = Number(item.school_id);
+    const role = asRole(item.role);
+    if (!Number.isInteger(schoolId) || schoolId <= 0 || !role) continue;
+    const key = `${schoolId}:${role}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    contexts.push({
+      school_id: schoolId,
+      school_name: typeof item.school_name === 'string' ? item.school_name : null,
+      role,
+      source: typeof item.source === 'string' ? item.source : null,
+      bindings:
+        item.bindings && typeof item.bindings === 'object'
+          ? (item.bindings as UserRoleContext['bindings'])
+          : undefined,
+    });
+  }
+  return contexts;
+}
 
 function uniqueSchoolIds(ids: number[]): number[] {
   return [...new Set(ids.filter((id) => Number.isFinite(id) && id > 0))];
@@ -165,6 +216,8 @@ export function schoolRefForId(catalog: SchoolRef[], id: number | null): SchoolR
 }
 
 export function normalizeMeUser(raw: CurrentUser): CurrentUser {
+  const active_context = asActiveContext(raw.active_context);
+  const available_contexts = asAvailableContexts(raw.available_contexts);
   const bindings = asBindingList(raw.bindings);
   const schoolsFromMe = asSchoolList(raw.schools);
   const base = {
@@ -176,12 +229,29 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
   const schools = resolveSchoolCatalog({ ...base, school_ids });
   const scopes = raw.scopes?.length ? raw.scopes : raw.scope ? [raw.scope] : [];
   const scope = resolvePrimaryScope({ scope: raw.scope, scopes });
-  const active_school_id = resolveActiveSchoolId({ ...base, school_ids });
-  const school =
-    schoolRefForId(schools, active_school_id) ??
-    (raw.school?.id != null ? schoolRefForId(schools, raw.school.id) : null) ??
-    raw.school ??
-    null;
+  const legacyActiveSchoolId = resolveActiveSchoolId({ ...base, school_ids });
+  const active_school_id = active_context?.role === 'admin'
+    ? active_context.school_id
+    : active_context
+      ? undefined
+      : legacyActiveSchoolId ?? undefined;
+  const contextSchool = active_context
+    ? available_contexts?.find(
+        (ctx) => ctx.school_id === active_context.school_id && ctx.role === active_context.role,
+      )
+    : undefined;
+  const school = active_context
+    ? {
+        id: active_context.school_id,
+        name:
+          contextSchool?.school_name?.trim() ||
+          (raw.school?.id === active_context.school_id ? raw.school.name : '') ||
+          '',
+      }
+    : schoolRefForId(schools, legacyActiveSchoolId) ??
+      (raw.school?.id != null ? schoolRefForId(schools, raw.school.id) : null) ??
+      raw.school ??
+      null;
 
   const teacher_id =
     typeof raw.teacher_id === 'number' && raw.teacher_id > 0 ? raw.teacher_id : undefined;
@@ -195,6 +265,8 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
       typeof raw.creation_template_code === 'string' ? raw.creation_template_code : undefined,
     roles: Array.isArray(raw.roles) ? raw.roles.filter((r): r is string => typeof r === 'string') : raw.roles,
     active_role: typeof raw.active_role === 'string' ? raw.active_role : undefined,
+    active_context,
+    available_contexts,
     available_roles: Array.isArray(raw.available_roles)
       ? raw.available_roles.filter(
           (r): r is import('@/types/user').UserRoleOption =>
@@ -215,7 +287,7 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
     schools,
     scopes,
     scope,
-    active_school_id: active_school_id ?? undefined,
+    active_school_id,
     school,
     permissions: raw.permissions ?? [],
   };
