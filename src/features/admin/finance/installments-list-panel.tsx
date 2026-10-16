@@ -14,6 +14,7 @@ import { DataTable, Pagination, type Column } from '@/components/tables/data-tab
 import { IconWallet } from '@/components/icons/admin-icons';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { InstallmentsAnalyticsWorkspace } from '@/features/admin/finance/installments-analytics-workspace';
+import { FinanceCanonicalKpis } from '@/features/admin/finance/finance-canonical-kpis';
 import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
 import {
   INSTALLMENT_QUICK_FILTERS,
@@ -99,7 +100,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       page: filters.page,
       page_size: INSTALLMENTS_PAGE_SIZE,
       search: filters.search || undefined,
-      academic_year_id: filters.academicYearId || undefined,
+      academic_year_id: filters.academicYearId && filters.academicYearId !== 'all' ? filters.academicYearId : undefined,
       class_id: filters.classId || undefined,
       level_id: filters.levelId || undefined,
       student_id: filters.studentId || undefined,
@@ -116,10 +117,13 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
   const state = useAdminResource<FinanceInstallment[] | Record<string, unknown>>(
     endpoints.admin.financeInstallments,
     query,
+    { keepPreviousData: false },
   );
   const parsed = useMemo(() => parseFinanceQuickListResponse<FinanceInstallment>(state.data), [state.data]);
   const rows = parsed.items;
   const summary = parsed.summary;
+  const canonical = parsed.canonicalMetrics?.meta.academic_year_id === Number(filters.academicYearId)
+    ? parsed.canonicalMetrics : null;
   const applied = parsed.appliedFilters;
   const serviceFacets = parsed.serviceFacets;
   const timeline = parsed.timeline;
@@ -338,7 +342,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
             ) : null}
           </div>
           <select className="input" name="academic_year_id" defaultValue={filters.academicYearId} aria-label={t('admin.finance.installments.analytics.academicYear')}>
-            <option value="">{t('admin.finance.installments.filters.allYears')}</option>
+            <option value="all">{t('admin.finance.installments.filters.allYears')}</option>
             {yearOptions.map((y) => (
               <option key={y.id} value={y.id}>{y.name}</option>
             ))}
@@ -444,6 +448,14 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
           ) : null}
         </div>
       ) : null}
+
+      {filters.academicYearId && filters.academicYearId !== 'all' ? (
+        <FinanceCanonicalKpis
+          metrics={canonical}
+          yearLabel={yearOptions.find((y) => String(y.id) === filters.academicYearId)?.name}
+        />
+      ) : <p className="card" role="status">{t('admin.finance.canonical.chooseYear')}</p>}
+      <p className="muted">{t('admin.finance.canonical.listScopeNote')}</p>
 
       <InstallmentsAnalyticsWorkspace
         summary={summary}

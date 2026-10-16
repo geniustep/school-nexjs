@@ -6,6 +6,8 @@ import { ApiErrorView, EmptyState, ErrorState, LoadingState } from '@/components
 import { Badge, InfoBanner } from '@/components/ui/primitives';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { FinanceCanonicalKpis } from '@/features/admin/finance/finance-canonical-kpis';
+import { parseFinanceCanonicalMetrics } from '@/lib/utils/finance-canonical';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type {
@@ -212,6 +214,10 @@ function SummarySection({
   const collected = summary.kpis.recognized_collected_to_date;
   const rate = summary.kpis.collection_rate_to_date;
   const overdue = summary.kpis.overdue;
+  const canonical = parseFinanceCanonicalMetrics(summary.canonical_metrics, {
+    schoolId: summary.meta.school_id,
+    academicYearId: summary.meta.academic_year_id,
+  });
 
   return (
     <>
@@ -285,6 +291,10 @@ function SummarySection({
         </div>
 
       </section>
+      <FinanceCanonicalKpis
+        metrics={canonical}
+        keys={['academic_year_programmed_total', 'future_scheduled_amount', 'remaining_due_to_date']}
+      />
     </>
   );
 }
