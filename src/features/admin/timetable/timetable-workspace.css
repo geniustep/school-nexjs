@@ -32,3 +32,11 @@
 @media (max-width: 900px) { .timetable-workspace__body { grid-template-columns: minmax(0, 1fr); } .timetable-workspace__drafts { order: 2; } .timetable-workspace__actions { width: 100%; } .timetable-workspace .btn { min-height: 44px; } .timetable-workspace__summary { gap: 12px 18px; } }
 
 .timetable-workspace__body--single { grid-template-columns: minmax(0, 1fr); }
+
+.timetable-workspace__details { margin-block: 16px; padding: 16px; border: 1px solid var(--c-border); border-radius: var(--radius-md); background: var(--c-surface); min-width: 0; }
+.timetable-workspace__details h2 { font-size: 16px; }
+.timetable-workspace__details-scroll { overflow-x: auto; }
+.timetable-workspace__details table { width: 100%; border-collapse: collapse; }
+.timetable-workspace__details th, .timetable-workspace__details td { text-align: start; padding: 10px; border-block-end: 1px solid var(--c-border); vertical-align: top; }
+.timetable-workspace__details ul { margin: 0; padding-inline-start: 18px; }
+.timetable-workspace__details :focus-visible { outline: 2px solid var(--c-primary); outline-offset: 3px; }

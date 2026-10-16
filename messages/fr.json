@@ -15483,6 +15483,16 @@
     "details": "Détails du brouillon",
     "noDrafts": "Aucun brouillon pour cette année scolaire.",
     "page": "Page",
-    "detailedEditor": "Éditeur détaillé"
+    "detailedEditor": "Éditeur détaillé",
+    "warningHelpTitle": "Que signifient les avertissements et les conflits ?",
+    "warningHelp": "Les avertissements sont des points à examiner, sans indiquer à eux seuls un conflit. Les conflits sont des problèmes du planning à résoudre. Ouvrez les séances pour lire les messages disponibles.",
+    "draftLinesHelp": "Séances du brouillon sélectionné, qui peuvent différer du planning publié. Consultation uniquement.",
+    "draftLines": "Séances enregistrées dans le brouillon",
+    "detailsError": "Impossible de charger ce brouillon. Aucun autre planning ne le remplace.",
+    "retryDetails": "Recharger les détails",
+    "warningDetailsUnavailable": "Le brouillon comporte des avertissements dont le service ne fournit pas les messages détaillés. Leur nombre ne permet pas d’en déduire les causes.",
+    "conflictDetailsUnavailable": "Le brouillon comporte des conflits dont les détails ne sont pas fournis dans cette vue.",
+    "noDraftLines": "Aucune séance enregistrée dans ce brouillon.",
+    "dayLabel": "Jour"
   }
 }

@@ -15463,6 +15463,16 @@
     "details": "Detalles del borrador",
     "noDrafts": "No hay borradores para este curso.",
     "page": "Página",
-    "detailedEditor": "Editor detallado"
+    "detailedEditor": "Editor detallado",
+    "warningHelpTitle": "¿Qué significan las advertencias y los conflictos?",
+    "warningHelp": "Las advertencias son puntos que revisar y no indican por sí solas un conflicto. Los conflictos son problemas del horario que resolver. Abra las sesiones para leer los mensajes disponibles.",
+    "draftLinesHelp": "Sesiones del borrador seleccionado, que pueden diferir del horario publicado. Solo lectura.",
+    "draftLines": "Sesiones guardadas en este borrador",
+    "detailsError": "No se pudo cargar este borrador. No se ha sustituido por otro horario.",
+    "retryDetails": "Recargar detalles",
+    "warningDetailsUnavailable": "El borrador tiene advertencias cuyos mensajes detallados no proporciona el servicio. El número no permite deducir sus causas.",
+    "conflictDetailsUnavailable": "El borrador tiene conflictos cuyos detalles no se proporcionan en esta vista.",
+    "noDraftLines": "No hay sesiones guardadas en este borrador.",
+    "dayLabel": "Día"
   }
 }

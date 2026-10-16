@@ -14,6 +14,7 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { AdminTimetablePanel } from '@/features/admin/admin-timetable-panel';
+import { DraftDetails, type DraftSelection } from '@/features/admin/timetable/draft-details';
 import { useLocale } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
@@ -32,12 +33,14 @@ export function TimetableWorkspace() {
   const user = useSession();
   const [page, setPage] = useState(1);
   const [selectedClass, setSelectedClass] = useState('');
+  const [selectedDraft, setSelectedDraft] = useState<DraftSelection | null>(null);
   const drafts = useGlobalAcademicYearResource<Draft[]>(`${endpoints.admin.timetable}/drafts`, { page, limit: PAGE_SIZE });
   const known = drafts.data !== null && !drafts.error;
   const rows = drafts.data ?? [];
   const states: Record<string, 'published' | 'validated' | 'archived' | 'draft'> = { published: 'published', validated: 'validated', archived: 'archived', draft: 'draft' };
   const aside = <aside className="timetable-workspace__drafts" aria-labelledby="timetable-drafts-title" aria-busy={drafts.fetching}>
     <div className="timetable-workspace__section-head"><h2 id="timetable-drafts-title">{t('timetableWorkspace.draftsTitle')}</h2><span className="muted tiny">{t('timetableWorkspace.page')} {page}</span></div>
+    <details><summary>{t('timetableWorkspace.warningHelpTitle')}</summary><p>{t('timetableWorkspace.warningHelp')}</p></details>
     <ResourceView state={drafts} isEmpty={(data) => data.length === 0} empty={<EmptyState compact title={t('timetableWorkspace.noDrafts')} />}>
       {(data) => <ul className="timetable-workspace__draft-list">{data.map((draft) => <li key={draft.draft_id}>
         <div className="timetable-workspace__draft-heading"><strong dir="auto">{draft.name}</strong><Badge tone={draft.state === 'published' ? 'green' : draft.state === 'validated' ? 'blue' : 'slate'}>{states[draft.state] ? t(`timetableWorkspace.${states[draft.state]}`) : draft.state}</Badge></div>
@@ -46,7 +49,7 @@ export function TimetableWorkspace() {
           <div><dt>{t('timetableWorkspace.warnings')}</dt><dd>{draft.warning_count}</dd></div>
           <div><dt>{t('timetableWorkspace.conflicts')}</dt><dd>{draft.conflict_count}</dd></div>
         </dl>
-        {draft.scope_class_ids?.length === 1 && <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedClass(String(draft.scope_class_ids![0]))}>{t('timetableWorkspace.viewClass')}</button>}
+        {draft.scope_class_ids?.length === 1 && <button type="button" className="btn btn--ghost btn--sm" aria-expanded={selectedDraft?.draftId === draft.draft_id} aria-controls="timetable-draft-details" onClick={() => setSelectedDraft({ draftId: draft.draft_id, classId: draft.scope_class_ids![0], name: draft.name, warnings: draft.warning_count, conflicts: draft.conflict_count })}>{t('timetableWorkspace.viewClass')}</button>}
       </li>)}</ul>}
     </ResourceView>
     <div className="timetable-workspace__pagination">
@@ -67,6 +70,7 @@ export function TimetableWorkspace() {
       <span>{t('timetableWorkspace.drafts')} <strong>{known ? rows.filter((d) => d.state === 'draft' || d.state === 'validated').length : '—'}</strong></span>
       <span>{t('timetableWorkspace.conflicts')} <strong>{known ? rows.reduce((sum, d) => sum + d.conflict_count, 0) : '—'}</strong></span>
     </section>
+    {selectedDraft && <DraftDetails key={`${selectedDraft.draftId}:${selectedDraft.classId}`} selection={selectedDraft} onClose={() => setSelectedDraft(null)} />}
     <AdminTimetablePanel initialView="week" selectedClass={selectedClass} onClassChange={setSelectedClass} aside={aside} />
   </div>;
 }
