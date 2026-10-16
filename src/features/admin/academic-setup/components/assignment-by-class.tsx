@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
+import { assignmentOperationalLabel } from '../utils/assignment-operational-state';
 import { formatAcademicClassLabel } from '../utils/format-academic-label';
 import '../assignment-cycle-filter.css';
 
@@ -254,6 +255,7 @@ export function AssignmentByClass({
                 const rankB = subjectRank.get(b.subject.id) ?? 9999;
                 return rankA - rankB || collator.compare(a.subject.name, b.subject.name);
               });
+              const uniqueSubjects = new Set(rows.map((row) => row.subject.id)).size;
               const missing = [...(missingByClass.get(cls.id) ?? [])].sort((a, b) =>
                 collator.compare(
                   String(a.context?.subject_name ?? a.title ?? ''),
@@ -273,6 +275,7 @@ export function AssignmentByClass({
                         </span>
                       ) : null}
                     </div>
+                    <span className="tiny muted">{uniqueSubjects} مواد مختلفة · {rows.length} إسناد</span>
                     {missing.length > 0 ? (
                       <span className="assignment-class-card__status assignment-class-card__status--warning">
                         {missingTeacherLabel(missing.length)}
@@ -295,6 +298,7 @@ export function AssignmentByClass({
                         <span className="assignment-subject-tile__teacher" dir="auto">
                           {row.teacher.name}
                         </span>
+                        <span className="tiny muted">{assignmentOperationalLabel(row)}</span>
                       </button>
                     ))}
 
