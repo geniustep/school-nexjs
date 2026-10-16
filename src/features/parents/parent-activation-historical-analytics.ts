@@ -2,6 +2,8 @@ import type { Locale } from '@/lib/i18n/config';
 import type {
   ParentActivationHistoricalActivationStatus,
   ParentActivationHistoricalMessageStatus,
+  ParentActivationCampaignArchiveStatus,
+  ParentActivationHistoricalCampaignListItem,
   ParentActivationHistoricalMessageSummary,
   ParentActivationHistoricalMilestone,
   ParentActivationHistoricalMilestoneSummary,
@@ -19,7 +21,12 @@ const COPY = {
     refresh: 'تحديث',
     prepared: 'مُعدّة',
     savedCampaign: 'محفوظة',
-    sentCampaign: 'تم الإرسال',
+    sentCampaign: 'مرسلة',
+    saveCampaign: 'حفظ الحملة',
+    savingCampaign: 'جارٍ الحفظ…',
+    campaignSavedNotice: 'تم حفظ الحملة وستظهر ضمن الحملات السابقة.',
+    saveCampaignFailed: 'تعذر حفظ الحملة.',
+    previewCampaign: 'معاينة غير محفوظة',
     createdAt: 'أُنشئت',
     preparedAt: 'أُعدّت',
     audience: 'الجمهور',
@@ -77,6 +84,11 @@ const COPY = {
     prepared: 'Prepared',
     savedCampaign: 'Saved',
     sentCampaign: 'Sent',
+    saveCampaign: 'Save campaign',
+    savingCampaign: 'Saving…',
+    campaignSavedNotice: 'Campaign saved and will appear in previous campaigns.',
+    saveCampaignFailed: 'Could not save campaign.',
+    previewCampaign: 'Unsaved preview',
     createdAt: 'Created',
     preparedAt: 'Prepared',
     audience: 'Audience',
@@ -134,6 +146,11 @@ const COPY = {
     prepared: 'Préparée',
     savedCampaign: 'Enregistrée',
     sentCampaign: 'Envoyée',
+    saveCampaign: 'Enregistrer la campagne',
+    savingCampaign: 'Enregistrement…',
+    campaignSavedNotice: 'La campagne est enregistrée et apparaîtra dans les campagnes précédentes.',
+    saveCampaignFailed: 'Impossible d’enregistrer la campagne.',
+    previewCampaign: 'Aperçu non enregistré',
     createdAt: 'Créée',
     preparedAt: 'Préparée',
     audience: 'Audience',
@@ -191,6 +208,11 @@ const COPY = {
     prepared: 'Preparada',
     savedCampaign: 'Guardada',
     sentCampaign: 'Enviada',
+    saveCampaign: 'Guardar campaña',
+    savingCampaign: 'Guardando…',
+    campaignSavedNotice: 'La campaña se ha guardado y aparecerá en las campañas anteriores.',
+    saveCampaignFailed: 'No se pudo guardar la campaña.',
+    previewCampaign: 'Vista previa sin guardar',
     createdAt: 'Creada',
     preparedAt: 'Preparada',
     audience: 'Audiencia',
@@ -330,6 +352,18 @@ const ACTIVATION_LABELS = {
 export function getParentActivationHistoricalCopy(locale: Locale) {
   return COPY[locale];
 }
+
+export function getHistoricalCampaignArchiveStatus(
+  item: ParentActivationHistoricalCampaignListItem,
+): Exclude<ParentActivationCampaignArchiveStatus, 'preview'> | null {
+  if (item.archive_status === 'sent' || item.archive_status === 'saved') {
+    return item.archive_status;
+  }
+  // Compatibility with older runtimes: proven dispatch is safe to classify as sent.
+  if (item.funnel.dispatch_enqueued > 0) return 'sent';
+  return null;
+}
+
 
 export function getHistoricalMessageStatusLabel(locale: Locale, status: ParentActivationHistoricalMessageStatus) {
   return MESSAGE_LABELS[locale][status];
