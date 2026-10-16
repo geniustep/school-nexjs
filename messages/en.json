@@ -15466,6 +15466,16 @@
     "details": "Draft details",
     "noDrafts": "No drafts for this academic year.",
     "page": "Page",
-    "detailedEditor": "Detailed editor"
+    "detailedEditor": "Detailed editor",
+    "warningHelpTitle": "What do warnings and conflicts mean?",
+    "warningHelp": "Warnings are points to review and do not by themselves indicate a conflict. Conflicts are scheduling issues to resolve. Open the class sessions to read the available messages.",
+    "draftLinesHelp": "Sessions from the selected draft, which may differ from the published timetable. Read-only view.",
+    "draftLines": "Sessions saved in this draft",
+    "detailsError": "Could not load this draft. No other timetable has been substituted.",
+    "retryDetails": "Reload details",
+    "warningDetailsUnavailable": "This draft has warnings, but the service does not provide their detailed messages. Their causes cannot be inferred from the count alone.",
+    "conflictDetailsUnavailable": "This draft has conflicts whose details are not provided in this view.",
+    "noDraftLines": "There are no saved sessions in this draft.",
+    "dayLabel": "Day"
   }
 }
