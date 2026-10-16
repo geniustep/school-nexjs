@@ -58,6 +58,7 @@ export function TimetableWorkspace() {
   return <div className="admin-workspace timetable-workspace">
     <PageHeader title={t('timetable.title')} subtitle={t('admin.timetableDesc')} actions={<div className="timetable-workspace__actions">
       {canViewAcademicSetup(user) && <Link className="btn btn--ghost btn--sm" href="/admin/timetable/setup">{t('timetableWorkspace.settings')}</Link>}
+      <Link className="btn btn--ghost btn--sm" href="/admin/timetable/bulk">{t('timetableWorkspace.detailedEditor')}</Link>
       <Link className="btn btn--primary btn--sm" href="/admin/timetable/studio">{t('timetableWorkspace.studio')}</Link>
     </div>} />
     <section className="timetable-workspace__summary" aria-label={t('timetableWorkspace.summaryScope')} aria-busy={drafts.fetching}>
