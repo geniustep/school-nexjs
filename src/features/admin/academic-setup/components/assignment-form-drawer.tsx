@@ -21,6 +21,7 @@ import {
   type EligibleTeachersPickerValue,
 } from '@/features/admin/teachers/components/eligible-teachers-picker';
 import { resolveGuidedAssignmentClasses } from '../utils/assignment-class-options';
+import { keepTeacherWhenDatesChange } from '../utils/assignment-date-recheck';
 import { SetupDrawer } from './setup-drawer';
 import './assignment-form-drawer.css';
 
@@ -89,6 +90,7 @@ export function AssignmentFormDrawer({
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
   const [recheckNotice, setRecheckNotice] = useState(false);
+  const [teacherRecheckPending, setTeacherRecheckPending] = useState(false);
   const [role, setRole] = useState('main');
   const [reviewing, setReviewing] = useState(false);
   const [academicSelection, setAcademicSelection] = useState<AcademicContextSelection>(() => ({
@@ -162,6 +164,7 @@ export function AssignmentFormDrawer({
       setEffectiveTo('');
     }
     setRecheckNotice(false);
+    setTeacherRecheckPending(false);
     setReviewing(false);
   }, [
     open,
@@ -218,7 +221,7 @@ export function AssignmentFormDrawer({
   const editAllowed = !assignment || (Array.isArray(assignment.allowed_actions)
     ? assignment.allowed_actions.includes('edit')
     : assignment.allowed_actions?.edit !== false);
-  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && !offeringBlocksCreate && !saving;
+  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && !teacherRecheckPending && !offeringBlocksCreate && !saving;
 
   const selectedClass =
     contextClasses.find((item) => item.id === classId) ??
@@ -257,6 +260,16 @@ export function AssignmentFormDrawer({
 
   function resetTeacherChoice() {
     setSelection({ teacherId: null, override: false, overrideReason: '' });
+    setTeacherRecheckPending(false);
+    setRecheckNotice(false);
+    setReviewing(false);
+  }
+
+  function recheckTeacherForDates() {
+    // Preserve an ordinary selected teacher while the candidates endpoint verifies
+    // the new date window. Overrides must be chosen again for each new window.
+    setSelection((current) => keepTeacherWhenDatesChange(current));
+    setTeacherRecheckPending(selection.teacherId != null && !selection.override);
     setRecheckNotice(false);
     setReviewing(false);
   }
@@ -563,7 +576,7 @@ export function AssignmentFormDrawer({
                     lang="ar"
                     value={effectiveFrom}
                     disabled={!canManage || !editAllowed || saving}
-                    onChange={(event) => { setEffectiveFrom(event.target.value); resetTeacherChoice(); }}
+                    onChange={(event) => { setEffectiveFrom(event.target.value); recheckTeacherForDates(); }}
                   />
                 </label>
                 <label className="assignment-drawer-detail-card">
@@ -574,13 +587,18 @@ export function AssignmentFormDrawer({
                     value={effectiveTo}
                     min={effectiveFrom || undefined}
                     disabled={!canManage || !editAllowed || saving}
-                    onChange={(event) => { setEffectiveTo(event.target.value); resetTeacherChoice(); }}
+                    onChange={(event) => { setEffectiveTo(event.target.value); recheckTeacherForDates(); }}
                   />
                   <span className="tiny muted">اتركه فارغًا إذا كان الإسناد مفتوح النهاية.</span>
                 </label>
                 {!validDateWindow ? (
                   <p role="alert" className="tiny assignment-drawer-error">
                     تاريخ النهاية يجب ألا يسبق تاريخ البداية.
+                  </p>
+                ) : null}
+                {teacherRecheckPending ? (
+                  <p role="status" className="tiny muted">
+                    جارٍ إعادة التحقق من أهلية الأستاذ بعد تغيير التاريخ…
                   </p>
                 ) : null}
 
@@ -676,7 +694,7 @@ export function AssignmentFormDrawer({
                   canManage={canManage}
                   disabled={saving}
                   onChange={setSelection}
-                  onCandidatesReloaded={() => setRecheckNotice(true)}
+                  onCandidatesReloaded={() => { setTeacherRecheckPending(false); setRecheckNotice(true); }}
                 />
               ) : (
                 <p className="muted tiny">{t('admin.academicSetup.pickTeacherHint')}</p>
