@@ -5,6 +5,7 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
 import { assignmentOperationalLabel } from '../utils/assignment-operational-state';
+import { reconcileMissingAssignmentTiles } from '../utils/reconcile-missing-assignment-tiles';
 import { formatAcademicClassLabel } from '../utils/format-academic-label';
 import '../assignment-cycle-filter.css';
 
@@ -256,7 +257,10 @@ export function AssignmentByClass({
                 return rankA - rankB || collator.compare(a.subject.name, b.subject.name);
               });
               const uniqueSubjects = new Set(rows.map((row) => row.subject.id)).size;
-              const missing = [...(missingByClass.get(cls.id) ?? [])].sort((a, b) =>
+              const classIssues = missingByClass.get(cls.id) ?? [];
+              const { standaloneIssues, issuesByAssignmentId } =
+                reconcileMissingAssignmentTiles(rows, classIssues);
+              const missing = [...standaloneIssues].sort((a, b) =>
                 collator.compare(
                   String(a.context?.subject_name ?? a.title ?? ''),
                   String(b.context?.subject_name ?? b.title ?? ''),
@@ -276,31 +280,61 @@ export function AssignmentByClass({
                       ) : null}
                     </div>
                     <span className="tiny muted">{uniqueSubjects} مواد مختلفة · {rows.length} إسناد</span>
-                    {missing.length > 0 ? (
+                    {classIssues.length > 0 ? (
                       <span className="assignment-class-card__status assignment-class-card__status--warning">
-                        {missingTeacherLabel(missing.length)}
+                        {missingTeacherLabel(classIssues.length)}
                       </span>
                     ) : null}
                   </header>
 
                   <div className="assignment-subject-grid">
-                    {rows.map((row) => (
-                      <button
-                        key={row.id}
-                        type="button"
-                        className="assignment-subject-tile"
-                        onClick={() => canManage && onEdit(row)}
-                        disabled={!canManage}
-                      >
-                        <span className="assignment-subject-tile__subject" dir="auto">
-                          {row.subject.name}
-                        </span>
-                        <span className="assignment-subject-tile__teacher" dir="auto">
-                          {row.teacher.name}
-                        </span>
-                        <span className="tiny muted">{assignmentOperationalLabel(row)}</span>
-                      </button>
-                    ))}
+                    {rows.map((row) => {
+                      const relatedIssues = issuesByAssignmentId.get(row.id) ?? [];
+                      const primaryIssue = relatedIssues[0];
+                      if (!primaryIssue) {
+                        return (
+                          <button
+                            key={row.id}
+                            type="button"
+                            className="assignment-subject-tile"
+                            onClick={() => canManage && onEdit(row)}
+                            disabled={!canManage}
+                          >
+                            <span className="assignment-subject-tile__subject" dir="auto">
+                              {row.subject.name}
+                            </span>
+                            <span className="assignment-subject-tile__teacher" dir="auto">
+                              {row.teacher.name}
+                            </span>
+                            <span className="tiny muted">{assignmentOperationalLabel(row)}</span>
+                          </button>
+                        );
+                      }
+                      return (
+                        <div key={row.id} className="assignment-subject-tile assignment-subject-tile--attention">
+                          <span className="assignment-subject-tile__subject" dir="auto">
+                            {row.subject.name}
+                          </span>
+                          <span className="assignment-subject-tile__teacher" dir="auto">
+                            {row.teacher.name}
+                          </span>
+                          <span className="tiny muted">{assignmentOperationalLabel(row)}</span>
+                          <span className="assignment-subject-tile__warning">
+                            إسناد يتطلب إجراءً — لا يوجد تكليف سارٍ مثبت
+                          </span>
+                          <div className="assignment-subject-tile__actions">
+                            <button type="button" className="btn btn--ghost btn--sm"
+                              onClick={() => onEdit(row)} disabled={!canManage}>
+                              مراجعة الإسناد
+                            </button>
+                            <button type="button" className="btn btn--secondary btn--sm"
+                              onClick={() => onPickMissing(primaryIssue)} disabled={!canManage}>
+                              إسناد أستاذ
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
 
                     {missing.map((issue) => (
                       <button
