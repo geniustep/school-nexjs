@@ -1,6 +1,7 @@
 'use client';
 
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import '@/features/admin/finance/finance-canonical.css';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_CANONICAL_KEYS, type FinanceCanonicalKey, type FinanceCanonicalMetrics } from '@/types/finance-canonical';
 
