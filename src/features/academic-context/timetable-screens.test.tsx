@@ -492,3 +492,17 @@ describe('school-scale timetable filters',()=>{
   expect(screen.queryByText('الرياضيات')).toBeNull();expect(screen.getByRole('button',{name:'common.retry'})).toBeTruthy();
  });
 });
+
+describe('timetable incomplete resource labels regression',()=>{
+ it('renders and filters when class, cycle, level and teacher names are absent',async()=>{
+  mockResources([slot({class:{id:40,name:''},teacher:{id:3,name:''}})], [{id:40,level:{id:10,cycle:{id:100}}}], [{id:3}]);
+  const user=userEvent.setup();render(<AdminTimetablePanel/>);
+  expect(screen.getByText('الرياضيات')).toBeTruthy();
+  await chooseFacet(user,'timetableFilters.cycle','#100');
+  await chooseFacet(user,'timetableFilters.level','#10');
+  await chooseFacet(user,'nav.classes','#40');
+  await chooseFacet(user,'nav.teachers','#3');
+  expect(screen.getByText('الرياضيات')).toBeTruthy();
+  expect(screen.getAllByRole('table')).toHaveLength(1);
+ });
+});
