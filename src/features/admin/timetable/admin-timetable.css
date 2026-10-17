@@ -180,3 +180,25 @@
     max-width: 140px;
   }
 }
+
+/* Searchable facets stay inside the toolbar flow, including on narrow screens. */
+.timetable-facet { flex: 1 1 170px; min-width: 0; border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-surface); }
+.timetable-facet summary { cursor: pointer; padding: 10px; font-size: 13px; font-weight: 600; }
+.timetable-facet summary span { margin-inline-start: 10px; }
+.timetable-facet__panel { padding: 10px; display: grid; gap: 8px; }
+.timetable-facet__panel > label { font-size: 12px; }
+.timetable-facet__actions, .timetable-filters__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.timetable-facet__options { border: 0; margin: 0; padding: 0; max-height: 230px; overflow-y: auto; }
+.timetable-facet__options label { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px; cursor: pointer; }
+.timetable-facet__options input { flex: 0 0 auto; width: 18px; height: 18px; }
+.timetable-facet :focus-visible, .timetable-group button:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.timetable-filters__groups { display: grid; gap: 12px; }
+.timetable-group { min-width: 0; border: 1px solid var(--c-border); border-radius: var(--radius-sm); overflow: clip; }
+.timetable-group h3 { margin: 0; }
+.timetable-group h3 > button { cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 12px; text-align: start; font: inherit; color: var(--c-primary); background: var(--c-surface-2); border: 0; }
+
+.timetable-facet__legend { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.timetable-facet { position: relative; }
+.timetable-facet[open] { z-index: 10; }
+.timetable-facet__panel { position: absolute; inset-block-start: 100%; inset-inline: 0; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); }
+.admin-timetable-panel__filters .timetable-facet .input { width: 100%; min-width: 0; }
