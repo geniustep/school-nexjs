@@ -18,6 +18,7 @@ import {
   previewIndividualCommunication,
 } from '@/features/communication/api/admin-communication-api';
 import { finalizeGeneralCommunication } from '@/features/communication/api/submit-general-communication';
+import { eligibleForExternalMediaShare } from '@/features/communication/utils/external-media-sharing';
 import { RecipientPreviewDialog } from '@/features/communication/components/recipient-preview-dialog';
 import {
   buildGroupRecipientScope,
@@ -107,6 +108,7 @@ export function GeneralCommunicationComposeWorkspace({
 
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
+  const [allowExternalMediaShare, setAllowExternalMediaShare] = useState(true);
 
   const [classes, setClasses] = useState<EntityOption[]>([]);
   const [levels, setLevels] = useState<EntityOption[]>([]);
@@ -332,6 +334,7 @@ export function GeneralCommunicationComposeWorkspace({
   }, [mode, individualType, parentQuery]);
 
   function onScopeLevelChange(next: GroupScopeLevel) {
+    if (contentType === 'announcement' && next !== 'school') setAllowExternalMediaShare(false);
     setScopeLevel(next);
     setEntityId(null);
     if (beneficiaryKind && !isBeneficiaryAllowedForScopeLevel(next, beneficiaryKind)) {
@@ -445,6 +448,9 @@ export function GeneralCommunicationComposeWorkspace({
       scope: input.scope,
       subject: input.subject,
       body: input.body,
+      ...(contentType === 'announcement'
+        ? { allowExternalMediaShare }
+        : {}),
     });
     inFlightRef.current = false;
 
@@ -847,6 +853,26 @@ export function GeneralCommunicationComposeWorkspace({
                   disabled={inputBusy}
                 />
               </label>
+              {contentType === 'announcement' ? (
+                <label className="general-comm__option" data-testid="external-media-share-setting">
+                  <input
+                    type="checkbox"
+                    checked={eligibleForExternalMediaShare(contentType, recipientScope) && allowExternalMediaShare}
+                    onChange={(event) => {
+                      setAllowExternalMediaShare(event.target.checked);
+                      invalidatePreview();
+                    }}
+                    disabled={inputBusy || !eligibleForExternalMediaShare(contentType, recipientScope)}
+                    aria-label={t('communication.general.externalMediaShareLabel')}
+                  />
+                  <span>
+                    <strong>{t('communication.general.externalMediaShareLabel')}</strong>
+                    <span className="tiny muted" style={{ display: 'block' }}>
+                      {t('communication.general.externalMediaShareDescription')}
+                    </span>
+                  </span>
+                </label>
+              ) : null}
               <SecureMaterialsComposer controller={materials} disabled={inputBusy} />
               {recipientScope ? (
                 <p className="tiny general-comm__summary" dir="auto">
