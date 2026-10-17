@@ -12,6 +12,7 @@ import {
 } from '@/features/communication/api/admin-communication-api';
 import { normalizeCommunicationSubmitResult } from '@/features/communication/utils/normalize-recipient-summary';
 import { sanitizeClientApiErrorMessage } from '@/lib/utils/user-facing-error';
+import { effectiveExternalMediaShare } from '@/features/communication/utils/external-media-sharing';
 import { endpoints } from '@/lib/api/endpoints';
 import { clientActiveRoleHeaders } from '@/lib/auth/active-role-client';
 import type { ApiErrorBody, ApiResponse } from '@/types/api';
@@ -200,6 +201,7 @@ export async function submitGroupGeneralCommunication(input: {
   subject: string;
   body: string;
   recipient_scope: Exclude<RecipientScope, IndividualRecipientScope>;
+  allowExternalMediaShare?: boolean;
 }): Promise<GeneralCommunicationSubmitResult> {
   let draftId = input.draftId;
   const contentType = resolveGeneralCommunicationContentType();
@@ -210,6 +212,9 @@ export async function submitGroupGeneralCommunication(input: {
         body: input.body,
         recipient_scope: input.recipient_scope,
         content_type: contentType,
+        ...(contentType === 'announcement'
+          ? { allow_external_media_share: effectiveExternalMediaShare(contentType, input.recipient_scope, input.allowExternalMediaShare) }
+          : {}),
       });
       if (!created.success) {
         return { ok: false, error: created.error, draftId: null };
@@ -232,6 +237,9 @@ export async function submitGroupGeneralCommunication(input: {
         body: input.body,
         recipient_scope: input.recipient_scope,
         content_type: contentType,
+        ...(contentType === 'announcement'
+          ? { allow_external_media_share: effectiveExternalMediaShare(contentType, input.recipient_scope, input.allowExternalMediaShare) }
+          : {}),
       });
       if (!patched.success) {
         return { ok: false, error: patched.error, draftId };
@@ -316,6 +324,7 @@ export async function finalizeGeneralCommunication(input: {
   scope: RecipientScope;
   subject: string;
   body: string;
+  allowExternalMediaShare?: boolean;
 }): Promise<GeneralCommunicationSubmitResult> {
   const individualScope = input.scope.scope_type === 'individual' ? input.scope : null;
   const path = individualScope
@@ -335,6 +344,9 @@ export async function finalizeGeneralCommunication(input: {
         body: input.body,
         content_type: input.contentType,
         recipient_scope: input.scope,
+        ...(input.contentType === 'announcement'
+          ? { allow_external_media_share: effectiveExternalMediaShare(input.contentType, input.scope, input.allowExternalMediaShare) }
+          : {}),
       };
   try {
     const res = await fetch(buildUrl(path), {
