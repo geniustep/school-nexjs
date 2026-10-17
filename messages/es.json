@@ -15496,5 +15496,28 @@
     "conflictDetailsUnavailable": "El borrador tiene conflictos cuyos detalles no se proporcionan en esta vista.",
     "noDraftLines": "No hay sesiones guardadas en este borrador.",
     "dayLabel": "Día"
+  },
+  "timetableFilters": {
+    "today": "Hoy",
+    "cycle": "Ciclo",
+    "level": "Nivel",
+    "all": "Todos",
+    "selected": "{count} seleccionados",
+    "search": "Buscar en {name}",
+    "selectResults": "Seleccionar resultados",
+    "clear": "Borrar selección",
+    "noOptions": "Sin opciones coincidentes",
+    "active": "Filtros aplicados",
+    "remove": "Quitar {name}",
+    "optionsStatus": "Los filtros se están cargando o no están disponibles. Reinténtelo.",
+    "loadingToday": "Determinando el día en la zona horaria del centro…",
+    "timezoneUnavailable": "No se pudo determinar el día del centro. Muestre la semana o reinténtelo.",
+    "showWeek": "Mostrar semana",
+    "weeklyPattern": "Horario semanal publicado; no incluye excepciones fechadas ni vacaciones.",
+    "classGroups": "{count} clases en los resultados",
+    "teacherGroups": "{count} docentes en los resultados",
+    "collapse": "Contraer",
+    "expand": "Mostrar clases",
+    "resultScope": "Clases coincidentes dentro del centro y curso seleccionados y sus permisos."
   }
 }
