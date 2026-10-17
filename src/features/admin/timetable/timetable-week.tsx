@@ -22,8 +22,8 @@ export function groupWeek(slots: TimetableSlot[]) {
 
 export function TimetableWeek({ slots, t }: { slots: TimetableSlot[]; t: TranslateFn }) {
   const { valid, ranges, incomplete } = groupWeek(slots);
-  // Retain Sunday when supplied; do not invent school working days.
-  const days = WEEK_DAYS.filter((day) => day !== 'sunday' || slots.some((s) => s.day === day));
+  // Hide only wholly empty days after filtering; retain incomplete records below.
+  const days = WEEK_DAYS.filter((day) => valid.some((s) => s.day === day));
   const session = (s: TimetableSlot) => <article key={s.id} className="admin-timetable-week__session">
     <strong dir="auto">{s.subject?.name ?? t('common.dash')}</strong>
     <span dir="auto">{s.teacher?.name ?? t('common.dash')}</span>

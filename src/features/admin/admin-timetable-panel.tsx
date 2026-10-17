@@ -11,6 +11,9 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { TimetableWeek } from '@/features/admin/timetable/timetable-week';
+import { TimetableMultiFilter } from '@/features/admin/timetable/timetable-multi-filter';
+import { TimetableGroup } from '@/features/admin/timetable/timetable-group';
+import { filterWorkspaceSlots, academicFilterOptions, schoolDay, sortWorkspaceSlots } from '@/features/admin/timetable/utils/timetable-workspace-filters';
 import { api } from '@/lib/api/client';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
@@ -26,11 +29,9 @@ import { useAcademicContextOptions } from '@/features/academic-context';
 import { endpoints } from '@/lib/api/endpoints';
 import {
   TIMETABLE_ADMIN_DAYS,
-  filterTimetableSlots,
   presentTimetableDay,
   presentTimetableTimeRange,
   resolveTimetableEmptyVariant,
-  timetableHasActiveFilters,
 } from '@/features/admin/timetable/utils/timetable-list-present';
 import type { TimetableSlot } from '@/types/timetable';
 import type { SchoolClass } from '@/types/class';
@@ -40,13 +41,9 @@ import '@/features/admin/timetable/admin-timetable.css';
 export function AdminTimetablePanel({
   aside,
   initialView = 'list',
-  selectedClass,
-  onClassChange,
 }: {
   aside?: ReactNode;
-  initialView?: 'week' | 'list';
-  selectedClass?: string;
-  onClassChange?: (value: string) => void;
+  initialView?: 'day' | 'week' | 'list';
 }) {
   const [view, setView] = useState(initialView);
   const user = useSession();
@@ -57,19 +54,26 @@ export function AdminTimetablePanel({
     allPages: true,
     keepPreviousData: false,
   });
-  const classesState = useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes);
-  const teachersState = useGlobalAcademicYearResource<Teacher[]>(endpoints.admin.teachers, {
-    page_size: 100,
+  const classesState = useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes, undefined, {
+    allPages: true, keepPreviousData: false,
   });
-
-  const [localClassFilter, setLocalClassFilter] = useState('');
-  const classFilter = selectedClass ?? localClassFilter;
-  function setClassFilter(value: string) {
-    setLocalClassFilter(value);
-    onClassChange?.(value);
-  }
-  const [teacherFilter, setTeacherFilter] = useState('');
-  const [dayFilter, setDayFilter] = useState('');
+  const teachersState = useGlobalAcademicYearResource<Teacher[]>(endpoints.admin.teachers, undefined, {
+    allPages: true, keepPreviousData: false,
+  });
+  // Read the existing school configuration; never infer its timezone from the browser.
+  const setupState = useGlobalAcademicYearResource<{ timezone: string }>(endpoints.admin.timetableSetup, undefined, { keepPreviousData: false });
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const today = now && setupState.data?.timezone ? schoolDay(now, setupState.data.timezone) : null;
+  const [cycleFilters, setCycleFilters] = useState<string[]>([]);
+  const [levelFilters, setLevelFilters] = useState<string[]>([]);
+  const [classFilters, setClassFilters] = useState<string[]>([]);
+  const [teacherFilters, setTeacherFilters] = useState<string[]>([]);
+  const [dayFilters, setDayFilters] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [classId, setClassId] = useState('');
@@ -113,16 +117,12 @@ export function AdminTimetablePanel({
   const offerings = context.options?.offerings ?? [];
   const selectedOffering = offerings.find((o) => String(o.id) === offeringId) ?? null;
 
-  const hasActiveFilters = timetableHasActiveFilters({
-    classFilter,
-    teacherFilter,
-    dayFilter,
-  });
+  const hasActiveFilters = Boolean(cycleFilters.length || levelFilters.length || classFilters.length || teacherFilters.length || dayFilters.length || view === 'day');
 
   function resetFilters() {
-    setClassFilter('');
-    setTeacherFilter('');
-    setDayFilter('');
+    setCycleFilters([]); setLevelFilters([]); setClassFilters([]);
+    setTeacherFilters([]); setDayFilters([]);
+    setView('week');
   }
 
   function resetFormFields() {
@@ -223,16 +223,39 @@ export function AdminTimetablePanel({
     }
   }
 
-  const filtered = useMemo(
-    () =>
-      filterTimetableSlots(state.data ?? [], {
-        classFilter,
-        teacherFilter,
-        dayFilter,
-      }),
-    [state.data, classFilter, teacherFilter, dayFilter],
-  );
-
+  const classes = useMemo(() => classesState.error ? [] : classesState.data ?? [], [classesState.data, classesState.error]);
+  const teachers = teachersState.error ? [] : teachersState.data ?? [];
+  const academicOptions = useMemo(() => academicFilterOptions(classes, cycleFilters, levelFilters), [classes, cycleFilters, levelFilters]);
+  function changeCycles(values: string[]) {
+    setCycleFilters(values);
+    const next = academicFilterOptions(classes, values, []);
+    const levels = levelFilters.filter((id) => next.levels.some((option) => option.id === id));
+    setLevelFilters(levels);
+    const allowed = academicFilterOptions(classes, values, levels).classes;
+    setClassFilters(classFilters.filter((id) => allowed.some((option) => option.id === id)));
+  }
+  function changeLevels(values: string[]) {
+    setLevelFilters(values);
+    const allowed = academicFilterOptions(classes, cycleFilters, values).classes;
+    setClassFilters(classFilters.filter((id) => allowed.some((option) => option.id === id)));
+  }
+  const filtered = useMemo(() => sortWorkspaceSlots(filterWorkspaceSlots(state.data ?? [], classes, {
+    cycles: cycleFilters, levels: levelFilters, classes: classFilters, teachers: teacherFilters,
+    days: view === 'day' ? (today ? [today.day] : []) : dayFilters,
+  })), [state.data, classes, cycleFilters, levelFilters, classFilters, teacherFilters, dayFilters, view, today?.day]);
+  const groupByTeacher = teacherFilters.length > 0;
+  const groups = useMemo(() => {
+    const result = new Map<string, { id: string; name: string; slots: TimetableSlot[] }>();
+    for (const slot of filtered) {
+      const ref = groupByTeacher ? slot.teacher : slot.class;
+      const id = String(ref?.id ?? 'unknown');
+      if (!result.has(id)) result.set(id, { id, name: ref?.name ?? t('common.dash'), slots: [] });
+      result.get(id)!.slots.push(slot);
+    }
+    return [...result.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  }, [filtered, groupByTeacher, t]);
+  const academicBlocked = Boolean((cycleFilters.length || levelFilters.length) && (classesState.error || classesState.loading));
+  const dayBlocked = view === 'day' && !today;
   const emptyVariant = resolveTimetableEmptyVariant({ hasActiveFilters });
 
   const columns: Column<TimetableSlot>[] = [
@@ -318,8 +341,6 @@ export function AdminTimetablePanel({
       : []),
   ];
 
-  const classes = classesState.data ?? [];
-  const teachers = teachersState.data ?? [];
 
   const listEmpty =
     emptyVariant === 'no-match' ? (
@@ -328,9 +349,10 @@ export function AdminTimetablePanel({
         title={t('admin.timetableList.noMatch.title')}
         description={t('admin.timetableList.noMatch.description')}
         action={
-          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-            {t('admin.timetableList.resetFilters')}
-          </button>
+          <div className="timetable-facet__actions">
+            {view === 'day' && <button type="button" className="btn btn--ghost btn--sm" onClick={() => setView('week')}>{t('timetableFilters.showWeek')}</button>}
+            <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>{t('admin.timetableList.resetFilters')}</button>
+          </div>
         }
       />
     ) : (
@@ -581,68 +603,23 @@ export function AdminTimetablePanel({
     <div className="admin-timetable-panel timetable-workspace__panel">
       <SectionHead title={t('timetableWorkspace.publishedTitle')} />
       <div className="timetable-workspace__view-switch" role="group" aria-label={t('timetableWorkspace.publishedTitle')}>
-        {(['week', 'list'] as const).map((mode) => <button key={mode} type="button" className={`btn btn--sm ${view === mode ? 'btn--primary' : 'btn--ghost'}`} aria-pressed={view === mode} onClick={() => setView(mode)}>{t(`timetableWorkspace.${mode}`)}</button>)}
+        {(['day', 'week', 'list'] as const).map((mode) => <button key={mode} type="button" className={`btn btn--sm ${view === mode ? 'btn--primary' : 'btn--ghost'}`} aria-pressed={view === mode} onClick={() => setView(mode)}>{t(mode === 'day' ? 'timetableFilters.today' : `timetableWorkspace.${mode}`)}</button>)}
       </div>
       <div className="admin-timetable-panel__context">
         <div className="admin-timetable-panel__context-meta">
           <span className="admin-timetable-panel__count" dir="ltr">
-            {t('admin.timetableList.slotsCount', { count: filtered.length })}
+            {dayBlocked || academicBlocked ? t('common.dash') : t('admin.timetableList.slotsCount', { count: filtered.length })}
           </span>
         </div>
       </div>
 
+      <p className="muted tiny">{view === 'day' && today ? `${t(`days.${today.day}`)} · ${today.date} · ${setupState.data?.timezone} — ` : ''}{t('timetableFilters.weeklyPattern')}</p>
       <div className="admin-timetable-panel__filters toolbar" role="group" aria-label={t('admin.timetableList.filtersLabel')}>
-        <div className="admin-timetable-panel__filter">
-          <label htmlFor="timetable-filter-class">{t('nav.classes')}</label>
-          <select
-            id="timetable-filter-class"
-            className="input"
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-          >
-            <option value="">{t('admin.allClasses')}</option>
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="admin-timetable-panel__filter">
-          <label htmlFor="timetable-filter-teacher">{t('nav.teachers')}</label>
-          <select
-            id="timetable-filter-teacher"
-            className="input"
-            value={teacherFilter}
-            onChange={(e) => setTeacherFilter(e.target.value)}
-          >
-            <option value="">{t('admin.allTeachers')}</option>
-            {teachers.map((te) => (
-              <option key={te.id} value={te.id}>
-                {te.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="admin-timetable-panel__filter">
-          <label htmlFor="timetable-filter-day">{t('admin.timetableList.day')}</label>
-          <select
-            id="timetable-filter-day"
-            className="input"
-            value={dayFilter}
-            onChange={(e) => setDayFilter(e.target.value)}
-          >
-            <option value="">{t('admin.allDays')}</option>
-            {TIMETABLE_ADMIN_DAYS.map((d) => (
-              <option key={d} value={d}>
-                {t(`days.${d}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-
+        <TimetableMultiFilter label={t('timetableFilters.cycle')} options={academicOptions.cycles} selected={cycleFilters} t={t} onChange={changeCycles} />
+        <TimetableMultiFilter label={t('timetableFilters.level')} options={academicOptions.levels} selected={levelFilters} t={t} onChange={changeLevels} />
+        <TimetableMultiFilter label={t('nav.classes')} options={academicOptions.classes} selected={classFilters} t={t} onChange={setClassFilters} />
+        <TimetableMultiFilter label={t('nav.teachers')} options={teachers.map((teacher) => ({id: String(teacher.id), name: teacher.name}))} selected={teacherFilters} t={t} onChange={setTeacherFilters} />
+        {view !== 'day' && <TimetableMultiFilter label={t('admin.timetableList.day')} options={[...TIMETABLE_ADMIN_DAYS, 'sunday'].map((day) => ({id: day, name: t(`days.${day}`)}))} selected={dayFilters} t={t} onChange={setDayFilters} />}
         <div className="admin-timetable-panel__filter-actions">
           {hasActiveFilters ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
@@ -662,23 +639,39 @@ export function AdminTimetablePanel({
         </div>
       </div>
 
+      <div className="timetable-filters__chips" aria-label={t('timetableFilters.active')}>
+        {[
+          {label: t('timetableFilters.cycle'), ids: cycleFilters, options: academicOptions.cycles, change: changeCycles},
+          {label: t('timetableFilters.level'), ids: levelFilters, options: academicOptions.levels, change: changeLevels},
+          {label: t('nav.classes'), ids: classFilters, options: classes.map((c) => ({id: String(c.id), name: c.name})), change: setClassFilters},
+          {label: t('nav.teachers'), ids: teacherFilters, options: teachers.map((c) => ({id: String(c.id), name: c.name})), change: setTeacherFilters},
+          ...(view !== 'day' ? [{label: t('admin.timetableList.day'), ids: dayFilters, options: [...TIMETABLE_ADMIN_DAYS, 'sunday'].map((d) => ({id:d, name:t(`days.${d}`)})), change: setDayFilters}] : []),
+        ].flatMap((filter) => filter.ids.map((id) => <button type="button" className="btn btn--ghost btn--sm" key={`${filter.label}:${id}`} onClick={() => filter.change(filter.ids.filter((value) => value !== id))} aria-label={t('timetableFilters.remove', {name: `${filter.label}: ${filter.options.find((o) => o.id === id)?.name ?? id}`})}>{filter.label}: {filter.options.find((o) => o.id === id)?.name ?? id} ×</button>))}
+      </div>
+      {[classesState, teachersState].some((resource) => resource.loading || resource.error) && <div role="status" className="muted tiny">{t('timetableFilters.optionsStatus')}<button type="button" className="btn btn--ghost btn--sm" onClick={() => {classesState.reload(); teachersState.reload();}}>{t('common.retry')}</button></div>}
+
       {editId ? renderSlotForm('edit') : null}
       {canManage && showForm ? renderSlotForm('create') : null}
 
       <div className={aside ? "timetable-workspace__body" : "timetable-workspace__body timetable-workspace__body--single"}>
       {aside}
       <div className="timetable-workspace__results" aria-busy={state.fetching}>
-      <p className="muted tiny">{t('timetableWorkspace.loadedOnly')}</p>
+      <p className="muted tiny">{t('timetableFilters.resultScope')}</p>
       <ResourceView
         state={state}
         loadingLabel={t('timetable.loadingWeek')}
-        isEmpty={() => filtered.length === 0}
+        isEmpty={() => !dayBlocked && !academicBlocked && filtered.length === 0}
         empty={listEmpty}
       >
         {() => (
-          view === 'week' ? <TimetableWeek slots={filtered} t={t} /> : <Card pad={false} className="admin-timetable-panel__table-wrap">
-            <DataTable columns={columns} rows={filtered} rowKey={(s) => s.id} />
-          </Card>
+          dayBlocked ? <div role="status"><p>{t(setupState.loading || !now ? 'timetableFilters.loadingToday' : 'timetableFilters.timezoneUnavailable')}</p><button type="button" className="btn btn--ghost btn--sm" onClick={() => setView('week')}>{t('timetableFilters.showWeek')}</button><button type="button" className="btn btn--ghost btn--sm" onClick={setupState.reload}>{t('common.retry')}</button></div>
+          : academicBlocked ? <p role="status">{t('timetableFilters.optionsStatus')}</p>
+          : <div className="timetable-filters__groups" key={`${view}:${groupByTeacher}`}>
+            <p className="muted tiny" role="status">{t(groupByTeacher ? 'timetableFilters.teacherGroups' : 'timetableFilters.classGroups', {count: groups.length})}</p>
+            {groups.map((group, index) => <TimetableGroup key={`${group.id}:${groups.length === 1}`} name={group.name} count={group.slots.length} initiallyOpen={groups.length <= 3 || index === 0} t={t}>
+              {view === 'week' ? <TimetableWeek slots={group.slots} t={t} /> : <Card pad={false} className="admin-timetable-panel__table-wrap"><DataTable columns={columns} rows={group.slots} rowKey={(s) => s.id} /></Card>}
+            </TimetableGroup>)}
+          </div>
         )}
       </ResourceView>
       </div>

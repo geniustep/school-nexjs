@@ -15495,5 +15495,28 @@
     "conflictDetailsUnavailable": "This draft has conflicts whose details are not provided in this view.",
     "noDraftLines": "There are no saved sessions in this draft.",
     "dayLabel": "Day"
+  },
+  "timetableFilters": {
+    "today": "Today",
+    "cycle": "Cycle",
+    "level": "Level",
+    "all": "All",
+    "selected": "{count} selected",
+    "search": "Search {name}",
+    "selectResults": "Select search results",
+    "clear": "Clear selection",
+    "noOptions": "No matching options",
+    "active": "Applied filters",
+    "remove": "Remove {name}",
+    "optionsStatus": "Filter options are loading or unavailable. Please retry.",
+    "loadingToday": "Determining today in the school timezone…",
+    "timezoneUnavailable": "The school day could not be determined. Show the week or retry.",
+    "showWeek": "Show week",
+    "weeklyPattern": "Published weekly pattern; dated exceptions and holidays are not included.",
+    "classGroups": "{count} classes in results",
+    "teacherGroups": "{count} teachers in results",
+    "collapse": "Collapse",
+    "expand": "Show lessons",
+    "resultScope": "Matching lessons within the selected school, academic year and your access scope."
   }
 }

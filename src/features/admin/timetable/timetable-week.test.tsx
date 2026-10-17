@@ -50,3 +50,15 @@ describe('weekly timetable presentation', () => {
     }
   });
  });
+
+describe('empty weekday columns', () => {
+ it('renders only populated columns in Monday to Sunday order',()=>{
+  render(<TimetableWeek slots={[slot(1,'sunday'),slot(2,'wednesday'),slot(3,'monday')]} t={(key)=>key}/>);
+  expect(screen.getAllByRole('columnheader').map((e)=>e.textContent)).toEqual(['academic.time','days.monday','days.wednesday','days.sunday']);
+ });
+ it('does not drop incomplete entries while hiding empty columns',()=>{
+  render(<TimetableWeek slots={[slot(1,'wednesday','bad')]} t={(key)=>key}/>);
+  expect(screen.getAllByRole('columnheader')).toHaveLength(1);
+  expect(screen.getByText('Subject 1')).toBeTruthy();
+ });
+});
