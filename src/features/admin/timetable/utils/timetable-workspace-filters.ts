@@ -2,17 +2,22 @@ import type { SchoolClass } from '@/types/class';
 import type { TimetableSlot } from '@/types/timetable';
 import { WEEK_DAYS } from '../timetable-week';
 
-export type FilterOption = { id: string; name: string };
+export type FilterOption = { id: string; name?: string | null | false };
+
+/** API labels may be absent/false despite the static resource types. Keep identity selectable. */
+export function filterOptionLabel(name: unknown, id: string | number): string {
+  return typeof name === 'string' && name.trim() ? name.trim() : `#${id}`;
+}
 export type WorkspaceFilters = { cycles: string[]; levels: string[]; classes: string[]; teachers: string[]; days: string[] };
 const matches = (values: string[], id?: number | null) => !values.length || (id != null && values.includes(String(id)));
-const unique = (rows: FilterOption[]) => [...new Map(rows.map((row) => [row.id, row])).values()].sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+const unique = (rows: FilterOption[]) => [...new Map(rows.map((row) => [row.id, { ...row, name: filterOptionLabel(row.name, row.id) }])).values()].sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
 
 export function academicFilterOptions(classes: SchoolClass[], cycles: string[], levels: string[]) {
   const cycleClasses = classes.filter((c) => matches(cycles, c.level?.cycle?.id));
   return {
     cycles: unique(classes.flatMap((c) => c.level?.cycle ? [{id:String(c.level.cycle.id),name:c.level.cycle.name}] : [])),
     levels: unique(cycleClasses.flatMap((c) => c.level ? [{id:String(c.level.id),name:c.level.display_name || c.level.name}] : [])),
-    classes: cycleClasses.filter((c) => matches(levels,c.level?.id)).map((c) => ({id:String(c.id),name:c.name})),
+    classes: cycleClasses.filter((c) => matches(levels,c.level?.id)).map((c) => ({id:String(c.id),name:filterOptionLabel(c.display_name || c.name, c.id)})),
   };
 }
 
