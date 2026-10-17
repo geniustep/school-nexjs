@@ -13,6 +13,7 @@ type Line = {
 };
 type Assignment = { assignment_id: number; subject_name: string; teacher_name: string };
 export type DraftSelection = { draftId: number; classId: number; name: string; warnings: number; conflicts: number };
+const weekdayOrder: Record<string, number> = { monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 };
 const clock = (value: number) => {
   const minutes = Math.round(value * 60);
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -90,7 +91,7 @@ export function DraftDetails({ selection, onClose }: { selection: DraftSelection
         <table>
           <caption>{t('timetableWorkspace.draftLines')}</caption>
           <thead><tr>{['timetableWorkspace.dayLabel', 'academic.time', 'academic.subject', 'academic.teacher', 'timetableWorkspace.warnings', 'timetableWorkspace.conflicts'].map(key => <th scope="col" key={key}>{t(key)}</th>)}</tr></thead>
-          <tbody>{data.lines.map(line => {
+          <tbody>{[...data.lines].sort((a, b) => (weekdayOrder[a.weekday] ?? 7) - (weekdayOrder[b.weekday] ?? 7) || a.start_time - b.start_time || a.end_time - b.end_time).map(line => {
             const assignment = data.assignments.find(item => item.assignment_id === line.assignment_id);
             return <tr key={line.line_id}>
               <td>{t(`days.${line.weekday}`)}</td>
