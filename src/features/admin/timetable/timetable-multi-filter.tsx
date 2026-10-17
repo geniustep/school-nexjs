@@ -1,7 +1,7 @@
 'use client';
 import { useId, useState } from 'react';
 import type { TranslateFn } from '@/features/i18n/locale-context';
-import type { FilterOption } from './utils/timetable-workspace-filters';
+import { filterOptionLabel, type FilterOption } from './utils/timetable-workspace-filters';
 
 /** Local domain facet: native disclosure + checkboxes, no custom listbox keyboard model. */
 export function TimetableMultiFilter({label,options,selected,onChange,t}: {
@@ -9,7 +9,8 @@ export function TimetableMultiFilter({label,options,selected,onChange,t}: {
 }) {
   const id = useId();
   const [query,setQuery] = useState('');
-  const visible = options.filter((option) => option.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+  const search = query.trim().toLocaleLowerCase();
+  const visible = options.map((option) => ({...option, name: filterOptionLabel(option.name, option.id)})).filter((option) => option.name.toLocaleLowerCase().includes(search));
   return <details className="timetable-facet" onBlur={(event) => {
     if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false;
   }} onKeyDown={(event) => {

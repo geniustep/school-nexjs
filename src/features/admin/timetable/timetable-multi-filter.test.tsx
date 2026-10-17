@@ -33,3 +33,17 @@ describe('searchable multi-selection facet',()=>{
   expect(summary.closest('details')?.open).toBe(false);expect(document.activeElement).toBe(summary);
  });
 });
+
+describe('incomplete API option labels',()=>{
+ it('keeps unnamed options searchable and selectable without crashing',async()=>{
+  const user=userEvent.setup();const changes:string[][]=[];
+  render(<TimetableMultiFilter label="QA labels" options={[{id:'1'},{id:'2',name:null},{id:'3',name:false},{id:'4',name:'  '},{id:'5',name:'Known teacher'}]} selected={[]} onChange={(ids)=>changes.push(ids)} t={(key)=>key}/>);
+  await user.click(document.querySelector('summary')!);
+  expect(screen.getAllByRole('checkbox')).toHaveLength(5);
+  for(const id of ['1','2','3','4']) expect(screen.getByRole('checkbox',{name:`#${id}`})).toBeTruthy();
+  await user.type(screen.getByRole('searchbox'),'#2');
+  expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+  await user.click(screen.getByRole('checkbox',{name:'#2'}));
+  expect(changes).toEqual([['2']]);
+ });
+});

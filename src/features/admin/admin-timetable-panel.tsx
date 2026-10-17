@@ -13,7 +13,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { TimetableWeek } from '@/features/admin/timetable/timetable-week';
 import { TimetableMultiFilter } from '@/features/admin/timetable/timetable-multi-filter';
 import { TimetableGroup } from '@/features/admin/timetable/timetable-group';
-import { filterWorkspaceSlots, academicFilterOptions, schoolDay, sortWorkspaceSlots } from '@/features/admin/timetable/utils/timetable-workspace-filters';
+import { filterWorkspaceSlots, academicFilterOptions, schoolDay, sortWorkspaceSlots, filterOptionLabel } from '@/features/admin/timetable/utils/timetable-workspace-filters';
 import { api } from '@/lib/api/client';
 import { useGlobalAcademicYearResource } from '@/features/academic-context/hooks/use-global-academic-year-resource';
 import { useSession } from '@/features/auth/session-context';
@@ -249,7 +249,7 @@ export function AdminTimetablePanel({
     for (const slot of filtered) {
       const ref = groupByTeacher ? slot.teacher : slot.class;
       const id = String(ref?.id ?? 'unknown');
-      if (!result.has(id)) result.set(id, { id, name: ref?.name ?? t('common.dash'), slots: [] });
+      if (!result.has(id)) result.set(id, { id, name: filterOptionLabel(ref?.name, id), slots: [] });
       result.get(id)!.slots.push(slot);
     }
     return [...result.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
@@ -618,7 +618,7 @@ export function AdminTimetablePanel({
         <TimetableMultiFilter label={t('timetableFilters.cycle')} options={academicOptions.cycles} selected={cycleFilters} t={t} onChange={changeCycles} />
         <TimetableMultiFilter label={t('timetableFilters.level')} options={academicOptions.levels} selected={levelFilters} t={t} onChange={changeLevels} />
         <TimetableMultiFilter label={t('nav.classes')} options={academicOptions.classes} selected={classFilters} t={t} onChange={setClassFilters} />
-        <TimetableMultiFilter label={t('nav.teachers')} options={teachers.map((teacher) => ({id: String(teacher.id), name: teacher.name}))} selected={teacherFilters} t={t} onChange={setTeacherFilters} />
+        <TimetableMultiFilter label={t('nav.teachers')} options={teachers.map((teacher) => ({id: String(teacher.id), name: filterOptionLabel(teacher.name, teacher.id)}))} selected={teacherFilters} t={t} onChange={setTeacherFilters} />
         {view !== 'day' && <TimetableMultiFilter label={t('admin.timetableList.day')} options={[...TIMETABLE_ADMIN_DAYS, 'sunday'].map((day) => ({id: day, name: t(`days.${day}`)}))} selected={dayFilters} t={t} onChange={setDayFilters} />}
         <div className="admin-timetable-panel__filter-actions">
           {hasActiveFilters ? (
@@ -643,8 +643,8 @@ export function AdminTimetablePanel({
         {[
           {label: t('timetableFilters.cycle'), ids: cycleFilters, options: academicOptions.cycles, change: changeCycles},
           {label: t('timetableFilters.level'), ids: levelFilters, options: academicOptions.levels, change: changeLevels},
-          {label: t('nav.classes'), ids: classFilters, options: classes.map((c) => ({id: String(c.id), name: c.name})), change: setClassFilters},
-          {label: t('nav.teachers'), ids: teacherFilters, options: teachers.map((c) => ({id: String(c.id), name: c.name})), change: setTeacherFilters},
+          {label: t('nav.classes'), ids: classFilters, options: classes.map((c) => ({id: String(c.id), name: filterOptionLabel(c.name, c.id)})), change: setClassFilters},
+          {label: t('nav.teachers'), ids: teacherFilters, options: teachers.map((c) => ({id: String(c.id), name: filterOptionLabel(c.name, c.id)})), change: setTeacherFilters},
           ...(view !== 'day' ? [{label: t('admin.timetableList.day'), ids: dayFilters, options: [...TIMETABLE_ADMIN_DAYS, 'sunday'].map((d) => ({id:d, name:t(`days.${d}`)})), change: setDayFilters}] : []),
         ].flatMap((filter) => filter.ids.map((id) => <button type="button" className="btn btn--ghost btn--sm" key={`${filter.label}:${id}`} onClick={() => filter.change(filter.ids.filter((value) => value !== id))} aria-label={t('timetableFilters.remove', {name: `${filter.label}: ${filter.options.find((o) => o.id === id)?.name ?? id}`})}>{filter.label}: {filter.options.find((o) => o.id === id)?.name ?? id} ×</button>))}
       </div>
