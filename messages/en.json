@@ -1017,6 +1017,8 @@
     },
     "general": {
       "title": "General communication",
+      "externalMediaShareLabel": "Allow sharing announcement images",
+      "externalMediaShareDescription": "Allow parents to share this announcement's images outside Raqeem. Available only for school-wide announcements.",
       "subtitle": "Send school communication to a group or a person, then review delivery status before confirming.",
       "newCommunication": "New communication",
       "chooseMode": "Send type",
