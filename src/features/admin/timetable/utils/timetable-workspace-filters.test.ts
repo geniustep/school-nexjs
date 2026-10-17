@@ -45,3 +45,14 @@ describe('school wall date',()=>{
  });
  it('fails closed for an invalid timezone',()=>expect(schoolDay(new Date(),'bad/timezone')).toBeNull());
 });
+
+describe('missing academic labels',()=>{
+ it('sorts unnamed levels and cycles and preserves their real IDs',()=>{
+  const incomplete=classes.map((c)=>({...c,name:undefined,level:c.level?{...c.level,name:undefined,cycle:c.level.cycle?{...c.level.cycle,name:undefined}:undefined}:null}));
+  // Deliberately model an incomplete runtime payload at the API boundary.
+  const result=academicFilterOptions(incomplete as unknown as SchoolClass[],[],[]);
+  expect(result.cycles.map((c)=>c.name)).toEqual(['#100','#200']);
+  expect(result.levels.map((c)=>c.name)).toEqual(['#10','#20','#30']);
+  expect(result.classes[0]).toEqual({id:'1',name:'#1'});
+ });
+});
