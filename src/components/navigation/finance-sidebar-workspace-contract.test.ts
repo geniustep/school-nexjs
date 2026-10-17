@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { navForUser } from './nav-config';
+import type { CurrentUser } from '@/types/user';
 
 function read(relativePath: string): string {
   return readFileSync(resolve(process.cwd(), relativePath), 'utf8');
@@ -15,7 +17,7 @@ function messages(locale: 'ar' | 'fr' | 'en' | 'es') {
 describe('Finance sidebar workspace contract', () => {
   const nav = read('src/components/navigation/nav-config.ts');
 
-  it('expands finance into eight intent-based destinations', () => {
+  it('includes the finance workspace destinations', () => {
     expect(nav).toContain("labelKey: 'nav.financeHub'");
     expect(nav).toContain("labelKey: 'nav.financeCommandCenter'");
     expect(nav).toContain("labelKey: 'nav.financeCollectionsCash'");
@@ -63,6 +65,7 @@ describe('Finance sidebar workspace contract', () => {
       expect(copy.financeInstallmentsAccounts).toBeTruthy();
       expect(copy.financeCheques).toBeTruthy();
       expect(copy.financeReports).toBeTruthy();
+      expect(copy.financeExpenses).toBeTruthy();
       expect(copy.financeSetup).toBeTruthy();
     }
 
@@ -75,5 +78,23 @@ describe('Finance sidebar workspace contract', () => {
     expect(ar.financeCheques).toBe('الشيكات');
     expect(ar.financeReports).toBe('التقارير المالية');
     expect(ar.financeSetup).toBe('الإعداد المالي');
+  });
+});
+
+
+describe('Expenses menu capability boundary', () => {
+  const user: CurrentUser = { id: 1, name: 'QA', email: null, role: 'admin', school: { id: 3, name: 'School' }, permissions: ['finance.view'], admin_kind: 'school_manager', permissions_mode: 'full_school' };
+  const expenseItem = (u: CurrentUser) => navForUser(u).find(s => s.groupId === 'finance')?.items.find(i => i.href === '/admin/finance/expenses');
+  it('shows expenses with its explicit capability even without general finance permission', () => {
+    const item = expenseItem({ ...user, permissions: [], effective_capabilities: ['finance.expenses.view'] });
+    expect(item?.labelKey).toBe('nav.financeExpenses');
+    expect(item?.isActive?.('/admin/finance/expenses')).toBe(true);
+  });
+  it('does not infer expenses access from school manager or general finance permission', () => {
+    expect(expenseItem(user)).toBeUndefined();
+  });
+  it('also supports an explicit effective permission and hides the entry when revoked', () => {
+    expect(expenseItem({ ...user, effective_permissions: ['finance.expenses.view'] })).toBeDefined();
+    expect(expenseItem({ ...user, effective_permissions: [], effective_capabilities: [] })).toBeUndefined();
   });
 });
