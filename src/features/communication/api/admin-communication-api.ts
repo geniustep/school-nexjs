@@ -18,6 +18,7 @@ export type CreateAdminCommunicationContentInput = {
   body: string;
   recipient_scope: RecipientScope;
   content_type?: string;
+  allow_external_media_share?: boolean;
 };
 
 export type UpdateAdminCommunicationContentInput = {
@@ -25,6 +26,7 @@ export type UpdateAdminCommunicationContentInput = {
   body?: string;
   recipient_scope?: RecipientScope;
   content_type?: string;
+  allow_external_media_share?: boolean;
 };
 
 export type IndividualCommunicationSubmitInput = {
@@ -83,6 +85,9 @@ export function createAdminCommunicationContent(
     body: input.body,
     content_type: input.content_type ?? 'message',
     recipient_scope: input.recipient_scope,
+    ...(input.allow_external_media_share !== undefined
+      ? { allow_external_media_share: input.allow_external_media_share }
+      : {}),
   };
   return api.post<CommunicationContent>(endpoints.admin.communicationContent, payload);
 }
@@ -97,6 +102,9 @@ export function updateAdminCommunicationContent(
   if (input.body !== undefined) payload.body = input.body;
   if (input.content_type !== undefined) payload.content_type = input.content_type;
   if (input.recipient_scope !== undefined) payload.recipient_scope = input.recipient_scope;
+  if (input.allow_external_media_share !== undefined) {
+    payload.allow_external_media_share = input.allow_external_media_share;
+  }
   return api.patch<CommunicationContent>(
     endpoints.admin.communicationContentDetail(id),
     payload,
