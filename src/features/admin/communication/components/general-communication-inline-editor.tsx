@@ -20,11 +20,14 @@ export function GeneralCommunicationInlineEditor({
   const [subject, setSubject] = useState(item.subject ?? item.name ?? '');
   const [body, setBody] = useState(stripHtmlPreview(item.body ?? item.current_version?.body ?? '', 12000));
   const [saving, setSaving] = useState(false);
+  const [allowExternalMediaShare, setAllowExternalMediaShare] = useState(item.allow_external_media_share === true);
+  const canShareExternally = item.content_type === 'announcement' && item.audience_summary?.type === 'school';
 
   useEffect(() => {
     setSubject(item.subject ?? item.name ?? '');
     setBody(stripHtmlPreview(item.body ?? item.current_version?.body ?? '', 12000));
-  }, [item.id, item.subject, item.name, item.body, item.current_version?.body]);
+    setAllowExternalMediaShare(item.allow_external_media_share === true);
+  }, [item.id, item.subject, item.name, item.body, item.current_version?.body, item.allow_external_media_share]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +48,7 @@ export function GeneralCommunicationInlineEditor({
       subject: nextSubject,
       body: nextBody,
       content_type: item.content_type,
+      ...(canShareExternally ? { allow_external_media_share: allowExternalMediaShare } : {}),
     });
     setSaving(false);
 
@@ -84,6 +88,23 @@ export function GeneralCommunicationInlineEditor({
             required
           />
         </label>
+        {item.content_type === 'announcement' ? (
+          <label className="general-comm__option">
+            <input
+              type="checkbox"
+              checked={canShareExternally && allowExternalMediaShare}
+              onChange={(event) => setAllowExternalMediaShare(event.target.checked)}
+              disabled={saving || !canShareExternally}
+              aria-label={t('communication.general.externalMediaShareLabel')}
+            />
+            <span>
+              <strong>{t('communication.general.externalMediaShareLabel')}</strong>
+              <span className="tiny muted" style={{ display: 'block' }}>
+                {t('communication.general.externalMediaShareDescription')}
+              </span>
+            </span>
+          </label>
+        ) : null}
         <div className="form-actions">
           <button type="submit" className="btn btn--primary" disabled={saving}>
             {saving ? t('common.saving') : t('common.save')}
