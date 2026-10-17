@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { RequireExpensesAccess } from '@/features/admin/finance/expenses/require-expenses-access';
 import { usePathname } from 'next/navigation';
 import { RequireAdminAcademicHub } from '@/components/admin/require-admin-academic-hub';
 import { RequireAdminPermission, RequireStaffCenterAccess } from '@/components/admin/require-admin-permission';
@@ -19,6 +20,7 @@ import { RequireCommunicationReviewAccess } from '@/features/admin/communication
 export function AdminPageGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const base = pathname.split('?')[0];
+  if (base === '/admin/finance/expenses') return <RequireExpensesAccess>{children}</RequireExpensesAccess>;
   if (isSchoolBrandingSettingsPath(pathname)) {
     return <RequireSchoolBrandingSettingsAccess>{children}</RequireSchoolBrandingSettingsAccess>;
   }
