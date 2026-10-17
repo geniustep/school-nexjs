@@ -53,7 +53,10 @@ export function AdminTimetablePanel({
   const t = useT();
   const toast = useToast();
   const canManage = hasPermission(user, 'manage_timetable');
-  const state = useGlobalAcademicYearResource<TimetableSlot[]>(endpoints.admin.timetable);
+  const state = useGlobalAcademicYearResource<TimetableSlot[]>(endpoints.admin.timetable, undefined, {
+    allPages: true,
+    keepPreviousData: false,
+  });
   const classesState = useGlobalAcademicYearResource<SchoolClass[]>(endpoints.admin.classes);
   const teachersState = useGlobalAcademicYearResource<Teacher[]>(endpoints.admin.teachers, {
     page_size: 100,

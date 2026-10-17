@@ -20,6 +20,8 @@ export interface ResourceState<T> {
 }
 
 export type UseResourceOptions = {
+  /** Collect every server page before exposing data; opt-in for complete grids. */
+  allPages?: boolean;
   /**
    * When false, clear data+meta as soon as path/query changes so the UI cannot
    * flash a previous filter's rows or pagination.total. Default true.
@@ -38,6 +40,7 @@ export function useResource<T>(
   const [error, setError] = useState<ApiErrorBody | null>(null);
   const [nonce, setNonce] = useState(0);
   const keepPreviousData = options?.keepPreviousData !== false;
+  const allPages = options?.allPages === true;
 
   // Serialise query so the effect re-runs when any param changes.
   const queryKey = query ? JSON.stringify(query) : '';
@@ -57,7 +60,28 @@ export function useResource<T>(
       setData(null);
       setMeta(null);
     }
-    api.get<T>(path, query).then((res) => {
+    const load = async () => {
+      if (!allPages) return api.get<T>(path, query);
+      const first = await api.get<T>(path, { ...query, page: 1, limit: 100 });
+      if (!first.success || !Array.isArray(first.data)) return first;
+      const pagination = first.meta.pagination;
+      if (!pagination) return first;
+      const items = [...first.data];
+      const incomplete = () => ({ success: false as const, error: {
+        code: 'pagination_incomplete', message: 'The complete list could not be loaded. Please retry.',
+      }, meta: first.meta });
+      if (!Number.isInteger(pagination.total_pages) || pagination.total_pages < 0 || !Number.isInteger(pagination.total) || pagination.total < 0) return incomplete();
+      for (let page = 2; page <= pagination.total_pages; page++) {
+        if (!active) return incomplete();
+        const next = await api.get<T>(path, { ...query, page, limit: 100 });
+        if (!next.success) return next;
+        if (!Array.isArray(next.data) || !next.data.length || next.meta.pagination?.page !== page || next.meta.pagination.total !== pagination.total || next.meta.pagination.total_pages !== pagination.total_pages) return incomplete();
+        items.push(...next.data);
+      }
+      if (items.length !== pagination.total) return incomplete();
+      return { ...first, data: items as T };
+    };
+    load().then((res) => {
       if (!active) return;
       if (res.success) {
         setData(res.data);
@@ -70,12 +94,16 @@ export function useResource<T>(
         if (keepPreviousData) setData((prev) => prev);
       }
       setLoading(false);
+    }).catch(() => {
+      if (!active) return;
+      setError({ code: 'network_error', message: 'The data could not be loaded. Please retry.' });
+      setLoading(false);
     });
     return () => {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path, queryKey, nonce, keepPreviousData]);
+  }, [path, queryKey, nonce, keepPreviousData, allPages]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
