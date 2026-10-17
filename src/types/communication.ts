@@ -201,6 +201,7 @@ export interface CommunicationContent {
   school_id: number;
   subject?: string | null;
   content_type: CommunicationContentType;
+  allow_external_media_share?: boolean | null;
   language?: string | null;
   priority?: string | null;
   state: CommunicationContentState;
