@@ -1044,6 +1044,8 @@
     },
     "general": {
       "title": "General communication",
+      "externalMediaShareLabel": "Autoriser le partage des images de l’annonce",
+      "externalMediaShareDescription": "Permet aux parents de partager les images de cette annonce hors de Raqeem. Réservé aux annonces destinées à toute l’école.",
       "subtitle": "Send school communication to a group or a person, then review delivery status before confirming.",
       "newCommunication": "New communication",
       "chooseMode": "Send type",
