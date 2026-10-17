@@ -15499,5 +15499,28 @@
     "conflictDetailsUnavailable": "Le brouillon comporte des conflits dont les détails ne sont pas fournis dans cette vue.",
     "noDraftLines": "Aucune séance enregistrée dans ce brouillon.",
     "dayLabel": "Jour"
+  },
+  "timetableFilters": {
+    "today": "Aujourd’hui",
+    "cycle": "Cycle",
+    "level": "Niveau",
+    "all": "Tous",
+    "selected": "{count} sélectionnés",
+    "search": "Rechercher dans {name}",
+    "selectResults": "Sélectionner les résultats",
+    "clear": "Effacer la sélection",
+    "noOptions": "Aucune option correspondante",
+    "active": "Filtres appliqués",
+    "remove": "Retirer {name}",
+    "optionsStatus": "Chargement des filtres en cours ou impossible. Réessayez.",
+    "loadingToday": "Détermination du jour dans le fuseau de l’école…",
+    "timezoneUnavailable": "Le jour de l’école ne peut pas être déterminé. Affichez la semaine ou réessayez.",
+    "showWeek": "Afficher la semaine",
+    "weeklyPattern": "Horaire hebdomadaire publié ; les exceptions datées et congés ne sont pas inclus.",
+    "classGroups": "{count} classes dans les résultats",
+    "teacherGroups": "{count} enseignants dans les résultats",
+    "collapse": "Replier",
+    "expand": "Afficher les cours",
+    "resultScope": "Cours correspondant aux filtres, dans l’école et l’année sélectionnées et selon vos autorisations."
   }
 }

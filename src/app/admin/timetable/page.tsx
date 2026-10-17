@@ -32,7 +32,6 @@ export function TimetableWorkspace() {
   const { t } = useLocale();
   const user = useSession();
   const [page, setPage] = useState(1);
-  const [selectedClass, setSelectedClass] = useState('');
   const [selectedDraft, setSelectedDraft] = useState<DraftSelection | null>(null);
   const drafts = useGlobalAcademicYearResource<Draft[]>(`${endpoints.admin.timetable}/drafts`, { page, limit: PAGE_SIZE });
   const known = drafts.data !== null && !drafts.error;
@@ -71,7 +70,7 @@ export function TimetableWorkspace() {
       <span>{t('timetableWorkspace.conflicts')} <strong>{known ? rows.reduce((sum, d) => sum + d.conflict_count, 0) : '—'}</strong></span>
     </section>
     {selectedDraft && <DraftDetails key={`${selectedDraft.draftId}:${selectedDraft.classId}`} selection={selectedDraft} onClose={() => setSelectedDraft(null)} />}
-    <AdminTimetablePanel initialView="week" selectedClass={selectedClass} onClassChange={setSelectedClass} aside={aside} />
+    <AdminTimetablePanel initialView="day" aside={aside} />
   </div>;
 }
 
