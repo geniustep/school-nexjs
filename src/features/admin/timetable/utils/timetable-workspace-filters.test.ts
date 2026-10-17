@@ -40,7 +40,7 @@ describe('academic facets', () => {
 describe('school wall date',()=>{
  it('uses school timezone across UTC midnight',()=>{
   const now=new Date('2026-10-18T23:30:00Z');
-  expect(schoolDay(now,'Africa/Casablanca')).toEqual({day:'monday',date:'2026-10-19'});
+  expect(schoolDay(now,'Etc/GMT-1')).toEqual({day:'monday',date:'2026-10-19'});
   expect(schoolDay(now,'America/New_York')?.day).toBe('sunday');
  });
  it('fails closed for an invalid timezone',()=>expect(schoolDay(new Date(),'bad/timezone')).toBeNull());
