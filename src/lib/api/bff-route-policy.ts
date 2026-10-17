@@ -325,6 +325,15 @@ const ROUTE_RULES: RouteRule[] = [
     methods: ['POST'],
     test: (p) => /^\/communication\/announcements\/[^/]+\/read$/.test(p),
   },
+  /** Engagement V1: exact announcement actions; Odoo enforces recipient authorization. */
+  {
+    methods: ['POST', 'DELETE'],
+    test: (p) => /^\/communication\/announcements\/[^/]+\/like$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/communication\/announcements\/[^/]+\/view$/.test(p),
+  },
   {
     methods: ['GET', 'HEAD'],
     test: (p) =>
