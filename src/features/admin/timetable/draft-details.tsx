@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useT } from '@/features/i18n/locale-context';
@@ -21,14 +22,44 @@ const clock = (value: number) => {
 export function DraftDetails({ selection, onClose }: { selection: DraftSelection; onClose: () => void }) {
   const t = useT();
   const heading = useRef<HTMLHeadingElement>(null);
+  const panel = useRef<HTMLElement>(null);
+  const close = useRef(onClose);
+  const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<{ lines: Line[]; assignments: Assignment[] } | null>(null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const { draftId, classId } = selection;
+  useEffect(() => { close.current = onClose; }, [onClose]);
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    if (!mounted) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const overflow = document.body.style.overflow;
+    const padding = document.body.style.paddingInlineEnd;
+    const gutter = window.innerWidth - document.documentElement.clientWidth;
+    if (gutter > 0) document.body.style.paddingInlineEnd = `${parseFloat(getComputedStyle(document.body).paddingInlineEnd || '0') + gutter}px`;
+    document.body.style.overflow = 'hidden';
+    heading.current?.focus({ preventScroll: true });
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); close.current(); }
+      if (event.key !== 'Tab') return;
+      const targets = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], select:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex="0"]') ?? []);
+      const first = targets[0], last = targets[targets.length - 1];
+      if (!first || !last) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === heading.current)) { event.preventDefault(); last.focus({ preventScroll: true }); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus({ preventScroll: true }); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+      document.body.style.paddingInlineEnd = padding;
+      opener?.focus({ preventScroll: true });
+    };
+  }, [mounted]);
   useEffect(() => {
     let active = true;
     setData(null); setError(false);
-    heading.current?.focus();
     void Promise.all([
       api.get<{ draft: { draft_id: number; class_id: number; lines: Line[] } | null }>(endpoints.admin.classTimetableDraft(classId), { draft_id: draftId }),
       api.get<{ assignments: Assignment[] }>(endpoints.admin.classTimetableAssignments(classId)),
@@ -42,7 +73,9 @@ export function DraftDetails({ selection, onClose }: { selection: DraftSelection
     return () => { active = false; };
   }, [draftId, classId, retry]);
 
-  return <section id="timetable-draft-details" className="timetable-workspace__details" aria-labelledby="timetable-draft-details-title" aria-busy={!data && !error}>
+  if (!mounted) return null;
+  return createPortal(<div className="modal-backdrop timetable-workspace__details-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+  <section ref={panel} role="dialog" aria-modal="true" id="timetable-draft-details" className="card modal-panel timetable-workspace__details" aria-labelledby="timetable-draft-details-title" aria-busy={!data && !error}>
     <div className="timetable-workspace__section-head">
       <h2 ref={heading} tabIndex={-1} id="timetable-draft-details-title">{t('timetableWorkspace.details')} · <span dir="auto">{selection.name}</span></h2>
       <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>{t('common.close')}</button>
@@ -70,5 +103,5 @@ export function DraftDetails({ selection, onClose }: { selection: DraftSelection
         </table>
       </div>}
     </>}
-  </section>;
+  </section></div>, document.body);
 }
