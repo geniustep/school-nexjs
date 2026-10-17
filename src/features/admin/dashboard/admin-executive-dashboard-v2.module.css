@@ -349,17 +349,20 @@
 }
 @media (max-width: 680px) {
   .shell :global(.director-daily-surface) { padding-inline: 16px; }
-  .shell :global(.director-daily-heading) { align-items: flex-start; min-height: 56px; gap: 12px; }
+  .shell :global(.director-daily-heading) { align-items: flex-start; flex-wrap: wrap; min-height: 56px; gap: 12px; }
   .shell :global(.director-daily-heading__identity), .shell :global(.director-daily-heading__tools) { align-items: flex-start; gap: 9px; }
-  .shell :global(.director-daily-heading__tools) { justify-content: flex-start; }
+  .shell :global(.director-daily-heading__identity) { min-width: 0; flex-wrap: wrap; }
+  .shell :global(.director-daily-heading__tools) { flex: 1 1 100%; min-width: 0; justify-content: flex-start; flex-wrap: wrap; }
   .shell :global(.director-revenue-summary) { min-width: 0; }
   .shell :global(.director-daily-heading h1), .shell :global(.director-pulse h2), .shell :global(.director-summary h2) { font-size: 19px; }
   .shell :global(.director-pulse-grid), .shell :global(.director-bottom-grid) { grid-template-columns: 1fr; }
   .shell :global(.director-pulse-item) { border-inline-start: 0; border-block-start: 1px solid #e6ecf3; min-height: 88px; }
+  .shell :global(.director-pulse-value) { overflow-wrap: anywhere; }
   .shell :global(.director-bottom-grid) { row-gap: 22px; }
   .shell :global(.director-priority-row) { grid-template-columns: 34px minmax(0, 1fr); }
-  .shell :global(.director-priority-meta) { grid-column: 2; }
-  .shell :global(.director-priority-action) { grid-column: 2; grid-row: auto; justify-self: start; }
+  .shell :global(.director-priority-copy strong) { overflow-wrap: anywhere; }
+  .shell :global(.director-priority-meta) { grid-column: 2; flex-wrap: wrap; gap: 4px 12px; white-space: normal; }
+  .shell :global(.director-priority-action) { grid-column: 2; grid-row: auto; justify-self: start; white-space: normal; }
 }
 
 .shell :global(.exec-kpi[href='/admin/admissions']),
