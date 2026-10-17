@@ -44,3 +44,53 @@ describe('read-only draft details',()=>{
   expect(get).toHaveBeenCalledWith('/admin/classes/5/timetable-draft',{draft_id:20});
  });
 });
+
+describe('draft details overlay',()=>{
+ it.each(['rtl','ltr'])('opens outside the page flow in %s',async(dir)=>{
+  const { readFileSync }=await import('node:fs');
+  const style=document.createElement('style');
+  style.textContent=readFileSync('src/features/admin/timetable/timetable-workspace.css','utf8');
+  document.head.append(style);
+  const previousDir=document.documentElement.dir;
+  document.documentElement.dir=dir;
+  try{
+   setup();
+   const view=render(<div data-testid="workspace"><DraftDetails selection={selection} onClose={()=>{}}/></div>);
+   const dialog=await screen.findByRole('dialog');
+   const backdrop=dialog.parentElement!;
+   expect(backdrop.parentElement).toBe(document.body);
+   expect(view.getByTestId('workspace').contains(dialog)).toBe(false);
+   expect(getComputedStyle(backdrop).position).toBe('fixed');
+   expect(dialog.getAttribute('aria-modal')).toBe('true');
+   view.unmount();
+  }finally{style.remove();document.documentElement.dir=previousDir;}
+ });
+ it('restores focus and background scrolling on close without scrolling the page',async()=>{
+  setup();
+  const opener=document.createElement('button');
+  document.body.append(opener);opener.focus();
+  const overflow=document.body.style.overflow;
+  const padding=document.body.style.paddingInlineEnd;
+  const scroll=vi.spyOn(window,'scrollTo');
+  const onClose=vi.fn();
+  const view=render(<DraftDetails selection={selection} onClose={onClose}/>);
+  await screen.findByText('timetableWorkspace.noDraftLines');
+  expect(document.body.style.overflow).toBe('hidden');
+  await userEvent.setup().keyboard('{Escape}');
+  expect(onClose).toHaveBeenCalledOnce();
+  view.unmount();
+  expect(document.activeElement).toBe(opener);
+  expect(document.body.style.overflow).toBe(overflow);
+  expect(document.body.style.paddingInlineEnd).toBe(padding);
+  expect(scroll).not.toHaveBeenCalled();
+  scroll.mockRestore();opener.remove();
+ });
+ it('keeps keyboard navigation within the overlay',async()=>{
+  setup();render(<DraftDetails selection={selection} onClose={()=>{}}/>);
+  await screen.findByText('timetableWorkspace.noDraftLines');
+  const close=screen.getByRole('button',{name:'common.close'});
+  close.focus();
+  await userEvent.setup().tab();
+  expect(document.activeElement).toBe(close);
+ });
+});
