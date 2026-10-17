@@ -422,7 +422,7 @@ describe('Weekly Slot ≠ Session Occurrence', () => {
 
 describe('school-scale timetable filters',()=>{
  it('shows today in the school timezone and preserves class selection when opening the week',async()=>{
-  vi.useFakeTimers({toFake:['Date']}); vi.setSystemTime(new Date('2026-10-18T23:30:00Z'));
+  vi.useFakeTimers({toFake:['Date']}); vi.setSystemTime(new Date('2026-10-19T10:30:00Z'));
   mockResources([slot(),slot({id:2,day:'tuesday',subject:{id:12,name:'Science'}})]);
   const user=userEvent.setup();render(<AdminTimetablePanel initialView="day"/>);
   expect(screen.getByText(/2026-10-19/)).toBeTruthy();
@@ -434,7 +434,7 @@ describe('school-scale timetable filters',()=>{
   expect((within(facet).getByRole('checkbox',{name:'6A'}) as HTMLInputElement).checked).toBe(true);
  });
  it('shows an explicit empty today and never silently changes the date',async()=>{
-  vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-18T23:30:00Z'));
+  vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-19T10:30:00Z'));
   mockResources([slot({day:'tuesday'})]);render(<AdminTimetablePanel initialView="day"/>);
   expect(screen.getByText('admin.timetableList.noMatch.title')).toBeTruthy();
   expect(screen.queryByText('الرياضيات')).toBeNull();
