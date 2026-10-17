@@ -405,6 +405,8 @@ export function isAdminChannelLifecycleMutationPath(pathname: string): boolean {
  */
 export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
   const pathname = normalizePolicyPath(path);
+  // Expenses draft payloads reject client-managed school fields; scope stays on query/session.
+  if (/^\/admin\/finance\/expenses(?:\/|$)/.test(pathname)) return false;
   if (/^\/admin\/finance\/services(?:\/|$)/.test(pathname)) return false;
   // Student guardian link/create/update/end/remove — school stays on query only.
   if (/^\/admin\/students\/[^/]+\/guardians(?:\/|$)/.test(pathname)) return false;
