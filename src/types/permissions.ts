@@ -37,6 +37,7 @@ export type Permission =
   | 'receive_teacher_exams_print'
   | 'manage_complaints'
   | 'finance.view'
+  | 'finance.expenses.view'
   | 'finance.manage_fee_catalog'
   | 'finance.manage_fee_plans'
   | 'finance.assign_fees'
