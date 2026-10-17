@@ -1,6 +1,7 @@
 // Role-based navigation — admin items filtered by permissions[] + admin_kind UX (RBAC-UX-2A).
 
 import type { CurrentUser } from '@/types/user';
+import { expenseCapability } from '@/features/admin/finance/expenses/model';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
 import { canViewSettings, canAccessStaffCenter } from '@/lib/permissions/academic-setup';
@@ -381,6 +382,13 @@ function adminNav(user: CurrentUser): NavSection[] {
       href: '/admin/finance/cheques',
       icon: '🧾',
       isActive: (pathname) => pathname.startsWith('/admin/finance/cheques'),
+    });
+
+    pushIf(financeItems, expenseCapability(user, 'view'), {
+      labelKey: 'nav.financeExpenses',
+      href: '/admin/finance/expenses',
+      icon: '🧮',
+      isActive: (pathname) => pathname.startsWith('/admin/finance/expenses'),
     });
 
     pushIf(financeItems, canViewFinanceReports, {
