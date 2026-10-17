@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { get } = vi.hoisted(()=>({get:vi.fn()}));
@@ -14,6 +14,21 @@ function setup(draft= response()){
 beforeEach(()=>{ get.mockReset(); });
 afterEach(cleanup);
 describe('read-only draft details',()=>{
+ it.each(['rtl','ltr'])('orders Monday through Sunday, then by start time in %s',async(dir)=>{
+  const previousDir=document.documentElement.dir;
+  document.documentElement.dir=dir;
+  const days=['sunday','friday','monday','wednesday','saturday','tuesday','thursday','monday'];
+  const lines=days.map((weekday,index)=>({line_id:index+1,assignment_id:false,weekday,start_time:index===7?8:10,end_time:index===7?9:11}));
+  try{
+   setup(response(10,4,lines));
+   render(<DraftDetails selection={selection} onClose={()=>{}}/>);
+   const table=await screen.findByRole('table');
+   const cells=within(table).getAllByRole('row').slice(1).map(row=>within(row).getAllByRole('cell'));
+   expect(cells.map(row=>row[0].textContent)).toEqual(['days.monday','days.monday','days.tuesday','days.wednesday','days.thursday','days.friday','days.saturday','days.sunday']);
+   expect(cells.slice(0,2).map(row=>row[1].textContent)).toEqual(['08:00–09:00','10:00–11:00']);
+   expect(lines.map(line=>line.weekday)).toEqual(days);
+  }finally{document.documentElement.dir=previousDir;}
+ });
  it('explains unavailable aggregate warning details without inventing a cause',async()=>{
   setup();render(<DraftDetails selection={selection} onClose={()=>{}}/>);
   expect(await screen.findByText('timetableWorkspace.warningDetailsUnavailable')).toBeTruthy();
