@@ -3670,6 +3670,19 @@
       "errorGeneric": "No se pudo guardar. Inténtelo de nuevo."
     },
     "academicSetup": {
+      "assignmentPeriod": {
+        "label": "Período de asignación",
+        "academicYear": "Según el curso escolar",
+        "custom": "Asignación de duración determinada",
+        "explanation": "El sistema establece automáticamente las fechas de inicio y fin del curso escolar.",
+        "loading": "Comprobando el período…",
+        "notFirst": "Ya existe una asignación para esta materia y clase. Indique un período o use el proceso oficial de sustitución.",
+        "ended": "Este curso escolar ha terminado. Utilice un período explícito si está autorizado.",
+        "noLocalDate": "No se puede determinar una fecha local fiable del centro. Indique un período explícito.",
+        "conflict": "Las fechas no coinciden con el período calculado por el sistema.",
+        "invalid": "Este modo de período no es válido para esta operación.",
+        "invalidDates": "Indique fechas de inicio y fin válidas dentro del curso escolar."
+      },
       "title": "Configuración académica y equipo",
       "subtitle": "Organice la estructura académica, el equipo y las asignaciones desde un solo lugar.",
       "navLabel": "Navegación configuración académica",

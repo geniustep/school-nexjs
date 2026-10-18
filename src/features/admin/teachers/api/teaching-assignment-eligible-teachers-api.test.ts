@@ -45,6 +45,11 @@ describe('teaching-assignment-eligible-teachers-api', () => {
     );
   });
 
+  it('sends mode to eligible-teachers without inferring dates', () => {
+    expect(buildEligibleTeachersQuery({ class_id: 1, subject_id: 2, period_mode: 'academic_year' })).toEqual({ class_id: 1, subject_id: 2, period_mode: 'academic_year' });
+    expect(buildEligibleTeachersQuery({ class_id: 1, subject_id: 2, period_mode: 'custom', effective_from: '2026-10-01', effective_to: '2026-11-01' })).toMatchObject({ period_mode: 'custom', effective_from: '2026-10-01', effective_to: '2026-11-01' });
+  });
+
   it('parses four eligibility states and null timetable conflict', () => {
     const candidate = normalizeTeachingAssignmentCandidate({
       teacher_id: 7,
