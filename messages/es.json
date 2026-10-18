@@ -3672,6 +3672,11 @@
     },
     "academicSetup": {
       "assignmentPeriod": {
+        "legacyTitle": "Sistema anterior de asignaciones",
+        "legacyDescription": "Este centro utiliza el contrato anterior. Indique explícitamente las dos fechas; no se calculan automáticamente según el curso.",
+        "legacyConsent": "Elijo utilizar fechas explícitas con el sistema anterior.",
+        "unknownContract": "No se pudo verificar la compatibilidad del sistema de asignaciones. La creación está bloqueada; compruebe el acceso o contacte con soporte.",
+        "checkingContract": "Comprobando el contrato de asignaciones del centro…",
         "label": "Período de asignación",
         "academicYear": "Según el curso escolar",
         "custom": "Asignación de duración determinada",
