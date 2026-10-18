@@ -54,6 +54,7 @@ export async function createTeachingAssignment(payload: {
   role?: string;
   notes?: string;
   teaching_offering_id?: number;
+  period_mode?: 'academic_year' | 'custom';
   effective_from?: string | null;
   effective_to?: string | null;
   override?: true;

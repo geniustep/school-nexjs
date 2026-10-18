@@ -3670,6 +3670,19 @@
       "errorGeneric": "Could not save subject enablement. Please try again."
     },
     "academicSetup": {
+      "assignmentPeriod": {
+        "label": "Assignment period",
+        "academicYear": "Use academic year",
+        "custom": "Fixed-term assignment",
+        "explanation": "The system automatically sets the start date and the academic-year end date.",
+        "loading": "Checking assignment dates…",
+        "notFirst": "An assignment already exists for this subject and class. Choose explicit dates or use the official teacher replacement process.",
+        "ended": "This academic year has ended. Use an explicit period if permitted.",
+        "noLocalDate": "A reliable school-local date is unavailable. Enter an explicit assignment period.",
+        "conflict": "The supplied dates conflict with the server-defined academic-year window.",
+        "invalid": "This assignment period mode is not supported for this action.",
+        "invalidDates": "Enter valid start and end dates within the academic year."
+      },
       "title": "Academic setup & staff",
       "subtitle": "Organise academic structure, staff and teaching assignments in one place.",
       "navLabel": "Academic setup navigation",

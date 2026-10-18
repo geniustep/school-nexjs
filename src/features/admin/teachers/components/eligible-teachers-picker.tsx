@@ -44,6 +44,7 @@ export function EligibleTeachersPicker({
   disabled = false,
   onChange,
   onCandidatesReloaded,
+  onContextResolved,
 }: {
   context: Omit<TeachingAssignmentCandidatesQuery, 'include_ineligible'> | null;
   selectedTeacherId: number | null;
@@ -52,6 +53,7 @@ export function EligibleTeachersPicker({
   disabled?: boolean;
   onChange: (next: EligibleTeachersPickerValue) => void;
   onCandidatesReloaded?: () => void;
+  onContextResolved?: (contextKey: string, dates: { effective_from: string | null; effective_to: string | null } | null) => void;
 }) {
   const t = useT();
   const requestIdRef = useRef(0);
@@ -72,6 +74,7 @@ export function EligibleTeachersPicker({
       academic_year_id: context.academic_year_id ?? null,
       teaching_offering_id: context.teaching_offering_id ?? null,
       role: context.role ?? 'main',
+      period_mode: context.period_mode ?? null,
       effective_from: context.effective_from ?? null,
       effective_to: context.effective_to ?? null,
       weekly_hours: context.weekly_hours ?? null,
@@ -89,6 +92,7 @@ export function EligibleTeachersPicker({
     }
 
     const requestId = ++requestIdRef.current;
+    onContextResolved?.(contextKey, null);
     setLoading(true);
     setError(null);
     void fetchTeachingAssignmentEligibleTeachers({
@@ -102,11 +106,16 @@ export function EligibleTeachersPicker({
         setSummary(null);
         setAllowed({});
         setError(mapTeacherDomainError(res.error, t));
+        onContextResolved?.(contextKey, null);
         return;
       }
       setCandidates(res.data.candidates);
       setSummary(res.data.summary);
       setAllowed(res.data.allowed_actions ?? {});
+      const backendContext = res.data.context;
+      const from = typeof backendContext?.effective_from === 'string' ? backendContext.effective_from : null;
+      const to = typeof backendContext?.effective_to === 'string' ? backendContext.effective_to : null;
+      onContextResolved?.(contextKey, from && to && backendContext?.period_mode === context.period_mode ? { effective_from: from, effective_to: to } : null);
       onCandidatesReloaded?.();
 
       if (selectedTeacherId != null) {

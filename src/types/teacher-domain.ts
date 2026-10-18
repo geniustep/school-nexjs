@@ -632,6 +632,7 @@ export type TeachingAssignmentCandidatesQuery = {
   academic_year_id?: number;
   teaching_offering_id?: number;
   role?: string;
+  period_mode?: 'academic_year' | 'custom';
   effective_from?: string;
   effective_to?: string;
   weekday?: string | number;
@@ -668,6 +669,7 @@ export type TeachingAssignmentWritePayload = {
   notes?: string;
   teaching_offering_id?: number | null;
   academic_year_id?: number;
+  period_mode?: 'academic_year' | 'custom';
   effective_from?: string;
   effective_to?: string;
 } & TeachingAssignmentOverridePayload;

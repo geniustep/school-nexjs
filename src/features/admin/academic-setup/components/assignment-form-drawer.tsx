@@ -33,6 +33,7 @@ export type AssignmentFormCreatePayload = {
   weekly_hours?: number;
   role?: string;
   teaching_offering_id?: number;
+  period_mode: 'academic_year' | 'custom';
   effective_from?: string | null;
   effective_to?: string | null;
   override?: true;
@@ -89,6 +90,8 @@ export function AssignmentFormDrawer({
   const [offeringId, setOfferingId] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
+  const [periodMode, setPeriodMode] = useState<'academic_year' | 'custom'>('academic_year');
+  const [periodResolution, setPeriodResolution] = useState<{key: string; effectiveFrom: string; effectiveTo: string} | null>(null);
   const [recheckNotice, setRecheckNotice] = useState(false);
   const [teacherRecheckPending, setTeacherRecheckPending] = useState(false);
   const [role, setRole] = useState('main');
@@ -163,6 +166,8 @@ export function AssignmentFormDrawer({
       setEffectiveFrom('');
       setEffectiveTo('');
     }
+    setPeriodMode('academic_year');
+    setPeriodResolution(null);
     setRecheckNotice(false);
     setTeacherRecheckPending(false);
     setReviewing(false);
@@ -210,18 +215,34 @@ export function AssignmentFormDrawer({
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
       role,
       weekly_hours: Number(weeklyHours) || undefined,
-      effective_from: effectiveFrom || undefined,
-      effective_to: effectiveTo || undefined,
+      period_mode: assignment ? undefined : periodMode,
+      effective_from: assignment || periodMode === 'custom' ? effectiveFrom || undefined : undefined,
+      effective_to: assignment || periodMode === 'custom' ? effectiveTo || undefined : undefined,
     };
-  }, [classId, subjectId, academicYearId, offeringId, weeklyHours, role, effectiveFrom, effectiveTo]);
+  }, [assignment, classId, subjectId, academicYearId, offeringId, weeklyHours, role, periodMode, effectiveFrom, effectiveTo]);
+
+  const candidatesContextKey = candidatesContext ? JSON.stringify({
+    class_id: candidatesContext.class_id,
+    subject_id: candidatesContext.subject_id,
+    academic_year_id: candidatesContext.academic_year_id ?? null,
+    teaching_offering_id: candidatesContext.teaching_offering_id ?? null,
+    role: candidatesContext.role ?? 'main',
+    period_mode: candidatesContext.period_mode ?? null,
+    effective_from: candidatesContext.effective_from ?? null,
+    effective_to: candidatesContext.effective_to ?? null,
+    weekly_hours: candidatesContext.weekly_hours ?? null,
+  }) : '';
+  const resolvedWindow = periodResolution?.key === candidatesContextKey ? periodResolution : null;
 
   const selectionValid = eligibleTeachersSelectionValid(selection);
   const offeringBlocksCreate = !assignment && offeringAmbiguous && !offeringId;
   const validDateWindow = !effectiveFrom || !effectiveTo || effectiveFrom <= effectiveTo;
+  const completeCustomWindow = periodMode !== 'custom' || Boolean(effectiveFrom && effectiveTo && validDateWindow);
+  const previewReady = Boolean(assignment) || Boolean(resolvedWindow);
   const editAllowed = !assignment || (Array.isArray(assignment.allowed_actions)
     ? assignment.allowed_actions.includes('edit')
     : assignment.allowed_actions?.edit !== false);
-  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && !teacherRecheckPending && !offeringBlocksCreate && !saving;
+  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && completeCustomWindow && previewReady && !teacherRecheckPending && !offeringBlocksCreate && !saving;
 
   const selectedClass =
     contextClasses.find((item) => item.id === classId) ??
@@ -319,8 +340,8 @@ export function AssignmentFormDrawer({
       weekly_hours: Number(weeklyHours) || 2,
       role,
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
-      effective_from: effectiveFrom || null,
-      effective_to: effectiveTo || null,
+      period_mode: periodMode,
+      ...(periodMode === 'custom' ? { effective_from: effectiveFrom, effective_to: effectiveTo } : {}),
       ...buildOverrideFields(),
     });
   }
@@ -569,6 +590,16 @@ export function AssignmentFormDrawer({
                   />
                 </label>
 
+                {!assignment ? (
+                  <fieldset className="assignment-drawer-detail-card" style={{ gridColumn: '1 / -1' }}>
+                    <legend>{t('admin.academicSetup.assignmentPeriod.label')}</legend>
+                    <label><input type="radio" name="assignment-period-mode" checked={periodMode === 'academic_year'} disabled={!canManage || saving} onChange={() => { setPeriodMode('academic_year'); resetTeacherChoice(); }} /> {t('admin.academicSetup.assignmentPeriod.academicYear')}</label>
+                    <label><input type="radio" name="assignment-period-mode" checked={periodMode === 'custom'} disabled={!canManage || saving} onChange={() => { setPeriodMode('custom'); resetTeacherChoice(); }} /> {t('admin.academicSetup.assignmentPeriod.custom')}</label>
+                    {periodMode === 'academic_year' ? <p className="tiny muted">{t('admin.academicSetup.assignmentPeriod.explanation')}</p> : null}
+                  </fieldset>
+                ) : null}
+                {(assignment || periodMode === 'custom') ? (
+                  <>
                 <label className="assignment-drawer-detail-card">
                   <span>تاريخ بداية الإسناد</span>
                   <input
@@ -595,6 +626,8 @@ export function AssignmentFormDrawer({
                   <p role="alert" className="tiny assignment-drawer-error">
                     تاريخ النهاية يجب ألا يسبق تاريخ البداية.
                   </p>
+                ) : null}
+                  </>
                 ) : null}
                 {teacherRecheckPending ? (
                   <p role="status" className="tiny muted">
@@ -695,6 +728,7 @@ export function AssignmentFormDrawer({
                   disabled={saving}
                   onChange={setSelection}
                   onCandidatesReloaded={() => { setTeacherRecheckPending(false); setRecheckNotice(true); }}
+                  onContextResolved={(key, dates) => setPeriodResolution(dates?.effective_from && dates?.effective_to ? { key, effectiveFrom: dates.effective_from, effectiveTo: dates.effective_to } : null)}
                 />
               ) : (
                 <p className="muted tiny">{t('admin.academicSetup.pickTeacherHint')}</p>
@@ -725,8 +759,8 @@ export function AssignmentFormDrawer({
                     <span>{t('admin.academicSetup.assignmentRole')}</span>
                     <strong>{t(`admin.academicSetup.assignmentRoles.${role}`)}</strong>
                   </div>
-                  <div className="assignment-drawer-review-item"><span>بداية الإسناد</span><strong>{effectiveFrom || 'غير محددة'}</strong></div>
-                  <div className="assignment-drawer-review-item"><span>نهاية الإسناد</span><strong>{effectiveTo || 'مفتوحة'}</strong></div>
+                  <div className="assignment-drawer-review-item"><span>بداية الإسناد</span><strong>{assignment ? (effectiveFrom || '—') : (resolvedWindow?.effectiveFrom ?? t('admin.academicSetup.assignmentPeriod.loading'))}</strong></div>
+                  <div className="assignment-drawer-review-item"><span>نهاية الإسناد</span><strong>{assignment ? (effectiveTo || '—') : (resolvedWindow?.effectiveTo ?? t('admin.academicSetup.assignmentPeriod.loading'))}</strong></div>
                 </div>
               </div>
             </section>
