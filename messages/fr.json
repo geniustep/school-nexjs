@@ -3671,6 +3671,11 @@
     },
     "academicSetup": {
       "assignmentPeriod": {
+        "legacyTitle": "Ancien système d’affectation",
+        "legacyDescription": "Cet établissement utilise l’ancien contrat. Saisissez explicitement les deux dates ; le calcul automatique de l’année scolaire n’est pas disponible.",
+        "legacyConsent": "Je choisis une affectation avec dates explicites selon l’ancien système.",
+        "unknownContract": "Impossible de confirmer la compatibilité du système d’affectation. La création est bloquée par sécurité ; vérifiez les accès ou contactez le support.",
+        "checkingContract": "Vérification du contrat d’affectation de l’établissement…",
         "label": "Durée de l'affectation",
         "academicYear": "Selon l'année scolaire",
         "custom": "Affectation à durée déterminée",

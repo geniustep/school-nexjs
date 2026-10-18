@@ -95,6 +95,20 @@ vi.mock('@/features/academic-context/hooks/use-academic-context-options', async 
   };
 });
 
+// Keep this existing component test independent from the read-only capability probe.
+vi.mock('@/features/admin/teachers/api/teaching-assignment-eligible-teachers-api', () => ({
+  fetchTeachingAssignmentEligibleTeachers: vi.fn().mockResolvedValue({
+    success: true,
+    data: {
+      context: { academic_year_id: 1, effective_from: null, effective_to: null,
+        time_window: null, period_mode: null, period_window: { period_window_source: 'legacy' } },
+      candidates: [],
+      summary: { total_candidates: 0, eligible_count: 0, eligible_with_warning_count: 0,
+        override_required_count: 0, not_eligible_count: 0 },
+    },
+  }),
+}));
+
 vi.mock('@/features/admin/teachers/components/eligible-teachers-picker', () => ({
   EligibleTeachersPicker: ({
     onChange,

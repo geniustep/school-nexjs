@@ -3671,6 +3671,11 @@
     },
     "academicSetup": {
       "assignmentPeriod": {
+        "legacyTitle": "Previous assignment system",
+        "legacyDescription": "This school uses the previous assignment contract. Enter both dates explicitly; automatic academic-year dates are not available.",
+        "legacyConsent": "I choose to use explicit dates under the previous assignment system.",
+        "unknownContract": "Assignment contract compatibility could not be verified. Creation is blocked; check access or contact support.",
+        "checkingContract": "Checking the school assignment contract…",
         "label": "Assignment period",
         "academicYear": "Use academic year",
         "custom": "Fixed-term assignment",
