@@ -18,7 +18,6 @@ import {
   previewIndividualCommunication,
 } from '@/features/communication/api/admin-communication-api';
 import { finalizeGeneralCommunication } from '@/features/communication/api/submit-general-communication';
-import { eligibleForExternalMediaShare } from '@/features/communication/utils/external-media-sharing';
 import { RecipientPreviewDialog } from '@/features/communication/components/recipient-preview-dialog';
 import {
   buildGroupRecipientScope,
