@@ -293,12 +293,14 @@ describe('Assignment form academic context', () => {
     }) as HTMLButtonElement;
     expect(preview.disabled).toBe(true);
 
-    await user.click(screen.getByText('pick-eligible-teacher'));
+    // No teacher picker is available before the scoped offering and contract are resolved.
+    expect(screen.queryByText('pick-eligible-teacher')).toBeNull();
     expect(preview.disabled).toBe(true);
     expect(onCreate).not.toHaveBeenCalled();
 
     await user.selectOptions(offering, '100');
     expect(preview.disabled).toBe(true);
+    await waitFor(() => expect(screen.getByText('pick-eligible-teacher')).toBeTruthy());
     await user.click(screen.getByText('pick-eligible-teacher'));
     await waitFor(() => expect(preview.disabled).toBe(false));
     await user.click(preview);
