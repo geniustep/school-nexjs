@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { useEffect } from 'react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EMPTY_ACADEMIC_CONTEXT_SELECTION } from '@/features/academic-context/utils/academic-context-reset';
@@ -97,16 +98,44 @@ vi.mock('@/features/academic-context/hooks/use-academic-context-options', async 
 vi.mock('@/features/admin/teachers/components/eligible-teachers-picker', () => ({
   EligibleTeachersPicker: ({
     onChange,
+    onContextResolved,
+    context,
   }: {
     onChange: (next: { teacherId: number | null; override: boolean; overrideReason: string }) => void;
-  }) => (
-    <button
-      type="button"
-      onClick={() => onChange({ teacherId: 3, override: false, overrideReason: '' })}
-    >
-      pick-eligible-teacher
-    </button>
-  ),
+    onContextResolved?: (key: string, dates: { effective_from: string; effective_to: string } | null) => void;
+    context?: {
+      class_id: number; subject_id: number; academic_year_id?: number;
+      teaching_offering_id?: number; role?: string; period_mode?: string;
+      effective_from?: string; effective_to?: string; weekly_hours?: number;
+    } | null;
+  }) => {
+    useEffect(() => {
+      if (!context) return;
+      const key = JSON.stringify({
+        class_id: context.class_id,
+        subject_id: context.subject_id,
+        academic_year_id: context.academic_year_id ?? null,
+        teaching_offering_id: context.teaching_offering_id ?? null,
+        role: context.role ?? 'main',
+        period_mode: context.period_mode ?? null,
+        effective_from: context.effective_from ?? null,
+        effective_to: context.effective_to ?? null,
+        weekly_hours: context.weekly_hours ?? null,
+      });
+      onContextResolved?.(key, context.period_mode === 'academic_year' && context.teaching_offering_id
+        ? { effective_from: '2026-10-18', effective_to: '2027-07-17' }
+        : null);
+      // Mock a backend preview only when scoped offering is selected.
+    }, [context?.class_id, context?.subject_id, context?.teaching_offering_id, context?.period_mode]);
+    return (
+      <button
+        type="button"
+        onClick={() => onChange({ teacherId: 3, override: false, overrideReason: '' })}
+      >
+        pick-eligible-teacher
+      </button>
+    );
+  },
   eligibleTeachersSelectionValid: (input: {
     teacherId: number | null;
     override: boolean;

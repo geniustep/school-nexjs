@@ -185,6 +185,7 @@ export function buildEligibleTeachersQuery(
     if (value != null && Number.isFinite(Number(value))) query[key] = Number(value);
   }
   if (input.role?.trim()) query.role = input.role.trim();
+  if (input.period_mode) query.period_mode = input.period_mode;
   if (input.effective_from?.trim()) query.effective_from = input.effective_from.trim();
   if (input.effective_to?.trim()) query.effective_to = input.effective_to.trim();
   if (input.weekday != null && input.weekday !== '') query.weekday = String(input.weekday);
