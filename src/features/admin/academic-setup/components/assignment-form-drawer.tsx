@@ -22,6 +22,8 @@ import {
 } from '@/features/admin/teachers/components/eligible-teachers-picker';
 import { resolveGuidedAssignmentClasses } from '../utils/assignment-class-options';
 import { keepTeacherWhenDatesChange } from '../utils/assignment-date-recheck';
+import { fetchTeachingAssignmentEligibleTeachers } from '@/features/admin/teachers/api/teaching-assignment-eligible-teachers-api';
+import { detectAssignmentBackendContract, buildAssignmentPeriodPayload, type AssignmentBackendContract } from '../utils/teaching-assignment-contract-capability';
 import { SetupDrawer } from './setup-drawer';
 import './assignment-form-drawer.css';
 
@@ -91,6 +93,8 @@ export function AssignmentFormDrawer({
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
   const [periodMode, setPeriodMode] = useState<'academic_year' | 'custom'>('academic_year');
+  const [capability, setCapability] = useState<{ key: string; contract: AssignmentBackendContract } | null>(null);
+  const [legacyAccepted, setLegacyAccepted] = useState(false);
   const [periodResolution, setPeriodResolution] = useState<{key: string; effectiveFrom: string; effectiveTo: string} | null>(null);
   const [recheckNotice, setRecheckNotice] = useState(false);
   const [teacherRecheckPending, setTeacherRecheckPending] = useState(false);
@@ -168,6 +172,8 @@ export function AssignmentFormDrawer({
     }
     setPeriodMode('academic_year');
     setPeriodResolution(null);
+    setCapability(null);
+    setLegacyAccepted(false);
     setRecheckNotice(false);
     setTeacherRecheckPending(false);
     setReviewing(false);
@@ -206,8 +212,53 @@ export function AssignmentFormDrawer({
     if (offeringId !== nextOfferingId) setOfferingId(nextOfferingId);
   }, [open, classId, subjectId, contextBusy, offerings, offeringId]);
 
+  // Read-only mode-free eligibility probe; never infer a contract from the hostname.
+  const probeKey = JSON.stringify({
+    classId, subjectId, academicYearId: academicYearId ?? null,
+    offeringId: offeringId || null, role, weeklyHours,
+  });
+  const contract: AssignmentBackendContract = assignment ? 'legacy_1c' :
+    (capability?.key === probeKey ? capability.contract : 'unknown');
+  const contractPending = !assignment && capability?.key !== probeKey;
+
+  useEffect(() => {
+    if (!open || assignment) return;
+    let cancelled = false;
+    setCapability(null);
+    setLegacyAccepted(false);
+    setPeriodResolution(null);
+    setSelection({ teacherId: null, override: false, overrideReason: '' });
+    setReviewing(false);
+    if (!classId || !subjectId || contextBusy || (offeringAmbiguous && !offeringId)) {
+      return () => { cancelled = true; };
+    }
+    void fetchTeachingAssignmentEligibleTeachers({
+      class_id: classId,
+      subject_id: subjectId,
+      academic_year_id: academicYearId,
+      teaching_offering_id: offeringId ? Number(offeringId) : undefined,
+      role,
+      weekly_hours: Number(weeklyHours) || undefined,
+      include_ineligible: true,
+    }).then((res) => {
+      if (cancelled) return;
+      setCapability({ key: probeKey,
+        contract: res.success ? detectAssignmentBackendContract(res.data) : 'unknown',
+      });
+    }).catch(() => {
+      if (!cancelled) setCapability({ key: probeKey, contract: 'unknown' });
+    });
+    return () => { cancelled = true; };
+  }, [probeKey, open, assignment, contextBusy, offeringAmbiguous, offeringId, classId, subjectId, academicYearId, role, weeklyHours]);
+
   const candidatesContext = useMemo(() => {
     if (!classId || !subjectId) return null;
+    if (!assignment) {
+      if (contract === 'unknown' || contractPending) return null;
+      if (contract === 'legacy_1c' && !legacyAccepted) return null;
+      if ((contract === 'legacy_1c' || periodMode === 'custom') &&
+          (!effectiveFrom || !effectiveTo || effectiveFrom > effectiveTo)) return null;
+    }
     return {
       class_id: classId,
       subject_id: subjectId,
@@ -215,11 +266,13 @@ export function AssignmentFormDrawer({
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
       role,
       weekly_hours: Number(weeklyHours) || undefined,
-      period_mode: assignment ? undefined : periodMode,
-      effective_from: assignment || periodMode === 'custom' ? effectiveFrom || undefined : undefined,
-      effective_to: assignment || periodMode === 'custom' ? effectiveTo || undefined : undefined,
+      period_mode: assignment || contract === 'legacy_1c' ? undefined : periodMode,
+      effective_from: assignment || contract === 'legacy_1c' || periodMode === 'custom'
+        ? effectiveFrom || undefined : undefined,
+      effective_to: assignment || contract === 'legacy_1c' || periodMode === 'custom'
+        ? effectiveTo || undefined : undefined,
     };
-  }, [assignment, classId, subjectId, academicYearId, offeringId, weeklyHours, role, periodMode, effectiveFrom, effectiveTo]);
+  }, [assignment, classId, subjectId, academicYearId, offeringId, weeklyHours, role, periodMode, effectiveFrom, effectiveTo, contract, contractPending, legacyAccepted]);
 
   const candidatesContextKey = candidatesContext ? JSON.stringify({
     class_id: candidatesContext.class_id,
@@ -237,12 +290,20 @@ export function AssignmentFormDrawer({
   const selectionValid = eligibleTeachersSelectionValid(selection);
   const offeringBlocksCreate = !assignment && offeringAmbiguous && !offeringId;
   const validDateWindow = !effectiveFrom || !effectiveTo || effectiveFrom <= effectiveTo;
-  const completeCustomWindow = periodMode !== 'custom' || Boolean(effectiveFrom && effectiveTo && validDateWindow);
-  const previewReady = Boolean(assignment) || Boolean(resolvedWindow);
+  // Keep editing legacy open-ended assignments available.
+  const completeCustomWindow = assignment ? true :
+    (contract === 'legacy_1c' || periodMode === 'custom')
+      ? Boolean(effectiveFrom && effectiveTo && validDateWindow) : true;
+  const previewReady = Boolean(assignment) || Boolean(resolvedWindow && (
+    contract !== 'legacy_1c' ||
+    (resolvedWindow.effectiveFrom === effectiveFrom && resolvedWindow.effectiveTo === effectiveTo)
+  ));
+  const contractReady = Boolean(assignment) || (contract === 'v1' ||
+    (contract === 'legacy_1c' && legacyAccepted));
   const editAllowed = !assignment || (Array.isArray(assignment.allowed_actions)
     ? assignment.allowed_actions.includes('edit')
     : assignment.allowed_actions?.edit !== false);
-  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && completeCustomWindow && previewReady && !teacherRecheckPending && !offeringBlocksCreate && !saving;
+  const canSubmit = canManage && editAllowed && selectionValid && validDateWindow && completeCustomWindow && previewReady && contractReady && !teacherRecheckPending && !offeringBlocksCreate && !saving;
 
   const selectedClass =
     contextClasses.find((item) => item.id === classId) ??
@@ -332,6 +393,10 @@ export function AssignmentFormDrawer({
       return;
     }
 
+    const periodPayload = buildAssignmentPeriodPayload({
+      contract, acceptedLegacy: legacyAccepted, mode: periodMode, effectiveFrom, effectiveTo,
+    });
+    if (!periodPayload || !canSubmit) return;
     onCreate({
       academic_year_id: academicYearId,
       class_id: classId,
@@ -340,8 +405,7 @@ export function AssignmentFormDrawer({
       weekly_hours: Number(weeklyHours) || 2,
       role,
       teaching_offering_id: offeringId ? Number(offeringId) : undefined,
-      period_mode: periodMode,
-      ...(periodMode === 'custom' ? { effective_from: effectiveFrom, effective_to: effectiveTo } : {}),
+      ...periodPayload,
       ...buildOverrideFields(),
     });
   }
@@ -590,7 +654,7 @@ export function AssignmentFormDrawer({
                   />
                 </label>
 
-                {!assignment ? (
+                {!assignment && contract === 'v1' ? (
                   <fieldset className="assignment-drawer-detail-card" style={{ gridColumn: '1 / -1' }}>
                     <legend>{t('admin.academicSetup.assignmentPeriod.label')}</legend>
                     <label><input type="radio" name="assignment-period-mode" checked={periodMode === 'academic_year'} disabled={!canManage || saving} onChange={() => { setPeriodMode('academic_year'); resetTeacherChoice(); }} /> {t('admin.academicSetup.assignmentPeriod.academicYear')}</label>
@@ -598,7 +662,23 @@ export function AssignmentFormDrawer({
                     {periodMode === 'academic_year' ? <p className="tiny muted">{t('admin.academicSetup.assignmentPeriod.explanation')}</p> : null}
                   </fieldset>
                 ) : null}
-                {(assignment || periodMode === 'custom') ? (
+                {!assignment && contract === 'legacy_1c' ? (
+                  <fieldset className="assignment-drawer-detail-card" style={{ gridColumn: '1 / -1' }}>
+                    <legend>{t('admin.academicSetup.assignmentPeriod.legacyTitle')}</legend>
+                    <p className="tiny muted">{t('admin.academicSetup.assignmentPeriod.legacyDescription')}</p>
+                    <label>
+                      <input type="checkbox" checked={legacyAccepted} disabled={!canManage || saving}
+                        onChange={(event) => { setLegacyAccepted(event.target.checked); resetTeacherChoice(); }} />
+                      {' '}{t('admin.academicSetup.assignmentPeriod.legacyConsent')}
+                    </label>
+                  </fieldset>
+                ) : null}
+                {!assignment && contract === 'unknown' ? (
+                  <p role="alert" className="tiny assignment-drawer-error" style={{ gridColumn: '1 / -1' }}>
+                    {t(contractPending ? 'admin.academicSetup.assignmentPeriod.checkingContract' : 'admin.academicSetup.assignmentPeriod.unknownContract')}
+                  </p>
+                ) : null}
+                {(assignment || (contract === 'v1' && periodMode === 'custom') || (contract === 'legacy_1c' && legacyAccepted)) ? (
                   <>
                 <label className="assignment-drawer-detail-card">
                   <span>تاريخ بداية الإسناد</span>
@@ -611,7 +691,7 @@ export function AssignmentFormDrawer({
                   />
                 </label>
                 <label className="assignment-drawer-detail-card">
-                  <span>تاريخ نهاية الإسناد (اختياري)</span>
+                  <span>{assignment ? 'تاريخ نهاية الإسناد (اختياري)' : 'تاريخ نهاية الإسناد'}</span>
                   <input
                     type="date"
                     lang="ar"
@@ -620,7 +700,7 @@ export function AssignmentFormDrawer({
                     disabled={!canManage || !editAllowed || saving}
                     onChange={(event) => { setEffectiveTo(event.target.value); recheckTeacherForDates(); }}
                   />
-                  <span className="tiny muted">اتركه فارغًا إذا كان الإسناد مفتوح النهاية.</span>
+                  {assignment ? <span className="tiny muted">اتركه فارغًا إذا كان الإسناد مفتوح النهاية.</span> : null}
                 </label>
                 {!validDateWindow ? (
                   <p role="alert" className="tiny assignment-drawer-error">

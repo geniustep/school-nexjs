@@ -115,7 +115,12 @@ export function EligibleTeachersPicker({
       const backendContext = res.data.context;
       const from = typeof backendContext?.effective_from === 'string' ? backendContext.effective_from : null;
       const to = typeof backendContext?.effective_to === 'string' ? backendContext.effective_to : null;
-      onContextResolved?.(contextKey, from && to && backendContext?.period_mode === context.period_mode ? { effective_from: from, effective_to: to } : null);
+      const hasBackendMode = Boolean(backendContext && Object.prototype.hasOwnProperty.call(backendContext, 'period_mode'));
+      const v1Dates = Boolean(context.period_mode && hasBackendMode && backendContext?.period_mode === context.period_mode);
+      const legacyDates = Boolean(!context.period_mode && !hasBackendMode &&
+        from === context.effective_from && to === context.effective_to);
+      onContextResolved?.(contextKey, from && to && (v1Dates || legacyDates)
+        ? { effective_from: from, effective_to: to } : null);
       onCandidatesReloaded?.();
 
       if (selectedTeacherId != null) {
