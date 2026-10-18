@@ -3670,6 +3670,19 @@
       "errorGeneric": "Échec de l'enregistrement. Réessayez."
     },
     "academicSetup": {
+      "assignmentPeriod": {
+        "label": "Durée de l'affectation",
+        "academicYear": "Selon l'année scolaire",
+        "custom": "Affectation à durée déterminée",
+        "explanation": "Le système détermine automatiquement la date de début et la fin de l'année scolaire.",
+        "loading": "Vérification de la période…",
+        "notFirst": "Une affectation existe déjà pour cette matière et cette classe. Précisez la période ou utilisez la procédure de remplacement.",
+        "ended": "Cette année scolaire est terminée. Utilisez une période explicite si cela est autorisé.",
+        "noLocalDate": "Impossible de déterminer la date locale fiable de l'école. Indiquez une période explicite.",
+        "conflict": "Les dates ne correspondent pas à la période calculée par le système.",
+        "invalid": "Ce mode de période n'est pas autorisé pour cette opération.",
+        "invalidDates": "Indiquez des dates de début et de fin valides dans l'année scolaire."
+      },
       "title": "Configuration académique et équipe",
       "subtitle": "Organisez la structure académique, l'équipe et les affectations depuis un seul endroit.",
       "navLabel": "Navigation configuration académique",

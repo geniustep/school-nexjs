@@ -33,6 +33,13 @@ const TEACHER_DOMAIN_ERROR_KEYS: Record<string, string> = {
   assignment_overlap: 'admin.teacherDomain.errors.assignmentOverlap',
   assignment_scope_mismatch: 'admin.teacherDomain.errors.assignmentScopeMismatch',
   assignment_date_invalid: 'admin.teacherDomain.errors.assignmentDateInvalid',
+  teaching_assignment_period_not_first_assignment: 'admin.academicSetup.assignmentPeriod.notFirst',
+  teaching_assignment_academic_year_season_ended: 'admin.academicSetup.assignmentPeriod.ended',
+  teaching_assignment_school_local_date_unavailable: 'admin.academicSetup.assignmentPeriod.noLocalDate',
+  teaching_assignment_academic_year_dates_conflict: 'admin.academicSetup.assignmentPeriod.conflict',
+  teaching_assignment_period_mode_invalid: 'admin.academicSetup.assignmentPeriod.invalid',
+  teaching_assignment_period_mode_update_forbidden: 'admin.academicSetup.assignmentPeriod.invalid',
+  invalid_effective_dates: 'admin.academicSetup.assignmentPeriod.invalidDates',
   assignment_offering_mismatch: 'admin.teacherDomain.errors.assignmentOfferingMismatch',
   class_subject_mismatch: 'admin.academicSetup.errors.classSubjectMismatch',
   assignment_termination_reason_required:

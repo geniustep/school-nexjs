@@ -18,7 +18,6 @@ import {
   previewIndividualCommunication,
 } from '@/features/communication/api/admin-communication-api';
 import { finalizeGeneralCommunication } from '@/features/communication/api/submit-general-communication';
-import { eligibleForExternalMediaShare } from '@/features/communication/utils/external-media-sharing';
 import { RecipientPreviewDialog } from '@/features/communication/components/recipient-preview-dialog';
 import {
   buildGroupRecipientScope,
@@ -109,6 +108,7 @@ export function GeneralCommunicationComposeWorkspace({
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [allowExternalMediaShare, setAllowExternalMediaShare] = useState(true);
+  const [externalShareExplicitlyDisabled, setExternalShareExplicitlyDisabled] = useState(false);
 
   const [classes, setClasses] = useState<EntityOption[]>([]);
   const [levels, setLevels] = useState<EntityOption[]>([]);
@@ -334,7 +334,9 @@ export function GeneralCommunicationComposeWorkspace({
   }, [mode, individualType, parentQuery]);
 
   function onScopeLevelChange(next: GroupScopeLevel) {
-    if (contentType === 'announcement' && next !== 'school') setAllowExternalMediaShare(false);
+    if (contentType === 'announcement') {
+      setAllowExternalMediaShare(next === 'school' && !externalShareExplicitlyDisabled);
+    }
     setScopeLevel(next);
     setEntityId(null);
     if (beneficiaryKind && !isBeneficiaryAllowedForScopeLevel(next, beneficiaryKind)) {
@@ -570,6 +572,9 @@ export function GeneralCommunicationComposeWorkspace({
                     onChange={(e) => {
                       const value = e.target.value as GroupScopeLevel | '';
                       if (!value) {
+                        if (contentType === 'announcement') {
+                          setAllowExternalMediaShare(!externalShareExplicitlyDisabled);
+                        }
                         setScopeLevel(null);
                         setBeneficiaryKind(null);
                         setEntityId(null);
@@ -857,12 +862,13 @@ export function GeneralCommunicationComposeWorkspace({
                 <label className="general-comm__option" data-testid="external-media-share-setting">
                   <input
                     type="checkbox"
-                    checked={eligibleForExternalMediaShare(contentType, recipientScope) && allowExternalMediaShare}
+                    checked={allowExternalMediaShare && (scopeLevel === null || scopeLevel === 'school')}
                     onChange={(event) => {
                       setAllowExternalMediaShare(event.target.checked);
+                      setExternalShareExplicitlyDisabled(!event.target.checked);
                       invalidatePreview();
                     }}
-                    disabled={inputBusy || !eligibleForExternalMediaShare(contentType, recipientScope)}
+                    disabled={inputBusy || (scopeLevel !== null && scopeLevel !== 'school')}
                     aria-label={t('communication.general.externalMediaShareLabel')}
                   />
                   <span>
