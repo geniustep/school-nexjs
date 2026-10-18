@@ -279,3 +279,79 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
     });
   });
 });
+
+describe('announcement share default ON and audience transitions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    finalizeCommunicationMock.mockResolvedValue({
+      ok: true,
+      draftId: null,
+      outcome: { kind: 'accepted', httpStatus: 200, contentId: null, result: null, data: {} },
+    });
+  });
+
+  afterEach(() => cleanup());
+
+  it('shows sharing ON before audience selection, then submits ON for school-wide announcements', async () => {
+    const user = userEvent.setup();
+    render(<GeneralCommunicationComposeWorkspace contentType="announcement" />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: 'communication.general.externalMediaShareLabel',
+    }) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
+    expect(checkbox.disabled).toBe(false);
+
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'school');
+    await user.click(screen.getByLabelText('communication.general.beneficiary.everyone'));
+    expect(checkbox.checked).toBe(true);
+
+    await user.type(screen.getByLabelText('communication.general.subject'), 'إعلان عام');
+    await user.type(screen.getByLabelText('communication.body'), 'محتوى الإعلان');
+    await user.click(screen.getByTestId('general-communication-submit'));
+    await waitFor(() => {
+      expect(finalizeCommunicationMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          contentType: 'announcement',
+          scope: { scope_type: 'school', beneficiary_kind: 'everyone' },
+          allowExternalMediaShare: true,
+        }),
+      );
+    });
+  });
+
+  it('disables sharing on restricted audience and restores default ON on return to school', async () => {
+    const user = userEvent.setup();
+    render(<GeneralCommunicationComposeWorkspace contentType="announcement" />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: 'communication.general.externalMediaShareLabel',
+    }) as HTMLInputElement;
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'class');
+    expect(checkbox.checked).toBe(false);
+    expect(checkbox.disabled).toBe(true);
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'school');
+    expect(checkbox.checked).toBe(true);
+    expect(checkbox.disabled).toBe(false);
+  });
+
+  it('preserves explicit opt-out after audience changes', async () => {
+    const user = userEvent.setup();
+    render(<GeneralCommunicationComposeWorkspace contentType="announcement" />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: 'communication.general.externalMediaShareLabel',
+    }) as HTMLInputElement;
+    await user.click(checkbox);
+    expect(checkbox.checked).toBe(false);
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'class');
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'school');
+    expect(checkbox.checked).toBe(false);
+    await user.click(screen.getByLabelText('communication.general.beneficiary.everyone'));
+    await user.type(screen.getByLabelText('communication.general.subject'), 'إعلان');
+    await user.type(screen.getByLabelText('communication.body'), 'وصف');
+    await user.click(screen.getByTestId('general-communication-submit'));
+    await waitFor(() => {
+      expect(finalizeCommunicationMock).toHaveBeenCalledWith(
+        expect.objectContaining({ allowExternalMediaShare: false }),
+      );
+    });
+  });
+});
