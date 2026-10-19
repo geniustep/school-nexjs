@@ -923,3 +923,49 @@
   }
 }
 
+
+/* Product Design: approved director dashboard option two. Keep AppShell intact. */
+.shell :global(.director-daily-surface--option-two) { width: 100%; max-width: 1280px; padding: 12px; background: var(--c-bg, #f6f8fc); display: grid; gap: 20px; }
+.shell :global(.director-daily-surface--option-two .director-daily-heading) { padding: 8px 2px; border: 0; }
+.shell :global(.director-daily-surface--option-two .director-daily-heading__identity) { display: grid; gap: 3px; }
+.shell :global(.director-daily-surface--option-two .director-daily-heading h1) { font-size: 28px; }
+.shell :global(.director-daily-surface--option-two .director-header-action) { min-height: 44px; display: inline-flex; gap: 9px; background: #fff; }
+.shell :global(.director-daily-surface--option-two .director-header-action--primary) { background: var(--raqeem-secondary, #24a6a1); border-color: var(--raqeem-secondary, #24a6a1); color: #fff; box-shadow: none; }
+.shell :global(.director-daily-surface--option-two .director-header-action--primary:hover) { background: #1b8784; }
+.shell :global(.director-daily-surface--option-two .director-pulse) { margin: 0; padding: 20px 8px; border: 1px solid var(--c-border); border-radius: 10px; background: var(--c-surface); }
+.shell :global(.director-daily-surface--option-two .director-pulse h2) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.shell :global(.director-daily-surface--option-two .director-pulse-item) { padding: 6px 16px; min-height: 125px; text-align: center; justify-items: center; gap: 9px; }
+.shell :global(.director-daily-surface--option-two .director-pulse-label) { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+.shell :global(.director-pulse-icon) { display: inline-flex; padding: 8px; border-radius: 50%; color: var(--raqeem-secondary); background: #ebf8f7; }
+.shell :global(.director-daily-surface--option-two .director-pulse-value) { font-size: clamp(18px, 1.7vw, 24px); }
+.shell :global(.director-daily-surface--option-two .director-pulse-chevron) { display: none; }
+.shell :global(.director-decision-grid) { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr); align-items: start; gap: 20px; }
+.shell :global(.director-daily-surface--option-two .director-daily-priorities), .shell :global(.director-finance-panel) { min-width: 0; padding: 20px; border: 1px solid var(--c-border); border-radius: 10px; background: var(--c-surface); }
+.shell :global(.director-followup-title) { display: flex; align-items: center; gap: 9px; font-size: 16px; font-weight: 800; margin: 0 0 18px; color: var(--raqeem-primary); }
+.shell :global(.director-daily-surface--option-two .director-priority-list) { display: grid; gap: 12px; }
+.shell :global(.director-daily-surface--option-two .director-priority-row) { grid-template-columns: 34px minmax(0, 1fr); gap: 8px 10px; padding: 14px 12px; border: 1px solid #f3e5cd; border-radius: 8px; background: #fffbf4; min-height: 98px; }
+.shell :global(.director-daily-surface--option-two .director-priority-row--finance) { background: #fff6f5; border-color: #f6dfdd; }
+.shell :global(.director-daily-surface--option-two .director-priority-row--learning) { background: #f4f8ff; border-color: #dee9fa; }
+.shell :global(.director-daily-surface--option-two .director-priority-icon) { background: #fff0d8; color: #b97d23; }
+.shell :global(.director-daily-surface--option-two .director-priority-copy strong) { font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+.shell :global(.director-daily-surface--option-two .director-priority-copy span) { font-size: 11px; }
+.shell :global(.director-daily-surface--option-two .director-priority-meta) { grid-column: 2; flex-wrap: wrap; white-space: normal; gap: 6px; font-size: 10px; }
+.shell :global(.director-daily-surface--option-two .director-priority-action) { grid-column: 2; grid-row: auto; justify-self: start; min-height: 30px; padding: 0; font-size: 11px; white-space: normal; }
+.shell :global(.director-daily-surface--option-two .director-priority-action--primary) { color: #245784; background: transparent; box-shadow: none; }
+.shell :global(.director-daily-surface--option-two .director-priority-action::before) { display: none; }
+.shell :global(.director-daily-surface--option-two .director-bottom-grid) { margin: 0; }
+.shell :global(.director-daily-surface--option-two .director-summary) { padding: 18px 20px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 10px; }
+.shell :global(.director-daily-surface--option-two .director-summary h2) { font-size: 16px; }
+.shell :global(.director-daily-surface--option-two a:focus-visible) { outline: 2px solid var(--raqeem-secondary); outline-offset: 3px; }
+@media (max-width: 1050px) {
+  .shell :global(.director-decision-grid) { grid-template-columns: 1fr; }
+  .shell :global(.director-finance-panel) { grid-row: 1; }
+}
+@media (max-width: 680px) {
+  .shell :global(.director-daily-surface--option-two) { padding: 0; gap: 14px; }
+  .shell :global(.director-daily-surface--option-two .director-pulse-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .shell :global(.director-daily-surface--option-two .director-pulse-item) { padding: 12px 9px; min-height: 125px; border-block-start: 0; }
+  .shell :global(.director-daily-surface--option-two .director-pulse-item:nth-child(odd)) { border-inline-start: 0; }
+  .shell :global(.director-daily-surface--option-two .director-pulse-label) { flex-wrap: wrap; justify-content: center; }
+  .shell :global(.director-daily-surface--option-two .director-daily-priorities), .shell :global(.director-finance-panel) { padding: 14px; }
+}
