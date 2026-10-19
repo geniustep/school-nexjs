@@ -304,6 +304,7 @@ describe('announcement share default ON and audience transitions', () => {
     await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'school');
     await user.click(screen.getByLabelText('communication.general.beneficiary.everyone'));
     await user.type(screen.getByLabelText('communication.general.subject'), 'عنوان وصورة');
+    expect((screen.getByLabelText('communication.body') as HTMLTextAreaElement).required).toBe(false);
     expect((screen.getByTestId('general-communication-submit') as HTMLButtonElement).disabled).toBe(false);
     await user.click(screen.getByTestId('general-communication-submit'));
     await waitFor(() => expect(finalizeCommunicationMock).toHaveBeenCalledWith(expect.objectContaining({
