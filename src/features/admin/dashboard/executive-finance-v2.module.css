@@ -1,0 +1,20 @@
+.root { display: grid; gap: 14px; min-width: 0; }
+.toolbar { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.title { font-size: 14px; font-weight: 750; color: var(--c-text, #1b293b); }
+.date { font-size: 12px; margin-top: 4px; color: var(--c-text-muted, #5f6b7a); }
+.switcher { display: inline-flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid var(--c-border, #e0e6ef); border-radius: 12px; background: var(--c-surface-alt, #f5f7fa); }
+.switcher button { min-height: 34px; padding: 6px 12px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 12px; font-weight: 650; color: var(--c-text-muted, #5d6b7c); cursor: pointer; }
+.switcher button:hover { color: var(--c-text, #1b293b); }
+.switcher button:focus-visible { outline: 2px solid var(--c-primary, #1762ba); outline-offset: 2px; }
+.switcher .selected { background: var(--c-surface, #fff); color: var(--c-text, #1b293b); box-shadow: 0 1px 5px #172a4512; }
+.groupTitle { font-size: 12px; font-weight: 800; color: var(--c-text-muted, #516478); border-bottom: 1px solid var(--c-border, #e5e9ef); padding-bottom: 7px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tile { min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--c-border, #e1e8f1); background: var(--c-surface, #fff); border-radius: 14px; }
+.highlighted { border-color: #b4cee7; background: var(--c-surface-alt, #f7faff); }
+.label { font-size: 12px; font-weight: 600; color: var(--c-text-muted, #596b7c); }
+.value { font-size: clamp(15px, 1.45vw, 20px); font-weight: 800; overflow-wrap: anywhere; color: var(--c-text, #1b293b); font-variant-numeric: tabular-nums; }
+.note { font-size: 11px; line-height: 1.5; color: var(--c-text-muted, #697988); }
+.notice, .comparison { margin: 0; font-size: 12px; line-height: 1.6; color: var(--c-text-muted, #596b7c); }
+.comparison { padding: 9px 12px; border-radius: 10px; background: var(--c-surface-alt, #f5f7fa); }
+@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 560px) { .grid { grid-template-columns: minmax(0,1fr); } .switcher { width: 100%; display: flex; } .switcher button { flex: 1; } }
