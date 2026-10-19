@@ -861,8 +861,8 @@ export function GeneralCommunicationComposeWorkspace({
                   className="textarea"
                   rows={10}
                   value={body}
-                  required
-                  aria-required="true"
+                  required={contentType !== 'announcement' || !hasReadyAnnouncementImage}
+                  aria-required={contentType !== 'announcement' || !hasReadyAnnouncementImage}
                   onChange={(e) => onBodyChange(e.target.value)}
                   disabled={inputBusy}
                 />
