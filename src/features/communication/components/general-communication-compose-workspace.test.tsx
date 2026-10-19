@@ -11,6 +11,7 @@ const toastError = vi.hoisted(() => vi.fn());
 const toastSuccess = vi.hoisted(() => vi.fn());
 const pushMock = vi.hoisted(() => vi.fn());
 const studentPickSeq = vi.hoisted(() => ({ n: 0 }));
+const mockedMaterials = vi.hoisted(() => ({ items: [] as Array<{ id: number | string; clientItemId: string; kind: 'file' | 'link'; state: 'ready' | 'uploading' | 'failed'; name: string; mimetype?: string }> }));
 
 vi.mock('next/link', () => ({
   default: ({ children, href }: { children: unknown; href: string }) => (
@@ -44,7 +45,7 @@ vi.mock('@/features/attachments/secure-materials/secure-materials-composer', () 
 }));
 vi.mock('@/features/attachments/secure-materials/use-secure-materials', () => ({
   useSecureMaterials: () => ({
-    materials: [], error: null, busy: false, hasFailure: false, ready: true,
+    materials: mockedMaterials.items, error: null, busy: mockedMaterials.items.some(item => item.state === 'uploading'), hasFailure: mockedMaterials.items.some(item => item.state === 'failed'), ready: mockedMaterials.items.every(item => item.state === 'ready'),
     ensureSession: vi.fn().mockResolvedValue({ publicId: 'session-1', credential: 'secret' }),
     addFiles: vi.fn(), addLink: vi.fn(), remove: vi.fn(), cancel: vi.fn(), clearError: vi.fn(),
   }),
@@ -87,6 +88,7 @@ import { GeneralCommunicationComposeWorkspace } from './general-communication-co
 describe('GeneralCommunicationComposeWorkspace — individual deliverability', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedMaterials.items = [];
     studentPickSeq.n = 0;
     previewIndividualMock.mockResolvedValue({
       ok: true,
@@ -283,6 +285,7 @@ describe('GeneralCommunicationComposeWorkspace — individual deliverability', (
 describe('announcement share default ON and audience transitions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedMaterials.items = [];
     finalizeCommunicationMock.mockResolvedValue({
       ok: true,
       draftId: null,
@@ -291,6 +294,40 @@ describe('announcement share default ON and audience transitions', () => {
   });
 
   afterEach(() => cleanup());
+
+
+  it('allows title and uploaded image without body, including preview and finalize', async () => {
+    mockedMaterials.items = [{ id: 9, clientItemId: 'img-9', kind: 'file', state: 'ready', name: 'photo.png', mimetype: 'image/png' }];
+    previewScopeMock.mockResolvedValue({ ok: true, preview: { recipient_summary: {} } });
+    const user = userEvent.setup();
+    render(<GeneralCommunicationComposeWorkspace contentType="announcement" />);
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'school');
+    await user.click(screen.getByLabelText('communication.general.beneficiary.everyone'));
+    await user.type(screen.getByLabelText('communication.general.subject'), 'عنوان وصورة');
+    expect((screen.getByLabelText('communication.body') as HTMLTextAreaElement).required).toBe(false);
+    expect((screen.getByTestId('general-communication-submit') as HTMLButtonElement).disabled).toBe(false);
+    await user.click(screen.getByTestId('general-communication-submit'));
+    await waitFor(() => expect(finalizeCommunicationMock).toHaveBeenCalledWith(expect.objectContaining({
+      contentType: 'announcement', body: '', subject: 'عنوان وصورة',
+    })));
+  });
+
+  it.each([
+    ['no attachment', []],
+    ['PDF', [{ id: 8, clientItemId: 'pdf', kind: 'file', state: 'ready', name: 'a.pdf', mimetype: 'application/pdf' }]],
+    ['uploading image', [{ id: 'temp', clientItemId: 'upload', kind: 'file', state: 'uploading', name: 'a.png', mimetype: 'image/png' }]],
+    ['failed image', [{ id: 'temp', clientItemId: 'fail', kind: 'file', state: 'failed', name: 'a.png', mimetype: 'image/png' }]],
+    ['unconfirmed image', [{ id: 'temp', clientItemId: 'pending', kind: 'file', state: 'ready', name: 'a.png', mimetype: 'image/png' }]],
+    ['link', [{ id: 11, clientItemId: 'link', kind: 'link', state: 'ready', name: 'https://example.com/a.png' }]],
+  ] as const)('rejects title without body with %s', async (_name, items) => {
+    mockedMaterials.items = [...items] as typeof mockedMaterials.items;
+    const user = userEvent.setup();
+    render(<GeneralCommunicationComposeWorkspace contentType="announcement" />);
+    await user.selectOptions(screen.getByLabelText('communication.general.scopeLevel'), 'school');
+    await user.click(screen.getByLabelText('communication.general.beneficiary.everyone'));
+    await user.type(screen.getByLabelText('communication.general.subject'), 'عنوان فقط');
+    expect((screen.getByTestId('general-communication-submit') as HTMLButtonElement).disabled).toBe(true);
+  });
 
   it('shows sharing ON before audience selection, then submits ON for school-wide announcements', async () => {
     const user = userEvent.setup();

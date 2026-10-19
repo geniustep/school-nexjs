@@ -363,6 +363,14 @@ export function GeneralCommunicationComposeWorkspace({
     invalidatePreview();
   }
 
+  const hasReadyAnnouncementImage = contentType === 'announcement' && materials.ready && materials.materials.some((item) =>
+    item.kind === 'file' &&
+    item.state === 'ready' &&
+    typeof item.id === 'number' &&
+    (/^image\/(jpeg|png|webp)$/i.test(item.mimetype ?? '') || /\.(jpe?g|png|webp)$/i.test(item.name))
+  );
+  const hasSubstantiveContent = body.trim().length > 0 || hasReadyAnnouncementImage;
+
   function validateInput(): { subject: string; body: string; scope: RecipientScope } | null {
     if (!recipientScope) {
       toast.error(t('communication.general.incompleteSelection'));
@@ -374,7 +382,7 @@ export function GeneralCommunicationComposeWorkspace({
       toast.error(t('communication.general.subjectRequired'));
       return null;
     }
-    if (!nextBody) {
+    if (!hasSubstantiveContent) {
       toast.error(t('communication.general.bodyRequired'));
       return null;
     }
@@ -494,7 +502,7 @@ export function GeneralCommunicationComposeWorkspace({
     phase === 'idle' &&
     recipientScope != null &&
     subject.trim().length > 0 &&
-    body.trim().length > 0 &&
+    hasSubstantiveContent &&
     individualCheckStatus !== 'checking' &&
     individualSubmitAllowed &&
     materials.ready;
@@ -502,7 +510,8 @@ export function GeneralCommunicationComposeWorkspace({
     phase === 'idle' &&
     recipientScope != null &&
     subject.trim().length > 0 &&
-    body.trim().length > 0;
+    hasSubstantiveContent &&
+    materials.ready;
   const inputBusy = phase !== 'idle';
   const individualStatusTone =
     individualCheckStatus === 'ready'
@@ -852,8 +861,8 @@ export function GeneralCommunicationComposeWorkspace({
                   className="textarea"
                   rows={10}
                   value={body}
-                  required
-                  aria-required="true"
+                  required={contentType !== 'announcement' || !hasReadyAnnouncementImage}
+                  aria-required={contentType !== 'announcement' || !hasReadyAnnouncementImage}
                   onChange={(e) => onBodyChange(e.target.value)}
                   disabled={inputBusy}
                 />
