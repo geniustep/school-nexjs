@@ -1,6 +1,7 @@
 'use client';
 /** @raqeem-design docs/design/RAQEEM-DESIGN.md */
 import type { ReactNode } from 'react';
+import { IconWallet, IconClipboard, IconUsers, IconCheckCircle } from '@/components/icons/admin-icons';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import type { Locale } from '@/lib/i18n/config';
 import { localeToBcp47 } from '@/lib/i18n/config';
@@ -84,13 +85,13 @@ function formattedPeriod(from: string | null, to: string | null, locale: Locale)
   return `${fmt(from)} – ${fmt(to)}`;
 }
 
-function Tile({ label, metric, previous, currency, t, highlighted = false }: {
+function Tile({ label, metric, previous, currency, t, highlighted = false, tone, icon }: {
   label: string; metric: ExecutiveFinanceMetric; previous?: ExecutiveFinanceMetric;
-  currency: string; t: Translations; highlighted?: boolean;
+  currency: string; t: Translations; highlighted?: boolean; tone?: string; icon?: ReactNode;
 }) {
   return (
-    <div className={`${styles.tile} ${highlighted ? styles.highlighted : ''}`}>
-      <span className={styles.label}>{label}</span>
+    <div className={`${styles.tile} ${highlighted ? styles.highlighted : ''} ${tone ? styles[tone] : ''}`}>
+      <span className={styles.label}>{icon && <span className={styles.metricIcon} aria-hidden="true">{icon}</span>}{label}</span>
       <strong className={styles.value} dir="auto">
         {metric.available ? renderMoney(metric.amount, currency, t) : t.unavailable}
       </strong>
@@ -106,7 +107,8 @@ function Tile({ label, metric, previous, currency, t, highlighted = false }: {
 }
 
 /** V2 is deliberately read-only: all financial calculations stay in Odoo. */
-export function ExecutiveFinanceV2Panel({ data, locale, selectedScope, onScopeChange }: {
+export function ExecutiveFinanceV2Panel({ data, locale, selectedScope, onScopeChange, layout = 'standard' }: {
+  layout?: 'standard' | 'director';
   data: ExecutiveFinanceV2;
   locale: Locale;
   selectedScope: ExecutiveFinancePeriodScope;
@@ -120,7 +122,7 @@ export function ExecutiveFinanceV2Panel({ data, locale, selectedScope, onScopeCh
   const prev = comparison?.available === true ? comparison.indicators : null;
   const rate = current?.due_cohort_performance;
   return (
-    <section className={styles.root} aria-label={t.title}>
+    <section className={`${styles.root} ${layout === 'director' ? styles.director : ''}`} aria-label={t.title}>
       <div className={styles.toolbar}>
         <div>
           <div className={styles.title}>{t.title}</div>
@@ -133,7 +135,39 @@ export function ExecutiveFinanceV2Panel({ data, locale, selectedScope, onScopeCh
           ))}
         </div>
       </div>
-      {p.available && current ? (
+      {p.available && current ? layout === 'director' ? (
+        <>
+          <div className={styles.directorGrid}>
+            <Tile label={t.due} metric={current.period_net_due} previous={prev?.period_net_due} currency={currency} t={t} tone="dueTone" icon={<IconClipboard size={23} />} />
+            <Tile label={t.cash} metric={current.period_actual_collections} previous={prev?.period_actual_collections} currency={currency} t={t} tone="cashTone" icon={<IconWallet size={23} />} />
+            <div className={styles.remainingTile}>
+              <span className={styles.basis}>{t.stock}</span>
+              <Tile label={t.remaining} metric={current.remaining_balance} currency={currency} t={t} tone="remainingTone" icon={<IconWallet size={23} />} />
+            </div>
+            <div className={`${styles.tile} ${styles.cohortTone}`}>
+              <span className={styles.label}><span className={styles.metricIcon} aria-hidden="true"><IconCheckCircle size={23} /></span>{t.cohort}</span>
+              <strong className={styles.value} dir="auto">{rate?.available && rate.recognized_collected_amount !== null ? renderMoney(rate.recognized_collected_amount, currency, t) : t.unavailable}</strong>
+              <span className={styles.note}>{rate?.available && rate.collection_rate !== null
+                ? `${t.cohortRate}: ${new Intl.NumberFormat(localeToBcp47(locale), { maximumFractionDigits: 2 }).format(rate.collection_rate)}%`
+                : reason(rate?.reason_code ?? null, t)}</span>
+              {prev?.due_cohort_performance.available && prev.due_cohort_performance.recognized_collected_amount !== null && (
+                <span className={styles.note}>{t.previous}: {renderMoney(prev.due_cohort_performance.recognized_collected_amount, currency, t)}</span>
+              )}
+            </div>
+          </div>
+          <div className={styles.directorStock} aria-label={t.stock}>
+            <Tile label={t.overdue} metric={current.overdue_outstanding} currency={currency} t={t} icon={<IconWallet size={22} />} />
+            <div className={styles.tile}>
+              <span className={styles.label}><span className={styles.metricIcon} aria-hidden="true"><IconUsers size={22} /></span>{t.accounts}</span>
+              <strong className={styles.value}>{current.overdue_billing_accounts_count.available
+                ? new Intl.NumberFormat(localeToBcp47(locale)).format(current.overdue_billing_accounts_count.count ?? 0) : t.unavailable}</strong>
+              {!current.overdue_billing_accounts_count.available && <span className={styles.note}>{reason(current.overdue_billing_accounts_count.reason_code, t)}</span>}
+            </div>
+          </div>
+          <p className={styles.notice}>{t.notice}</p>
+          {comparison && !comparison.available && <p className={styles.comparison} role="status">{t.comparisonUnavailable}: {reason(comparison.reason_code, t)}</p>}
+        </>
+      ) : (
         <>
           <div className={styles.groupTitle}>{t.flows}</div>
           <div className={styles.grid}>
