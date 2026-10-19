@@ -6,13 +6,15 @@
  */
 
 import Link from 'next/link';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT, useLocale } from '@/features/i18n/locale-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { ExecutiveKpiMoney } from '@/features/admin/dashboard/executive-dashboard-ui';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { ExecutiveFinanceV2Panel } from '@/features/admin/dashboard/executive-finance-v2-panel';
+import { financeV2Query, type ExecutiveFinancePeriodScope } from '@/lib/admin/executive-finance-v2-contract';
 import {
   resolveExecutiveAttendanceKpi,
   resolveLegacyAttendanceKpi,
@@ -325,7 +327,9 @@ function ExecutiveDirectorView({
   const activeRef = schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;
   const schoolName = formatSchoolLabel(activeRef, t);
 
-  const executiveState = useAdminResource<unknown>(endpoints.admin.executiveDashboard);
+  const [financePeriodScope, setFinancePeriodScope] = useState<ExecutiveFinancePeriodScope>('current_month');
+  const financeV2Params = useMemo(() => financeV2Query(financePeriodScope), [financePeriodScope]);
+  const executiveState = useAdminResource<unknown>(endpoints.admin.executiveDashboard, financeV2Params);
   const executive = useMemo(
     () =>
       executiveState.data != null ? normalizeExecutiveDashboard(executiveState.data, locale) : null,
@@ -364,6 +368,9 @@ function ExecutiveDirectorView({
   }, [executiveAvailable, executive?.active_academic_year?.name, financeRef.academicYears]);
 
   const executiveFinance = executiveAvailable ? executive?.finance_summary ?? null : null;
+  const financeV2Raw = executiveAvailable ? executive?.finance_summary_v2 ?? null : null;
+  const financeV2ChangingPeriod = financeV2Raw !== null && financeV2Raw.meta.period.scope !== financePeriodScope;
+  const executiveFinanceV2 = financeV2ChangingPeriod ? null : financeV2Raw;
   const admissionsDashboardCounts = admissionsState.data;
   const openAdmissionsCount = resolveOpenAdmissionsCount(admissionsDashboardCounts);
   const newAdmissionsCount = resolveNewAdmissionsCount(admissionsDashboardCounts);
@@ -1002,6 +1009,17 @@ function ExecutiveDirectorView({
         </div>
       </section>
 
+      {widgets.financeSummary && (executiveFinanceV2 || financeV2ChangingPeriod) && (
+        <section aria-label={t('admin.director.financeTitle')}>
+          {executiveFinanceV2 ? (
+            <ExecutiveFinanceV2Panel data={executiveFinanceV2} locale={locale}
+              selectedScope={financePeriodScope} onScopeChange={setFinancePeriodScope} />
+          ) : (
+            <p role="status">{t('common.loading')}</p>
+          )}
+        </section>
+      )}
+
       <div className="director-bottom-grid">
         <section className="director-summary" aria-labelledby="director-week-title">
           <h2 id="director-week-title">{directorCopy.weeklyFollowup}</h2>
@@ -1168,8 +1186,11 @@ function ExecutiveDirectorView({
                   </Link>
                 }
               >
-                {executiveState.loading && executiveFinance == null && !executiveFailed ? (
+                {financeV2ChangingPeriod || (executiveState.loading && executiveFinance == null && !executiveFailed) ? (
                   <ExecutiveEmpty icon="…" title={t('common.loading')} />
+                ) : executiveFinanceV2 ? (
+                  <ExecutiveFinanceV2Panel data={executiveFinanceV2} locale={locale}
+                    selectedScope={financePeriodScope} onScopeChange={setFinancePeriodScope} />
                 ) : executiveFinance ? (
                   <div className="exec-finance-snapshot">
                     <section className="exec-finance-snapshot__group exec-finance-snapshot__group--collections">
