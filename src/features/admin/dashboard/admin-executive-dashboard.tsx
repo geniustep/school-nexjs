@@ -6,6 +6,7 @@
  */
 
 import Link from 'next/link';
+import { IconPlus, IconClipboard, IconUsers, IconWallet, IconAlertTriangle, IconBookOpen, IconCheckCircle } from '@/components/icons/admin-icons';
 import { useMemo, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
@@ -938,11 +939,10 @@ function ExecutiveDirectorView({
 
   if (widgets.executiveLayout) {
     return (
-    <main className="director-daily-surface" aria-label={directorCopy.surfaceLabel}>
-      <section className="director-daily-priorities" aria-labelledby="daily-priorities-title">
+    <main className="director-daily-surface director-daily-surface--option-two" aria-label={directorCopy.surfaceLabel}>
         <header className="director-daily-heading">
           <div className="director-daily-heading__identity">
-            <h1 id="daily-priorities-title">{directorCopy.prioritiesTitle}</h1>
+            <h1 id="daily-priorities-title">{t('nav.dashboard')}</h1>
             <time dateTime={today}>{formatDate(today)}</time>
           </div>
           <div className="director-daily-heading__tools">
@@ -957,13 +957,30 @@ function ExecutiveDirectorView({
               </strong>
             </Link>
             <Link className="director-header-action director-header-action--primary" href="/admin/finance/collections/new">
-              {directorCopy.collectToday}
+              <IconPlus size={19} />{directorCopy.collectToday}
             </Link>
             <Link className="director-header-action" href="/admin/communication/compose">
-              {directorCopy.sendMessage}
+              <IconClipboard size={18} />{directorCopy.sendMessage}
             </Link>
           </div>
         </header>
+      <section className="director-pulse" aria-labelledby="director-pulse-title">
+        <h2 id="director-pulse-title">{directorCopy.schoolPulse}</h2>
+        <div className="director-pulse-grid">
+          {pulseCards.map((card) => (
+            <Link key={card.id} href={card.href} className="director-pulse-item">
+              <span className="director-pulse-label"><span className="director-pulse-icon" aria-hidden="true">{card.id === 'students' ? <IconUsers size={23} /> : card.id === 'finance' ? <IconWallet size={23} /> : card.id === 'learning' ? <IconBookOpen size={23} /> : <IconCheckCircle size={23} />}</span>{pulseLabels[card.id] ?? card.label}</span>
+              <strong className="director-pulse-value">{card.id === 'learning' && card.value !== '—' ? <>{card.value} {directorCopy.newAssessments}</> : card.id === 'finance' && financeOverdueCount ? <>{financeOverdueCount} {directorCopy.overdueAccounts} · <FinanceMoney amount={normalizeMoneyValue(financeOverdue) ?? 0} currency={executiveFinance?.currency ?? financeTotals?.currency} /></> : card.value}</strong>
+              <span className="director-pulse-hint">{card.hint}</span>
+              <span className="director-pulse-chevron" aria-hidden="true">‹</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+      <div className="director-decision-grid">
+      <section className="director-daily-priorities" aria-labelledby="director-followup-title">
+        <h2 id="director-followup-title" className="director-followup-title"><IconClipboard size={22} />{directorCopy.prioritiesTitle}</h2>
+
         {executivePending ? (
           <p className="director-daily-empty">{t('common.loading')}</p>
         ) : decisionPriorities.length ? (
@@ -971,8 +988,8 @@ function ExecutiveDirectorView({
             {decisionPriorities.map((item, index) => {
               const meta = priorityMeta(item, index);
               return (
-                <li key={item.id} className="director-priority-row">
-                  <span className="director-priority-icon" aria-hidden="true">{item.icon ?? '•'}</span>
+                <li key={item.id} className={cn('director-priority-row', `director-priority-row--${priorityDomain(item)}`)}>
+                  <span className="director-priority-icon" aria-hidden="true">{priorityDomain(item) === 'finance' ? <IconWallet size={23} /> : priorityDomain(item) === 'admissions' ? <IconUsers size={23} /> : priorityDomain(item) === 'learning' ? <IconBookOpen size={23} /> : <IconAlertTriangle size={23} />}</span>
                   <div className="director-priority-copy">
                     <strong>{item.label}</strong>
                     {item.hint && <span>{item.hint}</span>}
@@ -995,30 +1012,20 @@ function ExecutiveDirectorView({
         )}
       </section>
 
-      <section className="director-pulse" aria-labelledby="director-pulse-title">
-        <h2 id="director-pulse-title">{directorCopy.schoolPulse}</h2>
-        <div className="director-pulse-grid">
-          {pulseCards.map((card) => (
-            <Link key={card.id} href={card.href} className="director-pulse-item">
-              <span className="director-pulse-label">{pulseLabels[card.id] ?? card.label}</span>
-              <strong className="director-pulse-value">{card.id === 'learning' && card.value !== '—' ? <>{card.value} {directorCopy.newAssessments}</> : card.id === 'finance' && financeOverdueCount ? <>{financeOverdueCount} {directorCopy.overdueAccounts} · <FinanceMoney amount={normalizeMoneyValue(financeOverdue) ?? 0} currency={executiveFinance?.currency ?? financeTotals?.currency} /></> : card.value}</strong>
-              <span className="director-pulse-hint">{card.hint}</span>
-              <span className="director-pulse-chevron" aria-hidden="true">‹</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+
 
       {widgets.financeSummary && (executiveFinanceV2 || financeV2ChangingPeriod) && (
-        <section aria-label={t('admin.director.financeTitle')}>
+        <section className="director-finance-panel" aria-label={t('admin.director.financeTitle')}>
           {executiveFinanceV2 ? (
-            <ExecutiveFinanceV2Panel data={executiveFinanceV2} locale={locale}
+            <ExecutiveFinanceV2Panel data={executiveFinanceV2} locale={locale} layout="director"
               selectedScope={financePeriodScope} onScopeChange={setFinancePeriodScope} />
           ) : (
             <p role="status">{t('common.loading')}</p>
           )}
         </section>
       )}
+
+      </div>
 
       <div className="director-bottom-grid">
         <section className="director-summary" aria-labelledby="director-week-title">
