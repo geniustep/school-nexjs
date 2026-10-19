@@ -18,3 +18,40 @@
 .comparison { padding: 9px 12px; border-radius: 10px; background: var(--c-surface-alt, #f5f7fa); }
 @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 560px) { .grid { grid-template-columns: minmax(0,1fr); } .switcher { width: 100%; display: flex; } .switcher button { flex: 1; } }
+
+/* Approved option two; only the director surface opts into this layout. */
+.director { gap: 14px; }
+.director .title { font-size: 18px; font-weight: 800; color: var(--raqeem-primary, #243b6b); }
+.director .toolbar { align-items: flex-start; }
+.director .switcher { border-radius: 8px; }
+.director .switcher .selected { background: var(--raqeem-primary, #243b6b); color: #fff; }
+.directorGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.director .tile { padding: 16px; border-radius: 9px; gap: 10px; }
+.director .label { display: flex; align-items: center; gap: 10px; line-height: 1.7; }
+.director .value { font-size: clamp(18px, 1.8vw, 25px); line-height: 1.6; }
+.director .value :global(.finance-amount) { font-size: inherit; }
+.metricIcon { display: inline-flex; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; color: var(--raqeem-secondary, #24a6a1); background: #e8f7f6; flex-shrink: 0; }
+.dueTone { background: #f6f9ff; border-color: #dce8fa; }
+.dueTone .metricIcon { color: #2867bd; background: #eaf2ff; }
+.cashTone { background: #f3fbfa; border-color: #c8eae6; }
+.remainingTile { display: flex; flex-direction: column; border: 1px solid #f4dfe4; border-radius: 9px; background: #fff7f8; min-width: 0; }
+.remainingTile .tile { border: 0; background: transparent; flex: 1; padding-block-start: 6px; }
+.basis { padding: 10px 16px 0; font-size: 10px; color: var(--c-text-muted, #64748b); }
+.remainingTone .metricIcon { color: #cb5b6b; background: #fce9ed; }
+.cohortTone { background: #fffbf5; border-color: #f5e6d0; }
+.cohortTone .metricIcon { color: #bc7f26; background: #fff0d9; }
+.directorStock { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px; border: 1px solid #dce7f7; background: #f3f7fd; border-radius: 9px; }
+.directorStock .tile { border: 0; border-radius: 0; background: transparent; }
+.directorStock .tile + .tile { border-inline-start: 1px solid #dce7f7; }
+.directorStock .metricIcon { background: transparent; padding: 0; color: #2867bd; }
+@media (max-width: 620px) {
+  .director .tile { padding: 12px; }
+  .director .label { font-size: 11px; gap: 7px; flex-wrap: wrap; }
+  .director .value { font-size: clamp(15px, 4vw, 22px); }
+  .directorGrid { gap: 9px; }
+  .metricIcon { padding: 6px; }
+}
+@media (max-width: 380px) {
+  .directorGrid, .directorStock { grid-template-columns: 1fr; }
+  .directorStock .tile + .tile { border-inline-start: 0; border-block-start: 1px solid #dce7f7; }
+}
