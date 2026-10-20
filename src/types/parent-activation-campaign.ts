@@ -79,11 +79,15 @@ export interface ParentActivationMessagingCounts {
   contract_mismatch: number;
 }
 
+export type ParentActivationCampaignArchiveStatus = 'preview' | 'saved' | 'sent';
+
 export interface ParentActivationCampaign {
   id: number;
   name: string;
   state: 'draft' | 'prepared';
   prepared_at: string | null;
+  saved_for_archive?: boolean;
+  saved_at?: string | null;
   counts: { total: number; ready: number; excluded: number };
   selection_counts: ParentActivationSelectionCounts;
   messaging_status_available?: boolean;
@@ -203,9 +207,12 @@ export interface ParentActivationHistoricalCampaignHeader {
   state: 'draft' | 'prepared' | string;
   create_date: string | null;
   prepared_at: string | null;
+  saved_for_archive?: boolean;
+  saved_at?: string | null;
 }
 
 export interface ParentActivationHistoricalCampaignListItem extends ParentActivationHistoricalCampaignHeader {
+  archive_status?: ParentActivationCampaignArchiveStatus;
   audience_summary: ParentActivationAudienceSummary;
   message_summary: ParentActivationHistoricalMessageSummary | null;
   milestone_summary: ParentActivationHistoricalMilestoneSummary | null;
