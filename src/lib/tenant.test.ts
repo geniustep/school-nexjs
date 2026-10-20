@@ -46,6 +46,7 @@ describe('resolveTenantFromHost', () => {
       ['ahlen.raqeem.ma', 'ahlen'],
       ['nibras.raqeem.ma', 'nibras'],
       ['school.raqeem.ma', 'school'],
+      ['bright.raqeem.ma', 'bright'],
     ]) {
       const result = resolveTenantFromHost(host, ROOT, FALLBACK);
       expect(result).toEqual({ ok: true, tenant: db, source: 'subdomain' });
@@ -263,6 +264,21 @@ describe('resolveTenantRuntimeConfigFromHost', () => {
     expect(result.source).toBe('registry');
   });
 
+  it('maps Bright to its dedicated Odoo backend without assuming a school code', () => {
+    const result = resolveTenantRuntimeConfigFromHost('bright.raqeem.ma', ROOT, FALLBACK);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.source).toBe('registry');
+    expect(result.config).toMatchObject({
+      host: 'bright.raqeem.ma',
+      tenantCode: 'bright',
+      backendBaseUrl: 'https://api-bright.raqeem.ma',
+      active: true,
+      isOfficial: true,
+    });
+    expect(result.config).not.toHaveProperty('defaultPublicSchoolCode');
+  });
+
   it('uses fallback config for localhost without registry official backend', () => {
     const result = resolveTenantRuntimeConfigFromHost('localhost', ROOT, FALLBACK);
     expect(result).toEqual({
@@ -329,6 +345,18 @@ describe('resolveTenantRuntimeConfigFromRequest', () => {
     expect(result.config.backendBaseUrl).toBe('https://api-ahlen.raqeem.ma');
     expect(result.config.tenantCode).toBe('ahlen');
     expect(result.config.defaultPublicSchoolCode).toBe('ahlen');
+  });
+
+  it('routes Bright login to Bright backend using the trusted Host', () => {
+    const request = new Request('https://bright.raqeem.ma/api/auth/login', {
+      headers: { host: 'bright.raqeem.ma' },
+    });
+    const result = resolveTenantRuntimeConfigFromRequest(request);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.tenantCode).toBe('bright');
+    expect(result.config.backendBaseUrl).toBe('https://api-bright.raqeem.ma');
+    expect(result.config).not.toHaveProperty('defaultPublicSchoolCode');
   });
 
   it('uses localhost fallback backend for dev hosts', () => {

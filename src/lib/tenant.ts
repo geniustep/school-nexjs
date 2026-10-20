@@ -210,6 +210,13 @@ const TENANT_REGISTRY: readonly TenantRegistryEntry[] = [
     isOfficial: true,
     hosts: ['ahlen.raqeem.ma'],
   },
+  {
+    tenantCode: 'bright',
+    backendBaseUrl: 'https://api-bright.raqeem.ma',
+    active: true,
+    isOfficial: true,
+    hosts: ['bright.raqeem.ma'],
+  },
 ] as const;
 
 const REGISTRY_BY_CODE = new Map<string, TenantRegistryEntry>(
