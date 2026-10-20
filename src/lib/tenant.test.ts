@@ -357,7 +357,7 @@ describe('resolveTenantRuntimeConfigFromRequest', () => {
     if (!result.ok) return;
     expect(result.config.tenantCode).toBe('bright');
     expect(result.config.backendBaseUrl).toBe('https://api-bright.raqeem.ma');
-    expect(result.config).not.toHaveProperty('defaultPublicSchoolCode');
+    expect(result.config.defaultPublicSchoolCode).toBe('bright');
   });
 
   it('uses localhost fallback backend for dev hosts', () => {
