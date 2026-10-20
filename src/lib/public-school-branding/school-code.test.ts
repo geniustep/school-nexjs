@@ -59,6 +59,20 @@ describe('resolvePublicSchoolCodeFromRequest', () => {
     expect(resolvePublicSchoolCodeFromRequest(request)).toBe('alwah-school');
   });
 
+  it('resolves the confirmed Bright school for login, public branding, and logo routes', () => {
+    for (const path of [
+      '/login',
+      '/api/public/school-branding',
+      '/api/public/school-branding/logo',
+    ]) {
+      const request = new Request('https://bright.raqeem.ma' + path, {
+        headers: { host: 'bright.raqeem.ma' },
+      });
+      expect(resolvePublicTenantCodeFromRequest(request)).toBe('bright');
+      expect(resolvePublicSchoolCodeFromRequest(request)).toBe('bright');
+    }
+  });
+
   it('maps ahlen host to ahlen tenant and school code', () => {
     const request = new Request('https://ahlen.raqeem.ma/login', {
       headers: { host: 'ahlen.raqeem.ma' },
