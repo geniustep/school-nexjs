@@ -49,7 +49,9 @@ describe('finance service form UX cleanup', () => {
 
 describe('buildFinanceServiceFormPayload', () => {
   const baseValues = {
-    name: '  Tuition  ',
+    nameAr: '  الرسوم الدراسية  ',
+    nameFr: '  Frais de scolarité  ',
+    paymentNature: 'paid' as const,
     category: 'tuition',
     priorityLevel: 'first',
     active: true,
@@ -61,7 +63,10 @@ describe('buildFinanceServiceFormPayload', () => {
   it('builds create payload without hidden backend flags', () => {
     const payload = buildFinanceServiceFormPayload(baseValues, 'create');
     expect(payload).toEqual({
-      name: 'Tuition',
+      name: 'الرسوم الدراسية',
+      name_ar: 'الرسوم الدراسية',
+      name_fr: 'Frais de scolarité',
+      payment_nature: 'paid',
       category: 'tuition',
       allocation_priority_level: 'first',
       active: true,
@@ -81,18 +86,34 @@ describe('buildFinanceServiceFormPayload', () => {
     expect(payload.selectable_in_admissions).toBe(false);
   });
 
-  it('update payload sends only selectable_in_admissions (Runtime write surface)', () => {
+  it('update payload carries bilingual identity and payment nature', () => {
     const payload = buildFinanceServiceFormPayload(
       {
         ...baseValues,
         selectableInAdmissions: true,
-        name: 'Updated tuition',
+        nameAr: 'النقل المدرسي',
+        nameFr: 'Transport scolaire',
+        paymentNature: 'free',
         priorityLevel: 'last',
       },
       'update',
     );
-    expect(payload).toEqual({ selectable_in_admissions: true });
-    expect(Object.keys(payload)).not.toContain('name');
+    expect(payload).toMatchObject({
+      name: 'النقل المدرسي',
+      name_ar: 'النقل المدرسي',
+      name_fr: 'Transport scolaire',
+      payment_nature: 'free',
+      allocation_priority_level: 'last',
+      selectable_in_admissions: true,
+    });
     expect(Object.keys(payload)).not.toContain('requires_subscription');
+  });
+
+  it('renders bilingual names and payment nature controls', () => {
+    expect(formSource).toContain("t('admin.finance.services.nameAr')");
+    expect(formSource).toContain("t('admin.finance.services.nameFr')");
+    expect(formSource).toContain("t('admin.finance.services.paymentNature')");
+    expect(formSource).toContain('paymentNatureFree');
+    expect(formSource).toContain('paymentNaturePaid');
   });
 });
