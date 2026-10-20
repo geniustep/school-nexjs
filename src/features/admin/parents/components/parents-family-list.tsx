@@ -18,7 +18,7 @@ function childrenCountLabel(t: TranslateFn, locale: Locale, count: number): stri
   return t(key, { count });
 }
 
-export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] }) {
+export function ParentsFamilyList({ families, activityFilter = '' }: { families: ParentFamilyGroup[]; activityFilter?: string }) {
   const { t, locale } = useLocale();
   return <div className="parents-family-list">
     {families.map((family, familyIndex) => <article key={`${family.id}-${familyIndex}`} className={`parents-family-card${family.children.length === 0 ? ' parents-family-card--solo' : ''}`}>
@@ -45,7 +45,7 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
         </div>
         <div className="parents-family-card__field parents-family-card__field--guardians">
           <span className="parents-family-card__field-label">{t('admin.parentsList.guardiansTitle')}:</span>
-          <ul className="parents-family-card__guardian-lines">{family.guardians.map(({ parent, relationshipType }, guardianIndex) => {
+          <ul className="parents-family-card__guardian-lines">{family.guardians.filter(({ parent }) => !activityFilter || parent.authentication_activity?.activity_state === activityFilter).map(({ parent, relationshipType }, guardianIndex) => {
             const schoolId = parent.school?.id ?? family.school?.id;
             const href = `/admin/parents/${parent.id}`;
             return <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
