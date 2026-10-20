@@ -264,7 +264,7 @@ describe('resolveTenantRuntimeConfigFromHost', () => {
     expect(result.source).toBe('registry');
   });
 
-  it('maps Bright to its dedicated Odoo backend without assuming a school code', () => {
+  it('maps Bright to its dedicated Odoo backend and confirmed public school code', () => {
     const result = resolveTenantRuntimeConfigFromHost('bright.raqeem.ma', ROOT, FALLBACK);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -272,11 +272,12 @@ describe('resolveTenantRuntimeConfigFromHost', () => {
     expect(result.config).toMatchObject({
       host: 'bright.raqeem.ma',
       tenantCode: 'bright',
+      defaultPublicSchoolCode: 'bright',
       backendBaseUrl: 'https://api-bright.raqeem.ma',
       active: true,
       isOfficial: true,
     });
-    expect(result.config).not.toHaveProperty('defaultPublicSchoolCode');
+    expect(result.config.defaultPublicSchoolCode).toBe('bright');
   });
 
   it('uses fallback config for localhost without registry official backend', () => {
@@ -356,7 +357,7 @@ describe('resolveTenantRuntimeConfigFromRequest', () => {
     if (!result.ok) return;
     expect(result.config.tenantCode).toBe('bright');
     expect(result.config.backendBaseUrl).toBe('https://api-bright.raqeem.ma');
-    expect(result.config).not.toHaveProperty('defaultPublicSchoolCode');
+    expect(result.config.defaultPublicSchoolCode).toBe('bright');
   });
 
   it('uses localhost fallback backend for dev hosts', () => {
