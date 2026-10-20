@@ -160,11 +160,16 @@ export function StaffListPage() {
       <PageHeader
         title={t('admin.staffCenter.pageTitle')}
         actions={
-          canManage ? (
-            <Link href="/admin/staff/create" className="btn btn--primary btn--sm">
-              + {t('admin.staffCenter.smartCreate.entryButton')}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <Link href="/admin/user-activity" className="btn btn--ghost btn--sm">
+              {t('admin.staffCenter.pageTitle')} · {t('admin.account.loginName')}
             </Link>
-          ) : undefined
+            {canManage ? (
+              <Link href="/admin/staff/create" className="btn btn--primary btn--sm">
+                + {t('admin.staffCenter.smartCreate.entryButton')}
+              </Link>
+            ) : null}
+          </div>
         }
       />
 
