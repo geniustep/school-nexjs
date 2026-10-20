@@ -212,6 +212,7 @@ const TENANT_REGISTRY: readonly TenantRegistryEntry[] = [
   },
   {
     tenantCode: 'bright',
+    defaultPublicSchoolCode: 'bright',
     backendBaseUrl: 'https://api-bright.raqeem.ma',
     active: true,
     isOfficial: true,
