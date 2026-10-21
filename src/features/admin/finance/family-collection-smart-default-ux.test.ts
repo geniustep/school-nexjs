@@ -120,11 +120,13 @@ describe('family collection smart default direct confirm UX', () => {
 
   it('H. direct confirm previews then persists draft then confirms', () => {
     expect(workflowSource).toContain('fetchFamilyCollectionBackendPreview');
-    expect(workflowSource).toContain('if (collectionId == null)');
-    expect(workflowSource).toContain('const saved = await persistDraft()');
+    expect(workflowSource).toContain('const saved = await persistDraft(payload)');
+    expect(workflowSource).toContain('const collectionId = saved.detail.id');
+    expect(workflowSource).not.toContain('if (collectionId == null)');
     expect(workflowSource).toContain('confirmFamilyCollection');
     expect(workflowSource).toContain('resolveFamilyCollectionReceiptId');
     expect(workflowSource).not.toContain("step === 'review'");
+    expect(workflowSource).toContain('payloadOverride');
   });
 
   it('I. actual_payer_name sent when provided', () => {

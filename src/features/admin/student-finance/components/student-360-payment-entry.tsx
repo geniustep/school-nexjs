@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FamilyCollectionDrawer } from '@/features/admin/finance/family-collection-drawer';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
+import { StudentPaymentFamilyChoiceDialog } from '@/features/admin/finance/student-payment-family-choice-dialog';
+import type { StudentFamilyPaymentChoice } from '../utils/resolve-student-family-payment-choice';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { StudentDetailsData } from '@/types/student-360';
 import type { FamilyFinanceSummary } from '@/types/family-finance';
@@ -41,6 +43,7 @@ export function Student360PaymentEntry({
   onSuccess: () => void;
   onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
 }) {
+  const [choiceDialogOpen, setChoiceDialogOpen] = useState(false);
   const [studentDrawerOpen, setStudentDrawerOpen] = useState(false);
   const [familyDrawerOpen, setFamilyDrawerOpen] = useState(false);
   const [familyContext, setFamilyContext] = useState<{
@@ -80,6 +83,7 @@ export function Student360PaymentEntry({
   );
 
   const resetEntry = useCallback(() => {
+    setChoiceDialogOpen(false);
     setStudentDrawerOpen(false);
     setFamilyDrawerOpen(false);
     setFamilyContext(null);
@@ -90,6 +94,7 @@ export function Student360PaymentEntry({
     if (!open) {
       resolvedForOpenRef.current = false;
       familyFetchStartedRef.current = false;
+      setChoiceDialogOpen(false);
       setStudentDrawerOpen(false);
       setFamilyDrawerOpen(false);
       setFamilyContext(null);
@@ -116,7 +121,8 @@ export function Student360PaymentEntry({
         studentId: entryRoute.studentId,
         studentName: getStudentDisplayName(details.student),
       });
-      setFamilyDrawerOpen(true);
+      setChoiceDialogOpen(true);
+      setFamilyDrawerOpen(false);
       setStudentDrawerOpen(false);
       return;
     }
@@ -131,6 +137,17 @@ export function Student360PaymentEntry({
     hasPrefetchedFamilySummaryState,
     details.student,
   ]);
+
+  function handlePaymentChoice(choice: StudentFamilyPaymentChoice) {
+    setChoiceDialogOpen(false);
+    if (choice === 'family' && familyContext) {
+      setFamilyDrawerOpen(true);
+      setStudentDrawerOpen(false);
+    } else {
+      setFamilyDrawerOpen(false);
+      setStudentDrawerOpen(true);
+    }
+  }
 
   function handleStudentDrawerClose() {
     setStudentDrawerOpen(false);
@@ -147,6 +164,12 @@ export function Student360PaymentEntry({
 
   return (
     <>
+      <StudentPaymentFamilyChoiceDialog
+        open={choiceDialogOpen}
+        key={choiceDialogOpen ? 'open' : 'closed'}
+        onContinue={handlePaymentChoice}
+        onClose={resetEntry}
+      />
       <StudentCollectionDrawer
         open={studentDrawerOpen}
         studentId={studentId}
