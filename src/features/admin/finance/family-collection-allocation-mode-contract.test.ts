@@ -244,7 +244,7 @@ describe('family collection explicit allocation mode contract', () => {
   it('save draft and confirm share the same allocation builder', () => {
     expect(workflowSource).toContain('buildFamilyCollectionDraftAllocationFields');
     expect(workflowSource).toMatch(/async function handleSaveDraft[\s\S]*buildFamilyCollectionDraftAllocationFields/);
-    expect(workflowSource).toMatch(/async function handleConfirm[\s\S]*buildFamilyCollectionDraftAllocationFields/);
+    expect(workflowSource).toMatch(/async function handleConfirm[\s\S]*const built = buildDraftPayload\(\)/);
     expect(workflowSource).toContain('buildDraftPayload');
   });
 
@@ -265,11 +265,11 @@ describe('family collection explicit allocation mode contract', () => {
   });
 
   it('guards double-submit on draft and confirm', () => {
-    expect(workflowSource).toContain('if (submitting || cashSessionBlocked) return false');
-    expect(workflowSource).toContain('if (confirming || previewing || !confirmState.canConfirm) return');
-    expect(workflowSource).toContain('disabled={submitting || cashSessionBlocked}');
+    expect(workflowSource).toContain('if (submitting || confirming || previewing || cashSessionBlocked) return false');
+    expect(workflowSource).toContain('if (confirming || previewing || submitting || !confirmState.canConfirm) return');
+    expect(workflowSource).toContain('disabled={submitting || confirming || previewing || cashSessionBlocked}');
     expect(workflowSource).toContain(
-      'disabled={confirming || previewing || !confirmState.canConfirm}',
+      'disabled={confirming || submitting || previewing || !confirmState.canConfirm}',
     );
   });
 

@@ -152,11 +152,11 @@ describe('family collection confirm button state', () => {
     );
   });
 
-  it('auto-persists draft on confirm when draft id is missing', () => {
-    expect(workflowSource).toContain('if (collectionId == null)');
-    expect(workflowSource).toContain('const saved = await persistDraft()');
+  it('updates both previously saved and newly created drafts before confirmation', () => {
+    expect(workflowSource).toContain('const saved = await persistDraft(payload)');
+    expect(workflowSource).toContain('const collectionId = saved.detail.id');
     expect(workflowSource).toContain(
-      'disabled={confirming || previewing || !confirmState.canConfirm}',
+      'disabled={confirming || submitting || previewing || !confirmState.canConfirm}',
     );
   });
 
