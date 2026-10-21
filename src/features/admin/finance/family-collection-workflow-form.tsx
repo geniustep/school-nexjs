@@ -50,46 +50,8 @@ import type {
 import type { ApiErrorBody } from '@/types/api';
 import type { CashSession } from '@/types/finance-cash-desk';
 
-function FamilyCollectionWorkflowSteps({
-  t,
-}: {
-  t: (key: string, params?: Record<string, string>) => string;
-}) {
-  const steps = [
-    { id: 'amount' as const, label: t('admin.finance.billingAccounts.familyCollection.stepAmount') },
-    { id: 'allocate' as const, label: t('admin.finance.billingAccounts.familyCollection.stepAllocate') },
-    { id: 'confirm' as const, label: t('admin.finance.billingAccounts.familyCollection.stepConfirm') },
-  ];
-  const activeIndex = 1;
-
-  return (
-    <div
-      className="finance-collection-workflow__steps finance-collection-workflow__steps--progress finance-family-collection-workflow__steps"
-      aria-label={t('admin.finance.billingAccounts.familyCollection.stepsLabel')}
-    >
-      <div
-        className="finance-collection-workflow__steps-track"
-        style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
-      >
-        {steps.map((item, index) => (
-          <div
-            key={item.id}
-            className={`finance-collection-workflow__step-item${
-              index === activeIndex ? ' is-active' : ''
-            }${index < activeIndex ? ' is-done' : ''}`}
-          >
-            <span className="finance-collection-workflow__step-marker" aria-hidden>
-              {index < activeIndex ? '✓' : index + 1}
-            </span>
-            <span className="finance-collection-workflow__step-label">{item.label}</span>
-          </div>
-        ))}
-      </div>
-      <p className="finance-family-collection-workflow__step-hint tiny muted" role="status">
-        {t('admin.finance.billingAccounts.familyCollection.stepHintSmartSummary')}
-      </p>
-    </div>
-  );
+function FamilyCollectionWorkflowSteps({ t }: { t: (key: string, params?: Record<string, string>) => string }) {
+  return <p className="finance-family-collection-workflow__step-hint tiny muted" role="status">{t('admin.finance.billingAccounts.familyCollection.stepHintSmartSummary')}</p>;
 }
 
 export function FamilyCollectionWorkflowForm({
@@ -466,16 +428,19 @@ export function FamilyCollectionWorkflowForm({
     }
   }
 
-  async function persistDraft(): Promise<
+  async function persistDraft(payloadOverride?: Parameters<typeof submitFamilyCollection>[0]): Promise<
     | { ok: true; detail: FamilyCollectionDetail }
     | { ok: false; message?: string; code?: string }
   > {
-    const built = buildDraftPayload();
-    if (!built.ok) {
-      applyDispositionValidationError(built.reason);
-      return { ok: false, code: built.reason };
+    let payload = payloadOverride;
+    if (!payload) {
+      const built = buildDraftPayload();
+      if (!built.ok) {
+        applyDispositionValidationError(built.reason);
+        return { ok: false, code: built.reason };
+      }
+      payload = built.payload;
     }
-    const payload = built.payload;
     if (draftId != null) {
       const updated = await updateFamilyCollectionDraft(draftId, payload, buildQuery());
       if (!updated.success) {
@@ -525,7 +490,7 @@ export function FamilyCollectionWorkflowForm({
 
   async function handleSaveDraft(event?: React.FormEvent) {
     event?.preventDefault();
-    if (submitting || cashSessionBlocked) return false;
+    if (submitting || confirming || previewing || cashSessionBlocked) return false;
     if (!journalId || !paymentMethod || !academicYearId || !collectionDate) {
       setSubmitError(t('admin.finance.billingAccounts.familyCollection.missingFields'));
       return false;
@@ -559,28 +524,26 @@ export function FamilyCollectionWorkflowForm({
   }
 
   async function handleConfirm() {
-    if (confirming || previewing || !confirmState.canConfirm) return;
+    if (confirming || previewing || submitting || !confirmState.canConfirm) return;
     setConfirming(true);
     setSubmitError(null);
     setDispositionError(null);
 
-    const allocationResult = buildFamilyCollectionDraftAllocationFields({
-      dispositionMode,
-      allocationInputs,
-      installments: openInstallments,
-    });
-    if (!allocationResult.ok) {
+    // A frozen financial payload is previewed and persisted before confirmation.
+    const built = buildDraftPayload();
+    if (!built.ok) {
       setConfirming(false);
-      applyDispositionValidationError(allocationResult.reason);
+      applyDispositionValidationError(built.reason);
       return;
     }
+    const payload = built.payload;
 
     setPreviewing(true);
     const previewResult = await fetchFamilyCollectionBackendPreview({
       familyId,
-      amount: parsedAmount,
-      allocations: allocationResult.fields.allocations,
-      allocationMode: allocationResult.fields.allocation_mode,
+      amount: payload.amount,
+      allocations: payload.allocations,
+      allocationMode: payload.allocation_mode,
       query: buildQuery(),
     });
     setPreviewing(false);
@@ -598,24 +561,20 @@ export function FamilyCollectionWorkflowForm({
 
     setBackendPreview(previewResult.preview);
 
-    let collectionId = draftId;
-    if (collectionId == null) {
-      const saved = await persistDraft();
-      if (!saved.ok) {
-        setConfirming(false);
-        if (saved.code === 'installment_not_collectible') return;
-        setSubmitError(
-          resolveCollectionErrorMessage(
-            saved.code,
-            saved.message || t('admin.finance.billingAccounts.familyCollection.submitFailed'),
-            t,
-          ),
-        );
-        return;
-      }
-      collectionId = saved.detail.id;
+    const saved = await persistDraft(payload);
+    if (!saved.ok) {
+      setConfirming(false);
+      if (saved.code === 'installment_not_collectible') return;
+      setSubmitError(
+        resolveCollectionErrorMessage(
+          saved.code,
+          saved.message || t('admin.finance.billingAccounts.familyCollection.submitFailed'),
+          t,
+        ),
+      );
+      return;
     }
-
+    const collectionId = saved.detail.id;
     const confirmed = await confirmFamilyCollection(collectionId, buildQuery());
     setConfirming(false);
     if (!confirmed.success) {
@@ -692,6 +651,7 @@ export function FamilyCollectionWorkflowForm({
       }}
     >
       <div className="finance-collection-workflow__scroll">
+        <fieldset disabled={confirming || submitting || previewing} style={{ display: 'contents' }}>
         <header className="finance-family-collection-header-summary">
           <h4 className="finance-family-collection-header-summary__title">
             {t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')}
@@ -957,6 +917,7 @@ export function FamilyCollectionWorkflowForm({
         />
 
         {submitError ? <p className="form-error">{submitError}</p> : null}
+        </fieldset>
       </div>
 
       <div className="finance-collection-workflow__actions finance-family-collection-workflow__actions--sticky">
@@ -970,7 +931,7 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="button"
               className="btn btn--secondary"
-              disabled={!canAutoSuggest || dispositionMode !== 'allocate_to_installments'}
+              disabled={confirming || submitting || previewing || !canAutoSuggest || dispositionMode !== 'allocate_to_installments'}
               onClick={() => setManualEditorOpen(true)}
             >
               {t('admin.finance.billingAccounts.familyCollection.editAllocationAction')}
@@ -978,7 +939,7 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="submit"
               className="btn btn--ghost"
-              disabled={submitting || cashSessionBlocked}
+              disabled={submitting || confirming || previewing || cashSessionBlocked}
             >
               {submitting
                 ? t('admin.finance.collections.submitting')
@@ -987,7 +948,7 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={confirming || previewing || !confirmState.canConfirm}
+              disabled={confirming || submitting || previewing || !confirmState.canConfirm}
               onClick={() => void handleConfirm()}
             >
               {confirming || previewing

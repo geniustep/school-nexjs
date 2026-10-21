@@ -266,6 +266,7 @@ function CollectionWorkflowFormReady({
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
   const [preview, setPreview] = useState<PaymentCollectionPreview | null>(null);
+  const [previewFingerprint, setPreviewFingerprint] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
@@ -429,8 +430,26 @@ function CollectionWorkflowFormReady({
     [collectionGate, collectibleData?.summary],
   );
   const agreementSummary = financialOverview?.special_agreement ?? null;
+  const currentPreviewFingerprint = JSON.stringify({
+    schoolId: activeSchoolId ?? null,
+    studentId: selectedStudent?.id ?? null,
+    academicYearId,
+    billingPartnerId: resolvedBilling.billingPartnerId ?? null,
+    billingProfileId: resolvedBilling.billingProfileId ?? null,
+    agreementId: agreementSummary?.id ?? agreementSummary?.agreement_id ?? null,
+    amount: parsedAmount,
+    allocationMode: manualAllocation ? 'selected_installments' : 'oldest_due_first',
+    allocations: manualAllocation ? buildAllocationPayload(allocationInputs, openInstallments) : [],
+    installments: openInstallments.map((row) => ({ id: row.id, remaining: row.remaining_amount })),
+    journalId,
+    paymentMethod,
+    collectionDate,
+  });
+  const verifiedPreview = previewFingerprint === currentPreviewFingerprint ? preview : null;
   const previewValid =
-    !!preview?.is_valid && !isCollectionPreviewStale(preview, parsedAmount) && !gateBlock.blocked;
+    !!verifiedPreview?.is_valid &&
+    !isCollectionPreviewStale(verifiedPreview, parsedAmount) &&
+    !gateBlock.blocked;
 
   const selectedInstallments = useMemo(
     () => openInstallments.filter((row) => selectedInstallmentIds.includes(row.id)),
@@ -563,6 +582,8 @@ function CollectionWorkflowFormReady({
       return;
     }
     const requestId = ++previewRequestIdRef.current;
+    const requestFingerprint = currentPreviewFingerprint;
+    setPreviewFingerprint(null);
     setPreviewLoading(true);
     setPreviewError(null);
     setPreview(null);
@@ -611,6 +632,7 @@ function CollectionWorkflowFormReady({
       return;
     }
     if (normalized.errors.length) setPreviewError(normalized.errors.join(' · '));
+    setPreviewFingerprint(requestFingerprint);
     setPreview(normalized);
   }
 
@@ -640,6 +662,7 @@ function CollectionWorkflowFormReady({
     agreementSummary?.agreement_id,
     activeSchoolId,
     gateBlock.blocked,
+    currentPreviewFingerprint,
   ]);
 
   function buildPayload(): CreatePaymentCollectionPayload | null {
@@ -659,12 +682,12 @@ function CollectionWorkflowFormReady({
     if (resolvedBilling.billingPartnerId) payload.billing_partner_id = resolvedBilling.billingPartnerId;
 
     if (flexiblePrepaymentFlow) {
-      if (!preview?.is_valid || isCollectionPreviewStale(preview, parsedAmount)) {
+      if (!previewValid || !verifiedPreview) {
         setError(t('admin.finance.collections.blockers.previewRequired'));
         return null;
       }
       payload.allocation_mode = manualAllocation ? 'selected_installments' : 'oldest_due_first';
-      payload.allocations = preview.allocations.map((row) => ({
+      payload.allocations = verifiedPreview.allocations.map((row) => ({
         installment_id: row.installment_id,
         student_fee_id: row.student_fee_id ?? undefined,
         amount: row.amount,
@@ -762,17 +785,17 @@ function CollectionWorkflowFormReady({
     : t('admin.finance.collectionWorkflow.recordCollectionAction');
 
   const reviewAllocationInputs = useMemo(() => {
-    if (!preview?.allocations.length) return allocationInputs;
+    if (!verifiedPreview?.allocations.length) return allocationInputs;
     const mapped: Record<number, string> = {};
-    for (const row of preview.allocations) mapped[row.installment_id] = String(row.amount);
+    for (const row of verifiedPreview.allocations) mapped[row.installment_id] = String(row.amount);
     return mapped;
-  }, [preview, allocationInputs]);
+  }, [verifiedPreview, allocationInputs]);
   const reviewInstallments = useMemo(() => {
-    if (!preview?.allocations.length) return selectedInstallments;
-    return preview.allocations
+    if (!verifiedPreview?.allocations.length) return selectedInstallments;
+    return verifiedPreview.allocations
       .map((row) => openInstallments.find((item) => item.id === row.installment_id))
       .filter((row): row is StudentInstallment => row != null);
-  }, [preview, openInstallments, selectedInstallments]);
+  }, [verifiedPreview, openInstallments, selectedInstallments]);
 
   const contextFields = (
     <div className="finance-collection-workflow__fields finance-collection-workflow__fields--context">
@@ -985,7 +1008,7 @@ function CollectionWorkflowFormReady({
 
               {flexiblePrepaymentFlow && !directDrawerFlow ? (
                 <CollectionAllocationPreviewPanel
-                  preview={preview}
+                  preview={verifiedPreview}
                   items={collectibleData?.lookup_items ?? collectibleData?.items ?? []}
                   currency={journalCurrency}
                   loading={previewLoading}
@@ -1017,8 +1040,8 @@ function CollectionWorkflowFormReady({
             currency={journalCurrency}
             selectedInstallments={reviewInstallments}
             allocationInputs={reviewAllocationInputs}
-            allocatedTotal={preview?.allocated_amount ?? allocatedTotal}
-            preview={preview}
+            allocatedTotal={verifiedPreview?.allocated_amount ?? allocatedTotal}
+            preview={verifiedPreview}
             cheque={
               isCheque
                 ? {
