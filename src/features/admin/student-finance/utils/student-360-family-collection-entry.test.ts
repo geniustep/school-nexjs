@@ -16,9 +16,11 @@ const drawerSource = readFileSync(
 );
 
 describe('Student 360 family collection entry wiring', () => {
-  it('routes family accounts directly to FamilyCollectionDrawer without the choice dialog', () => {
+  it('requires an explicit student-or-family choice when multiple children are billed', () => {
     expect(entrySource).toContain('resolveStudent360PaymentEntryRoute');
-    expect(entrySource).not.toContain('StudentPaymentFamilyChoiceDialog');
+    expect(entrySource).toContain('StudentPaymentFamilyChoiceDialog');
+    expect(entrySource).toContain('setChoiceDialogOpen(true)');
+    expect(entrySource).toContain("choice === 'family' && familyContext");
     expect(entrySource).toContain('entrySource="student360"');
     expect(entrySource).toContain('prefilledStudentId={familyContext.studentId}');
   });
