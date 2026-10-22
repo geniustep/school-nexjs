@@ -12174,6 +12174,8 @@
         "arrearsContext": "عملية الأداء هذه مرتبطة بمتابعة المتأخرات. سيقترح النظام توزيعها تلقائيًا على أقدم المستحقات.",
         "currentOverdueLabel": "المتأخر الحالي",
         "useOverdueAmount": "استعمال مبلغ المتأخر",
+        "totalCollectibleLabel": "جميع الأقساط المستحقة",
+        "unallocatedRequiresAllocation": "المبلغ أكبر من الأقساط المحددة. عدّل المبلغ أو توزيع الأقساط قبل تأكيد الأداء.",
         "cashDeskAccount": "الصندوق / الحساب",
         "selectCashDeskAccount": "اختر الصندوق أو الحساب",
         "recordedIn": "سيتم تسجيل عملية الأداء في: {journal} — {method}",

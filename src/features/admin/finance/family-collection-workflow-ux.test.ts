@@ -68,8 +68,8 @@ describe('family collection workflow UX i18n', () => {
 
 describe('family collection workflow layout', () => {
   it('uses header summary and smart summary step hint', () => {
-    expect(workflowSource).toContain('finance-family-collection-header-summary');
-    expect(workflowSource).toContain('stepHintSmartSummary');
+    expect(workflowSource).toContain('finance-family-collection-account-strip');
+    expect(workflowSource).toContain('CollectionStickyAmount');
     expect(workflowSource).toContain('FamilyCollectionSmartSummary');
   });
 
@@ -156,7 +156,7 @@ describe('family collection confirm button state', () => {
     expect(workflowSource).toContain('const saved = await persistDraft(payload)');
     expect(workflowSource).toContain('const collectionId = saved.detail.id');
     expect(workflowSource).toContain(
-      'disabled={confirming || submitting || previewing || !confirmState.canConfirm}',
+      'disabled={confirming || submitting || previewing || !confirmState.canConfirm || unallocatedAmount > 0.009}',
     );
   });
 
