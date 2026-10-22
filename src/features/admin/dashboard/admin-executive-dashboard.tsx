@@ -685,8 +685,7 @@ function ExecutiveDirectorView({
         const collected =
           financeTotals.period_collections_amount ??
           financeTotals.collections_amount ??
-          financeTotals.total_collected_period ??
-          financeTotals.total_collected;
+          financeTotals.total_collected_period;
         if (!financeDetailPanelVisible && collected != null) {
           cards.push({
             id: 'collected',
@@ -1285,7 +1284,7 @@ function ExecutiveDirectorView({
                       {
                         key: 'collected',
                         label: t('admin.executive.financeCollected'),
-                        value: financeTotals.total_collected ?? financeTotals.confirmed_paid,
+                        value: financeTotals.period_collections_amount ?? financeTotals.collections_amount ?? financeTotals.total_collected_period,
                       },
                       {
                         key: 'remaining',

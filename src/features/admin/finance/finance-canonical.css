@@ -1,0 +1,12 @@
+/* Canonical yearly figures: responsive, accessible cards that never substitute unavailable amounts. */
+.finance-canonical { margin-block: 1rem; display: grid; gap: .75rem; }
+.finance-canonical__context { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.finance-canonical__context span { color: var(--text-muted, #64748b); font-size: .85rem; }
+.finance-canonical__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: .75rem; }
+.finance-canonical__card { display: grid; align-content: start; gap: .55rem; min-width: 0; padding: 1rem; }
+.finance-canonical__card strong { font-size: clamp(1rem, 1.5vw, 1.38rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.finance-canonical__card small { line-height: 1.65; }
+.finance-canonical__note { margin: 0; font-size: .84rem; }
+.finance-canonical__unavailable { margin-block: 1rem; padding: 1rem; line-height: 1.7; border-inline-start: 3px solid var(--color-warning, #d97706); }
+@media (max-width: 560px) { .finance-canonical__grid { grid-template-columns: 1fr 1fr; gap: .5rem; } .finance-canonical__card { padding: .8rem; } }
+@media (max-width: 365px) { .finance-canonical__grid { grid-template-columns: 1fr; } }

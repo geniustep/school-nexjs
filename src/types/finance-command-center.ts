@@ -1,4 +1,5 @@
 import type { FinanceInstallment, FinanceInstallmentListSummary } from './finance';
+import type { FinanceCanonicalMetrics } from './finance-canonical';
 
 export interface FinanceCommandCenterCurrency {
   id: number;
@@ -37,6 +38,7 @@ export interface FinanceCommandCenterDrilldownTarget {
 }
 
 export interface FinanceCommandCenterSummary extends Record<string, unknown> {
+  canonical_metrics?: FinanceCanonicalMetrics | null;
   meta: FinanceCommandCenterMeta;
   kpis: {
     due_to_date: {
