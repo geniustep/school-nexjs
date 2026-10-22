@@ -291,10 +291,12 @@ function SummarySection({
         </div>
 
       </section>
-      <FinanceCanonicalKpis
-        metrics={canonical}
-        keys={['academic_year_programmed_total', 'future_scheduled_amount', 'remaining_due_to_date']}
-      />
+      {canonical ? (
+        <FinanceCanonicalKpis
+          metrics={canonical}
+          keys={['academic_year_programmed_total', 'future_scheduled_amount', 'remaining_due_to_date']}
+        />
+      ) : null}
     </>
   );
 }
