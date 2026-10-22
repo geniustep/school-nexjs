@@ -187,10 +187,10 @@ describe('family collection explicit allocation mode contract', () => {
     });
     expect(confirmCredit.canConfirm).toBe(true);
 
-    expect(workflowSource).toContain('disabled={collectibleInstallments.length === 0}');
+    expect(workflowSource).toContain('collectibleInstallments.length === 0 && !contextState.loading');
     expect(workflowSource).toContain('noEligibleInstallments');
-    expect(workflowSource).toContain('useState<FamilyCollectionDispositionMode | null>');
-    expect(workflowSource).toContain('setDispositionMode(null)');
+    expect(workflowSource).toContain("const dispositionMode: FamilyCollectionDispositionMode = 'allocate_to_installments'");
+    expect(workflowSource).toContain('setAllocationInputs({})');
     expect(workflowSource).toContain('}, [familyId]);');
   });
 
@@ -269,7 +269,7 @@ describe('family collection explicit allocation mode contract', () => {
     expect(workflowSource).toContain('if (confirming || previewing || submitting || !confirmState.canConfirm) return');
     expect(workflowSource).toContain('disabled={submitting || confirming || previewing || cashSessionBlocked}');
     expect(workflowSource).toContain(
-      'disabled={confirming || submitting || previewing || !confirmState.canConfirm}',
+      'disabled={confirming || submitting || previewing || !confirmState.canConfirm || unallocatedAmount > 0.009}',
     );
   });
 
@@ -280,9 +280,9 @@ describe('family collection explicit allocation mode contract', () => {
     expect(drawerSource).toContain('onDone');
   });
 
-  it('resets disposition when family account changes', () => {
-    expect(workflowSource).toContain('setDispositionMode(null)');
-    expect(workflowSource).toMatch(/useEffect\(\(\) => \{[\s\S]*setDispositionMode\(null\)[\s\S]*\}, \[familyId\]\)/);
+  it('resets draft and allocations when family account changes', () => {
+    expect(workflowSource).toContain('setAllocationInputs({})');
+    expect(workflowSource).toMatch(/useEffect\(\(\) => \{[\s\S]*setAllocationInputs\(\{\}\)[\s\S]*\}, \[familyId\]\)/);
     expect(drawerSource).toContain('key={familyId}');
   });
 
@@ -305,11 +305,10 @@ describe('family collection explicit allocation mode contract', () => {
     ).toBeNull();
   });
 
-  it('UI exposes explicit radiogroup without auto-selecting credit', () => {
-    expect(workflowSource).toContain('role="radiogroup"');
-    expect(workflowSource).toContain('allocate_to_installments');
-    expect(workflowSource).toContain('leave_as_family_credit');
-    expect(workflowSource).toContain('useState<FamilyCollectionDispositionMode | null>(');
-    expect(workflowSource).toContain('null');
+  it('standard family UI allocates installments without exposing the credit switch', () => {
+    expect(workflowSource).toContain("const dispositionMode: FamilyCollectionDispositionMode = 'allocate_to_installments'");
+    expect(workflowSource).not.toContain('role="radiogroup"');
+    expect(workflowSource).toContain('unallocatedAmount > 0.009');
+    expect(workflowSource).toContain('previewResult.preview.unallocated_amount');
   });
 });

@@ -217,6 +217,6 @@ describe('family collection collectible allocation', () => {
     expect(workflowSource).toContain('confirmFamilyCollection');
     expect(workflowSource).toContain('FamilyCollectionSmartSummary');
     expect(workflowSource).toContain('FamilyCollectionReviewStep');
-    expect(workflowSource).toContain('disabled={confirming || submitting || previewing || !confirmState.canConfirm}');
+    expect(workflowSource).toContain('disabled={confirming || submitting || previewing || !confirmState.canConfirm || unallocatedAmount > 0.009}');
   });
 });
