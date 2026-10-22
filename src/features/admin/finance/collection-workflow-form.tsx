@@ -578,7 +578,7 @@ function CollectionWorkflowFormReady({
   async function runCollectionPreview() {
     if (!selectedStudent || !academicYearId || gateBlock.blocked) return;
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      setPreviewError(t('admin.finance.errors.invalidAmount'));
+      setPreviewError(t('admin.finance.invalidAmount'));
       setPreview(null);
       return;
     }
