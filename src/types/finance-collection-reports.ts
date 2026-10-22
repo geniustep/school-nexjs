@@ -125,6 +125,11 @@ export interface CollectionReportSemantics {
   academic_snapshot_on_collection?: boolean;
   unallocated_never_attributed_to_academic_dims?: boolean;
   collection_total_not_repeated_per_allocation?: boolean;
+  collection_total_metric_key?: string;
+  collection_total_domain?: string;
+  executive_cash_metric_key?: string;
+  executive_cash_domain?: string;
+  intentional_domain_difference_from_executive?: boolean;
 }
 
 export interface CollectionReportsDetailsPayload {

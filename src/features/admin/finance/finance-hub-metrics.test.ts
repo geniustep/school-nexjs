@@ -76,9 +76,9 @@ describe('finance hub metrics contract', () => {
     expect(filterConfirmedCollections(PERIOD_COLLECTIONS)).toHaveLength(2);
   });
 
-  it('enriches nested overview totals without field mismatch zero', () => {
+  it('does not silently map yearly fee paid to period cash collected', () => {
     const overview = normalizeFinanceOverview(PRODUCTION_OVERVIEW);
-    expect(overview?.totals?.total_collected).toBe(1400);
+    expect(overview?.totals?.total_collected).toBeUndefined();
     expect(overview?.totals?.confirmed_paid).toBe(1400);
   });
 });

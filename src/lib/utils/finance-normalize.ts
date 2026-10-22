@@ -50,10 +50,9 @@ function enrichOverviewTotals(
     normalizeMoneyValue(nested.confirmed_paid) ?? normalizeMoneyValue(raw.confirmed_paid);
   const totalPaid =
     normalizeMoneyValue(nested.total_paid) ?? confirmedPaid ?? normalizeMoneyValue(raw.total_paid);
+  // Cash collection is not an alias for fee stock paid.
   const totalCollected =
     normalizeMoneyValue(nested.total_collected) ??
-    confirmedPaid ??
-    totalPaid ??
     normalizeMoneyValue(raw.total_collected);
 
   const paidStudentsCount =
@@ -92,9 +91,9 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
   const cheques = (raw.cheques ?? {}) as Record<string, unknown>;
   const totals: FinanceOverviewTotals = {
     total_due: raw.total_due,
-    total_collected: raw.total_collected ?? raw.confirmed_paid ?? raw.total_paid,
-    confirmed_paid: raw.confirmed_paid ?? raw.total_paid ?? raw.total_collected,
-    total_paid: raw.total_paid ?? raw.confirmed_paid ?? raw.total_collected,
+    total_collected: raw.total_collected,
+    confirmed_paid: raw.confirmed_paid ?? raw.total_paid,
+    total_paid: raw.total_paid ?? raw.confirmed_paid,
     total_remaining: raw.total_remaining ?? raw.remaining_amount,
     total_overdue: raw.total_overdue ?? raw.overdue_amount,
     students_with_balance: raw.students_with_balance,

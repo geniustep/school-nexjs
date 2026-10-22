@@ -1,7 +1,7 @@
 // Finance admin resources — synced with Odoo /admin/finance/* (live probe, alwah).
 
 import type { Ref, SchoolRef } from './api';
-import type { FinanceCanonicalMetrics } from './finance-canonical';
+import type { FinanceCanonicalMetrics, FinanceCanonicalPeriodMetrics } from './finance-canonical';
 
 export type FeeTypeCategory = 'tuition' | 'transport' | 'meals' | 'activities' | 'canteen' | 'activity' | string;
 export type FeeTypeFrequency = 'annual' | 'term' | 'monthly' | 'once' | 'custom' | string;
@@ -576,6 +576,7 @@ export interface FinanceFollowupStudent {
 
 export interface AdminFinanceOverview extends Omit<Partial<FinanceOverviewTotals>, 'overdue_installments'> {
   canonical_metrics?: FinanceCanonicalMetrics | null;
+  canonical_period_metrics?: FinanceCanonicalPeriodMetrics | null;
   totals?: FinanceOverviewTotals;
   summary?: FinanceOverviewTotals;
   attention?: FinanceOverviewAttention;
