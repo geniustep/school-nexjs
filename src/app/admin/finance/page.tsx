@@ -10,7 +10,8 @@ import { FinanceHubCharts } from '@/features/admin/finance/finance-hub-charts';
 import { FinanceHubFilters } from '@/features/admin/finance/finance-hub-filters';
 import { FinanceHubHeader } from '@/features/admin/finance/finance-hub-header';
 import { FinanceCanonicalKpis } from '@/features/admin/finance/finance-canonical-kpis';
-import { parseFinanceCanonicalMetrics } from '@/lib/utils/finance-canonical';
+import { FinanceCanonicalPeriodKpis } from '@/features/admin/finance/finance-canonical-period-kpis';
+import { parseFinanceCanonicalMetrics, parseFinanceCanonicalPeriodMetrics } from '@/lib/utils/finance-canonical';
 import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { resolveFinanceHubPeriod } from '@/features/admin/finance/finance-hub-period';
@@ -66,10 +67,13 @@ export default function AdminFinancePage() {
   }, [activeSchoolId]);
 
   const resolvedPeriod = useMemo(() => resolveFinanceHubPeriod(filters), [filters]);
-  const overviewParams = useMemo(
-    () => buildOverviewQueryParams(validYearId, yearOptions),
-    [validYearId, yearOptions],
-  );
+  const overviewParams = useMemo(() => {
+    const scope = buildOverviewQueryParams(validYearId, yearOptions);
+    // The period contract requires a valid year AND both date bounds.
+    return scope.academic_year_id && resolvedPeriod.dateFrom && resolvedPeriod.dateTo
+      ? { ...scope, date_from: resolvedPeriod.dateFrom, date_to: resolvedPeriod.dateTo }
+      : scope;
+  }, [validYearId, yearOptions, resolvedPeriod.dateFrom, resolvedPeriod.dateTo]);
 
   const overviewState = useAdminResource<AdminFinanceOverview>(
     endpoints.admin.financeOverview,
@@ -81,6 +85,15 @@ export default function AdminFinancePage() {
     schoolId: activeSchoolId,
     academicYearId: validYearId ? Number(validYearId) : null,
   });
+  const canonicalPeriod = parseFinanceCanonicalPeriodMetrics(
+    overviewState.data?.canonical_period_metrics,
+    {
+      schoolId: activeSchoolId,
+      academicYearId: validYearId ? Number(validYearId) : null,
+      dateFrom: resolvedPeriod.dateFrom,
+      dateTo: resolvedPeriod.dateTo,
+    },
+  );
   const currency = overview?.totals?.currency;
 
   const currentYear = yearOptions.find(
@@ -143,10 +156,13 @@ export default function AdminFinancePage() {
               {overviewState.initialLoading || academicYearLoading ? (
                 <div className="card" aria-busy="true" />
               ) : validYearId ? (
-                <FinanceCanonicalKpis
-                  metrics={canonical}
-                  yearLabel={yearOptions.find((y) => String(y.id) === validYearId)?.name}
-                />
+                <>
+                  <FinanceCanonicalKpis
+                    metrics={canonical}
+                    yearLabel={yearOptions.find((y) => String(y.id) === validYearId)?.name}
+                  />
+                  <FinanceCanonicalPeriodKpis metrics={canonicalPeriod} />
+                </>
               ) : (
                 <p className="card" role="status">{t('admin.finance.canonical.chooseYear')}</p>
               )}

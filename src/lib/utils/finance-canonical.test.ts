@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseFinanceQuickListResponse } from '@/lib/utils/finance-list-response';
-import { parseFinanceCanonicalMetrics } from '@/lib/utils/finance-canonical';
+import { parseFinanceCanonicalMetrics, parseFinanceCanonicalPeriodMetrics } from '@/lib/utils/finance-canonical';
 
 function fixture() {
   return {
@@ -77,5 +77,41 @@ describe('canonical finance contracts', () => {
     });
     expect(result.summary?.total_amount).toBe(300);
     expect(result.canonicalMetrics).toBeNull();
+  });
+});
+
+describe('canonical period and stock additions', () => {
+  const period = {
+    meta: { school_id: 7, academic_year_id: 22, date_from: '2026-10-01', date_to: '2026-10-22', as_of_date: '2026-10-22', currency: { name: 'MAD' } },
+    values: {
+      period_cash_collected: 524760,
+      all_confirmed_collections: 524760,
+      period_due_cohort_due: 523960,
+      period_due_cohort_paid: 425200,
+      period_due_cohort_collection_rate: 81.15,
+    },
+  };
+  it('accepts period flows without mixing cash and cohort paid', () => {
+    const value = parseFinanceCanonicalPeriodMetrics(period, { schoolId: 7, academicYearId: 22, dateFrom: '2026-10-01', dateTo: '2026-10-22' });
+    expect(value?.values.period_cash_collected).toBe(524760);
+    expect(value?.values.period_due_cohort_paid).toBe(425200);
+  });
+  it('rejects stale school, year, date, and missing cash', () => {
+    expect(parseFinanceCanonicalPeriodMetrics(period, { schoolId: 9 })).toBeNull();
+    expect(parseFinanceCanonicalPeriodMetrics(period, { academicYearId: 23 })).toBeNull();
+    expect(parseFinanceCanonicalPeriodMetrics(period, { dateTo: '2026-10-23' })).toBeNull();
+    expect(parseFinanceCanonicalPeriodMetrics({ ...period, values: { ...period.values, period_cash_collected: undefined } })).toBeNull();
+  });
+  it('keeps actual zero and missing contract distinct', () => {
+    expect(parseFinanceCanonicalPeriodMetrics({ ...period, values: { ...period.values, period_cash_collected: 0 } })?.values.period_cash_collected).toBe(0);
+    expect(parseFinanceCanonicalPeriodMetrics(null)).toBeNull();
+  });
+  it('accepts new yearly stocks but remains compatible with old canonical payload', () => {
+    expect(parseFinanceCanonicalMetrics(fixture())?.values.stock_fee_paid).toBeUndefined();
+    const f = fixture();
+    const extended = { ...f, values: { ...f.values, stock_fee_paid: 1680210, remaining_balance: 4233340, future_due_paid: 115400 } };
+    const value = parseFinanceCanonicalMetrics(extended);
+    expect(value?.values.stock_fee_paid).toBe(1680210);
+    expect(value?.values.future_due_paid).toBe(115400);
   });
 });
