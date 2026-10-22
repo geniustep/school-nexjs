@@ -72,7 +72,8 @@ describe('finance overview normalization', () => {
       cheques: { received: 2, bounced: 1 },
     });
 
-    expect(overview?.totals?.total_collected).toBe(200);
+    expect(overview?.totals?.total_collected).toBeUndefined();
+    expect(overview?.totals?.confirmed_paid).toBe(200);
     expect(overview?.totals?.cheques_pending_amount).toBe(300);
     expect(overview?.totals?.cheques_pending_count).toBe(2);
     expect(overview?.totals?.cheques_rejected_count).toBe(1);
@@ -88,7 +89,7 @@ describe('finance overview normalization', () => {
         total_overdue: 50,
       },
     });
-    expect(overview?.totals?.total_collected).toBe(1400);
+    expect(overview?.totals?.total_collected).toBeUndefined();
     expect(overview?.totals?.confirmed_paid).toBe(1400);
   });
 });

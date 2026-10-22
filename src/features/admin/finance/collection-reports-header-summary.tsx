@@ -29,7 +29,8 @@ const HEADER_COPY = {
     period: 'الفترة',
     from: 'من',
     to: 'إلى',
-    totalAmount: 'المبلغ الكامل',
+    totalAmount: 'إجمالي التحصيلات المؤكدة',
+    totalNote: 'يشمل كل التحصيلات المؤكدة؛ قد يختلف عن التحصيلات النقدية القياسية في لوحة القيادة.',
     byPaymentMethod: 'حسب وسيلة الدفع',
     operations: 'عدد العمليات',
   },
@@ -38,7 +39,8 @@ const HEADER_COPY = {
     period: 'Period',
     from: 'From',
     to: 'to',
-    totalAmount: 'Total amount',
+    totalAmount: 'All confirmed collections',
+    totalNote: 'All confirmed payments; may differ from standard-treasury cash on the dashboard.',
     byPaymentMethod: 'By payment method',
     operations: 'Operations',
   },
@@ -47,7 +49,8 @@ const HEADER_COPY = {
     period: 'Période',
     from: 'Du',
     to: 'au',
-    totalAmount: 'Montant total',
+    totalAmount: 'Total des encaissements confirmés',
+    totalNote: 'Tous les encaissements confirmés ; peut différer de la trésorerie standard du tableau de bord.',
     byPaymentMethod: 'Par moyen de paiement',
     operations: 'Opérations',
   },
@@ -56,7 +59,8 @@ const HEADER_COPY = {
     period: 'Periodo',
     from: 'Del',
     to: 'al',
-    totalAmount: 'Importe total',
+    totalAmount: 'Total de cobros confirmados',
+    totalNote: 'Todos los cobros confirmados; puede diferir de la tesorería estándar del panel.',
     byPaymentMethod: 'Por medio de pago',
     operations: 'Operaciones',
   },
@@ -100,7 +104,7 @@ export function CollectionReportsHeaderSummary({ filters }: { filters: Collectio
       </div>
 
       <div className="finance-collection-reports-header-summary__item finance-collection-reports-header-summary__total">
-        <span className="finance-collection-reports-header-summary__label">{copy.totalAmount}</span>
+        <span className="finance-collection-reports-header-summary__label" title={copy.totalNote}>{copy.totalAmount}</span>
         <strong className="finance-collection-reports-header-summary__value">
           {summary ? (
             <FinanceMoney

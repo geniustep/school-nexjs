@@ -9,7 +9,9 @@ import { FinanceHubCashflow } from '@/features/admin/finance/finance-hub-cashflo
 import { FinanceHubCharts } from '@/features/admin/finance/finance-hub-charts';
 import { FinanceHubFilters } from '@/features/admin/finance/finance-hub-filters';
 import { FinanceHubHeader } from '@/features/admin/finance/finance-hub-header';
-import { FinanceHubKpiGrid } from '@/features/admin/finance/finance-hub-kpi-grid';
+import { FinanceCanonicalKpis } from '@/features/admin/finance/finance-canonical-kpis';
+import { FinanceCanonicalPeriodKpis } from '@/features/admin/finance/finance-canonical-period-kpis';
+import { parseFinanceCanonicalMetrics, parseFinanceCanonicalPeriodMetrics } from '@/lib/utils/finance-canonical';
 import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { resolveFinanceHubPeriod } from '@/features/admin/finance/finance-hub-period';
@@ -20,6 +22,7 @@ import {
 import { FinanceHubSummaryScope } from '@/features/admin/finance/finance-hub-summary-scope';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
@@ -34,13 +37,18 @@ const DEFAULT_FILTERS: FinanceHubFilterState = {
 };
 
 export default function AdminFinancePage() {
-  const { activeSchoolId, schools, setActiveSchool } = useAdminSession();
+  const { activeSchoolId, activeAcademicYearId, academicYearLoading, schools, setActiveSchool } = useAdminSession();
+  const t = useT();
   const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(null);
   const [filters, setFilters] = useState<FinanceHubFilterState>(DEFAULT_FILTERS);
+  const [yearExplicit, setYearExplicit] = useState(false);
 
   const validYearId = useMemo(
-    () => resolveValidYearId(filters.yearId, yearOptions),
-    [filters.yearId, yearOptions],
+    () => resolveValidYearId(
+      yearExplicit ? filters.yearId : (filters.yearId || String(activeAcademicYearId ?? '')),
+      yearOptions,
+    ),
+    [filters.yearId, yearOptions, activeAcademicYearId, yearExplicit],
   );
 
   useEffect(() => {
@@ -53,17 +61,39 @@ export default function AdminFinancePage() {
     setFilters((prev) => ({ ...prev, yearId: resolveValidYearId(prev.yearId, yearOptions) }));
   }, [activeSchoolId, yearOptions]);
 
+  useEffect(() => {
+    setYearExplicit(false);
+    setFilters((prev) => ({ ...prev, yearId: '' }));
+  }, [activeSchoolId]);
+
   const resolvedPeriod = useMemo(() => resolveFinanceHubPeriod(filters), [filters]);
-  const overviewParams = useMemo(
-    () => buildOverviewQueryParams(validYearId, yearOptions),
-    [validYearId, yearOptions],
-  );
+  const overviewParams = useMemo(() => {
+    const scope = buildOverviewQueryParams(validYearId, yearOptions);
+    // The period contract requires a valid year AND both date bounds.
+    return scope.academic_year_id && resolvedPeriod.dateFrom && resolvedPeriod.dateTo
+      ? { ...scope, date_from: resolvedPeriod.dateFrom, date_to: resolvedPeriod.dateTo }
+      : scope;
+  }, [validYearId, yearOptions, resolvedPeriod.dateFrom, resolvedPeriod.dateTo]);
 
   const overviewState = useAdminResource<AdminFinanceOverview>(
     endpoints.admin.financeOverview,
     overviewParams,
+    { keepPreviousData: false },
   );
   const overview = normalizeFinanceOverview(overviewState.data);
+  const canonical = parseFinanceCanonicalMetrics(overviewState.data?.canonical_metrics, {
+    schoolId: activeSchoolId,
+    academicYearId: validYearId ? Number(validYearId) : null,
+  });
+  const canonicalPeriod = parseFinanceCanonicalPeriodMetrics(
+    overviewState.data?.canonical_period_metrics,
+    {
+      schoolId: activeSchoolId,
+      academicYearId: validYearId ? Number(validYearId) : null,
+      dateFrom: resolvedPeriod.dateFrom,
+      dateTo: resolvedPeriod.dateTo,
+    },
+  );
   const currency = overview?.totals?.currency;
 
   const currentYear = yearOptions.find(
@@ -83,6 +113,7 @@ export default function AdminFinancePage() {
   );
 
   const handleYearChange = useCallback((yearId: string) => {
+    setYearExplicit(true);
     setFilters((prev) => ({ ...prev, yearId }));
   }, []);
 
@@ -122,7 +153,19 @@ export default function AdminFinancePage() {
                 yearOptions={yearOptions}
                 loading={yearsLoading || overviewState.initialLoading}
               />
-              <FinanceHubKpiGrid data={overviewState.data} loading={overviewState.initialLoading} />
+              {overviewState.initialLoading || academicYearLoading ? (
+                <div className="card" aria-busy="true" />
+              ) : validYearId ? (
+                <>
+                  <FinanceCanonicalKpis
+                    metrics={canonical}
+                    yearLabel={yearOptions.find((y) => String(y.id) === validYearId)?.name}
+                  />
+                  <FinanceCanonicalPeriodKpis metrics={canonicalPeriod} />
+                </>
+              ) : (
+                <p className="card" role="status">{t('admin.finance.canonical.chooseYear')}</p>
+              )}
             </section>
             <FinanceHubAlerts data={overviewState.data} currency={currency} />
             <FinanceHubCharts
