@@ -40,3 +40,12 @@ describe('normalizePaymentMethodCode', () => {
     expect(normalizePaymentMethodCode(undefined)).toBe('');
   });
 });
+
+describe('finance semantic separation', () => {
+  it('does not invent a period cash amount from yearly stock paid', async () => {
+    const { normalizeFinanceOverview } = await import('@/lib/utils/finance-normalize');
+    const overview = normalizeFinanceOverview({ confirmed_paid: 1680210, total_paid: 1680210 } as Parameters<typeof normalizeFinanceOverview>[0]);
+    expect(overview?.totals?.confirmed_paid).toBe(1680210);
+    expect(overview?.totals?.total_collected).toBeUndefined();
+  });
+});
