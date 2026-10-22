@@ -145,8 +145,16 @@ export function paymentMethodLabel(
     return dash === 'common.dash' ? '—' : dash;
   }
 
+  // Backend method codes are identifiers; map them to human-facing labels.
+  // Preserve existing translations when a specific bank-transfer key is absent.
+  const methodAliases: Record<string, string[]> = {
+    bank_transfer: ['admin.finance.methodBankTransfer', 'admin.finance.methodTransfer'],
+    transfer: ['admin.finance.methodTransfer'],
+    bank: ['admin.finance.methodTransfer'],
+  };
   const camel = snake.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
   const candidates = [
+    ...(methodAliases[snake] ?? []),
     `admin.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`,
     `admin.finance.method${camel.charAt(0).toUpperCase()}${camel.slice(1)}`,
     `admin.finance.method${snake.replace(/_/g, '')}`,
