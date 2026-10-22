@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
@@ -19,7 +18,6 @@ export function FamilyCollectionDrawer({
   prefilledStudentId,
   prefilledStudentName,
   entrySource,
-  navigateToReceiptOnSuccess = true,
   onClose,
   onSuccess,
 }: {
@@ -37,8 +35,6 @@ export function FamilyCollectionDrawer({
   onClose: () => void;
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const t = useT();
   const toast = useToast();
   const handledRef = useRef(false);
@@ -55,19 +51,10 @@ export function FamilyCollectionDrawer({
     handledRef.current = true;
     onSuccess?.(result);
 
-    const receiptId = result.receipt_id ?? result.receipts[0]?.id ?? null;
-    const collectionId = result.collection_id ?? result.id ?? result.collections[0]?.id ?? null;
-    const returnTo = encodeURIComponent(pathname || `/admin/finance/billing-accounts/${familyId}`);
+    // The confirmed receipt remains available in the in-drawer success panel.
+    // A consumer refresh is triggered only when the user closes that panel.
+    toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
 
-    if (navigateToReceiptOnSuccess && receiptId) {
-      toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
-      router.push(`/admin/finance/receipts/${receiptId}?returnTo=${returnTo}`);
-    } else if (navigateToReceiptOnSuccess && collectionId) {
-      toast.success(t('admin.finance.billingAccounts.familyCollection.receiptPendingHint'));
-      router.push(`/admin/finance/collections/${collectionId}?returnTo=${returnTo}`);
-    } else {
-      toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
-    }
     onClose();
   }
 

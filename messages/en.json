@@ -11934,6 +11934,7 @@
         "arrearsContext": "This payment is linked to arrears follow-up. The system will suggest allocating it to the oldest receivables.",
         "currentOverdueLabel": "Current overdue",
         "useOverdueAmount": "Use overdue amount",
+        "totalCollectibleLabel": "All collectible installments",
         "cashDeskAccount": "Cash desk / account",
         "selectCashDeskAccount": "Select cash desk or account",
         "recordedIn": "Payment will be recorded in: {journal} — {method}",

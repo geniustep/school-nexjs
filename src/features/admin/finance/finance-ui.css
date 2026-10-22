@@ -7721,3 +7721,88 @@
   border-top: 1px solid var(--border, #e5e7eb);
   padding-top: 8px;
 }
+
+/* Shared collection amount stays visible while navigating installments and payment details. */
+.finance-quick-payment-drawer .finance-collection-sticky-amount {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--qp-surface, #f0fdfa);
+  border-bottom: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 20%, var(--c-border, #e2e8f0));
+}
+
+.finance-collection-sticky-amount__label {
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-collection-sticky-amount__value {
+  flex-shrink: 0;
+  font-size: clamp(1.3rem, 3.2vw, 1.75rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--qp-accent-strong, #0f766e);
+}
+
+.finance-family-collection-account-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 8px 2px 2px;
+}
+
+.finance-family-collection-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.finance-family-collection-presets__option {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: #fff;
+  text-align: start;
+  cursor: pointer;
+  color: var(--c-text, #0f172a);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.finance-family-collection-presets__option:hover,
+.finance-family-collection-presets__option:focus-visible {
+  background: var(--qp-surface, #f0fdfa);
+  border-color: var(--qp-accent, #0d9488);
+}
+
+.finance-family-collection-presets__option span {
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.78rem;
+}
+
+.finance-family-collection-presets__option strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-family-collection-empty-notice {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--c-warning-soft, #fffbeb);
+  color: var(--c-text, #92400e);
+  border: 1px solid var(--c-warning-border, #fcd34d);
+}
+
+@media (max-width: 520px) {
+  .finance-quick-payment-drawer .finance-collection-sticky-amount { padding: 11px 14px; }
+  .finance-family-collection-presets { grid-template-columns: minmax(0, 1fr); }
+}

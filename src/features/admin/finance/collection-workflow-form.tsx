@@ -73,6 +73,7 @@ import {
 } from '@/lib/finance/normalize-collection-preview';
 import { CollectionSuccessPanel } from './collection-success-panel';
 import { QuickPaymentCoreFields } from './quick-payment-core-fields';
+import { CollectionStickyAmount } from './collection-sticky-amount';
 import {
   mergeCreateCollectionResponse,
   resolveCollectionSuccessSummary,
@@ -882,6 +883,9 @@ function CollectionWorkflowFormReady({
         <div className="finance-collection-workflow__steps-wrap">
           <CollectionWorkflowSteps step={step} />
         </div>
+      ) : null}
+      {directDrawerFlow && step === 'payment' && selectedStudent ? (
+        <CollectionStickyAmount amount={parsedAmount} currency={journalCurrency} />
       ) : null}
       <div className="finance-collection-workflow__scroll">
         {!embedded ? (
