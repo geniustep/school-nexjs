@@ -11935,6 +11935,7 @@
         "currentOverdueLabel": "Current overdue",
         "useOverdueAmount": "Use overdue amount",
         "totalCollectibleLabel": "Total de cuotas exigibles",
+        "unallocatedRequiresAllocation": "El importe supera las cuotas seleccionadas. Ajuste el importe o su distribución antes de confirmar.",
         "cashDeskAccount": "Caja / cuenta",
         "selectCashDeskAccount": "Seleccionar caja o cuenta",
         "recordedIn": "El pago se registrará en: {journal} — {method}",

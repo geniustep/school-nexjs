@@ -56,13 +56,12 @@ import type { CashSession } from '@/types/finance-cash-desk';
 export function FamilyCollectionWorkflowForm({
   familyId,
   accountName,
-  suggestedAmount,
   source,
-  currency: suggestedCurrency,
   prefilledStudentId,
   prefilledStudentName,
   entrySource,
   onDone,
+  onConfirmed,
   onCancel,
 }: {
   familyId: number;
@@ -74,6 +73,7 @@ export function FamilyCollectionWorkflowForm({
   prefilledStudentName?: string;
   entrySource?: 'student360';
   onDone: (result: FamilyCollectionCreateResponse) => void;
+  onConfirmed?: (result: FamilyCollectionCreateResponse) => void;
   onCancel: () => void;
 }) {
   const t = useT();
@@ -132,10 +132,7 @@ export function FamilyCollectionWorkflowForm({
   const overdueCollectible = collectibleInstallments
     .filter((row) => row.is_overdue)
     .reduce((sum, row) => sum + Math.max(0, row.remaining_amount ?? 0), 0);
-  const suggestedCollectible = Math.min(
-    collectibleTotal,
-    suggestedAmount != null && suggestedAmount > 0 ? suggestedAmount : overdueCollectible,
-  );
+  const suggestedCollectible = overdueCollectible;
   const isCheque = isChequePayment(paymentMethod);
   const chequeValues: CollectionChequeFieldValues = {
     chequeNumber,
@@ -534,6 +531,11 @@ export function FamilyCollectionWorkflowForm({
 
   async function handleConfirm() {
     if (confirming || previewing || submitting || !confirmState.canConfirm) return;
+    // No implicit credit conversion from the standard payment drawer.
+    if (unallocatedAmount > 0.009) {
+      setSubmitError(t('admin.finance.quickPayment.unallocatedRequiresAllocation'));
+      return;
+    }
     setConfirming(true);
     setSubmitError(null);
     setDispositionError(null);
@@ -569,6 +571,11 @@ export function FamilyCollectionWorkflowForm({
     }
 
     setBackendPreview(previewResult.preview);
+    if ((previewResult.preview.unallocated_amount ?? 0) > 0.009) {
+      setConfirming(false);
+      setSubmitError(t('admin.finance.quickPayment.unallocatedRequiresAllocation'));
+      return;
+    }
 
     const saved = await persistDraft(payload);
     if (!saved.ok) {
@@ -616,7 +623,7 @@ export function FamilyCollectionWorkflowForm({
     );
     idempotencyKeyRef.current = null;
     setSuccessReceiptNumber(normalized.receipt_number ?? null);
-    setSuccessfulCollection({
+    const completedCollection: FamilyCollectionCreateResponse = {
       id: collectionId,
       amount: payload.amount,
       collection_id: normalized.collection_id ?? collectionId,
@@ -626,7 +633,9 @@ export function FamilyCollectionWorkflowForm({
       collections: [{ id: normalized.collection_id ?? collectionId, state: normalized.state ?? 'confirmed' }],
       receipts: receiptId ? [{ id: receiptId }] : [],
       warnings: normalized.warnings ?? [],
-    });
+    };
+    setSuccessfulCollection(completedCollection);
+    onConfirmed?.(completedCollection);
   }
 
   if (successfulCollection) {
@@ -688,7 +697,9 @@ export function FamilyCollectionWorkflowForm({
 
   const confirmBlockMessage = confirmState.blockReason
     ? t(familyCollectionConfirmBlockReasonKey(confirmState.blockReason))
-    : null;
+    : unallocatedAmount > 0.009
+      ? t('admin.finance.quickPayment.unallocatedRequiresAllocation')
+      : null;
 
   return (
     <form
@@ -884,7 +895,7 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={confirming || submitting || previewing || !confirmState.canConfirm}
+              disabled={confirming || submitting || previewing || !confirmState.canConfirm || unallocatedAmount > 0.009}
               onClick={() => void handleConfirm()}
             >
               {confirming || previewing
@@ -893,7 +904,7 @@ export function FamilyCollectionWorkflowForm({
             </button>
           </div>
         </div>
-        {!confirmState.canConfirm && confirmBlockMessage ? (
+        {(!confirmState.canConfirm || unallocatedAmount > 0.009) && confirmBlockMessage ? (
           <p className="finance-collection-workflow__footer-hint tiny muted" role="status">
             {confirmBlockMessage}
           </p>

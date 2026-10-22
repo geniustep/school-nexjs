@@ -68,8 +68,8 @@ describe('family collection workflow UX i18n', () => {
 
 describe('family collection workflow layout', () => {
   it('uses header summary and smart summary step hint', () => {
-    expect(workflowSource).toContain('finance-family-collection-header-summary');
-    expect(workflowSource).toContain('stepHintSmartSummary');
+    expect(workflowSource).toContain('finance-family-collection-account-strip');
+    expect(workflowSource).toContain('CollectionStickyAmount');
     expect(workflowSource).toContain('FamilyCollectionSmartSummary');
   });
 

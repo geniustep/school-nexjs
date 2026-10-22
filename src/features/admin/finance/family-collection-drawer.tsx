@@ -30,7 +30,7 @@ export function FamilyCollectionDrawer({
   prefilledStudentId?: number;
   prefilledStudentName?: string;
   entrySource?: 'student360';
-  /** When false, keep the caller page mounted and let it render the official receipt link. */
+  /** @deprecated Successful family collections now always remain in the drawer for direct printing. */
   navigateToReceiptOnSuccess?: boolean;
   onClose: () => void;
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
@@ -38,24 +38,28 @@ export function FamilyCollectionDrawer({
   const t = useT();
   const toast = useToast();
   const handledRef = useRef(false);
+  const confirmedRef = useRef<FamilyCollectionCreateResponse | null>(null);
 
   useEffect(() => {
-    if (!open) handledRef.current = false;
+    if (!open) {
+      handledRef.current = false;
+      confirmedRef.current = null;
+    }
   }, [open]);
 
-  function handleDone(result: FamilyCollectionCreateResponse) {
-    if (handledRef.current) {
-      onClose();
-      return;
+  function handleClose() {
+    const result = confirmedRef.current;
+    if (result && !handledRef.current) {
+      handledRef.current = true;
+      onSuccess?.(result);
+      toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
     }
-    handledRef.current = true;
-    onSuccess?.(result);
-
-    // The confirmed receipt remains available in the in-drawer success panel.
-    // A consumer refresh is triggered only when the user closes that panel.
-    toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
-
     onClose();
+  }
+
+  function handleDone(result: FamilyCollectionCreateResponse) {
+    confirmedRef.current = result;
+    handleClose();
   }
 
   return (
@@ -64,7 +68,7 @@ export function FamilyCollectionDrawer({
       mode="family"
       subtitle={accountName}
       source={source}
-      onClose={onClose}
+      onClose={handleClose}
     >
       <FamilyCollectionWorkflowForm
         key={familyId}
@@ -77,7 +81,8 @@ export function FamilyCollectionDrawer({
         prefilledStudentName={prefilledStudentName}
         entrySource={entrySource}
         onDone={handleDone}
-        onCancel={onClose}
+        onConfirmed={(result) => { confirmedRef.current = result; }}
+        onCancel={handleClose}
       />
     </QuickPaymentDrawer>
   );

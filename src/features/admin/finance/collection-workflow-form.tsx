@@ -884,7 +884,7 @@ function CollectionWorkflowFormReady({
           <CollectionWorkflowSteps step={step} />
         </div>
       ) : null}
-      {directDrawerFlow && step === 'payment' && selectedStudent ? (
+      {embedded && step === 'payment' && selectedStudent ? (
         <CollectionStickyAmount amount={parsedAmount} currency={journalCurrency} />
       ) : null}
       <div className="finance-collection-workflow__scroll">

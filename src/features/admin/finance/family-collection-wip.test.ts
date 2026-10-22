@@ -35,8 +35,8 @@ describe('finance hub billing accounts deep link', () => {
 
 describe('family collection workflow form structure', () => {
   it('renders familyCollection header summary in primary flow', () => {
-    expect(formSource).toContain("t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')");
-    expect(formSource).toContain('finance-family-collection-header-summary');
+    expect(formSource).toContain('CollectionStickyAmount');
+    expect(formSource).toContain('finance-family-collection-account-strip');
   });
 
   it('keeps smart summary before advanced details', () => {
@@ -47,7 +47,7 @@ describe('family collection workflow form structure', () => {
   });
 
   it('shows account context and payer summary in form body', () => {
-    expect(formSource).toContain("t('admin.finance.payer')");
+    expect(formSource).toContain("t('admin.finance.billingAccounts.columns.studentCount')");
     expect(formSource).toContain('accountName?.trim()');
   });
 
