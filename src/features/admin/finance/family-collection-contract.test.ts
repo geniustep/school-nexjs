@@ -31,7 +31,7 @@ describe('family collection contract alignment', () => {
   it('requires explicit allocation disposition on draft payload', () => {
     expect(workflowSource).toContain('buildFamilyCollectionDraftAllocationFields');
     expect(workflowSource).toContain('allocation_mode');
-    expect(workflowSource).toContain('leave_as_family_credit');
+    expect(workflowSource).toContain("const dispositionMode: FamilyCollectionDispositionMode = 'allocate_to_installments'");
     expect(workflowSource).not.toMatch(
       /allocations:\s*parseFamilyAllocationInputs\(sanitizedInputs\)/,
     );
@@ -48,12 +48,15 @@ describe('family collection contract alignment', () => {
     expect(workflowSource).toContain('issueCollectionReceipt');
   });
 
-  it('navigates to receipt page after confirm success', () => {
+  it('keeps confirmed family payment in the drawer for direct official receipt printing', () => {
     const drawerSource = readFileSync(
       resolve('src/features/admin/finance/family-collection-drawer.tsx'),
       'utf8',
     );
-    expect(drawerSource).toContain('/admin/finance/receipts/${receiptId}');
+    expect(drawerSource).not.toContain('router.push');
+    expect(workflowSource).toContain('CollectionSuccessPanel');
+    expect(workflowSource).toContain('onConfirmed?.(completedCollection)');
+    expect(drawerSource).toContain('confirmedRef.current');
   });
 
   it('does not change individual collection confirm endpoint', () => {

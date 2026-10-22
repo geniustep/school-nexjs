@@ -43,9 +43,11 @@ describe('Student 360 family collection entry wiring', () => {
     expect(entrySource).toContain('if (!familyFetchStartedRef.current) return');
   });
 
-  it('keeps payload explicit with installment allocations or leave_as_family_credit', () => {
+  it('keeps normal family drawer allocation explicit without showing the credit switch', () => {
     expect(formSource).toContain('buildFamilyCollectionDraftAllocationFields');
     expect(formSource).toContain('allocation_mode');
-    expect(formSource).toContain('leave_as_family_credit');
+    expect(formSource).toContain("const dispositionMode: FamilyCollectionDispositionMode = 'allocate_to_installments'");
+    expect(formSource).not.toContain('role="radiogroup"');
+    expect(formSource).toContain('unallocatedAmount > 0.009');
   });
 });

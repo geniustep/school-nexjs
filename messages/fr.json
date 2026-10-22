@@ -11954,6 +11954,8 @@
         "arrearsContext": "This payment is linked to arrears follow-up. The system will suggest allocating it to the oldest receivables.",
         "currentOverdueLabel": "Current overdue",
         "useOverdueAmount": "Use overdue amount",
+        "totalCollectibleLabel": "Total des échéances exigibles",
+        "unallocatedRequiresAllocation": "Le montant dépasse les échéances sélectionnées. Ajustez le montant ou la répartition avant de confirmer.",
         "cashDeskAccount": "Caisse / compte",
         "selectCashDeskAccount": "Choisir la caisse ou le compte",
         "recordedIn": "Le paiement sera enregistré dans : {journal} — {method}",
