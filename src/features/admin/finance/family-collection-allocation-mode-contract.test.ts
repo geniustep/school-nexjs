@@ -269,7 +269,7 @@ describe('family collection explicit allocation mode contract', () => {
     expect(workflowSource).toContain('if (confirming || previewing || submitting || !confirmState.canConfirm) return');
     expect(workflowSource).toContain('disabled={submitting || confirming || previewing || cashSessionBlocked}');
     expect(workflowSource).toContain(
-      'disabled={confirming || submitting || previewing || !confirmState.canConfirm}',
+      'disabled={confirming || submitting || previewing || !confirmState.canConfirm || unallocatedAmount > 0.009}',
     );
   });
 

@@ -156,7 +156,7 @@ describe('family collection confirm button state', () => {
     expect(workflowSource).toContain('const saved = await persistDraft(payload)');
     expect(workflowSource).toContain('const collectionId = saved.detail.id');
     expect(workflowSource).toContain(
-      'disabled={confirming || submitting || previewing || !confirmState.canConfirm}',
+      'disabled={confirming || submitting || previewing || !confirmState.canConfirm || unallocatedAmount > 0.009}',
     );
   });
 

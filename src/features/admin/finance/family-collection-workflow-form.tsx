@@ -292,8 +292,7 @@ export function FamilyCollectionWorkflowForm({
     dispositionMode === 'allocate_to_installments' &&
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
-    collectibleInstallments.length > 0 &&
-    paymentMethod.trim().length > 0;
+    collectibleInstallments.length > 0;
 
   useEffect(() => {
     if (!canAutoSuggest || allocationSource !== 'auto') return;
