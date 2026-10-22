@@ -12183,6 +12183,7 @@
       "methodCheque": "Chèque",
       "methodCheck": "Chèque",
       "methodTransfer": "Virement",
+      "methodBankTransfer": "Virement bancaire",
       "reference": "Référence",
       "recordedBy": "Saisi par",
       "studentId": "ID élève",
