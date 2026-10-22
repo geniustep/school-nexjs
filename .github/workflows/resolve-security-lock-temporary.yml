@@ -1,0 +1,26 @@
+name: Temporary security lockfile resolver
+on:
+  push:
+    branches:
+      - fix/next-vitest-security-20261022
+permissions:
+  contents: read
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Resolve exact supported patches (read-only)
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --save-exact next@16.4.2 vitest@4.1.12
+      - name: Verify dependency consistency
+        run: |
+          npm ci --ignore-scripts --no-fund
+          npm audit --audit-level=high
+      - name: Export lockfile for scoped review
+        run: |
+          node -e 'const fs=require("node:fs"); const s=fs.readFileSync("package-lock.json","utf8"); console.log("RAQEEM_LOCK_BEGIN"); for (const line of s.split("\n")) console.log("RAQEEM_LOCK_LINE "+line); console.log("RAQEEM_LOCK_END");'
