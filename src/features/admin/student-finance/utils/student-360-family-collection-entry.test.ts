@@ -31,9 +31,9 @@ describe('Student 360 family collection entry wiring', () => {
     expect(drawerSource).toContain('entrySource');
   });
 
-  it('shows student360 family context while keeping family-wide manual allocation', () => {
-    expect(formSource).toContain('entrySource === \'student360\'');
-    expect(formSource).toContain('finance-family-collection-student360-context');
+  it('keeps family-wide allocation without redundant Student 360 narrative', () => {
+    expect(formSource).not.toContain("entrySource === 'student360'");
+    expect(formSource).not.toContain('finance-family-collection-student360-context');
     expect(formSource).toContain('FamilyCollectionManualEditor');
     expect(formSource).toContain('FamilyCollectionSmartSummary');
   });
