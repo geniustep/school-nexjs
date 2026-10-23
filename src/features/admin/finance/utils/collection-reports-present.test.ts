@@ -117,6 +117,34 @@ describe('collection reports contract helpers', () => {
     ).toBe(true);
   });
 
+  it('rejects malformed required money and preserves genuine zero in collection summaries', () => {
+    const zeroSummary = {
+      total_confirmed_collections_amount: 0,
+      collections_count: 0,
+      allocated_amount: 0,
+      unallocated_amount: 0,
+    };
+    expect(normalizeCollectionReportsDetailsPayload({ summary: zeroSummary, items: [] })?.summary)
+      .toMatchObject(zeroSummary);
+    expect(normalizeCollectionReportsAggregationsPayload({ summary: zeroSummary, aggregations: {} })?.summary)
+      .toMatchObject(zeroSummary);
+
+    const required = [
+      'total_confirmed_collections_amount', 'collections_count',
+      'allocated_amount', 'unallocated_amount',
+    ] as const;
+    for (const field of required) {
+      for (const invalid of [undefined, null, '', 'invalid', Number.NaN, Number.POSITIVE_INFINITY]) {
+        const summary = { ...zeroSummary, [field]: invalid };
+        expect(normalizeCollectionReportsDetailsPayload({ summary, items: [] })).toBeNull();
+        expect(normalizeCollectionReportsAggregationsPayload({ summary, aggregations: {} })).toBeNull();
+      }
+    }
+    const summary = { ...zeroSummary, scoped_allocated_amount: 'not-a-number' };
+    expect(normalizeCollectionReportsDetailsPayload({ summary, items: [] })?.summary.scoped_allocated_amount)
+      .toBeUndefined();
+  });
+
   it('normalizes details summary and allocation amount without summing collection totals', () => {
     const payload = normalizeCollectionReportsDetailsPayload({
       summary: {

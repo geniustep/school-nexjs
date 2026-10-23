@@ -160,13 +160,19 @@ export function buildCollectionReportsAggregationsQuery(
   return rest;
 }
 
-export function moneyOrZero(value: unknown): number {
+/** Finite money values only: missing/malformed amounts must never become zero. */
+function moneyOrNull(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string' && value.trim() !== '') {
     const n = Number(value);
     if (Number.isFinite(n)) return n;
   }
-  return 0;
+  return null;
+}
+
+/** Compatibility helper: do not use for mandatory financial totals. */
+export function moneyOrZero(value: unknown): number {
+  return moneyOrNull(value) ?? 0;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -215,21 +221,30 @@ function asPayer(value: unknown): CollectionReportDetailRow['payer'] {
 export function normalizeCollectionReportSummary(raw: unknown): CollectionReportSummary | null {
   const row = asRecord(raw);
   if (!row) return null;
+  const total = moneyOrNull(row.total_confirmed_collections_amount);
+  const count = moneyOrNull(row.collections_count);
+  const allocated = moneyOrNull(row.allocated_amount);
+  const unallocated = moneyOrNull(row.unallocated_amount);
+  // All four fields are required by the backend contract. Reject incomplete
+  // financial summaries instead of presenting made-up zero values.
+  if (total === null || count === null || allocated === null || unallocated === null) {
+    return null;
+  }
   return {
     currency_id: typeof row.currency_id === 'number' ? row.currency_id : null,
     currency_name: typeof row.currency_name === 'string' ? row.currency_name : null,
-    total_confirmed_collections_amount: moneyOrZero(row.total_confirmed_collections_amount),
-    collections_count: moneyOrZero(row.collections_count),
+    total_confirmed_collections_amount: total,
+    collections_count: count,
     distinct_payers_count:
-      row.distinct_payers_count == null ? undefined : moneyOrZero(row.distinct_payers_count),
-    allocated_amount: moneyOrZero(row.allocated_amount),
-    unallocated_amount: moneyOrZero(row.unallocated_amount),
+      row.distinct_payers_count == null ? undefined : (moneyOrNull(row.distinct_payers_count) ?? undefined),
+    allocated_amount: allocated,
+    unallocated_amount: unallocated,
     scoped_allocated_amount:
-      row.scoped_allocated_amount == null ? undefined : moneyOrZero(row.scoped_allocated_amount),
+      row.scoped_allocated_amount == null ? undefined : (moneyOrNull(row.scoped_allocated_amount) ?? undefined),
     distinct_students_count:
-      row.distinct_students_count == null ? undefined : moneyOrZero(row.distinct_students_count),
+      row.distinct_students_count == null ? undefined : (moneyOrNull(row.distinct_students_count) ?? undefined),
     allocations_count:
-      row.allocations_count == null ? undefined : moneyOrZero(row.allocations_count),
+      row.allocations_count == null ? undefined : (moneyOrNull(row.allocations_count) ?? undefined),
     academic_filters_active: Boolean(row.academic_filters_active),
   };
 }
