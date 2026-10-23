@@ -70,6 +70,8 @@ export type QuickPaymentCoreFieldsProps = {
   detailsContent?: React.ReactNode;
   footer?: React.ReactNode;
   variant?: 'default' | 'drawer';
+  drawerJournalPlacement?: 'details' | 'primary';
+  hideDrawerAdditionalDetails?: boolean;
 };
 
 export function QuickPaymentCoreFields({
@@ -101,6 +103,8 @@ export function QuickPaymentCoreFields({
   detailsContent,
   footer,
   variant = 'default',
+  drawerJournalPlacement = 'details',
+  hideDrawerAdditionalDetails = false,
 }: QuickPaymentCoreFieldsProps) {
   const t = useT();
   const [showNotes, setShowNotes] = useState(Boolean(notes.trim()));
@@ -192,9 +196,11 @@ export function QuickPaymentCoreFields({
           </select>
         </label>
       ) : selectedJournal ? (
-        <div className="finance-quick-payment-journal-summary finance-collection-workflow__full-width">
-          <span className="tiny muted">{t('admin.finance.quickPayment.recordedIn', { journal: formatPaymentJournalLabel(selectedJournal), method: displayMethodLabel })}</span>
-        </div>
+        isDrawer && drawerJournalPlacement === 'primary' ? null : (
+          <div className="finance-quick-payment-journal-summary finance-collection-workflow__full-width">
+            <span className="tiny muted">{t('admin.finance.quickPayment.recordedIn', { journal: formatPaymentJournalLabel(selectedJournal), method: displayMethodLabel })}</span>
+          </div>
+        )
       ) : (
         <label className="finance-collection-workflow__full-width">
           {t('admin.finance.quickPayment.cashDeskAccount')}
@@ -297,9 +303,10 @@ export function QuickPaymentCoreFields({
       {isDrawer ? <div className="finance-quick-payment-drawer-amount">{amountField}</div> : amountField}
       {afterAmount}
       {paymentMethodBlock}
+      {isDrawer && drawerJournalPlacement === 'primary' ? journalField : null}
       {isDrawer ? <div className="finance-quick-payment-drawer-meta">{dateField}</div> : dateField}
       {methodSpecificFields}
-      {isDrawer ? drawerDetails : journalField}
+      {isDrawer ? (hideDrawerAdditionalDetails ? null : drawerDetails) : journalField}
       {defaultNotesBlock}
       {footer}
     </div>
