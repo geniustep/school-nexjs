@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FinanceAmountInput } from '@/features/admin/finance/finance-amount-input';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { formatInstallmentLabel } from '@/features/admin/finance/collection-labels';
-import { canAllocateToInstallment } from '@/features/admin/finance/collection-allocation-utils';
+import { isStudentCollectionRowSelectable } from '@/features/admin/finance/student-collection-schedule-rows';
 import { calculateMonthPaymentProgress } from './monthly-installment-progress';
 import { InstallmentStatusBadges } from '@/features/admin/student-finance/components/installment-status-badges';
 import { useFormat } from '@/features/i18n/use-format';
@@ -58,6 +58,7 @@ export function MonthlyInstallmentPicker({
   currency,
   selectedIds,
   allocationInputs,
+  eligibleInstallmentIds,
   onAllocationChange,
 }: {
   installments: StudentInstallment[];
@@ -65,6 +66,8 @@ export function MonthlyInstallmentPicker({
   currency?: string | null;
   selectedIds: number[];
   allocationInputs: Record<number, string>;
+  /** Server-declared collectible rows: full schedule is display-only beyond these IDs. */
+  eligibleInstallmentIds?: number[];
   onAllocationChange: (values: Record<number, string>) => void;
 }) {
   const t = useT();
@@ -72,6 +75,8 @@ export function MonthlyInstallmentPicker({
   const { formatDate } = useFormat();
   const groups = useMemo(() => groupInstallmentsByMonth(installments, locale), [installments, locale]);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+  const canSelect = (row: StudentInstallment) =>
+    isStudentCollectionRowSelectable(row, eligibleInstallmentIds);
 
   useEffect(() => {
     if (!groups.length) {
@@ -82,7 +87,7 @@ export function MonthlyInstallmentPicker({
   }, [groups]);
 
   function changeInstallment(row: StudentInstallment, checked: boolean) {
-    if (!canAllocateToInstallment(row)) return;
+    if (!canSelect(row)) return;
     const next = { ...allocationInputs };
     if (checked) next[row.id] = String(row.remaining_amount ?? 0);
     else delete next[row.id];
@@ -92,7 +97,7 @@ export function MonthlyInstallmentPicker({
   function changeMonth(rows: StudentInstallment[], checked: boolean) {
     const next = { ...allocationInputs };
     for (const row of rows) {
-      if (!canAllocateToInstallment(row)) continue;
+      if (!canSelect(row)) continue;
       if (checked) next[row.id] = String(row.remaining_amount ?? 0);
       else delete next[row.id];
     }
@@ -123,7 +128,7 @@ export function MonthlyInstallmentPicker({
 
       <div className="monthly-installment-picker__months">
         {groups.map((group) => {
-          const selectable = group.installments.filter(canAllocateToInstallment);
+          const selectable = group.installments.filter(canSelect);
           const selectedCount = selectable.filter((row) => selectedIds.includes(row.id)).length;
           const allSelected = selectable.length > 0 && selectedCount === selectable.length;
           const expanded = expandedMonth === group.key;
@@ -185,7 +190,7 @@ export function MonthlyInstallmentPicker({
               {expanded ? (
                 <div className="monthly-installment-picker__rows">
                   {group.installments.map((row) => {
-                    const selectableRow = canAllocateToInstallment(row);
+                    const selectableRow = canSelect(row);
                     const selected = selectedIds.includes(row.id);
                     const { title, subtitle } = formatInstallmentLabel(row, t, formatDate, formatPeriodRange, locale);
                     return (
