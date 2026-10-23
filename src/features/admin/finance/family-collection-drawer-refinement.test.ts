@@ -9,7 +9,9 @@ describe('family drawer refinements', () => {
   it('uses one additional-details section with journal in primary position', () => {
     expect(family).toContain('hideDrawerAdditionalDetails');
     expect(core).toContain('hideDrawerAdditionalDetails ? null : drawerDetails');
-    expect(family).toContain('drawerJournalPlacement="primary"');
+    expect(family).toContain('drawerJournalPlacement="details"');
+    expect(family).toContain('alternativeJournals.length > 1');
+    expect(family).toContain('family-collection-alternate-journal');
   });
   it('hides redundant text without bypassing cash-session gate', () => {
     expect(family).not.toContain('studentScopedEntry');
@@ -35,7 +37,10 @@ describe('family drawer refinements', () => {
     expect(family).toContain("setAmountPreset('overdue')");
     expect(family).toContain("setAmountPreset('all')");
     expect(family).toContain("setAmountPreset('custom')");
+    expect(family).not.toContain("t('admin.finance.billingAccounts.familyCollection.amountCustomLabel')");
     expect(family).toContain('FamilyCollectionManualEditor');
+    expect(family).toContain('FamilyCollectionDueTable');
+    expect(family.indexOf('<FamilyCollectionDueTable')).toBeLessThan(family.indexOf('<QuickPaymentCoreFields'));
   });
   it('has translations for all locales', () => {
     for (const loc of ['ar','fr','en','es']) {
