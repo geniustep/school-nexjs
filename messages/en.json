@@ -12079,6 +12079,7 @@
         "paidAmountHint": "You may enter an amount lower or higher than one installment. It will be allocated automatically to open installments by oldest due date, within the remaining balance.",
         "paidAmountFromInstallmentsHint": "The amount is updated from selected installments. Edit an installment for a partial payment, or edit the total to add a credit balance.",
         "monthlyInstallmentsTitle": "Installments by month",
+        "monthlyHistoryUnavailable": "The full installment history is temporarily unavailable; only collectible installments are shown.",
         "monthlyProgressLabel": "Payment progress",
         "monthlyProgressAria": "Payment progress for {month}",
         "monthlyProgressPreviouslyPaid": "Previously collected",

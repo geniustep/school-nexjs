@@ -12079,6 +12079,7 @@
         "paidAmountHint": "Puede introducir un importe menor o mayor que una cuota. Se repartirá automáticamente en las cuotas abiertas por antigüedad, dentro del saldo pendiente.",
         "paidAmountFromInstallmentsHint": "El importe se actualiza a partir de las cuotas seleccionadas. Edite una cuota para un pago parcial o el total para añadir un saldo a favor.",
         "monthlyInstallmentsTitle": "Cuotas por mes",
+        "monthlyHistoryUnavailable": "El historial completo de cuotas no está disponible temporalmente; solo se muestran las cuotas cobrables.",
         "monthlyProgressLabel": "Progreso del pago",
         "monthlyProgressAria": "Progreso de las cuotas de {month}",
         "monthlyProgressPreviouslyPaid": "Cobrado anteriormente",

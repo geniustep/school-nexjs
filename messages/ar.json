@@ -12328,6 +12328,7 @@
         "paidAmountHint": "يمكن إدخال مبلغ أقل أو أكبر من القسط. سيتم توزيع المبلغ تلقائيًا على الأقساط المفتوحة حسب الأقدمية، داخل حدود المتبقي.",
         "paidAmountFromInstallmentsHint": "يُحدَّث المبلغ من الأقساط المحددة. عدّل مبلغ القسط للتسديد الجزئي، أو عدّل المبلغ لإضافة رصيد دائن.",
         "monthlyInstallmentsTitle": "الأقساط حسب الشهر",
+        "monthlyHistoryUnavailable": "سجل الأقساط الكامل غير متاح حاليًا؛ تُعرض الأقساط القابلة للتحصيل فقط.",
         "monthlyProgressLabel": "نسبة الأداء",
         "monthlyProgressAria": "نسبة الأداء لأقساط {month}",
         "monthlyProgressPreviouslyPaid": "مؤدى سابقًا",
