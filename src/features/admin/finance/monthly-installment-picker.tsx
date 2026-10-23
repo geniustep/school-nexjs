@@ -5,6 +5,7 @@ import { FinanceAmountInput } from '@/features/admin/finance/finance-amount-inpu
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { formatInstallmentLabel } from '@/features/admin/finance/collection-labels';
 import { canAllocateToInstallment } from '@/features/admin/finance/collection-allocation-utils';
+import { calculateMonthPaymentProgress } from './monthly-installment-progress';
 import { InstallmentStatusBadges } from '@/features/admin/student-finance/components/installment-status-badges';
 import { useFormat } from '@/features/i18n/use-format';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -126,6 +127,7 @@ export function MonthlyInstallmentPicker({
           const selectedCount = selectable.filter((row) => selectedIds.includes(row.id)).length;
           const allSelected = selectable.length > 0 && selectedCount === selectable.length;
           const expanded = expandedMonth === group.key;
+          const progress = calculateMonthPaymentProgress(group.installments, allocationInputs);
           return (
             <section key={group.key} className={`monthly-installment-picker__month${expanded ? ' is-open' : ''}`}>
               <div className="monthly-installment-picker__month-head">
@@ -159,6 +161,27 @@ export function MonthlyInstallmentPicker({
                 ) : null}
               </div>
 
+              {progress.available ? (
+                <div className="monthly-installment-picker__progress">
+                  <div className="monthly-installment-picker__progress-caption">
+                    <span>{t('admin.finance.collectionWorkflow.monthlyProgressLabel')}</span>
+                    <strong>{progress.afterPercent}%</strong>
+                  </div>
+                  <div className="monthly-installment-picker__progress-track"
+                       role="progressbar"
+                       aria-label={t('admin.finance.collectionWorkflow.monthlyProgressAria', { month: group.label })}
+                       aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress.afterPercent}>
+                    <span className="monthly-installment-picker__progress-confirmed" style={{ width: `${progress.confirmedPercent}%` }} />
+                    <span className="monthly-installment-picker__progress-proposed" style={{ width: `${progress.proposedPercent}%` }} />
+                  </div>
+                  <p className="monthly-installment-picker__progress-legend">
+                    <span><i aria-hidden className="monthly-installment-picker__legend-dot" />{t('admin.finance.collectionWorkflow.monthlyProgressPreviouslyPaid')}</span>
+                    <span><i aria-hidden className="monthly-installment-picker__legend-dot monthly-installment-picker__legend-dot--proposed" />{t('admin.finance.collectionWorkflow.monthlyProgressProposed')}</span>
+                  </p>
+                </div>
+              ) : (
+                <p className="monthly-installment-picker__progress-unavailable">{t('admin.finance.collectionWorkflow.monthlyProgressUnavailable')}</p>
+              )}
               {expanded ? (
                 <div className="monthly-installment-picker__rows">
                   {group.installments.map((row) => {
