@@ -29,7 +29,7 @@ import {
 } from '@/features/admin/finance/billing-partner-resolve';
 import { CollectionFormBlockers } from '@/features/admin/finance/collection-form-blockers';
 import { getCollectionSubmitBlockers } from '@/features/admin/finance/collection-form-validation';
-import { MonthlyInstallmentPicker } from '@/features/admin/finance/monthly-installment-picker';
+import { StudentCollectionMonthlySchedule } from '@/features/admin/finance/student-collection-monthly-schedule';
 import { SelectedStudentFinanceBar } from '@/features/admin/finance/selected-student-finance-bar';
 import '@/features/admin/finance/finance-ui.css';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
@@ -1013,9 +1013,12 @@ function CollectionWorkflowFormReady({
               />
 
               {flexiblePrepaymentFlow ? (
-                <MonthlyInstallmentPicker
-                  installments={openInstallments}
-                  loading={collectibleState.loading}
+                <StudentCollectionMonthlySchedule
+                  key={`${activeSchoolId ?? 'all'}:${selectedStudent.id}:${academicYearId}`}
+                  studentId={selectedStudent.id}
+                  academicYearId={academicYearId}
+                  collectibleInstallments={openInstallments}
+                  collectibleLoading={collectibleState.loading}
                   currency={journalCurrency}
                   selectedIds={selectedInstallmentIds}
                   allocationInputs={allocationInputs}
