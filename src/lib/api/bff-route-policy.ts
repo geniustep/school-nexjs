@@ -339,6 +339,33 @@ const ROUTE_RULES: RouteRule[] = [
     test: (p) =>
       /^\/communication\/announcements\/[^/]+\/attachments\/[^/]+\/(?:download|preview|thumbnail)$/.test(p),
   },
+  /** Notification Center V1 — explicit paths/methods, never a wildcard family. */
+  {
+    methods: ['GET'],
+    test: (p) => p === '/notifications' || p === '/notifications/unread-count',
+  },
+  {
+    methods: ['GET'],
+    test: (p) => /^\/notifications\/[1-9]\d*$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => /^\/notifications\/[1-9]\d*\/read$/.test(p),
+  },
+  {
+    methods: ['POST'],
+    test: (p) => p === '/notifications/read-all',
+  },
+  {
+    methods: ['GET', 'PATCH'],
+    test: (p) => p === '/notifications/preferences',
+  },
+  {
+    methods: ['POST'],
+    test: (p) =>
+      p === '/notifications/devices/register' ||
+      p === '/notifications/devices/unregister',
+  },
 ];
 
 export type BffRoutePolicyResult =
