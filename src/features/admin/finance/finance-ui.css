@@ -7837,3 +7837,31 @@
 .finance-family-due__flag,.finance-family-due__overdue{display:block;margin-top:3px;font-size:.72rem;color:var(--c-warning-strong,#b45309)}
 .finance-family-due__overdue{color:var(--c-danger,#b91c1c)}
 .finance-family-due__table tbody tr:hover{background:var(--qp-surface,#f0fdfa)}
+
+/* Student collection Drawer hero and monthly payment progress */
+.finance-quick-payment-drawer .collection-prepayment-summary{padding:0;overflow:hidden;border-radius:16px;border:1px solid color-mix(in srgb,var(--qp-accent,#0d9488) 28%,var(--c-border,#e2e8f0));background:var(--c-surface,#fff);box-shadow:0 5px 18px rgb(15 23 42 / .045)}
+.collection-prepayment-summary__identity{padding:15px 16px 13px;background:linear-gradient(115deg,var(--qp-surface,#effcf9),var(--c-surface,#fff));border-bottom:1px solid var(--c-border,#e2e8f0)}
+.collection-prepayment-summary__eyebrow{display:block;color:var(--c-text-muted,#64748b);font-size:.72rem;font-weight:600;margin-bottom:5px}
+.collection-prepayment-summary__student{font-size:1.09rem;line-height:1.45;margin:0;font-weight:750;overflow-wrap:anywhere}
+.collection-prepayment-summary__student-code{margin:6px 0 0;font-size:.78rem;color:var(--c-text-muted,#64748b);overflow-wrap:anywhere;unicode-bidi:plaintext}
+.collection-prepayment-summary__grid{padding:12px 16px;gap:10px}
+.collection-prepayment-summary__stat{min-width:0;border:1px solid var(--c-border,#e2e8f0);border-radius:10px;padding:10px 12px;background:var(--c-surface-2,#f8fafc)}
+.collection-prepayment-summary__stat dd{margin-top:6px;overflow-wrap:anywhere}
+.collection-prepayment-summary__stat--remaining dd{font-size:1.15rem;font-weight:750;font-variant-numeric:tabular-nums}
+.collection-prepayment-summary__agreement-state{display:inline-block;padding:2px 7px;border-radius:99px;background:var(--qp-surface,#effcf9);color:var(--qp-accent-strong,#0f766e);font-size:.72rem;font-weight:650;margin-inline-start:6px}
+.collection-prepayment-summary__eligibility{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px 14px;border-top:1px solid var(--c-border,#e2e8f0);font-size:.8rem}
+.collection-prepayment-summary__eligibility-label{color:var(--c-text-muted,#64748b)}
+.collection-prepayment-summary__badge{font-weight:650}
+.collection-prepayment-summary__alert{margin:0 16px 14px}
+.monthly-installment-picker__progress{padding:0 12px 12px;display:grid;gap:5px}
+.monthly-installment-picker__progress-caption{display:flex;gap:10px;justify-content:space-between;align-items:baseline;font-size:.72rem;color:var(--c-text-muted,#64748b)}
+.monthly-installment-picker__progress-caption strong{font-weight:750;color:var(--qp-accent-strong,#0f766e);font-variant-numeric:tabular-nums}
+.monthly-installment-picker__progress-track{height:8px;border-radius:99px;background:var(--c-border,#e2e8f0);display:flex;overflow:hidden}
+.monthly-installment-picker__progress-confirmed{height:100%;background:var(--qp-accent,#0d9488)}
+.monthly-installment-picker__progress-proposed{height:100%;background:repeating-linear-gradient(45deg,#5bbeb8 0 5px,#a0e7de 5px 10px)}
+.monthly-installment-picker__progress-legend{display:flex;flex-wrap:wrap;gap:6px 12px;color:var(--c-text-muted,#64748b);font-size:.69rem;margin:0}
+.monthly-installment-picker__progress-legend span{display:inline-flex;align-items:center;gap:4px}
+.monthly-installment-picker__legend-dot{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--qp-accent,#0d9488)}
+.monthly-installment-picker__legend-dot--proposed{background:repeating-linear-gradient(45deg,#5bbeb8 0 4px,#a0e7de 4px 8px)}
+.monthly-installment-picker__progress-unavailable{font-size:.69rem;color:var(--c-text-muted,#64748b);margin:0 12px 12px}
+@media(max-width:480px){.finance-quick-payment-drawer .collection-prepayment-summary__grid{grid-template-columns:1fr}}

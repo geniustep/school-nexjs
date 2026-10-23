@@ -64,6 +64,7 @@ import {
 import { resolveCollectionBilling } from './collection-billing-context';
 import { CollectionReviewStep } from './collection-review-step';
 import { CollectionPrepaymentSummaryCard } from './collection-prepayment-summary-card';
+import { deriveStudentMonthlyAllocation } from './monthly-installment-progress';
 import { isCollectionContextLoading } from './collection-context-view';
 import { CollectionAllocationPreviewPanel } from './collection-allocation-preview-panel';
 import { previewPaymentCollection } from '@/lib/finance/payment-collection-api';
@@ -461,9 +462,21 @@ function CollectionWorkflowFormReady({
     amountManuallyEditedRef.current = true;
     setManualAllocation(false);
     setAmount(value);
+    const proposal = deriveStudentMonthlyAllocation(value, openInstallments);
+    setAllocationInputs(proposal.allocations);
+    setSelectedInstallmentIds(proposal.selectedIds);
     setPreview(null);
     setPreviewError(null);
   }
+
+  // Refresh a draft when installments load after the user typed a value.
+  // No payment is created here; backend preview and confirmation remain authoritative.
+  useEffect(() => {
+    if (!flexiblePrepaymentFlow || manualAllocation || !amountManuallyEditedRef.current) return;
+    const proposal = deriveStudentMonthlyAllocation(amount, openInstallments);
+    setAllocationInputs(proposal.allocations);
+    setSelectedInstallmentIds(proposal.selectedIds);
+  }, [amount, openInstallments, flexiblePrepaymentFlow, manualAllocation]);
 
   function handleMonthlyAllocationChange(values: Record<number, string>) {
     const selectedIds = Object.entries(values)
@@ -955,7 +968,7 @@ function CollectionWorkflowFormReady({
                     : t('admin.finance.collectionAmount')
                 }
                 amountHint={
-                  flexiblePrepaymentFlow
+                  flexiblePrepaymentFlow && !directDrawerFlow
                     ? t('admin.finance.collectionWorkflow.paidAmountFromInstallmentsHint')
                     : undefined
                 }
@@ -1025,6 +1038,7 @@ function CollectionWorkflowFormReady({
                 collectionPath={collectionPath}
                 session={cashSession}
                 checking={checkingCashSession}
+                hideSharedSuccessNotice={directDrawerFlow}
               />
             </section>
           </>
