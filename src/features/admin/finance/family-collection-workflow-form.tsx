@@ -57,9 +57,6 @@ export function FamilyCollectionWorkflowForm({
   familyId,
   accountName,
   source,
-  prefilledStudentId,
-  prefilledStudentName,
-  entrySource,
   onDone,
   onConfirmed,
   onCancel,
@@ -94,6 +91,8 @@ export function FamilyCollectionWorkflowForm({
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [academicYearId, setAcademicYearId] = useState('');
   const [actualPayerName, setActualPayerName] = useState('');
+  const [differentPayer, setDifferentPayer] = useState(false);
+  const [amountPreset, setAmountPreset] = useState<'overdue' | 'all' | 'custom'>('custom');
   const [draftId, setDraftId] = useState<number | null>(null);
   const [successfulCollection, setSuccessfulCollection] = useState<FamilyCollectionCreateResponse | null>(null);
   const [successReceiptNumber, setSuccessReceiptNumber] = useState<string | null>(null);
@@ -148,6 +147,9 @@ export function FamilyCollectionWorkflowForm({
   useEffect(() => {
     setSuccessfulCollection(null);
     setSuccessReceiptNumber(null);
+    setActualPayerName('');
+    setDifferentPayer(false);
+    setAmountPreset('custom');
     setDispositionError(null);
     setAllocationInputs({});
     setAllocationSource('auto');
@@ -674,8 +676,6 @@ export function FamilyCollectionWorkflowForm({
     );
   }
 
-  const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
-
   if (contextState.loading || refLoading) {
     return <LoadingState label={t('admin.finance.billingAccounts.familyCollection.loading')} />;
   }
@@ -716,12 +716,25 @@ export function FamilyCollectionWorkflowForm({
           <span className="muted tiny">{t('admin.finance.billingAccounts.columns.studentCount')}: {studentCount}</span>
         </div>
 
+        <div className="finance-family-collection-kpis" role="group" aria-label={t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')}>
+          {context?.total_remaining != null && Number.isFinite(context.total_remaining) ? (
+            <div className="finance-family-collection-kpis__item"><span>{t('admin.finance.billingAccounts.familyCollection.balanceRemainingLabel')}</span><strong><FinanceMoney amount={context.total_remaining} currency={journalCurrency} /></strong></div>
+          ) : null}
+          {context?.total_overdue != null && Number.isFinite(context.total_overdue) ? (
+            <div className="finance-family-collection-kpis__item"><span>{t('admin.finance.billingAccounts.familyCollection.balanceOverdueLabel')}</span><strong><FinanceMoney amount={context.total_overdue} currency={journalCurrency} /></strong></div>
+          ) : null}
+          <div className="finance-family-collection-kpis__item"><span>{t('admin.finance.billingAccounts.familyCollection.collectibleNowLabel')}</span><strong><FinanceMoney amount={collectibleTotal} currency={journalCurrency} /></strong></div>
+          {context?.credit_balance != null && Number.isFinite(context.credit_balance) && context.credit_balance > 0 ? (
+            <div className="finance-family-collection-kpis__item"><span>{t('admin.finance.billingAccounts.familyCollection.creditAvailableLabel')}</span><strong><FinanceMoney amount={context.credit_balance} currency={journalCurrency} /></strong></div>
+          ) : null}
+        </div>
         <div className="finance-family-collection-presets" role="group" aria-label={t('admin.finance.quickPayment.amountLabel')}>
           {suggestedCollectible > 0 ? (
             <button
               type="button"
               className="finance-family-collection-presets__option"
-              onClick={() => { setAmount(String(suggestedCollectible)); setAllocationSource('auto'); setBackendPreview(null); }}
+              aria-pressed={amountPreset === 'overdue'}
+              onClick={() => { setAmount(String(suggestedCollectible)); setAmountPreset('overdue'); setAllocationSource('auto'); setBackendPreview(null); }}
             >
               <span>{t('admin.finance.quickPayment.currentOverdueLabel')}</span>
               <strong><FinanceMoney amount={suggestedCollectible} currency={journalCurrency} /></strong>
@@ -731,12 +744,16 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="button"
               className="finance-family-collection-presets__option"
-              onClick={() => { setAmount(String(collectibleTotal)); setAllocationSource('auto'); setBackendPreview(null); }}
+              aria-pressed={amountPreset === 'all'}
+              onClick={() => { setAmount(String(collectibleTotal)); setAmountPreset('all'); setAllocationSource('auto'); setBackendPreview(null); }}
             >
               <span>{t('admin.finance.quickPayment.totalCollectibleLabel')}</span>
               <strong><FinanceMoney amount={collectibleTotal} currency={journalCurrency} /></strong>
             </button>
           ) : null}
+          <button type="button" className="finance-family-collection-presets__option" aria-pressed={amountPreset === 'custom'} onClick={() => setAmountPreset('custom')}>
+            <span>{t('admin.finance.billingAccounts.familyCollection.amountCustomLabel')}</span><strong>—</strong>
+          </button>
         </div>
 
         <section className="collection-form-section finance-quick-payment-primary">
@@ -745,10 +762,14 @@ export function FamilyCollectionWorkflowForm({
           </h4>
           <QuickPaymentCoreFields
             variant="drawer"
+            drawerJournalPlacement="primary"
+            hideDrawerAdditionalDetails
             amount={amount}
             onAmountChange={(value) => {
               setAmount(value);
+              setAmountPreset('custom');
               setAllocationSource('auto');
+              setBackendPreview(null);
             }}
             amountLabel={t('admin.finance.quickPayment.amountLabel')}
             currency={journalCurrency}
@@ -778,32 +799,6 @@ export function FamilyCollectionWorkflowForm({
           />
         </section>
 
-        <section className="collection-form-section finance-family-actual-payer">
-          <label className="finance-family-actual-payer__field">
-            <span>{t('admin.finance.billingAccounts.familyCollection.actualPayerName')}</span>
-            <input
-              type="text"
-              className="input"
-              value={actualPayerName}
-              onChange={(event) => setActualPayerName(event.target.value)}
-              placeholder={t('admin.finance.billingAccounts.familyCollection.actualPayerNamePlaceholder')}
-              dir="auto"
-            />
-            <span className="tiny muted">{t('admin.finance.billingAccounts.familyCollection.actualPayerHint')}</span>
-          </label>
-        </section>
-
-        {studentScopedEntry ? (
-          <div className="finance-family-collection-student360-context" role="status">
-            <p className="finance-family-collection-student360-context__lead">
-              {t('admin.finance.billingAccounts.familyCollection.student360Context', {
-                accountName: accountName?.trim() || t('common.dash'),
-                studentName: prefilledStudentName?.trim() || `#${prefilledStudentId}`,
-              })}
-            </p>
-          </div>
-        ) : null}
-
         {collectibleInstallments.length === 0 && !contextState.loading ? (
           <p className="finance-family-collection-empty-notice" role="alert">
             {t('admin.finance.billingAccounts.familyCollection.dispositionMode.noEligibleInstallments')}
@@ -812,12 +807,28 @@ export function FamilyCollectionWorkflowForm({
         {dispositionError ? <p className="form-error" role="alert">{dispositionError}</p> : null}
 
         {canAutoSuggest && context ? (
-          <FamilyCollectionSmartSummary
-            installments={collectibleInstallments}
-            allocationInputs={allocationInputs}
-            currency={currency}
-            unallocatedAmount={unallocatedAmount}
-          />
+          <>
+            <FamilyCollectionSmartSummary
+              installments={collectibleInstallments}
+              allocationInputs={allocationInputs}
+              currency={currency}
+              unallocatedAmount={unallocatedAmount}
+            />
+            <div className="finance-family-collection-allocation-tools">
+              <button type="button" className="btn btn--secondary btn--sm" disabled={confirming || submitting || previewing} onClick={() => setManualEditorOpen(true)}>
+                {t('admin.finance.billingAccounts.familyCollection.editAllocationAction')}
+              </button>
+            </div>
+          </>
+        ) : null}
+        {Number.isFinite(parsedAmount) && parsedAmount > 0 ? (
+          <section className="finance-family-collection-reconciliation" aria-label={t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')}>
+            <dl className="finance-family-collection-reconciliation__grid">
+              <div><dt>{t('admin.finance.billingAccounts.familyCollection.allocationReceivedLabel')}</dt><dd><FinanceMoney amount={parsedAmount} currency={journalCurrency} /></dd></div>
+              <div><dt>{t('admin.finance.billingAccounts.familyCollection.allocationDistributedLabel')}</dt><dd><FinanceMoney amount={allocatedAmount} currency={journalCurrency} /></dd></div>
+              <div><dt>{t('admin.finance.billingAccounts.familyCollection.allocationUndistributedLabel')}</dt><dd><FinanceMoney amount={unallocatedAmount} currency={journalCurrency} /></dd></div>
+            </dl><p className="tiny muted">{t('admin.finance.billingAccounts.familyCollection.allocationIndicativeHint')}</p>
+          </section>
         ) : null}
 
         {backendPreview ? (
@@ -835,6 +846,16 @@ export function FamilyCollectionWorkflowForm({
         <details className="finance-collection-advanced">
           <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
           <div className="finance-collection-advanced__body">
+            <label className="finance-family-actual-payer__toggle">
+              <input type="checkbox" checked={differentPayer} onChange={(event) => { setDifferentPayer(event.target.checked); if (!event.target.checked) setActualPayerName(''); }} />
+              <span>{t('admin.finance.billingAccounts.familyCollection.actualPayerToggle')}</span>
+            </label>
+            {differentPayer ? (
+              <label className="finance-family-actual-payer__field">
+                <span>{t('admin.finance.billingAccounts.familyCollection.actualPayerIdentity')}</span>
+                <input type="text" className="input" value={actualPayerName} onChange={(event) => setActualPayerName(event.target.value)} placeholder={t('admin.finance.billingAccounts.familyCollection.actualPayerNamePlaceholder')} dir="auto" />
+              </label>
+            ) : null}
             <label>
               {t('admin.finance.hub.filterAcademicYear')}
               <select
@@ -860,6 +881,7 @@ export function FamilyCollectionWorkflowForm({
           collectionPath={`/admin/finance/billing-accounts/${familyId}`}
           session={cashSession}
           checking={checkingCashSession}
+          hideSharedSuccessNotice
         />
 
         {submitError ? <p className="form-error">{submitError}</p> : null}
@@ -874,14 +896,6 @@ export function FamilyCollectionWorkflowForm({
             </button>
           </div>
           <div className="finance-collection-workflow__footer-primary">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              disabled={confirming || submitting || previewing || !canAutoSuggest || dispositionMode !== 'allocate_to_installments'}
-              onClick={() => setManualEditorOpen(true)}
-            >
-              {t('admin.finance.billingAccounts.familyCollection.editAllocationAction')}
-            </button>
             <button
               type="submit"
               className="btn btn--ghost"
