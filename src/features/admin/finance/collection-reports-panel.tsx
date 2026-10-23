@@ -73,8 +73,10 @@ function SummaryKpi({
       <strong className="finance-collection-reports__kpi-value">
         {count != null ? (
           <span dir="ltr">{count}</span>
+        ) : amount != null ? (
+          <FinanceMoney amount={amount} currency={currency} />
         ) : (
-          <FinanceMoney amount={amount ?? 0} currency={currency} />
+          <span>—</span>
         )}
       </strong>
     </div>
@@ -346,6 +348,11 @@ export function CollectionReportsPanel({ filters, onFiltersChange }: CollectionR
 
   if (error) {
     return <ApiErrorView error={error} onRetry={activeState.reload} />;
+  }
+
+  // An invalid successful payload is not an empty collection report.
+  if (activeState.data != null && (filters.view === 'details' ? !details : !aggregations)) {
+    return <p className="card" role="alert">{t('admin.finance.unavailable')}</p>;
   }
 
   const detailsEmpty =
