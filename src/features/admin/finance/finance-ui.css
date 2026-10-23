@@ -7821,3 +7821,20 @@
 .finance-family-actual-payer__toggle{display:flex;align-items:center;gap:9px}
 .finance-family-actual-payer__toggle input{accent-color:var(--qp-accent,#0d9488)}
 @media(max-width:540px){.finance-family-collection-reconciliation__grid{grid-template-columns:1fr}}
+
+/* Family dues are visible before entering payment; no duplicate primary journal selector. */
+.finance-family-due{border:1px solid var(--c-border,#e2e8f0);border-radius:12px;background:var(--surface,#fff);overflow:hidden}
+.finance-family-due__heading{padding:11px 14px 7px;display:grid;gap:4px}
+.finance-family-due__heading h4{margin:0;font-size:.94rem}
+.finance-family-due__heading p{margin:0}
+.finance-family-due__scroll{overflow:auto;max-height:295px;overscroll-behavior:contain}
+.finance-family-due__scroll:focus-visible{outline:2px solid var(--qp-accent,#0d9488);outline-offset:-2px}
+.finance-family-due__table{width:100%;min-width:510px;border-collapse:collapse;font-size:.78rem}
+.finance-family-due__table th,.finance-family-due__table td{padding:9px 10px;border-top:1px solid var(--c-border,#e2e8f0);vertical-align:top;text-align:start}
+.finance-family-due__table th{background:var(--c-surface-2,#f8fafc);color:var(--c-text-muted,#64748b);font-weight:650;position:sticky;top:0;z-index:1}
+.finance-family-due__table strong{font-weight:650;display:block}
+.finance-family-due__service{display:block;color:var(--c-text-muted,#64748b);margin-top:3px}
+.finance-family-due__money{text-align:end!important;white-space:nowrap;font-variant-numeric:tabular-nums}
+.finance-family-due__flag,.finance-family-due__overdue{display:block;margin-top:3px;font-size:.72rem;color:var(--c-warning-strong,#b45309)}
+.finance-family-due__overdue{color:var(--c-danger,#b91c1c)}
+.finance-family-due__table tbody tr:hover{background:var(--qp-surface,#f0fdfa)}

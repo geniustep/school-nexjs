@@ -19,13 +19,14 @@ import {
 import type { CollectionChequeFieldValues } from '@/features/admin/finance/collection-cheque-fields';
 import { filterCollectibleFamilyInstallments } from '@/features/admin/finance/family-installment-collectibility';
 import { FamilyCollectionManualEditor } from '@/features/admin/finance/family-collection-manual-editor';
+import { FamilyCollectionDueTable } from '@/features/admin/finance/family-collection-due-table';
 import { fetchFamilyCollectionBackendPreview } from '@/features/admin/finance/family-collection-backend-preview';
 import { FamilyCollectionReviewStep } from '@/features/admin/finance/family-collection-review-step';
 import { resolveFamilyCollectionReceiptId } from '@/features/admin/finance/family-collection-receipt-resolve';
 import { FamilyCollectionSmartSummary } from '@/features/admin/finance/family-collection-smart-summary';
 import { buildSuggestedFamilyAllocations } from '@/features/admin/finance/family-suggested-allocation-utils';
 import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
-import { resolveDefaultPaymentJournal } from '@/features/admin/finance/format-payment-journal';
+import { journalsSupportingMethod, resolveDefaultPaymentJournal } from '@/features/admin/finance/format-payment-journal';
 import { useFamilyCollectionContext } from '@/features/admin/finance/hooks/use-family-collection-context';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { QuickPaymentCoreFields } from '@/features/admin/finance/quick-payment-core-fields';
@@ -198,6 +199,8 @@ export function FamilyCollectionWorkflowForm({
     [journals, journalId],
   );
   const allowedMethods = selectedJournal?.allowed_payment_methods ?? [];
+  // A journal picker is needed only when multiple accounts support the selected method.
+  const alternativeJournals = paymentMethod ? journalsSupportingMethod(journals, paymentMethod) : [];
   const journalCurrency = currencyCode(selectedJournal?.currency) ?? currency ?? undefined;
 
   useEffect(() => {
@@ -728,6 +731,11 @@ export function FamilyCollectionWorkflowForm({
             <div className="finance-family-collection-kpis__item"><span>{t('admin.finance.billingAccounts.familyCollection.creditAvailableLabel')}</span><strong><FinanceMoney amount={context.credit_balance} currency={journalCurrency} /></strong></div>
           ) : null}
         </div>
+        <FamilyCollectionDueTable
+          installments={openInstallments}
+          allocationInputs={allocationInputs}
+          currency={currency}
+        />
         <div className="finance-family-collection-presets" role="group" aria-label={t('admin.finance.quickPayment.amountLabel')}>
           {suggestedCollectible > 0 ? (
             <button
@@ -751,9 +759,6 @@ export function FamilyCollectionWorkflowForm({
               <strong><FinanceMoney amount={collectibleTotal} currency={journalCurrency} /></strong>
             </button>
           ) : null}
-          <button type="button" className="finance-family-collection-presets__option" aria-pressed={amountPreset === 'custom'} onClick={() => setAmountPreset('custom')}>
-            <span>{t('admin.finance.billingAccounts.familyCollection.amountCustomLabel')}</span><strong>—</strong>
-          </button>
         </div>
 
         <section className="collection-form-section finance-quick-payment-primary">
@@ -762,7 +767,7 @@ export function FamilyCollectionWorkflowForm({
           </h4>
           <QuickPaymentCoreFields
             variant="drawer"
-            drawerJournalPlacement="primary"
+            drawerJournalPlacement="details"
             hideDrawerAdditionalDetails
             amount={amount}
             onAmountChange={(value) => {
@@ -846,6 +851,23 @@ export function FamilyCollectionWorkflowForm({
         <details className="finance-collection-advanced">
           <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
           <div className="finance-collection-advanced__body">
+            {alternativeJournals.length > 1 ? (
+              <label>
+                {t('admin.finance.billingAccounts.familyCollection.journalAlternateLabel')}
+                <select
+                  className="input"
+                  data-testid="family-collection-alternate-journal"
+                  value={journalId}
+                  onChange={(event) => { setJournalId(event.target.value); setBackendPreview(null); }}
+                  disabled={refLoading}
+                  required
+                >
+                  {alternativeJournals.map((journal) => (
+                    <option key={journal.id} value={journal.id}>{formatPaymentJournalLabel(journal)}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="finance-family-actual-payer__toggle">
               <input type="checkbox" checked={differentPayer} onChange={(event) => { setDifferentPayer(event.target.checked); if (!event.target.checked) setActualPayerName(''); }} />
               <span>{t('admin.finance.billingAccounts.familyCollection.actualPayerToggle')}</span>
