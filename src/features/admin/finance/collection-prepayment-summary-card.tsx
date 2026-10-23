@@ -56,43 +56,34 @@ export function CollectionPrepaymentSummaryCard({
 
   return (
     <section className="collection-prepayment-summary" aria-label={t('admin.finance.collectionWorkflow.prepaymentSummaryTitle')}>
+      <header className="collection-prepayment-summary__identity">
+        <span className="collection-prepayment-summary__eyebrow">{t('admin.finance.collections.contextSection')}</span>
+        <h3 className="collection-prepayment-summary__student" dir="auto">{studentName?.trim() || t('common.dash')}</h3>
+        {studentCode?.trim() ? <p className="collection-prepayment-summary__student-code" dir="ltr">{studentCode.trim()}</p> : null}
+      </header>
       <dl className="collection-prepayment-summary__grid">
-        <div>
-          <dt>{t('admin.finance.collections.contextSection')}</dt>
-          <dd dir="auto">
-            {[studentName?.trim(), studentCode?.trim()].filter(Boolean).join(' · ') || t('common.dash')}
-          </dd>
-        </div>
-        <div>
+        <div className="collection-prepayment-summary__stat">
           <dt>{t('admin.finance.collectionWorkflow.agreementLabel')}</dt>
           <dd dir="auto">
             {agreementLabel}
-            {agreement?.state ? (
-              <span className="collection-prepayment-summary__state tiny muted"> · {agreement.state}</span>
+            {agreement?.state === 'active' ? (
+              <span className="collection-prepayment-summary__agreement-state">{t('admin.finance.collections.activeAgreement')}</span>
             ) : null}
           </dd>
         </div>
-        <div>
+        <div className="collection-prepayment-summary__stat collection-prepayment-summary__stat--remaining">
           <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
-          <dd>
-            <FinanceMoney amount={summary?.remaining} currency={currency} />
-          </dd>
-        </div>
-        <div>
-          <dt>{t('admin.finance.collectionWorkflow.prepaymentAllowedLabel')}</dt>
-          <dd>
-            <span
-              className={`collection-prepayment-summary__badge${
-                prepaymentKey === 'yes' ? ' is-yes' : ' is-muted'
-              }`}
-            >
-              {prepaymentKey === 'yes'
-                ? t('admin.finance.collectionWorkflow.prepaymentAllowedYes')
-                : t('admin.finance.collectionWorkflow.prepaymentAllowedUnavailable')}
-            </span>
-          </dd>
+          <dd><FinanceMoney amount={summary?.remaining} currency={currency} /></dd>
         </div>
       </dl>
+      <div className="collection-prepayment-summary__eligibility">
+        <span className="collection-prepayment-summary__eligibility-label">{t('admin.finance.collectionWorkflow.prepaymentAllowedLabel')}</span>
+        <span className={`collection-prepayment-summary__badge${prepaymentKey === 'yes' ? ' is-yes' : ' is-muted'}`}>
+          {prepaymentKey === 'yes'
+            ? t('admin.finance.collectionWorkflow.prepaymentAllowedYes')
+            : t('admin.finance.collectionWorkflow.prepaymentAllowedUnavailable')}
+        </span>
+      </div>
       {gateBlock.blocked ? (
         <div className="collection-prepayment-summary__alert" role="alert">
           <p>
