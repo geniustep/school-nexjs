@@ -22,12 +22,14 @@ export function CollectionCashSessionGate({
   collectionPath,
   session: externalSession,
   checking: externalChecking,
+  hideSharedSuccessNotice = false,
 }: {
   journal: PaymentJournal | null | undefined;
   paymentMethod: string;
   collectionPath: string;
   session?: CashSession | null;
   checking?: boolean;
+  hideSharedSuccessNotice?: boolean;
 }) {
   const t = useT();
   const user = useSession();
@@ -77,7 +79,7 @@ export function CollectionCashSessionGate({
     return <p className="muted">{t('admin.finance.cashDesk.checkingSession')}</p>;
   }
   if (access.kind === 'allowed') {
-    if (!access.shared) return null;
+    if (!access.shared || hideSharedSuccessNotice) return null;
     return (
       <p className="cash-desk-collection-shared-note muted">
         {t('admin.finance.cashDesk.collectionSharedSessionNote', {
