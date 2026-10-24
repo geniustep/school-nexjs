@@ -15,6 +15,8 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { ExecutiveKpiMoney } from '@/features/admin/dashboard/executive-dashboard-ui';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { ExecutiveFinanceV2Panel } from '@/features/admin/dashboard/executive-finance-v2-panel';
+import { ExecutiveFinanceIntelligenceV4Panel } from '@/features/admin/dashboard/executive-finance-intelligence-v4-panel';
+import { isFinanceV4CurrentContext } from '@/lib/admin/executive-finance-v4-contract';
 import { financeV2Query, type ExecutiveFinancePeriodScope } from '@/lib/admin/executive-finance-v2-contract';
 import {
   resolveExecutiveAttendanceKpi,
@@ -372,6 +374,8 @@ function ExecutiveDirectorView({
   const financeV2Raw = executiveAvailable ? executive?.finance_summary_v2 ?? null : null;
   const financeV2ChangingPeriod = financeV2Raw !== null && financeV2Raw.meta.period.scope !== financePeriodScope;
   const executiveFinanceV2 = financeV2ChangingPeriod ? null : financeV2Raw;
+  const v4Raw = executiveAvailable ? executive?.finance_intelligence_v4 ?? null : null;
+  const financeV4 = !executiveState.loading && !executiveFailed && v4Raw && isFinanceV4CurrentContext(v4Raw,activeSchoolId,executive?.active_academic_year?.id) ? v4Raw : null;
   const admissionsDashboardCounts = admissionsState.data;
   const openAdmissionsCount = resolveOpenAdmissionsCount(admissionsDashboardCounts);
   const newAdmissionsCount = resolveNewAdmissionsCount(admissionsDashboardCounts);
@@ -1023,6 +1027,7 @@ function ExecutiveDirectorView({
           )}
         </section>
       )}
+      {widgets.financeSummary && financeV4 && <ExecutiveFinanceIntelligenceV4Panel data={financeV4} locale={locale} />}
 
       </div>
 
@@ -1334,6 +1339,7 @@ function ExecutiveDirectorView({
                     {t('admin.executive.linkOverdue')}
                   </Link>
                 </ExecutiveLinkRow>
+                {financeV4 && <ExecutiveFinanceIntelligenceV4Panel data={financeV4} locale={locale} />}
               </ExecutivePanel>
             )}
 
