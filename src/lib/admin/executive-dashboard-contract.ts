@@ -13,6 +13,7 @@ import type {
 import type { Locale } from '@/lib/i18n/config';
 import { DEFAULT_LOCALE } from '@/lib/i18n/config';
 import { readExecutiveFinanceV2 } from '@/lib/admin/executive-finance-v2-contract';
+import { readExecutiveFinanceIntelligenceV4 } from '@/lib/admin/executive-finance-v4-contract';
 import { normalizeLocalizedText } from '@/lib/i18n/normalize-localized-text';
 import {
   buildRegistryDashboardAlert,
@@ -257,6 +258,7 @@ export function normalizeExecutiveDashboard(
     active_academic_year: readAcademicYear(o.active_academic_year, locale),
     finance_summary: readFinanceSummary(o.finance_summary),
     finance_summary_v2: readExecutiveFinanceV2(o.finance_summary_v2),
+    finance_intelligence_v4: readExecutiveFinanceIntelligenceV4(o.finance_intelligence_v4),
     admissions_summary: readAdmissionsSummary(o.admissions_summary),
     attendance_gaps: readAttendanceGaps(o.attendance_gaps),
     school_day_context: readSchoolDayContext(o.school_day_context),
