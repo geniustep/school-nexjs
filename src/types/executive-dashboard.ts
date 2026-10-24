@@ -1,6 +1,7 @@
 // Executive director dashboard — Odoo GET /admin/dashboard/executive contract.
 
 import type { ExecutiveFinanceV2 } from '@/lib/admin/executive-finance-v2-contract';
+import type { ExecutiveFinanceIntelligenceV4 } from '@/lib/admin/executive-finance-v4-contract';
 
 export type ExecutiveAlertSeverity = 'info' | 'warning' | 'critical';
 export type ExecutiveSchoolDayStatus =
@@ -89,6 +90,7 @@ export interface AdminExecutiveDashboard {
   finance_summary: ExecutiveFinanceSummary | null;
   /** Additive Odoo Finance V2; absent or null for old runtimes or without finance.view. */
   finance_summary_v2?: ExecutiveFinanceV2 | null;
+  finance_intelligence_v4?: ExecutiveFinanceIntelligenceV4 | null;
   admissions_summary: ExecutiveAdmissionsSummary | null;
   attendance_gaps: ExecutiveAttendanceGaps | null;
   school_day_context: ExecutiveSchoolDayContext | null;
