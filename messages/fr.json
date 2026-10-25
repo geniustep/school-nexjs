@@ -2966,7 +2966,8 @@
       "staffTitle": "Personnel et permissions",
       "staffCardTitle": "Équipe de l'établissement",
       "staffDesc": "Liens rapides vers le personnel, paramètres et permissions.",
-      "staffNoLinks": "Aucun lien personnel disponible dans vos permissions."
+      "staffNoLinks": "Aucun lien personnel disponible dans vos permissions.",
+      "kpiAttendanceIncomplete": "La saisie des présences n'est pas encore terminée"
     },
     "saveSuccess": "Enregistré avec succès",
     "actionSuccess": "Action effectuée",

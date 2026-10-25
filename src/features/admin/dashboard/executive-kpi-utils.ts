@@ -16,6 +16,17 @@ export type ExecutiveAttendanceKpi = {
   tone: ExecutiveTone;
 };
 
+export type DirectorAttendanceHintVariant = 'not-recorded' | 'incomplete' | 'recorded';
+
+/** Do not confuse a partial, non-numeric KPI with an absence of attendance records. */
+export function resolveDirectorAttendanceHintVariant(
+  kpi: ExecutiveAttendanceKpi,
+): DirectorAttendanceHintVariant {
+  if (kpi.state === 'partial') return 'incomplete';
+  if (kpi.state === 'unavailable' || kpi.displayValue === '—') return 'not-recorded';
+  return 'recorded';
+}
+
 function financeCurrencySymbol(code: string, locale: Locale): string {
   if (code === 'MAD') {
     if (locale === 'ar') return 'د.م.';

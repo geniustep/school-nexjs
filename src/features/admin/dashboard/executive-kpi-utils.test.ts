@@ -5,8 +5,40 @@ import {
   resolveAttendanceTone,
   resolveExecutiveAttendanceKpi,
   resolveLegacyAttendanceKpi,
+  resolveDirectorAttendanceHintVariant,
 } from '@/features/admin/dashboard/executive-kpi-utils';
 import { shouldRenderExecutiveKpiCard } from '@/features/admin/dashboard/executive-dashboard-ui';
+
+describe('director daily dashboard attendance hint — rendered path', () => {
+  it('shows not-recorded copy when attendance is unavailable', () => {
+    const kpi = resolveLegacyAttendanceKpi({ present: 0, absent: 0, late: 0, left_early: 0, total: 0 });
+    expect(resolveDirectorAttendanceHintVariant(kpi)).toBe('not-recorded');
+    expect(translate('ar', 'admin.executive.kpiAttendanceUnavailable')).toBe('لم يسجل الحضور بعد');
+  });
+
+  it('keeps partial attendance distinct from unrecorded attendance even with a dash', () => {
+    const kpi = resolveExecutiveAttendanceKpi({
+      classes_without_attendance_count: 2, absent_today_count: 1, late_today_count: 0,
+      attendance_rate_today: 0,
+    });
+    expect(kpi.displayValue).toBe('—');
+    expect(resolveDirectorAttendanceHintVariant(kpi)).toBe('incomplete');
+    expect(translate('ar', 'admin.executive.kpiAttendanceIncomplete')).toBe('لم يكتمل تسجيل الحضور بعد');
+  });
+
+  it('does not change recorded attendance hints including a real 0%', () => {
+    const recordedZero = resolveExecutiveAttendanceKpi({
+      classes_without_attendance_count: 0, absent_today_count: 3, late_today_count: 0,
+      attendance_rate_today: 0,
+    });
+    expect(resolveDirectorAttendanceHintVariant(recordedZero)).toBe('recorded');
+    const valid = resolveExecutiveAttendanceKpi({
+      classes_without_attendance_count: 0, absent_today_count: 2, late_today_count: 0,
+      attendance_rate_today: 90,
+    });
+    expect(resolveDirectorAttendanceHintVariant(valid)).toBe('recorded');
+  });
+});
 
 describe('executive attendance KPI semantics', () => {
   it('Case A — no attendance records does not show 0%', () => {
