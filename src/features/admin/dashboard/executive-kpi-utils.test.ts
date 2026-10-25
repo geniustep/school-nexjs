@@ -23,7 +23,19 @@ describe('director daily dashboard attendance hint — rendered path', () => {
     });
     expect(kpi.displayValue).toBe('—');
     expect(resolveDirectorAttendanceHintVariant(kpi)).toBe('incomplete');
+    expect(resolveDirectorAttendanceHintVariant(kpi, { recordedCount: 3, absentCount: 1, lateCount: 0 })).toBe('incomplete');
     expect(translate('ar', 'admin.executive.kpiAttendanceIncomplete')).toBe('لم يكتمل تسجيل الحضور بعد');
+  });
+
+  it('shows not-recorded when no attendance is confirmed despite missing classes', () => {
+    const incomplete = resolveExecutiveAttendanceKpi({
+      classes_without_attendance_count: 18, absent_today_count: 0, late_today_count: 0,
+      attendance_rate_today: 0,
+    });
+    expect(incomplete.state).toBe('partial');
+    expect(resolveDirectorAttendanceHintVariant(incomplete, { recordedCount: 0, absentCount: 0, lateCount: 0 })).toBe('not-recorded');
+    expect(resolveDirectorAttendanceHintVariant(incomplete, { recordedCount: null })).toBe('incomplete');
+    expect(resolveDirectorAttendanceHintVariant(incomplete, { recordedCount: 0, absentCount: 1 })).toBe('incomplete');
   });
 
   it('does not change recorded attendance hints including a real 0%', () => {
