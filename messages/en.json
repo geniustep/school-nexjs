@@ -2690,7 +2690,10 @@
       "visibleClassesCount": "Showing {visible} of {total} classes",
       "correctAttendance": "Correct attendance",
       "attendanceRegistered": "Attendance recorded",
-      "viewAttendance": "View attendance"
+      "viewAttendance": "View attendance",
+      "absentEmpty": "No absences recorded for this date.",
+      "absentNoMatch": "No absences match your search.",
+      "absentTab": "Absences"
     },
     "attendanceList": {
       "title": "Attendance",
@@ -10488,7 +10491,7 @@
           "openAccount": "Open account",
           "logContact": "Log contact",
           "logPromise": "Payment promise",
-          "receivePayment": "Receive payment",
+          "receivePayment": "New payment",
           "resolveFollowup": "Resolve follow-up"
         },
         "fields": {

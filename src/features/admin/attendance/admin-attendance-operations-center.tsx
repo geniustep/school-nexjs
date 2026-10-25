@@ -814,7 +814,6 @@ export function AdminAttendanceOperationsCenter() {
         <div>
           <span className="attendance-center-eyebrow">{overview?.academic_year?.name ?? t('attendance.title')}</span>
           <h1>{t('admin.attendanceCenter.title')}</h1>
-          <p>{t('admin.attendanceCenter.subtitle')}</p>
         </div>
         <button type="button" className="btn btn--ghost btn--sm" onClick={() => state.reload()} disabled={state.fetching}>
           {state.fetching ? t('common.loading') : t('admin.attendanceOps.refresh')}
@@ -846,14 +845,13 @@ export function AdminAttendanceOperationsCenter() {
                 <div className="attendance-center-kpi-grid">
                   <Kpi label={t('admin.attendanceCenter.expectedStudents')} value={data.summary.expected_students} />
                   <Kpi label={t('admin.attendanceCenter.recordedStudents')} value={data.summary.recorded_students} />
-                  <Kpi label={t('admin.attendanceCenter.unrecordedStudents')} value={data.summary.unrecorded_students} hint={t('admin.attendanceCenter.unrecordedIsNotAbsent')} />
+                  <Kpi label={t('admin.attendanceCenter.unrecordedStudents')} value={data.summary.unrecorded_students} />
                 </div>
               </div>
 
               <div className="attendance-center-summary__group">
                 <div className="attendance-center-summary__head">
                   <h2>{t('admin.attendanceCenter.attendanceGroup')}</h2>
-                  <span>{t('admin.attendanceCenter.recordedOnlyRates')}</span>
                 </div>
                 <div className="attendance-center-kpi-grid attendance-center-kpi-grid--four">
                   <Kpi label={t('attendance.present')} value={data.summary.present} hint={pct(data.summary.attendance_rate)} />
@@ -945,7 +943,6 @@ export function AdminAttendanceOperationsCenter() {
                     <div>
                       <strong>{t('admin.attendanceCenter.statusFilterTitle')}</strong>
                     </div>
-                    <span>{t('admin.attendanceCenter.visibleClassesCount', { visible: classes.length, total: classOptions.length })}</span>
                   </div>
                   <div className="attendance-center-filter-chips" role="group" aria-label={t('admin.attendanceOps.filtersTitle')}>
                     {CLASS_FILTERS.map((filter) => (
@@ -977,7 +974,7 @@ export function AdminAttendanceOperationsCenter() {
                     aria-pressed={studentView === 'absent'}
                     onClick={() => setStudentView('absent')}
                   >
-                    {t('attendance.absent')} · {data.summary.absent}
+                    {t('admin.attendanceCenter.absentTab')} · {data.summary.absent}
                   </button>
                 </section>
               </div>
@@ -1006,7 +1003,7 @@ export function AdminAttendanceOperationsCenter() {
                 ) : absentLoadFailed && absentRows.length === 0 ? (
                   <p className="attendance-center-empty">{t('attendance.correctPanel.lookupFailed')}</p>
                 ) : visibleAbsentRows.length === 0 ? (
-                  <p className="attendance-center-empty">{t('admin.attendanceCenter.noMatches')}</p>
+                  <p className="attendance-center-empty">{t(search.trim() ? 'admin.attendanceCenter.absentNoMatch' : 'admin.attendanceCenter.absentEmpty')}</p>
                 ) : (
                   <div className="attendance-center-absent-list">
                     {absentLoadFailed ? (
@@ -1054,7 +1051,6 @@ export function AdminAttendanceOperationsCenter() {
                 <div>
                   <span className="attendance-center-eyebrow">{t('admin.attendanceCenter.attentionEyebrow')}</span>
                   <h2>{t('admin.attendanceCenter.attentionTitle')}</h2>
-                  <p>{t('admin.attendanceCenter.attentionSubtitle')}</p>
                 </div>
               </div>
               {data.attention.long_absences.length === 0 ? (

@@ -212,10 +212,16 @@ export function AdmissionCreatePage() {
       <header className="student-create-page__header admissions-create-page__hero">
         <h1 className="student-create-page__title">{t('admin.admissions.create.title')}</h1>
         <p className="student-create-page__desc">{t('admin.admissions.create.subtitle')}</p>
-        <p className="admissions-create-mode-hint muted">
-          {t('admin.admissions.modeChooser.individualHint')}{' '}
-          <Link href="/admin/admissions/family/new">{t('admin.admissions.modeChooser.family')}</Link>
-        </p>
+        <div className="admissions-create-mode-hint">
+          <Link href="/admin/admissions/family/new" className="btn btn--secondary btn--sm admissions-create-family-button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            {t('admin.admissions.modeChooser.family')}
+          </Link>
+        </div>
       </header>
 
       <form className="student-create-form admissions-create-form" onSubmit={handleSubmit} lang={locale}>
@@ -233,7 +239,6 @@ export function AdmissionCreatePage() {
         <StudentCreateStyledSection
           icon="identity"
           title={t('admin.admissions.create.studentSection')}
-          lead={t('admin.admissions.create.studentSectionLead')}
           className="student-create-form__section--identity"
         >
           <EnrollmentIntakeIdentityFields
@@ -260,7 +265,6 @@ export function AdmissionCreatePage() {
         <StudentCreateStyledSection
           icon="enrollment"
           title={t('admin.admissions.create.studySection')}
-          lead={t('admin.admissions.create.studySectionLead')}
           className="student-create-form__section--enrollment"
         >
           <EnrollmentIntakeAcademicFields
@@ -311,7 +315,6 @@ export function AdmissionCreatePage() {
         <StudentCreateStyledSection
           icon="guardian"
           title={t('admin.admissions.guardians.sectionTitle')}
-          lead={t('admin.admissions.guardians.sectionLead')}
           className="student-create-form__section--guardian"
         >
           <AdmissionGuardiansSection

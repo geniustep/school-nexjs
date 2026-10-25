@@ -98,9 +98,6 @@ export function AdmissionGuardiansSection({
         <h2 className="admission-guardians-section__title">
           {t('admin.admissions.guardians.sectionTitle')}
         </h2>
-        <p className="admission-guardians-section__lead">
-          {t('admin.admissions.guardians.sectionLead')}
-        </p>
       </header>
 
       {visibleWarnings.length > 0 ? (
