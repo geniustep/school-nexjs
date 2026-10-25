@@ -295,7 +295,7 @@ export function ArrearsListPanel({
               </span>
             ) : (
               <span>{t('admin.finance.arrears.columns.studentCount')}: {row.student_count ?? t('common.dash')}</span>
-            )
+            )}
           </button>
         ),
       },
