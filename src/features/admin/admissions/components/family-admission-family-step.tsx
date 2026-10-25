@@ -44,7 +44,6 @@ export function FamilyAdmissionFamilyStep({
     <section className="family-admission-step family-admission-family-step">
       <header className="family-admission-step__header">
         <h2 className="family-admission-step__title">{t('admin.admissions.family.familyStepTitle')}</h2>
-        <p className="family-admission-step__lead">{t('admin.admissions.family.familyStepLead')}</p>
       </header>
 
       <div className="family-admission-card">

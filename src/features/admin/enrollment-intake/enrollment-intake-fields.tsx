@@ -515,7 +515,7 @@ export function EnrollmentIntakeIdentityFields({
           field="massarCode"
           label={t('admin.massarCode')}
           error={errors.massarCode}
-          hint={fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
+          hint={intakeContext === 'admissionCreate' ? undefined : fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
         >
           <input
             className="input"
@@ -533,25 +533,12 @@ export function EnrollmentIntakeIdentityFields({
           field="schoolNumber"
           label={t('admin.student360.schoolNumber')}
           error={errors.schoolNumber}
-          hint={fieldHints?.schoolNumber ?? t('admin.student360.create.schoolNumberOptionalHint')}
+          hint={intakeContext === 'admissionCreate' ? undefined : fieldHints?.schoolNumber ?? t('admin.student360.create.schoolNumberOptionalHint')}
         >
           <input
             className="input"
             value={values.schoolNumber}
             onChange={(e) => onPatch({ schoolNumber: e.target.value })}
-            dir="ltr"
-          />
-        </CreateField>
-        <CreateField
-          field="code"
-          label={t('admin.studentCode')}
-          error={errors.code}
-          hint={fieldHints?.code ?? t('admin.student360.create.internalCodeHint')}
-        >
-          <input
-            className="input"
-            value={values.code}
-            onChange={(e) => onPatch({ code: e.target.value })}
             dir="ltr"
           />
         </CreateField>
@@ -562,7 +549,6 @@ export function EnrollmentIntakeIdentityFields({
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.adminDates')} icon="ت">
         <CreateField
           label={t('admin.admissionDate')}
-          hint={t('admin.student360.create.admissionDateHint')}
         >
           <DatePickerInput
             value={values.admissionDate}

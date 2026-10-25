@@ -310,7 +310,6 @@ export function FamilyAdmissionCreatePage() {
 
       <header className="student-create-page__header admissions-create-page__hero">
         <h1 className="student-create-page__title">{t('admin.admissions.family.title')}</h1>
-        <p className="student-create-page__desc">{t('admin.admissions.family.subtitle')}</p>
       </header>
 
       <FamilyAdmissionSteps activeStep={step} />
