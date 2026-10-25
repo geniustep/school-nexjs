@@ -835,7 +835,11 @@ function ExecutiveDirectorView({
   const dailyPriorities = [...allInterventionItems]
     .sort((a, b) => Number(b.tone === 'amber') - Number(a.tone === 'amber'))
     .slice(0, 4);
-  const directorAttendanceHintVariant = resolveDirectorAttendanceHintVariant(attendanceKpi);
+  const directorAttendanceHintVariant = resolveDirectorAttendanceHintVariant(attendanceKpi, {
+    recordedCount: att ? totalRecorded : null,
+    absentCount: attendanceGaps?.absent_today_count,
+    lateCount: attendanceGaps?.late_today_count,
+  });
   const pulseCards = [
     {
       id: 'attendance',
