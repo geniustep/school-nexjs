@@ -2965,7 +2965,8 @@
       "staffTitle": "Staff & permissions",
       "staffCardTitle": "Institution team",
       "staffDesc": "Quick links to staff, settings, and permissions.",
-      "staffNoLinks": "No staff links available within your permissions."
+      "staffNoLinks": "No staff links available within your permissions.",
+      "kpiAttendanceIncomplete": "Attendance recording is not complete yet"
     },
     "saveSuccess": "Saved successfully",
     "actionSuccess": "Action completed",

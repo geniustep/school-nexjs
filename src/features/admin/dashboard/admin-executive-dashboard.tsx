@@ -21,6 +21,7 @@ import { financeV2Query, type ExecutiveFinancePeriodScope } from '@/lib/admin/ex
 import {
   resolveExecutiveAttendanceKpi,
   resolveLegacyAttendanceKpi,
+  resolveDirectorAttendanceHintVariant,
 } from '@/features/admin/dashboard/executive-kpi-utils';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
@@ -86,7 +87,6 @@ const ATT_TONE: Record<AttendanceStatus, 'green' | 'red' | 'amber' | 'blue'> = {
 
 const DIRECTOR_DAILY_COPY = {
   ar: {
-    attendanceDataPending: 'لم تكتمل بيانات الحضور بعد',
     severityUrgent: 'عاجل',
     severityHigh: 'مرتفع',
     severityMedium: 'متوسط',
@@ -117,7 +117,6 @@ const DIRECTOR_DAILY_COPY = {
     noWeeklyFollowup: 'لا توجد متابعة مجدولة هذا الأسبوع',
   },
   en: {
-    attendanceDataPending: 'Attendance data is not complete yet',
     severityUrgent: 'Urgent',
     severityHigh: 'High',
     severityMedium: 'Medium',
@@ -148,7 +147,6 @@ const DIRECTOR_DAILY_COPY = {
     noWeeklyFollowup: 'No follow-up scheduled this week',
   },
   fr: {
-    attendanceDataPending: 'Les données de présence ne sont pas encore complètes',
     severityUrgent: 'Urgent',
     severityHigh: 'Élevée',
     severityMedium: 'Moyenne',
@@ -179,7 +177,6 @@ const DIRECTOR_DAILY_COPY = {
     noWeeklyFollowup: 'Aucun suivi planifié cette semaine',
   },
   es: {
-    attendanceDataPending: 'Los datos de asistencia aún no están completos',
     severityUrgent: 'Urgente',
     severityHigh: 'Alta',
     severityMedium: 'Media',
@@ -838,6 +835,7 @@ function ExecutiveDirectorView({
   const dailyPriorities = [...allInterventionItems]
     .sort((a, b) => Number(b.tone === 'amber') - Number(a.tone === 'amber'))
     .slice(0, 4);
+  const directorAttendanceHintVariant = resolveDirectorAttendanceHintVariant(attendanceKpi);
   const pulseCards = [
     {
       id: 'attendance',
@@ -845,13 +843,10 @@ function ExecutiveDirectorView({
       label: t('admin.executive.kpiAttendance'),
       value: attendanceKpi.displayValue,
       hint:
-        attendanceKpi.state === 'unavailable' || attendanceKpi.displayValue === '—'
-          ? directorCopy.attendanceDataPending
-          : attendanceKpi.state === 'partial'
-            ? t('admin.executive.kpiAttendanceExecutiveHint', {
-                absent: attendanceGaps?.absent_today_count ?? 0,
-                late: attendanceGaps?.late_today_count ?? 0,
-              })
+        directorAttendanceHintVariant === 'incomplete'
+          ? t('admin.executive.kpiAttendanceIncomplete')
+          : directorAttendanceHintVariant === 'not-recorded'
+            ? t('admin.executive.kpiAttendanceUnavailable')
             : t('admin.executive.kpiAttendanceHint', { recorded: totalRecorded }),
     },
     {
