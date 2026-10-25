@@ -16,6 +16,26 @@ export type ExecutiveAttendanceKpi = {
   tone: ExecutiveTone;
 };
 
+export type DirectorAttendanceHintVariant = 'not-recorded' | 'incomplete' | 'recorded';
+
+/** Do not confuse a partial, non-numeric KPI with an absence of attendance records. */
+export function resolveDirectorAttendanceHintVariant(
+  kpi: ExecutiveAttendanceKpi,
+  evidence?: { recordedCount?: number | null; absentCount?: number | null; lateCount?: number | null },
+): DirectorAttendanceHintVariant {
+  if (kpi.state === 'partial') {
+    // Missing classes alone do not prove that anybody recorded attendance.
+    // Use the explicit recorded-total signal, while respecting any contradictory
+    // absence/late evidence from the executive snapshot.
+    if (evidence?.recordedCount === 0 && !(evidence.absentCount ?? 0) && !(evidence.lateCount ?? 0)) {
+      return 'not-recorded';
+    }
+    return 'incomplete';
+  }
+  if (kpi.state === 'unavailable' || kpi.displayValue === '—') return 'not-recorded';
+  return 'recorded';
+}
+
 function financeCurrencySymbol(code: string, locale: Locale): string {
   if (code === 'MAD') {
     if (locale === 'ar') return 'د.م.';

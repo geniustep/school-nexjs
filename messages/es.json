@@ -2965,7 +2965,8 @@
       "staffTitle": "Personal y permisos",
       "staffCardTitle": "Equipo del centro",
       "staffDesc": "Enlaces rápidos a personal, ajustes y permisos.",
-      "staffNoLinks": "No hay enlaces de personal en sus permisos."
+      "staffNoLinks": "No hay enlaces de personal en sus permisos.",
+      "kpiAttendanceIncomplete": "El registro de asistencia aún no está completo"
     },
     "saveSuccess": "Guardado correctamente",
     "actionSuccess": "Acción completada",
