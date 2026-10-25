@@ -11,7 +11,7 @@ export function parseBuild(value: string | undefined): number {
   const parsed = Number(value.trim());
   return Number.isSafeInteger(parsed) ? parsed : 0;
 }
-export function getAndroidUpdatePolicy(env: NodeJS.ProcessEnv = process.env): AndroidUpdatePolicy {
+export function getAndroidUpdatePolicy(env: Readonly<Record<string, string | undefined>> = process.env): AndroidUpdatePolicy {
   const latestBuild = parseBuild(env.RAQEEM_MOBILE_ANDROID_LATEST_BUILD);
   const configuredMinimum = parseBuild(env.RAQEEM_MOBILE_ANDROID_MIN_BUILD);
   const forceEnabled = env.RAQEEM_MOBILE_ANDROID_FORCE_ENABLED === 'true';
