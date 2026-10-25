@@ -46,6 +46,7 @@ import {
 } from '@/lib/utils/normalize-arrears';
 import type { ListParams } from '@/types/api';
 import '@/features/admin/finance/receivable-lists.css';
+import { arrearsFollowupStatusLabel } from './utils/arrears-followup-status-label';
 import './arrears-redesign.css';
 
 type ArrearsListPanelProps = {
@@ -89,6 +90,12 @@ function arrearsAdvancedQuery(filters: ArrearsListFilters): ListParams {
 
 function rowLabel(row: ArrearsFollowupListItem): string {
   return row.guardian_name ?? row.display_name ?? row.family_name ?? `#${arrearsBillingPartnerId(row)}`;
+}
+
+function rowStudentNames(row: ArrearsFollowupListItem): string[] {
+  return Array.from(new Set((row.students ?? [])
+    .map((student) => student.student_name?.trim())
+    .filter((name): name is string => Boolean(name))));
 }
 
 function resolveFollowupBadgeClass(status?: string | null): string {
@@ -282,7 +289,13 @@ export function ArrearsListPanel({
             dir="auto"
           >
             <strong>{rowLabel(row)}</strong>
-            <span>{t('admin.finance.arrears.columns.studentCount')}: {row.student_count ?? t('common.dash')}</span>
+            {rowStudentNames(row).length > 0 ? (
+              <span className="finance-arrears-redesign__student-names" title={rowStudentNames(row).join('، ')} dir="auto">
+                {rowStudentNames(row).join('، ')}
+              </span>
+            ) : (
+              <span>{t('admin.finance.arrears.columns.studentCount')}: {row.student_count ?? t('common.dash')}</span>
+            )}
           </button>
         ),
       },
@@ -322,7 +335,7 @@ export function ArrearsListPanel({
         render: (row) => (
           <div className="finance-arrears-redesign__followup-cell">
             <span className={resolveFollowupBadgeClass(row.followup_status)} dir="auto">
-              {row.followup_status_label ?? row.followup_status ?? t('common.dash')}
+              {arrearsFollowupStatusLabel(row.followup_status, row.followup_status_label, t, t('common.dash'))}
             </span>
             {row.next_followup_date ? (
               <span className="finance-receivable-list__date" dir="ltr">
@@ -482,8 +495,13 @@ export function ArrearsListPanel({
               return (
                 <article key={arrearsBillingPartnerId(row)} className="finance-arrears-card finance-arrears-redesign__mobile-card">
                   <div className="finance-arrears-card__head">
-                    <button type="button" className="finance-arrears-family-link finance-arrears-card__title" onClick={() => openDrawer(row)} dir="auto">{rowLabel(row)}</button>
-                    <span className={resolveFollowupBadgeClass(row.followup_status)} dir="auto">{row.followup_status_label ?? row.followup_status ?? t('common.dash')}</span>
+                    <div className="finance-arrears-redesign__mobile-identity">
+                      <button type="button" className="finance-arrears-family-link finance-arrears-card__title" onClick={() => openDrawer(row)} dir="auto">{rowLabel(row)}</button>
+                      {rowStudentNames(row).length > 0 ? (
+                        <span className="finance-arrears-redesign__student-names" title={rowStudentNames(row).join('، ')} dir="auto">{rowStudentNames(row).join('، ')}</span>
+                      ) : null}
+                    </div>
+                    <span className={resolveFollowupBadgeClass(row.followup_status)} dir="auto">{arrearsFollowupStatusLabel(row.followup_status, row.followup_status_label, t, t('common.dash'))}</span>
                   </div>
                   <div className="finance-arrears-redesign__mobile-due">
                     <span>{t('admin.finance.arrears.columns.actionableOverdue')}</span>

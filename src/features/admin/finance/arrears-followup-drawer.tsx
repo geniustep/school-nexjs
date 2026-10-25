@@ -25,6 +25,7 @@ import {
 } from '@/features/admin/finance/utils/arrears-family-detail-present';
 import { buildArrearsCollectHref } from '@/lib/utils/normalize-arrears';
 import './finance-ui.css';
+import { arrearsFollowupStatusLabel } from './utils/arrears-followup-status-label';
 import './arrears-redesign.css';
 
 const CONTACT_METHODS = ['phone', 'whatsapp', 'sms', 'email', 'in_person'] as const;
@@ -325,7 +326,7 @@ export function ArrearsFollowupDrawer({
           <section className="finance-arrears-redesign-drawer__family-block">
             <div className="finance-arrears-redesign-drawer__section-head">
               <h3>{t('admin.finance.arrears.familyDetails.guardiansTitle')}</h3>
-              {detail.followup_status_label ? <span className="finance-arrears-badge finance-arrears-badge--amber" dir="auto">{detail.followup_status_label}</span> : null}
+              {detail.followup_status_label ? <span className="finance-arrears-badge finance-arrears-badge--amber" dir="auto">{arrearsFollowupStatusLabel(detail.followup_status, detail.followup_status_label, t, t('common.dash'))}</span> : null}
             </div>
             {billingGuardian ? (
               <div className="finance-arrears-redesign-drawer__billing-guardian">
