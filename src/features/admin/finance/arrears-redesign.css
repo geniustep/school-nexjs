@@ -136,6 +136,23 @@
   font-size: 0.74rem;
 }
 
+.finance-arrears-redesign__student-names {
+  display: block;
+  max-width: min(100%, 20rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.finance-arrears-redesign__mobile-identity {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
 .finance-arrears-redesign__money-cell,
 .finance-arrears-redesign__followup-cell,
 .finance-arrears-redesign__promise-cell {

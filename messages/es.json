@@ -2689,7 +2689,10 @@
       "visibleClassesCount": "Mostrando {visible} de {total} clases",
       "correctAttendance": "Corregir asistencia",
       "attendanceRegistered": "Asistencia registrada",
-      "viewAttendance": "Ver asistencia"
+      "viewAttendance": "Ver asistencia",
+      "absentEmpty": "No hay ausencias registradas para esta fecha.",
+      "absentNoMatch": "Ninguna ausencia coincide con su búsqueda.",
+      "absentTab": "Ausencias"
     },
     "attendanceList": {
       "title": "Asistencia",
@@ -10487,7 +10490,7 @@
           "openAccount": "Abrir cuenta",
           "logContact": "Registrar contacto",
           "logPromise": "Promesa de pago",
-          "receivePayment": "Recibir pago",
+          "receivePayment": "Nuevo pago",
           "resolveFollowup": "Resolver seguimiento"
         },
         "fields": {

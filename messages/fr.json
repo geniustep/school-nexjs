@@ -2689,7 +2689,10 @@
       "visibleClassesCount": "{visible} classes affichées sur {total}",
       "correctAttendance": "Corriger les présences",
       "attendanceRegistered": "Présences saisies",
-      "viewAttendance": "Consulter les présences"
+      "viewAttendance": "Consulter les présences",
+      "absentEmpty": "Aucune absence enregistrée à cette date.",
+      "absentNoMatch": "Aucune absence ne correspond à votre recherche.",
+      "absentTab": "Absences"
     },
     "attendanceList": {
       "title": "Présences",
@@ -10506,7 +10509,7 @@
           "openAccount": "Ouvrir le compte",
           "logContact": "Enregistrer un contact",
           "logPromise": "Promesse de paiement",
-          "receivePayment": "Recevoir un paiement",
+          "receivePayment": "Nouveau paiement",
           "resolveFollowup": "Résoudre le suivi"
         },
         "fields": {

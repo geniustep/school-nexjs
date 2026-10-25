@@ -134,7 +134,6 @@ export default function AdminFinanceArrearsPage() {
       </Link>
       <PageHeader
         title={t('admin.finance.arrears.pageTitle')}
-        subtitle={t('admin.finance.arrears.pageDesc')}
         actions={<ArrearsExportActions filters={filters} />}
       />
       <ArrearsListPanel
