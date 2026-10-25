@@ -3069,7 +3069,8 @@
       "staffTitle": "الأطر والصلاحيات",
       "staffCardTitle": "فريق المؤسسة",
       "staffDesc": "روابط سريعة للأطر والإعدادات والصلاحيات.",
-      "staffNoLinks": "لا توجد روابط أطر متاحة ضمن صلاحياتك."
+      "staffNoLinks": "لا توجد روابط أطر متاحة ضمن صلاحياتك.",
+      "kpiAttendanceIncomplete": "لم يكتمل تسجيل الحضور بعد"
     },
     "saveSuccess": "تم الحفظ بنجاح",
     "actionSuccess": "تم تنفيذ الإجراء",
