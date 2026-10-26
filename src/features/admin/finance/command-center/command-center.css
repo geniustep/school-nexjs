@@ -1020,3 +1020,24 @@ a.fcc-kpi:hover {
 .finance-command-center .fcc-non-periodic__help summary { cursor: pointer; color: var(--fcc-primary); }
 .finance-command-center .fcc-non-periodic__help p { margin: 6px 0; line-height: 1.5; }
 .finance-command-center .fcc-aging__current .fcc-aging__label strong { max-width: 100%; overflow-wrap: anywhere; }
+
+/* Annual fee stock is independent of monthly collection-period controls. */
+.fcc-economics__grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.fcc-economics__grid > :nth-child(4) {
+  border-color: color-mix(in srgb, var(--fcc-secondary) 42%, var(--fcc-border));
+  background: color-mix(in srgb, var(--fcc-secondary) 5%, var(--c-surface, #fff));
+}
+.fcc-economics__grid .fcc-kpi__value { font-size: clamp(16px, 1.65vw, 23px); overflow-wrap: anywhere; }
+.fcc-economics__footer {
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 18px;
+  color: var(--fcc-muted); font-size: 12px; line-height: 1.6;
+}
+@media (max-width: 1250px) {
+  .fcc-economics__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .fcc-economics__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 420px) {
+  .fcc-economics__grid { grid-template-columns: minmax(0, 1fr); }
+}

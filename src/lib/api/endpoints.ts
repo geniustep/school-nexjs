@@ -659,6 +659,7 @@ export const endpoints = {
     financeReceiptPdf: (id: number | string) => `/admin/finance/receipts/${id}/pdf`,
     financeOverview: '/admin/finance/overview',
     financeCommandCenterSummary: '/admin/finance/command-center/summary',
+    financeSchoolYearEnrollmentEconomics: '/admin/finance/school-year-enrollment-economics',
     financeCommandCenterCollectionPerformance:
       '/admin/finance/command-center/collection-performance',
     financeCommandCenterAging: '/admin/finance/command-center/aging',
