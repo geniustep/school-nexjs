@@ -35,6 +35,8 @@ import {
   type FinanceCommandCenterDecisionSelection,
 } from './decision-intelligence-sheet';
 import { useFinanceCommandCenter } from './use-finance-command-center';
+import { parseSchoolYearEnrollmentEconomics } from './school-year-economics-contract';
+import { SchoolYearEconomicsSection } from './school-year-economics-section';
 
 const PERIOD_PRESETS: FinanceCommandCenterPeriodPreset[] = [
   'academic_year',
@@ -667,6 +669,15 @@ export function FinanceCommandCenterPage() {
     () => activeAcademicYearId ? { academic_year_id: activeAcademicYearId } : undefined,
     [activeAcademicYearId],
   );
+  const economicsQuery = useMemo(
+    () => activeAcademicYearId ? { academic_year_id: activeAcademicYearId } : undefined,
+    [activeAcademicYearId],
+  );
+  const economicsState = useAdminResource<unknown>(
+    activeSchoolId && activeAcademicYearId ? endpoints.admin.financeSchoolYearEnrollmentEconomics : null,
+    economicsQuery,
+    { keepPreviousData: false },
+  );
   const financeV4State = useAdminResource<unknown>(
     activeSchoolId && activeAcademicYearId ? endpoints.admin.executiveDashboard : null,
     executiveQuery,
@@ -708,8 +719,8 @@ export function FinanceCommandCenterPage() {
   return (
     <div className="admin-workspace finance-command-center">
       <CommandCenterHeader
-        refreshing={commandCenter.refreshing || financeV4State.fetching}
-        onRefresh={() => { commandCenter.refresh(); financeV4State.reload(); }}
+        refreshing={commandCenter.refreshing || financeV4State.fetching || economicsState.fetching}
+        onRefresh={() => { commandCenter.refresh(); financeV4State.reload(); economicsState.reload(); }}
       />
 
       {commandCenter.summary.initialLoading ? (
@@ -718,6 +729,17 @@ export function FinanceCommandCenterPage() {
         <ApiErrorView error={commandCenter.summary.error} onRetry={commandCenter.summary.reload} />
       ) : summary ? (
         <SummarySection summary={summary} onOpenDecision={openDecision} />
+      ) : null}
+
+      {activeSchoolId != null && activeAcademicYearId != null ? (
+        <SchoolYearEconomicsSection
+          key={`${activeSchoolId}:${activeAcademicYearId}`}
+          data={parseSchoolYearEnrollmentEconomics(economicsState.data, activeAcademicYearId)}
+          hasResponse={economicsState.data != null}
+          loading={economicsState.initialLoading}
+          error={economicsState.error}
+          reload={economicsState.reload}
+        />
       ) : null}
 
       <ContextBar period={period} onPeriodChange={setPeriod} />
