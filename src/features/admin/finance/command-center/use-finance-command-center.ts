@@ -17,7 +17,7 @@ import {
 } from './command-center-contract';
 
 export function useFinanceCommandCenter(period: FinanceCommandCenterPeriodState) {
-  const { activeSchoolId, activeAcademicYearId } = useAdminSession();
+  const { activeAcademicYearId } = useAdminSession();
 
   const baseQuery = useMemo<ListParams | undefined>(
     () =>
@@ -25,12 +25,6 @@ export function useFinanceCommandCenter(period: FinanceCommandCenterPeriodState)
         ? { academic_year_id: activeAcademicYearId }
         : undefined,
     [activeAcademicYearId],
-  );
-
-  const economics = useAdminResource<unknown>(
-    activeSchoolId && activeAcademicYearId ? endpoints.admin.financeSchoolYearEnrollmentEconomics : null,
-    baseQuery,
-    { keepPreviousData: false },
   );
 
   const summary = useAdminResource<FinanceCommandCenterSummary>(
@@ -69,22 +63,19 @@ export function useFinanceCommandCenter(period: FinanceCommandCenterPeriodState)
   );
 
   const refresh = useCallback(() => {
-    economics.reload();
     summary.reload();
     performance.reload();
     aging.reload();
     attention.reload();
-  }, [economics.reload, summary.reload, performance.reload, aging.reload, attention.reload]);
+  }, [summary.reload, performance.reload, aging.reload, attention.reload]);
 
   return {
-    economics,
     summary,
     performance,
     aging,
     attention,
     refresh,
     refreshing:
-      economics.fetching ||
       summary.fetching ||
       performance.fetching ||
       aging.fetching ||
