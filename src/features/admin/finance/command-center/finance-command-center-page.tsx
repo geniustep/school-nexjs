@@ -7,6 +7,11 @@ import { Badge, InfoBanner } from '@/components/ui/primitives';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceCanonicalKpis } from '@/features/admin/finance/finance-canonical-kpis';
+import { ExecutiveFinanceIntelligenceV4Panel } from '@/features/admin/dashboard/executive-finance-intelligence-v4-panel';
+import { isFinanceV4CurrentContext } from '@/lib/admin/executive-finance-v4-contract';
+import { normalizeExecutiveDashboard } from '@/lib/admin/executive-dashboard-contract';
+import { endpoints } from '@/lib/api/endpoints';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { parseFinanceCanonicalMetrics } from '@/lib/utils/finance-canonical';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -362,6 +367,19 @@ function MonthComparison({ data, period }: { data: FinanceCommandCenterPerforman
   const previousItem = elapsed[elapsed.length - 2];
   const currentItem = elapsed[elapsed.length - 1];
   const currency = data.meta.currency?.name;
+  const previousRate = previousItem.collection_rate;
+  const currentRate = currentItem.collection_rate;
+  // Historical comparisons require complete settlement attribution on both months.
+  const rateDelta = data.data_quality?.historical_settlement_attribution_complete !== false
+    && previousRate != null && currentRate != null
+    && Number.isFinite(previousRate) && Number.isFinite(currentRate)
+    ? currentRate - previousRate : null;
+  const trendCopy = {
+    ar: { up: 'تحسن', down: 'تراجع', flat: 'استقرار', unit: 'نقطة مئوية', note: 'مقارنة تحصيل مستحقات شهرين مكتملين، وليست مقارنة إجمالي النقد المحصل.' },
+    fr: { up: 'Amélioration', down: 'Baisse', flat: 'Stabilité', unit: 'points', note: 'Comparaison du recouvrement des échéances, pas du total des encaissements.' },
+    en: { up: 'Improvement', down: 'Decline', flat: 'No change', unit: 'percentage points', note: 'Compares due-cohort collection rates, not total cash receipts.' },
+    es: { up: 'Mejora', down: 'Descenso', flat: 'Sin cambios', unit: 'puntos porcentuales', note: 'Compara el cobro de vencimientos, no los cobros de caja totales.' },
+  }[locale];
   return (
     <section className="fcc-month-comparison" aria-label={t('admin.finance.commandCenter.decision.compareTwoMonths')}>
       <div className="fcc-month-comparison__head"><strong>{t('admin.finance.commandCenter.decision.comparison')}</strong></div>
@@ -369,6 +387,13 @@ function MonthComparison({ data, period }: { data: FinanceCommandCenterPerforman
         <ComparisonMonthCard item={previousItem} period={previousItem.period} roleLabel={t('admin.finance.commandCenter.decision.firstMonth')} currency={currency} locale={locale} />
         <ComparisonMonthCard item={currentItem} period={currentItem.period} roleLabel={t('admin.finance.commandCenter.decision.secondMonth')} currency={currency} locale={locale} />
       </div>
+      {rateDelta !== null ? (
+        <p role="status" className="muted">
+          {trendCopy[rateDelta > 0 ? 'up' : rateDelta < 0 ? 'down' : 'flat']}:
+          {' '}{Math.abs(rateDelta).toFixed(1)} {trendCopy.unit}.
+          {' '}{trendCopy.note}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -636,7 +661,24 @@ function AttentionSection({ data, loading, error, reload, onOpenDecision }: {
 
 export function FinanceCommandCenterPage() {
   const t = useT();
-  const { activeAcademicYearId, academicYearLoading, academicYearError } = useAdminSession();
+  const { locale } = useLocale();
+  const { activeSchoolId, activeAcademicYearId, academicYearLoading, academicYearError } = useAdminSession();
+  const executiveQuery = useMemo(
+    () => activeAcademicYearId ? { academic_year_id: activeAcademicYearId } : undefined,
+    [activeAcademicYearId],
+  );
+  const financeV4State = useAdminResource<unknown>(
+    activeSchoolId && activeAcademicYearId ? endpoints.admin.executiveDashboard : null,
+    executiveQuery,
+    { keepPreviousData: false },
+  );
+  const financeV4 = useMemo(() => {
+    if (financeV4State.data == null || !activeSchoolId || !activeAcademicYearId) return null;
+    const dashboard = normalizeExecutiveDashboard(financeV4State.data, locale);
+    const metric = dashboard.finance_intelligence_v4;
+    return metric && isFinanceV4CurrentContext(metric, activeSchoolId, activeAcademicYearId)
+      ? metric : null;
+  }, [financeV4State.data, activeSchoolId, activeAcademicYearId, locale]);
   const [period, setPeriod] = useState<FinanceCommandCenterPeriodState>(DEFAULT_COMMAND_CENTER_PERIOD);
   const [decision, setDecision] = useState<FinanceCommandCenterDecisionSelection | null>(null);
   const commandCenter = useFinanceCommandCenter(period);
@@ -665,7 +707,10 @@ export function FinanceCommandCenterPage() {
 
   return (
     <div className="admin-workspace finance-command-center">
-      <CommandCenterHeader refreshing={commandCenter.refreshing} onRefresh={commandCenter.refresh} />
+      <CommandCenterHeader
+        refreshing={commandCenter.refreshing || financeV4State.fetching}
+        onRefresh={() => { commandCenter.refresh(); financeV4State.reload(); }}
+      />
 
       {commandCenter.summary.initialLoading ? (
         <div className="fcc-kpi-grid" aria-busy="true">{Array.from({ length: 4 }).map((_, index) => <div className="card fcc-kpi fcc-skeleton" key={index} />)}</div>
@@ -676,6 +721,20 @@ export function FinanceCommandCenterPage() {
       ) : null}
 
       <ContextBar period={period} onPeriodChange={setPeriod} />
+      {financeV4 ? (
+        <section aria-label={locale === 'ar' ? 'الالتزام التعاقدي للشهر الجاري' : locale === 'fr' ? 'Engagement du mois en cours' : locale === 'es' ? 'Compromiso del mes actual' : 'Current-month contractual commitment'}>
+          <ExecutiveFinanceIntelligenceV4Panel data={financeV4} locale={locale} />
+          <p className="muted">
+            {locale === 'ar'
+              ? 'مؤشر الشهر الجاري فقط؛ لا يمثل قيمة تاريخية للشهر المختار، ولا تحصيلات نقدية أو أرباحًا.'
+              : locale === 'fr'
+                ? 'Indicateur du mois en cours uniquement, pas une valeur historique du mois sélectionné ni des encaissements ou bénéfices.'
+                : locale === 'es'
+                  ? 'Indicador solo del mes actual; no representa el mes histórico seleccionado, cobros ni beneficios.'
+                  : 'Current-month metric only; not a historical value for the selected month, cash receipts, or profit.'}
+          </p>
+        </section>
+      ) : null}
       <PerformanceSection
         period={period}
         data={commandCenter.performance.data}
