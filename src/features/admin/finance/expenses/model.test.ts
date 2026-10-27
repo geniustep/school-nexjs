@@ -31,3 +31,23 @@ describe('Trusted creation context and retries', () => {
         expect(creationCurrency(data)).toBeNull(); });
     it('reuses a logical create key on retry but rotates when input changes', () => { const a = new ExpenseAttempt(); let id = 0; const gen = () => String(++id); expect(a.key({ amount: '20' }, gen)).toBe('1'); expect(a.key({ amount: '20' }, gen)).toBe('1'); expect(a.key({ amount: '21' }, gen)).toBe('2'); a.clear(); expect(a.key({ amount: '21' }, gen)).toBe('3'); });
 });
+
+describe('V408 approval UX contract', () => {
+    it('requires an explicit approve grant, submitted state, and a server-allowed action', () => {
+        const submitted = { ...expense, approval_state: 'submitted' as const, allowed_actions: ['view', 'approve'] };
+        const approver = { ...user, effective_capabilities: ['finance.expenses.approve'] };
+        expect(canExpenseAction(approver, submitted, 'approve')).toBe(true);
+        expect(canExpenseAction(user, submitted, 'approve')).toBe(false);
+        expect(canExpenseAction(approver, { ...submitted, allowed_actions: ['view'] }, 'approve')).toBe(false);
+        expect(canExpenseAction(approver, { ...submitted, approval_state: 'draft' }, 'approve')).toBe(false);
+        expect(canExpenseAction(approver, { ...submitted, approval_state: 'approved' }, 'approve')).toBe(false);
+    });
+    it('provides translated approval states and operational-gate messaging', () => {
+        for (const copy of Object.values(EXPENSE_COPY)) {
+            expect(copy.approve.trim()).toBeTruthy();
+            expect(copy.approved.trim()).toBeTruthy();
+            expect(copy.more.trim()).toBeTruthy();
+        }
+        expect(expenseErrorKind('approval_not_operational')).toBe('invalid');
+    });
+});
