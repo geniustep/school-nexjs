@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
-import { hasStaffAllowedAction } from '@/features/admin/staff/utils/staff-allowed-actions';
+import { hasStaffAllowedAction, staffActionNavigationHref } from '@/features/admin/staff/utils/staff-allowed-actions';
 import { useT } from '@/features/i18n/locale-context';
 import type { StaffAllowedAction, StaffMember } from '@/types/academic-setup';
 
@@ -22,12 +22,13 @@ const DISABLED_ACTIONS = new Set<StaffAllowedAction>(['link_teacher']);
 export function StaffAllowedActionsBar({
   member,
   userId,
+  canManage,
   onDeactivate,
   onReactivate,
 }: {
   member: StaffMember;
   userId: number;
-  onEdit?: () => void;
+  canManage: boolean;
   onReactivate?: () => void;
   onDeactivate?: () => void;
 }) {
@@ -44,13 +45,20 @@ export function StaffAllowedActionsBar({
     if (!hasStaffAllowedAction(actions, action)) return null;
     const disabled = DISABLED_ACTIONS.has(action);
 
-    if (action === 'edit') {
+    // Do not show links to management routes when the current admin lacks access.
+    if (
+      (action === 'edit' || action === 'manage_scopes' || action === 'manage_permissions') &&
+      !canManage
+    ) {
+      return null;
+    }
+    // The staff detail is already open; do not render an inert "view" button.
+    if (action === 'view') return null;
+
+    const href = staffActionNavigationHref(action, userId, member.admin_kind);
+    if (href) {
       return (
-        <Link
-          key={action}
-          href={`/admin/staff/${userId}/edit`}
-          className="btn btn--ghost btn--sm"
-        >
+        <Link key={action} href={href} className="btn btn--ghost btn--sm">
           {label(action)}
         </Link>
       );
@@ -69,18 +77,6 @@ export function StaffAllowedActionsBar({
         <button key={action} type="button" className="btn btn--primary btn--sm" onClick={onReactivate}>
           {label(action)}
         </button>
-      );
-    }
-
-    if (action === 'manage_scopes' || action === 'manage_permissions') {
-      return (
-        <Link
-          key={action}
-          href={`/admin/settings/academic-setup/staff?id=${userId}`}
-          className="btn btn--ghost btn--sm"
-        >
-          {label(action)}
-        </Link>
       );
     }
 
