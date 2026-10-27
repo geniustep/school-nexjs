@@ -357,7 +357,7 @@ function StaffIdentityAccessForm({
 
         <Card className="staff-center-section">
           <SectionHead title={t('admin.staffCenter.permissionsTitle')} />
-          <div className="col" style={{ gap: 12 }}>
+          <div id="staff-permissions" className="col" style={{ gap: 12, scrollMarginTop: '6rem' }}>
             <label className="col" style={{ gap: 4 }}>
               <span className="tiny muted">{t('admin.academicSetup.adminKindLabel')}</span>
               <select
@@ -521,9 +521,21 @@ export function StaffEditPage({ userId }: { userId: number }) {
                 title={t('admin.academicSetup.editStaff')}
                 subtitle={resolveStaffDisplayName(member)}
                 actions={
-                  <Link href={`/admin/staff/${userId}`} className="btn btn--ghost btn--sm">
-                    {t('common.cancel')}
-                  </Link>
+                  <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                    {canManage ? (
+                      <>
+                        <a href={member.admin_kind === 'general_supervisor' ? '#staff-responsibilities' : '#staff-permissions'} className="btn btn--secondary btn--sm">
+                          {t('admin.staffCenter.actions.managePermissions')}
+                        </a>
+                        <a href="#staff-responsibilities" className="btn btn--ghost btn--sm">
+                          {t('admin.staffCenter.actions.manageScopes')}
+                        </a>
+                      </>
+                    ) : null}
+                    <Link href={`/admin/staff/${userId}`} className="btn btn--ghost btn--sm">
+                      {t('common.cancel')}
+                    </Link>
+                  </div>
                 }
               />
 
@@ -555,12 +567,14 @@ export function StaffEditPage({ userId }: { userId: number }) {
                     onSaved={detailState.reload}
                   />
 
-                  <StaffResponsibilityAssignmentsSection
-                    userId={userId}
-                    options={staffOptions}
-                    canManage={canManage}
-                    onChanged={detailState.reload}
-                  />
+                  <div id="staff-responsibilities" style={{ scrollMarginTop: '6rem' }}>
+                    <StaffResponsibilityAssignmentsSection
+                      userId={userId}
+                      options={staffOptions}
+                      canManage={canManage}
+                      onChanged={detailState.reload}
+                    />
+                  </div>
 
                   {teacherId ? (
                     <StaffTeacherEditSection

@@ -107,7 +107,7 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                   <StaffAllowedActionsBar
                     member={member}
                     userId={resolveStaffUserId(member)}
-                    onEdit={canManage ? () => setEditOpen(true) : undefined}
+                    canManage={canManage}
                     onDeactivate={canManage ? () => setEditOpen(true) : undefined}
                     onReactivate={canManage ? () => setReactivateOpen(true) : undefined}
                   />
@@ -247,7 +247,7 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               canManage={canManage}
               onChanged={() => detailState.reload()}
             />
-            <StaffPermissionsSection member={member} payload={detailState.permissionsPayload} />
+            <StaffPermissionsSection member={member} payload={detailState.permissionsPayload} canManage={canManage} />
               </>
             ) : null}
             <StaffTeacherSection member={member} />

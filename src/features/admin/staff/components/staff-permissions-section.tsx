@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { EmptyState } from '@/components/states/states';
 import { Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
+import { hasStaffAllowedAction } from '@/features/admin/staff/utils/staff-allowed-actions';
 import {
   filterDisplayPermissionCodes,
   resolveStaffPermissionLabel,
@@ -138,9 +140,11 @@ function StaffResponsibilityPermissionSources({ userId }: { userId: number }) {
 export function StaffPermissionsSection({
   member,
   payload,
+  canManage,
 }: {
   member: StaffMember;
   payload?: StaffEffectivePermissionsPayload | null;
+  canManage: boolean;
 }) {
   const t = useT();
 
@@ -153,10 +157,24 @@ export function StaffPermissionsSection({
   const permissionWarnings = payload?.warnings ?? member.warnings;
   const roleLabel = resolveStaffRoleDisplayLabel(member, t);
   const userId = member.user_id ?? member.id;
+  const canEditPermissions =
+    canManage &&
+    (hasStaffAllowedAction(member.allowed_actions, 'manage_permissions') ||
+      hasStaffAllowedAction(member.allowed_actions, 'edit'));
 
   return (
-    <Card className="staff-center-section">
-      <SectionHead title={t('admin.staffCenter.effectivePermissionsTitle')} />
+    <section id="staff-effective-permissions" style={{ scrollMarginTop: '6rem' }}>
+      <Card className="staff-center-section">
+        <SectionHead
+          title={t('admin.staffCenter.effectivePermissionsTitle')}
+          action={
+            canEditPermissions ? (
+              <Link href={`/admin/staff/${userId}/edit#${member.admin_kind === 'general_supervisor' ? 'staff-responsibilities' : 'staff-permissions'}`} className="btn btn--primary btn--sm">
+                {t('admin.staffCenter.actions.managePermissions')}
+              </Link>
+            ) : undefined
+          }
+        />
       <StaffWarningsPanel warnings={permissionWarnings} />
       <DefinitionList
         items={[
@@ -208,7 +226,8 @@ export function StaffPermissionsSection({
         ]}
       />
       <StaffResponsibilityPermissionSources userId={userId} />
-    </Card>
+      </Card>
+    </section>
   );
 }
 
