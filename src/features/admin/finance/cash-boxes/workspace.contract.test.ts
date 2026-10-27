@@ -47,3 +47,23 @@ describe('cash boxes UX redesign invariants',()=>{
   expect(workspace).toContain("key==='user_id'||key==='to_custodian_id'");
  });
 });
+
+describe('cash boxes guarded UX and localization',()=>{
+ it('maps staff selections to verified res.users identities before submission',()=>{
+  expect(workspace).toContain('selectCashStaff(result.data,Number(activeSchoolId))');
+  expect(workspace).toContain('participant&&safeId(fields.user_id)');
+  expect(workspace).toContain('custodian&&safeId(fields.to_custodian_id)');
+  expect(workspace).toContain('value={person.user_id??person.id}');
+ });
+ it('localizes box options and provides meaningful empty states',()=>{
+  expect(workspace).toContain("{display('box_type','collection')}");
+  expect(workspace).toContain('cb-detail-empty');
+  expect(workspace).toContain('cb-list-empty');
+  expect(copy.ar.selectRecord).toBe('اختر صندوقًا أو عملية');
+ });
+ it('keeps financial dialogs keyboard accessible and guards empty submits',()=>{
+  expect(workspace).toContain("event.key==='Escape'");
+  expect(workspace).toContain('ref={dialogRef}');
+  expect(workspace).toContain('!canSubmitForm');
+ });
+});
