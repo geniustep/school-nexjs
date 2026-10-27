@@ -1,6 +1,6 @@
 import type { CurrentUser } from '@/types/user';
 export const EXPENSES_BASE = '/admin/finance/expenses';
-export type ExpenseState = 'draft' | 'submitted' | 'rejected' | 'cancelled';
+export type ExpenseState = 'draft' | 'submitted' | 'approved' | 'rejected' | 'cancelled';
 export interface Category {
     id: number;
     name: string;
@@ -27,10 +27,7 @@ export interface Expense {
     partner_id: number | null;
     beneficiary_label: string | null;
     proposed_amount: string;
-    currency: {
-        id: number;
-        name: string;
-    };
+    currency: ExpenseCurrency;
     approval_state: ExpenseState;
     version: number;
     allowed_actions: string[];
@@ -38,6 +35,7 @@ export interface Expense {
 export interface Bootstrap {
     contract_version: 'expenses-draft-v1';
     school_id: number;
+    approval_operational_enabled?: boolean;
     categories: Category[];
     cost_centers_available: false;
     currency: ExpenseCurrency;
@@ -54,9 +52,9 @@ export interface DraftInput {
 export function expenseCapability(user: CurrentUser, action: string): boolean {
     return user.role === 'admin' && (user.effective_capabilities?.includes(`finance.expenses.${action}`) === true || user.effective_permissions?.some(p => p === `finance.expenses.${action}`) === true);
 }
-export function canExpenseAction(user: CurrentUser, expense: Expense, action: 'edit' | 'submit' | 'cancel' | 'reject'): boolean {
+export function canExpenseAction(user: CurrentUser, expense: Expense, action: 'edit' | 'submit' | 'approve' | 'cancel' | 'reject'): boolean {
     const capability = action === 'edit' ? 'edit_draft' : action;
-    return expenseCapability(user, capability) && expense.allowed_actions.includes(action) && expense.approval_state === (action === 'reject' ? 'submitted' : 'draft');
+    return expenseCapability(user, capability) && expense.allowed_actions.includes(action) && expense.approval_state === (action === 'reject' || action === 'approve' ? 'submitted' : 'draft');
 }
 export function validDraft(input: DraftInput): boolean {
     return Boolean(input.description.trim() && /^\d{4}-\d{2}-\d{2}$/.test(input.expense_date) && input.category_id > 0 && /^(?:\d+)(?:\.\d+)?$/.test(input.amount) && Number.isFinite(Number(input.amount)) && Number(input.amount) > 0 && (input.partner_id || input.beneficiary_label.trim()));
@@ -71,8 +69,9 @@ export function expenseErrorKind(code: string): 'stale' | 'forbidden' | 'invalid
         return 'forbidden';
     if (['not_found', 'expense_not_found'].includes(code))
         return 'missing';
-    if (['validation_error', 'invalid_amount', 'category_archived', 'partner_not_in_school_scope', 'duplicate_record', 'client_field_not_allowed', 'invalid_state_transition', 'idempotency_conflict'].includes(code))
+    if (['validation_error', 'invalid_amount', 'category_archived', 'partner_not_in_school_scope', 'duplicate_record', 'client_field_not_allowed', 'invalid_state_transition', 'idempotency_conflict', 'approval_not_operational'].includes(code))
         return 'invalid';
+    if (code === 'self_approval_forbidden') return 'forbidden';
     return 'retry';
 }
 export interface ExpenseCurrency {
@@ -80,6 +79,18 @@ export interface ExpenseCurrency {
     name: string;
     symbol?: string;
     decimal_places?: number;
+}
+export function displayExpenseAmount(value: string, currency: ExpenseCurrency, locale: string): string {
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return `${value} ${currency.name}`;
+    const digits = Number.isInteger(currency.decimal_places) ? Math.min(6, Math.max(0, currency.decimal_places!)) : 2;
+    const language = locale === 'ar' || locale === 'fr' ? 'fr-MA' : locale === 'es' ? 'es-MA' : 'en-MA';
+    return `${new Intl.NumberFormat(language, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(amount)} ${currency.name}`;
+}
+export function displayExpenseDate(value: string): string {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const [year, month, day] = value.split('-');
+    return `${day}/${month}/${year}`;
 }
 export function creationCurrency(data: unknown): ExpenseCurrency | null {
     if (!data || typeof data !== 'object' || !('currency' in data)) return null;
