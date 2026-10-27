@@ -6,7 +6,7 @@ import type { Expense } from './model';
 const fixture = vi.hoisted(() => ({ grants: [] as string[], gate: false, record: null as Expense | null, get: vi.fn(), post: vi.fn() }));
 vi.mock('@/features/auth/session-context', () => ({ useSession: () => ({ id: 21, role: 'admin', permissions: [], effective_capabilities: ['finance.expenses.view', ...fixture.grants] }) }));
 vi.mock('@/features/auth/admin-session-context', () => ({ useAdminSession: () => ({ activeSchoolId: 3, schools: [{ id: 3, name: 'School' }] }) }));
-vi.mock('@/features/i18n/locale-context', () => ({ useLocale: () => ({ locale: 'ar', dir: 'rtl' }) }));
+vi.mock('@/features/i18n/locale-context', () => ({ useLocale: () => ({ locale: 'ar', dir: 'rtl' }), useT: () => (key: string) => key }));
 vi.mock('@/lib/api/client', () => ({ api: { get: fixture.get, post: fixture.post } }));
 vi.mock('next/link', () => ({ default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a> }));
 const ok = (data: unknown) => ({ success: true, data, meta: { pagination: { total_pages: 1, total: 1, page_size: 20 } } });
