@@ -1,6 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {useLocale} from '@/features/i18n/locale-context';
+import {copy as cashBoxCopy} from '@/features/admin/finance/cash-boxes/copy';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { InfoBanner } from '@/components/ui/primitives';
@@ -27,6 +30,8 @@ import type { CashSession } from '@/types/finance-cash-desk';
 
 export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
   const t = useT();
+  const {locale} = useLocale();
+  const cbText = cashBoxCopy[locale==='en'||locale==='fr'?locale:'ar'];
   const router = useRouter();
   const user = useSession();
   const { activeSchoolId, schools } = useAdminSession();
@@ -114,6 +119,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
 
   return (
     <div className="cash-desk-workspace">
+      <nav className="cb-actions" aria-label={cbText.boxes}><Link className="btn btn--ghost" href="/admin/finance/cash-boxes">{cbText.boxes}</Link><Link className="btn btn--ghost" href="/admin/finance/cash-transfers">{cbText.transfers}</Link><Link className="btn btn--ghost" href="/admin/finance/cash-handovers">{cbText.handovers}</Link></nav>
       <CashDeskPageHeader
         schoolName={activeSchool?.name ?? refName(activeSchool) ?? null}
         sessionState={hasOpenSession ? session?.state ?? null : null}
