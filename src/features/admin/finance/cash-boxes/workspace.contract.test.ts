@@ -32,3 +32,18 @@ describe('cash boxes front-end contract',()=>{
   expect(copy.en.boxes).toBe('Cash boxes');
  });
 });
+
+describe('cash boxes UX redesign invariants',()=>{
+ it('opens financial creation in a dialog rather than below the lists',()=>{
+  expect(workspace).toContain('role="dialog"');
+  expect(workspace).toContain('aria-modal="true"');
+  expect(workspace).toContain('cb-modal-backdrop');
+  expect(workspace).not.toContain('<section className="card cb-form">');
+ });
+ it('chooses participants by a scoped staff name rather than a raw ID input',()=>{
+  expect(workspace).toContain('endpoints.admin.staff');
+  expect(workspace).toContain("active_school_id:activeSchoolId");
+  expect(workspace).toContain('staff.map(person');
+  expect(workspace).toContain("key==='user_id'||key==='to_custodian_id'");
+ });
+});
