@@ -107,6 +107,9 @@ export interface StudentFinancialOverview {
   totals: StudentFinancialOverviewTotals;
   counts: StudentFinancialOverviewCounts;
   next_installment: StudentFinancialOverviewNextInstallment | null;
+  /** Present only on the upgraded Odoo financial-overview contract. */
+  next_future_installment?: StudentFinancialOverviewNextInstallment | null;
+  business_today?: string | null;
   cheque_summary: ChequeSummary | null;
   applied_plans: AppliedFeePlanSummary[];
   special_agreement: SpecialAgreementSummary | null;
