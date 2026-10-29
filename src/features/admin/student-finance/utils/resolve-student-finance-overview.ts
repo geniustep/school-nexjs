@@ -25,6 +25,11 @@ export interface StudentFinanceOverviewMetrics {
   next_installment_display_label: string | null;
   next_installment_state: string | null;
   next_installment_pending_cheque: number | null;
+  /** The actual upcoming installment, not the earliest unpaid legacy installment. */
+  next_future_installment_known: boolean;
+  next_future_installment_amount: number | null;
+  next_future_installment_date: string | null;
+  business_today: string | null;
   has_special_agreement: boolean;
   fees_count: number | null;
   installments_count: number | null;
@@ -41,6 +46,19 @@ export function resolveStudentFinanceOverviewMetrics(
 
   const totals = overview.totals;
   const next = overview.next_installment;
+  const future = overview.next_future_installment;
+  const businessToday = overview.business_today ?? null;
+  // Compare canonical school dates; do not depend on the viewer's device time.
+  const isCanonicalDay = (value: unknown): value is string =>
+    typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const futureIsValid =
+    future != null &&
+    isCanonicalDay(businessToday) &&
+    isCanonicalDay(future.due_date) &&
+    future.due_date > businessToday &&
+    future.remaining_amount > 0 &&
+    future.payment_status !== 'paid' &&
+    !['overdue', 'due', 'not_applicable'].includes(future.timing_status ?? '');
   const agreement = overview.special_agreement;
   const hasSpecialAgreement =
     agreement != null &&
@@ -84,6 +102,11 @@ export function resolveStudentFinanceOverviewMetrics(
     next_installment_display_label: next ? resolveInstallmentDisplayLabel(next) : null,
     next_installment_state: next?.display_state ?? next?.state ?? next?.payment_status ?? null,
     next_installment_pending_cheque: next?.pending_cheque_amount ?? null,
+    next_future_installment_known:
+      future !== undefined && (future === null || futureIsValid),
+    next_future_installment_amount: futureIsValid ? (future?.remaining_amount ?? null) : null,
+    next_future_installment_date: futureIsValid ? (future?.due_date ?? null) : null,
+    business_today: businessToday,
     has_special_agreement: hasSpecialAgreement,
     fees_count: overview.counts?.fees_count ?? null,
     installments_count: overview.counts?.installments_count ?? null,

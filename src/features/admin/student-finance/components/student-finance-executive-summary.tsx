@@ -55,16 +55,26 @@ export function StudentFinanceExecutiveSummary({
   const label = (key: MoroccanExecutiveLabel, translationKey: string) =>
     isArabic ? MOROCCAN_ARABIC_LABELS[key] : t(translationKey);
 
+  // A legacy response can contain an overdue installment; never label it as upcoming.
+  const nextInstallmentEmptyText = metrics.next_future_installment_known
+    ? locale === 'ar'
+      ? 'لا توجد أقساط مقبلة'
+      : locale === 'fr'
+        ? 'Aucune échéance à venir'
+        : 'No upcoming installments'
+    : locale === 'ar'
+      ? 'بانتظار تحديث البيانات المالية'
+      : locale === 'fr'
+        ? 'En attente de mise à jour des données financières'
+        : 'Awaiting financial data update';
   const nextInstallmentValue =
-    metrics.next_installment_amount != null ? (
+    metrics.next_future_installment_amount != null && metrics.next_future_installment_date ? (
       <span className={styles.metricNext}>
-        <FinanceMoney amount={metrics.next_installment_amount} currency={currency ?? undefined} />
-        {metrics.next_installment_date ? (
-          <span className={styles.metricDate}>{formatDate(metrics.next_installment_date)}</span>
-        ) : null}
+        <FinanceMoney amount={metrics.next_future_installment_amount} currency={currency ?? undefined} />
+        <span className={styles.metricDate}>{formatDate(metrics.next_future_installment_date)}</span>
       </span>
     ) : (
-      <span className={styles.metricEmpty}>{t('common.dash')}</span>
+      <span className={styles.metricEmpty}>{nextInstallmentEmptyText}</span>
     );
 
   const summaryItems = [

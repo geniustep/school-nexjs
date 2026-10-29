@@ -47,6 +47,65 @@ describe('resolveStudentFinanceOverviewMetrics', () => {
     expect(metrics?.next_installment_date).toBe('2025-10-05');
   });
 
+  it('never promotes overdue legacy data to the future installment card', () => {
+    const metrics = resolveStudentFinanceOverviewMetrics({
+      ...sampleOverview,
+      business_today: '2026-10-29',
+      next_installment: {
+        id: 4766, remaining_amount: 200, amount: 200,
+        due_date: '2026-09-05', timing_status: 'overdue',
+      },
+    });
+    expect(metrics?.next_installment_amount).toBe(200);
+    expect(metrics?.next_future_installment_known).toBe(false);
+    expect(metrics?.next_future_installment_amount).toBeNull();
+  });
+
+  it('shows hidden future installments to authorized admins without changing totals', () => {
+    const metrics = resolveStudentFinanceOverviewMetrics({
+      ...sampleOverview,
+      business_today: '2026-10-29',
+      next_future_installment: {
+        id: 4768, amount: 200, remaining_amount: 200,
+        due_date: '2026-11-05', timing_status: 'hidden', payment_status: 'unpaid',
+      },
+    });
+    expect(metrics?.next_future_installment_known).toBe(true);
+    expect(metrics?.next_future_installment_amount).toBe(200);
+    expect(metrics?.next_future_installment_date).toBe('2026-11-05');
+    expect(metrics?.annual_total).toBe(22500);
+    expect(metrics?.paid).toBe(2000);
+    expect(metrics?.overdue).toBe(2500);
+    expect(metrics?.remaining).toBe(20500);
+  });
+
+  it('distinguishes no future installment from missing API support', () => {
+    const metrics = resolveStudentFinanceOverviewMetrics({
+      ...sampleOverview, business_today: '2026-10-29', next_future_installment: null,
+    });
+    expect(metrics?.next_future_installment_known).toBe(true);
+    expect(metrics?.next_future_installment_amount).toBeNull();
+  });
+
+  it('rejects an inconsistent future date or overdue timing without using device time', () => {
+    for (const candidate of [
+      { due_date: '2026-09-05', timing_status: 'overdue' },
+      { due_date: '2026-11-05', timing_status: 'overdue' },
+      { due_date: '2026-11-05', timing_status: 'upcoming', remaining_amount: 0 },
+    ]) {
+      const metrics = resolveStudentFinanceOverviewMetrics({
+        ...sampleOverview,
+        business_today: '2026-10-29',
+        next_future_installment: {
+          id: 99, amount: 200, remaining_amount: 200, payment_status: 'unpaid',
+          ...candidate,
+        },
+      });
+      expect(metrics?.next_future_installment_known).toBe(false);
+      expect(metrics?.next_future_installment_date).toBeNull();
+    }
+  });
+
   it('returns null when overview is missing', () => {
     expect(resolveStudentFinanceOverviewMetrics(null)).toBeNull();
   });
