@@ -300,6 +300,13 @@ export function normalizeStudentFinancialOverview(data: unknown): StudentFinanci
     totals: normalizeTotals(totalsRaw as Record<string, unknown>),
     counts: normalizeCounts(raw.counts),
     next_installment: normalizeNextInstallment(raw.next_installment),
+    // Missing on the old API; explicit null means there is no future installment.
+    next_future_installment: !Object.prototype.hasOwnProperty.call(raw, 'next_future_installment')
+      ? undefined
+      : raw.next_future_installment === null
+        ? null
+        : normalizeNextInstallment(raw.next_future_installment) ?? undefined,
+    business_today: typeof raw.business_today === 'string' ? raw.business_today : null,
     cheque_summary: normalizeChequeSummary(raw.cheque_summary),
     applied_plans: appliedPlans,
     special_agreement: normalizeSpecialAgreement(raw.special_agreement),
