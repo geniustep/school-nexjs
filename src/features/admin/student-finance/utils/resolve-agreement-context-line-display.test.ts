@@ -3,6 +3,8 @@ import type { FinancialAgreement, FinancialAgreementLine } from '../types';
 import {
   resolveAgreementContextCurrentTotal,
   resolveAgreementContextLineDisplay,
+  resolveAgreementSchedulePrices,
+  resolveAgreementPeriodPrices,
 } from './resolve-agreement-context-line-display';
 
 describe('agreement context current display', () => {
@@ -83,5 +85,42 @@ describe('agreement context current display', () => {
     } as FinancialAgreement;
 
     expect(resolveAgreementContextCurrentTotal(agreement, 26000)).toBe(24500);
+  });
+
+  it('shows operational rate groups without replacing the historical line price', () => {
+    const installments = Array.from({ length: 10 }, (_, index) => ({
+      id: 100 + index,
+      agreement_line_id: 20,
+      period_start: new Date(Date.UTC(2026, 8 + index, 1)).toISOString().slice(0, 10),
+      amount: index < 3 ? 800 : 1000,
+      state: 'planned',
+    }));
+    const result = resolveAgreementSchedulePrices(20, installments);
+    expect(result.groups).toEqual([{ amount: 800, count: 3 }, { amount: 1000, count: 7 }]);
+    expect(result.periods.reduce((sum, period) => sum + period.amount, 0)).toBe(9400);
+    expect(result.periods).toHaveLength(10);
+  });
+
+  it('never invents monthly rates for missing, ambiguous or cancelled schedule rows', () => {
+    const prices = resolveAgreementPeriodPrices(20, [
+      { id: 1, agreement_line_id: 20, period_start: '2026-10-01', amount: 800 },
+      { id: 2, agreement_line_id: 20, period_start: '2026-11-01', amount: 800 },
+      { id: 3, agreement_line_id: 20, period_start: '2026-11-01', amount: 1000 },
+      { id: 4, agreement_line_id: 20, period_start: '2026-12-01', amount: 200, state: 'cancelled' },
+    ], [
+      { id: 10, periodStart: '2026-10-01' },
+      { id: 11, periodStart: '2026-11-01' },
+      { id: 12, periodStart: '2026-12-01' },
+    ]);
+    expect(prices).toEqual({ '10': 800 });
+  });
+
+  it('ignores historical/cancelled installments when describing operational prices', () => {
+    const prices = resolveAgreementSchedulePrices(30, [
+      { id: 1, agreement_line_id: 30, amount: 1000, state: 'planned' },
+      { id: 2, agreement_line_id: 30, amount: 400, state: 'cancelled' },
+      { id: 3, agreement_line_id: 99, amount: 2000, state: 'planned' },
+    ]);
+    expect(prices.groups).toEqual([{ amount: 1000, count: 1 }]);
   });
 });
