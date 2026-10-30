@@ -1,6 +1,9 @@
 'use client';
 
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { useLocale } from '@/features/i18n/locale-context';
+import type { AgreementScheduleItem } from '../types';
+import { resolveAgreementSchedulePrices } from '../utils/resolve-agreement-context-line-display';
 import { useT } from '@/features/i18n/locale-context';
 import type { AgreementAmendmentOperationType } from '../types/agreement-amendment';
 import type { AgreementAmendmentLineOption } from '../utils/resolve-amendment-form-options';
@@ -63,6 +66,7 @@ function resolveOperationBlockReasonLabel(
 
 export function AgreementAmendmentLinePicker({
   lines,
+  installments = [],
   selectedLineId,
   currency,
   operationType,
@@ -70,6 +74,7 @@ export function AgreementAmendmentLinePicker({
   onSelect,
 }: {
   lines: AgreementAmendmentLineOption[];
+  installments?: AgreementScheduleItem[];
   selectedLineId: string;
   currency?: string | null;
   operationType: AgreementAmendmentOperationType;
@@ -77,6 +82,9 @@ export function AgreementAmendmentLinePicker({
   onSelect: (lineId: string) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const priceLabel = locale === 'ar' ? 'السعر الأصلي المرجعي' : locale === 'fr' ? 'Prix initial de référence' : locale === 'es' ? 'Precio original de referencia' : 'Original reference price';
+  const appliedLabel = locale === 'ar' ? 'الأسعار المطبقة حسب الأشهر' : locale === 'fr' ? 'Tarifs appliqués selon les mois' : locale === 'es' ? 'Precios aplicados por mes' : 'Monthly operational rates';
 
   return (
     <div className="student-finance-amendment-line-picker">
@@ -98,7 +106,8 @@ export function AgreementAmendmentLinePicker({
           const periodAmendable =
             operationType === 'reconcile_periods' ? selectable : lineSupportsPeriodAmendment(line);
           const fullyBlocked = isLineFullyBlockedForAmendment(line);
-          const compactPrice = line.unitPrice ?? line.amount;
+          const schedule = resolveAgreementSchedulePrices(line.agreementLineId, installments);
+          const compactPrice = schedule.groups.length === 1 ? schedule.groups[0]!.amount : null;
 
           return (
             <li key={line.id}>
@@ -171,7 +180,7 @@ export function AgreementAmendmentLinePicker({
                     <dd>{line.quantity ?? t('common.dash')}</dd>
                   </div>
                   <div>
-                    <dt>{t('admin.student360.financialAgreement.columns.unitPrice')}</dt>
+                    <dt>{priceLabel}</dt>
                     <dd>
                       {line.unitPrice != null ? (
                         <FinanceMoney amount={line.unitPrice} currency={currency ?? undefined} />
@@ -191,6 +200,14 @@ export function AgreementAmendmentLinePicker({
                     </dd>
                   </div>
                 </dl>
+                {schedule.groups.length > 0 ? (
+                  <p className="tiny muted" dir="auto">
+                    {appliedLabel}: {' '}
+                    {schedule.groups.map((group) =>
+                      `${group.amount.toLocaleString('fr-MA')} × ${group.count}`,
+                    ).join(' · ')}
+                  </p>
+                ) : null}
                 {selectable && amountAmendable && !periodAmendable ? (
                   <p className="student-finance-amendment-line-picker__reason student-finance-amendment-line-picker__reason--positive">
                     {t('admin.student360.financeWorkspace.agreementAmendment.oneTimeAmountAmendableNote')}
