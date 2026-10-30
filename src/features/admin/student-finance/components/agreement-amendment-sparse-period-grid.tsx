@@ -66,7 +66,7 @@ export function AgreementAmendmentSparsePeriodGrid({
   selectedPeriodIds,
   periodAmountOverrides,
   periodImpacts,
-  baseCurrentAmount,
+  currentAmountsByPeriodId,
   currency,
   loading,
   disabled,
@@ -80,7 +80,7 @@ export function AgreementAmendmentSparsePeriodGrid({
   selectedPeriodIds: string[];
   periodAmountOverrides: Record<string, string>;
   periodImpacts: AgreementAmendmentPeriodImpact[];
-  baseCurrentAmount?: number | null;
+  currentAmountsByPeriodId?: Record<string, number>;
   currency?: string | null;
   loading?: boolean;
   disabled?: boolean;
@@ -115,7 +115,7 @@ export function AgreementAmendmentSparsePeriodGrid({
         const selected = selectedPeriodIds.includes(id);
         const overrideValue = periodAmountOverrides[id] ?? '';
         const hasOverride = overrideValue.trim() !== '';
-        const currentAmount = impact?.currentAmount ?? baseCurrentAmount ?? null;
+        const currentAmount = impact?.currentAmount ?? currentAmountsByPeriodId?.[id] ?? null;
         const proposedAmount = impact?.proposedAmount ?? null;
         const label = formatAmendmentPreviewPeriodLabel(period, locale);
         const editing = editingOverrideId === id;

@@ -47,6 +47,7 @@ import {
 } from '../utils/resolve-agreement-amendment-ambiguous-target';
 import { resolveAgreementAmendmentBlockingMessage } from '../utils/resolve-agreement-amendment-warning';
 import { hasUserChangedServiceDuration } from '../utils/agreement-amendment-user-intent';
+import { resolveAgreementPeriodPrices } from '../utils/resolve-agreement-context-line-display';
 import { AgreementAmendmentLinePicker } from './agreement-amendment-line-picker';
 import { AgreementAmendmentMonthRail } from './agreement-amendment-month-rail';
 import {
@@ -70,7 +71,8 @@ const COPY = {
     add: 'إضافة خدمة',
     remove: 'إزالة خدمة',
     service: 'الخدمة',
-    newPrice: 'السعر الجديد',
+    newPrice: 'السعر الجديد المقترح',
+    enterPrice: 'أدخل السعر الجديد للأشهر المختارة؛ لن نستخدم السعر الأصلي تلقائيًا.',
     price: 'السعر',
     effectiveFrom: 'ابتداءً من شهر',
     noModifyServices: 'لا توجد خدمات قابلة للتعديل.',
@@ -89,7 +91,8 @@ const COPY = {
     add: 'Ajouter un service',
     remove: 'Retirer un service',
     service: 'Service',
-    newPrice: 'Nouveau prix',
+    newPrice: 'Nouveau prix proposé',
+    enterPrice: 'Saisissez le prix des mois choisis. Le prix initial n’est pas réutilisé automatiquement.',
     price: 'Prix',
     effectiveFrom: 'À partir du mois',
     noModifyServices: 'Aucun service modifiable.',
@@ -108,7 +111,8 @@ const COPY = {
     add: 'Add service',
     remove: 'Remove service',
     service: 'Service',
-    newPrice: 'New price',
+    newPrice: 'Proposed new price',
+    enterPrice: 'Enter a price for the selected months; the original rate is never reused automatically.',
     price: 'Price',
     effectiveFrom: 'Starting month',
     noModifyServices: 'No service can be amended.',
@@ -127,7 +131,8 @@ const COPY = {
     add: 'Añadir servicio',
     remove: 'Eliminar servicio',
     service: 'Servicio',
-    newPrice: 'Nuevo precio',
+    newPrice: 'Nuevo precio propuesto',
+    enterPrice: 'Introduzca el precio para los meses elegidos; el precio original no se reutiliza.',
     price: 'Precio',
     effectiveFrom: 'Desde el mes',
     noModifyServices: 'No hay servicios modificables.',
@@ -258,6 +263,14 @@ export function StudentFinanceAgreementAmendmentDialog({
     if (!form.sourceLineId) return null;
     return lineOptions.find((line) => String(line.id) === form.sourceLineId) ?? null;
   }, [form.sourceLineId, lineOptions]);
+  const currentAmountsByPeriodId = useMemo(
+    () => resolveAgreementPeriodPrices(
+      selectedLine?.agreementLineId,
+      (agreementDetails ?? agreement)?.installments ?? [],
+      modifyPeriodOptions,
+    ),
+    [selectedLine?.agreementLineId, agreementDetails, agreement, modifyPeriodOptions],
+  );
   const selectedFeeType = useMemo(
     () => feeTypes.find((feeType) => String(feeType.id) === form.feeTypeId) ?? null,
     [feeTypes, form.feeTypeId],
@@ -420,14 +433,8 @@ export function StudentFinanceAgreementAmendmentDialog({
       effectivePeriodEndId: '',
       selectedPeriodIds: [],
       periodAmountOverrides: {},
-      amount:
-        prev.operationType === 'cancel_line'
-          ? '0'
-          : selected?.unitPrice != null
-            ? String(selected.unitPrice)
-            : selected?.amount != null
-              ? String(selected.amount)
-              : '',
+      // The original agreement line rate is historical, not the effective month rate.
+      amount: prev.operationType === 'cancel_line' ? '0' : '',
     }));
     invalidatePreview();
   }
@@ -828,6 +835,7 @@ export function StudentFinanceAgreementAmendmentDialog({
                 operationType={form.operationType}
                 disabled={!canEdit || !hasSelectableLines}
                 onSelect={handleLineSelection}
+                installments={(agreementDetails ?? agreement)?.installments ?? []}
               />
               {!hasSelectableLines ? (
                 <p className="tiny muted">
@@ -861,8 +869,11 @@ export function StudentFinanceAgreementAmendmentDialog({
                   invalidatePreview();
                 }}
                 disabled={!canEdit}
-                required
+                required={form.operationType === 'add_line' || form.amendmentPath !== 'period_range'}
               />
+              {form.operationType === 'modify_line' ? (
+                <span className="tiny muted">{copy.enterPrice}</span>
+              ) : null}
             </label>
           ) : null}
 
@@ -877,7 +888,7 @@ export function StudentFinanceAgreementAmendmentDialog({
               selectedPeriodIds={form.selectedPeriodIds}
               periodAmountOverrides={form.periodAmountOverrides}
               periodImpacts={preview?.periodImpacts ?? []}
-              baseCurrentAmount={selectedLine.unitPrice ?? selectedLine.amount}
+              currentAmountsByPeriodId={currentAmountsByPeriodId}
               currency={currency}
               loading={periodsLoading}
               disabled={!canEdit}
