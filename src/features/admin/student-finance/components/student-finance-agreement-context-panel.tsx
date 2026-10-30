@@ -19,6 +19,7 @@ import { isAgreementAmendmentAllowed } from '../utils/resolve-agreement-amendmen
 import {
   resolveAgreementContextCurrentTotal,
   resolveAgreementContextLineDisplay,
+  resolveAgreementSchedulePrices,
 } from '../utils/resolve-agreement-context-line-display';
 import { StudentFinanceAgreementAmendmentDialog } from './student-finance-agreement-amendment-dialog';
 import styles from './student-finance-agreement-context-panel.module.css';
@@ -85,6 +86,13 @@ function currentPriceLabel(locale: string): string {
   return 'السعر الحالي';
 }
 
+function agreementPriceCopy(locale: string) {
+  if (locale === 'fr') return { applied: 'Tarifs appliqués', original: 'Prix initial de référence', detail: 'Détail des mensualités', month: 'mois' };
+  if (locale === 'en') return { applied: 'Applied prices', original: 'Original reference price', detail: 'Monthly rate breakdown', month: 'months' };
+  if (locale === 'es') return { applied: 'Precios aplicados', original: 'Precio original de referencia', detail: 'Detalle mensual', month: 'meses' };
+  return { applied: 'الأسعار المطبقة', original: 'السعر المرجعي عند الإنشاء', detail: 'تفصيل الأسعار حسب الشهر', month: 'شهر' };
+}
+
 export function StudentFinanceAgreementContextPanel({
   studentId,
   details,
@@ -108,6 +116,7 @@ export function StudentFinanceAgreementContextPanel({
   const t = useT();
   const { locale } = useLocale();
   const { formatDate } = useFormat();
+  const priceCopy = agreementPriceCopy(locale);
   const [amendmentOpen, setAmendmentOpen] = useState(false);
 
   const feePlan = useMemo(
@@ -245,6 +254,7 @@ export function StudentFinanceAgreementContextPanel({
                       line,
                       displayAgreement?.installments ?? [],
                     );
+                    const schedulePrices = resolveAgreementSchedulePrices(line.id, displayAgreement?.installments ?? []);
                     const durationLabel = formatAgreementLineDuration(
                       locale,
                       lineDisplay.monthCount,
@@ -272,20 +282,22 @@ export function StudentFinanceAgreementContextPanel({
                         </div>
 
                         <div className={styles.linePricing}>
-                          {lineDisplay.currentPrice != null ? (
+                          {schedulePrices.groups.length > 0 ? (
                             <span className={styles.lineMetric}>
-                              {currentPriceLabel(locale)}:
-                              <strong>
-                                <FinanceMoney amount={lineDisplay.currentPrice} currency={currency} />
+                              {lineDisplay.isOneTime ? currentPriceLabel(locale) : priceCopy.applied}:
+                              <strong className={styles.appliedPrices}>
+                                {schedulePrices.groups.map((group) => (
+                                  <span className={styles.appliedPrice} key={group.amount}>
+                                    <FinanceMoney amount={group.amount} currency={currency} />
+                                    {!lineDisplay.isOneTime ? ` × ${group.count} ${priceCopy.month}` : null}
+                                  </span>
+                                ))}
                               </strong>
                             </span>
-                          ) : lineDisplay.priceMin != null && lineDisplay.priceMax != null ? (
+                          ) : lineDisplay.currentPrice != null ? (
                             <span className={styles.lineMetric}>
-                              {currentPriceLabel(locale)}:
-                              <strong>
-                                <FinanceMoney amount={lineDisplay.priceMin} currency={currency} />
-                                {' — '}
-                                <FinanceMoney amount={lineDisplay.priceMax} currency={currency} />
+                              {priceCopy.original}: <strong>
+                                <FinanceMoney amount={lineDisplay.currentPrice} currency={currency} />
                               </strong>
                             </span>
                           ) : null}
@@ -294,7 +306,7 @@ export function StudentFinanceAgreementContextPanel({
                               <strong>{durationLabel}</strong>
                             </span>
                           ) : null}
-                          {discount != null ? (
+                          {discount != null && schedulePrices.periods.length === 0 ? (
                             <span className={styles.lineMetric}>
                               {t('admin.student360.financialAgreement.columns.discount')}:
                               <strong>
@@ -311,6 +323,24 @@ export function StudentFinanceAgreementContextPanel({
                             </span>
                           ) : null}
                         </div>
+                        {line.unit_price != null && schedulePrices.groups.some((rate) => rate.amount !== line.unit_price) ? (
+                          <span className={styles.originalRate}>
+                            {priceCopy.original}: <FinanceMoney amount={line.unit_price} currency={currency} />
+                          </span>
+                        ) : null}
+                        {!lineDisplay.isOneTime && schedulePrices.periods.length > 0 ? (
+                          <details className={styles.monthDetails}>
+                            <summary>{priceCopy.detail}</summary>
+                            <div className={styles.monthGrid}>
+                              {schedulePrices.periods.map((row, i) => (
+                                <div className={styles.monthRow} key={row.id ?? i}>
+                                  <span>{row.period ? formatDate(row.period) : t('common.dash')}</span>
+                                  <strong><FinanceMoney amount={row.amount} currency={currency} /></strong>
+                                </div>
+                              ))}
+                            </div>
+                          </details>
+                        ) : null}
                       </div>
                     );
                   })}
