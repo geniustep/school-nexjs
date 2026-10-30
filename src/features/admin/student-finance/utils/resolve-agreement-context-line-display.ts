@@ -90,3 +90,52 @@ export function resolveAgreementContextLineDisplay(
     total,
   };
 }
+
+/** Monthly operational prices from the agreement schedule, not the historical line rate. */
+export function resolveAgreementSchedulePrices(
+  lineId: number | null | undefined,
+  installments: AgreementScheduleItem[],
+): {
+  periods: { id: number | null; period: string | null; amount: number }[];
+  groups: { amount: number; count: number }[];
+} {
+  const periods = lineId == null ? [] : installments.filter(
+    (row) => row.agreement_line_id === lineId &&
+      row.state !== 'cancelled' && row.state !== 'waived' &&
+      typeof row.amount === 'number' && Number.isFinite(row.amount),
+  ).map((row) => ({
+    id: typeof row.id === 'number' ? row.id : null,
+    period: row.period_start ?? row.display_from ?? row.due_date ?? null,
+    amount: row.amount as number,
+  })).sort((a, b) => (a.period ?? '').localeCompare(b.period ?? ''));
+  const groupMap = new Map<number, number>();
+  for (const period of periods) groupMap.set(period.amount, (groupMap.get(period.amount) ?? 0) + 1);
+  return {
+    periods,
+    groups: [...groupMap.entries()].map(([amount, count]) => ({ amount, count })).sort((a, b) => a.amount - b.amount),
+  };
+}
+
+/**
+ * Only one-to-one month matches are displayed as current rates.
+ * A missing or ambiguous month is never filled from historical unit_price.
+ */
+export function resolveAgreementPeriodPrices(
+  lineId: number | null | undefined,
+  installments: AgreementScheduleItem[],
+  options: { id: number; periodStart?: string | null; periodKey?: string | null }[],
+): Record<string, number> {
+  const periods = resolveAgreementSchedulePrices(lineId, installments).periods;
+  const byMonth = new Map<string, number[]>();
+  for (const row of periods) {
+    const month = row.period?.match(/^\d{4}-\d{2}/)?.[0];
+    if (month) byMonth.set(month, [...(byMonth.get(month) ?? []), row.amount]);
+  }
+  const out: Record<string, number> = {};
+  for (const option of options) {
+    const month = (option.periodStart ?? option.periodKey ?? '').match(/^\d{4}-\d{2}/)?.[0];
+    const prices = month ? byMonth.get(month) : null;
+    if (prices?.length === 1) out[String(option.id)] = prices[0]!;
+  }
+  return out;
+}
