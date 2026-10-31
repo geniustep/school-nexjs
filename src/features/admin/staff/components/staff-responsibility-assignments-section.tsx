@@ -7,6 +7,18 @@ import { useToast } from '@/components/ui/toast';
 import { fetchAdminAcademicContextOptions } from '@/features/academic-context/api/academic-context-api';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { resolveStaffPermissionLabel } from '@/features/admin/staff/utils/staff-center-present';
+import {
+  groupCapabilitiesByCategory,
+  resolveCapabilityCategoryLabel,
+  resolveCapabilityLabel,
+} from '@/features/admin/academic-setup/utils/capability-present';
+import {
+  RESPONSIBILITY_PICKER_COPY,
+  countUnavailableSelectedCapabilities,
+  filterResponsibilityCapabilities,
+  grantableResponsibilityCapabilities,
+  readableResponsibilityCapabilityLabel,
+} from '@/features/admin/staff/utils/staff-responsibility-capability-picker';
 import { useStaffResponsibilityAssignments } from '@/features/admin/staff/hooks/use-staff-responsibility-assignments';
 import {
   canEditStaffResponsibilityAssignment,
@@ -56,11 +68,14 @@ export function StaffResponsibilityAssignmentsSection({
   const t = useT();
   const { locale } = useLocale();
   const copy = STAFF_RESPONSIBILITY_COPY[locale];
+  const pickerCopy = RESPONSIBILITY_PICKER_COPY[locale];
   const toast = useToast();
   const assignments = useStaffResponsibilityAssignments(userId);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<StaffResponsibilityAssignment | null>(null);
   const [form, setForm] = useState<StaffResponsibilityFormState>(emptyStaffResponsibilityForm);
+  const [capabilityQuery, setCapabilityQuery] = useState('');
+  const [showSelectedCapabilitiesOnly, setShowSelectedCapabilitiesOnly] = useState(false);
   const [saving, setSaving] = useState(false);
   const [endTarget, setEndTarget] = useState<StaffResponsibilityAssignment | null>(null);
   const [academicOptions, setAcademicOptions] = useState<AcademicContextOptionsResponse | null>(null);
@@ -84,9 +99,30 @@ export function StaffResponsibilityAssignmentsSection({
   }, [userId]);
 
   const grantableCapabilities = useMemo(
-    () => (options?.capabilities ?? []).filter((option) => option.grantable !== false),
+    () => grantableResponsibilityCapabilities(options?.capabilities ?? []),
     [options?.capabilities],
   );
+  const visibleCapabilityGroups = useMemo(
+    () => groupCapabilitiesByCategory(
+      filterResponsibilityCapabilities(
+        grantableCapabilities,
+        capabilityQuery,
+        showSelectedCapabilitiesOnly,
+        form.capabilityCodes,
+        (capability) => readableResponsibilityCapabilityLabel(
+          capability,
+          resolveCapabilityLabel(locale, capability),
+          resolveCapabilityCategoryLabel(capability.category, t, locale),
+          locale,
+        ),
+        (category) => resolveCapabilityCategoryLabel(category, t, locale),
+      ),
+    ),
+    [grantableCapabilities, capabilityQuery, showSelectedCapabilitiesOnly, form.capabilityCodes, locale, t],
+  );
+  const unavailableSelectedCount = options?.capabilities
+    ? countUnavailableSelectedCapabilities(grantableCapabilities, form.capabilityCodes)
+    : 0;
   const levelName = useMemo(
     () => new Map((options?.levels ?? []).map((item) => [item.id, item.name])),
     [options?.levels],
@@ -149,6 +185,8 @@ export function StaffResponsibilityAssignmentsSection({
   function openCreate() {
     setEditing(null);
     setForm(emptyStaffResponsibilityForm());
+    setCapabilityQuery('');
+    setShowSelectedCapabilitiesOnly(false);
     setFormOpen(true);
   }
 
@@ -156,6 +194,8 @@ export function StaffResponsibilityAssignmentsSection({
     if (!canEditStaffResponsibilityAssignment(item)) return;
     setEditing(item);
     setForm(staffResponsibilityFormFromAssignment(item));
+    setCapabilityQuery('');
+    setShowSelectedCapabilitiesOnly(false);
     setFormOpen(true);
   }
 
@@ -433,23 +473,91 @@ export function StaffResponsibilityAssignmentsSection({
             <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
               <legend className="field__label">{copy.chooseCapabilities}</legend>
               {grantableCapabilities.length ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8, maxHeight: 250, overflowY: 'auto' }}>
-                  {grantableCapabilities.map((capability) => (
-                    <label key={capability.code} className="row" style={{ gap: 5 }}>
+                <div className="col" style={{ gap: 10 }}>
+                  <label className="field">
+                    <span className="field__label">{pickerCopy.searchLabel}</span>
+                    <input
+                      type="search"
+                      className="input"
+                      value={capabilityQuery}
+                      onChange={(event) => setCapabilityQuery(event.target.value)}
+                      placeholder={pickerCopy.searchPlaceholder}
+                      autoComplete="off"
+                      dir="auto"
+                    />
+                  </label>
+                  <div className="row" style={{ gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <label className="row" style={{ gap: 6, alignItems: 'center', cursor: 'pointer' }}>
                       <input
                         type="checkbox"
-                        checked={form.capabilityCodes.includes(capability.code)}
-                        onChange={() => setForm((current) => ({
-                          ...current,
-                          capabilityCodes: toggleStaffResponsibilityString(
-                            current.capabilityCodes,
-                            capability.code,
-                          ),
-                        }))}
+                        checked={showSelectedCapabilitiesOnly}
+                        onChange={(event) => setShowSelectedCapabilitiesOnly(event.target.checked)}
                       />
-                      <span>{capabilityLabel(capability.code)}</span>
+                      <span>{pickerCopy.selectedOnly}</span>
                     </label>
-                  ))}
+                    <span className="muted tiny" role="status">
+                      {pickerCopy.selectedCount(form.capabilityCodes.length)}
+                    </span>
+                  </div>
+                  <div style={{ maxHeight: 310, overflowY: 'auto', display: 'grid', gap: 12, paddingInlineEnd: 4 }}>
+                    {visibleCapabilityGroups.length ? visibleCapabilityGroups.map((group) => (
+                      <section key={group.category} style={{ display: 'grid', gap: 7 }}>
+                        <h4 style={{ margin: 0, fontSize: '0.95rem' }}>
+                          {resolveCapabilityCategoryLabel(group.category, t, locale)}
+                          <span className="muted tiny"> ({group.capabilities.length})</span>
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: 8 }}>
+                          {group.capabilities.map((capability) => (
+                            <label
+                              key={capability.code}
+                              style={{
+                                display: 'flex',
+                                gap: 9,
+                                alignItems: 'flex-start',
+                                padding: 10,
+                                border: '1px solid var(--c-border)',
+                                borderRadius: 10,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={form.capabilityCodes.includes(capability.code)}
+                                onChange={() => setForm((current) => ({
+                                  ...current,
+                                  capabilityCodes: toggleStaffResponsibilityString(
+                                    current.capabilityCodes,
+                                    capability.code,
+                                  ),
+                                }))}
+                                style={{ marginTop: 3, flexShrink: 0 }}
+                              />
+                              <span style={{ display: 'grid', gap: 3, minWidth: 0 }}>
+                                <span>
+                                  {readableResponsibilityCapabilityLabel(
+                                    capability,
+                                    resolveCapabilityLabel(locale, capability),
+                                    resolveCapabilityCategoryLabel(capability.category, t, locale),
+                                    locale,
+                                  )}
+                                </span>
+                                <span className="muted tiny" dir="ltr" style={{ overflowWrap: 'anywhere', textAlign: 'start' }}>
+                                  {capability.code}
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </section>
+                    )) : (
+                      <p className="muted" role="status">{pickerCopy.noResults}</p>
+                    )}
+                  </div>
+                  {unavailableSelectedCount ? (
+                    <p className="muted tiny" role="status">
+                      {pickerCopy.selectedOutsideCatalog(unavailableSelectedCount)}
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <span className="muted">{copy.noGrantableCapabilities}</span>
