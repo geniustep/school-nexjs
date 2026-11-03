@@ -96,6 +96,9 @@ export interface CashSession {
   state?: CashSessionState;
   state_label?: string;
   journal_id?: number;
+  cash_box_id?: number;
+  opening_balance_source_type?: 'none' | 'carry_forward' | 'cash_transfer' | 'documented_movement';
+  opening_balance_source_id?: number;
   journal?: PaymentJournal | Ref;
   cashier?: Ref;
   cashier_id?: number;
@@ -136,7 +139,10 @@ export interface CashSessionListResult {
 
 export interface OpenCashSessionPayload {
   journal_id: number;
+  cash_box_id?: number;
   opening_balance: number;
+  opening_balance_source_type?: 'carry_forward' | 'cash_transfer' | 'documented_movement';
+  opening_balance_source_id?: number;
   note?: string;
 }
 
