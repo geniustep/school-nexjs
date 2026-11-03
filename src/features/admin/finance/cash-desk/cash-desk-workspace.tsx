@@ -4,7 +4,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {useLocale} from '@/features/i18n/locale-context';
 import {copy as cashBoxCopy} from '@/features/admin/finance/cash-boxes/copy';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { api } from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
+import { readRecords, readTotal, type CashRecord } from '@/features/admin/finance/cash-boxes/model';
 import { ApiErrorView } from '@/components/states/states';
 import { InfoBanner } from '@/components/ui/primitives';
 import { CashDeskPageHeader } from '@/features/admin/finance/cash-desk/cash-desk-page-header';
@@ -39,6 +42,16 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
     useCashJournals();
 
   const [journalId, setJournalId] = useState('');
+  const [boxId, setBoxId] = useState('');
+  const [cashBoxes, setCashBoxes] = useState<CashRecord[]>([]);
+  const [boxScopeId, setBoxScopeId] = useState<number | null>(null);
+  const [boxLookupError, setBoxLookupError] = useState<string | null>(null);
+  const requestEpoch = useRef(0);
+  const scopedBoxes = boxScopeId===activeSchoolId ? cashBoxes : [];
+  const eligibleBoxes = scopedBoxes.filter(b=>String(b.journal_id)===journalId);
+  const selectedBoxId = eligibleBoxes.length===1?String(eligibleBoxes[0].id):eligibleBoxes.some(b=>String(b.id)===boxId)?boxId:'';
+  const boxSelectionMissing = eligibleBoxes.length>1 && !selectedBoxId;
+  const boxesReady = boxScopeId===activeSchoolId && !boxLookupError;
   const [session, setSession] = useState<CashSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,19 +68,33 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
   const sharedCashierName = sharedSession ? cashSessionCashierName(session) : undefined;
 
   useEffect(() => {
+    requestEpoch.current++;
+    setJournalId('');setBoxId('');setSession(null);setCashBoxes([]);setBoxScopeId(null);setBoxLookupError(null);
+    if(!activeSchoolId)return;
+    let canceled=false;
+    void api.get<unknown>(endpoints.admin.financeCashBoxes,{active_school_id:activeSchoolId,limit:100}).then(res=>{
+      if(canceled)return;
+      const items=res.success?readRecords(res.data):[];
+      if(!res.success||readTotal(res.meta,items.length)>items.length){setBoxLookupError(cbText.failed);}else{setCashBoxes(items);setBoxLookupError(null);}
+      setBoxScopeId(activeSchoolId);
+    }).catch(()=>{if(!canceled){setBoxLookupError(cbText.failed);setBoxScopeId(activeSchoolId);}});
+    return()=>{canceled=true;};
+  },[activeSchoolId,cbText.failed]);
+  useEffect(() => {
     if (!journals.length) return;
     setJournalId((current) => current || String(journals[0].id));
   }, [journals]);
 
   const loadSession = useCallback(async () => {
-    if (!journalId) {
-      setSession(null);
-      setLoading(false);
+    const epoch=++requestEpoch.current;
+    if (!journalId || !boxesReady || boxSelectionMissing) {
+      setSession(null);setLoading(!boxesReady && !boxLookupError);setRefreshing(false);
       return;
     }
     setRefreshing(true);
     setError(null);
-    const current = await fetchCurrentCashSession(journalId);
+    const current = await fetchCurrentCashSession(journalId,selectedBoxId||undefined);
+    if(epoch!==requestEpoch.current)return;
     if (!current) {
       setSession(null);
       setLoading(false);
@@ -75,6 +102,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
       return;
     }
     const detail = await fetchCashSession(current.id);
+    if(epoch!==requestEpoch.current)return;
     setRefreshing(false);
     setLoading(false);
     if (!detail.success) {
@@ -83,7 +111,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
       return;
     }
     setSession(detail.data);
-  }, [journalId]);
+  }, [journalId,selectedBoxId,boxesReady,boxSelectionMissing,boxLookupError]);
 
   useEffect(() => {
     if (journalsLoading) return;
@@ -92,8 +120,8 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
   }, [journalId, journalsLoading, loadSession, activeSchoolId]);
 
   const canOpen = useMemo(
-    () => !hasOpenSession && journals.length > 0 && canOpenCashSession(user),
-    [hasOpenSession, journals.length, user],
+    () => !hasOpenSession && !!journalId && boxesReady && !boxSelectionMissing && canOpenCashSession(user),
+    [hasOpenSession,journalId,boxesReady,boxSelectionMissing,user],
   );
 
   const handleOpenSuccess = useCallback(
@@ -146,7 +174,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
           <select
             className="input input--inline"
             value={journalId}
-            onChange={(e) => setJournalId(e.target.value)}
+            onChange={(e) => {setJournalId(e.target.value);setBoxId('');setSession(null);}}
             disabled={loading || refreshing}
           >
             {journals.map((journal) => (
@@ -158,6 +186,9 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
         </label>
       ) : null}
 
+      {boxLookupError ? <p role="alert" className="form-error">{boxLookupError}</p> : null}
+      {eligibleBoxes.length>0 ? <label className="field cash-desk-journal-picker"><span className="muted">{cbText.boxRequired}</span><select className="input input--inline" value={selectedBoxId} onChange={e=>{setBoxId(e.target.value);setSession(null);}} disabled={!boxesReady||refreshing}>{eligibleBoxes.length>1?<option value="">—</option>:null}{eligibleBoxes.map(b=><option key={b.id} value={b.id}>{b.name} · #{b.id}</option>)}</select></label> : null}
+      {boxSelectionMissing?<p role="status">{cbText.boxRequired}</p>:null}
       {loading && !session ? (
         <div className="skeleton-stack" aria-busy="true">
           <div className="skeleton skeleton--card" />
@@ -209,6 +240,8 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
         journals={journals}
         defaultJournalId={journalId}
         existingSession={hasOpenSession ? session : null}
+        cashBoxes={scopedBoxes}
+        defaultCashBoxId={selectedBoxId||undefined}
         onClose={() => setOpenDialog(false)}
         onSuccess={handleOpenSuccess}
       />
