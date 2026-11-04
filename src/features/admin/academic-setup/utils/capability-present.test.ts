@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { resolveCapabilityLabel } from './capability-present';
 
 describe('resolveCapabilityLabel', () => {
+  it('labels staff attendance separately from student attendance across locales', () => {
+    const capability = {
+      code: 'staff.attendance.view',
+      label: 'View Staff Edge Attendance',
+      category: 'operations',
+    };
+    expect(resolveCapabilityLabel('ar', capability)).toBe('الاطلاع على حضور الطاقم');
+    expect(resolveCapabilityLabel('fr', capability)).toBe('Consulter les présences du personnel');
+    expect(resolveCapabilityLabel('en', capability)).toBe('View staff attendance');
+    expect(resolveCapabilityLabel('es', capability)).toBe('Consultar la asistencia del personal');
+  });
+
   it('translates admission capability codes via i18n map', () => {
     expect(
       resolveCapabilityLabel('ar', {

@@ -4,12 +4,12 @@ import type { ReactNode } from 'react';
 import { RequireExpensesAccess } from '@/features/admin/finance/expenses/require-expenses-access';
 import { usePathname } from 'next/navigation';
 import { RequireAdminAcademicHub } from '@/components/admin/require-admin-academic-hub';
-import { RequireAdminPermission, RequireStaffCenterAccess } from '@/components/admin/require-admin-permission';
+import { RequireAdminPermission, RequireStaffAttendanceAccess, RequireStaffCenterAccess } from '@/components/admin/require-admin-permission';
 import { RequireAcademicSetupAccess } from '@/features/admin/academic-setup/permissions/require-academic-setup';
 import { RequireSettingsHubAccess } from '@/features/admin/settings/permissions/require-settings-hub';
 import { RequireSchoolBrandingSettingsAccess } from '@/features/admin/school-branding/permissions/require-school-branding-settings';
 import { isAdminAcademicPath, permissionForAdminPath } from '@/lib/permissions/admin-pages';
-import { isAcademicSetupPath } from '@/lib/permissions/academic-setup';
+import { isAcademicSetupPath, isStaffAttendancePath } from '@/lib/permissions/academic-setup';
 import { isSchoolBrandingSettingsPath } from '@/lib/permissions/school-branding-settings';
 import { isTeachingPlanningPath } from '@/lib/permissions/teaching-planning';
 import { RequireTeachingPlanningAccess } from '@/features/admin/teaching-planning/components/require-teaching-planning';
@@ -38,6 +38,9 @@ export function AdminPageGuard({ children }: { children: ReactNode }) {
   }
   if (isCommunicationReviewPath(pathname)) {
     return <RequireCommunicationReviewAccess>{children}</RequireCommunicationReviewAccess>;
+  }
+  if (isStaffAttendancePath(base)) {
+    return <RequireStaffAttendanceAccess>{children}</RequireStaffAttendanceAccess>;
   }
   if (base.startsWith('/admin/staff')) {
     return <RequireStaffCenterAccess>{children}</RequireStaffCenterAccess>;

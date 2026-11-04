@@ -11,6 +11,7 @@ export type Permission =
   | 'manage_classes'
   | 'view_classes'
   | 'view_attendance'
+  | 'staff.attendance.view'
   | 'manage_attendance'
   | 'take_attendance'
   | 'view_channels'

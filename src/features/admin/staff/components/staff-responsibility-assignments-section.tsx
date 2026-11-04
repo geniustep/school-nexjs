@@ -50,6 +50,7 @@ function validationMessage(
   if (!code) return null;
   if (code === 'capability_required') return copy.selectAtLeastOneCapability;
   if (code === 'scope_target_required') return copy.selectScopeTargets;
+  if (code === 'staff_attendance_school_scope_required') return copy.staffAttendanceSchoolScopeOnly;
   if (code === 'academic_year_required') return copy.error.year_required;
   return copy.error.period_invalid;
 }
@@ -406,6 +407,9 @@ export function StaffResponsibilityAssignmentsSection({
                 ))}
               </select>
             </label>
+            {form.capabilityCodes.includes('staff.attendance.view') ? (
+              <p className="muted tiny" role="status">{copy.staffAttendanceSchoolScopeOnly}</p>
+            ) : null}
 
             {form.scopeType === 'cycle' ? (
               <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
