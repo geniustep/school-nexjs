@@ -131,6 +131,7 @@ export const endpoints = {
     financialAgreementScheduleCancelFuture: (id: number | string) =>
       `/admin/financial-agreements/${id}/schedule/cancel-future`,
     serviceSubscription: (id: number | string) => `/admin/service-subscriptions/${id}`,
+    financeContractualServicesAnalytics: '/admin/finance/contractual-services-analytics',
     financeServices: '/admin/finance/services',
     financeService: (id: number | string) => `/admin/finance/services/${id}`,
     financeServiceTariffs: '/admin/finance/service-tariffs',
