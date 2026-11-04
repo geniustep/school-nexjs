@@ -46,7 +46,7 @@ export function sortInstallmentsForMonthFirstProposal(rows: StudentInstallment[]
   const previousRank = new Map(fallbackOrder.map((row, index) => [row.id, index]));
   const month = (row: StudentInstallment) => {
     const date = row.period_start ?? row.due_date ?? row.period_end ?? '';
-    const match = /^(\\d{4})-(\\d{2})/.exec(date);
+    const match = /^(\d{4})-(\d{2})/.exec(date);
     return match ? `${match[1]}-${match[2]}` : '9999-99';
   };
   return [...fallbackOrder].sort((a, b) => {
