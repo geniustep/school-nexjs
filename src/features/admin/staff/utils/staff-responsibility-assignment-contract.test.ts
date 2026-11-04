@@ -108,6 +108,54 @@ describe('staff responsibility assignment UI write contract', () => {
     expect(payload.class_ids).toEqual([31, 32]);
   });
 
+  it('only accepts school scope for the dedicated staff attendance view', () => {
+    expect(validateStaffResponsibilityForm({
+      ...emptyStaffResponsibilityForm(),
+      scopeType: 'school',
+      capabilityCodes: ['staff.attendance.view'],
+    })).toBeNull();
+  });
+
+  it('blocks all limited responsibility scopes for staff attendance', () => {
+    const shapes = [
+      { scopeType: 'cycle' as const, cycleIds: [2] },
+      { scopeType: 'levels' as const, levelIds: [6] },
+      { scopeType: 'classes' as const, classIds: [23] },
+    ];
+    for (const shape of shapes) {
+      const form = {
+        ...emptyStaffResponsibilityForm(),
+        capabilityCodes: ['staff.attendance.view'],
+        ...shape,
+      };
+      expect(validateStaffResponsibilityForm(form))
+        .toBe('staff_attendance_school_scope_required');
+    }
+  });
+
+  it('does not silently expand a restricted existing assignment', () => {
+    const restricted = staffResponsibilityFormFromAssignment(
+      baseAssignment({
+        scope_type: 'classes',
+        class_ids: [31],
+        capability_codes: ['view_attendance', 'staff.attendance.view'],
+      }),
+    );
+    expect(restricted.scopeType).toBe('classes');
+    expect(restricted.classIds).toEqual([31]);
+    expect(validateStaffResponsibilityForm(restricted))
+      .toBe('staff_attendance_school_scope_required');
+  });
+
+  it('allows unrelated attendance and other capabilities in class scope', () => {
+    expect(validateStaffResponsibilityForm({
+      ...emptyStaffResponsibilityForm(),
+      scopeType: 'classes',
+      classIds: [22],
+      capabilityCodes: ['view_attendance', 'staff.view'],
+    })).toBeNull();
+  });
+
   it('requires at least one capability', () => {
     expect(validateStaffResponsibilityForm(emptyStaffResponsibilityForm())).toBe('capability_required');
   });
