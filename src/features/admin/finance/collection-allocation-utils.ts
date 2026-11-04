@@ -37,7 +37,7 @@ export function sortInstallmentsForAllocation(rows: StudentInstallment[]): Stude
 }
 
 /**
- * UI proposal order: complete the oldest service month before advancing.
+ * UI proposal order: honor mandatory service weight, then complete each month.
  * Keep the existing eligibility checks and date/timing rules as tie-breakers.
  * The preview and confirmation still belong to the backend.
  */
@@ -50,6 +50,13 @@ export function sortInstallmentsForMonthFirstProposal(rows: StudentInstallment[]
     return match ? `${match[1]}-${match[2]}` : '9999-99';
   };
   return [...fallbackOrder].sort((a, b) => {
+    const aWeight = a.allocation_priority_weight;
+    const bWeight = b.allocation_priority_weight;
+    // The legacy API has no priority metadata; do not guess a financial policy.
+    if (aWeight == null || bWeight == null) {
+      return previousRank.get(a.id)! - previousRank.get(b.id)!;
+    }
+    if (aWeight !== bWeight) return aWeight - bWeight;
     const compared = month(a).localeCompare(month(b));
     return compared || (previousRank.get(a.id)! - previousRank.get(b.id)!);
   });
