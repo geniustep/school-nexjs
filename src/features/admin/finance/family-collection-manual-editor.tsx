@@ -13,11 +13,26 @@ import {
   sumFamilyAllocationAmounts,
 } from '@/features/admin/finance/family-collection-allocation-utils';
 import { sortInstallmentsForFamilySuggestion } from '@/features/admin/finance/family-suggested-allocation-utils';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { localeToBcp47 } from '@/lib/i18n/config';
 import { familyFinanceServiceTypeLabelKey } from '@/lib/utils/normalize-family-finance';
 import type { FamilyOpenInstallment } from '@/types/family-finance';
 
 type ManualEditorLevel = 'children' | 'child-detail';
+
+/** Display-only grouping. Keep individual installment IDs and allocation inputs intact. */
+export function groupFamilyInstallmentsByDueMonth(rows: FamilyOpenInstallment[]) {
+  const months = new Map<string, FamilyOpenInstallment[]>();
+  for (const row of rows) {
+    const date = /^(\d{4})-(\d{2})/.exec(row.due_date ?? '');
+    const key = date ? `${date[1]}-${date[2]}` : 'undated';
+    months.set(key, [...(months.get(key) ?? []), row]);
+  }
+  return [...months.entries()]
+    .sort(([a], [b]) => a === 'undated' ? 1 : b === 'undated' ? -1 : a.localeCompare(b))
+    .map(([key, installments]) => ({ key, installments }));
+}
+
 
 export function FamilyCollectionManualEditor({
   open,
@@ -37,6 +52,7 @@ export function FamilyCollectionManualEditor({
   onSave: (values: Record<number, string>) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const [level, setLevel] = useState<ManualEditorLevel>('children');
   const [draftInputs, setDraftInputs] = useState<Record<number, string>>(allocationInputs);
   const [childShares, setChildShares] = useState<Record<number, string>>({});
@@ -59,6 +75,11 @@ export function FamilyCollectionManualEditor({
       installments.filter((row) => row.student_id === selectedStudentId),
     );
   }, [installments, selectedStudentId]);
+
+  const monthlyChildInstallments = useMemo(
+    () => groupFamilyInstallmentsByDueMonth(selectedChildInstallments),
+    [selectedChildInstallments],
+  );
 
   const allocatedDraft = sumFamilyAllocationAmounts(draftInputs);
   const unallocatedDraft = Math.max(0, collectionAmount - allocatedDraft);
@@ -236,8 +257,20 @@ export function FamilyCollectionManualEditor({
               </button>
             </div>
             <div className="finance-family-manual-editor__installments">
-              {selectedChildInstallments.map((row) => (
-                <label key={row.installment_id} className="finance-family-manual-editor__installment">
+              {monthlyChildInstallments.map((month) => {
+                const label = /^\d{4}-\d{2}$/.test(month.key)
+                  ? new Intl.DateTimeFormat(localeToBcp47(locale), { month: 'long', year: 'numeric' })
+                    .format(new Date(Number(month.key.slice(0, 4)), Number(month.key.slice(5, 7)) - 1, 1))
+                  : t('common.dash');
+                return (
+                  <section key={month.key} className="finance-family-manual-editor__month" aria-label={label}>
+                    <header className="finance-family-manual-editor__month-header">
+                      <strong>{label}</strong>
+                      <span>{month.installments.length}</span>
+                    </header>
+                    <div className="finance-family-manual-editor__month-rows">
+                      {month.installments.map((row) => (
+                        <label key={row.installment_id} className="finance-family-manual-editor__installment">
                   <div className="finance-family-manual-editor__installment-label">
                     <span dir="auto">
                       {row.service_label?.trim()
@@ -255,8 +288,12 @@ export function FamilyCollectionManualEditor({
                     value={draftInputs[row.installment_id] ?? ''}
                     onChange={(value) => handleChildInstallmentChange(row.installment_id, value)}
                   />
-                </label>
-              ))}
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
             <p className="tiny muted">
               {t('admin.finance.billingAccounts.familyCollection.studentTotal')}:{' '}
