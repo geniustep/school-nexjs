@@ -14,10 +14,10 @@ describe('student drawer amount ↔ allocations and monthly progress', () => {
   });
   it('completes all service installments of the oldest period before the next month', () => {
     const rows: StudentInstallment[] = [
-      { id: 81, period_start: '2026-12-01', due_date: '2026-12-10', remaining_amount: 1500, timing_status: 'due' },
-      { id: 82, period_start: '2027-01-01', due_date: '2027-01-10', remaining_amount: 1500, timing_status: 'due' },
-      { id: 83, period_start: '2026-12-01', due_date: '2027-01-15', remaining_amount: 100, timing_status: 'upcoming' },
-      { id: 84, period_start: '2027-02-01', due_date: '2027-02-10', remaining_amount: 1500, timing_status: 'upcoming' },
+      { id: 81, period_start: '2026-12-01', due_date: '2026-12-10', allocation_priority_weight: 50, remaining_amount: 1500, timing_status: 'due' },
+      { id: 82, period_start: '2027-01-01', due_date: '2027-01-10', allocation_priority_weight: 50, remaining_amount: 1500, timing_status: 'due' },
+      { id: 83, period_start: '2026-12-01', due_date: '2027-01-15', allocation_priority_weight: 50, remaining_amount: 100, timing_status: 'upcoming' },
+      { id: 84, period_start: '2027-02-01', due_date: '2027-02-10', allocation_priority_weight: 50, remaining_amount: 1500, timing_status: 'upcoming' },
     ];
     expect(deriveStudentMonthlyAllocation('1600', rows).allocations).toEqual({
       81: '1500.00',
