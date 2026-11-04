@@ -36,6 +36,25 @@ export function sortInstallmentsForAllocation(rows: StudentInstallment[]): Stude
   });
 }
 
+/**
+ * UI proposal order: complete the oldest service month before advancing.
+ * Keep the existing eligibility checks and date/timing rules as tie-breakers.
+ * The preview and confirmation still belong to the backend.
+ */
+export function sortInstallmentsForMonthFirstProposal(rows: StudentInstallment[]): StudentInstallment[] {
+  const fallbackOrder = sortInstallmentsForAllocation(rows);
+  const previousRank = new Map(fallbackOrder.map((row, index) => [row.id, index]));
+  const month = (row: StudentInstallment) => {
+    const date = row.period_start ?? row.due_date ?? row.period_end ?? '';
+    const match = /^(\\d{4})-(\\d{2})/.exec(date);
+    return match ? `${match[1]}-${match[2]}` : '9999-99';
+  };
+  return [...fallbackOrder].sort((a, b) => {
+    const compared = month(a).localeCompare(month(b));
+    return compared || (previousRank.get(a.id)! - previousRank.get(b.id)!);
+  });
+}
+
 export function autoAllocateOldest(
   installments: StudentInstallment[],
   totalAmount: number,
@@ -44,7 +63,7 @@ export function autoAllocateOldest(
   let remaining = totalAmount;
   if (!isPositiveAmount(totalAmount)) return result;
 
-  for (const row of sortInstallmentsForAllocation(installments)) {
+  for (const row of sortInstallmentsForMonthFirstProposal(installments)) {
     if (!canAllocateToInstallment(row)) continue;
     if (remaining <= 0) break;
     const cap = Math.min(row.remaining_amount ?? 0, remaining);
