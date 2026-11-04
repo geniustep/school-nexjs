@@ -24,7 +24,7 @@ type ManualEditorLevel = 'children' | 'child-detail';
 export function groupFamilyInstallmentsByDueMonth(rows: FamilyOpenInstallment[]) {
   const months = new Map<string, FamilyOpenInstallment[]>();
   for (const row of rows) {
-    const date = /^(\d{4})-(\d{2})/.exec(row.due_date ?? '');
+    const date = /^(\d{4})-(\d{2})/.exec(row.period_start ?? row.due_date ?? '');
     const key = date ? `${date[1]}-${date[2]}` : 'undated';
     months.set(key, [...(months.get(key) ?? []), row]);
   }
