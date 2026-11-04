@@ -317,6 +317,8 @@ export interface StudentInstallment {
   display_state?: string | null;
   schedule_status?: string;
   allow_early_payment?: boolean;
+  allocation_priority_weight?: number | null;
+  allocation_priority_level?: string | null;
   allowed_actions?: AllowedActionsMap;
 }
 
