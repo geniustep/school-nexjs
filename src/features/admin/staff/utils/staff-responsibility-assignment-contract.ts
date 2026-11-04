@@ -20,6 +20,7 @@ export type StaffResponsibilityFormState = {
 export type StaffResponsibilityFormValidationCode =
   | 'capability_required'
   | 'scope_target_required'
+  | 'staff_attendance_school_scope_required'
   | 'academic_year_required'
   | 'effective_period_invalid';
 
@@ -57,6 +58,15 @@ export function validateStaffResponsibilityForm(
   form: StaffResponsibilityFormState,
 ): StaffResponsibilityFormValidationCode | null {
   if (!form.capabilityCodes.length) return 'capability_required';
+  // Staff attendance is an entire-school population in Odoo; a class/cycle/
+  // level responsibility cannot grant its school-wide read contract.
+  // Do not silently promote an existing scoped assignment to school scope.
+  if (
+    form.capabilityCodes.includes('staff.attendance.view') &&
+    form.scopeType !== 'school'
+  ) {
+    return 'staff_attendance_school_scope_required';
+  }
   if (
     (form.scopeType === 'cycle' && !form.cycleIds.length) ||
     (form.scopeType === 'levels' && !form.levelIds.length) ||

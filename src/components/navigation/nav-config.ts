@@ -4,7 +4,7 @@ import type { CurrentUser } from '@/types/user';
 import { expenseCapability } from '@/features/admin/finance/expenses/model';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
-import { canViewSettings, canAccessStaffCenter } from '@/lib/permissions/academic-setup';
+import { canViewSettings, canAccessStaffCenter, canViewStaffAttendance } from '@/lib/permissions/academic-setup';
 import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
 import {
   FINANCE_VIEW,
@@ -122,7 +122,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/staff',
     icon: '🧑‍💼',
   });
-  pushIf(staffItems, canAccessStaffCenter(user), {
+  pushIf(staffItems, canViewStaffAttendance(user), {
     labelKey: 'nav.staffAttendance',
     href: '/admin/staff/attendance',
     icon: '🕘',

@@ -17,6 +17,8 @@ import type { CurrentUser } from '@/types/user';
 
 /** Odoo capability codes for staff center (not legacy Permission keys). */
 export const STAFF_VIEW_CAPABILITY = 'staff.view';
+export const STAFF_ATTENDANCE_VIEW_CAPABILITY = 'staff.attendance.view';
+export const STAFF_ATTENDANCE_EDGE_LEGACY_CAPABILITY = 'edge.device.manage';
 export const STAFF_MANAGE_SCHOOL_ACCESS_CAPABILITY = 'school.manage_admin_school_access';
 
 function hasStaffCapability(user: CurrentUser | null, code: string): boolean {
@@ -102,6 +104,22 @@ export function canAccessStaffCenter(user: CurrentUser | null): boolean {
   if (!user || user.role !== 'admin') return false;
   if (hasStaffCapability(user, STAFF_VIEW_CAPABILITY)) return true;
   return hasAnyPermission(user, [...ACADEMIC_SETUP_VIEW_PERMISSIONS]);
+}
+
+/** Staff attendance is not implied by staff.view or student attendance. */
+export function canViewStaffAttendance(user: CurrentUser | null): boolean {
+  if (!user || user.role !== 'admin') return false;
+  // Prefer the current school's effective grants over historical permission lists.
+  const effectiveCodes: readonly string[] =
+    user.effective_capabilities ?? user.effective_permissions ?? user.permissions ?? [];
+  return effectiveCodes.includes(STAFF_ATTENDANCE_VIEW_CAPABILITY) ||
+    effectiveCodes.includes(STAFF_ATTENDANCE_EDGE_LEGACY_CAPABILITY);
+}
+
+/** Match this route before /admin/staff in AdminPageGuard. */
+export function isStaffAttendancePath(pathname: string): boolean {
+  const path = pathname.split('?')[0];
+  return path === '/admin/staff/attendance' || path.startsWith('/admin/staff/attendance/');
 }
 
 export function canViewSettings(user: CurrentUser | null): boolean {
