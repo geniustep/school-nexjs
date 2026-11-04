@@ -7,6 +7,13 @@ import {
   shouldOmitCapabilityIds,
 } from './staff-permissions-meta';
 
+const STAFF_ATTENDANCE_VIEW_LABELS: Record<Locale, string> = {
+  ar: 'الاطلاع على حضور الطاقم',
+  fr: 'Consulter les présences du personnel',
+  en: 'View staff attendance',
+  es: 'Consultar la asistencia del personal',
+};
+
 const CAPABILITY_KEY_PREFIX = 'admin.academicSetup.capabilities';
 const CATEGORY_KEY_PREFIX = 'admin.academicSetup.capCategory';
 
@@ -214,6 +221,7 @@ export function resolveCapabilityLabel(
   locale: Locale,
   cap: Pick<StaffCapabilityOption, 'code' | 'label' | 'category'>,
 ): string {
+  if (cap.code === 'staff.attendance.view') return STAFF_ATTENDANCE_VIEW_LABELS[locale];
   const apiLabel = cap.label?.trim() ?? '';
   const translated = resolveCapabilityTranslation(locale, cap.code, apiLabel);
   if (translated) return translated;
