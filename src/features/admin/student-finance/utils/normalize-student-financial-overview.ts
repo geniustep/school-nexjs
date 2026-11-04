@@ -426,6 +426,8 @@ function normalizeCollectibleItemLoose(raw: unknown): CollectibleItem | null {
     period_start: typeof obj.period_start === 'string' ? obj.period_start : null,
     period_end: typeof obj.period_end === 'string' ? obj.period_end : null,
     due_date: typeof obj.due_date === 'string' ? obj.due_date : null,
+    allocation_priority_weight: typeof obj.allocation_priority_weight === 'number' ? obj.allocation_priority_weight : null,
+    allocation_priority_level: typeof obj.allocation_priority_level === 'string' ? obj.allocation_priority_level : null,
     original_amount: readMoney(obj.original_amount ?? obj.amount),
     paid_amount: readMoney(obj.paid_amount ?? obj.paid),
     remaining_amount: remaining,
