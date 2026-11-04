@@ -19,6 +19,8 @@ export function collectibleItemToInstallment(item: CollectibleItem): StudentInst
     display_state: item.display_state ?? undefined,
     state: item.state ?? undefined,
     allow_early_payment: item.selectable,
+    allocation_priority_weight: item.allocation_priority_weight ?? undefined,
+    allocation_priority_level: item.allocation_priority_level ?? undefined,
   };
 }
 
