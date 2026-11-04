@@ -15,7 +15,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { ExecutiveKpiMoney } from '@/features/admin/dashboard/executive-dashboard-ui';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { ExecutiveFinanceV2Panel } from '@/features/admin/dashboard/executive-finance-v2-panel';
-import { ExecutiveFinanceIntelligenceV4Panel } from '@/features/admin/dashboard/executive-finance-intelligence-v4-panel';
+import { ContractualAnalyticsView } from '@/features/admin/finance/contractual-analytics/contractual-analytics-view';
 import { isFinanceV4CurrentContext } from '@/lib/admin/executive-finance-v4-contract';
 import { financeV2Query, type ExecutiveFinancePeriodScope } from '@/lib/admin/executive-finance-v2-contract';
 import {
@@ -1026,7 +1026,7 @@ function ExecutiveDirectorView({
           )}
         </section>
       )}
-      {widgets.financeSummary && financeV4 && <ExecutiveFinanceIntelligenceV4Panel data={financeV4} locale={locale} />}
+      {widgets.financeSummary && <ContractualAnalyticsView mode="dashboard" financeV4={financeV4} />}
 
       </div>
 
@@ -1338,7 +1338,7 @@ function ExecutiveDirectorView({
                     {t('admin.executive.linkOverdue')}
                   </Link>
                 </ExecutiveLinkRow>
-                {financeV4 && <ExecutiveFinanceIntelligenceV4Panel data={financeV4} locale={locale} />}
+                <ContractualAnalyticsView mode="dashboard" financeV4={financeV4} />
               </ExecutivePanel>
             )}
 
