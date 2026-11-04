@@ -36,7 +36,19 @@ export function buildSuggestedFamilyAllocations(input: {
   }
 
   const eligible = filterCollectibleFamilyInstallments(installments);
-  const sorted = sortInstallmentsForFamilySuggestion(eligible);
+  // Sort the proposal by calendar month first. Backend suggestion_order remains the
+  // tie-breaker inside a month; it is not a cross-month grouping instruction.
+  // Undated rows retain their backend order after dated installments.
+  const byBackendPriority = sortInstallmentsForFamilySuggestion(eligible);
+  const backendRank = new Map(byBackendPriority.map((row, index) => [row.installment_id, index]));
+  const period = (row: FamilyOpenInstallment) => {
+    const matched = /^(\\d{4})-(\\d{2})/.exec(row.due_date ?? '');
+    return matched ? `${matched[1]}-${matched[2]}` : '9999-99';
+  };
+  const sorted = [...byBackendPriority].sort((left, right) => {
+    const month = period(left).localeCompare(period(right));
+    return month || (backendRank.get(left.installment_id)! - backendRank.get(right.installment_id)!);
+  });
   let remaining = amount;
   const values: Record<number, string> = {};
 
