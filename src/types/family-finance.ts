@@ -80,6 +80,8 @@ export interface FamilyOpenInstallment {
   service_type?: FamilyFinanceServiceType | string | null;
   service_label?: string | null;
   due_date?: string | null;
+  period_start?: string | null;
+  period_end?: string | null;
   remaining_amount?: number | null;
   is_overdue?: boolean | null;
   /** When false, installment must not enter allocation payloads. */
