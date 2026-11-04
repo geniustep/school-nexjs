@@ -18,6 +18,23 @@ const getLabel = (item: StaffCapabilityOption) =>
 const getCategory = (category: string) => category === 'attendance' ? 'الحضور والغياب' : 'التلاميذ';
 
 describe('staff responsibility capability picker', () => {
+  it('finds staff attendance by its Arabic label and keeps student attendance separate', () => {
+    const catalog = grantableResponsibilityCapabilities([
+      ...fixture,
+      { id: 99, code: 'staff.attendance.view', category: 'operations',
+        label: 'View Staff Edge Attendance', grantable: true },
+    ]);
+    const display = (capability: StaffCapabilityOption) =>
+      capability.code === 'staff.attendance.view'
+        ? 'الاطلاع على حضور الطاقم'
+        : getLabel(capability);
+    const matches = filterResponsibilityCapabilities(
+      catalog, 'حضور الطاقم', false, [], display, getCategory,
+    );
+    expect(matches.map(item => item.code)).toEqual(['staff.attendance.view']);
+    expect(matches[0].grantable).toBe(true);
+  });
+
   it('keeps only backend-grantable capability codes and deduplicates the catalog', () => {
     const list = grantableResponsibilityCapabilities([...fixture, fixture[0]]);
     expect(list.map((cap) => cap.code)).toEqual(['attendance.view', 'attendance.export', 'students.view']);
