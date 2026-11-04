@@ -36,16 +36,23 @@ export function buildSuggestedFamilyAllocations(input: {
   }
 
   const eligible = filterCollectibleFamilyInstallments(installments);
-  // Sort the proposal by calendar month first. Backend suggestion_order remains the
-  // tie-breaker inside a month; it is not a cross-month grouping instruction.
-  // Undated rows retain their backend order after dated installments.
+  // Keep the backend's mandatory first/normal/last weight across months.
+  // Within each priority class, complete the oldest service month first.
+  // suggestion_order remains the authoritative tie-breaker inside a month.
   const byBackendPriority = sortInstallmentsForFamilySuggestion(eligible);
   const backendRank = new Map(byBackendPriority.map((row, index) => [row.installment_id, index]));
   const period = (row: FamilyOpenInstallment) => {
-    const matched = /^(\d{4})-(\d{2})/.exec(row.due_date ?? '');
+    const matched = /^(\d{4})-(\d{2})/.exec(row.period_start ?? row.due_date ?? '');
     return matched ? `${matched[1]}-${matched[2]}` : '9999-99';
   };
   const sorted = [...byBackendPriority].sort((left, right) => {
+    const aWeight = left.allocation_priority_weight;
+    const bWeight = right.allocation_priority_weight;
+    // If metadata is absent in an older API response, preserve backend order.
+    if (aWeight == null || bWeight == null) {
+      return backendRank.get(left.installment_id)! - backendRank.get(right.installment_id)!;
+    }
+    if (aWeight !== bWeight) return aWeight - bWeight;
     const month = period(left).localeCompare(period(right));
     return month || (backendRank.get(left.installment_id)! - backendRank.get(right.installment_id)!);
   });
