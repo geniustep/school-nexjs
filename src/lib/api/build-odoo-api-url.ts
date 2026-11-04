@@ -25,11 +25,12 @@ export function normalizeOdooApiPath(path: string): string {
 
 export function buildOdooQueryString(
   query?: Record<string, string | number | undefined>,
+  keepEmptySelectedServices = false,
 ): string {
   if (!query) return '';
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {
-    if (v !== undefined && v !== null && v !== '') sp.set(k, String(v));
+    if (v !== undefined && v !== null && (v !== '' || (keepEmptySelectedServices && k === 'selected_service_ids'))) sp.set(k, String(v));
   }
   const s = sp.toString();
   return s ? `?${s}` : '';
@@ -44,7 +45,7 @@ export function buildOdooApiUrl(
   const base = baseUrl.replace(/\/$/, '');
   const prefix = apiPrefix.startsWith('/') ? apiPrefix : `/${apiPrefix}`;
   const normalizedPath = normalizeOdooApiPath(path);
-  return `${base}${prefix}${normalizedPath}${buildOdooQueryString(query)}`;
+  return `${base}${prefix}${normalizedPath}${buildOdooQueryString(query, normalizedPath === '/admin/finance/contractual-services-analytics')}`;
 }
 
 /**
