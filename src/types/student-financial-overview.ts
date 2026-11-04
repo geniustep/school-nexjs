@@ -140,6 +140,8 @@ export interface CollectibleItem {
   period_start?: string | null;
   period_end?: string | null;
   due_date?: string | null;
+  allocation_priority_weight?: number | null;
+  allocation_priority_level?: string | null;
   original_amount: number;
   paid_amount: number;
   remaining_amount: number;
