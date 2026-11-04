@@ -20,7 +20,7 @@ type MonthGroup = {
 };
 
 function installmentMonthKey(row: StudentInstallment): string {
-  const value = row.due_date ?? row.period_start ?? row.period_end ?? '';
+  const value = row.period_start ?? row.due_date ?? row.period_end ?? '';
   const match = value.match(/^(\d{4})-(\d{2})/);
   return match ? `${match[1]}-${match[2]}` : `undated-${row.period_label ?? row.id}`;
 }
