@@ -42,7 +42,7 @@ export function buildSuggestedFamilyAllocations(input: {
   const byBackendPriority = sortInstallmentsForFamilySuggestion(eligible);
   const backendRank = new Map(byBackendPriority.map((row, index) => [row.installment_id, index]));
   const period = (row: FamilyOpenInstallment) => {
-    const matched = /^(\\d{4})-(\\d{2})/.exec(row.due_date ?? '');
+    const matched = /^(\d{4})-(\d{2})/.exec(row.due_date ?? '');
     return matched ? `${matched[1]}-${matched[2]}` : '9999-99';
   };
   const sorted = [...byBackendPriority].sort((left, right) => {
