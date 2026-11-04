@@ -114,7 +114,8 @@ describe('family collection smart default direct confirm UX', () => {
 
   it('G. child-level editor shows one child installments only', () => {
     expect(manualEditorSource).toContain("level === 'child-detail'");
-    expect(manualEditorSource).toContain('selectedChildInstallments.map');
+    expect(manualEditorSource).toContain('groupFamilyInstallmentsByDueMonth(selectedChildInstallments)');
+    expect(manualEditorSource).toContain('month.installments.map');
     expect(manualEditorSource).toContain('selectedStudentId');
   });
 
