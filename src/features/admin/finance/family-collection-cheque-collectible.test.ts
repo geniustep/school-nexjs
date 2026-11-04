@@ -180,7 +180,8 @@ describe('family collection collectible allocation', () => {
 
   it('G. manual editor receives collectible installments only', () => {
     expect(workflowSource).toContain('installments={collectibleInstallments}');
-    expect(manualEditorSource).toContain('selectedChildInstallments.map');
+    expect(manualEditorSource).toContain('groupFamilyInstallmentsByDueMonth(selectedChildInstallments)');
+    expect(manualEditorSource).toContain('month.installments.map');
   });
 
   it('H. stale allocation is removed before persist', () => {
