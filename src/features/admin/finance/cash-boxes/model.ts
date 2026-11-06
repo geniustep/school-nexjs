@@ -3,7 +3,8 @@ import type {CurrentUser} from '@/types/user';
 import type {Permission} from '@/types/permissions';
 import {hasPermission} from '@/lib/permissions/permissions';
 export type Kind='boxes'|'transfers'|'handovers';
-export type CashRecord={id:number;name:string;state?:string;box_type?:string;school_id:number;allowed_actions?:string[];[key:string]:unknown};
+export type JournalLinkMode='dedicated'|'shared';
+export type CashRecord={id:number;name:string;state?:string;box_type?:string;school_id:number;journal_id?:number;journal_name?:string;journal_link_mode?:JournalLinkMode;available_cash?:number;balance_at_last_close?:number;cash_in_transit_in?:number;cash_in_transit_out?:number;allowed_actions?:string[];[key:string]:unknown};
 export const capabilities={
  boxes:{view:'finance.view_cash_boxes',create:'finance.manage_cash_boxes'},
  transfers:{view:'finance.view_cash_transfers',create:'finance.create_cash_transfer',approve:'finance.approve_cash_transfer',dispatch:'finance.create_cash_transfer',accept:'finance.accept_cash_transfer'},

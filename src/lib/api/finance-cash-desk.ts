@@ -29,9 +29,10 @@ export async function fetchCashSessions(query?: ListParams): Promise<CashSession
   return parseCashSessionList(res.data, res.meta);
 }
 
-export async function fetchCurrentCashSession(journalId: number | string): Promise<CashSession | null> {
+export async function fetchCurrentCashSession(journalId: number | string, cashBoxId?: number | string): Promise<CashSession | null> {
   const res = await api.get<unknown>(endpoints.admin.financeCashSessionCurrent, {
     journal_id: journalId,
+    ...(cashBoxId ? { cash_box_id: cashBoxId } : {}),
   });
   if (!res.success) return null;
   return normalizeCurrentCashSession(res.data);

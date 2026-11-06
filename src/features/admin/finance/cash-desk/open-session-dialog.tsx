@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
-import { useT } from '@/features/i18n/locale-context';
+import { useT, useLocale } from '@/features/i18n/locale-context';
+import { copy as cashBoxCopy } from '@/features/admin/finance/cash-boxes/copy';
+import type { CashRecord } from '@/features/admin/finance/cash-boxes/model';
 import { fetchCurrentCashSession, openCashSession } from '@/lib/api/finance-cash-desk';
 import { cashSessionCashierName } from '@/lib/utils/cash-session-access';
 import { resolveCashSessionErrorMessage } from '@/lib/utils/cash-session-errors';
@@ -15,6 +17,8 @@ export function OpenCashSessionDialog({
   journals,
   defaultJournalId,
   existingSession,
+  cashBoxes,
+  defaultCashBoxId,
   onClose,
   onSuccess,
 }: {
@@ -22,14 +26,19 @@ export function OpenCashSessionDialog({
   journals: PaymentJournal[];
   defaultJournalId?: number | string;
   existingSession?: CashSession | null;
+  cashBoxes: CashRecord[];
+  defaultCashBoxId?: number | string;
   onClose: () => void;
   onSuccess: (sessionId: number) => void;
 }) {
   const t = useT();
+  const {locale}=useLocale();
+  const cashCopy=cashBoxCopy[locale==='en'||locale==='fr'?locale:'ar'];
   const toast = useToast();
   const titleId = useId();
   const triggerRef = useRef<HTMLElement | null>(null);
   const [journalId, setJournalId] = useState('');
+  const [cashBoxId, setCashBoxId] = useState('');
   const [openingBalance, setOpeningBalance] = useState('0');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +55,8 @@ export function OpenCashSessionDialog({
     setOpeningBalance('0');
     const fallback = defaultJournalId ?? journals[0]?.id;
     setJournalId(fallback != null ? String(fallback) : '');
-  }, [open, defaultJournalId, journals]);
+    setCashBoxId(defaultCashBoxId != null ? String(defaultCashBoxId) : '');
+  }, [open, defaultJournalId, defaultCashBoxId, journals]);
 
   useEffect(() => {
     if (!open || !blockedByExistingSession) return;
@@ -74,11 +84,17 @@ export function OpenCashSessionDialog({
   const selectedJournal = journals.find((j) => String(j.id) === journalId);
   const currencyLabel =
     selectedJournal?.currency ?? selectedJournal?.currency_code ?? null;
-  const parsedOpening = Number(openingBalance);
+  const eligibleBoxes=cashBoxes.filter(box=>String(box.journal_id)===journalId);
+  const selectedBoxId=eligibleBoxes.length===1?String(eligibleBoxes[0].id):cashBoxId;
+  const validBox=eligibleBoxes.length===0||eligibleBoxes.some(box=>String(box.id)===selectedBoxId);
+  const v2Contract=eligibleBoxes.some(box=>box.journal_link_mode==='shared'||box.journal_link_mode==='dedicated');
+  const parsedOpening=Number(openingBalance);
+  const positiveSourceUnavailable=v2Contract&&parsedOpening>0;
   const canSubmit =
     !!journalId &&
     !Number.isNaN(parsedOpening) &&
     parsedOpening >= 0 &&
+    validBox && !positiveSourceUnavailable &&
     !submitting &&
     !blockedByExistingSession;
 
@@ -88,13 +104,14 @@ export function OpenCashSessionDialog({
     setError(null);
     const res = await openCashSession({
       journal_id: Number(journalId),
+      ...(selectedBoxId?{cash_box_id:Number(selectedBoxId)}:{}),
       opening_balance: parsedOpening,
       note: note.trim() || undefined,
     });
     setSubmitting(false);
     if (!res.success) {
       if (res.error.code === 'cash_session_already_open') {
-        const current = await fetchCurrentCashSession(journalId);
+        const current = await fetchCurrentCashSession(journalId,selectedBoxId||undefined);
         const cashierName = cashSessionCashierName(current) ?? t('common.dash');
         const message = t('admin.finance.cashDesk.openBlockedExistingSession', { cashierName });
         setError(message);
@@ -102,12 +119,12 @@ export function OpenCashSessionDialog({
         onSuccess(0);
         return;
       }
-      setError(resolveCashSessionErrorMessage(res.error, t));
+      setError(res.error.code==='cash_box_required'?cashCopy.boxRequired:res.error.code==='opening_balance_source_required'||res.error.code==='opening_balance_source_invalid'?cashCopy.sourceUnavailable:resolveCashSessionErrorMessage(res.error,t));
       return;
     }
     toast.success(t('admin.finance.cashDesk.openSuccess'));
     onSuccess(res.data.id);
-  }, [canSubmit, journalId, note, onSuccess, parsedOpening, t, toast]);
+  }, [canSubmit,journalId,selectedBoxId,note,onSuccess,parsedOpening,t,toast,cashCopy.boxRequired,cashCopy.sourceUnavailable]);
 
   if (!open) return null;
 
@@ -128,7 +145,7 @@ export function OpenCashSessionDialog({
               <select
                 className="input"
                 value={journalId}
-                onChange={(e) => setJournalId(e.target.value)}
+                onChange={(e) => {setJournalId(e.target.value);setCashBoxId('');}}
                 disabled={submitting || journals.length <= 1}
               >
                 {journals.map((journal) => (
@@ -139,6 +156,7 @@ export function OpenCashSessionDialog({
                 ))}
               </select>
             </label>
+            {eligibleBoxes.length>0?<label className="field"><span>{cashCopy.boxRequired}</span><select className="input" value={selectedBoxId} onChange={e=>setCashBoxId(e.target.value)} disabled={submitting||blockedByExistingSession}>{eligibleBoxes.length>1?<option value="">—</option>:null}{eligibleBoxes.map(box=><option key={box.id} value={box.id}>{box.name} · #{box.id}</option>)}</select></label>:null}
             <label className="field">
               <span>{t('admin.finance.cashDesk.fields.openingBalance')}</span>
               <div className="cash-desk-amount-with-currency">
@@ -163,7 +181,7 @@ export function OpenCashSessionDialog({
                 ) : null}
               </div>
               <span id={`${titleId}-opening-hint`} className="cash-desk-field-hint">
-                {t('admin.finance.cashDesk.fields.openingBalanceHint')}
+                {positiveSourceUnavailable?cashCopy.sourceUnavailable:t('admin.finance.cashDesk.fields.openingBalanceHint')}
               </span>
             </label>
             <label className="field">
