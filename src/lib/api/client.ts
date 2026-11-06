@@ -20,7 +20,8 @@ function buildUrl(path: string, query?: ListParams): string {
   if (!query) return url;
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {
-    if (v !== undefined && v !== null && v !== '') sp.set(k, String(v));
+    const keepEmpty = clean === '/admin/finance/contractual-services-analytics' && k === 'selected_service_ids';
+    if (v !== undefined && v !== null && (v !== '' || keepEmpty)) sp.set(k, String(v));
   }
   const qs = sp.toString();
   return qs ? `${url}?${qs}` : url;
