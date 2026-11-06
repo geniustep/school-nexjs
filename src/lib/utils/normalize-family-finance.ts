@@ -224,6 +224,8 @@ function normalizeOpenInstallment(raw: unknown): FamilyOpenInstallment | null {
     service_type: readServiceType(row.service_type),
     service_label: readString(row.service_label) ?? readString(row.label),
     due_date: readString(row.due_date),
+    period_start: readString(row.period_start),
+    period_end: readString(row.period_end),
     remaining_amount: normalizeMoneyValue(row.remaining_amount ?? row.amount_remaining),
     is_overdue: readBoolean(row.is_overdue) ?? readBoolean(row.overdue),
     collectible: readBoolean(row.collectible),

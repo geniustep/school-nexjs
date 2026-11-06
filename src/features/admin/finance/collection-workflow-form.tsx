@@ -460,9 +460,11 @@ function CollectionWorkflowFormReady({
 
   function handleAmountChange(value: string) {
     amountManuallyEditedRef.current = true;
-    setManualAllocation(false);
     setAmount(value);
     const proposal = deriveStudentMonthlyAllocation(value, openInstallments);
+    // Send the visible month-first suggestion as explicit lines for backend preview;
+    // implicit oldest_due_first would silently replace it with a different order.
+    setManualAllocation(proposal.selectedIds.length > 0);
     setAllocationInputs(proposal.allocations);
     setSelectedInstallmentIds(proposal.selectedIds);
     setPreview(null);
@@ -472,8 +474,9 @@ function CollectionWorkflowFormReady({
   // Refresh a draft when installments load after the user typed a value.
   // No payment is created here; backend preview and confirmation remain authoritative.
   useEffect(() => {
-    if (!flexiblePrepaymentFlow || manualAllocation || !amountManuallyEditedRef.current) return;
+    if (!flexiblePrepaymentFlow || !amountManuallyEditedRef.current) return;
     const proposal = deriveStudentMonthlyAllocation(amount, openInstallments);
+    setManualAllocation(proposal.selectedIds.length > 0);
     setAllocationInputs(proposal.allocations);
     setSelectedInstallmentIds(proposal.selectedIds);
   }, [amount, openInstallments, flexiblePrepaymentFlow, manualAllocation]);
